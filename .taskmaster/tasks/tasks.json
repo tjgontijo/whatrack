@@ -1,0 +1,340 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 45,
+        "title": "Add providerMessageId and media fields to Message model",
+        "description": "Add new fields to the Message model in Prisma schema: providerMessageId (unique), mediaSizeBytes, and mediaDurationSeconds for idempotency and enhanced media tracking.",
+        "details": "## Implementation Steps\n\n1. Edit `prisma/schema.prisma` to update the Message model:\n\n```prisma\nmodel Message {\n  // ... existing fields ...\n  \n  // Idempotency and tracking (NEW)\n  providerMessageId String? @unique  // WhatsApp message ID (wamid.xxx)\n  \n  // Media metadata (NEW)\n  mediaSizeBytes       Int?     // File size in bytes\n  mediaDurationSeconds Int?     // Duration for audio/video\n  \n  // ... existing indexes ...\n  @@index([providerMessageId])\n}\n```\n\n2. The providerMessageId field must be:\n   - Optional (String?) to allow messages sent from the app before WhatsApp response\n   - Unique constraint for idempotency checking\n   - Indexed for fast lookups during webhook processing\n\n3. Do NOT run migration yet - this will be done in task 48 after all schema changes.",
+        "testStrategy": "1. Verify schema compiles with `npx prisma format`\n2. Verify new fields are correctly defined with proper types\n3. Verify unique constraint on providerMessageId\n4. Verify new index on providerMessageId",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 46,
+        "title": "Change Conversation unique constraint from leadId to (leadId, instanceId)",
+        "description": "Modify the Conversation model to use a composite unique constraint on (leadId, instanceId) instead of a single unique constraint on leadId, enabling multiple conversations per lead (one per WhatsApp instance).",
+        "details": "## Implementation Steps\n\n1. Edit `prisma/schema.prisma` to update the Conversation model:\n\n```prisma\nmodel Conversation {\n  id             String       @id @default(cuid())\n  organizationId String\n  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)\n\n  // Lead relationship (CHANGE: Remove @unique from leadId)\n  leadId String\n  lead   Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)\n\n  // WhatsApp instance\n  instanceId String\n\n  status   ConversationStatus   @default(OPEN)\n  priority ConversationPriority @default(MEDIUM)\n\n  unreadCount   Int       @default(0)\n  lastMessageAt DateTime?\n\n  createdAt DateTime @default(now())\n  updatedAt DateTime @default(now()) @updatedAt\n\n  tickets Ticket[]\n  metrics ConversationMetrics?\n\n  // CHANGE: Composite unique instead of single leadId unique\n  @@unique([leadId, instanceId])\n  @@index([organizationId])\n  @@index([instanceId])\n  @@index([status])\n  @@map(\"conversations\")\n}\n```\n\n2. Update the Lead model to change the Conversation relation from 1:1 to 1:N:\n\n```prisma\nmodel Lead {\n  // ... existing fields ...\n  \n  // CHANGE: From 'Conversation?' to 'Conversation[]'\n  conversations Conversation[]\n  \n  // ... rest of fields ...\n}\n```\n\n3. Do NOT run migration yet - this will be done in task 48 after all schema changes.",
+        "testStrategy": "1. Verify schema compiles with `npx prisma format`\n2. Verify the unique constraint is correctly defined as composite\n3. Verify Lead model has Conversation[] (plural) relation\n4. Verify no duplicate unique constraint on leadId alone",
+        "priority": "high",
+        "dependencies": [
+          45
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 47,
+        "title": "Remove WhatsappMessage model from schema",
+        "description": "Delete the WhatsappMessage model from Prisma schema as messages are now consolidated into the Message model with providerMessageId for idempotency.",
+        "details": "## Implementation Steps\n\n1. Remove the WhatsappMessage model entirely from `prisma/schema.prisma`:\n\n```prisma\n// DELETE THIS ENTIRE MODEL\nmodel WhatsappMessage {\n  id             String       @id @default(cuid())\n  organizationId String\n  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)\n  // ... all fields ...\n  @@map(\"whatsapp_message\")\n}\n```\n\n2. Remove the WhatsappMessage relation from Organization model:\n\n```prisma\nmodel Organization {\n  // ... other fields ...\n  \n  // DELETE THIS LINE:\n  // whatsappMessages WhatsappMessage[]\n  \n  // ... rest of fields ...\n}\n```\n\n3. Remove WhatsappMessage relation from Lead model:\n\n```prisma\nmodel Lead {\n  // ... other fields ...\n  \n  // DELETE THIS LINE:\n  // whatsappMessages WhatsappMessage[]\n  \n  // ... rest of fields ...\n}\n```\n\n4. Remove WhatsappMessage relation from Ticket model:\n\n```prisma\nmodel Ticket {\n  // ... other fields ...\n  \n  // DELETE THIS LINE:\n  // whatsappMessages WhatsappMessage[]\n  \n  // ... rest of fields ...\n}\n```\n\n5. Do NOT run migration yet - this will be done in task 48.",
+        "testStrategy": "1. Verify schema compiles with `npx prisma format`\n2. Verify WhatsappMessage model is completely removed\n3. Verify all relations to WhatsappMessage are removed from other models\n4. Verify no TypeScript errors related to WhatsappMessage type",
+        "priority": "high",
+        "dependencies": [
+          45,
+          46
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 48,
+        "title": "Run Prisma migration for schema changes",
+        "description": "Generate and run the Prisma migration to apply all schema changes: new Message fields, Conversation composite unique constraint, and WhatsappMessage removal.",
+        "details": "## Implementation Steps\n\n1. First, validate the schema:\n```bash\nnpx prisma format\nnpx prisma validate\n```\n\n2. Generate the migration:\n```bash\nnpx prisma migrate dev --name chat_refactor_schema\n```\n\n3. The migration should include:\n   - ADD column `provider_message_id` to `messages` table (nullable, unique)\n   - ADD column `media_size_bytes` to `messages` table (nullable integer)\n   - ADD column `media_duration_seconds` to `messages` table (nullable integer)\n   - ADD index on `messages.provider_message_id`\n   - DROP unique constraint on `conversations.lead_id`\n   - ADD unique constraint on `conversations(lead_id, instance_id)`\n   - DROP table `whatsapp_message`\n\n4. Generate Prisma client:\n```bash\nnpx prisma generate\n```\n\n5. Verify migration was applied successfully.",
+        "testStrategy": "1. Verify migration file is created correctly\n2. Verify migration runs without errors\n3. Verify Prisma client is generated successfully\n4. Run `npx prisma db pull` and compare schema\n5. Verify TypeScript compilation succeeds with new Prisma types",
+        "priority": "high",
+        "dependencies": [
+          45,
+          46,
+          47
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 49,
+        "title": "Rename src/app/dashboard/inbox to src/app/dashboard/chat",
+        "description": "Rename the inbox page directory to chat for consistent nomenclature throughout the application.",
+        "details": "## Implementation Steps\n\n1. Rename the directory structure:\n```bash\nmv src/app/dashboard/inbox src/app/dashboard/chat\n```\n\n2. Files to be renamed:\n   - `src/app/dashboard/inbox/page.tsx` → `src/app/dashboard/chat/page.tsx`\n   - `src/app/dashboard/inbox/instance/[instanceId]/page.tsx` → `src/app/dashboard/chat/instance/[instanceId]/page.tsx`\n\n3. Update any internal imports within the renamed files that reference the old path.\n\n4. Update the sidebar navigation in `src/components/dashboard/sidebar.tsx`:\n   - Change href from `/dashboard/inbox` to `/dashboard/chat`\n   - Update any label from \"Inbox\" to \"Chat\"\n\n5. Update any redirects or links that point to `/dashboard/inbox` routes.",
+        "testStrategy": "1. Verify routes `/dashboard/chat` and `/dashboard/chat/instance/[instanceId]` work\n2. Verify old routes `/dashboard/inbox` return 404 or redirect appropriately\n3. Verify sidebar navigation correctly links to new chat routes\n4. Verify no broken imports in page files",
+        "priority": "medium",
+        "dependencies": [
+          48
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 50,
+        "title": "Rename src/components/dashboard/inbox to src/components/dashboard/chat",
+        "description": "Rename the inbox components directory to chat and update internal subdirectory names as per PRD specifications.",
+        "details": "## Implementation Steps\n\n1. Rename the main directory:\n```bash\nmv src/components/dashboard/inbox src/components/dashboard/chat\n```\n\n2. Rename subdirectories per PRD:\n   - `chat/` → `messages/` (the chat subdirectory contains message components)\n   - `contact-panel/` → `lead-panel/` (better reflects the domain model)\n\n3. Final structure:\n```\nsrc/components/dashboard/chat/\n├── index.ts\n├── messages/              # formerly 'chat'\n│   ├── index.ts\n│   ├── chat-input.tsx\n│   ├── chat-message.tsx\n│   └── connection-status.tsx\n├── conversation-list/\n│   ├── index.ts\n│   ├── conversation-item.tsx\n│   └── conversation-list.tsx\n└── lead-panel/            # formerly 'contact-panel'\n    ├── index.ts\n    ├── contact-panel.tsx  # keep filename, it handles lead contact info\n    └── metrics-accordion.tsx\n```\n\n4. Update `src/components/dashboard/chat/index.ts` to re-export from new paths.\n\n5. Update all imports in page files that use these components.",
+        "testStrategy": "1. Verify all component files exist in new locations\n2. Verify index.ts exports are correct\n3. Verify no import errors in consuming files\n4. Run TypeScript compilation to check for broken imports",
+        "priority": "medium",
+        "dependencies": [
+          49
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 51,
+        "title": "Rename src/lib/inbox to src/lib/chat",
+        "description": "Rename the inbox library directory to chat, maintaining all existing functionality while updating the path.",
+        "details": "## Implementation Steps\n\n1. Rename the directory:\n```bash\nmv src/lib/inbox src/lib/chat\n```\n\n2. Files in the new location:\n```\nsrc/lib/chat/\n├── api.ts\n├── types.ts\n├── index.ts\n├── service.ts\n├── contact-service.ts\n├── conversation-service.ts\n├── message-service.ts\n└── __tests__/\n    ├── schema.test.ts\n    └── inbox-service.test.ts  # rename to chat-service.test.ts\n```\n\n3. Update the `api.ts` file to use new API routes (will be created in task 56):\n   - Change `/api/conversations` → `/api/v1/chat/conversations`\n\n4. Update all imports throughout the codebase that reference `@/lib/inbox` to use `@/lib/chat`.\n\n5. Update the index.ts to export all functions correctly.",
+        "testStrategy": "1. Verify all files exist in new location\n2. Verify TypeScript compilation succeeds\n3. Verify test files run correctly\n4. Grep for any remaining '@/lib/inbox' imports",
+        "priority": "medium",
+        "dependencies": [
+          50
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 52,
+        "title": "Rename src/services/inbox to src/services/chat",
+        "description": "Rename the inbox services directory to chat, which contains the backend service functions for chat operations.",
+        "details": "## Implementation Steps\n\n1. Rename the directory:\n```bash\nmv src/services/inbox src/services/chat\n```\n\n2. The directory contains:\n```\nsrc/services/chat/\n└── index.ts\n```\n\n3. Update all imports that reference `@/services/inbox` to use `@/services/chat`.\n\n4. Key files to update:\n   - `src/app/api/v1/whatsapp/w/webhook/[id]/route.ts` - imports from `@/services/inbox`\n   - Any other API routes or services that import from inbox services\n\n5. Ensure the service functions are correctly exported from the new path.",
+        "testStrategy": "1. Verify service file exists in new location\n2. Verify all imports are updated\n3. Grep for any remaining '@/services/inbox' imports\n4. Verify TypeScript compilation succeeds",
+        "priority": "medium",
+        "dependencies": [
+          51
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 53,
+        "title": "Rename src/hooks/use-conversations.ts to src/hooks/use-chat.ts",
+        "description": "Rename the conversations hook file to use-chat.ts and update all imports throughout the codebase.",
+        "details": "## Implementation Steps\n\n1. Rename the file:\n```bash\nmv src/hooks/use-conversations.ts src/hooks/use-chat.ts\n```\n\n2. Update the internal query key prefix from 'conversations' to 'chat':\n\n```typescript\n// src/hooks/use-chat.ts\nexport const chatKeys = {\n  all: [\"chat\"] as const,\n  lists: () => [...chatKeys.all, \"list\"] as const,\n  list: (filters?: ConversationFilters) =>\n    [...chatKeys.lists(), filters] as const,\n  details: () => [...chatKeys.all, \"detail\"] as const,\n  detail: (id: string) => [...chatKeys.details(), id] as const,\n  messages: (conversationId: string) =>\n    [...chatKeys.detail(conversationId), \"messages\"] as const,\n};\n```\n\n3. Update all imports throughout the codebase:\n   - Change `from '@/hooks/use-conversations'` to `from '@/hooks/use-chat'`\n   - Update references to `conversationsKeys` to `chatKeys`\n\n4. Files to update:\n   - `src/app/dashboard/chat/instance/[instanceId]/page.tsx`\n   - Any other components using these hooks",
+        "testStrategy": "1. Verify hook file exists in new location\n2. Verify all imports are updated\n3. Grep for any remaining 'use-conversations' imports\n4. Verify TypeScript compilation succeeds\n5. Test that React Query cache invalidation still works",
+        "priority": "medium",
+        "dependencies": [
+          52
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 54,
+        "title": "Update upsertConversation to use composite (leadId, instanceId) lookup",
+        "description": "Modify the upsertConversation function to search by the composite key (leadId, instanceId) instead of just leadId, enabling separate conversations per instance.",
+        "details": "## Implementation Steps\n\n1. Update `src/services/chat/index.ts` (formerly inbox):\n\n```typescript\nexport async function upsertConversation(\n  params: UpsertConversationParams\n): Promise<Conversation> {\n  const { organizationId, leadId, instanceId } = params\n\n  // CHANGED: Search by composite key (leadId, instanceId)\n  const existing = await prisma.conversation.findUnique({\n    where: {\n      leadId_instanceId: { leadId, instanceId }\n    },\n  })\n\n  if (existing) {\n    // Reopen if resolved\n    if (existing.status === 'RESOLVED') {\n      return prisma.conversation.update({\n        where: { id: existing.id },\n        data: { status: 'OPEN' },\n      })\n    }\n    return existing\n  }\n\n  // Create new conversation for this lead+instance combination\n  return prisma.conversation.create({\n    data: {\n      organizationId,\n      leadId,\n      instanceId,\n      status: 'OPEN',\n      priority: 'MEDIUM',\n    },\n  })\n}\n```\n\n2. Update `src/lib/chat/service.ts` (formerly inbox/service.ts):\n\n```typescript\nexport async function upsertConversation(input: UpsertConversationInput): Promise<Conversation> {\n  const { organizationId, leadId, instanceId } = input\n\n  // CHANGED: Use composite unique lookup\n  const existingConversation = await prisma.conversation.findUnique({\n    where: {\n      leadId_instanceId: { leadId, instanceId }\n    },\n  })\n\n  if (existingConversation) {\n    return existingConversation\n  }\n\n  return prisma.conversation.create({\n    data: {\n      organizationId,\n      leadId,\n      instanceId,\n    },\n  })\n}\n```\n\n3. Update `src/lib/chat/conversation-service.ts`:\n\n```typescript\nexport async function findOrCreateConversation(input: FindOrCreateConversationInput) {\n  const { organizationId, instanceId, leadId, reopenIfResolved = true } = input;\n\n  // CHANGED: Use composite unique lookup\n  const existing = await prisma.conversation.findUnique({\n    where: {\n      leadId_instanceId: { leadId, instanceId }\n    },\n  });\n\n  // ... rest of implementation\n}\n```",
+        "testStrategy": "1. Unit test: Create conversation for lead+instance A, verify it exists\n2. Unit test: Create another conversation for same lead+instance B, verify both exist\n3. Unit test: Call upsertConversation for existing lead+instance, verify no duplicate\n4. Integration test: Simulate webhook from two different instances for same lead",
+        "priority": "high",
+        "dependencies": [
+          48,
+          52
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 55,
+        "title": "Update createMessage with providerMessageId and media fields",
+        "description": "Modify the createMessage function to accept and store the new providerMessageId, mediaSizeBytes, and mediaDurationSeconds fields.",
+        "details": "## Implementation Steps\n\n1. Update the CreateMessageParams interface in `src/services/chat/index.ts`:\n\n```typescript\ninterface CreateMessageParams {\n  ticketId: string\n  senderType: 'LEAD' | 'USER' | 'AI' | 'SYSTEM'\n  senderId: string | null\n  senderName: string | null\n  messageType: string\n  content: string\n  mediaUrl: string | null\n  mediaType: string | null\n  fileName: string | null\n  providerMessageId: string | null     // NEW\n  mediaSizeBytes: number | null        // NEW\n  mediaDurationSeconds: number | null  // NEW\n  sentAt: Date\n}\n```\n\n2. Update the createMessage function:\n\n```typescript\nexport async function createMessage(params: CreateMessageParams): Promise<Message> {\n  const {\n    ticketId,\n    senderType,\n    senderId,\n    senderName,\n    messageType,\n    content,\n    mediaUrl,\n    mediaType,\n    fileName,\n    providerMessageId,      // NEW\n    mediaSizeBytes,         // NEW\n    mediaDurationSeconds,   // NEW\n    sentAt,\n  } = params\n\n  const validMessageType = mapMessageType(messageType)\n\n  return prisma.message.create({\n    data: {\n      ticketId,\n      senderType: senderType as MessageSenderType,\n      senderId,\n      senderName,\n      messageType: validMessageType,\n      content,\n      mediaUrl,\n      mediaType,\n      fileName,\n      providerMessageId,      // NEW\n      mediaSizeBytes,         // NEW\n      mediaDurationSeconds,   // NEW\n      sentAt,\n    },\n  })\n}\n```\n\n3. Update the CreateMessageInput interface in `src/lib/chat/service.ts` similarly.",
+        "testStrategy": "1. Unit test: Create message with providerMessageId, verify it's stored\n2. Unit test: Create message with media metadata, verify fields are populated\n3. Unit test: Create message without optional fields, verify null values\n4. Verify TypeScript types are correctly updated",
+        "priority": "high",
+        "dependencies": [
+          48,
+          52
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 56,
+        "title": "Update webhook handler with idempotency check and remove WhatsappMessage",
+        "description": "Modify the WuzAPI webhook handler to check for duplicate messages using providerMessageId and remove the legacy WhatsappMessage upsert.",
+        "details": "## Implementation Steps\n\n1. Update `src/app/api/v1/whatsapp/w/webhook/[id]/route.ts`:\n\n```typescript\nimport {\n  upsertLead,\n  upsertConversation,\n  resolveTicket,\n  createMessage,\n  updateConversationLastMessage,\n} from '@/services/chat'  // CHANGED: from inbox to chat\n\nasync function persistMessage({\n  organizationId,\n  instanceId,\n  payload,\n}: {\n  organizationId: string\n  instanceId: string\n  payload: ReturnType<typeof normalizePayload>\n}) {\n  // NEW: Idempotency check - skip if message already processed\n  if (payload.providerMessageId) {\n    const existing = await prisma.message.findUnique({\n      where: { providerMessageId: payload.providerMessageId }\n    })\n    \n    if (existing) {\n      console.log('[webhook] Message already processed, skipping:', payload.providerMessageId)\n      return\n    }\n  }\n\n  // 1. Upsert Lead\n  const lead = await upsertLead({\n    organizationId,\n    remoteJid: payload.remoteJid!,\n    phone: payload.phone ?? '',\n    name: payload.name,\n  })\n\n  // 2. Upsert Conversation (now by leadId + instanceId)\n  const conversation = await upsertConversation({\n    organizationId,\n    leadId: lead.id,\n    instanceId,\n  })\n\n  // 3. Resolve Ticket\n  const ticket = await resolveTicket(conversation.id)\n\n  // 4. Create Message with new fields\n  const senderType = payload.direction === 'OUTBOUND' ? 'USER' : 'LEAD'\n  const message = await createMessage({\n    ticketId: ticket.id,\n    senderType: senderType as 'LEAD' | 'USER' | 'AI' | 'SYSTEM',\n    senderId: senderType === 'LEAD' ? lead.id : null,\n    senderName: payload.name,\n    messageType: payload.messageType.toUpperCase(),\n    content: payload.contentText,\n    mediaUrl: payload.mediaUrl,\n    mediaType: payload.mediaMimeType,\n    fileName: null,\n    providerMessageId: payload.providerMessageId,  // NEW\n    mediaSizeBytes: payload.mediaSizeBytes,         // NEW\n    mediaDurationSeconds: payload.mediaDurationSeconds,  // NEW\n    sentAt: payload.sentAt,\n  })\n\n  // 4.1. Cancel follow-ups if lead replied\n  if (senderType === 'LEAD') {\n    try {\n      await cancelFollowupsOnReply(ticket.id)\n    } catch (followupError) {\n      console.error('[webhook] Follow-up cancellation error:', followupError)\n    }\n  }\n\n  // 5. Update Conversation\n  const updatedConversation = await updateConversationLastMessage(\n    conversation.id,\n    payload.sentAt\n  )\n\n  // 6. Publish to Centrifugo\n  // ... existing Centrifugo code ...\n\n  // REMOVED: Legacy WhatsappMessage upsert\n  // No longer needed - Message model handles everything\n\n  await prisma.ticket.update({\n    where: { id: ticket.id },\n    data: { lastMessageAt: payload.sentAt },\n  })\n}\n```\n\n2. Remove the entire WhatsappMessage upsert block from the webhook handler.",
+        "testStrategy": "1. Integration test: Send webhook with unique providerMessageId, verify message created\n2. Integration test: Send same webhook again, verify no duplicate message\n3. Integration test: Verify Message has providerMessageId, mediaSizeBytes, mediaDurationSeconds\n4. Integration test: Verify WhatsappMessage table is not written to\n5. Integration test: Same lead from different instances creates separate conversations",
+        "priority": "high",
+        "dependencies": [
+          54,
+          55
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 57,
+        "title": "Create GET /api/v1/chat/conversations endpoint",
+        "description": "Create the API route to list conversations filtered by instanceId and optional status filter.",
+        "details": "## Implementation Steps\n\n1. Create `src/app/api/v1/chat/conversations/route.ts`:\n\n```typescript\nimport { NextResponse } from 'next/server'\nimport { prisma } from '@/lib/prisma'\nimport { getServerSession } from '@/lib/auth/server-session'\nimport { z } from 'zod'\n\nconst querySchema = z.object({\n  instanceId: z.string().min(1),\n  status: z.enum(['OPEN', 'PENDING', 'RESOLVED', 'SNOOZED']).optional(),\n})\n\nexport async function GET(request: Request) {\n  const session = await getServerSession()\n  if (!session?.organizationId) {\n    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })\n  }\n\n  const { searchParams } = new URL(request.url)\n  const parsed = querySchema.safeParse({\n    instanceId: searchParams.get('instanceId'),\n    status: searchParams.get('status'),\n  })\n\n  if (!parsed.success) {\n    return NextResponse.json({ error: 'instanceId is required' }, { status: 400 })\n  }\n\n  const { instanceId, status } = parsed.data\n\n  const conversations = await prisma.conversation.findMany({\n    where: {\n      organizationId: session.organizationId,\n      instanceId,\n      ...(status && { status }),\n    },\n    include: {\n      lead: {\n        select: {\n          id: true,\n          name: true,\n          phone: true,\n        },\n      },\n      tickets: {\n        where: { status: 'OPEN' },\n        take: 1,\n        orderBy: { createdAt: 'desc' },\n        include: {\n          messages: {\n            take: 1,\n            orderBy: { sentAt: 'desc' },\n          },\n        },\n      },\n    },\n    orderBy: { lastMessageAt: 'desc' },\n  })\n\n  const response = conversations.map(conv => ({\n    id: conv.id,\n    status: conv.status,\n    priority: conv.priority,\n    unreadCount: conv.unreadCount,\n    lastMessageAt: conv.lastMessageAt?.toISOString() ?? null,\n    lead: {\n      id: conv.lead.id,\n      name: conv.lead.name,\n      phone: conv.lead.phone,\n    },\n    lastMessage: conv.tickets[0]?.messages[0] ? {\n      content: conv.tickets[0].messages[0].content,\n      senderType: conv.tickets[0].messages[0].senderType,\n      sentAt: conv.tickets[0].messages[0].sentAt.toISOString(),\n    } : null,\n  }))\n\n  return NextResponse.json(response)\n}\n```",
+        "testStrategy": "1. Unit test: Request without instanceId returns 400\n2. Unit test: Request without auth returns 401\n3. Unit test: Returns conversations filtered by instanceId\n4. Unit test: Returns conversations filtered by status\n5. Unit test: Response includes lead and lastMessage data",
+        "priority": "medium",
+        "dependencies": [
+          48,
+          53
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 58,
+        "title": "Create GET /api/v1/chat/conversations/[id] endpoint",
+        "description": "Create the API route to get conversation details including lead information.",
+        "details": "## Implementation Steps\n\n1. Create `src/app/api/v1/chat/conversations/[id]/route.ts`:\n\n```typescript\nimport { NextResponse } from 'next/server'\nimport { prisma } from '@/lib/prisma'\nimport { getServerSession } from '@/lib/auth/server-session'\n\nexport async function GET(\n  request: Request,\n  { params }: { params: Promise<{ id: string }> }\n) {\n  const session = await getServerSession()\n  if (!session?.organizationId) {\n    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })\n  }\n\n  const { id } = await params\n\n  const conversation = await prisma.conversation.findFirst({\n    where: {\n      id,\n      organizationId: session.organizationId,\n    },\n    include: {\n      lead: {\n        select: {\n          id: true,\n          name: true,\n          phone: true,\n          mail: true,\n          instagram: true,\n          notes: true,\n          status: true,\n          createdAt: true,\n        },\n      },\n    },\n  })\n\n  if (!conversation) {\n    return NextResponse.json({ error: 'Not found' }, { status: 404 })\n  }\n\n  return NextResponse.json({\n    id: conversation.id,\n    status: conversation.status,\n    priority: conversation.priority,\n    unreadCount: conversation.unreadCount,\n    lastMessageAt: conversation.lastMessageAt?.toISOString() ?? null,\n    instanceId: conversation.instanceId,\n    createdAt: conversation.createdAt.toISOString(),\n    lead: conversation.lead,\n  })\n}\n```",
+        "testStrategy": "1. Unit test: Request without auth returns 401\n2. Unit test: Request for non-existent conversation returns 404\n3. Unit test: Request for conversation in different org returns 404\n4. Unit test: Returns full conversation details with lead",
+        "priority": "medium",
+        "dependencies": [
+          57
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 59,
+        "title": "Create PATCH /api/v1/chat/conversations/[id] endpoint",
+        "description": "Create the API route to update conversation status and priority.",
+        "details": "## Implementation Steps\n\n1. Add PATCH handler to `src/app/api/v1/chat/conversations/[id]/route.ts`:\n\n```typescript\nimport { z } from 'zod'\n\nconst updateSchema = z.object({\n  status: z.enum(['OPEN', 'PENDING', 'RESOLVED', 'SNOOZED']).optional(),\n  priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),\n})\n\nexport async function PATCH(\n  request: Request,\n  { params }: { params: Promise<{ id: string }> }\n) {\n  const session = await getServerSession()\n  if (!session?.organizationId) {\n    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })\n  }\n\n  const { id } = await params\n  const body = await request.json()\n  \n  const parsed = updateSchema.safeParse(body)\n  if (!parsed.success) {\n    return NextResponse.json({ error: parsed.error.message }, { status: 400 })\n  }\n\n  // Verify conversation belongs to organization\n  const existing = await prisma.conversation.findFirst({\n    where: {\n      id,\n      organizationId: session.organizationId,\n    },\n  })\n\n  if (!existing) {\n    return NextResponse.json({ error: 'Not found' }, { status: 404 })\n  }\n\n  const updated = await prisma.conversation.update({\n    where: { id },\n    data: parsed.data,\n    include: {\n      lead: {\n        select: {\n          id: true,\n          name: true,\n          phone: true,\n        },\n      },\n    },\n  })\n\n  return NextResponse.json({\n    id: updated.id,\n    status: updated.status,\n    priority: updated.priority,\n    unreadCount: updated.unreadCount,\n    lastMessageAt: updated.lastMessageAt?.toISOString() ?? null,\n    lead: updated.lead,\n  })\n}\n```",
+        "testStrategy": "1. Unit test: Update status from OPEN to RESOLVED\n2. Unit test: Update priority from MEDIUM to HIGH\n3. Unit test: Invalid status value returns 400\n4. Unit test: Cannot update conversation from different org",
+        "priority": "medium",
+        "dependencies": [
+          58
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 60,
+        "title": "Create GET /api/v1/chat/conversations/[id]/messages endpoint",
+        "description": "Create the API route to list messages for a conversation with cursor-based pagination.",
+        "details": "## Implementation Steps\n\n1. Create `src/app/api/v1/chat/conversations/[id]/messages/route.ts`:\n\n```typescript\nimport { NextResponse } from 'next/server'\nimport { prisma } from '@/lib/prisma'\nimport { getServerSession } from '@/lib/auth/server-session'\nimport { z } from 'zod'\n\nconst querySchema = z.object({\n  cursor: z.string().optional(),\n  limit: z.coerce.number().min(1).max(100).default(50),\n})\n\nexport async function GET(\n  request: Request,\n  { params }: { params: Promise<{ id: string }> }\n) {\n  const session = await getServerSession()\n  if (!session?.organizationId) {\n    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })\n  }\n\n  const { id: conversationId } = await params\n  const { searchParams } = new URL(request.url)\n  \n  const parsed = querySchema.safeParse({\n    cursor: searchParams.get('cursor'),\n    limit: searchParams.get('limit'),\n  })\n\n  if (!parsed.success) {\n    return NextResponse.json({ error: parsed.error.message }, { status: 400 })\n  }\n\n  const { cursor, limit } = parsed.data\n\n  // Verify conversation belongs to organization\n  const conversation = await prisma.conversation.findFirst({\n    where: {\n      id: conversationId,\n      organizationId: session.organizationId,\n    },\n    include: {\n      tickets: {\n        select: { id: true },\n      },\n    },\n  })\n\n  if (!conversation) {\n    return NextResponse.json({ error: 'Not found' }, { status: 404 })\n  }\n\n  const ticketIds = conversation.tickets.map(t => t.id)\n\n  const messages = await prisma.message.findMany({\n    where: {\n      ticketId: { in: ticketIds },\n    },\n    take: limit + 1,  // Fetch one extra to check hasMore\n    ...(cursor && {\n      cursor: { id: cursor },\n      skip: 1,\n    }),\n    orderBy: { sentAt: 'desc' },\n  })\n\n  const hasMore = messages.length > limit\n  const items = hasMore ? messages.slice(0, -1) : messages\n  const nextCursor = hasMore ? items[items.length - 1]?.id : null\n\n  return NextResponse.json({\n    messages: items.map(m => ({\n      id: m.id,\n      content: m.content,\n      senderType: m.senderType,\n      senderId: m.senderId,\n      senderName: m.senderName,\n      messageType: m.messageType,\n      mediaUrl: m.mediaUrl,\n      mediaType: m.mediaType,\n      fileName: m.fileName,\n      status: m.status,\n      sentAt: m.sentAt.toISOString(),\n      deliveredAt: m.deliveredAt?.toISOString() ?? null,\n      readAt: m.readAt?.toISOString() ?? null,\n    })),\n    nextCursor,\n    hasMore,\n  })\n}\n```",
+        "testStrategy": "1. Unit test: Returns messages for conversation\n2. Unit test: Cursor pagination works correctly\n3. Unit test: hasMore flag is accurate\n4. Unit test: Cannot access messages from different org's conversation\n5. Unit test: Messages ordered by sentAt descending",
+        "priority": "medium",
+        "dependencies": [
+          58
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 61,
+        "title": "Create POST /api/v1/chat/conversations/[id]/messages endpoint",
+        "description": "Create the API route to send a message in a conversation, integrating with WuzAPI and Centrifugo.",
+        "details": "## Implementation Steps\n\n1. Add POST handler to `src/app/api/v1/chat/conversations/[id]/messages/route.ts`:\n\n```typescript\nimport { sendWuzapiMessage } from '@/services/whatsapp/wuzapi/send-message'\nimport { publishNewMessage, publishConversationUpdate } from '@/lib/centrifugo'\nimport { resolveTicket, createMessage, updateConversationLastMessage } from '@/services/chat'\nimport { z } from 'zod'\n\nconst sendMessageSchema = z.object({\n  content: z.string().min(1),\n  messageType: z.enum(['TEXT', 'IMAGE', 'VIDEO', 'AUDIO', 'DOCUMENT']).default('TEXT'),\n  mediaUrl: z.string().url().optional(),\n})\n\nexport async function POST(\n  request: Request,\n  { params }: { params: Promise<{ id: string }> }\n) {\n  const session = await getServerSession()\n  if (!session?.organizationId || !session?.userId) {\n    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })\n  }\n\n  const { id: conversationId } = await params\n  const body = await request.json()\n\n  const parsed = sendMessageSchema.safeParse(body)\n  if (!parsed.success) {\n    return NextResponse.json({ error: parsed.error.message }, { status: 400 })\n  }\n\n  const { content, messageType, mediaUrl } = parsed.data\n\n  // 1. Get conversation with lead and verify access\n  const conversation = await prisma.conversation.findFirst({\n    where: {\n      id: conversationId,\n      organizationId: session.organizationId,\n    },\n    include: {\n      lead: true,\n    },\n  })\n\n  if (!conversation) {\n    return NextResponse.json({ error: 'Conversation not found' }, { status: 404 })\n  }\n\n  if (!conversation.lead.phone) {\n    return NextResponse.json({ error: 'Lead has no phone number' }, { status: 400 })\n  }\n\n  // 2. Resolve ticket (find OPEN or create new)\n  const ticket = await resolveTicket(conversationId)\n\n  // 3. Send via WuzAPI\n  const wuzapiResult = await sendWuzapiMessage({\n    organizationId: session.organizationId,\n    instanceId: conversation.instanceId,\n    phone: conversation.lead.phone,\n    message: content,\n  })\n\n  if (!wuzapiResult.success) {\n    return NextResponse.json({ error: wuzapiResult.error }, { status: 500 })\n  }\n\n  // 4. Create Message in database\n  const message = await createMessage({\n    ticketId: ticket.id,\n    senderType: 'USER',\n    senderId: session.userId,\n    senderName: session.user?.name ?? null,\n    messageType,\n    content,\n    mediaUrl: mediaUrl ?? null,\n    mediaType: null,\n    fileName: null,\n    providerMessageId: wuzapiResult.messageId ?? null,\n    mediaSizeBytes: null,\n    mediaDurationSeconds: null,\n    sentAt: new Date(),\n  })\n\n  // 5. Update conversation lastMessageAt\n  const updatedConversation = await updateConversationLastMessage(\n    conversationId,\n    message.sentAt\n  )\n\n  // 6. Publish to Centrifugo\n  try {\n    await publishNewMessage(conversationId, {\n      id: message.id,\n      ticketId: message.ticketId,\n      content: message.content,\n      senderType: message.senderType as 'LEAD' | 'USER' | 'AI' | 'SYSTEM',\n      sentAt: message.sentAt,\n      messageType: message.messageType,\n      mediaUrl: message.mediaUrl,\n      senderId: message.senderId,\n      senderName: message.senderName,\n    })\n\n    await publishConversationUpdate(session.organizationId, {\n      id: updatedConversation.id,\n      leadId: updatedConversation.leadId,\n      status: updatedConversation.status as 'OPEN' | 'PENDING' | 'RESOLVED' | 'SNOOZED',\n      lastMessageAt: updatedConversation.lastMessageAt,\n      unreadCount: updatedConversation.unreadCount,\n    })\n  } catch (centrifugoError) {\n    console.error('[chat/messages] Centrifugo error:', centrifugoError)\n  }\n\n  // 7. Return created message\n  return NextResponse.json({\n    id: message.id,\n    content: message.content,\n    senderType: message.senderType,\n    senderId: message.senderId,\n    senderName: message.senderName,\n    messageType: message.messageType,\n    status: message.status,\n    sentAt: message.sentAt.toISOString(),\n  })\n}\n```",
+        "testStrategy": "1. Integration test: Send message successfully via WuzAPI\n2. Integration test: Message saved with providerMessageId from WuzAPI\n3. Integration test: Centrifugo receives new_message event\n4. Unit test: Invalid content returns 400\n5. Unit test: Conversation not found returns 404\n6. Unit test: Lead without phone returns 400",
+        "priority": "high",
+        "dependencies": [
+          60
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 62,
+        "title": "Update lib/chat/api.ts to use new API routes",
+        "description": "Update the frontend API client to use the new /api/v1/chat/conversations routes instead of the old /api/conversations routes.",
+        "details": "## Implementation Steps\n\n1. Update `src/lib/chat/api.ts` (formerly inbox/api.ts):\n\n```typescript\n/**\n * Chat API Client\n *\n * Functions for interacting with the chat API endpoints\n */\n\nimport type {\n  ConversationListItem,\n  ConversationDetail,\n  MessagesResponse,\n  Message,\n  UpdateConversationRequest,\n  SendMessageRequest,\n  ConversationFilters,\n} from \"./types\";\n\n// API base path - CHANGED from /api/conversations to /api/v1/chat/conversations\nconst API_BASE = '/api/v1/chat/conversations';\n\n// Error handling helper\nasync function handleResponse<T>(response: Response): Promise<T> {\n  if (!response.ok) {\n    const error = await response.json().catch(() => ({ error: \"Unknown error\" }));\n    throw new Error(error.error || `API error: ${response.status}`);\n  }\n  return response.json();\n}\n\n/**\n * List conversations with optional filters\n */\nexport async function listConversations(\n  filters?: ConversationFilters\n): Promise<ConversationListItem[]> {\n  const params = new URLSearchParams();\n\n  if (filters?.status) {\n    params.set(\"status\", filters.status);\n  }\n  if (filters?.instanceId) {\n    params.set(\"instanceId\", filters.instanceId);\n  }\n\n  const url = `${API_BASE}${params.toString() ? `?${params}` : \"\"}`;\n  const response = await fetch(url, { method: \"GET\" });\n\n  return handleResponse<ConversationListItem[]>(response);\n}\n\n/**\n * Get a single conversation with details\n */\nexport async function getConversation(id: string): Promise<ConversationDetail> {\n  const response = await fetch(`${API_BASE}/${id}`, { method: \"GET\" });\n  return handleResponse<ConversationDetail>(response);\n}\n\n/**\n * Update a conversation (status, priority)\n */\nexport async function updateConversation(\n  id: string,\n  data: UpdateConversationRequest\n): Promise<ConversationDetail> {\n  const response = await fetch(`${API_BASE}/${id}`, {\n    method: \"PATCH\",\n    headers: { \"Content-Type\": \"application/json\" },\n    body: JSON.stringify(data),\n  });\n\n  return handleResponse<ConversationDetail>(response);\n}\n\n/**\n * List messages for a conversation with pagination\n */\nexport async function listMessages(\n  conversationId: string,\n  options?: { cursor?: string; limit?: number }\n): Promise<MessagesResponse> {\n  const params = new URLSearchParams();\n\n  if (options?.cursor) {\n    params.set(\"cursor\", options.cursor);\n  }\n  if (options?.limit) {\n    params.set(\"limit\", String(options.limit));\n  }\n\n  const url = `${API_BASE}/${conversationId}/messages${params.toString() ? `?${params}` : \"\"}`;\n  const response = await fetch(url, { method: \"GET\" });\n\n  return handleResponse<MessagesResponse>(response);\n}\n\n/**\n * Send a message in a conversation\n */\nexport async function sendMessage(\n  conversationId: string,\n  data: SendMessageRequest\n): Promise<Message> {\n  const response = await fetch(`${API_BASE}/${conversationId}/messages`, {\n    method: \"POST\",\n    headers: { \"Content-Type\": \"application/json\" },\n    body: JSON.stringify(data),\n  });\n\n  return handleResponse<Message>(response);\n}\n```",
+        "testStrategy": "1. Verify all API calls use new /api/v1/chat/conversations path\n2. Verify list conversations with instanceId filter works\n3. Verify send message works with new endpoint\n4. Integration test: Full flow from frontend to backend",
+        "priority": "medium",
+        "dependencies": [
+          57,
+          58,
+          59,
+          60,
+          61
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 63,
+        "title": "Update sidebar navigation from Inbox to Chat",
+        "description": "Update the dashboard sidebar component to show 'Chat' instead of 'Inbox' and link to the new routes.",
+        "details": "## Implementation Steps\n\n1. Update `src/components/dashboard/sidebar.tsx`:\n\n```typescript\n// Find the navigation items array and update the inbox item\n\n// BEFORE:\n{\n  name: 'Inbox',\n  href: '/dashboard/inbox',\n  icon: InboxIcon,  // or whatever icon is used\n}\n\n// AFTER:\n{\n  name: 'Chat',\n  href: '/dashboard/chat',\n  icon: MessageSquareIcon,  // Use a chat-appropriate icon\n}\n```\n\n2. Update any translations in i18n files:\n   - `src/lib/i18n/locales/pt-BR.json`: \"Inbox\" → \"Chat\"\n   - `src/lib/i18n/locales/en-US.json`: \"Inbox\" → \"Chat\"\n   - `src/lib/i18n/locales/es-ES.json`: \"Inbox\" → \"Chat\"\n\n3. If there are any breadcrumbs or page titles that reference \"Inbox\", update those as well.",
+        "testStrategy": "1. Visual test: Sidebar shows 'Chat' instead of 'Inbox'\n2. Click test: Navigation link goes to /dashboard/chat\n3. Verify translations are updated in all locales",
+        "priority": "low",
+        "dependencies": [
+          49
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 64,
+        "title": "Update chat page to use Centrifugo real-time integration",
+        "description": "Integrate the Centrifugo client hook in the chat page for real-time message updates.",
+        "details": "## Implementation Steps\n\n1. Update `src/app/dashboard/chat/instance/[instanceId]/page.tsx` to use the Centrifugo hook:\n\n```typescript\nimport { useCentrifugo } from '@/hooks/use-centrifugo'\n\n// Inside the component:\nconst { data: organization } = useOrganization()\n\n// Subscribe to real-time updates\nconst { isConnected, error: connectionError } = useCentrifugo({\n  organizationId: organization?.id,\n  conversationId: selectedConversationId,\n  onNewMessage: handleNewMessage,\n  onConversationUpdated: handleConversationUpdated,\n})\n```\n\n2. The `useCentrifugo` hook should already exist at `src/hooks/use-centrifugo.ts`. If not, create it:\n\n```typescript\nimport { useEffect, useState, useCallback } from 'react'\nimport { Centrifuge } from 'centrifuge'\n\ninterface UseCentrifugoOptions {\n  organizationId?: string\n  conversationId?: string | null\n  onNewMessage?: (message: any) => void\n  onConversationUpdated?: (conversation: any) => void\n}\n\nexport function useCentrifugo(options: UseCentrifugoOptions) {\n  const { organizationId, conversationId, onNewMessage, onConversationUpdated } = options\n  const [isConnected, setIsConnected] = useState(false)\n  const [error, setError] = useState<string | null>(null)\n\n  useEffect(() => {\n    if (!organizationId) return\n\n    const centrifuge = new Centrifuge(\n      process.env.NEXT_PUBLIC_CENTRIFUGO_WS_URL || 'ws://localhost:8000/connection/websocket',\n      {\n        // Token fetching for authentication\n        getToken: async () => {\n          const response = await fetch('/api/v1/centrifugo/token')\n          const data = await response.json()\n          return data.token\n        },\n      }\n    )\n\n    // Subscribe to organization channel\n    const orgSub = centrifuge.newSubscription(`chat:org:${organizationId}`)\n    orgSub.on('publication', (ctx) => {\n      if (ctx.data.type === 'conversation_updated' && onConversationUpdated) {\n        onConversationUpdated(ctx.data.data)\n      }\n    })\n    orgSub.subscribe()\n\n    // Subscribe to conversation channel if selected\n    let convSub: any = null\n    if (conversationId) {\n      convSub = centrifuge.newSubscription(`chat:conversation:${conversationId}`)\n      convSub.on('publication', (ctx) => {\n        if (ctx.data.type === 'new_message' && onNewMessage) {\n          onNewMessage({ ...ctx.data.data, conversationId })\n        }\n      })\n      convSub.subscribe()\n    }\n\n    centrifuge.on('connected', () => setIsConnected(true))\n    centrifuge.on('disconnected', () => setIsConnected(false))\n    centrifuge.on('error', (err) => setError(err.message))\n\n    centrifuge.connect()\n\n    return () => {\n      if (convSub) convSub.unsubscribe()\n      orgSub.unsubscribe()\n      centrifuge.disconnect()\n    }\n  }, [organizationId, conversationId, onNewMessage, onConversationUpdated])\n\n  return { isConnected, error }\n}\n```\n\n3. Remove the hardcoded `isConnected = true` and `connectionError = null` from the page component.",
+        "testStrategy": "1. Integration test: Connect to Centrifugo and verify isConnected is true\n2. Integration test: Receive new_message event when webhook creates message\n3. Integration test: Receive conversation_updated event\n4. Unit test: Verify subscriptions are created for correct channels\n5. Unit test: Verify cleanup on component unmount",
+        "priority": "medium",
+        "dependencies": [
+          49,
+          53,
+          62
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 65,
+        "title": "Clean up remaining WhatsappMessage references in codebase",
+        "description": "Search for and remove all remaining references to WhatsappMessage throughout the codebase after the model has been removed.",
+        "details": "## Implementation Steps\n\n1. Search for all remaining WhatsappMessage references:\n```bash\ngrep -r \"WhatsappMessage\" --include=\"*.ts\" --include=\"*.tsx\" src/\n```\n\n2. Files likely to need updates based on grep results:\n   - `src/services/whatsapp/template/auth-otp.ts` - Remove WhatsappMessage usage\n   - `src/services/whatsapp/uazapi/send-whatsapp-message.ts` - Update if needed\n   - `src/services/delivery/get-whatsapp.ts` - Update delivery tracking\n   - `src/services/delivery/auth-delivery.ts` - Update auth delivery\n   - `src/app/api/v1/whatsapp/instances/[id]/test/route.ts` - Update test endpoint\n   - `src/app/api/v1/whatsapp/u/instances/[id]/test/route.ts` - Update UAZAPI test\n   - `src/app/api/v1/whatsapp/u/messages/route.ts` - Update messages route\n   - `src/app/api/v1/whatsapp/messages/route.ts` - Update messages route\n\n3. For each file:\n   - Remove imports of WhatsappMessage type\n   - Replace WhatsappMessage queries with Message queries\n   - Update any upsert/create calls to use Message instead\n   - Update return types if they referenced WhatsappMessage\n\n4. Remove any test files that specifically test WhatsappMessage:\n   - Check `__tests__` directories for WhatsappMessage-related tests\n\n5. Update TypeScript imports that may reference the removed model.",
+        "testStrategy": "1. Run `grep -r 'WhatsappMessage'` and verify no results in src/\n2. Run TypeScript compilation and verify no errors\n3. Run existing tests and verify they pass\n4. Test message sending/receiving still works end-to-end",
+        "priority": "low",
+        "dependencies": [
+          56
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 66,
+        "title": "Update types in lib/chat/types.ts for new schema",
+        "description": "Update the TypeScript types to match the new schema including providerMessageId and updated SenderType enum values.",
+        "details": "## Implementation Steps\n\n1. Update `src/lib/chat/types.ts` (formerly inbox/types.ts):\n\n```typescript\n/**\n * Chat Types\n *\n * Type definitions for chat components and hooks\n */\n\n// Conversation status enum\nexport type ConversationStatus = \"OPEN\" | \"PENDING\" | \"RESOLVED\" | \"SNOOZED\";\n\n// Priority enum\nexport type Priority = \"LOW\" | \"MEDIUM\" | \"HIGH\" | \"URGENT\";\n\n// Sender type enum - UPDATED to match Prisma schema\nexport type SenderType = \"LEAD\" | \"USER\" | \"AI\" | \"SYSTEM\";\n\n// Message type enum - SIMPLIFIED to match Prisma schema\nexport type MessageType =\n  | \"TEXT\"\n  | \"IMAGE\"\n  | \"VIDEO\"\n  | \"AUDIO\"\n  | \"DOCUMENT\";\n\n// Message status enum\nexport type MessageStatus = \"PENDING\" | \"SENT\" | \"DELIVERED\" | \"READ\" | \"FAILED\";\n\n// Lead info (replacing ContactInfo)\nexport interface LeadInfo {\n  id: string;\n  name: string | null;\n  phone: string | null;\n}\n\n// Instance info (minimal)\nexport interface InstanceInfo {\n  id: string;\n  label?: string | null;\n  phone?: string | null;\n  status?: string;\n}\n\n// Last message preview\nexport interface LastMessagePreview {\n  content: string | null;\n  senderType: SenderType;\n  sentAt: string;\n}\n\n// Conversation list item (from GET /api/v1/chat/conversations)\nexport interface ConversationListItem {\n  id: string;\n  status: ConversationStatus;\n  priority: Priority;\n  lastMessageAt: string | null;\n  unreadCount: number;\n  lead: LeadInfo;\n  lastMessage: LastMessagePreview | null;\n}\n\n// Message (from GET /api/v1/chat/conversations/[id]/messages)\nexport interface Message {\n  id: string;\n  content: string | null;\n  senderType: SenderType;\n  senderId: string | null;\n  senderName: string | null;\n  messageType: MessageType;\n  mediaUrl: string | null;\n  mediaType: string | null;\n  fileName: string | null;\n  status: MessageStatus;\n  sentAt: string;\n  deliveredAt: string | null;\n  readAt: string | null;\n  // NEW fields\n  providerMessageId?: string | null;\n  mediaSizeBytes?: number | null;\n  mediaDurationSeconds?: number | null;\n}\n\n// Conversation detail (from GET /api/v1/chat/conversations/[id])\nexport interface ConversationDetail {\n  id: string;\n  status: ConversationStatus;\n  priority: Priority;\n  unreadCount: number;\n  lastMessageAt: string | null;\n  instanceId: string;\n  createdAt: string;\n  lead: LeadInfo;\n}\n\n// Messages response (from GET /api/v1/chat/conversations/[id]/messages)\nexport interface MessagesResponse {\n  messages: Message[];\n  nextCursor: string | null;\n  hasMore: boolean;\n}\n\n// Update conversation request (for PATCH /api/v1/chat/conversations/[id])\nexport interface UpdateConversationRequest {\n  status?: ConversationStatus;\n  priority?: Priority;\n}\n\n// Send message request (for POST /api/v1/chat/conversations/[id]/messages)\nexport interface SendMessageRequest {\n  content: string;\n  messageType?: MessageType;\n  mediaUrl?: string;\n}\n\n// Conversation filters\nexport interface ConversationFilters {\n  status?: ConversationStatus;\n  instanceId?: string;\n}\n```",
+        "testStrategy": "1. Verify TypeScript compilation succeeds\n2. Verify all components using these types compile without errors\n3. Verify API responses match the type definitions\n4. Run type checking: `npx tsc --noEmit`",
+        "priority": "medium",
+        "dependencies": [
+          51
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 67,
+        "title": "Add validation tests for the complete chat refactor",
+        "description": "Create comprehensive validation tests covering all scenarios defined in the PRD: message received, duplicate webhook, same lead different instances, send message, and filter by instance.",
+        "details": "## Implementation Steps\n\n1. Create `src/app/api/v1/chat/__tests__/integration.test.ts`:\n\n```typescript\nimport { describe, it, expect, beforeAll, afterAll } from 'vitest'\nimport { prisma } from '@/lib/prisma'\n\ndescribe('Chat Refactor Integration Tests', () => {\n  let testOrg: any\n  let testInstance: any\n  let testInstance2: any\n  let testWebhook: any\n\n  beforeAll(async () => {\n    // Setup test data\n    testOrg = await prisma.organization.create({\n      data: { name: 'Test Org', slug: 'test-org-chat' },\n    })\n    testInstance = await prisma.whatsappInstance.create({\n      data: {\n        organizationId: testOrg.id,\n        instanceId: 'test-instance-1',\n        token: 'test-token',\n        label: 'Vendedor 1',\n        provider: 'wuzapi',\n      },\n    })\n    testInstance2 = await prisma.whatsappInstance.create({\n      data: {\n        organizationId: testOrg.id,\n        instanceId: 'test-instance-2',\n        token: 'test-token-2',\n        label: 'Vendedor 2',\n        provider: 'wuzapi',\n      },\n    })\n  })\n\n  afterAll(async () => {\n    // Cleanup\n    await prisma.organization.delete({ where: { id: testOrg.id } })\n  })\n\n  describe('Scenario: Message received', () => {\n    it('should save message in Message table and appear in chat', async () => {\n      // Simulate webhook payload\n      // Assert message is created with providerMessageId\n      // Assert message appears in GET /conversations/[id]/messages\n    })\n  })\n\n  describe('Scenario: Duplicate webhook (idempotency)', () => {\n    it('should ignore duplicate message with same providerMessageId', async () => {\n      // Create message with providerMessageId\n      // Send same webhook again\n      // Assert only one message exists\n    })\n  })\n\n  describe('Scenario: Same lead, different instances', () => {\n    it('should create separate conversations for same lead in different instances', async () => {\n      // Create lead\n      // Send message from instance 1\n      // Send message from instance 2\n      // Assert two different conversations exist\n      // Assert conversations are linked to correct instances\n    })\n  })\n\n  describe('Scenario: Send message', () => {\n    it('should call WuzAPI, save Message, and appear in chat', async () => {\n      // Mock WuzAPI\n      // Send POST /conversations/[id]/messages\n      // Assert message created with providerMessageId from WuzAPI\n      // Assert Centrifugo event published\n    })\n  })\n\n  describe('Scenario: Filter by instance', () => {\n    it('should return only conversations for specified instance', async () => {\n      // Create conversations in both instances\n      // GET /conversations?instanceId=test-instance-1\n      // Assert only instance-1 conversations returned\n    })\n  })\n})\n```\n\n2. Run tests with:\n```bash\nnpx vitest run src/app/api/v1/chat/__tests__/integration.test.ts\n```",
+        "testStrategy": "1. All 5 validation scenarios from PRD must pass\n2. Test coverage for idempotency check\n3. Test coverage for composite unique constraint\n4. Test coverage for WuzAPI integration\n5. Test coverage for Centrifugo publishing",
+        "priority": "medium",
+        "dependencies": [
+          56,
+          61,
+          62,
+          64
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 68,
+        "title": "Implement mark conversation as read functionality",
+        "description": "Add the ability to mark conversations as read when a user opens them, resetting unreadCount to 0 and publishing the update via Centrifugo for real-time UI sync.",
+        "details": "## Implementation Steps\n\n### 1. Create PATCH /api/v1/chat/conversations/[id]/read endpoint\n\nAdd a new route file at `src/app/api/v1/chat/conversations/[id]/read/route.ts`:\n\n```typescript\nimport { NextResponse } from 'next/server'\nimport { prisma } from '@/lib/prisma'\nimport { getServerSession } from '@/lib/auth/server-session'\nimport { publishConversationUpdate } from '@/lib/centrifugo'\n\nexport async function PATCH(\n  request: Request,\n  { params }: { params: Promise<{ id: string }> }\n) {\n  const session = await getServerSession()\n  if (!session?.organizationId) {\n    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })\n  }\n\n  const { id: conversationId } = await params\n\n  // Verify conversation belongs to organization\n  const existing = await prisma.conversation.findFirst({\n    where: {\n      id: conversationId,\n      organizationId: session.organizationId,\n    },\n  })\n\n  if (!existing) {\n    return NextResponse.json({ error: 'Not found' }, { status: 404 })\n  }\n\n  // Reset unread count to 0\n  const updated = await prisma.conversation.update({\n    where: { id: conversationId },\n    data: { unreadCount: 0 },\n    include: {\n      lead: {\n        select: { id: true, name: true, phone: true },\n      },\n    },\n  })\n\n  // Publish update to Centrifugo for real-time sync\n  try {\n    await publishConversationUpdate(session.organizationId, {\n      id: updated.id,\n      leadId: updated.leadId,\n      status: updated.status as 'OPEN' | 'PENDING' | 'RESOLVED' | 'SNOOZED',\n      lastMessageAt: updated.lastMessageAt,\n      unreadCount: 0,\n    })\n  } catch (centrifugoError) {\n    console.error('[chat/read] Centrifugo error:', centrifugoError)\n  }\n\n  return NextResponse.json({\n    id: updated.id,\n    unreadCount: updated.unreadCount,\n  })\n}\n```\n\n### 2. Add markAsRead function to lib/chat/api.ts\n\nUpdate `src/lib/chat/api.ts` to include the mark as read API call:\n\n```typescript\n/**\n * Mark conversation as read (reset unread count)\n */\nexport async function markConversationAsRead(\n  conversationId: string\n): Promise<{ id: string; unreadCount: number }> {\n  const response = await fetch(`${API_BASE}/${conversationId}/read`, {\n    method: \"PATCH\",\n  })\n\n  return handleResponse<{ id: string; unreadCount: number }>(response)\n}\n```\n\n### 3. Add useMarkAsRead hook\n\nCreate or update `src/hooks/use-chat.ts` to include the mutation:\n\n```typescript\nimport { useMutation, useQueryClient } from '@tanstack/react-query'\nimport { markConversationAsRead } from '@/lib/chat/api'\n\nexport function useMarkAsRead() {\n  const queryClient = useQueryClient()\n\n  return useMutation({\n    mutationFn: markConversationAsRead,\n    onSuccess: (data, conversationId) => {\n      // Optimistically update the conversation in cache\n      queryClient.setQueryData(\n        chatKeys.detail(conversationId),\n        (old: any) => old ? { ...old, unreadCount: 0 } : old\n      )\n      \n      // Invalidate conversation list to refresh\n      queryClient.invalidateQueries({ queryKey: chatKeys.lists() })\n    },\n  })\n}\n```\n\n### 4. Integrate mark as read in chat page\n\nUpdate `src/app/dashboard/chat/instance/[instanceId]/page.tsx` to call markAsRead when selecting a conversation:\n\n```typescript\nconst { mutate: markAsRead } = useMarkAsRead()\n\n// When a conversation is selected\nconst handleSelectConversation = (conversationId: string) => {\n  setSelectedConversationId(conversationId)\n  \n  // Mark as read when opening conversation\n  const conversation = conversations?.find(c => c.id === conversationId)\n  if (conversation && conversation.unreadCount > 0) {\n    markAsRead(conversationId)\n  }\n}\n```\n\n### 5. Update updateConversationLastMessage to increment unread only for inbound messages\n\nUpdate `src/services/chat/index.ts` (currently `src/services/inbox/index.ts`):\n\n```typescript\nexport async function updateConversationLastMessage(\n  conversationId: string,\n  lastMessageAt: Date,\n  incrementUnread: boolean = true  // NEW parameter\n): Promise<Conversation> {\n  return prisma.conversation.update({\n    where: { id: conversationId },\n    data: {\n      lastMessageAt,\n      ...(incrementUnread && { unreadCount: { increment: 1 } }),\n    },\n  })\n}\n```\n\n### 6. Update webhook handler to only increment unread for inbound messages\n\nIn the webhook handler, pass `incrementUnread: true` only when `senderType === 'LEAD'`:\n\n```typescript\nconst updatedConversation = await updateConversationLastMessage(\n  conversation.id,\n  payload.sentAt,\n  senderType === 'LEAD'  // Only increment for inbound messages\n)\n```\n\n### Files to Modify/Create\n\n1. **Create**: `src/app/api/v1/chat/conversations/[id]/read/route.ts`\n2. **Modify**: `src/lib/chat/api.ts` - Add `markConversationAsRead` function\n3. **Modify**: `src/hooks/use-chat.ts` - Add `useMarkAsRead` hook\n4. **Modify**: `src/app/dashboard/chat/instance/[instanceId]/page.tsx` - Integrate mark as read\n5. **Modify**: `src/services/chat/index.ts` - Add `incrementUnread` parameter\n6. **Modify**: `src/app/api/v1/whatsapp/w/webhook/[id]/route.ts` - Pass incrementUnread correctly",
+        "testStrategy": "## Test Strategy\n\n### Unit Tests\n\n1. **API Route Tests** (`src/app/api/v1/chat/conversations/[id]/read/__tests__/route.test.ts`):\n   - Request without auth returns 401\n   - Request for non-existent conversation returns 404\n   - Request for conversation in different org returns 404\n   - Successfully resets unreadCount to 0\n   - Returns updated conversation with unreadCount: 0\n\n2. **Service Tests**:\n   - `updateConversationLastMessage` with `incrementUnread: true` increments count\n   - `updateConversationLastMessage` with `incrementUnread: false` does not increment\n\n### Integration Tests\n\n3. **Full Flow Test**:\n   - Receive 3 inbound messages via webhook\n   - Verify unreadCount is 3\n   - Call PATCH /conversations/[id]/read\n   - Verify unreadCount is 0\n   - Verify Centrifugo receives conversation_updated event with unreadCount: 0\n\n4. **Outbound Message Test**:\n   - Send message via POST /conversations/[id]/messages\n   - Verify unreadCount does NOT increment (user sent, not lead)\n\n### Manual Verification\n\n5. **UI Verification**:\n   - Open chat page\n   - Verify unread badge shows correct count\n   - Click on conversation\n   - Verify badge disappears/shows 0\n   - Verify other browser tabs/windows see the update in real-time",
+        "status": "pending",
+        "dependencies": [
+          59,
+          61,
+          62,
+          64
+        ],
+        "priority": "high",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "created": "2025-12-15T18:24:44.595Z",
+      "updated": "2025-12-15T18:28:06.853Z",
+      "description": "Tasks for master context"
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "es2019",
+    "module": "commonjs",
+    "lib": ["es2019", "esnext.asynciterable"],
+    "moduleResolution": "node",
+    "outDir": "./dist",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["../src/*"]
+    },
+    "resolveJsonModule": true,
+    "declaration": true,
+    "jsx": "react-jsx"
+  },
+  "include": ["seeds/**/*", "*.ts"],
+  "exclude": ["node_modules"]
+}

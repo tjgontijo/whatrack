@@ -1,0 +1,41 @@
+@webhookId = cmilr4w600003ypopl2d9aon1
+
+@contentType = application/json
+
+POST http://localhost:3000/api/v1/whatsapp/webhook/{{webhookId}}
+Content-Type: {{contentType}}
+
+{
+  "BaseUrl": "https://elev8.uazapi.com",
+  "EventType": "messages",
+  "chat": {
+    "id": "r1eabbb0805cd6d",
+    "name": "Thiago Gontijo",
+    "phone": "+55 61 8248-2100",
+    "wa_chatid": "556182482100@s.whatsapp.net",
+    "wa_contactName": "Thiago Gontijo",
+    "wa_fastid": "551148635262:556182482100",
+    "wa_lastMessageSender": "556182482100@s.whatsapp.net",
+    "wa_lastMessageType": "Conversation",
+    "wa_lastMsgTimestamp": 1764436549000
+  },
+  "instanceName": "Thiago",
+  "message": {
+    "chatid": "556182482100@s.whatsapp.net",
+    "content": "Tudo bem?",
+    "fromMe": false,
+    "id": "551148635262:3EB00E56B8054D804F3338",
+    "mediaType": "",
+    "messageTimestamp": 1764436549000,
+    "messageType": "Conversation",
+    "messageid": "3EB00E56B8054D804F3339",
+    "owner": "551148635262",
+    "sender": "556182482100@s.whatsapp.net",
+    "senderName": "Thiago Cardoso",
+    "text": "oi",
+    "type": "text",
+    "wasSentByApi": false
+  },
+  "owner": "551148635262",
+  "token": "4e7b8b69-83c2-476f-913c-7e57998083c9"
+}

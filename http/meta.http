@@ -1,0 +1,30 @@
+@apiKey = {{$dotenv UAZAPI_ADMIN_TOKEN}}
+
+@baseUrl = {{$dotenv UAZAPI_BASE_URL}}
+
+@contentType = application/json
+
+### Testar matriculando em um produto
+GET https://graph.facebook.com/v24.0/me/adaccounts?fields=id,name,account_status,currency&access_token={{apiKey}} HTTP/1.1
+Content-Type: {{contentType}}
+
+
+
+### Listar instancias uazapi
+GET {{baseUrl}}/instance/all HTTP/1.1
+Content-Type: {{contentType}}
+Accept: application/json
+admintoken: {{apiKey}}
+
+### Incluir instancias uazapi
+POST {{baseUrl}}/instance/init HTTP/1.1
+Content-Type: {{contentType}}
+Accept: application/json
+admintoken: {{apiKey}}
+
+{
+  "phone": "5561982482100",
+  "name": "Thiago",
+  "systemName": "Elev8"
+}
+

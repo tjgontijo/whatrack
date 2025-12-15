@@ -1,0 +1,117 @@
+'use client'
+
+import { Fragment } from 'react'
+import { usePathname } from 'next/navigation'
+import Link from 'next/link'
+import { SidebarTrigger } from '@/components/ui/sidebar'
+import {
+    Breadcrumb,
+    BreadcrumbItem,
+    BreadcrumbLink,
+    BreadcrumbList,
+    BreadcrumbPage,
+    BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb'
+import { Separator } from '@/components/ui/separator'
+import { HeaderActionsSlot } from './header-actions'
+import { AICreditsBadge } from './ai-credits-badge'
+
+// Route labels mapping (excluding /dashboard prefix)
+const ROUTE_LABELS: Record<string, string> = {
+    '': 'Visão Geral',
+    'leads': 'Leads',
+    'tickets': 'Tickets',
+    'sales': 'Vendas',
+    'products': 'Produtos',
+    'settings': 'Configurações',
+    'settings/whatsapp': 'WhatsApp',
+    'settings/billing': 'Billing',
+    'settings/profile': 'Perfil',
+    'settings/organization': 'Organização',
+    'settings/team': 'Equipe',
+    'meta-ads': 'Meta Ads',
+    'chat': 'Chat',
+}
+
+function getRouteLabel(segment: string, fullPath: string): string {
+    // Try full path first (for nested routes like settings/whatsapp)
+    if (ROUTE_LABELS[fullPath]) {
+        return ROUTE_LABELS[fullPath]
+    }
+    // Fall back to segment
+    if (ROUTE_LABELS[segment]) {
+        return ROUTE_LABELS[segment]
+    }
+    // Capitalize first letter as fallback
+    return segment.charAt(0).toUpperCase() + segment.slice(1)
+}
+
+type BreadcrumbItemData = {
+    label: string
+    href: string
+    isCurrentPage: boolean
+}
+
+function generateBreadcrumbs(pathname: string): BreadcrumbItemData[] {
+    // Remove /dashboard prefix and split
+    const withoutDashboard = pathname.replace(/^\/dashboard\/?/, '')
+
+    if (!withoutDashboard) {
+        // We're on /dashboard root
+        return [{ label: 'Visão Geral', href: '/dashboard', isCurrentPage: true }]
+    }
+
+    const segments = withoutDashboard.split('/').filter(Boolean)
+    const breadcrumbs: BreadcrumbItemData[] = []
+
+    let currentPath = ''
+
+    segments.forEach((segment, index) => {
+        currentPath += (currentPath ? '/' : '') + segment
+        const isLast = index === segments.length - 1
+
+        breadcrumbs.push({
+            label: getRouteLabel(segment, currentPath),
+            href: `/dashboard/${currentPath}`,
+            isCurrentPage: isLast,
+        })
+    })
+
+    return breadcrumbs
+}
+
+export function DashboardHeader() {
+    const pathname = usePathname()
+    const breadcrumbs = generateBreadcrumbs(pathname)
+
+    return (
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+            <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="mr-2 h-4" />
+
+            <Breadcrumb>
+                <BreadcrumbList>
+                    {breadcrumbs.map((item, index) => (
+                        <Fragment key={item.href}>
+                            {index > 0 && <BreadcrumbSeparator />}
+                            <BreadcrumbItem>
+                                {item.isCurrentPage ? (
+                                    <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                                ) : (
+                                    <BreadcrumbLink asChild>
+                                        <Link href={item.href}>{item.label}</Link>
+                                    </BreadcrumbLink>
+                                )}
+                            </BreadcrumbItem>
+                        </Fragment>
+                    ))}
+                </BreadcrumbList>
+            </Breadcrumb>
+
+            <div className="ml-auto flex items-center gap-2">
+                <AICreditsBadge />
+                <HeaderActionsSlot />
+            </div>
+        </header>
+    )
+}

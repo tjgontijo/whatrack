@@ -1,0 +1,18 @@
+{
+  "admin": true,
+  "log_level": "info",
+  "client_insecure": false,
+  "namespaces": [
+    {
+      "name": "chat",
+      "presence": true,
+      "join_leave": true,
+      "force_push_join_leave": false,
+      "history_size": 100,
+      "history_ttl": "24h",
+      "force_positioning": false,
+      "allow_subscribe_for_client": true,
+      "force_recovery": false
+    }
+  ]
+}

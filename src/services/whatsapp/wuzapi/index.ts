@@ -1,0 +1,22 @@
+// WuzAPI WhatsApp Provider Module
+// Self-hosted WhatsApp gateway via Docker
+
+export { getWuzapiConfig, type WuzapiConfig } from './config'
+export { createWuzapiInstance } from './create-instance'
+export { connectWuzapiInstance } from './connect-instance'
+export { getWuzapiInstanceStatus } from './get-status'
+export { listWuzapiInstances } from './list-instances'
+export { logoutWuzapiInstance } from './logout-instance'
+export { deleteWuzapiInstance } from './delete-instance'
+export { provisionWuzapiWebhook } from './provision-webhook'
+export { sendWuzapiMessage } from './send-message'
+export { sendWuzapiImage } from './send-image'
+export { sendWuzapiLocation } from './send-location'
+export { sendWuzapiAudio } from './send-audio'
+export { sendWuzapiVideo } from './send-video'
+export { sendWuzapiDocument } from './send-document'
+export { sendWuzapiSticker } from './send-sticker'
+export { sendWuzapiContact } from './send-contact'
+export { sendWuzapiPoll } from './send-poll'
+export { sendWuzapiButtons } from './send-buttons'
+export { sendWuzapiList } from './send-list'
