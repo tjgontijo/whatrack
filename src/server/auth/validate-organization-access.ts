@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth/auth'
-import { isOwner, isAdmin, type RoleName } from './roles'
+import { isOwner, isAdmin, type RoleName } from '@/lib/auth/rbac/roles'
 
 interface ValidationResult {
   hasAccess: boolean
