@@ -22,6 +22,18 @@ export const auth = betterAuth({
   baseURL: appBaseURL,
   basePath: '/api/v1/auth',
   trustHost: true,
+  
+  session: {
+    cookieCache: {
+      enabled: true,
+    },
+  },
+  
+  advanced: {
+    crossSubDomainCookies: {
+      enabled: appBaseURL.includes('localhost') ? false : true,
+    },
+  },
 
   database: prismaAdapter(prisma, { provider: 'postgresql' }),
 
