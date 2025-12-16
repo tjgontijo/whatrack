@@ -29,18 +29,6 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  rewrites: async () => {
-    return {
-      beforeFiles: [
-        {
-          source: '/api/:path*',
-          destination: process.env.NODE_ENV === 'production'
-            ? 'https://whatrack.com/api/:path*'
-            : 'http://localhost:3000/api/:path*',
-        },
-      ],
-    };
-  },
 };
 
 export default nextConfig;
