@@ -1,6 +1,24 @@
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth/auth'
 import { isOwner, isAdmin, type RoleName } from '@/lib/auth/rbac/roles'
+import { cookies } from 'next/headers'
+
+async function getSessionFromRequest(request: Request) {
+  const headers = new Headers(request.headers)
+  if (!headers.get('cookie')) {
+    try {
+      const cookieStore = await cookies()
+      const cookieHeader = cookieStore
+        .getAll()
+        .map((cookie) => `${cookie.name}=${cookie.value}`)
+        .join('; ')
+      if (cookieHeader) headers.set('cookie', cookieHeader)
+    } catch {
+      // ignore
+    }
+  }
+  return auth.api.getSession({ headers })
+}
 
 interface ValidationResult {
   hasAccess: boolean
@@ -69,7 +87,7 @@ export async function validateFullAccess(
   request: Request,
 ): Promise<FullAccessResult> {
   try {
-    const session = await auth.api.getSession({ headers: request.headers })
+    const session = await getSessionFromRequest(request)
 
     if (!session) {
       return {

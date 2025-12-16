@@ -9,15 +9,35 @@ import { ORGANIZATION_HEADER } from "@/lib/constants";
 async function buildAuthHeaders(request?: Request): Promise<Headers> {
   if (request) {
     const headers = new Headers(request.headers);
+    if (!headers.get('cookie')) {
+      try {
+        const cookieStore = await cookies();
+        const cookieHeader = cookieStore
+          .getAll()
+          .map((cookie) => `${cookie.name}=${cookie.value}`)
+          .join('; ');
+
+        if (cookieHeader) {
+          headers.set('cookie', cookieHeader);
+        }
+      } catch {
+        // ignore
+      }
+    }
     return headers;
   }
 
   const cookieStore = await cookies();
   const headers = new Headers();
 
-  cookieStore.getAll().forEach((cookie) => {
-    headers.append("cookie", `${cookie.name}=${cookie.value}`);
-  });
+  const cookieHeader = cookieStore
+    .getAll()
+    .map((cookie) => `${cookie.name}=${cookie.value}`)
+    .join('; ');
+
+  if (cookieHeader) {
+    headers.set('cookie', cookieHeader);
+  }
 
   return headers;
 }
@@ -42,6 +62,27 @@ export async function getServerSession(request?: Request) {
         const cookieStore = await cookies();
         // Expirar o cookie definindo maxAge como 0
         cookieStore.set('better-auth.session_token', '', {
+          maxAge: 0,
+          path: '/',
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+        });
+        cookieStore.set('__Secure-better-auth.session_token', '', {
+          maxAge: 0,
+          path: '/',
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+        });
+        cookieStore.set('better-auth.session_data', '', {
+          maxAge: 0,
+          path: '/',
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+        });
+        cookieStore.set('__Secure-better-auth.session_data', '', {
           maxAge: 0,
           path: '/',
           httpOnly: true,

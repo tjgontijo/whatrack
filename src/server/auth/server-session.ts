@@ -12,9 +12,11 @@ export async function getServerSession() {
 
         // Convert cookies to Headers format
         const headers = new Headers()
-        cookieStore.getAll().forEach((cookie) => {
-            headers.append('cookie', `${cookie.name}=${cookie.value}`)
-        })
+        const cookieHeader = cookieStore
+            .getAll()
+            .map((cookie) => `${cookie.name}=${cookie.value}`)
+            .join('; ')
+        if (cookieHeader) headers.set('cookie', cookieHeader)
 
         const session = await auth.api.getSession({
             headers,
@@ -31,6 +33,27 @@ export async function getServerSession() {
                 console.warn(`[getServerSession] Session ${session.session.id} not found in database, clearing cookie`)
                 // Expirar o cookie definindo maxAge como 0
                 cookieStore.set('better-auth.session_token', '', {
+                    maxAge: 0,
+                    path: '/',
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === 'production',
+                    sameSite: 'lax',
+                })
+                cookieStore.set('__Secure-better-auth.session_token', '', {
+                    maxAge: 0,
+                    path: '/',
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === 'production',
+                    sameSite: 'lax',
+                })
+                cookieStore.set('better-auth.session_data', '', {
+                    maxAge: 0,
+                    path: '/',
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === 'production',
+                    sameSite: 'lax',
+                })
+                cookieStore.set('__Secure-better-auth.session_data', '', {
                     maxAge: 0,
                     path: '/',
                     httpOnly: true,

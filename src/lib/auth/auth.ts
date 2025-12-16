@@ -38,6 +38,7 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: false,
+    autoSignIn: true,
   },
 
   plugins: [
@@ -66,7 +67,7 @@ export const auth = betterAuth({
               where: { id: user.id },
               data: { role: 'owner' },
             })
-            console.log(`🔑 Usuário ${user.email} definido como owner do SaaS`)
+            // Em produção, não exibe email em logs por segurança
           }
         },
       },
