@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { BillingService, BillingCustomerService } from '@/services/billing'
 import { addPaymentMethodSchema } from '../schemas'
+import type { BillingCustomerWithExternals } from '@/services/billing/billing-customer-service'
 
 /**
  * GET /api/v1/billing/payment-methods
@@ -38,9 +39,9 @@ export async function GET(request: Request) {
       expiryYear: pm.expiryYear,
       isDefault: pm.isDefault,
       createdAt: pm.createdAt,
-    }))
+    })) ?? []
 
-    return NextResponse.json({ data: paymentMethods ?? [] })
+    return NextResponse.json({ data: paymentMethods })
   } catch (error) {
     console.error('[api/billing/payment-methods] GET error', error)
     return NextResponse.json(

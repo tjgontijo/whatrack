@@ -15,8 +15,6 @@ if (!appBaseURL) {
 
 const OWNER_EMAIL = process.env.OWNER_EMAIL
 
-console.log('[auth] Configured baseURL:', appBaseURL)
-
 export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET,
   baseURL: appBaseURL,
