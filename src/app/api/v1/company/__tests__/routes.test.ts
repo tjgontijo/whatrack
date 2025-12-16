@@ -13,7 +13,7 @@ import { GET, POST } from '../route'
  */
 
 // Mock de módulos
-vi.mock('@/lib/auth/validate-organization-access', () => ({
+vi.mock('@/server/auth/validate-organization-access', () => ({
   validateFullAccess: vi.fn().mockResolvedValue({
     hasAccess: true,
     organizationId: 'test-org-id',

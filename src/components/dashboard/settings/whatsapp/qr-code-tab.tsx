@@ -15,7 +15,7 @@ import { TestMessageDialog } from './test-message-dialog'
 import {
   whatsappInstancesResponseSchema,
   type WhatsappInstance,
-} from '@/lib/schema/whatsapp'
+} from '@/schemas/whatsapp'
 import { useOrganizationLimits } from '@/hooks/use-organization-limits'
 import { formatWhatsAppWithFlag } from '@/lib/mask/phone-mask'
 import Link from 'next/link'

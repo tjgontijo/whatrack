@@ -19,12 +19,12 @@ import { DashboardPieChart } from '@/components/dashboard/charts/pie'
 import { FunnelChart } from '@/components/dashboard/charts/funnel-chart'
 import { MetaAdsCampaignsTable } from '@/components/dashboard/charts/meta-ads-campaigns-table'
 import { formatCurrencyBRL } from '@/lib/mask/formatters'
-import { ORGANIZATION_HEADER } from '@/lib/auth/organization'
+import { ORGANIZATION_HEADER } from '@/lib/constants'
 import { authClient } from '@/lib/auth/auth-client'
 import {
   dashboardSummaryResponseSchema,
   type DashboardSummaryResponse,
-} from '@/lib/schema/dashboard-summary'
+} from '@/schemas/dashboard-summary'
 
 const NO_TRAFFIC_SOURCE_VALUE = '__no-source__'
 

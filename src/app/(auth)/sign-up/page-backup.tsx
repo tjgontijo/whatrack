@@ -16,7 +16,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
 import { authClient } from '@/lib/auth/auth-client'
-import { signUpCompleteSchema, type SignUpCompleteData } from '@/lib/schema/sign-up'
+import { signUpCompleteSchema, type SignUpCompleteData } from '@/schemas/sign-up'
 
 // Componente wrapper com animação
 function AnimatedStep({ children }: { children: ReactNode }) {
@@ -35,7 +35,7 @@ import {
   mainChannelOptions,
   mainPainPointOptions,
   referralSourceOptions,
-} from '@/lib/schema/sign-up'
+} from '@/schemas/sign-up'
 import { applyWhatsAppMask } from '@/lib/mask/phone-mask'
 import { cn } from '@/lib/utils'
 

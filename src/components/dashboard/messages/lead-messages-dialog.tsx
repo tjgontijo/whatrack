@@ -16,7 +16,7 @@ import {
   leadMessagesResponseSchema,
   type LeadMessagesResponse,
   type LeadMessage,
-} from '@/lib/schema/lead-messages'
+} from '@/schemas/lead-messages'
 import { cn } from '@/lib/utils'
 import { Virtuoso } from 'react-virtuoso'
 

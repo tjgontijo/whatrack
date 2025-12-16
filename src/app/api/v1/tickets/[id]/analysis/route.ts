@@ -7,7 +7,7 @@
 
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getOrSyncUser, getCurrentOrganization } from '@/lib/auth/server'
+import { getOrSyncUser, getCurrentOrganization } from '@/server/auth/server'
 import { analyzeTicket, type TicketAnalysisResult } from '@/services/ai/ticket-analyzer'
 import { aiCreditsService } from '@/services/credits/ai-credits-service'
 import { AI_CREDIT_COSTS } from '@/services/credits/types'

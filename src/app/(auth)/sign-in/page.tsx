@@ -11,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { authClient } from "@/lib/auth/auth-client"
+import { getAuthErrorMessage } from "@/lib/auth/error-messages"
 
 const loginSchema = z.object({
   email: z
@@ -45,7 +46,11 @@ export default function LoginPage() {
       })
 
       if (error) {
-        toast.error(error.message || "Não foi possível acessar sua conta.")
+        const errorMessage = getAuthErrorMessage(
+          (error as any)?.code,
+          (error as any)?.message || "Não foi possível acessar sua conta."
+        )
+        toast.error(errorMessage)
         return
       }
 
@@ -100,13 +105,7 @@ export default function LoginPage() {
               render={({ field }) => (
                 <FormItem>
                   <div className="flex items-center justify-between">
-                    <FormLabel>Senha</FormLabel>
-                    <Link
-                      href="/forgot-password"
-                      className="text-sm font-medium text-primary hover:underline"
-                    >
-                      Esqueceu a senha?
-                    </Link>
+                    <FormLabel>Senha</FormLabel>                   
                   </div>
                   <FormControl>
                     <Input
@@ -117,6 +116,14 @@ export default function LoginPage() {
                       {...field}
                     />
                   </FormControl>
+                  <div className="flex items-center justify-end">
+                   <Link
+                      href="/forgot-password"
+                      className="text-sm font-medium text-primary hover:underline"
+                    >
+                      Esqueceu a senha?
+                    </Link>
+                    </div>
                   <FormMessage />
                 </FormItem>
               )}

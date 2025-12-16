@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 
-import { validateFullAccess } from '@/lib/auth/validate-organization-access'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { BillingCustomerService, InvoiceService } from '@/services/billing'
 import { listInvoicesSchema, type PaginatedResponse } from '../schemas'
 

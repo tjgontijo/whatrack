@@ -14,7 +14,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { applyWhatsAppMask } from '@/lib/mask/phone-mask'
-import type { SignUpCompleteData } from '@/lib/schema/sign-up'
+import type { SignUpCompleteData } from '@/schemas/sign-up'
 
 interface Step1AccountProps {
   form: UseFormReturn<SignUpCompleteData>

@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { getUazapiConfig } from './config'
-import type { WhatsappInstance } from '@/lib/schema/whatsapp'
+import type { WhatsappInstance } from '@/schemas/whatsapp'
 
 export type CreateWhatsappInstanceParams = {
   organizationId: string

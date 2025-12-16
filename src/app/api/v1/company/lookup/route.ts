@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { validateFullAccess } from '@/lib/auth/validate-organization-access'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { fetchCnpjData, ReceitaWsError } from '@/services/company/receitaws'
 import { lookupCnpjSchema } from '../schemas'
 

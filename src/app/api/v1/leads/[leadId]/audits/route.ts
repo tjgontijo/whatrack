@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 
 import { prisma } from '@/lib/prisma'
-import { leadAuditResponseSchema, type LeadAuditResponse } from '@/lib/schema/lead-audit'
-import { validateFullAccess } from '@/lib/auth/validate-organization-access'
+import { leadAuditResponseSchema, type LeadAuditResponse } from '@/schemas/lead-audit'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 const paramsSchema = z.object({
   leadId: z.string().uuid(),

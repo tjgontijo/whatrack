@@ -6,7 +6,7 @@ import {
   createCategory,
   type ListCategoriesParams,
 } from '@/services/products/service'
-import { validateFullAccess } from '@/lib/auth/validate-organization-access'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 const getParamsSchema = z.object({
   search: z.string().optional(),

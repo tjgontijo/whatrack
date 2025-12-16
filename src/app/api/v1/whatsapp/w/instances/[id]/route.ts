@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
-import { validateFullAccess } from '@/lib/auth/validate-organization-access'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { getWuzapiInstanceStatus, deleteWuzapiInstance } from '@/services/whatsapp/wuzapi'
-import { whatsappInstanceSchema } from '@/lib/schema/whatsapp'
+import { whatsappInstanceSchema } from '@/schemas/whatsapp'
 
 export async function GET(
   request: Request,

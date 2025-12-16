@@ -9,7 +9,7 @@
 
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getOrSyncUser, getCurrentOrganization } from '@/lib/auth/server'
+import { getOrSyncUser, getCurrentOrganization } from '@/server/auth/server'
 import { enableFollowup, disableFollowup, skipToNextStep } from '@/server/followup/jobs/scheduler'
 
 type RouteParams = {

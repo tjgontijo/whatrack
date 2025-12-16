@@ -20,7 +20,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion'
-import { leadAuditResponseSchema, type LeadAuditResponse } from '@/lib/schema/lead-audit'
+import { leadAuditResponseSchema, type LeadAuditResponse } from '@/schemas/lead-audit'
 import { applyWhatsAppMask } from '@/lib/mask/phone-mask'
 
 async function fetchLeadAudits(leadId: string): Promise<LeadAuditResponse> {

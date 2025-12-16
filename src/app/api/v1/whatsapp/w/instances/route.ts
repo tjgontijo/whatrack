@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server'
-import { validateFullAccess } from '@/lib/auth/validate-organization-access'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { createWuzapiInstance, listWuzapiInstances } from '@/services/whatsapp/wuzapi'
 import { LimitService } from '@/services/billing'
 import {
   createInstanceSchema,
   whatsappInstanceSchema,
   whatsappInstancesResponseSchema,
-} from '@/lib/schema/whatsapp'
+} from '@/schemas/whatsapp'
 
 /**
  * GET /api/v1/whatsapp/w/instances

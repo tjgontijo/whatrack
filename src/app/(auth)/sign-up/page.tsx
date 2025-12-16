@@ -10,7 +10,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { authClient } from '@/lib/auth/auth-client'
-import { signUpSchema, type SignUpData } from '@/lib/schema/sign-up'
+import { signUpSchema, type SignUpData } from '@/schemas/sign-up'
+import { getAuthErrorMessage } from '@/lib/auth/error-messages'
 
 function applyPhoneMask(value: string): string {
   const digits = value.replace(/\D/g, '').slice(0, 11)
@@ -43,7 +44,11 @@ export default function SignUpPage() {
       })
 
       if (signUpError) {
-        toast.error(signUpError.message || 'Não foi possível criar sua conta.')
+        const errorMessage = getAuthErrorMessage(
+          (signUpError as any)?.code,
+          (signUpError as any)?.message || 'Não foi possível criar sua conta.'
+        )
+        toast.error(errorMessage)
         return
       }
 

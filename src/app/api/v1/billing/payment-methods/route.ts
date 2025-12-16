@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 
-import { validateFullAccess } from '@/lib/auth/validate-organization-access'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { BillingService, BillingCustomerService } from '@/services/billing'
 import { addPaymentMethodSchema } from '../schemas'
 

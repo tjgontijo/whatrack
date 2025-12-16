@@ -3,7 +3,7 @@ import type { Prisma } from '@prisma/client'
 import { z } from 'zod'
 
 import { prisma } from '@/lib/prisma'
-import { validateFullAccess } from '@/lib/auth/validate-organization-access'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 
 // Tipar a resposta usando Zod para garantir consistência e evitar `any`

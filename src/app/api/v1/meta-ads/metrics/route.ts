@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma'
 import {
   metaAdsMetricPayloadSchema,
   type MetaAdsMetricInput,
-} from '@/lib/schema/lead-tickets'
+} from '@/schemas/lead-tickets'
 
 
 function normalizePayloadItem(item: MetaAdsMetricInput, organizationId: string) {

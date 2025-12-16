@@ -1,7 +1,7 @@
 import type { Prisma } from '@prisma/client'
 
 import { prisma } from '@/lib/prisma'
-import { salesByServiceResponseSchema } from '@/lib/schema/lead-tickets'
+import { salesByServiceResponseSchema } from '@/schemas/lead-tickets'
 import type { DateRange } from '@/lib/date/dateRange'
 
 export async function buildSalesByService(organizationId: string, dateRange?: DateRange) {

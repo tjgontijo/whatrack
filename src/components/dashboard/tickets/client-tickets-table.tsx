@@ -23,7 +23,7 @@ import { Badge } from '@/components/ui/badge'
 import { formatDateTime } from '@/lib/mask/formatters'
 import { applyWhatsAppMask } from '@/lib/mask/phone-mask'
 import { LeadTicketsDialog } from '@/components/dashboard/tickets/lead-tickets-dialog'
-import { ticketsListResponseSchema, type TicketsListResponse, type TicketListItem } from '@/lib/schema/lead-tickets'
+import { ticketsListResponseSchema, type TicketsListResponse, type TicketListItem } from '@/schemas/lead-tickets'
 import { X } from 'lucide-react'
 
 const DATE_FILTER_OPTIONS = [

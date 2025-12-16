@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 
-import { validateFullAccess } from '@/lib/auth/validate-organization-access'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { LimitService } from '@/services/billing'
 
 /**

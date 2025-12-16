@@ -6,7 +6,7 @@
  */
 
 import { NextResponse } from 'next/server'
-import { getOrSyncUser, getCurrentOrganization } from '@/lib/auth/server'
+import { getOrSyncUser, getCurrentOrganization } from '@/server/auth/server'
 import { getConversationMetrics, updateConversationMetrics } from '@/services/metrics'
 import { prisma } from '@/lib/prisma'
 

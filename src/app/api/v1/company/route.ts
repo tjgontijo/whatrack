@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { validateFullAccess } from '@/lib/auth/validate-organization-access'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { prisma } from '@/lib/prisma'
 import { stripCnpj } from '@/lib/mask/cnpj'
 import { saveCompanySchema } from './schemas'

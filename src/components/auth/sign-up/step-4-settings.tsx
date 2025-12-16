@@ -24,7 +24,7 @@ import {
   currencyOptions,
   timezoneOptions,
   type SignUpCompleteData,
-} from '@/lib/schema/sign-up'
+} from '@/schemas/sign-up'
 import Link from 'next/link'
 
 interface Step4SettingsProps {

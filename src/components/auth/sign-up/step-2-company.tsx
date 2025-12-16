@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
-import type { SignUpCompleteData } from '@/lib/schema/sign-up'
+import type { SignUpCompleteData } from '@/schemas/sign-up'
 
 interface Step2CompanyProps {
   form: UseFormReturn<SignUpCompleteData>

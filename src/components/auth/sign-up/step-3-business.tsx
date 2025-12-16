@@ -23,7 +23,7 @@ import {
   monthlyAdSpendOptions,
   mainPainPointOptions,
   type SignUpCompleteData,
-} from '@/lib/schema/sign-up'
+} from '@/schemas/sign-up'
 
 interface Step3BusinessProps {
   form: UseFormReturn<SignUpCompleteData>

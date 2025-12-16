@@ -11,8 +11,8 @@ import { buildFinancialSummary } from '@/services/dashboard/buildFinancialSummar
 import { buildSalesWhere, resolveFiltersDateRange, type SummaryFilters } from '@/services/dashboard/buildFilters'
 import { buildProductFilters } from '@/services/dashboard/buildProductFilters'
 import type { DateRange } from '@/lib/date/dateRange'
-import { validateFullAccess } from '@/lib/auth/validate-organization-access'
-import { dashboardSummaryResponseSchema } from '@/lib/schema/dashboard-summary'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import { dashboardSummaryResponseSchema } from '@/schemas/dashboard-summary'
 
 
 async function fetchInvestment(

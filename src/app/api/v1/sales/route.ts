@@ -4,8 +4,8 @@ import { z } from 'zod'
 import { revalidateTag } from 'next/cache'
 
 import { prisma } from '@/lib/prisma'
-import { salesListResponseSchema } from '@/lib/schema/lead-tickets'
-import { validateFullAccess } from '@/lib/auth/validate-organization-access'
+import { salesListResponseSchema } from '@/schemas/lead-tickets'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 
 const createSaleSchema = z.object({

@@ -1,7 +1,7 @@
 import { cookies, headers as nextHeaders } from "next/headers";
 import { auth } from "@/lib/auth/auth";
 import { prisma } from "@/lib/prisma";
-import { ORGANIZATION_HEADER } from "@/lib/auth/organization";
+import { ORGANIZATION_HEADER } from "@/lib/constants";
 
 /**
  * Build headers with cookies for server-side auth calls

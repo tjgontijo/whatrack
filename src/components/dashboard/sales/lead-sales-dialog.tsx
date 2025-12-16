@@ -17,7 +17,7 @@ import { formatCurrencyBRL } from '@/lib/mask/formatters'
 import {
   leadSalesResponseSchema,
   type LeadSalesResponse,
-} from '@/lib/schema/lead-tickets'
+} from '@/schemas/lead-tickets'
 
 async function fetchLeadSales(leadId: string): Promise<LeadSalesResponse> {
   const response = await fetch(`/api/v1/leads/${leadId}/sales`, {

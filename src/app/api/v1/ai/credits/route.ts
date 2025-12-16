@@ -4,7 +4,7 @@
  */
 
 import { NextResponse } from 'next/server'
-import { validateFullAccess } from '@/lib/auth/validate-organization-access'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { aiCreditsService } from '@/services/credits'
 
 export async function GET(req: Request) {

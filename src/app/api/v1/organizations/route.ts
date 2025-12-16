@@ -6,7 +6,7 @@
 
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getOrSyncUser } from "@/lib/auth/server";
+import { getOrSyncUser } from "@/server/auth/server";
 import { createId } from "@paralleldrive/cuid2";
 import { calculateMetrics } from "@/services/sign-up/metrics-calculator";
 

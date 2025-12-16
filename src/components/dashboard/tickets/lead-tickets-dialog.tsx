@@ -16,7 +16,7 @@ import { applyWhatsAppMask } from '@/lib/mask/phone-mask'
 import {
   LeadTicketsResponse,
   leadTicketsResponseSchema,
-} from '@/lib/schema/lead-tickets'
+} from '@/schemas/lead-tickets'
 
 async function fetchLeadTickets(leadId: string): Promise<LeadTicketsResponse> {
   const response = await fetch(`/api/v1/leads/${leadId}/tickets`, {

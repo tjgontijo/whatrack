@@ -6,8 +6,8 @@ import {
   leadMessagesResponseSchema,
   type LeadMessage,
   type LeadMessagesResponse,
-} from '@/lib/schema/lead-messages'
-import { validateFullAccess } from '@/lib/auth/validate-organization-access'
+} from '@/schemas/lead-messages'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 const paramsSchema = z.object({
   leadId: z.string().uuid(),

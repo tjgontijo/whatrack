@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
-import { validateFullAccess } from '@/lib/auth/validate-organization-access'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { updateWebhook } from '@/services/whatsapp/uazapi/update-webhook'
-import { updateWebhookSchema } from '@/lib/schema/whatsapp'
+import { updateWebhookSchema } from '@/schemas/whatsapp'
 
 export async function POST(
     request: Request,

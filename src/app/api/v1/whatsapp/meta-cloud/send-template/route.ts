@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { validateFullAccess } from '@/lib/auth/validate-organization-access'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { sendMetaCloudTemplate } from '@/services/whatsapp/meta-cloud'
 
 const sendTemplateSchema = z.object({

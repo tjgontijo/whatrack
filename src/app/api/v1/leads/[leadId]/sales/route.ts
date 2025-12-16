@@ -6,8 +6,8 @@ import {
   leadSalesResponseSchema,
   type LeadSaleTicketSummary,
   type LeadSaleService,
-} from '@/lib/schema/lead-tickets'
-import { validateFullAccess } from '@/lib/auth/validate-organization-access'
+} from '@/schemas/lead-tickets'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 const paramsSchema = z.object({
   leadId: z.string().uuid(),

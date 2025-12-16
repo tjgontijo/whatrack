@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 
 import { prisma } from '@/lib/prisma'
-import { leadTicketsResponseSchema } from '@/lib/schema/lead-tickets'
-import { validateFullAccess } from '@/lib/auth/validate-organization-access'
+import { leadTicketsResponseSchema } from '@/schemas/lead-tickets'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 const paramsSchema = z.object({
   leadId: z.string().uuid(),

@@ -51,7 +51,7 @@ import {
 import { ORGANIZATION_HEADER } from '@/lib/constants'
 import { authClient } from '@/lib/auth/auth-client'
 import { applyWhatsAppMask } from '@/lib/mask/phone-mask'
-import type { WhatsappInstance } from '@/lib/schema/whatsapp'
+import type { WhatsappInstance } from '@/schemas/whatsapp'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
 type MessageType =

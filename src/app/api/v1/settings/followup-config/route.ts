@@ -7,7 +7,7 @@
 
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getOrSyncUser, getCurrentOrganization } from '@/lib/auth/server'
+import { getOrSyncUser, getCurrentOrganization } from '@/server/auth/server'
 
 interface FollowupConfigRequest {
   isActive: boolean

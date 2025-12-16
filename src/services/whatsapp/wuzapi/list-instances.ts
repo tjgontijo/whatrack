@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { getWuzapiConfig } from './config'
-import type { WhatsappInstance } from '@/lib/schema/whatsapp'
+import type { WhatsappInstance } from '@/schemas/whatsapp'
 
 /**
  * Lista instancias WuzAPI de uma organizacao

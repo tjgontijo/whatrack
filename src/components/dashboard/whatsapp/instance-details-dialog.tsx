@@ -34,7 +34,7 @@ import { authClient } from '@/lib/auth/auth-client'
 import { formatWhatsAppWithFlag } from '@/lib/mask/phone-mask'
 
 import { ConnectInstanceDialog } from './connect-instance-dialog'
-import type { WhatsappInstance } from '@/lib/schema/whatsapp'
+import type { WhatsappInstance } from '@/schemas/whatsapp'
 
 type InstanceDetailsDialogProps = {
     instance: WhatsappInstance

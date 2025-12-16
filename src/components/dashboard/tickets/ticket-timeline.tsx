@@ -2,7 +2,7 @@
 
 import { ExternalLink } from 'lucide-react'
 
-import { LeadTicket } from '@/lib/schema/lead-tickets'
+import { LeadTicket } from '@/schemas/lead-tickets'
 
 type TicketTimelineProps = {
   items: LeadTicket[]

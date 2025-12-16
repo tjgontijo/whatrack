@@ -2,7 +2,7 @@
 
 import { ReceiptText, CheckCheck } from 'lucide-react'
 
-import type { LeadSale } from '@/lib/schema/lead-tickets'
+import type { LeadSale } from '@/schemas/lead-tickets'
 import { formatCurrencyBRL, formatDateTime } from '@/lib/mask/formatters'
 
 export type SalesListProps = {

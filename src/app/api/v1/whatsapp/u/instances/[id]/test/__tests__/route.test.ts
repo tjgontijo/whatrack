@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { POST } from '../route'
 
-vi.mock('@/lib/auth/validate-organization-access', () => ({
+vi.mock('@/server/auth/validate-organization-access', () => ({
   validateFullAccess: vi.fn(),
 }))
 
@@ -17,7 +17,7 @@ vi.mock('@/services/whatsapp/uazapi/send-whatsapp-message', () => ({
   sendWhatsappMessage: vi.fn(),
 }))
 
-import { validateFullAccess } from '@/lib/auth/validate-organization-access'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { prisma } from '@/lib/prisma'
 import { sendWhatsappMessage } from '@/services/whatsapp/uazapi/send-whatsapp-message'
 

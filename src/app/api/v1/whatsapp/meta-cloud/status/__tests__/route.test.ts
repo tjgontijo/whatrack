@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { GET } from '../route'
 import { SubscriptionStatus } from '@prisma/client'
 
-vi.mock('@/lib/auth/validate-organization-access', () => ({
+vi.mock('@/server/auth/validate-organization-access', () => ({
   validateFullAccess: vi.fn(),
 }))
 
@@ -17,7 +17,7 @@ vi.mock('@/lib/prisma', () => ({
   },
 }))
 
-import { validateFullAccess } from '@/lib/auth/validate-organization-access'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { prisma } from '@/lib/prisma'
 
 describe('GET /api/v1/whatsapp/meta-cloud/status', () => {

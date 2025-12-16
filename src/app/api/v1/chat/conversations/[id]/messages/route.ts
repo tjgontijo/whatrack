@@ -6,7 +6,7 @@
  */
 
 import { NextResponse } from 'next/server'
-import { getOrSyncUser, getCurrentOrganization } from '@/lib/auth/server'
+import { getOrSyncUser, getCurrentOrganization } from '@/server/auth/server'
 import { prisma } from '@/lib/prisma'
 import { createMessage, resolveTicket } from '@/services/chat'
 import { sendTextMessage } from '@/services/whatsapp/uazapi/send-message'

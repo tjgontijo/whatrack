@@ -6,7 +6,7 @@
 
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getOrSyncUser } from "@/lib/auth/server";
+import { getOrSyncUser } from "@/server/auth/server";
 
 export async function GET(request: Request) {
   try {

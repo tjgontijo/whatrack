@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { validateFullAccess } from '@/lib/auth/validate-organization-access'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { logoutWhatsappInstance } from '@/services/whatsapp/uazapi/logout-instance'
 
 export async function POST(

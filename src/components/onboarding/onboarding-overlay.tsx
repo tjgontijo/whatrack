@@ -16,7 +16,7 @@ import {
   leadsPerDayOptions,
   avgTicketOptions,
   monthlyRevenueOptions,
-} from '@/lib/schema/sign-up'
+} from '@/schemas/sign-up'
 
 // Schema do onboarding (7 steps conforme PRD)
 const onboardingSchema = z.object({

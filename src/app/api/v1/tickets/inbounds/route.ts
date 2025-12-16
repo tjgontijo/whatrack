@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server'
 import type { Prisma } from '@prisma/client'
 
 import { prisma } from '@/lib/prisma'
-import { ticketsListResponseSchema } from '@/lib/schema/lead-tickets'
-import { validateFullAccess } from '@/lib/auth/validate-organization-access'
+import { ticketsListResponseSchema } from '@/schemas/lead-tickets'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 
 const DATE_RANGE_PRESETS = [

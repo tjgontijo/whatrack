@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
-import { validateFullAccess } from '@/lib/auth/validate-organization-access'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { connectWhatsappInstance } from '@/services/whatsapp/uazapi/connect-instance'
-import { connectInstanceSchema } from '@/lib/schema/whatsapp'
+import { connectInstanceSchema } from '@/schemas/whatsapp'
 
 export async function POST(
     request: Request,

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
-import { validateFullAccess } from '@/lib/auth/validate-organization-access'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { sendWuzapiMessage } from '@/services/whatsapp/wuzapi'
-import { sendMessageSchema } from '@/lib/schema/whatsapp'
+import { sendMessageSchema } from '@/schemas/whatsapp'
 
 /**
  * POST /api/v1/whatsapp/w/messages

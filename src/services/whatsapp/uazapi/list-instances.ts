@@ -1,5 +1,5 @@
 import { getUazapiConfig } from './config'
-import type { WhatsappInstance } from '@/lib/schema/whatsapp'
+import type { WhatsappInstance } from '@/schemas/whatsapp'
 import { prisma } from '@/lib/prisma'
 
 /**

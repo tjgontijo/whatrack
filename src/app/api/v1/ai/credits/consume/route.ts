@@ -5,7 +5,7 @@
 
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { validateFullAccess } from '@/lib/auth/validate-organization-access'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { aiCreditsService, AI_CREDIT_COSTS, type AIAction } from '@/services/credits'
 
 const consumeSchema = z.object({
