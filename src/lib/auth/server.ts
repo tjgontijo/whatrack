@@ -64,6 +64,15 @@ export async function getServerSession(request?: Request) {
  */
 export async function getOrSyncUser(request?: Request) {
   const session = await getServerSession(request);
+  
+  if (!session?.user) {
+    console.warn('[getOrSyncUser] No session or user found', {
+      hasSession: !!session,
+      hasUser: !!session?.user,
+      sessionId: session?.session?.id,
+    });
+  }
+  
   return session?.user ?? null;
 }
 

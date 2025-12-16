@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { prisma } from '@/lib/prisma'
 
 const PUBLIC_ROUTES = ['/', '/pricing']
 const AUTH_ROUTES = ['/sign-in', '/sign-up', '/forgot-password', '/reset-password']
@@ -63,36 +62,15 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next()
   }
 
+  // Para rotas de API protegidas, não faça redirect no middleware.
+  // Deixe o próprio Route Handler responder (401/403) corretamente.
+  if (isApiRoute(pathname)) {
+    return NextResponse.next()
+  }
+
   // Rotas protegidas sem sessão → redireciona para login
   if (!hasSessionCookie) {
     return unauthorizedResponse(request)
-  }
-
-  // Validar se a session existe no banco de dados
-  // O cookie do better-auth tem formato: {token}.{signature}
-  // O banco armazena apenas o {token} (primeira parte)
-  if (sessionToken) {
-    try {
-      const tokenPart = sessionToken.split('.')[0]
-      
-      const sessionExists = await prisma.session.findUnique({
-        where: { token: tokenPart },
-        select: { id: true, expiresAt: true },
-      })
-
-      if (!sessionExists) {
-        const response = NextResponse.redirect(new URL('/sign-in', request.url))
-        return clearSessionCookie(response)
-      }
-
-      // Verificar se a session expirou
-      if (sessionExists.expiresAt < new Date()) {
-        const response = NextResponse.redirect(new URL('/sign-in', request.url))
-        return clearSessionCookie(response)
-      }
-    } catch (error) {
-      // Em caso de erro, permite continuar (não bloqueia o usuário)
-    }
   }
 
   return NextResponse.next()

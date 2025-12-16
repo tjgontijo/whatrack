@@ -5,17 +5,23 @@ import { organization } from 'better-auth/plugins'
 
 import { prisma } from '../prisma'
 
-const appBaseURL =
-  process.env.NEXT_PUBLIC_APP_URL ??
-  process.env.APP_URL ??
-  'http://localhost:3000'
+const appBaseURL = process.env.NEXT_PUBLIC_APP_URL ?? process.env.APP_URL
+
+if (!appBaseURL) {
+  throw new Error(
+    '[auth] Missing NEXT_PUBLIC_APP_URL/APP_URL. Configure it in the environment variables (e.g. https://whatrack.com).',
+  )
+}
 
 const OWNER_EMAIL = process.env.OWNER_EMAIL
+
+console.log('[auth] Configured baseURL:', appBaseURL)
 
 export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET,
   baseURL: appBaseURL,
   basePath: '/api/v1/auth',
+  trustHost: true,
 
   database: prismaAdapter(prisma, { provider: 'postgresql' }),
 
