@@ -53,7 +53,10 @@ export function proxy(request: NextRequest) {
   }
 
   const sessionToken = request.cookies.get('better-auth.session_token')?.value
-  const hasPlausibleCookie = looksLikeSessionCookie(sessionToken)
+  const secureSessionToken = request.cookies.get('__Secure-better-auth.session_token')?.value
+  const hasPlausibleCookie =
+    looksLikeSessionCookie(sessionToken) ||
+    looksLikeSessionCookie(secureSessionToken)
 
   if (!hasPlausibleCookie) {
     return unauthorizedResponse(request)
