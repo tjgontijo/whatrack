@@ -1,5 +1,3 @@
-import { getMetaCloudConfig } from './config'
-
 type WebhookVerifyParams = {
   mode: string | null
   token: string | null
@@ -23,7 +21,14 @@ export function verifyMetaWebhook({
   token,
   challenge,
 }: WebhookVerifyParams): WebhookVerifyResult {
-  const { webhookVerifyToken } = getMetaCloudConfig()
+  const webhookVerifyToken = process.env.META_WEBHOOK_VERIFY_TOKEN
+
+  if (!webhookVerifyToken) {
+    return {
+      success: false,
+      error: 'META_WEBHOOK_VERIFY_TOKEN is not configured',
+    }
+  }
 
   if (mode === 'subscribe' && token === webhookVerifyToken) {
     return {

@@ -9,6 +9,7 @@ const PUBLIC_API_PREFIXES = [
   '/api/v1/contact',
   '/api/v1/meta-ads/metrics',
   '/api/v1/whatsapp/webhook',
+  '/api/v1/whatsapp/meta-cloud/webhook',
   '/api/v1/billing/plans',
   '/api/v1/company/lookup-public',
 ]
