@@ -4,6 +4,10 @@
 
 @contentType = application/json
 
+@localUrl = http://localhost:3000
+@prodUrl = https://whatrack.com
+@webhookVerifyToken = {{$dotenv META_WEBHOOK_VERIFY_TOKEN}}
+
 ### Testar matriculando em um produto
 GET https://graph.facebook.com/v24.0/me/adaccounts?fields=id,name,account_status,currency&access_token={{apiKey}} HTTP/1.1
 Content-Type: {{contentType}}
@@ -26,5 +30,145 @@ admintoken: {{apiKey}}
   "phone": "5561982482100",
   "name": "Thiago",
   "systemName": "Elev8"
+}
+
+### === META CLOUD WEBHOOK TESTS ===
+
+### Teste de Verificação do Webhook - LOCAL
+GET {{localUrl}}/api/v1/whatsapp/meta-cloud/webhook?hub.mode=subscribe&hub.verify_token={{webhookVerifyToken}}&hub.challenge=123456789 HTTP/1.1
+
+### Teste de Verificação do Webhook - PRODUÇÃO
+GET {{prodUrl}}/api/v1/whatsapp/meta-cloud/webhook?hub.mode=subscribe&hub.verify_token={{webhookVerifyToken}}&hub.challenge=123456789 HTTP/1.1
+
+### Teste de Verificação Inválida - LOCAL
+GET {{localUrl}}/api/v1/whatsapp/meta-cloud/webhook?hub.mode=subscribe&hub.verify_token=token_invalido&hub.challenge=123456789 HTTP/1.1
+
+### Teste de Verificação Inválida - PRODUÇÃO
+GET {{prodUrl}}/api/v1/whatsapp/meta-cloud/webhook?hub.mode=subscribe&hub.verify_token=token_invalido&hub.challenge=123456789 HTTP/1.1
+
+### Teste de Mensagem de Texto - LOCAL
+POST {{localUrl}}/api/v1/whatsapp/meta-cloud/webhook HTTP/1.1
+Content-Type: {{contentType}}
+
+{
+  "object": "whatsapp_business_account",
+  "entry": [{
+    "id": "123456789",
+    "changes": [{
+      "value": {
+        "messaging_product": "whatsapp",
+        "metadata": {
+          "display_phone_number": "5561982482100",
+          "phone_number_id": "123456789"
+        },
+        "contacts": [{
+          "profile": {
+            "name": "Thiago"
+          },
+          "wa_id": "5561982482100"
+        }],
+        "messages": [{
+          "from": "5561982482100",
+          "id": "wamid.HBgLNTU2MTk4MjQ4MjEwMFUC",
+          "timestamp": "1702847356",
+          "text": {
+            "body": "Olá, tudo bem?"
+          },
+          "type": "text"
+        }]
+      },
+      "field": "messages"
+    }]
+  }]
+}
+
+### Teste de Mensagem de Texto - PRODUÇÃO
+POST {{prodUrl}}/api/v1/whatsapp/meta-cloud/webhook HTTP/1.1
+Content-Type: {{contentType}}
+
+{
+  "object": "whatsapp_business_account",
+  "entry": [{
+    "id": "123456789",
+    "changes": [{
+      "value": {
+        "messaging_product": "whatsapp",
+        "metadata": {
+          "display_phone_number": "5561982482100",
+          "phone_number_id": "123456789"
+        },
+        "contacts": [{
+          "profile": {
+            "name": "Cliente Teste"
+          },
+          "wa_id": "5561982482100"
+        }],
+        "messages": [{
+          "from": "5561982482100",
+          "id": "wamid.HBgLNTU2MTk4MjQ4MjEwMFUC",
+          "timestamp": "1702847356",
+          "text": {
+            "body": "Mensagem de teste produção"
+          },
+          "type": "text"
+        }]
+      },
+      "field": "messages"
+    }]
+  }]
+}
+
+### Teste de Status Update - LOCAL
+POST {{localUrl}}/api/v1/whatsapp/meta-cloud/webhook HTTP/1.1
+Content-Type: {{contentType}}
+
+{
+  "object": "whatsapp_business_account",
+  "entry": [{
+    "id": "123456789",
+    "changes": [{
+      "value": {
+        "messaging_product": "whatsapp",
+        "metadata": {
+          "display_phone_number": "5561982482100",
+          "phone_number_id": "123456789"
+        },
+        "statuses": [{
+          "id": "wamid.HBgLNTU2MTk4MjQ4MjEwMFUC",
+          "recipient_id": "5561982482100",
+          "status": "read",
+          "timestamp": "1702847356"
+        }]
+      },
+      "field": "messages"
+    }]
+  }]
+}
+
+### Teste de Status Update - PRODUÇÃO
+POST {{prodUrl}}/api/v1/whatsapp/meta-cloud/webhook HTTP/1.1
+Content-Type: {{contentType}}
+
+{
+  "object": "whatsapp_business_account",
+  "entry": [{
+    "id": "123456789",
+    "changes": [{
+      "value": {
+        "messaging_product": "whatsapp",
+        "metadata": {
+          "display_phone_number": "5561982482100",
+          "phone_number_id": "123456789"
+        },
+        "statuses": [{
+          "id": "wamid.HBgLNTU2MTk4MjQ4MjEwMFUC",
+          "recipient_id": "5561982482100",
+          "status": "delivered",
+          "timestamp": "1702847356"
+        }]
+      },
+      "field": "messages"
+    }]
+  }]
 }
 
