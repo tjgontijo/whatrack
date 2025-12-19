@@ -49,7 +49,7 @@ export function CreateInstanceDialog({
         setIsSubmitting(true)
 
         try {
-            const response = await fetch('/api/v1/whatsapp/u/instances', {
+            const response = await fetch('/api/v1/whatsapp/instances', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
