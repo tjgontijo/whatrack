@@ -43,7 +43,7 @@ export function ConnectInstanceDialog({
         setIsLoading(true)
         setCanPollStatus(false)
         try {
-            const response = await fetch(`/api/v1/whatsapp/u/instances/${instanceId}/connect`, {
+            const response = await fetch(`/api/v1/whatsapp/instances/${instanceId}/connect`, {
                 method: 'POST',
                 headers: {
                     [ORGANIZATION_HEADER]: organizationId,
@@ -71,7 +71,7 @@ export function ConnectInstanceDialog({
 
         const checkStatus = async () => {
             try {
-                const response = await fetch(`/api/v1/whatsapp/u/instances/${instanceId}/status`, {
+                const response = await fetch(`/api/v1/whatsapp/instances/${instanceId}/status`, {
                     headers: {
                         [ORGANIZATION_HEADER]: organizationId,
                     },
