@@ -14,7 +14,7 @@ import type * as Prisma from "../internal/prismaNamespace"
 
 /**
  * Model BillingCustomerExternal
- * IDs externos do cliente por provider
+ * 
  */
 export type BillingCustomerExternalModel = runtime.Types.Result.DefaultSelection<Prisma.$BillingCustomerExternalPayload>
 

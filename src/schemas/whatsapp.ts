@@ -6,7 +6,6 @@ import { z } from 'zod'
  */
 export const createInstanceSchema = z.object({
     name: z.string().min(1, 'Nome é obrigatório'),
-    phone: z.string().min(10, 'Telefone inválido'),
 })
 
 /**

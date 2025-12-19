@@ -56,7 +56,6 @@ export const ModelName = {
   Organization: 'Organization',
   Member: 'Member',
   Invitation: 'Invitation',
-  UserSettings: 'UserSettings',
   Account: 'Account',
   Verification: 'Verification',
   Lead: 'Lead',
@@ -71,8 +70,7 @@ export const ModelName = {
   SalesAnalytics: 'SalesAnalytics',
   MetaAdsMetric: 'MetaAdsMetric',
   WhatsappInstance: 'WhatsappInstance',
-  InstanceWebhook: 'InstanceWebhook',
-  MetaWhatsAppCredential: 'MetaWhatsAppCredential',
+  WhatsappInstanceWebhook: 'WhatsappInstanceWebhook',
   WhatsappMessage: 'WhatsappMessage',
   Conversation: 'Conversation',
   TicketAnalysis: 'TicketAnalysis',
@@ -96,12 +94,7 @@ export const ModelName = {
   FollowUpConfig: 'FollowUpConfig',
   FollowUpStep: 'FollowUpStep',
   DailyMetrics: 'DailyMetrics',
-  UserDailyMetrics: 'UserDailyMetrics',
-  WhatsAppTemplate: 'WhatsAppTemplate',
-  Campaign: 'Campaign',
-  CampaignRecipient: 'CampaignRecipient',
-  CampaignCredits: 'CampaignCredits',
-  CampaignCreditTransaction: 'CampaignCreditTransaction'
+  UserDailyMetrics: 'UserDailyMetrics'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -189,18 +182,6 @@ export const InvitationScalarFieldEnum = {
 } as const
 
 export type InvitationScalarFieldEnum = (typeof InvitationScalarFieldEnum)[keyof typeof InvitationScalarFieldEnum]
-
-
-export const UserSettingsScalarFieldEnum = {
-  id: 'id',
-  userId: 'userId',
-  ticketMaxDurationDays: 'ticketMaxDurationDays',
-  ticketSilenceCloseHours: 'ticketSilenceCloseHours',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type UserSettingsScalarFieldEnum = (typeof UserSettingsScalarFieldEnum)[keyof typeof UserSettingsScalarFieldEnum]
 
 
 export const AccountScalarFieldEnum = {
@@ -448,7 +429,7 @@ export const WhatsappInstanceScalarFieldEnum = {
 export type WhatsappInstanceScalarFieldEnum = (typeof WhatsappInstanceScalarFieldEnum)[keyof typeof WhatsappInstanceScalarFieldEnum]
 
 
-export const InstanceWebhookScalarFieldEnum = {
+export const WhatsappInstanceWebhookScalarFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
   instanceId: 'instanceId',
@@ -459,22 +440,7 @@ export const InstanceWebhookScalarFieldEnum = {
   updatedAt: 'updatedAt'
 } as const
 
-export type InstanceWebhookScalarFieldEnum = (typeof InstanceWebhookScalarFieldEnum)[keyof typeof InstanceWebhookScalarFieldEnum]
-
-
-export const MetaWhatsAppCredentialScalarFieldEnum = {
-  id: 'id',
-  organizationId: 'organizationId',
-  phoneNumberId: 'phoneNumberId',
-  wabaId: 'wabaId',
-  accessToken: 'accessToken',
-  phoneNumber: 'phoneNumber',
-  isActive: 'isActive',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type MetaWhatsAppCredentialScalarFieldEnum = (typeof MetaWhatsAppCredentialScalarFieldEnum)[keyof typeof MetaWhatsAppCredentialScalarFieldEnum]
+export type WhatsappInstanceWebhookScalarFieldEnum = (typeof WhatsappInstanceWebhookScalarFieldEnum)[keyof typeof WhatsappInstanceWebhookScalarFieldEnum]
 
 
 export const WhatsappMessageScalarFieldEnum = {
@@ -968,89 +934,6 @@ export const UserDailyMetricsScalarFieldEnum = {
 } as const
 
 export type UserDailyMetricsScalarFieldEnum = (typeof UserDailyMetricsScalarFieldEnum)[keyof typeof UserDailyMetricsScalarFieldEnum]
-
-
-export const WhatsAppTemplateScalarFieldEnum = {
-  id: 'id',
-  organizationId: 'organizationId',
-  templateId: 'templateId',
-  name: 'name',
-  language: 'language',
-  category: 'category',
-  status: 'status',
-  components: 'components',
-  syncedAt: 'syncedAt',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type WhatsAppTemplateScalarFieldEnum = (typeof WhatsAppTemplateScalarFieldEnum)[keyof typeof WhatsAppTemplateScalarFieldEnum]
-
-
-export const CampaignScalarFieldEnum = {
-  id: 'id',
-  organizationId: 'organizationId',
-  templateId: 'templateId',
-  name: 'name',
-  status: 'status',
-  scheduledAt: 'scheduledAt',
-  startedAt: 'startedAt',
-  completedAt: 'completedAt',
-  totalRecipients: 'totalRecipients',
-  sent: 'sent',
-  delivered: 'delivered',
-  read: 'read',
-  failed: 'failed',
-  estimatedCost: 'estimatedCost',
-  actualCost: 'actualCost',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type CampaignScalarFieldEnum = (typeof CampaignScalarFieldEnum)[keyof typeof CampaignScalarFieldEnum]
-
-
-export const CampaignRecipientScalarFieldEnum = {
-  id: 'id',
-  campaignId: 'campaignId',
-  phone: 'phone',
-  variables: 'variables',
-  status: 'status',
-  messageId: 'messageId',
-  sentAt: 'sentAt',
-  deliveredAt: 'deliveredAt',
-  readAt: 'readAt',
-  failedAt: 'failedAt',
-  errorCode: 'errorCode',
-  errorMessage: 'errorMessage'
-} as const
-
-export type CampaignRecipientScalarFieldEnum = (typeof CampaignRecipientScalarFieldEnum)[keyof typeof CampaignRecipientScalarFieldEnum]
-
-
-export const CampaignCreditsScalarFieldEnum = {
-  id: 'id',
-  organizationId: 'organizationId',
-  balance: 'balance',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type CampaignCreditsScalarFieldEnum = (typeof CampaignCreditsScalarFieldEnum)[keyof typeof CampaignCreditsScalarFieldEnum]
-
-
-export const CampaignCreditTransactionScalarFieldEnum = {
-  id: 'id',
-  creditsId: 'creditsId',
-  type: 'type',
-  amount: 'amount',
-  description: 'description',
-  campaignId: 'campaignId',
-  paymentId: 'paymentId',
-  createdAt: 'createdAt'
-} as const
-
-export type CampaignCreditTransactionScalarFieldEnum = (typeof CampaignCreditTransactionScalarFieldEnum)[keyof typeof CampaignCreditTransactionScalarFieldEnum]
 
 
 export const SortOrder = {

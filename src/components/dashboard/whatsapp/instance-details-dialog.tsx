@@ -61,7 +61,7 @@ export function InstanceDetailsDialog({
         if (!organizationId) return
         setIsLoading(true)
         try {
-            const response = await fetch(`/api/v1/whatsapp/w/instances/${instanceKey}/logout`, {
+            const response = await fetch(`/api/v1/whatsapp/u/instances/${instanceKey}/logout`, {
                 method: 'POST',
                 headers: { [ORGANIZATION_HEADER]: organizationId },
             })
@@ -80,7 +80,7 @@ export function InstanceDetailsDialog({
         if (!organizationId) return
         setIsLoading(true)
         try {
-            const response = await fetch(`/api/v1/whatsapp/w/instances/${instanceKey}`, {
+            const response = await fetch(`/api/v1/whatsapp/u/instances/${instanceKey}`, {
                 method: 'DELETE',
                 headers: { [ORGANIZATION_HEADER]: organizationId },
             })

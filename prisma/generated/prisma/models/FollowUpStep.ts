@@ -14,7 +14,7 @@ import type * as Prisma from "../internal/prismaNamespace"
 
 /**
  * Model FollowUpStep
- * Follow-up steps (cadence configuration)
+ * 
  */
 export type FollowUpStepModel = runtime.Types.Result.DefaultSelection<Prisma.$FollowUpStepPayload>
 

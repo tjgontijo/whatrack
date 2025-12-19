@@ -2,7 +2,7 @@ import { performance } from 'node:perf_hooks'
 
 import { prisma } from '@/lib/prisma'
 import { resendProvider } from '@/services/mail/resend'
-import { sendTextMessage } from '@/services/whatsapp/uazapi/send-message'
+import { sendWhatsappMessage } from '@/services/whatsapp/uazapi/send-whatsapp-message'
 import { getEmailTemplate } from './get-email'
 import { getWhatsappMessage } from './get-whatsapp'
 import { AuthDeliveryPayload, AuthDeliveryResult } from './types'
@@ -52,6 +52,7 @@ class AuthDeliveryService {
       const user = await prisma.user.findUnique({
         where: { email },
         select: {
+          id: true,
           name: true,
           phone: true,
         },
@@ -114,14 +115,37 @@ class AuthDeliveryService {
               data,
             })
 
-            const result = await sendTextMessage({
-              phone: whatsappNumber,
-              message,
+            const member = await prisma.member.findFirst({
+              where: { userId: user.id },
+              select: { organizationId: true },
             })
 
-            if (!result.status) {
-              throw new Error(result.error || 'WhatsApp send failed')
+            if (!member?.organizationId) {
+              throw new Error('user_without_organization')
             }
+
+            const instance = await prisma.whatsappInstance.findFirst({
+              where: {
+                organizationId: member.organizationId,
+                provider: 'uazapi',
+                token: { not: null },
+              },
+              select: {
+                instanceId: true,
+              },
+            })
+
+            if (!instance?.instanceId) {
+              throw new Error('no_uazapi_instance_available')
+            }
+
+            await sendWhatsappMessage({
+              organizationId: member.organizationId,
+              instanceId: instance.instanceId,
+              to: whatsappNumber,
+              type: 'text',
+              text: message,
+            })
           } catch (whatsappError) {
             console.error(`[AuthDeliveryService] Erro ao enviar via WhatsApp:`, whatsappError)
           }

@@ -240,7 +240,6 @@ export type UserWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   sessions?: Prisma.SessionListRelationFilter
   accounts?: Prisma.AccountListRelationFilter
-  userSettings?: Prisma.XOR<Prisma.UserSettingsNullableScalarRelationFilter, Prisma.UserSettingsWhereInput> | null
   members?: Prisma.MemberListRelationFilter
   invitations?: Prisma.InvitationListRelationFilter
   dailyMetrics?: Prisma.UserDailyMetricsListRelationFilter
@@ -261,7 +260,6 @@ export type UserOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   sessions?: Prisma.SessionOrderByRelationAggregateInput
   accounts?: Prisma.AccountOrderByRelationAggregateInput
-  userSettings?: Prisma.UserSettingsOrderByWithRelationInput
   members?: Prisma.MemberOrderByRelationAggregateInput
   invitations?: Prisma.InvitationOrderByRelationAggregateInput
   dailyMetrics?: Prisma.UserDailyMetricsOrderByRelationAggregateInput
@@ -285,7 +283,6 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   sessions?: Prisma.SessionListRelationFilter
   accounts?: Prisma.AccountListRelationFilter
-  userSettings?: Prisma.XOR<Prisma.UserSettingsNullableScalarRelationFilter, Prisma.UserSettingsWhereInput> | null
   members?: Prisma.MemberListRelationFilter
   invitations?: Prisma.InvitationListRelationFilter
   dailyMetrics?: Prisma.UserDailyMetricsListRelationFilter
@@ -342,7 +339,6 @@ export type UserCreateInput = {
   updatedAt?: Date | string
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
-  userSettings?: Prisma.UserSettingsCreateNestedOneWithoutUserInput
   members?: Prisma.MemberCreateNestedManyWithoutUserInput
   invitations?: Prisma.InvitationCreateNestedManyWithoutUserInput
   dailyMetrics?: Prisma.UserDailyMetricsCreateNestedManyWithoutUserInput
@@ -363,7 +359,6 @@ export type UserUncheckedCreateInput = {
   updatedAt?: Date | string
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
-  userSettings?: Prisma.UserSettingsUncheckedCreateNestedOneWithoutUserInput
   members?: Prisma.MemberUncheckedCreateNestedManyWithoutUserInput
   invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutUserInput
   dailyMetrics?: Prisma.UserDailyMetricsUncheckedCreateNestedManyWithoutUserInput
@@ -384,7 +379,6 @@ export type UserUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
-  userSettings?: Prisma.UserSettingsUpdateOneWithoutUserNestedInput
   members?: Prisma.MemberUpdateManyWithoutUserNestedInput
   invitations?: Prisma.InvitationUpdateManyWithoutUserNestedInput
   dailyMetrics?: Prisma.UserDailyMetricsUpdateManyWithoutUserNestedInput
@@ -405,7 +399,6 @@ export type UserUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
-  userSettings?: Prisma.UserSettingsUncheckedUpdateOneWithoutUserNestedInput
   members?: Prisma.MemberUncheckedUpdateManyWithoutUserNestedInput
   invitations?: Prisma.InvitationUncheckedUpdateManyWithoutUserNestedInput
   dailyMetrics?: Prisma.UserDailyMetricsUncheckedUpdateManyWithoutUserNestedInput
@@ -576,20 +569,6 @@ export type UserUpdateOneRequiredWithoutInvitationsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutInvitationsInput, Prisma.UserUpdateWithoutInvitationsInput>, Prisma.UserUncheckedUpdateWithoutInvitationsInput>
 }
 
-export type UserCreateNestedOneWithoutUserSettingsInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutUserSettingsInput, Prisma.UserUncheckedCreateWithoutUserSettingsInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutUserSettingsInput
-  connect?: Prisma.UserWhereUniqueInput
-}
-
-export type UserUpdateOneRequiredWithoutUserSettingsNestedInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutUserSettingsInput, Prisma.UserUncheckedCreateWithoutUserSettingsInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutUserSettingsInput
-  upsert?: Prisma.UserUpsertWithoutUserSettingsInput
-  connect?: Prisma.UserWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutUserSettingsInput, Prisma.UserUpdateWithoutUserSettingsInput>, Prisma.UserUncheckedUpdateWithoutUserSettingsInput>
-}
-
 export type UserCreateNestedOneWithoutAccountsInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutAccountsInput, Prisma.UserUncheckedCreateWithoutAccountsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutAccountsInput
@@ -632,7 +611,6 @@ export type UserCreateWithoutSessionsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
-  userSettings?: Prisma.UserSettingsCreateNestedOneWithoutUserInput
   members?: Prisma.MemberCreateNestedManyWithoutUserInput
   invitations?: Prisma.InvitationCreateNestedManyWithoutUserInput
   dailyMetrics?: Prisma.UserDailyMetricsCreateNestedManyWithoutUserInput
@@ -652,7 +630,6 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
-  userSettings?: Prisma.UserSettingsUncheckedCreateNestedOneWithoutUserInput
   members?: Prisma.MemberUncheckedCreateNestedManyWithoutUserInput
   invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutUserInput
   dailyMetrics?: Prisma.UserDailyMetricsUncheckedCreateNestedManyWithoutUserInput
@@ -688,7 +665,6 @@ export type UserUpdateWithoutSessionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
-  userSettings?: Prisma.UserSettingsUpdateOneWithoutUserNestedInput
   members?: Prisma.MemberUpdateManyWithoutUserNestedInput
   invitations?: Prisma.InvitationUpdateManyWithoutUserNestedInput
   dailyMetrics?: Prisma.UserDailyMetricsUpdateManyWithoutUserNestedInput
@@ -708,7 +684,6 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
-  userSettings?: Prisma.UserSettingsUncheckedUpdateOneWithoutUserNestedInput
   members?: Prisma.MemberUncheckedUpdateManyWithoutUserNestedInput
   invitations?: Prisma.InvitationUncheckedUpdateManyWithoutUserNestedInput
   dailyMetrics?: Prisma.UserDailyMetricsUncheckedUpdateManyWithoutUserNestedInput
@@ -729,7 +704,6 @@ export type UserCreateWithoutMembersInput = {
   updatedAt?: Date | string
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
-  userSettings?: Prisma.UserSettingsCreateNestedOneWithoutUserInput
   invitations?: Prisma.InvitationCreateNestedManyWithoutUserInput
   dailyMetrics?: Prisma.UserDailyMetricsCreateNestedManyWithoutUserInput
 }
@@ -749,7 +723,6 @@ export type UserUncheckedCreateWithoutMembersInput = {
   updatedAt?: Date | string
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
-  userSettings?: Prisma.UserSettingsUncheckedCreateNestedOneWithoutUserInput
   invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutUserInput
   dailyMetrics?: Prisma.UserDailyMetricsUncheckedCreateNestedManyWithoutUserInput
 }
@@ -785,7 +758,6 @@ export type UserUpdateWithoutMembersInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
-  userSettings?: Prisma.UserSettingsUpdateOneWithoutUserNestedInput
   invitations?: Prisma.InvitationUpdateManyWithoutUserNestedInput
   dailyMetrics?: Prisma.UserDailyMetricsUpdateManyWithoutUserNestedInput
 }
@@ -805,7 +777,6 @@ export type UserUncheckedUpdateWithoutMembersInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
-  userSettings?: Prisma.UserSettingsUncheckedUpdateOneWithoutUserNestedInput
   invitations?: Prisma.InvitationUncheckedUpdateManyWithoutUserNestedInput
   dailyMetrics?: Prisma.UserDailyMetricsUncheckedUpdateManyWithoutUserNestedInput
 }
@@ -825,7 +796,6 @@ export type UserCreateWithoutInvitationsInput = {
   updatedAt?: Date | string
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
-  userSettings?: Prisma.UserSettingsCreateNestedOneWithoutUserInput
   members?: Prisma.MemberCreateNestedManyWithoutUserInput
   dailyMetrics?: Prisma.UserDailyMetricsCreateNestedManyWithoutUserInput
 }
@@ -845,7 +815,6 @@ export type UserUncheckedCreateWithoutInvitationsInput = {
   updatedAt?: Date | string
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
-  userSettings?: Prisma.UserSettingsUncheckedCreateNestedOneWithoutUserInput
   members?: Prisma.MemberUncheckedCreateNestedManyWithoutUserInput
   dailyMetrics?: Prisma.UserDailyMetricsUncheckedCreateNestedManyWithoutUserInput
 }
@@ -881,7 +850,6 @@ export type UserUpdateWithoutInvitationsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
-  userSettings?: Prisma.UserSettingsUpdateOneWithoutUserNestedInput
   members?: Prisma.MemberUpdateManyWithoutUserNestedInput
   dailyMetrics?: Prisma.UserDailyMetricsUpdateManyWithoutUserNestedInput
 }
@@ -901,104 +869,7 @@ export type UserUncheckedUpdateWithoutInvitationsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
-  userSettings?: Prisma.UserSettingsUncheckedUpdateOneWithoutUserNestedInput
   members?: Prisma.MemberUncheckedUpdateManyWithoutUserNestedInput
-  dailyMetrics?: Prisma.UserDailyMetricsUncheckedUpdateManyWithoutUserNestedInput
-}
-
-export type UserCreateWithoutUserSettingsInput = {
-  id?: string
-  name: string
-  email: string
-  phone?: string | null
-  emailVerified?: boolean | null
-  image?: string | null
-  role?: $Enums.UserRole
-  banned?: boolean
-  banReason?: string | null
-  banExpires?: Date | string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
-  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
-  members?: Prisma.MemberCreateNestedManyWithoutUserInput
-  invitations?: Prisma.InvitationCreateNestedManyWithoutUserInput
-  dailyMetrics?: Prisma.UserDailyMetricsCreateNestedManyWithoutUserInput
-}
-
-export type UserUncheckedCreateWithoutUserSettingsInput = {
-  id?: string
-  name: string
-  email: string
-  phone?: string | null
-  emailVerified?: boolean | null
-  image?: string | null
-  role?: $Enums.UserRole
-  banned?: boolean
-  banReason?: string | null
-  banExpires?: Date | string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
-  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
-  members?: Prisma.MemberUncheckedCreateNestedManyWithoutUserInput
-  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutUserInput
-  dailyMetrics?: Prisma.UserDailyMetricsUncheckedCreateNestedManyWithoutUserInput
-}
-
-export type UserCreateOrConnectWithoutUserSettingsInput = {
-  where: Prisma.UserWhereUniqueInput
-  create: Prisma.XOR<Prisma.UserCreateWithoutUserSettingsInput, Prisma.UserUncheckedCreateWithoutUserSettingsInput>
-}
-
-export type UserUpsertWithoutUserSettingsInput = {
-  update: Prisma.XOR<Prisma.UserUpdateWithoutUserSettingsInput, Prisma.UserUncheckedUpdateWithoutUserSettingsInput>
-  create: Prisma.XOR<Prisma.UserCreateWithoutUserSettingsInput, Prisma.UserUncheckedCreateWithoutUserSettingsInput>
-  where?: Prisma.UserWhereInput
-}
-
-export type UserUpdateToOneWithWhereWithoutUserSettingsInput = {
-  where?: Prisma.UserWhereInput
-  data: Prisma.XOR<Prisma.UserUpdateWithoutUserSettingsInput, Prisma.UserUncheckedUpdateWithoutUserSettingsInput>
-}
-
-export type UserUpdateWithoutUserSettingsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  name?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  emailVerified?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
-  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
-  banned?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
-  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
-  members?: Prisma.MemberUpdateManyWithoutUserNestedInput
-  invitations?: Prisma.InvitationUpdateManyWithoutUserNestedInput
-  dailyMetrics?: Prisma.UserDailyMetricsUpdateManyWithoutUserNestedInput
-}
-
-export type UserUncheckedUpdateWithoutUserSettingsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  name?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  emailVerified?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
-  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
-  banned?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
-  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
-  members?: Prisma.MemberUncheckedUpdateManyWithoutUserNestedInput
-  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutUserNestedInput
   dailyMetrics?: Prisma.UserDailyMetricsUncheckedUpdateManyWithoutUserNestedInput
 }
 
@@ -1016,7 +887,6 @@ export type UserCreateWithoutAccountsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
-  userSettings?: Prisma.UserSettingsCreateNestedOneWithoutUserInput
   members?: Prisma.MemberCreateNestedManyWithoutUserInput
   invitations?: Prisma.InvitationCreateNestedManyWithoutUserInput
   dailyMetrics?: Prisma.UserDailyMetricsCreateNestedManyWithoutUserInput
@@ -1036,7 +906,6 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
-  userSettings?: Prisma.UserSettingsUncheckedCreateNestedOneWithoutUserInput
   members?: Prisma.MemberUncheckedCreateNestedManyWithoutUserInput
   invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutUserInput
   dailyMetrics?: Prisma.UserDailyMetricsUncheckedCreateNestedManyWithoutUserInput
@@ -1072,7 +941,6 @@ export type UserUpdateWithoutAccountsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
-  userSettings?: Prisma.UserSettingsUpdateOneWithoutUserNestedInput
   members?: Prisma.MemberUpdateManyWithoutUserNestedInput
   invitations?: Prisma.InvitationUpdateManyWithoutUserNestedInput
   dailyMetrics?: Prisma.UserDailyMetricsUpdateManyWithoutUserNestedInput
@@ -1092,7 +960,6 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
-  userSettings?: Prisma.UserSettingsUncheckedUpdateOneWithoutUserNestedInput
   members?: Prisma.MemberUncheckedUpdateManyWithoutUserNestedInput
   invitations?: Prisma.InvitationUncheckedUpdateManyWithoutUserNestedInput
   dailyMetrics?: Prisma.UserDailyMetricsUncheckedUpdateManyWithoutUserNestedInput
@@ -1113,7 +980,6 @@ export type UserCreateWithoutDailyMetricsInput = {
   updatedAt?: Date | string
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
-  userSettings?: Prisma.UserSettingsCreateNestedOneWithoutUserInput
   members?: Prisma.MemberCreateNestedManyWithoutUserInput
   invitations?: Prisma.InvitationCreateNestedManyWithoutUserInput
 }
@@ -1133,7 +999,6 @@ export type UserUncheckedCreateWithoutDailyMetricsInput = {
   updatedAt?: Date | string
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
-  userSettings?: Prisma.UserSettingsUncheckedCreateNestedOneWithoutUserInput
   members?: Prisma.MemberUncheckedCreateNestedManyWithoutUserInput
   invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutUserInput
 }
@@ -1169,7 +1034,6 @@ export type UserUpdateWithoutDailyMetricsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
-  userSettings?: Prisma.UserSettingsUpdateOneWithoutUserNestedInput
   members?: Prisma.MemberUpdateManyWithoutUserNestedInput
   invitations?: Prisma.InvitationUpdateManyWithoutUserNestedInput
 }
@@ -1189,7 +1053,6 @@ export type UserUncheckedUpdateWithoutDailyMetricsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
-  userSettings?: Prisma.UserSettingsUncheckedUpdateOneWithoutUserNestedInput
   members?: Prisma.MemberUncheckedUpdateManyWithoutUserNestedInput
   invitations?: Prisma.InvitationUncheckedUpdateManyWithoutUserNestedInput
 }
@@ -1276,7 +1139,6 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   updatedAt?: boolean
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
-  userSettings?: boolean | Prisma.User$userSettingsArgs<ExtArgs>
   members?: boolean | Prisma.User$membersArgs<ExtArgs>
   invitations?: boolean | Prisma.User$invitationsArgs<ExtArgs>
   dailyMetrics?: boolean | Prisma.User$dailyMetricsArgs<ExtArgs>
@@ -1332,7 +1194,6 @@ export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = run
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
-  userSettings?: boolean | Prisma.User$userSettingsArgs<ExtArgs>
   members?: boolean | Prisma.User$membersArgs<ExtArgs>
   invitations?: boolean | Prisma.User$invitationsArgs<ExtArgs>
   dailyMetrics?: boolean | Prisma.User$dailyMetricsArgs<ExtArgs>
@@ -1346,7 +1207,6 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   objects: {
     sessions: Prisma.$SessionPayload<ExtArgs>[]
     accounts: Prisma.$AccountPayload<ExtArgs>[]
-    userSettings: Prisma.$UserSettingsPayload<ExtArgs> | null
     members: Prisma.$MemberPayload<ExtArgs>[]
     invitations: Prisma.$InvitationPayload<ExtArgs>[]
     dailyMetrics: Prisma.$UserDailyMetricsPayload<ExtArgs>[]
@@ -1760,7 +1620,6 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   readonly [Symbol.toStringTag]: "PrismaPromise"
   sessions<T extends Prisma.User$sessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   accounts<T extends Prisma.User$accountsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$accountsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  userSettings<T extends Prisma.User$userSettingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$userSettingsArgs<ExtArgs>>): Prisma.Prisma__UserSettingsClient<runtime.Types.Result.GetResult<Prisma.$UserSettingsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   members<T extends Prisma.User$membersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$membersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   invitations<T extends Prisma.User$invitationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$invitationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$InvitationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   dailyMetrics<T extends Prisma.User$dailyMetricsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$dailyMetricsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserDailyMetricsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -2238,25 +2097,6 @@ export type User$accountsArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   take?: number
   skip?: number
   distinct?: Prisma.AccountScalarFieldEnum | Prisma.AccountScalarFieldEnum[]
-}
-
-/**
- * User.userSettings
- */
-export type User$userSettingsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the UserSettings
-   */
-  select?: Prisma.UserSettingsSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the UserSettings
-   */
-  omit?: Prisma.UserSettingsOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.UserSettingsInclude<ExtArgs> | null
-  where?: Prisma.UserSettingsWhereInput
 }
 
 /**

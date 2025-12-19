@@ -308,7 +308,7 @@ src/hooks/use-conversations.ts              → src/hooks/use-chat.ts
 WuzAPI Webhook
      │
      ▼
-POST /api/v1/whatsapp/w/webhook/[id]
+POST /api/v1/whatsapp/u/webhook/[id]
      │
      ├─ 1. Verificar se providerMessageId já existe
      │      └─ Se sim: ignorar (idempotência)

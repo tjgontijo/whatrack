@@ -14,7 +14,7 @@ import type * as Prisma from "../internal/prismaNamespace"
 
 /**
  * Model Plan
- * Planos disponíveis no sistema (Free, Starter, Pro, Business)
+ * 
  */
 export type PlanModel = runtime.Types.Result.DefaultSelection<Prisma.$PlanPayload>
 

@@ -72,61 +72,6 @@ export const PlatformEventStatus = {
 export type PlatformEventStatus = (typeof PlatformEventStatus)[keyof typeof PlatformEventStatus]
 
 
-export const PlanInterval = {
-  monthly: 'monthly',
-  yearly: 'yearly'
-} as const
-
-export type PlanInterval = (typeof PlanInterval)[keyof typeof PlanInterval]
-
-
-export const SubscriptionStatus = {
-  incomplete: 'incomplete',
-  trialing: 'trialing',
-  active: 'active',
-  past_due: 'past_due',
-  unpaid: 'unpaid',
-  canceled: 'canceled',
-  paused: 'paused'
-} as const
-
-export type SubscriptionStatus = (typeof SubscriptionStatus)[keyof typeof SubscriptionStatus]
-
-
-export const PaymentStatus = {
-  pending: 'pending',
-  processing: 'processing',
-  succeeded: 'succeeded',
-  failed: 'failed',
-  refunded: 'refunded',
-  canceled: 'canceled'
-} as const
-
-export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus]
-
-
-export const PaymentMethod = {
-  credit_card: 'credit_card',
-  debit_card: 'debit_card',
-  pix: 'pix',
-  boleto: 'boleto',
-  bank_transfer: 'bank_transfer',
-  wallet: 'wallet'
-} as const
-
-export type PaymentMethod = (typeof PaymentMethod)[keyof typeof PaymentMethod]
-
-
-export const BillingProvider = {
-  asaas: 'asaas',
-  stripe: 'stripe',
-  mercadopago: 'mercadopago',
-  manual: 'manual'
-} as const
-
-export type BillingProvider = (typeof BillingProvider)[keyof typeof BillingProvider]
-
-
 export const MessageDirection = {
   INBOUND: 'INBOUND',
   OUTBOUND: 'OUTBOUND'
@@ -235,3 +180,58 @@ export const MessageType = {
 } as const
 
 export type MessageType = (typeof MessageType)[keyof typeof MessageType]
+
+
+export const PlanInterval = {
+  monthly: 'monthly',
+  yearly: 'yearly'
+} as const
+
+export type PlanInterval = (typeof PlanInterval)[keyof typeof PlanInterval]
+
+
+export const SubscriptionStatus = {
+  incomplete: 'incomplete',
+  trialing: 'trialing',
+  active: 'active',
+  past_due: 'past_due',
+  unpaid: 'unpaid',
+  canceled: 'canceled',
+  paused: 'paused'
+} as const
+
+export type SubscriptionStatus = (typeof SubscriptionStatus)[keyof typeof SubscriptionStatus]
+
+
+export const PaymentStatus = {
+  pending: 'pending',
+  processing: 'processing',
+  succeeded: 'succeeded',
+  failed: 'failed',
+  refunded: 'refunded',
+  canceled: 'canceled'
+} as const
+
+export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus]
+
+
+export const PaymentMethod = {
+  credit_card: 'credit_card',
+  debit_card: 'debit_card',
+  pix: 'pix',
+  boleto: 'boleto',
+  bank_transfer: 'bank_transfer',
+  wallet: 'wallet'
+} as const
+
+export type PaymentMethod = (typeof PaymentMethod)[keyof typeof PaymentMethod]
+
+
+export const BillingProvider = {
+  asaas: 'asaas',
+  stripe: 'stripe',
+  mercadopago: 'mercadopago',
+  manual: 'manual'
+} as const
+
+export type BillingProvider = (typeof BillingProvider)[keyof typeof BillingProvider]

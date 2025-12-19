@@ -14,7 +14,7 @@ import type * as Prisma from "../internal/prismaNamespace"
 
 /**
  * Model DailyMetrics
- * Daily Metrics - Aggregated daily stats per organization
+ * 
  */
 export type DailyMetricsModel = runtime.Types.Result.DefaultSelection<Prisma.$DailyMetricsPayload>
 

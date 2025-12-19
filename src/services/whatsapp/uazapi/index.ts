@@ -16,7 +16,7 @@ export type { CreateWhatsappInstanceParams } from './create-instance'
 export { listWhatsappInstances } from './list-instances'
 
 // Operações de mensagens
-export { sendTextMessage } from './send-message'
+export { sendWhatsappMessage } from './send-whatsapp-message'
 
 // Validações
 export { isWhatsAppNumberValid } from './check'

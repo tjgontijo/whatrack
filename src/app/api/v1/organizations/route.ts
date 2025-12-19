@@ -8,7 +8,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getOrSyncUser } from "@/server/auth/server";
 import { createId } from "@paralleldrive/cuid2";
-import { calculateMetrics } from "@/services/sign-up/metrics-calculator";
+import { calculateMetrics } from "@/services/onboarding-metrics/metrics-calculator";
 
 export async function POST(request: Request) {
   try {

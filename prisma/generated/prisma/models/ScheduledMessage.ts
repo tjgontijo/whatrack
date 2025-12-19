@@ -14,7 +14,7 @@ import type * as Prisma from "../internal/prismaNamespace"
 
 /**
  * Model ScheduledMessage
- * Scheduled Message for follow-up automation
+ * 
  */
 export type ScheduledMessageModel = runtime.Types.Result.DefaultSelection<Prisma.$ScheduledMessagePayload>
 

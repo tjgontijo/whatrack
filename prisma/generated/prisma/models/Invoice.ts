@@ -14,7 +14,7 @@ import type * as Prisma from "../internal/prismaNamespace"
 
 /**
  * Model Invoice
- * Fatura gerada
+ * 
  */
 export type InvoiceModel = runtime.Types.Result.DefaultSelection<Prisma.$InvoicePayload>
 

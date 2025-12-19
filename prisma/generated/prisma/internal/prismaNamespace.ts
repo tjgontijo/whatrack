@@ -389,7 +389,6 @@ export const ModelName = {
   Organization: 'Organization',
   Member: 'Member',
   Invitation: 'Invitation',
-  UserSettings: 'UserSettings',
   Account: 'Account',
   Verification: 'Verification',
   Lead: 'Lead',
@@ -404,8 +403,7 @@ export const ModelName = {
   SalesAnalytics: 'SalesAnalytics',
   MetaAdsMetric: 'MetaAdsMetric',
   WhatsappInstance: 'WhatsappInstance',
-  InstanceWebhook: 'InstanceWebhook',
-  MetaWhatsAppCredential: 'MetaWhatsAppCredential',
+  WhatsappInstanceWebhook: 'WhatsappInstanceWebhook',
   WhatsappMessage: 'WhatsappMessage',
   Conversation: 'Conversation',
   TicketAnalysis: 'TicketAnalysis',
@@ -429,12 +427,7 @@ export const ModelName = {
   FollowUpConfig: 'FollowUpConfig',
   FollowUpStep: 'FollowUpStep',
   DailyMetrics: 'DailyMetrics',
-  UserDailyMetrics: 'UserDailyMetrics',
-  WhatsAppTemplate: 'WhatsAppTemplate',
-  Campaign: 'Campaign',
-  CampaignRecipient: 'CampaignRecipient',
-  CampaignCredits: 'CampaignCredits',
-  CampaignCreditTransaction: 'CampaignCreditTransaction'
+  UserDailyMetrics: 'UserDailyMetrics'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -450,7 +443,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "organization" | "member" | "invitation" | "userSettings" | "account" | "verification" | "lead" | "ticket" | "sale" | "saleItem" | "product" | "productCategory" | "appointment" | "attendance" | "platformEvent" | "salesAnalytics" | "metaAdsMetric" | "whatsappInstance" | "instanceWebhook" | "metaWhatsAppCredential" | "whatsappMessage" | "conversation" | "ticketAnalysis" | "conversationMetrics" | "message" | "plan" | "planPrice" | "billingCustomer" | "billingCustomerExternal" | "paymentMethodStored" | "subscription" | "invoice" | "invoiceItem" | "payment" | "webhookEvent" | "organizationProfile" | "organizationCompany" | "aICredits" | "aIUsageLog" | "scheduledMessage" | "followUpConfig" | "followUpStep" | "dailyMetrics" | "userDailyMetrics" | "whatsAppTemplate" | "campaign" | "campaignRecipient" | "campaignCredits" | "campaignCreditTransaction"
+    modelProps: "user" | "session" | "organization" | "member" | "invitation" | "account" | "verification" | "lead" | "ticket" | "sale" | "saleItem" | "product" | "productCategory" | "appointment" | "attendance" | "platformEvent" | "salesAnalytics" | "metaAdsMetric" | "whatsappInstance" | "whatsappInstanceWebhook" | "whatsappMessage" | "conversation" | "ticketAnalysis" | "conversationMetrics" | "message" | "plan" | "planPrice" | "billingCustomer" | "billingCustomerExternal" | "paymentMethodStored" | "subscription" | "invoice" | "invoiceItem" | "payment" | "webhookEvent" | "organizationProfile" | "organizationCompany" | "aICredits" | "aIUsageLog" | "scheduledMessage" | "followUpConfig" | "followUpStep" | "dailyMetrics" | "userDailyMetrics"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -821,80 +814,6 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.InvitationCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.InvitationCountAggregateOutputType> | number
-        }
-      }
-    }
-    UserSettings: {
-      payload: Prisma.$UserSettingsPayload<ExtArgs>
-      fields: Prisma.UserSettingsFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.UserSettingsFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserSettingsPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.UserSettingsFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserSettingsPayload>
-        }
-        findFirst: {
-          args: Prisma.UserSettingsFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserSettingsPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.UserSettingsFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserSettingsPayload>
-        }
-        findMany: {
-          args: Prisma.UserSettingsFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserSettingsPayload>[]
-        }
-        create: {
-          args: Prisma.UserSettingsCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserSettingsPayload>
-        }
-        createMany: {
-          args: Prisma.UserSettingsCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.UserSettingsCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserSettingsPayload>[]
-        }
-        delete: {
-          args: Prisma.UserSettingsDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserSettingsPayload>
-        }
-        update: {
-          args: Prisma.UserSettingsUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserSettingsPayload>
-        }
-        deleteMany: {
-          args: Prisma.UserSettingsDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.UserSettingsUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.UserSettingsUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserSettingsPayload>[]
-        }
-        upsert: {
-          args: Prisma.UserSettingsUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserSettingsPayload>
-        }
-        aggregate: {
-          args: Prisma.UserSettingsAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateUserSettings>
-        }
-        groupBy: {
-          args: Prisma.UserSettingsGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.UserSettingsGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.UserSettingsCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.UserSettingsCountAggregateOutputType> | number
         }
       }
     }
@@ -1934,151 +1853,77 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
-    InstanceWebhook: {
-      payload: Prisma.$InstanceWebhookPayload<ExtArgs>
-      fields: Prisma.InstanceWebhookFieldRefs
+    WhatsappInstanceWebhook: {
+      payload: Prisma.$WhatsappInstanceWebhookPayload<ExtArgs>
+      fields: Prisma.WhatsappInstanceWebhookFieldRefs
       operations: {
         findUnique: {
-          args: Prisma.InstanceWebhookFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$InstanceWebhookPayload> | null
+          args: Prisma.WhatsappInstanceWebhookFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WhatsappInstanceWebhookPayload> | null
         }
         findUniqueOrThrow: {
-          args: Prisma.InstanceWebhookFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$InstanceWebhookPayload>
+          args: Prisma.WhatsappInstanceWebhookFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WhatsappInstanceWebhookPayload>
         }
         findFirst: {
-          args: Prisma.InstanceWebhookFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$InstanceWebhookPayload> | null
+          args: Prisma.WhatsappInstanceWebhookFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WhatsappInstanceWebhookPayload> | null
         }
         findFirstOrThrow: {
-          args: Prisma.InstanceWebhookFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$InstanceWebhookPayload>
+          args: Prisma.WhatsappInstanceWebhookFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WhatsappInstanceWebhookPayload>
         }
         findMany: {
-          args: Prisma.InstanceWebhookFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$InstanceWebhookPayload>[]
+          args: Prisma.WhatsappInstanceWebhookFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WhatsappInstanceWebhookPayload>[]
         }
         create: {
-          args: Prisma.InstanceWebhookCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$InstanceWebhookPayload>
+          args: Prisma.WhatsappInstanceWebhookCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WhatsappInstanceWebhookPayload>
         }
         createMany: {
-          args: Prisma.InstanceWebhookCreateManyArgs<ExtArgs>
+          args: Prisma.WhatsappInstanceWebhookCreateManyArgs<ExtArgs>
           result: BatchPayload
         }
         createManyAndReturn: {
-          args: Prisma.InstanceWebhookCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$InstanceWebhookPayload>[]
+          args: Prisma.WhatsappInstanceWebhookCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WhatsappInstanceWebhookPayload>[]
         }
         delete: {
-          args: Prisma.InstanceWebhookDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$InstanceWebhookPayload>
+          args: Prisma.WhatsappInstanceWebhookDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WhatsappInstanceWebhookPayload>
         }
         update: {
-          args: Prisma.InstanceWebhookUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$InstanceWebhookPayload>
+          args: Prisma.WhatsappInstanceWebhookUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WhatsappInstanceWebhookPayload>
         }
         deleteMany: {
-          args: Prisma.InstanceWebhookDeleteManyArgs<ExtArgs>
+          args: Prisma.WhatsappInstanceWebhookDeleteManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateMany: {
-          args: Prisma.InstanceWebhookUpdateManyArgs<ExtArgs>
+          args: Prisma.WhatsappInstanceWebhookUpdateManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateManyAndReturn: {
-          args: Prisma.InstanceWebhookUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$InstanceWebhookPayload>[]
+          args: Prisma.WhatsappInstanceWebhookUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WhatsappInstanceWebhookPayload>[]
         }
         upsert: {
-          args: Prisma.InstanceWebhookUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$InstanceWebhookPayload>
+          args: Prisma.WhatsappInstanceWebhookUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WhatsappInstanceWebhookPayload>
         }
         aggregate: {
-          args: Prisma.InstanceWebhookAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateInstanceWebhook>
+          args: Prisma.WhatsappInstanceWebhookAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateWhatsappInstanceWebhook>
         }
         groupBy: {
-          args: Prisma.InstanceWebhookGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.InstanceWebhookGroupByOutputType>[]
+          args: Prisma.WhatsappInstanceWebhookGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.WhatsappInstanceWebhookGroupByOutputType>[]
         }
         count: {
-          args: Prisma.InstanceWebhookCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.InstanceWebhookCountAggregateOutputType> | number
-        }
-      }
-    }
-    MetaWhatsAppCredential: {
-      payload: Prisma.$MetaWhatsAppCredentialPayload<ExtArgs>
-      fields: Prisma.MetaWhatsAppCredentialFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.MetaWhatsAppCredentialFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MetaWhatsAppCredentialPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.MetaWhatsAppCredentialFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MetaWhatsAppCredentialPayload>
-        }
-        findFirst: {
-          args: Prisma.MetaWhatsAppCredentialFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MetaWhatsAppCredentialPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.MetaWhatsAppCredentialFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MetaWhatsAppCredentialPayload>
-        }
-        findMany: {
-          args: Prisma.MetaWhatsAppCredentialFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MetaWhatsAppCredentialPayload>[]
-        }
-        create: {
-          args: Prisma.MetaWhatsAppCredentialCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MetaWhatsAppCredentialPayload>
-        }
-        createMany: {
-          args: Prisma.MetaWhatsAppCredentialCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.MetaWhatsAppCredentialCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MetaWhatsAppCredentialPayload>[]
-        }
-        delete: {
-          args: Prisma.MetaWhatsAppCredentialDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MetaWhatsAppCredentialPayload>
-        }
-        update: {
-          args: Prisma.MetaWhatsAppCredentialUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MetaWhatsAppCredentialPayload>
-        }
-        deleteMany: {
-          args: Prisma.MetaWhatsAppCredentialDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.MetaWhatsAppCredentialUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.MetaWhatsAppCredentialUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MetaWhatsAppCredentialPayload>[]
-        }
-        upsert: {
-          args: Prisma.MetaWhatsAppCredentialUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MetaWhatsAppCredentialPayload>
-        }
-        aggregate: {
-          args: Prisma.MetaWhatsAppCredentialAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateMetaWhatsAppCredential>
-        }
-        groupBy: {
-          args: Prisma.MetaWhatsAppCredentialGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.MetaWhatsAppCredentialGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.MetaWhatsAppCredentialCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.MetaWhatsAppCredentialCountAggregateOutputType> | number
+          args: Prisma.WhatsappInstanceWebhookCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.WhatsappInstanceWebhookCountAggregateOutputType> | number
         }
       }
     }
@@ -3858,376 +3703,6 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
-    WhatsAppTemplate: {
-      payload: Prisma.$WhatsAppTemplatePayload<ExtArgs>
-      fields: Prisma.WhatsAppTemplateFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.WhatsAppTemplateFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WhatsAppTemplatePayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.WhatsAppTemplateFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WhatsAppTemplatePayload>
-        }
-        findFirst: {
-          args: Prisma.WhatsAppTemplateFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WhatsAppTemplatePayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.WhatsAppTemplateFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WhatsAppTemplatePayload>
-        }
-        findMany: {
-          args: Prisma.WhatsAppTemplateFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WhatsAppTemplatePayload>[]
-        }
-        create: {
-          args: Prisma.WhatsAppTemplateCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WhatsAppTemplatePayload>
-        }
-        createMany: {
-          args: Prisma.WhatsAppTemplateCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.WhatsAppTemplateCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WhatsAppTemplatePayload>[]
-        }
-        delete: {
-          args: Prisma.WhatsAppTemplateDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WhatsAppTemplatePayload>
-        }
-        update: {
-          args: Prisma.WhatsAppTemplateUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WhatsAppTemplatePayload>
-        }
-        deleteMany: {
-          args: Prisma.WhatsAppTemplateDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.WhatsAppTemplateUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.WhatsAppTemplateUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WhatsAppTemplatePayload>[]
-        }
-        upsert: {
-          args: Prisma.WhatsAppTemplateUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WhatsAppTemplatePayload>
-        }
-        aggregate: {
-          args: Prisma.WhatsAppTemplateAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateWhatsAppTemplate>
-        }
-        groupBy: {
-          args: Prisma.WhatsAppTemplateGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.WhatsAppTemplateGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.WhatsAppTemplateCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.WhatsAppTemplateCountAggregateOutputType> | number
-        }
-      }
-    }
-    Campaign: {
-      payload: Prisma.$CampaignPayload<ExtArgs>
-      fields: Prisma.CampaignFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.CampaignFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.CampaignFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignPayload>
-        }
-        findFirst: {
-          args: Prisma.CampaignFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.CampaignFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignPayload>
-        }
-        findMany: {
-          args: Prisma.CampaignFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignPayload>[]
-        }
-        create: {
-          args: Prisma.CampaignCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignPayload>
-        }
-        createMany: {
-          args: Prisma.CampaignCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.CampaignCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignPayload>[]
-        }
-        delete: {
-          args: Prisma.CampaignDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignPayload>
-        }
-        update: {
-          args: Prisma.CampaignUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignPayload>
-        }
-        deleteMany: {
-          args: Prisma.CampaignDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.CampaignUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.CampaignUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignPayload>[]
-        }
-        upsert: {
-          args: Prisma.CampaignUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignPayload>
-        }
-        aggregate: {
-          args: Prisma.CampaignAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateCampaign>
-        }
-        groupBy: {
-          args: Prisma.CampaignGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.CampaignGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.CampaignCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.CampaignCountAggregateOutputType> | number
-        }
-      }
-    }
-    CampaignRecipient: {
-      payload: Prisma.$CampaignRecipientPayload<ExtArgs>
-      fields: Prisma.CampaignRecipientFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.CampaignRecipientFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignRecipientPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.CampaignRecipientFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignRecipientPayload>
-        }
-        findFirst: {
-          args: Prisma.CampaignRecipientFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignRecipientPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.CampaignRecipientFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignRecipientPayload>
-        }
-        findMany: {
-          args: Prisma.CampaignRecipientFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignRecipientPayload>[]
-        }
-        create: {
-          args: Prisma.CampaignRecipientCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignRecipientPayload>
-        }
-        createMany: {
-          args: Prisma.CampaignRecipientCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.CampaignRecipientCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignRecipientPayload>[]
-        }
-        delete: {
-          args: Prisma.CampaignRecipientDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignRecipientPayload>
-        }
-        update: {
-          args: Prisma.CampaignRecipientUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignRecipientPayload>
-        }
-        deleteMany: {
-          args: Prisma.CampaignRecipientDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.CampaignRecipientUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.CampaignRecipientUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignRecipientPayload>[]
-        }
-        upsert: {
-          args: Prisma.CampaignRecipientUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignRecipientPayload>
-        }
-        aggregate: {
-          args: Prisma.CampaignRecipientAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateCampaignRecipient>
-        }
-        groupBy: {
-          args: Prisma.CampaignRecipientGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.CampaignRecipientGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.CampaignRecipientCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.CampaignRecipientCountAggregateOutputType> | number
-        }
-      }
-    }
-    CampaignCredits: {
-      payload: Prisma.$CampaignCreditsPayload<ExtArgs>
-      fields: Prisma.CampaignCreditsFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.CampaignCreditsFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignCreditsPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.CampaignCreditsFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignCreditsPayload>
-        }
-        findFirst: {
-          args: Prisma.CampaignCreditsFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignCreditsPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.CampaignCreditsFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignCreditsPayload>
-        }
-        findMany: {
-          args: Prisma.CampaignCreditsFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignCreditsPayload>[]
-        }
-        create: {
-          args: Prisma.CampaignCreditsCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignCreditsPayload>
-        }
-        createMany: {
-          args: Prisma.CampaignCreditsCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.CampaignCreditsCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignCreditsPayload>[]
-        }
-        delete: {
-          args: Prisma.CampaignCreditsDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignCreditsPayload>
-        }
-        update: {
-          args: Prisma.CampaignCreditsUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignCreditsPayload>
-        }
-        deleteMany: {
-          args: Prisma.CampaignCreditsDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.CampaignCreditsUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.CampaignCreditsUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignCreditsPayload>[]
-        }
-        upsert: {
-          args: Prisma.CampaignCreditsUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignCreditsPayload>
-        }
-        aggregate: {
-          args: Prisma.CampaignCreditsAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateCampaignCredits>
-        }
-        groupBy: {
-          args: Prisma.CampaignCreditsGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.CampaignCreditsGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.CampaignCreditsCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.CampaignCreditsCountAggregateOutputType> | number
-        }
-      }
-    }
-    CampaignCreditTransaction: {
-      payload: Prisma.$CampaignCreditTransactionPayload<ExtArgs>
-      fields: Prisma.CampaignCreditTransactionFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.CampaignCreditTransactionFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignCreditTransactionPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.CampaignCreditTransactionFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignCreditTransactionPayload>
-        }
-        findFirst: {
-          args: Prisma.CampaignCreditTransactionFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignCreditTransactionPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.CampaignCreditTransactionFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignCreditTransactionPayload>
-        }
-        findMany: {
-          args: Prisma.CampaignCreditTransactionFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignCreditTransactionPayload>[]
-        }
-        create: {
-          args: Prisma.CampaignCreditTransactionCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignCreditTransactionPayload>
-        }
-        createMany: {
-          args: Prisma.CampaignCreditTransactionCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.CampaignCreditTransactionCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignCreditTransactionPayload>[]
-        }
-        delete: {
-          args: Prisma.CampaignCreditTransactionDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignCreditTransactionPayload>
-        }
-        update: {
-          args: Prisma.CampaignCreditTransactionUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignCreditTransactionPayload>
-        }
-        deleteMany: {
-          args: Prisma.CampaignCreditTransactionDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.CampaignCreditTransactionUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.CampaignCreditTransactionUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignCreditTransactionPayload>[]
-        }
-        upsert: {
-          args: Prisma.CampaignCreditTransactionUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignCreditTransactionPayload>
-        }
-        aggregate: {
-          args: Prisma.CampaignCreditTransactionAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateCampaignCreditTransaction>
-        }
-        groupBy: {
-          args: Prisma.CampaignCreditTransactionGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.CampaignCreditTransactionGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.CampaignCreditTransactionCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.CampaignCreditTransactionCountAggregateOutputType> | number
-        }
-      }
-    }
   }
 } & {
   other: {
@@ -4336,18 +3811,6 @@ export const InvitationScalarFieldEnum = {
 } as const
 
 export type InvitationScalarFieldEnum = (typeof InvitationScalarFieldEnum)[keyof typeof InvitationScalarFieldEnum]
-
-
-export const UserSettingsScalarFieldEnum = {
-  id: 'id',
-  userId: 'userId',
-  ticketMaxDurationDays: 'ticketMaxDurationDays',
-  ticketSilenceCloseHours: 'ticketSilenceCloseHours',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type UserSettingsScalarFieldEnum = (typeof UserSettingsScalarFieldEnum)[keyof typeof UserSettingsScalarFieldEnum]
 
 
 export const AccountScalarFieldEnum = {
@@ -4595,7 +4058,7 @@ export const WhatsappInstanceScalarFieldEnum = {
 export type WhatsappInstanceScalarFieldEnum = (typeof WhatsappInstanceScalarFieldEnum)[keyof typeof WhatsappInstanceScalarFieldEnum]
 
 
-export const InstanceWebhookScalarFieldEnum = {
+export const WhatsappInstanceWebhookScalarFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
   instanceId: 'instanceId',
@@ -4606,22 +4069,7 @@ export const InstanceWebhookScalarFieldEnum = {
   updatedAt: 'updatedAt'
 } as const
 
-export type InstanceWebhookScalarFieldEnum = (typeof InstanceWebhookScalarFieldEnum)[keyof typeof InstanceWebhookScalarFieldEnum]
-
-
-export const MetaWhatsAppCredentialScalarFieldEnum = {
-  id: 'id',
-  organizationId: 'organizationId',
-  phoneNumberId: 'phoneNumberId',
-  wabaId: 'wabaId',
-  accessToken: 'accessToken',
-  phoneNumber: 'phoneNumber',
-  isActive: 'isActive',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type MetaWhatsAppCredentialScalarFieldEnum = (typeof MetaWhatsAppCredentialScalarFieldEnum)[keyof typeof MetaWhatsAppCredentialScalarFieldEnum]
+export type WhatsappInstanceWebhookScalarFieldEnum = (typeof WhatsappInstanceWebhookScalarFieldEnum)[keyof typeof WhatsappInstanceWebhookScalarFieldEnum]
 
 
 export const WhatsappMessageScalarFieldEnum = {
@@ -5117,89 +4565,6 @@ export const UserDailyMetricsScalarFieldEnum = {
 export type UserDailyMetricsScalarFieldEnum = (typeof UserDailyMetricsScalarFieldEnum)[keyof typeof UserDailyMetricsScalarFieldEnum]
 
 
-export const WhatsAppTemplateScalarFieldEnum = {
-  id: 'id',
-  organizationId: 'organizationId',
-  templateId: 'templateId',
-  name: 'name',
-  language: 'language',
-  category: 'category',
-  status: 'status',
-  components: 'components',
-  syncedAt: 'syncedAt',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type WhatsAppTemplateScalarFieldEnum = (typeof WhatsAppTemplateScalarFieldEnum)[keyof typeof WhatsAppTemplateScalarFieldEnum]
-
-
-export const CampaignScalarFieldEnum = {
-  id: 'id',
-  organizationId: 'organizationId',
-  templateId: 'templateId',
-  name: 'name',
-  status: 'status',
-  scheduledAt: 'scheduledAt',
-  startedAt: 'startedAt',
-  completedAt: 'completedAt',
-  totalRecipients: 'totalRecipients',
-  sent: 'sent',
-  delivered: 'delivered',
-  read: 'read',
-  failed: 'failed',
-  estimatedCost: 'estimatedCost',
-  actualCost: 'actualCost',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type CampaignScalarFieldEnum = (typeof CampaignScalarFieldEnum)[keyof typeof CampaignScalarFieldEnum]
-
-
-export const CampaignRecipientScalarFieldEnum = {
-  id: 'id',
-  campaignId: 'campaignId',
-  phone: 'phone',
-  variables: 'variables',
-  status: 'status',
-  messageId: 'messageId',
-  sentAt: 'sentAt',
-  deliveredAt: 'deliveredAt',
-  readAt: 'readAt',
-  failedAt: 'failedAt',
-  errorCode: 'errorCode',
-  errorMessage: 'errorMessage'
-} as const
-
-export type CampaignRecipientScalarFieldEnum = (typeof CampaignRecipientScalarFieldEnum)[keyof typeof CampaignRecipientScalarFieldEnum]
-
-
-export const CampaignCreditsScalarFieldEnum = {
-  id: 'id',
-  organizationId: 'organizationId',
-  balance: 'balance',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type CampaignCreditsScalarFieldEnum = (typeof CampaignCreditsScalarFieldEnum)[keyof typeof CampaignCreditsScalarFieldEnum]
-
-
-export const CampaignCreditTransactionScalarFieldEnum = {
-  id: 'id',
-  creditsId: 'creditsId',
-  type: 'type',
-  amount: 'amount',
-  description: 'description',
-  campaignId: 'campaignId',
-  paymentId: 'paymentId',
-  createdAt: 'createdAt'
-} as const
-
-export type CampaignCreditTransactionScalarFieldEnum = (typeof CampaignCreditTransactionScalarFieldEnum)[keyof typeof CampaignCreditTransactionScalarFieldEnum]
-
-
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -5304,20 +4669,6 @@ export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaM
 
 
 /**
- * Reference to a field of type 'Int'
- */
-export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
-    
-
-
-/**
- * Reference to a field of type 'Int[]'
- */
-export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
-    
-
-
-/**
  * Reference to a field of type 'TicketStatus'
  */
 export type EnumTicketStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TicketStatus'>
@@ -5328,6 +4679,20 @@ export type EnumTicketStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$Pri
  * Reference to a field of type 'TicketStatus[]'
  */
 export type ListEnumTicketStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TicketStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Int'
+ */
+export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+    
+
+
+/**
+ * Reference to a field of type 'Int[]'
+ */
+export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
     
 
 
@@ -5596,62 +4961,6 @@ export type EnumPaymentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$Pr
 export type ListEnumPaymentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentStatus[]'>
     
 
-
-/**
- * Reference to a field of type 'TemplateCategory'
- */
-export type EnumTemplateCategoryFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TemplateCategory'>
-    
-
-
-/**
- * Reference to a field of type 'TemplateCategory[]'
- */
-export type ListEnumTemplateCategoryFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TemplateCategory[]'>
-    
-
-
-/**
- * Reference to a field of type 'TemplateStatus'
- */
-export type EnumTemplateStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TemplateStatus'>
-    
-
-
-/**
- * Reference to a field of type 'TemplateStatus[]'
- */
-export type ListEnumTemplateStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TemplateStatus[]'>
-    
-
-
-/**
- * Reference to a field of type 'CampaignStatus'
- */
-export type EnumCampaignStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CampaignStatus'>
-    
-
-
-/**
- * Reference to a field of type 'CampaignStatus[]'
- */
-export type ListEnumCampaignStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CampaignStatus[]'>
-    
-
-
-/**
- * Reference to a field of type 'CreditTransactionType'
- */
-export type EnumCreditTransactionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CreditTransactionType'>
-    
-
-
-/**
- * Reference to a field of type 'CreditTransactionType[]'
- */
-export type ListEnumCreditTransactionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CreditTransactionType[]'>
-    
-
 /**
  * Batch Payload for updateMany & deleteMany & createMany
  */
@@ -5752,7 +5061,6 @@ export type GlobalOmitConfig = {
   organization?: Prisma.OrganizationOmit
   member?: Prisma.MemberOmit
   invitation?: Prisma.InvitationOmit
-  userSettings?: Prisma.UserSettingsOmit
   account?: Prisma.AccountOmit
   verification?: Prisma.VerificationOmit
   lead?: Prisma.LeadOmit
@@ -5767,8 +5075,7 @@ export type GlobalOmitConfig = {
   salesAnalytics?: Prisma.SalesAnalyticsOmit
   metaAdsMetric?: Prisma.MetaAdsMetricOmit
   whatsappInstance?: Prisma.WhatsappInstanceOmit
-  instanceWebhook?: Prisma.InstanceWebhookOmit
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialOmit
+  whatsappInstanceWebhook?: Prisma.WhatsappInstanceWebhookOmit
   whatsappMessage?: Prisma.WhatsappMessageOmit
   conversation?: Prisma.ConversationOmit
   ticketAnalysis?: Prisma.TicketAnalysisOmit
@@ -5793,11 +5100,6 @@ export type GlobalOmitConfig = {
   followUpStep?: Prisma.FollowUpStepOmit
   dailyMetrics?: Prisma.DailyMetricsOmit
   userDailyMetrics?: Prisma.UserDailyMetricsOmit
-  whatsAppTemplate?: Prisma.WhatsAppTemplateOmit
-  campaign?: Prisma.CampaignOmit
-  campaignRecipient?: Prisma.CampaignRecipientOmit
-  campaignCredits?: Prisma.CampaignCreditsOmit
-  campaignCreditTransaction?: Prisma.CampaignCreditTransactionOmit
 }
 
 /* Types for Logging */

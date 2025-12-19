@@ -63,11 +63,6 @@ export type Member = Prisma.MemberModel
  */
 export type Invitation = Prisma.InvitationModel
 /**
- * Model UserSettings
- * 
- */
-export type UserSettings = Prisma.UserSettingsModel
-/**
  * Model Account
  * 
  */
@@ -138,18 +133,13 @@ export type MetaAdsMetric = Prisma.MetaAdsMetricModel
  */
 export type WhatsappInstance = Prisma.WhatsappInstanceModel
 /**
- * Model InstanceWebhook
- * Webhook vinculado a uma instância (URL dinâmica no backend)
+ * Model WhatsappInstanceWebhook
+ * 
  */
-export type InstanceWebhook = Prisma.InstanceWebhookModel
-/**
- * Model MetaWhatsAppCredential
- * Credenciais Meta Cloud API por organização (Tech Provider model)
- */
-export type MetaWhatsAppCredential = Prisma.MetaWhatsAppCredentialModel
+export type WhatsappInstanceWebhook = Prisma.WhatsappInstanceWebhookModel
 /**
  * Model WhatsappMessage
- * Histórico de mensagens do WhatsApp (enxuto, sem payload bruto)
+ * 
  */
 export type WhatsappMessage = Prisma.WhatsappMessageModel
 /**
@@ -174,37 +164,37 @@ export type ConversationMetrics = Prisma.ConversationMetricsModel
 export type Message = Prisma.MessageModel
 /**
  * Model Plan
- * Planos disponíveis no sistema (Free, Starter, Pro, Business)
+ * 
  */
 export type Plan = Prisma.PlanModel
 /**
  * Model PlanPrice
- * Preços do plano por provider/currency/interval
+ * 
  */
 export type PlanPrice = Prisma.PlanPriceModel
 /**
  * Model BillingCustomer
- * Cliente de billing (1:1 com Organization)
+ * 
  */
 export type BillingCustomer = Prisma.BillingCustomerModel
 /**
  * Model BillingCustomerExternal
- * IDs externos do cliente por provider
+ * 
  */
 export type BillingCustomerExternal = Prisma.BillingCustomerExternalModel
 /**
  * Model PaymentMethodStored
- * Métodos de pagamento tokenizados
+ * 
  */
 export type PaymentMethodStored = Prisma.PaymentMethodStoredModel
 /**
  * Model Subscription
- * Assinatura do cliente
+ * 
  */
 export type Subscription = Prisma.SubscriptionModel
 /**
  * Model Invoice
- * Fatura gerada
+ * 
  */
 export type Invoice = Prisma.InvoiceModel
 /**
@@ -244,51 +234,26 @@ export type AICredits = Prisma.AICreditsModel
 export type AIUsageLog = Prisma.AIUsageLogModel
 /**
  * Model ScheduledMessage
- * Scheduled Message for follow-up automation
+ * 
  */
 export type ScheduledMessage = Prisma.ScheduledMessageModel
 /**
  * Model FollowUpConfig
- * Follow-up configuration per organization
+ * 
  */
 export type FollowUpConfig = Prisma.FollowUpConfigModel
 /**
  * Model FollowUpStep
- * Follow-up steps (cadence configuration)
+ * 
  */
 export type FollowUpStep = Prisma.FollowUpStepModel
 /**
  * Model DailyMetrics
- * Daily Metrics - Aggregated daily stats per organization
+ * 
  */
 export type DailyMetrics = Prisma.DailyMetricsModel
 /**
  * Model UserDailyMetrics
- * User Daily Metrics - Aggregated daily stats per user (agent)
+ * 
  */
 export type UserDailyMetrics = Prisma.UserDailyMetricsModel
-/**
- * Model WhatsAppTemplate
- * WhatsApp Template (synced from Meta)
- */
-export type WhatsAppTemplate = Prisma.WhatsAppTemplateModel
-/**
- * Model Campaign
- * Campaign for mass messaging
- */
-export type Campaign = Prisma.CampaignModel
-/**
- * Model CampaignRecipient
- * Campaign recipient
- */
-export type CampaignRecipient = Prisma.CampaignRecipientModel
-/**
- * Model CampaignCredits
- * Campaign Credits balance per organization
- */
-export type CampaignCredits = Prisma.CampaignCreditsModel
-/**
- * Model CampaignCreditTransaction
- * Credit transaction history
- */
-export type CampaignCreditTransaction = Prisma.CampaignCreditTransactionModel

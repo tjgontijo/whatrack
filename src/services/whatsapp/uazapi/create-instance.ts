@@ -5,13 +5,11 @@ import type { WhatsappInstance } from '@/schemas/whatsapp'
 export type CreateWhatsappInstanceParams = {
   organizationId: string
   name: string
-  phone: string
 }
 
 export async function createWhatsappInstance({
   organizationId,
   name,
-  phone,
 }: CreateWhatsappInstanceParams): Promise<WhatsappInstance> {
   const { baseUrl, adminToken } = getUazapiConfig()
   // Usar nome da aplicação configurado no .env (APP_NAME)
@@ -25,7 +23,6 @@ export async function createWhatsappInstance({
   console.info('[whatsapp] criando instância', {
     organizationId,
     name,
-    phone,
     baseUrl,
     systemName,
     tokenPreview: `${adminToken.slice(0, 4)}***`,
@@ -59,7 +56,6 @@ export async function createWhatsappInstance({
     payload,
     organizationId,
     name,
-    phone,
   })
 
   await prisma.whatsappInstance.upsert({
@@ -71,14 +67,12 @@ export async function createWhatsappInstance({
     },
     update: {
       label: name,
-      phone,
       token: prepared.token,
     },
     create: {
       organizationId,
       instanceId: prepared.instanceId,
       label: name,
-      phone,
       token: prepared.token,
     },
   })
@@ -87,7 +81,7 @@ export async function createWhatsappInstance({
     id: prepared.instanceId,
     instanceId: prepared.instanceId,
     label: prepared.label,
-    phone: prepared.phone,
+    phone: null,
     status: prepared.status,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -109,12 +103,10 @@ function mapPayloadToInstance({
   payload,
   organizationId,
   name,
-  phone,
 }: {
   payload: InstanceConnectResponse
   organizationId: string
   name: string
-  phone: string
 }) {
   const instance = payload.instance
 
@@ -131,7 +123,6 @@ function mapPayloadToInstance({
     organizationId,
     instanceId: instance.id,
     label: name,
-    phone,
     token: instance.token,
     status: normalizedStatus,
   }

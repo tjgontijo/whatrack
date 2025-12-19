@@ -14,7 +14,7 @@ import type * as Prisma from "../internal/prismaNamespace"
 
 /**
  * Model PlanPrice
- * Preços do plano por provider/currency/interval
+ * 
  */
 export type PlanPriceModel = runtime.Types.Result.DefaultSelection<Prisma.$PlanPricePayload>
 

@@ -149,7 +149,7 @@ O fechamento do Ticket é definido no **PRD de Follow-up** (`prd-auto-followup.m
 **Ação**: Remover persistência duplicada do webhook e deprecar model.
 
 ```typescript
-// REMOVER do webhook (src/app/api/v1/whatsapp/w/webhook/[id]/route.ts):
+// REMOVER do webhook (src/app/api/v1/whatsapp/u/webhook/[id]/route.ts):
 // await prisma.whatsappMessage.upsert({...})
 ```
 
@@ -497,7 +497,7 @@ export function useCentrifugo({
 
 ## Webhook Handler (Atualizar)
 
-Modificar `/api/v1/whatsapp/webhook/[id]` para publicar no Centrifugo:
+Modificar `/api/v1/whatsapp/uebhook/[id]` para publicar no Centrifugo:
 
 ```typescript
 import { publishNewMessage, publishConversationUpdate } from '@/lib/centrifugo'
@@ -692,7 +692,7 @@ JOIN conversations c ON c.lead_id = l.id;
 ### Recebimento (Webhook)
 
 ```
-WuzAPI → POST /api/v1/whatsapp/w/webhook/[id]
+WuzAPI → POST /api/v1/whatsapp/u/webhook/[id]
               │
               ├─ 1. upsertLead()
               ├─ 2. upsertConversation()

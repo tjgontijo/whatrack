@@ -15,7 +15,6 @@ import {
 import { Input } from '@/components/ui/input'
 import { ORGANIZATION_HEADER } from '@/lib/constants'
 import { authClient } from '@/lib/auth/auth-client'
-import { applyWhatsAppMask, normalizeWhatsApp } from '@/lib/mask/phone-mask'
 
 type CreateInstanceDialogProps = {
     open: boolean
@@ -32,7 +31,6 @@ export function CreateInstanceDialog({
     const organizationId = activeOrg?.id
 
     const [name, setName] = useState('')
-    const [phone, setPhone] = useState('')
     const [isSubmitting, setIsSubmitting] = useState(false)
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -48,15 +46,10 @@ export function CreateInstanceDialog({
             return
         }
 
-        if (!phone.trim()) {
-            toast.error('Preencha o número do telefone')
-            return
-        }
-
         setIsSubmitting(true)
 
         try {
-            const response = await fetch('/api/v1/whatsapp/w/instances', {
+            const response = await fetch('/api/v1/whatsapp/u/instances', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -64,7 +57,6 @@ export function CreateInstanceDialog({
                 },
                 body: JSON.stringify({
                     name: name.trim(),
-                    phone: normalizeWhatsApp(phone),
                 }),
             })
 
@@ -75,7 +67,6 @@ export function CreateInstanceDialog({
 
             toast.success('Instância criada com sucesso!')
             setName('')
-            setPhone('')
             onOpenChange(false)
             onCreated()
         } catch (err) {
@@ -97,7 +88,7 @@ export function CreateInstanceDialog({
 
                 <form className="space-y-4 mt-4" onSubmit={handleSubmit}>
                     <div className="space-y-2">
-                        <label className="text-sm font-medium" htmlFor="instance-name">
+                        <label className="text-sm pb-1 block font-medium" htmlFor="instance-name">
                             Nome da Instância
                         </label>
                         <Input
@@ -111,24 +102,6 @@ export function CreateInstanceDialog({
                         />
                     </div>
 
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium" htmlFor="instance-phone">
-                            Número do WhatsApp
-                        </label>
-                        <Input
-                            id="instance-phone"
-                            placeholder="(11) 99999-9999"
-                            value={phone}
-                            onChange={(e) => setPhone(applyWhatsAppMask(e.target.value))}
-                            required
-                            disabled={isSubmitting}
-                            maxLength={15}
-                        />
-                        <p className="text-xs text-muted-foreground">
-                            Digite apenas DDD + Número
-                        </p>
-                    </div>
-
                     <div className="flex justify-end gap-2 pt-2">
                         <Button
                             type="button"
@@ -138,7 +111,7 @@ export function CreateInstanceDialog({
                         >
                             Cancelar
                         </Button>
-                        <Button type="submit" disabled={!name.trim() || !phone.trim() || isSubmitting}>
+                        <Button type="submit" disabled={!name.trim() || isSubmitting}>
                             {isSubmitting ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

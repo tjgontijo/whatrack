@@ -215,7 +215,7 @@ export type WhatsappInstanceWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"WhatsappInstance"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"WhatsappInstance"> | Date | string
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
-  webhooks?: Prisma.InstanceWebhookListRelationFilter
+  webhooks?: Prisma.WhatsappInstanceWebhookListRelationFilter
 }
 
 export type WhatsappInstanceOrderByWithRelationInput = {
@@ -229,7 +229,7 @@ export type WhatsappInstanceOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   organization?: Prisma.OrganizationOrderByWithRelationInput
-  webhooks?: Prisma.InstanceWebhookOrderByRelationAggregateInput
+  webhooks?: Prisma.WhatsappInstanceWebhookOrderByRelationAggregateInput
 }
 
 export type WhatsappInstanceWhereUniqueInput = Prisma.AtLeast<{
@@ -247,7 +247,7 @@ export type WhatsappInstanceWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"WhatsappInstance"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"WhatsappInstance"> | Date | string
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
-  webhooks?: Prisma.InstanceWebhookListRelationFilter
+  webhooks?: Prisma.WhatsappInstanceWebhookListRelationFilter
 }, "id" | "organizationId_instanceId">
 
 export type WhatsappInstanceOrderByWithAggregationInput = {
@@ -290,7 +290,7 @@ export type WhatsappInstanceCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutWhatsappInstancesInput
-  webhooks?: Prisma.InstanceWebhookCreateNestedManyWithoutInstanceInput
+  webhooks?: Prisma.WhatsappInstanceWebhookCreateNestedManyWithoutInstanceInput
 }
 
 export type WhatsappInstanceUncheckedCreateInput = {
@@ -303,7 +303,7 @@ export type WhatsappInstanceUncheckedCreateInput = {
   provider?: string
   createdAt?: Date | string
   updatedAt?: Date | string
-  webhooks?: Prisma.InstanceWebhookUncheckedCreateNestedManyWithoutInstanceInput
+  webhooks?: Prisma.WhatsappInstanceWebhookUncheckedCreateNestedManyWithoutInstanceInput
 }
 
 export type WhatsappInstanceUpdateInput = {
@@ -316,7 +316,7 @@ export type WhatsappInstanceUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutWhatsappInstancesNestedInput
-  webhooks?: Prisma.InstanceWebhookUpdateManyWithoutInstanceNestedInput
+  webhooks?: Prisma.WhatsappInstanceWebhookUpdateManyWithoutInstanceNestedInput
 }
 
 export type WhatsappInstanceUncheckedUpdateInput = {
@@ -329,7 +329,7 @@ export type WhatsappInstanceUncheckedUpdateInput = {
   provider?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  webhooks?: Prisma.InstanceWebhookUncheckedUpdateManyWithoutInstanceNestedInput
+  webhooks?: Prisma.WhatsappInstanceWebhookUncheckedUpdateManyWithoutInstanceNestedInput
 }
 
 export type WhatsappInstanceCreateManyInput = {
@@ -488,7 +488,7 @@ export type WhatsappInstanceCreateWithoutOrganizationInput = {
   provider?: string
   createdAt?: Date | string
   updatedAt?: Date | string
-  webhooks?: Prisma.InstanceWebhookCreateNestedManyWithoutInstanceInput
+  webhooks?: Prisma.WhatsappInstanceWebhookCreateNestedManyWithoutInstanceInput
 }
 
 export type WhatsappInstanceUncheckedCreateWithoutOrganizationInput = {
@@ -500,7 +500,7 @@ export type WhatsappInstanceUncheckedCreateWithoutOrganizationInput = {
   provider?: string
   createdAt?: Date | string
   updatedAt?: Date | string
-  webhooks?: Prisma.InstanceWebhookUncheckedCreateNestedManyWithoutInstanceInput
+  webhooks?: Prisma.WhatsappInstanceWebhookUncheckedCreateNestedManyWithoutInstanceInput
 }
 
 export type WhatsappInstanceCreateOrConnectWithoutOrganizationInput = {
@@ -628,7 +628,7 @@ export type WhatsappInstanceUpdateWithoutOrganizationInput = {
   provider?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  webhooks?: Prisma.InstanceWebhookUpdateManyWithoutInstanceNestedInput
+  webhooks?: Prisma.WhatsappInstanceWebhookUpdateManyWithoutInstanceNestedInput
 }
 
 export type WhatsappInstanceUncheckedUpdateWithoutOrganizationInput = {
@@ -640,7 +640,7 @@ export type WhatsappInstanceUncheckedUpdateWithoutOrganizationInput = {
   provider?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  webhooks?: Prisma.InstanceWebhookUncheckedUpdateManyWithoutInstanceNestedInput
+  webhooks?: Prisma.WhatsappInstanceWebhookUncheckedUpdateManyWithoutInstanceNestedInput
 }
 
 export type WhatsappInstanceUncheckedUpdateManyWithoutOrganizationInput = {
@@ -681,7 +681,7 @@ export type WhatsappInstanceCountOutputTypeDefaultArgs<ExtArgs extends runtime.T
  * WhatsappInstanceCountOutputType without action
  */
 export type WhatsappInstanceCountOutputTypeCountWebhooksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.InstanceWebhookWhereInput
+  where?: Prisma.WhatsappInstanceWebhookWhereInput
 }
 
 
@@ -755,7 +755,7 @@ export type $WhatsappInstancePayload<ExtArgs extends runtime.Types.Extensions.In
   name: "WhatsappInstance"
   objects: {
     organization: Prisma.$OrganizationPayload<ExtArgs>
-    webhooks: Prisma.$InstanceWebhookPayload<ExtArgs>[]
+    webhooks: Prisma.$WhatsappInstanceWebhookPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1162,7 +1162,7 @@ readonly fields: WhatsappInstanceFieldRefs;
 export interface Prisma__WhatsappInstanceClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   organization<T extends Prisma.OrganizationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  webhooks<T extends Prisma.WhatsappInstance$webhooksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.WhatsappInstance$webhooksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$InstanceWebhookPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  webhooks<T extends Prisma.WhatsappInstance$webhooksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.WhatsappInstance$webhooksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WhatsappInstanceWebhookPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1601,23 +1601,23 @@ export type WhatsappInstanceDeleteManyArgs<ExtArgs extends runtime.Types.Extensi
  */
 export type WhatsappInstance$webhooksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
-   * Select specific fields to fetch from the InstanceWebhook
+   * Select specific fields to fetch from the WhatsappInstanceWebhook
    */
-  select?: Prisma.InstanceWebhookSelect<ExtArgs> | null
+  select?: Prisma.WhatsappInstanceWebhookSelect<ExtArgs> | null
   /**
-   * Omit specific fields from the InstanceWebhook
+   * Omit specific fields from the WhatsappInstanceWebhook
    */
-  omit?: Prisma.InstanceWebhookOmit<ExtArgs> | null
+  omit?: Prisma.WhatsappInstanceWebhookOmit<ExtArgs> | null
   /**
    * Choose, which related nodes to fetch as well
    */
-  include?: Prisma.InstanceWebhookInclude<ExtArgs> | null
-  where?: Prisma.InstanceWebhookWhereInput
-  orderBy?: Prisma.InstanceWebhookOrderByWithRelationInput | Prisma.InstanceWebhookOrderByWithRelationInput[]
-  cursor?: Prisma.InstanceWebhookWhereUniqueInput
+  include?: Prisma.WhatsappInstanceWebhookInclude<ExtArgs> | null
+  where?: Prisma.WhatsappInstanceWebhookWhereInput
+  orderBy?: Prisma.WhatsappInstanceWebhookOrderByWithRelationInput | Prisma.WhatsappInstanceWebhookOrderByWithRelationInput[]
+  cursor?: Prisma.WhatsappInstanceWebhookWhereUniqueInput
   take?: number
   skip?: number
-  distinct?: Prisma.InstanceWebhookScalarFieldEnum | Prisma.InstanceWebhookScalarFieldEnum[]
+  distinct?: Prisma.WhatsappInstanceWebhookScalarFieldEnum | Prisma.WhatsappInstanceWebhookScalarFieldEnum[]
 }
 
 /**

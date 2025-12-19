@@ -31,7 +31,7 @@ Modulo de integracao com WuzAPI para conexao de WhatsApp no Whatrack. WuzAPI e u
 ## Estrutura do Modulo
 
 ```
-src/services/whatsapp/wuzapi/
+src/services/whatsapp/uuzapi/
 ├── config.ts           # Configuracao (ENV vars)
 ├── client.ts           # HTTP client para WuzAPI
 ├── create-instance.ts  # POST /admin/users
@@ -55,7 +55,7 @@ WUZAPI_BASE_URL=http://localhost:8080
 WUZAPI_ADMIN_TOKEN=seu_token_admin
 
 # Webhook
-WHATSAPP_WEBHOOK_BASE_URL=https://whatrack.com/api/v1/whatsapp/webhook
+WHATSAPP_WEBHOOK_BASE_URL=https://whatrack.com/api/v1/whatsapp/uebhook
 ```
 
 ## Endpoints WuzAPI
@@ -270,7 +270,7 @@ As rotas existentes em `/api/v1/whatsapp/*` serao atualizadas para usar este mod
 
 ```typescript
 // src/app/api/v1/whatsapp/instances/route.ts
-import { createWuzapiInstance } from '@/services/whatsapp/wuzapi'
+import { createWuzapiInstance } from '@/services/whatsapp/uuzapi'
 
 export async function POST(request: Request) {
   // ... validacao
@@ -315,14 +315,14 @@ A migracao envolve:
 
 ## Tasks
 
-1. Criar `src/services/whatsapp/wuzapi/config.ts`
-2. Criar `src/services/whatsapp/wuzapi/create-instance.ts`
-3. Criar `src/services/whatsapp/wuzapi/connect-instance.ts`
-4. Criar `src/services/whatsapp/wuzapi/get-status.ts`
-5. Criar `src/services/whatsapp/wuzapi/logout-instance.ts`
-6. Criar `src/services/whatsapp/wuzapi/delete-instance.ts`
-7. Criar `src/services/whatsapp/wuzapi/provision-webhook.ts`
-8. Criar `src/services/whatsapp/wuzapi/parse-webhook.ts`
-9. Criar `src/services/whatsapp/wuzapi/index.ts`
+1. Criar `src/services/whatsapp/uuzapi/config.ts`
+2. Criar `src/services/whatsapp/uuzapi/create-instance.ts`
+3. Criar `src/services/whatsapp/uuzapi/connect-instance.ts`
+4. Criar `src/services/whatsapp/uuzapi/get-status.ts`
+5. Criar `src/services/whatsapp/uuzapi/logout-instance.ts`
+6. Criar `src/services/whatsapp/uuzapi/delete-instance.ts`
+7. Criar `src/services/whatsapp/uuzapi/provision-webhook.ts`
+8. Criar `src/services/whatsapp/uuzapi/parse-webhook.ts`
+9. Criar `src/services/whatsapp/uuzapi/index.ts`
 10. Atualizar API routes para usar novo modulo
 11. Testar fluxo completo

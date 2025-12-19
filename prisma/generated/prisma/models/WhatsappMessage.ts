@@ -14,7 +14,7 @@ import type * as Prisma from "../internal/prismaNamespace"
 
 /**
  * Model WhatsappMessage
- * Histórico de mensagens do WhatsApp (enxuto, sem payload bruto)
+ * 
  */
 export type WhatsappMessageModel = runtime.Types.Result.DefaultSelection<Prisma.$WhatsappMessagePayload>
 

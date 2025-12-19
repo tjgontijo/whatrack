@@ -50,56 +50,12 @@ enum PlatformEventStatus {
   pending
 }
 
-// ============================================
-// BILLING ENUMS
-// ============================================
-
-enum PlanInterval {
-  monthly
-  yearly
-}
-
-enum SubscriptionStatus {
-  incomplete
-  trialing
-  active
-  past_due
-  unpaid
-  canceled
-  paused
-}
-
-enum PaymentStatus {
-  pending
-  processing
-  succeeded
-  failed
-  refunded
-  canceled
-}
-
-enum PaymentMethod {
-  credit_card
-  debit_card
-  pix
-  boleto
-  bank_transfer
-  wallet
-}
-
-enum BillingProvider {
-  asaas
-  stripe
-  mercadopago
-  manual
-}
-
 model User {
   id            String    @id @default(cuid())
   name          String
   email         String    @unique
   phone         String?   @unique
-  emailVerified Boolean?  @default(false)
+  emailVerified Boolean?  @default(true)
   image         String?
   role          UserRole  @default(user)
   banned        Boolean   @default(false)
@@ -109,9 +65,8 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 
-  sessions     Session[]
-  accounts     Account[]
-  userSettings UserSettings?
+  sessions Session[]
+  accounts Account[]
 
   members      Member[]
   invitations  Invitation[]
@@ -148,24 +103,23 @@ model Organization {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  members                Member[]
-  invitations            Invitation[]
-  leads                  Lead[]
-  tickets                Ticket[]
-  sales                  Sale[]
-  saleItems              SaleItem[]
-  products               Product[]
-  productCategories      ProductCategory[]
-  appointments           Appointment[]
-  attendances            Attendance[]
-  platformEvents         PlatformEvent[]
-  salesAnalytics         SalesAnalytics[]
-  metaAdsMetrics         MetaAdsMetric[]
-  whatsappInstances      WhatsappInstance[]
-  instanceWebhooks       InstanceWebhook[]
-  whatsappMessages       WhatsappMessage[]
-  metaWhatsAppCredential MetaWhatsAppCredential?
-  conversations          Conversation[]
+  members                  Member[]
+  invitations              Invitation[]
+  leads                    Lead[]
+  tickets                  Ticket[]
+  sales                    Sale[]
+  saleItems                SaleItem[]
+  products                 Product[]
+  productCategories        ProductCategory[]
+  appointments             Appointment[]
+  attendances              Attendance[]
+  platformEvents           PlatformEvent[]
+  salesAnalytics           SalesAnalytics[]
+  metaAdsMetrics           MetaAdsMetric[]
+  whatsappInstances        WhatsappInstance[]
+  whatsappInstanceWebhooks WhatsappInstanceWebhook[]
+  whatsappMessages         WhatsappMessage[]
+  conversations            Conversation[]
 
   // Billing
   currentPlanId   String?
@@ -184,11 +138,6 @@ model Organization {
 
   // Analytics Metrics
   dailyMetrics DailyMetrics[]
-
-  // WhatsApp Campaigns
-  whatsappTemplates WhatsAppTemplate[]
-  campaigns         Campaign[]
-  campaignCredits   CampaignCredits?
 
   @@index([currentPlanId])
   @@map("organization")
@@ -218,21 +167,6 @@ model Invitation {
   user           User         @relation(fields: [inviterId], references: [id], onDelete: Cascade)
 
   @@map("invitation")
-}
-
-model UserSettings {
-  id     String @id @default(cuid())
-  userId String @unique
-  user   User   @relation(fields: [userId], references: [id])
-
-  ticketMaxDurationDays   Int @default(7)
-  ticketSilenceCloseHours Int @default(24)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-
-  @@index([userId])
-  @@map("user_settings")
 }
 
 model Account {
@@ -578,17 +512,17 @@ model MetaAdsMetric {
 }
 
 model WhatsappInstance {
-  id             String            @id @default(cuid())
+  id             String                    @id @default(cuid())
   organizationId String
-  organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization   Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   instanceId     String
   token          String?
   label          String?
   phone          String?
-  provider       String            @default("wuzapi") // wuzapi, uazapi, meta_cloud
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @default(now()) @updatedAt
-  webhooks       InstanceWebhook[]
+  provider       String                    @default("wuzapi") // wuzapi, uazapi, meta_cloud
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @default(now()) @updatedAt
+  webhooks       WhatsappInstanceWebhook[]
 
   @@unique([organizationId, instanceId], name: "organizationId_instanceId")
   @@index([organizationId])
@@ -596,8 +530,7 @@ model WhatsappInstance {
   @@map("whatsapp_instances")
 }
 
-/// Webhook vinculado a uma instância (URL dinâmica no backend)
-model InstanceWebhook {
+model WhatsappInstanceWebhook {
   id                String           @id @default(cuid())
   organizationId    String
   organization      Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -610,29 +543,7 @@ model InstanceWebhook {
   updatedAt         DateTime         @default(now()) @updatedAt
 
   @@unique([organizationId, instanceId], name: "organizationId_instanceId_webhook")
-  @@map("instance_webhook")
-}
-
-/// Credenciais Meta Cloud API por organização (Tech Provider model)
-model MetaWhatsAppCredential {
-  id             String       @id @default(cuid())
-  organizationId String       @unique
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  // Dados fornecidos pelo cliente
-  phoneNumberId String @unique // Para lookup no webhook
-  wabaId        String // WhatsApp Business Account ID
-  accessToken   String @db.Text // Token permanente do cliente
-  phoneNumber   String // Display: +55 11 99999-9999
-
-  // Status
-  isActive Boolean @default(true)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-
-  @@index([phoneNumberId])
-  @@map("meta_whatsapp_credentials")
+  @@map("whatsapp_instance_webhook")
 }
 
 enum MessageDirection {
@@ -640,7 +551,6 @@ enum MessageDirection {
   OUTBOUND
 }
 
-/// Histórico de mensagens do WhatsApp (enxuto, sem payload bruto)
 model WhatsappMessage {
   id             String       @id @default(cuid())
   organizationId String
@@ -896,7 +806,46 @@ model Message {
 // BILLING MODELS
 // ============================================
 
-/// Planos disponíveis no sistema (Free, Starter, Pro, Business)
+enum PlanInterval {
+  monthly
+  yearly
+}
+
+enum SubscriptionStatus {
+  incomplete
+  trialing
+  active
+  past_due
+  unpaid
+  canceled
+  paused
+}
+
+enum PaymentStatus {
+  pending
+  processing
+  succeeded
+  failed
+  refunded
+  canceled
+}
+
+enum PaymentMethod {
+  credit_card
+  debit_card
+  pix
+  boleto
+  bank_transfer
+  wallet
+}
+
+enum BillingProvider {
+  asaas
+  stripe
+  mercadopago
+  manual
+}
+
 model Plan {
   id          String  @id @default(cuid())
   name        String  @unique // "Free", "Starter", "Pro", "Business"
@@ -930,7 +879,6 @@ model Plan {
   @@map("plans")
 }
 
-/// Preços do plano por provider/currency/interval
 model PlanPrice {
   id     String @id @default(cuid())
   planId String
@@ -954,7 +902,6 @@ model PlanPrice {
   @@map("plan_prices")
 }
 
-/// Cliente de billing (1:1 com Organization)
 model BillingCustomer {
   id             String       @id @default(cuid())
   organizationId String       @unique
@@ -979,7 +926,6 @@ model BillingCustomer {
   @@map("billing_customers")
 }
 
-/// IDs externos do cliente por provider
 model BillingCustomerExternal {
   id                String          @id @default(cuid())
   billingCustomerId String
@@ -996,7 +942,6 @@ model BillingCustomerExternal {
   @@map("billing_customer_externals")
 }
 
-/// Métodos de pagamento tokenizados
 model PaymentMethodStored {
   id                String          @id @default(cuid())
   billingCustomerId String
@@ -1020,7 +965,6 @@ model PaymentMethodStored {
   @@map("payment_methods_stored")
 }
 
-/// Assinatura do cliente
 model Subscription {
   id                String          @id @default(cuid())
   billingCustomerId String
@@ -1059,7 +1003,6 @@ model Subscription {
   @@map("subscriptions")
 }
 
-/// Fatura gerada
 model Invoice {
   id                String          @id @default(cuid())
   billingCustomerId String
@@ -1350,7 +1293,10 @@ model AIUsageLog {
   @@map("ai_usage_logs")
 }
 
-/// Scheduled Message for follow-up automation
+// ============================================
+// SCHEDULED MESSAGES MODELS
+// ============================================
+
 model ScheduledMessage {
   id             String @id @default(cuid())
   organizationId String
@@ -1376,7 +1322,6 @@ model ScheduledMessage {
   @@map("scheduled_messages")
 }
 
-/// Follow-up configuration per organization
 model FollowUpConfig {
   id             String       @id @default(cuid())
   organizationId String       @unique
@@ -1403,7 +1348,6 @@ model FollowUpConfig {
   @@map("followup_configs")
 }
 
-/// Follow-up steps (cadence configuration)
 model FollowUpStep {
   id       String         @id @default(cuid())
   configId String
@@ -1418,7 +1362,10 @@ model FollowUpStep {
   @@map("followup_steps")
 }
 
-/// Daily Metrics - Aggregated daily stats per organization
+// ============================================
+// DAILY METRICS MODELS
+// ============================================
+
 model DailyMetrics {
   id             String       @id @default(cuid())
   organizationId String
@@ -1469,7 +1416,6 @@ model DailyMetrics {
   @@map("daily_metrics")
 }
 
-/// User Daily Metrics - Aggregated daily stats per user (agent)
 model UserDailyMetrics {
   id             String @id @default(cuid())
   organizationId String
@@ -1494,132 +1440,4 @@ model UserDailyMetrics {
   @@unique([organizationId, userId, date])
   @@index([organizationId, date])
   @@map("user_daily_metrics")
-}
-
-// ============================================
-// WHATSAPP CAMPAIGNS MODELS
-// ============================================
-
-/// WhatsApp Template (synced from Meta)
-model WhatsAppTemplate {
-  id             String       @id @default(cuid())
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  templateId String // ID from Meta
-  name       String
-  language   String
-  category   TemplateCategory
-  status     TemplateStatus
-
-  // Template structure
-  components Json // Header, body, footer, buttons
-
-  syncedAt DateTime
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  campaigns Campaign[]
-
-  @@unique([organizationId, templateId])
-  @@index([organizationId, status])
-  @@map("whatsapp_templates")
-}
-
-/// Campaign for mass messaging
-model Campaign {
-  id             String       @id @default(cuid())
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  templateId String
-  template   WhatsAppTemplate @relation(fields: [templateId], references: [id])
-
-  name   String
-  status CampaignStatus @default(DRAFT)
-
-  scheduledAt DateTime?
-  startedAt   DateTime?
-  completedAt DateTime?
-
-  // Metrics
-  totalRecipients Int @default(0)
-  sent            Int @default(0)
-  delivered       Int @default(0)
-  read            Int @default(0)
-  failed          Int @default(0)
-
-  // Costs (in BRL cents)
-  estimatedCost Int @default(0)
-  actualCost    Int @default(0)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  recipients CampaignRecipient[]
-
-  @@index([organizationId, status])
-  @@index([scheduledAt])
-  @@map("campaigns")
-}
-
-/// Campaign recipient
-model CampaignRecipient {
-  id         String   @id @default(cuid())
-  campaignId String
-  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-
-  phone     String
-  variables Json? // Template variables for this recipient
-
-  status    MessageStatus @default(PENDING)
-  messageId String? // Message ID from Meta (wamid)
-
-  sentAt      DateTime?
-  deliveredAt DateTime?
-  readAt      DateTime?
-  failedAt    DateTime?
-
-  errorCode    String?
-  errorMessage String?
-
-  @@index([campaignId, status])
-  @@index([messageId])
-  @@map("campaign_recipients")
-}
-
-/// Campaign Credits balance per organization
-model CampaignCredits {
-  id             String       @id @default(cuid())
-  organizationId String       @unique
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  balance Int @default(0) // In BRL cents
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  transactions CampaignCreditTransaction[]
-
-  @@map("campaign_credits")
-}
-
-/// Credit transaction history
-model CampaignCreditTransaction {
-  id        String          @id @default(cuid())
-  creditsId String
-  credits   CampaignCredits @relation(fields: [creditsId], references: [id], onDelete: Cascade)
-
-  type        CreditTransactionType
-  amount      Int // In BRL cents (positive for credit, negative for debit)
-  description String
-
-  campaignId String? // Reference to campaign if CAMPAIGN_USE
-  paymentId  String? // Reference to payment if PURCHASE
-
-  createdAt DateTime @default(now())
-
-  @@index([creditsId, createdAt])
-  @@map("campaign_credit_transactions")
 }

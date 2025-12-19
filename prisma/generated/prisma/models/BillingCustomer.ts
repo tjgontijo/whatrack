@@ -14,7 +14,7 @@ import type * as Prisma from "../internal/prismaNamespace"
 
 /**
  * Model BillingCustomer
- * Cliente de billing (1:1 com Organization)
+ * 
  */
 export type BillingCustomerModel = runtime.Types.Result.DefaultSelection<Prisma.$BillingCustomerPayload>
 

@@ -2,7 +2,7 @@
 
 @contentType = application/json
 
-POST http://localhost:3000/api/v1/whatsapp/webhook/{{webhookId}}
+POST http://localhost:3000/api/v1/whatsapp/uebhook/{{webhookId}}
 Content-Type: {{contentType}}
 
 {

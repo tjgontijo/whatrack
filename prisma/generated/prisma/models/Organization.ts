@@ -212,9 +212,8 @@ export type OrganizationWhereInput = {
   salesAnalytics?: Prisma.SalesAnalyticsListRelationFilter
   metaAdsMetrics?: Prisma.MetaAdsMetricListRelationFilter
   whatsappInstances?: Prisma.WhatsappInstanceListRelationFilter
-  instanceWebhooks?: Prisma.InstanceWebhookListRelationFilter
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookListRelationFilter
   whatsappMessages?: Prisma.WhatsappMessageListRelationFilter
-  metaWhatsAppCredential?: Prisma.XOR<Prisma.MetaWhatsAppCredentialNullableScalarRelationFilter, Prisma.MetaWhatsAppCredentialWhereInput> | null
   conversations?: Prisma.ConversationListRelationFilter
   currentPlan?: Prisma.XOR<Prisma.PlanNullableScalarRelationFilter, Prisma.PlanWhereInput> | null
   billingCustomer?: Prisma.XOR<Prisma.BillingCustomerNullableScalarRelationFilter, Prisma.BillingCustomerWhereInput> | null
@@ -223,9 +222,6 @@ export type OrganizationWhereInput = {
   profile?: Prisma.XOR<Prisma.OrganizationProfileNullableScalarRelationFilter, Prisma.OrganizationProfileWhereInput> | null
   company?: Prisma.XOR<Prisma.OrganizationCompanyNullableScalarRelationFilter, Prisma.OrganizationCompanyWhereInput> | null
   dailyMetrics?: Prisma.DailyMetricsListRelationFilter
-  whatsappTemplates?: Prisma.WhatsAppTemplateListRelationFilter
-  campaigns?: Prisma.CampaignListRelationFilter
-  campaignCredits?: Prisma.XOR<Prisma.CampaignCreditsNullableScalarRelationFilter, Prisma.CampaignCreditsWhereInput> | null
 }
 
 export type OrganizationOrderByWithRelationInput = {
@@ -250,9 +246,8 @@ export type OrganizationOrderByWithRelationInput = {
   salesAnalytics?: Prisma.SalesAnalyticsOrderByRelationAggregateInput
   metaAdsMetrics?: Prisma.MetaAdsMetricOrderByRelationAggregateInput
   whatsappInstances?: Prisma.WhatsappInstanceOrderByRelationAggregateInput
-  instanceWebhooks?: Prisma.InstanceWebhookOrderByRelationAggregateInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookOrderByRelationAggregateInput
   whatsappMessages?: Prisma.WhatsappMessageOrderByRelationAggregateInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialOrderByWithRelationInput
   conversations?: Prisma.ConversationOrderByRelationAggregateInput
   currentPlan?: Prisma.PlanOrderByWithRelationInput
   billingCustomer?: Prisma.BillingCustomerOrderByWithRelationInput
@@ -261,9 +256,6 @@ export type OrganizationOrderByWithRelationInput = {
   profile?: Prisma.OrganizationProfileOrderByWithRelationInput
   company?: Prisma.OrganizationCompanyOrderByWithRelationInput
   dailyMetrics?: Prisma.DailyMetricsOrderByRelationAggregateInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateOrderByRelationAggregateInput
-  campaigns?: Prisma.CampaignOrderByRelationAggregateInput
-  campaignCredits?: Prisma.CampaignCreditsOrderByWithRelationInput
 }
 
 export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
@@ -291,9 +283,8 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   salesAnalytics?: Prisma.SalesAnalyticsListRelationFilter
   metaAdsMetrics?: Prisma.MetaAdsMetricListRelationFilter
   whatsappInstances?: Prisma.WhatsappInstanceListRelationFilter
-  instanceWebhooks?: Prisma.InstanceWebhookListRelationFilter
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookListRelationFilter
   whatsappMessages?: Prisma.WhatsappMessageListRelationFilter
-  metaWhatsAppCredential?: Prisma.XOR<Prisma.MetaWhatsAppCredentialNullableScalarRelationFilter, Prisma.MetaWhatsAppCredentialWhereInput> | null
   conversations?: Prisma.ConversationListRelationFilter
   currentPlan?: Prisma.XOR<Prisma.PlanNullableScalarRelationFilter, Prisma.PlanWhereInput> | null
   billingCustomer?: Prisma.XOR<Prisma.BillingCustomerNullableScalarRelationFilter, Prisma.BillingCustomerWhereInput> | null
@@ -302,9 +293,6 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   profile?: Prisma.XOR<Prisma.OrganizationProfileNullableScalarRelationFilter, Prisma.OrganizationProfileWhereInput> | null
   company?: Prisma.XOR<Prisma.OrganizationCompanyNullableScalarRelationFilter, Prisma.OrganizationCompanyWhereInput> | null
   dailyMetrics?: Prisma.DailyMetricsListRelationFilter
-  whatsappTemplates?: Prisma.WhatsAppTemplateListRelationFilter
-  campaigns?: Prisma.CampaignListRelationFilter
-  campaignCredits?: Prisma.XOR<Prisma.CampaignCreditsNullableScalarRelationFilter, Prisma.CampaignCreditsWhereInput> | null
 }, "id" | "slug">
 
 export type OrganizationOrderByWithAggregationInput = {
@@ -354,9 +342,8 @@ export type OrganizationCreateInput = {
   salesAnalytics?: Prisma.SalesAnalyticsCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutOrganizationInput
   currentPlan?: Prisma.PlanCreateNestedOneWithoutOrganizationsInput
   billingCustomer?: Prisma.BillingCustomerCreateNestedOneWithoutOrganizationInput
@@ -365,9 +352,6 @@ export type OrganizationCreateInput = {
   profile?: Prisma.OrganizationProfileCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateInput = {
@@ -392,9 +376,8 @@ export type OrganizationUncheckedCreateInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutOrganizationInput
   billingCustomer?: Prisma.BillingCustomerUncheckedCreateNestedOneWithoutOrganizationInput
   aiCredits?: Prisma.AICreditsUncheckedCreateNestedOneWithoutOrganizationInput
@@ -402,9 +385,6 @@ export type OrganizationUncheckedCreateInput = {
   profile?: Prisma.OrganizationProfileUncheckedCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyUncheckedCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationUpdateInput = {
@@ -428,9 +408,8 @@ export type OrganizationUpdateInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutOrganizationNestedInput
   currentPlan?: Prisma.PlanUpdateOneWithoutOrganizationsNestedInput
   billingCustomer?: Prisma.BillingCustomerUpdateOneWithoutOrganizationNestedInput
@@ -439,9 +418,6 @@ export type OrganizationUpdateInput = {
   profile?: Prisma.OrganizationProfileUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateInput = {
@@ -466,9 +442,8 @@ export type OrganizationUncheckedUpdateInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutOrganizationNestedInput
   billingCustomer?: Prisma.BillingCustomerUncheckedUpdateOneWithoutOrganizationNestedInput
   aiCredits?: Prisma.AICreditsUncheckedUpdateOneWithoutOrganizationNestedInput
@@ -476,9 +451,6 @@ export type OrganizationUncheckedUpdateInput = {
   profile?: Prisma.OrganizationProfileUncheckedUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUncheckedUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateManyInput = {
@@ -751,32 +723,18 @@ export type OrganizationUpdateOneRequiredWithoutWhatsappInstancesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutWhatsappInstancesInput, Prisma.OrganizationUpdateWithoutWhatsappInstancesInput>, Prisma.OrganizationUncheckedUpdateWithoutWhatsappInstancesInput>
 }
 
-export type OrganizationCreateNestedOneWithoutInstanceWebhooksInput = {
-  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutInstanceWebhooksInput, Prisma.OrganizationUncheckedCreateWithoutInstanceWebhooksInput>
-  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutInstanceWebhooksInput
+export type OrganizationCreateNestedOneWithoutWhatsappInstanceWebhooksInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutWhatsappInstanceWebhooksInput, Prisma.OrganizationUncheckedCreateWithoutWhatsappInstanceWebhooksInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutWhatsappInstanceWebhooksInput
   connect?: Prisma.OrganizationWhereUniqueInput
 }
 
-export type OrganizationUpdateOneRequiredWithoutInstanceWebhooksNestedInput = {
-  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutInstanceWebhooksInput, Prisma.OrganizationUncheckedCreateWithoutInstanceWebhooksInput>
-  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutInstanceWebhooksInput
-  upsert?: Prisma.OrganizationUpsertWithoutInstanceWebhooksInput
+export type OrganizationUpdateOneRequiredWithoutWhatsappInstanceWebhooksNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutWhatsappInstanceWebhooksInput, Prisma.OrganizationUncheckedCreateWithoutWhatsappInstanceWebhooksInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutWhatsappInstanceWebhooksInput
+  upsert?: Prisma.OrganizationUpsertWithoutWhatsappInstanceWebhooksInput
   connect?: Prisma.OrganizationWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutInstanceWebhooksInput, Prisma.OrganizationUpdateWithoutInstanceWebhooksInput>, Prisma.OrganizationUncheckedUpdateWithoutInstanceWebhooksInput>
-}
-
-export type OrganizationCreateNestedOneWithoutMetaWhatsAppCredentialInput = {
-  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutMetaWhatsAppCredentialInput, Prisma.OrganizationUncheckedCreateWithoutMetaWhatsAppCredentialInput>
-  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutMetaWhatsAppCredentialInput
-  connect?: Prisma.OrganizationWhereUniqueInput
-}
-
-export type OrganizationUpdateOneRequiredWithoutMetaWhatsAppCredentialNestedInput = {
-  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutMetaWhatsAppCredentialInput, Prisma.OrganizationUncheckedCreateWithoutMetaWhatsAppCredentialInput>
-  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutMetaWhatsAppCredentialInput
-  upsert?: Prisma.OrganizationUpsertWithoutMetaWhatsAppCredentialInput
-  connect?: Prisma.OrganizationWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutMetaWhatsAppCredentialInput, Prisma.OrganizationUpdateWithoutMetaWhatsAppCredentialInput>, Prisma.OrganizationUncheckedUpdateWithoutMetaWhatsAppCredentialInput>
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutWhatsappInstanceWebhooksInput, Prisma.OrganizationUpdateWithoutWhatsappInstanceWebhooksInput>, Prisma.OrganizationUncheckedUpdateWithoutWhatsappInstanceWebhooksInput>
 }
 
 export type OrganizationCreateNestedOneWithoutWhatsappMessagesInput = {
@@ -933,48 +891,6 @@ export type OrganizationUpdateOneRequiredWithoutDailyMetricsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutDailyMetricsInput, Prisma.OrganizationUpdateWithoutDailyMetricsInput>, Prisma.OrganizationUncheckedUpdateWithoutDailyMetricsInput>
 }
 
-export type OrganizationCreateNestedOneWithoutWhatsappTemplatesInput = {
-  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutWhatsappTemplatesInput, Prisma.OrganizationUncheckedCreateWithoutWhatsappTemplatesInput>
-  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutWhatsappTemplatesInput
-  connect?: Prisma.OrganizationWhereUniqueInput
-}
-
-export type OrganizationUpdateOneRequiredWithoutWhatsappTemplatesNestedInput = {
-  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutWhatsappTemplatesInput, Prisma.OrganizationUncheckedCreateWithoutWhatsappTemplatesInput>
-  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutWhatsappTemplatesInput
-  upsert?: Prisma.OrganizationUpsertWithoutWhatsappTemplatesInput
-  connect?: Prisma.OrganizationWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutWhatsappTemplatesInput, Prisma.OrganizationUpdateWithoutWhatsappTemplatesInput>, Prisma.OrganizationUncheckedUpdateWithoutWhatsappTemplatesInput>
-}
-
-export type OrganizationCreateNestedOneWithoutCampaignsInput = {
-  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutCampaignsInput, Prisma.OrganizationUncheckedCreateWithoutCampaignsInput>
-  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutCampaignsInput
-  connect?: Prisma.OrganizationWhereUniqueInput
-}
-
-export type OrganizationUpdateOneRequiredWithoutCampaignsNestedInput = {
-  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutCampaignsInput, Prisma.OrganizationUncheckedCreateWithoutCampaignsInput>
-  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutCampaignsInput
-  upsert?: Prisma.OrganizationUpsertWithoutCampaignsInput
-  connect?: Prisma.OrganizationWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutCampaignsInput, Prisma.OrganizationUpdateWithoutCampaignsInput>, Prisma.OrganizationUncheckedUpdateWithoutCampaignsInput>
-}
-
-export type OrganizationCreateNestedOneWithoutCampaignCreditsInput = {
-  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutCampaignCreditsInput, Prisma.OrganizationUncheckedCreateWithoutCampaignCreditsInput>
-  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutCampaignCreditsInput
-  connect?: Prisma.OrganizationWhereUniqueInput
-}
-
-export type OrganizationUpdateOneRequiredWithoutCampaignCreditsNestedInput = {
-  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutCampaignCreditsInput, Prisma.OrganizationUncheckedCreateWithoutCampaignCreditsInput>
-  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutCampaignCreditsInput
-  upsert?: Prisma.OrganizationUpsertWithoutCampaignCreditsInput
-  connect?: Prisma.OrganizationWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutCampaignCreditsInput, Prisma.OrganizationUpdateWithoutCampaignCreditsInput>, Prisma.OrganizationUncheckedUpdateWithoutCampaignCreditsInput>
-}
-
 export type OrganizationCreateWithoutMembersInput = {
   id?: string
   name: string
@@ -995,9 +911,8 @@ export type OrganizationCreateWithoutMembersInput = {
   salesAnalytics?: Prisma.SalesAnalyticsCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutOrganizationInput
   currentPlan?: Prisma.PlanCreateNestedOneWithoutOrganizationsInput
   billingCustomer?: Prisma.BillingCustomerCreateNestedOneWithoutOrganizationInput
@@ -1006,9 +921,6 @@ export type OrganizationCreateWithoutMembersInput = {
   profile?: Prisma.OrganizationProfileCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutMembersInput = {
@@ -1032,9 +944,8 @@ export type OrganizationUncheckedCreateWithoutMembersInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutOrganizationInput
   billingCustomer?: Prisma.BillingCustomerUncheckedCreateNestedOneWithoutOrganizationInput
   aiCredits?: Prisma.AICreditsUncheckedCreateNestedOneWithoutOrganizationInput
@@ -1042,9 +953,6 @@ export type OrganizationUncheckedCreateWithoutMembersInput = {
   profile?: Prisma.OrganizationProfileUncheckedCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyUncheckedCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutMembersInput = {
@@ -1083,9 +991,8 @@ export type OrganizationUpdateWithoutMembersInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutOrganizationNestedInput
   currentPlan?: Prisma.PlanUpdateOneWithoutOrganizationsNestedInput
   billingCustomer?: Prisma.BillingCustomerUpdateOneWithoutOrganizationNestedInput
@@ -1094,9 +1001,6 @@ export type OrganizationUpdateWithoutMembersInput = {
   profile?: Prisma.OrganizationProfileUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutMembersInput = {
@@ -1120,9 +1024,8 @@ export type OrganizationUncheckedUpdateWithoutMembersInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutOrganizationNestedInput
   billingCustomer?: Prisma.BillingCustomerUncheckedUpdateOneWithoutOrganizationNestedInput
   aiCredits?: Prisma.AICreditsUncheckedUpdateOneWithoutOrganizationNestedInput
@@ -1130,9 +1033,6 @@ export type OrganizationUncheckedUpdateWithoutMembersInput = {
   profile?: Prisma.OrganizationProfileUncheckedUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUncheckedUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutInvitationsInput = {
@@ -1155,9 +1055,8 @@ export type OrganizationCreateWithoutInvitationsInput = {
   salesAnalytics?: Prisma.SalesAnalyticsCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutOrganizationInput
   currentPlan?: Prisma.PlanCreateNestedOneWithoutOrganizationsInput
   billingCustomer?: Prisma.BillingCustomerCreateNestedOneWithoutOrganizationInput
@@ -1166,9 +1065,6 @@ export type OrganizationCreateWithoutInvitationsInput = {
   profile?: Prisma.OrganizationProfileCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutInvitationsInput = {
@@ -1192,9 +1088,8 @@ export type OrganizationUncheckedCreateWithoutInvitationsInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutOrganizationInput
   billingCustomer?: Prisma.BillingCustomerUncheckedCreateNestedOneWithoutOrganizationInput
   aiCredits?: Prisma.AICreditsUncheckedCreateNestedOneWithoutOrganizationInput
@@ -1202,9 +1097,6 @@ export type OrganizationUncheckedCreateWithoutInvitationsInput = {
   profile?: Prisma.OrganizationProfileUncheckedCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyUncheckedCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutInvitationsInput = {
@@ -1243,9 +1135,8 @@ export type OrganizationUpdateWithoutInvitationsInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutOrganizationNestedInput
   currentPlan?: Prisma.PlanUpdateOneWithoutOrganizationsNestedInput
   billingCustomer?: Prisma.BillingCustomerUpdateOneWithoutOrganizationNestedInput
@@ -1254,9 +1145,6 @@ export type OrganizationUpdateWithoutInvitationsInput = {
   profile?: Prisma.OrganizationProfileUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutInvitationsInput = {
@@ -1280,9 +1168,8 @@ export type OrganizationUncheckedUpdateWithoutInvitationsInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutOrganizationNestedInput
   billingCustomer?: Prisma.BillingCustomerUncheckedUpdateOneWithoutOrganizationNestedInput
   aiCredits?: Prisma.AICreditsUncheckedUpdateOneWithoutOrganizationNestedInput
@@ -1290,9 +1177,6 @@ export type OrganizationUncheckedUpdateWithoutInvitationsInput = {
   profile?: Prisma.OrganizationProfileUncheckedUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUncheckedUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutLeadsInput = {
@@ -1315,9 +1199,8 @@ export type OrganizationCreateWithoutLeadsInput = {
   salesAnalytics?: Prisma.SalesAnalyticsCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutOrganizationInput
   currentPlan?: Prisma.PlanCreateNestedOneWithoutOrganizationsInput
   billingCustomer?: Prisma.BillingCustomerCreateNestedOneWithoutOrganizationInput
@@ -1326,9 +1209,6 @@ export type OrganizationCreateWithoutLeadsInput = {
   profile?: Prisma.OrganizationProfileCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutLeadsInput = {
@@ -1352,9 +1232,8 @@ export type OrganizationUncheckedCreateWithoutLeadsInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutOrganizationInput
   billingCustomer?: Prisma.BillingCustomerUncheckedCreateNestedOneWithoutOrganizationInput
   aiCredits?: Prisma.AICreditsUncheckedCreateNestedOneWithoutOrganizationInput
@@ -1362,9 +1241,6 @@ export type OrganizationUncheckedCreateWithoutLeadsInput = {
   profile?: Prisma.OrganizationProfileUncheckedCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyUncheckedCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutLeadsInput = {
@@ -1403,9 +1279,8 @@ export type OrganizationUpdateWithoutLeadsInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutOrganizationNestedInput
   currentPlan?: Prisma.PlanUpdateOneWithoutOrganizationsNestedInput
   billingCustomer?: Prisma.BillingCustomerUpdateOneWithoutOrganizationNestedInput
@@ -1414,9 +1289,6 @@ export type OrganizationUpdateWithoutLeadsInput = {
   profile?: Prisma.OrganizationProfileUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutLeadsInput = {
@@ -1440,9 +1312,8 @@ export type OrganizationUncheckedUpdateWithoutLeadsInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutOrganizationNestedInput
   billingCustomer?: Prisma.BillingCustomerUncheckedUpdateOneWithoutOrganizationNestedInput
   aiCredits?: Prisma.AICreditsUncheckedUpdateOneWithoutOrganizationNestedInput
@@ -1450,9 +1321,6 @@ export type OrganizationUncheckedUpdateWithoutLeadsInput = {
   profile?: Prisma.OrganizationProfileUncheckedUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUncheckedUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutTicketsInput = {
@@ -1475,9 +1343,8 @@ export type OrganizationCreateWithoutTicketsInput = {
   salesAnalytics?: Prisma.SalesAnalyticsCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutOrganizationInput
   currentPlan?: Prisma.PlanCreateNestedOneWithoutOrganizationsInput
   billingCustomer?: Prisma.BillingCustomerCreateNestedOneWithoutOrganizationInput
@@ -1486,9 +1353,6 @@ export type OrganizationCreateWithoutTicketsInput = {
   profile?: Prisma.OrganizationProfileCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutTicketsInput = {
@@ -1512,9 +1376,8 @@ export type OrganizationUncheckedCreateWithoutTicketsInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutOrganizationInput
   billingCustomer?: Prisma.BillingCustomerUncheckedCreateNestedOneWithoutOrganizationInput
   aiCredits?: Prisma.AICreditsUncheckedCreateNestedOneWithoutOrganizationInput
@@ -1522,9 +1385,6 @@ export type OrganizationUncheckedCreateWithoutTicketsInput = {
   profile?: Prisma.OrganizationProfileUncheckedCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyUncheckedCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutTicketsInput = {
@@ -1563,9 +1423,8 @@ export type OrganizationUpdateWithoutTicketsInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutOrganizationNestedInput
   currentPlan?: Prisma.PlanUpdateOneWithoutOrganizationsNestedInput
   billingCustomer?: Prisma.BillingCustomerUpdateOneWithoutOrganizationNestedInput
@@ -1574,9 +1433,6 @@ export type OrganizationUpdateWithoutTicketsInput = {
   profile?: Prisma.OrganizationProfileUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutTicketsInput = {
@@ -1600,9 +1456,8 @@ export type OrganizationUncheckedUpdateWithoutTicketsInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutOrganizationNestedInput
   billingCustomer?: Prisma.BillingCustomerUncheckedUpdateOneWithoutOrganizationNestedInput
   aiCredits?: Prisma.AICreditsUncheckedUpdateOneWithoutOrganizationNestedInput
@@ -1610,9 +1465,6 @@ export type OrganizationUncheckedUpdateWithoutTicketsInput = {
   profile?: Prisma.OrganizationProfileUncheckedUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUncheckedUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutSalesInput = {
@@ -1635,9 +1487,8 @@ export type OrganizationCreateWithoutSalesInput = {
   salesAnalytics?: Prisma.SalesAnalyticsCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutOrganizationInput
   currentPlan?: Prisma.PlanCreateNestedOneWithoutOrganizationsInput
   billingCustomer?: Prisma.BillingCustomerCreateNestedOneWithoutOrganizationInput
@@ -1646,9 +1497,6 @@ export type OrganizationCreateWithoutSalesInput = {
   profile?: Prisma.OrganizationProfileCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutSalesInput = {
@@ -1672,9 +1520,8 @@ export type OrganizationUncheckedCreateWithoutSalesInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutOrganizationInput
   billingCustomer?: Prisma.BillingCustomerUncheckedCreateNestedOneWithoutOrganizationInput
   aiCredits?: Prisma.AICreditsUncheckedCreateNestedOneWithoutOrganizationInput
@@ -1682,9 +1529,6 @@ export type OrganizationUncheckedCreateWithoutSalesInput = {
   profile?: Prisma.OrganizationProfileUncheckedCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyUncheckedCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutSalesInput = {
@@ -1723,9 +1567,8 @@ export type OrganizationUpdateWithoutSalesInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutOrganizationNestedInput
   currentPlan?: Prisma.PlanUpdateOneWithoutOrganizationsNestedInput
   billingCustomer?: Prisma.BillingCustomerUpdateOneWithoutOrganizationNestedInput
@@ -1734,9 +1577,6 @@ export type OrganizationUpdateWithoutSalesInput = {
   profile?: Prisma.OrganizationProfileUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutSalesInput = {
@@ -1760,9 +1600,8 @@ export type OrganizationUncheckedUpdateWithoutSalesInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutOrganizationNestedInput
   billingCustomer?: Prisma.BillingCustomerUncheckedUpdateOneWithoutOrganizationNestedInput
   aiCredits?: Prisma.AICreditsUncheckedUpdateOneWithoutOrganizationNestedInput
@@ -1770,9 +1609,6 @@ export type OrganizationUncheckedUpdateWithoutSalesInput = {
   profile?: Prisma.OrganizationProfileUncheckedUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUncheckedUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutSaleItemsInput = {
@@ -1795,9 +1631,8 @@ export type OrganizationCreateWithoutSaleItemsInput = {
   salesAnalytics?: Prisma.SalesAnalyticsCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutOrganizationInput
   currentPlan?: Prisma.PlanCreateNestedOneWithoutOrganizationsInput
   billingCustomer?: Prisma.BillingCustomerCreateNestedOneWithoutOrganizationInput
@@ -1806,9 +1641,6 @@ export type OrganizationCreateWithoutSaleItemsInput = {
   profile?: Prisma.OrganizationProfileCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutSaleItemsInput = {
@@ -1832,9 +1664,8 @@ export type OrganizationUncheckedCreateWithoutSaleItemsInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutOrganizationInput
   billingCustomer?: Prisma.BillingCustomerUncheckedCreateNestedOneWithoutOrganizationInput
   aiCredits?: Prisma.AICreditsUncheckedCreateNestedOneWithoutOrganizationInput
@@ -1842,9 +1673,6 @@ export type OrganizationUncheckedCreateWithoutSaleItemsInput = {
   profile?: Prisma.OrganizationProfileUncheckedCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyUncheckedCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutSaleItemsInput = {
@@ -1883,9 +1711,8 @@ export type OrganizationUpdateWithoutSaleItemsInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutOrganizationNestedInput
   currentPlan?: Prisma.PlanUpdateOneWithoutOrganizationsNestedInput
   billingCustomer?: Prisma.BillingCustomerUpdateOneWithoutOrganizationNestedInput
@@ -1894,9 +1721,6 @@ export type OrganizationUpdateWithoutSaleItemsInput = {
   profile?: Prisma.OrganizationProfileUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutSaleItemsInput = {
@@ -1920,9 +1744,8 @@ export type OrganizationUncheckedUpdateWithoutSaleItemsInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutOrganizationNestedInput
   billingCustomer?: Prisma.BillingCustomerUncheckedUpdateOneWithoutOrganizationNestedInput
   aiCredits?: Prisma.AICreditsUncheckedUpdateOneWithoutOrganizationNestedInput
@@ -1930,9 +1753,6 @@ export type OrganizationUncheckedUpdateWithoutSaleItemsInput = {
   profile?: Prisma.OrganizationProfileUncheckedUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUncheckedUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutProductsInput = {
@@ -1955,9 +1775,8 @@ export type OrganizationCreateWithoutProductsInput = {
   salesAnalytics?: Prisma.SalesAnalyticsCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutOrganizationInput
   currentPlan?: Prisma.PlanCreateNestedOneWithoutOrganizationsInput
   billingCustomer?: Prisma.BillingCustomerCreateNestedOneWithoutOrganizationInput
@@ -1966,9 +1785,6 @@ export type OrganizationCreateWithoutProductsInput = {
   profile?: Prisma.OrganizationProfileCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutProductsInput = {
@@ -1992,9 +1808,8 @@ export type OrganizationUncheckedCreateWithoutProductsInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutOrganizationInput
   billingCustomer?: Prisma.BillingCustomerUncheckedCreateNestedOneWithoutOrganizationInput
   aiCredits?: Prisma.AICreditsUncheckedCreateNestedOneWithoutOrganizationInput
@@ -2002,9 +1817,6 @@ export type OrganizationUncheckedCreateWithoutProductsInput = {
   profile?: Prisma.OrganizationProfileUncheckedCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyUncheckedCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutProductsInput = {
@@ -2043,9 +1855,8 @@ export type OrganizationUpdateWithoutProductsInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutOrganizationNestedInput
   currentPlan?: Prisma.PlanUpdateOneWithoutOrganizationsNestedInput
   billingCustomer?: Prisma.BillingCustomerUpdateOneWithoutOrganizationNestedInput
@@ -2054,9 +1865,6 @@ export type OrganizationUpdateWithoutProductsInput = {
   profile?: Prisma.OrganizationProfileUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutProductsInput = {
@@ -2080,9 +1888,8 @@ export type OrganizationUncheckedUpdateWithoutProductsInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutOrganizationNestedInput
   billingCustomer?: Prisma.BillingCustomerUncheckedUpdateOneWithoutOrganizationNestedInput
   aiCredits?: Prisma.AICreditsUncheckedUpdateOneWithoutOrganizationNestedInput
@@ -2090,9 +1897,6 @@ export type OrganizationUncheckedUpdateWithoutProductsInput = {
   profile?: Prisma.OrganizationProfileUncheckedUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUncheckedUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutProductCategoriesInput = {
@@ -2115,9 +1919,8 @@ export type OrganizationCreateWithoutProductCategoriesInput = {
   salesAnalytics?: Prisma.SalesAnalyticsCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutOrganizationInput
   currentPlan?: Prisma.PlanCreateNestedOneWithoutOrganizationsInput
   billingCustomer?: Prisma.BillingCustomerCreateNestedOneWithoutOrganizationInput
@@ -2126,9 +1929,6 @@ export type OrganizationCreateWithoutProductCategoriesInput = {
   profile?: Prisma.OrganizationProfileCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutProductCategoriesInput = {
@@ -2152,9 +1952,8 @@ export type OrganizationUncheckedCreateWithoutProductCategoriesInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutOrganizationInput
   billingCustomer?: Prisma.BillingCustomerUncheckedCreateNestedOneWithoutOrganizationInput
   aiCredits?: Prisma.AICreditsUncheckedCreateNestedOneWithoutOrganizationInput
@@ -2162,9 +1961,6 @@ export type OrganizationUncheckedCreateWithoutProductCategoriesInput = {
   profile?: Prisma.OrganizationProfileUncheckedCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyUncheckedCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutProductCategoriesInput = {
@@ -2203,9 +1999,8 @@ export type OrganizationUpdateWithoutProductCategoriesInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutOrganizationNestedInput
   currentPlan?: Prisma.PlanUpdateOneWithoutOrganizationsNestedInput
   billingCustomer?: Prisma.BillingCustomerUpdateOneWithoutOrganizationNestedInput
@@ -2214,9 +2009,6 @@ export type OrganizationUpdateWithoutProductCategoriesInput = {
   profile?: Prisma.OrganizationProfileUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutProductCategoriesInput = {
@@ -2240,9 +2032,8 @@ export type OrganizationUncheckedUpdateWithoutProductCategoriesInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutOrganizationNestedInput
   billingCustomer?: Prisma.BillingCustomerUncheckedUpdateOneWithoutOrganizationNestedInput
   aiCredits?: Prisma.AICreditsUncheckedUpdateOneWithoutOrganizationNestedInput
@@ -2250,9 +2041,6 @@ export type OrganizationUncheckedUpdateWithoutProductCategoriesInput = {
   profile?: Prisma.OrganizationProfileUncheckedUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUncheckedUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutAppointmentsInput = {
@@ -2275,9 +2063,8 @@ export type OrganizationCreateWithoutAppointmentsInput = {
   salesAnalytics?: Prisma.SalesAnalyticsCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutOrganizationInput
   currentPlan?: Prisma.PlanCreateNestedOneWithoutOrganizationsInput
   billingCustomer?: Prisma.BillingCustomerCreateNestedOneWithoutOrganizationInput
@@ -2286,9 +2073,6 @@ export type OrganizationCreateWithoutAppointmentsInput = {
   profile?: Prisma.OrganizationProfileCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutAppointmentsInput = {
@@ -2312,9 +2096,8 @@ export type OrganizationUncheckedCreateWithoutAppointmentsInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutOrganizationInput
   billingCustomer?: Prisma.BillingCustomerUncheckedCreateNestedOneWithoutOrganizationInput
   aiCredits?: Prisma.AICreditsUncheckedCreateNestedOneWithoutOrganizationInput
@@ -2322,9 +2105,6 @@ export type OrganizationUncheckedCreateWithoutAppointmentsInput = {
   profile?: Prisma.OrganizationProfileUncheckedCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyUncheckedCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutAppointmentsInput = {
@@ -2363,9 +2143,8 @@ export type OrganizationUpdateWithoutAppointmentsInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutOrganizationNestedInput
   currentPlan?: Prisma.PlanUpdateOneWithoutOrganizationsNestedInput
   billingCustomer?: Prisma.BillingCustomerUpdateOneWithoutOrganizationNestedInput
@@ -2374,9 +2153,6 @@ export type OrganizationUpdateWithoutAppointmentsInput = {
   profile?: Prisma.OrganizationProfileUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutAppointmentsInput = {
@@ -2400,9 +2176,8 @@ export type OrganizationUncheckedUpdateWithoutAppointmentsInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutOrganizationNestedInput
   billingCustomer?: Prisma.BillingCustomerUncheckedUpdateOneWithoutOrganizationNestedInput
   aiCredits?: Prisma.AICreditsUncheckedUpdateOneWithoutOrganizationNestedInput
@@ -2410,9 +2185,6 @@ export type OrganizationUncheckedUpdateWithoutAppointmentsInput = {
   profile?: Prisma.OrganizationProfileUncheckedUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUncheckedUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutAttendancesInput = {
@@ -2435,9 +2207,8 @@ export type OrganizationCreateWithoutAttendancesInput = {
   salesAnalytics?: Prisma.SalesAnalyticsCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutOrganizationInput
   currentPlan?: Prisma.PlanCreateNestedOneWithoutOrganizationsInput
   billingCustomer?: Prisma.BillingCustomerCreateNestedOneWithoutOrganizationInput
@@ -2446,9 +2217,6 @@ export type OrganizationCreateWithoutAttendancesInput = {
   profile?: Prisma.OrganizationProfileCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutAttendancesInput = {
@@ -2472,9 +2240,8 @@ export type OrganizationUncheckedCreateWithoutAttendancesInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutOrganizationInput
   billingCustomer?: Prisma.BillingCustomerUncheckedCreateNestedOneWithoutOrganizationInput
   aiCredits?: Prisma.AICreditsUncheckedCreateNestedOneWithoutOrganizationInput
@@ -2482,9 +2249,6 @@ export type OrganizationUncheckedCreateWithoutAttendancesInput = {
   profile?: Prisma.OrganizationProfileUncheckedCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyUncheckedCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutAttendancesInput = {
@@ -2523,9 +2287,8 @@ export type OrganizationUpdateWithoutAttendancesInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutOrganizationNestedInput
   currentPlan?: Prisma.PlanUpdateOneWithoutOrganizationsNestedInput
   billingCustomer?: Prisma.BillingCustomerUpdateOneWithoutOrganizationNestedInput
@@ -2534,9 +2297,6 @@ export type OrganizationUpdateWithoutAttendancesInput = {
   profile?: Prisma.OrganizationProfileUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutAttendancesInput = {
@@ -2560,9 +2320,8 @@ export type OrganizationUncheckedUpdateWithoutAttendancesInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutOrganizationNestedInput
   billingCustomer?: Prisma.BillingCustomerUncheckedUpdateOneWithoutOrganizationNestedInput
   aiCredits?: Prisma.AICreditsUncheckedUpdateOneWithoutOrganizationNestedInput
@@ -2570,9 +2329,6 @@ export type OrganizationUncheckedUpdateWithoutAttendancesInput = {
   profile?: Prisma.OrganizationProfileUncheckedUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUncheckedUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutPlatformEventsInput = {
@@ -2595,9 +2351,8 @@ export type OrganizationCreateWithoutPlatformEventsInput = {
   salesAnalytics?: Prisma.SalesAnalyticsCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutOrganizationInput
   currentPlan?: Prisma.PlanCreateNestedOneWithoutOrganizationsInput
   billingCustomer?: Prisma.BillingCustomerCreateNestedOneWithoutOrganizationInput
@@ -2606,9 +2361,6 @@ export type OrganizationCreateWithoutPlatformEventsInput = {
   profile?: Prisma.OrganizationProfileCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutPlatformEventsInput = {
@@ -2632,9 +2384,8 @@ export type OrganizationUncheckedCreateWithoutPlatformEventsInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutOrganizationInput
   billingCustomer?: Prisma.BillingCustomerUncheckedCreateNestedOneWithoutOrganizationInput
   aiCredits?: Prisma.AICreditsUncheckedCreateNestedOneWithoutOrganizationInput
@@ -2642,9 +2393,6 @@ export type OrganizationUncheckedCreateWithoutPlatformEventsInput = {
   profile?: Prisma.OrganizationProfileUncheckedCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyUncheckedCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutPlatformEventsInput = {
@@ -2683,9 +2431,8 @@ export type OrganizationUpdateWithoutPlatformEventsInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutOrganizationNestedInput
   currentPlan?: Prisma.PlanUpdateOneWithoutOrganizationsNestedInput
   billingCustomer?: Prisma.BillingCustomerUpdateOneWithoutOrganizationNestedInput
@@ -2694,9 +2441,6 @@ export type OrganizationUpdateWithoutPlatformEventsInput = {
   profile?: Prisma.OrganizationProfileUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutPlatformEventsInput = {
@@ -2720,9 +2464,8 @@ export type OrganizationUncheckedUpdateWithoutPlatformEventsInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutOrganizationNestedInput
   billingCustomer?: Prisma.BillingCustomerUncheckedUpdateOneWithoutOrganizationNestedInput
   aiCredits?: Prisma.AICreditsUncheckedUpdateOneWithoutOrganizationNestedInput
@@ -2730,9 +2473,6 @@ export type OrganizationUncheckedUpdateWithoutPlatformEventsInput = {
   profile?: Prisma.OrganizationProfileUncheckedUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUncheckedUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutSalesAnalyticsInput = {
@@ -2755,9 +2495,8 @@ export type OrganizationCreateWithoutSalesAnalyticsInput = {
   platformEvents?: Prisma.PlatformEventCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutOrganizationInput
   currentPlan?: Prisma.PlanCreateNestedOneWithoutOrganizationsInput
   billingCustomer?: Prisma.BillingCustomerCreateNestedOneWithoutOrganizationInput
@@ -2766,9 +2505,6 @@ export type OrganizationCreateWithoutSalesAnalyticsInput = {
   profile?: Prisma.OrganizationProfileCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutSalesAnalyticsInput = {
@@ -2792,9 +2528,8 @@ export type OrganizationUncheckedCreateWithoutSalesAnalyticsInput = {
   platformEvents?: Prisma.PlatformEventUncheckedCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutOrganizationInput
   billingCustomer?: Prisma.BillingCustomerUncheckedCreateNestedOneWithoutOrganizationInput
   aiCredits?: Prisma.AICreditsUncheckedCreateNestedOneWithoutOrganizationInput
@@ -2802,9 +2537,6 @@ export type OrganizationUncheckedCreateWithoutSalesAnalyticsInput = {
   profile?: Prisma.OrganizationProfileUncheckedCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyUncheckedCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutSalesAnalyticsInput = {
@@ -2843,9 +2575,8 @@ export type OrganizationUpdateWithoutSalesAnalyticsInput = {
   platformEvents?: Prisma.PlatformEventUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutOrganizationNestedInput
   currentPlan?: Prisma.PlanUpdateOneWithoutOrganizationsNestedInput
   billingCustomer?: Prisma.BillingCustomerUpdateOneWithoutOrganizationNestedInput
@@ -2854,9 +2585,6 @@ export type OrganizationUpdateWithoutSalesAnalyticsInput = {
   profile?: Prisma.OrganizationProfileUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutSalesAnalyticsInput = {
@@ -2880,9 +2608,8 @@ export type OrganizationUncheckedUpdateWithoutSalesAnalyticsInput = {
   platformEvents?: Prisma.PlatformEventUncheckedUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutOrganizationNestedInput
   billingCustomer?: Prisma.BillingCustomerUncheckedUpdateOneWithoutOrganizationNestedInput
   aiCredits?: Prisma.AICreditsUncheckedUpdateOneWithoutOrganizationNestedInput
@@ -2890,9 +2617,6 @@ export type OrganizationUncheckedUpdateWithoutSalesAnalyticsInput = {
   profile?: Prisma.OrganizationProfileUncheckedUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUncheckedUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutMetaAdsMetricsInput = {
@@ -2915,9 +2639,8 @@ export type OrganizationCreateWithoutMetaAdsMetricsInput = {
   platformEvents?: Prisma.PlatformEventCreateNestedManyWithoutOrganizationInput
   salesAnalytics?: Prisma.SalesAnalyticsCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutOrganizationInput
   currentPlan?: Prisma.PlanCreateNestedOneWithoutOrganizationsInput
   billingCustomer?: Prisma.BillingCustomerCreateNestedOneWithoutOrganizationInput
@@ -2926,9 +2649,6 @@ export type OrganizationCreateWithoutMetaAdsMetricsInput = {
   profile?: Prisma.OrganizationProfileCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutMetaAdsMetricsInput = {
@@ -2952,9 +2672,8 @@ export type OrganizationUncheckedCreateWithoutMetaAdsMetricsInput = {
   platformEvents?: Prisma.PlatformEventUncheckedCreateNestedManyWithoutOrganizationInput
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutOrganizationInput
   billingCustomer?: Prisma.BillingCustomerUncheckedCreateNestedOneWithoutOrganizationInput
   aiCredits?: Prisma.AICreditsUncheckedCreateNestedOneWithoutOrganizationInput
@@ -2962,9 +2681,6 @@ export type OrganizationUncheckedCreateWithoutMetaAdsMetricsInput = {
   profile?: Prisma.OrganizationProfileUncheckedCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyUncheckedCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutMetaAdsMetricsInput = {
@@ -3003,9 +2719,8 @@ export type OrganizationUpdateWithoutMetaAdsMetricsInput = {
   platformEvents?: Prisma.PlatformEventUpdateManyWithoutOrganizationNestedInput
   salesAnalytics?: Prisma.SalesAnalyticsUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutOrganizationNestedInput
   currentPlan?: Prisma.PlanUpdateOneWithoutOrganizationsNestedInput
   billingCustomer?: Prisma.BillingCustomerUpdateOneWithoutOrganizationNestedInput
@@ -3014,9 +2729,6 @@ export type OrganizationUpdateWithoutMetaAdsMetricsInput = {
   profile?: Prisma.OrganizationProfileUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutMetaAdsMetricsInput = {
@@ -3040,9 +2752,8 @@ export type OrganizationUncheckedUpdateWithoutMetaAdsMetricsInput = {
   platformEvents?: Prisma.PlatformEventUncheckedUpdateManyWithoutOrganizationNestedInput
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutOrganizationNestedInput
   billingCustomer?: Prisma.BillingCustomerUncheckedUpdateOneWithoutOrganizationNestedInput
   aiCredits?: Prisma.AICreditsUncheckedUpdateOneWithoutOrganizationNestedInput
@@ -3050,9 +2761,6 @@ export type OrganizationUncheckedUpdateWithoutMetaAdsMetricsInput = {
   profile?: Prisma.OrganizationProfileUncheckedUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUncheckedUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutWhatsappInstancesInput = {
@@ -3075,9 +2783,8 @@ export type OrganizationCreateWithoutWhatsappInstancesInput = {
   platformEvents?: Prisma.PlatformEventCreateNestedManyWithoutOrganizationInput
   salesAnalytics?: Prisma.SalesAnalyticsCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutOrganizationInput
   currentPlan?: Prisma.PlanCreateNestedOneWithoutOrganizationsInput
   billingCustomer?: Prisma.BillingCustomerCreateNestedOneWithoutOrganizationInput
@@ -3086,9 +2793,6 @@ export type OrganizationCreateWithoutWhatsappInstancesInput = {
   profile?: Prisma.OrganizationProfileCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutWhatsappInstancesInput = {
@@ -3112,9 +2816,8 @@ export type OrganizationUncheckedCreateWithoutWhatsappInstancesInput = {
   platformEvents?: Prisma.PlatformEventUncheckedCreateNestedManyWithoutOrganizationInput
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutOrganizationInput
   billingCustomer?: Prisma.BillingCustomerUncheckedCreateNestedOneWithoutOrganizationInput
   aiCredits?: Prisma.AICreditsUncheckedCreateNestedOneWithoutOrganizationInput
@@ -3122,9 +2825,6 @@ export type OrganizationUncheckedCreateWithoutWhatsappInstancesInput = {
   profile?: Prisma.OrganizationProfileUncheckedCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyUncheckedCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutWhatsappInstancesInput = {
@@ -3163,9 +2863,8 @@ export type OrganizationUpdateWithoutWhatsappInstancesInput = {
   platformEvents?: Prisma.PlatformEventUpdateManyWithoutOrganizationNestedInput
   salesAnalytics?: Prisma.SalesAnalyticsUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutOrganizationNestedInput
   currentPlan?: Prisma.PlanUpdateOneWithoutOrganizationsNestedInput
   billingCustomer?: Prisma.BillingCustomerUpdateOneWithoutOrganizationNestedInput
@@ -3174,9 +2873,6 @@ export type OrganizationUpdateWithoutWhatsappInstancesInput = {
   profile?: Prisma.OrganizationProfileUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutWhatsappInstancesInput = {
@@ -3200,9 +2896,8 @@ export type OrganizationUncheckedUpdateWithoutWhatsappInstancesInput = {
   platformEvents?: Prisma.PlatformEventUncheckedUpdateManyWithoutOrganizationNestedInput
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutOrganizationNestedInput
   billingCustomer?: Prisma.BillingCustomerUncheckedUpdateOneWithoutOrganizationNestedInput
   aiCredits?: Prisma.AICreditsUncheckedUpdateOneWithoutOrganizationNestedInput
@@ -3210,12 +2905,9 @@ export type OrganizationUncheckedUpdateWithoutWhatsappInstancesInput = {
   profile?: Prisma.OrganizationProfileUncheckedUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUncheckedUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedUpdateOneWithoutOrganizationNestedInput
 }
 
-export type OrganizationCreateWithoutInstanceWebhooksInput = {
+export type OrganizationCreateWithoutWhatsappInstanceWebhooksInput = {
   id?: string
   name: string
   slug: string
@@ -3237,7 +2929,6 @@ export type OrganizationCreateWithoutInstanceWebhooksInput = {
   metaAdsMetrics?: Prisma.MetaAdsMetricCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutOrganizationInput
   currentPlan?: Prisma.PlanCreateNestedOneWithoutOrganizationsInput
   billingCustomer?: Prisma.BillingCustomerCreateNestedOneWithoutOrganizationInput
@@ -3246,12 +2937,9 @@ export type OrganizationCreateWithoutInstanceWebhooksInput = {
   profile?: Prisma.OrganizationProfileCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsCreateNestedOneWithoutOrganizationInput
 }
 
-export type OrganizationUncheckedCreateWithoutInstanceWebhooksInput = {
+export type OrganizationUncheckedCreateWithoutWhatsappInstanceWebhooksInput = {
   id?: string
   name: string
   slug: string
@@ -3274,7 +2962,6 @@ export type OrganizationUncheckedCreateWithoutInstanceWebhooksInput = {
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutOrganizationInput
   billingCustomer?: Prisma.BillingCustomerUncheckedCreateNestedOneWithoutOrganizationInput
   aiCredits?: Prisma.AICreditsUncheckedCreateNestedOneWithoutOrganizationInput
@@ -3282,28 +2969,25 @@ export type OrganizationUncheckedCreateWithoutInstanceWebhooksInput = {
   profile?: Prisma.OrganizationProfileUncheckedCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyUncheckedCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedCreateNestedOneWithoutOrganizationInput
 }
 
-export type OrganizationCreateOrConnectWithoutInstanceWebhooksInput = {
+export type OrganizationCreateOrConnectWithoutWhatsappInstanceWebhooksInput = {
   where: Prisma.OrganizationWhereUniqueInput
-  create: Prisma.XOR<Prisma.OrganizationCreateWithoutInstanceWebhooksInput, Prisma.OrganizationUncheckedCreateWithoutInstanceWebhooksInput>
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutWhatsappInstanceWebhooksInput, Prisma.OrganizationUncheckedCreateWithoutWhatsappInstanceWebhooksInput>
 }
 
-export type OrganizationUpsertWithoutInstanceWebhooksInput = {
-  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutInstanceWebhooksInput, Prisma.OrganizationUncheckedUpdateWithoutInstanceWebhooksInput>
-  create: Prisma.XOR<Prisma.OrganizationCreateWithoutInstanceWebhooksInput, Prisma.OrganizationUncheckedCreateWithoutInstanceWebhooksInput>
+export type OrganizationUpsertWithoutWhatsappInstanceWebhooksInput = {
+  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutWhatsappInstanceWebhooksInput, Prisma.OrganizationUncheckedUpdateWithoutWhatsappInstanceWebhooksInput>
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutWhatsappInstanceWebhooksInput, Prisma.OrganizationUncheckedCreateWithoutWhatsappInstanceWebhooksInput>
   where?: Prisma.OrganizationWhereInput
 }
 
-export type OrganizationUpdateToOneWithWhereWithoutInstanceWebhooksInput = {
+export type OrganizationUpdateToOneWithWhereWithoutWhatsappInstanceWebhooksInput = {
   where?: Prisma.OrganizationWhereInput
-  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutInstanceWebhooksInput, Prisma.OrganizationUncheckedUpdateWithoutInstanceWebhooksInput>
+  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutWhatsappInstanceWebhooksInput, Prisma.OrganizationUncheckedUpdateWithoutWhatsappInstanceWebhooksInput>
 }
 
-export type OrganizationUpdateWithoutInstanceWebhooksInput = {
+export type OrganizationUpdateWithoutWhatsappInstanceWebhooksInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
@@ -3325,7 +3009,6 @@ export type OrganizationUpdateWithoutInstanceWebhooksInput = {
   metaAdsMetrics?: Prisma.MetaAdsMetricUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutOrganizationNestedInput
   currentPlan?: Prisma.PlanUpdateOneWithoutOrganizationsNestedInput
   billingCustomer?: Prisma.BillingCustomerUpdateOneWithoutOrganizationNestedInput
@@ -3334,12 +3017,9 @@ export type OrganizationUpdateWithoutInstanceWebhooksInput = {
   profile?: Prisma.OrganizationProfileUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUpdateOneWithoutOrganizationNestedInput
 }
 
-export type OrganizationUncheckedUpdateWithoutInstanceWebhooksInput = {
+export type OrganizationUncheckedUpdateWithoutWhatsappInstanceWebhooksInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
@@ -3362,7 +3042,6 @@ export type OrganizationUncheckedUpdateWithoutInstanceWebhooksInput = {
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutOrganizationNestedInput
   billingCustomer?: Prisma.BillingCustomerUncheckedUpdateOneWithoutOrganizationNestedInput
   aiCredits?: Prisma.AICreditsUncheckedUpdateOneWithoutOrganizationNestedInput
@@ -3370,169 +3049,6 @@ export type OrganizationUncheckedUpdateWithoutInstanceWebhooksInput = {
   profile?: Prisma.OrganizationProfileUncheckedUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUncheckedUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedUpdateOneWithoutOrganizationNestedInput
-}
-
-export type OrganizationCreateWithoutMetaWhatsAppCredentialInput = {
-  id?: string
-  name: string
-  slug: string
-  logo?: string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  members?: Prisma.MemberCreateNestedManyWithoutOrganizationInput
-  invitations?: Prisma.InvitationCreateNestedManyWithoutOrganizationInput
-  leads?: Prisma.LeadCreateNestedManyWithoutOrganizationInput
-  tickets?: Prisma.TicketCreateNestedManyWithoutOrganizationInput
-  sales?: Prisma.SaleCreateNestedManyWithoutOrganizationInput
-  saleItems?: Prisma.SaleItemCreateNestedManyWithoutOrganizationInput
-  products?: Prisma.ProductCreateNestedManyWithoutOrganizationInput
-  productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutOrganizationInput
-  appointments?: Prisma.AppointmentCreateNestedManyWithoutOrganizationInput
-  attendances?: Prisma.AttendanceCreateNestedManyWithoutOrganizationInput
-  platformEvents?: Prisma.PlatformEventCreateNestedManyWithoutOrganizationInput
-  salesAnalytics?: Prisma.SalesAnalyticsCreateNestedManyWithoutOrganizationInput
-  metaAdsMetrics?: Prisma.MetaAdsMetricCreateNestedManyWithoutOrganizationInput
-  whatsappInstances?: Prisma.WhatsappInstanceCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookCreateNestedManyWithoutOrganizationInput
-  whatsappMessages?: Prisma.WhatsappMessageCreateNestedManyWithoutOrganizationInput
-  conversations?: Prisma.ConversationCreateNestedManyWithoutOrganizationInput
-  currentPlan?: Prisma.PlanCreateNestedOneWithoutOrganizationsInput
-  billingCustomer?: Prisma.BillingCustomerCreateNestedOneWithoutOrganizationInput
-  aiCredits?: Prisma.AICreditsCreateNestedOneWithoutOrganizationInput
-  followUpConfig?: Prisma.FollowUpConfigCreateNestedOneWithoutOrganizationInput
-  profile?: Prisma.OrganizationProfileCreateNestedOneWithoutOrganizationInput
-  company?: Prisma.OrganizationCompanyCreateNestedOneWithoutOrganizationInput
-  dailyMetrics?: Prisma.DailyMetricsCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsCreateNestedOneWithoutOrganizationInput
-}
-
-export type OrganizationUncheckedCreateWithoutMetaWhatsAppCredentialInput = {
-  id?: string
-  name: string
-  slug: string
-  logo?: string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  currentPlanId?: string | null
-  members?: Prisma.MemberUncheckedCreateNestedManyWithoutOrganizationInput
-  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutOrganizationInput
-  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutOrganizationInput
-  tickets?: Prisma.TicketUncheckedCreateNestedManyWithoutOrganizationInput
-  sales?: Prisma.SaleUncheckedCreateNestedManyWithoutOrganizationInput
-  saleItems?: Prisma.SaleItemUncheckedCreateNestedManyWithoutOrganizationInput
-  products?: Prisma.ProductUncheckedCreateNestedManyWithoutOrganizationInput
-  productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutOrganizationInput
-  appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutOrganizationInput
-  attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutOrganizationInput
-  platformEvents?: Prisma.PlatformEventUncheckedCreateNestedManyWithoutOrganizationInput
-  salesAnalytics?: Prisma.SalesAnalyticsUncheckedCreateNestedManyWithoutOrganizationInput
-  metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedCreateNestedManyWithoutOrganizationInput
-  whatsappInstances?: Prisma.WhatsappInstanceUncheckedCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
-  whatsappMessages?: Prisma.WhatsappMessageUncheckedCreateNestedManyWithoutOrganizationInput
-  conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutOrganizationInput
-  billingCustomer?: Prisma.BillingCustomerUncheckedCreateNestedOneWithoutOrganizationInput
-  aiCredits?: Prisma.AICreditsUncheckedCreateNestedOneWithoutOrganizationInput
-  followUpConfig?: Prisma.FollowUpConfigUncheckedCreateNestedOneWithoutOrganizationInput
-  profile?: Prisma.OrganizationProfileUncheckedCreateNestedOneWithoutOrganizationInput
-  company?: Prisma.OrganizationCompanyUncheckedCreateNestedOneWithoutOrganizationInput
-  dailyMetrics?: Prisma.DailyMetricsUncheckedCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedCreateNestedOneWithoutOrganizationInput
-}
-
-export type OrganizationCreateOrConnectWithoutMetaWhatsAppCredentialInput = {
-  where: Prisma.OrganizationWhereUniqueInput
-  create: Prisma.XOR<Prisma.OrganizationCreateWithoutMetaWhatsAppCredentialInput, Prisma.OrganizationUncheckedCreateWithoutMetaWhatsAppCredentialInput>
-}
-
-export type OrganizationUpsertWithoutMetaWhatsAppCredentialInput = {
-  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutMetaWhatsAppCredentialInput, Prisma.OrganizationUncheckedUpdateWithoutMetaWhatsAppCredentialInput>
-  create: Prisma.XOR<Prisma.OrganizationCreateWithoutMetaWhatsAppCredentialInput, Prisma.OrganizationUncheckedCreateWithoutMetaWhatsAppCredentialInput>
-  where?: Prisma.OrganizationWhereInput
-}
-
-export type OrganizationUpdateToOneWithWhereWithoutMetaWhatsAppCredentialInput = {
-  where?: Prisma.OrganizationWhereInput
-  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutMetaWhatsAppCredentialInput, Prisma.OrganizationUncheckedUpdateWithoutMetaWhatsAppCredentialInput>
-}
-
-export type OrganizationUpdateWithoutMetaWhatsAppCredentialInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  name?: Prisma.StringFieldUpdateOperationsInput | string
-  slug?: Prisma.StringFieldUpdateOperationsInput | string
-  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  members?: Prisma.MemberUpdateManyWithoutOrganizationNestedInput
-  invitations?: Prisma.InvitationUpdateManyWithoutOrganizationNestedInput
-  leads?: Prisma.LeadUpdateManyWithoutOrganizationNestedInput
-  tickets?: Prisma.TicketUpdateManyWithoutOrganizationNestedInput
-  sales?: Prisma.SaleUpdateManyWithoutOrganizationNestedInput
-  saleItems?: Prisma.SaleItemUpdateManyWithoutOrganizationNestedInput
-  products?: Prisma.ProductUpdateManyWithoutOrganizationNestedInput
-  productCategories?: Prisma.ProductCategoryUpdateManyWithoutOrganizationNestedInput
-  appointments?: Prisma.AppointmentUpdateManyWithoutOrganizationNestedInput
-  attendances?: Prisma.AttendanceUpdateManyWithoutOrganizationNestedInput
-  platformEvents?: Prisma.PlatformEventUpdateManyWithoutOrganizationNestedInput
-  salesAnalytics?: Prisma.SalesAnalyticsUpdateManyWithoutOrganizationNestedInput
-  metaAdsMetrics?: Prisma.MetaAdsMetricUpdateManyWithoutOrganizationNestedInput
-  whatsappInstances?: Prisma.WhatsappInstanceUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUpdateManyWithoutOrganizationNestedInput
-  whatsappMessages?: Prisma.WhatsappMessageUpdateManyWithoutOrganizationNestedInput
-  conversations?: Prisma.ConversationUpdateManyWithoutOrganizationNestedInput
-  currentPlan?: Prisma.PlanUpdateOneWithoutOrganizationsNestedInput
-  billingCustomer?: Prisma.BillingCustomerUpdateOneWithoutOrganizationNestedInput
-  aiCredits?: Prisma.AICreditsUpdateOneWithoutOrganizationNestedInput
-  followUpConfig?: Prisma.FollowUpConfigUpdateOneWithoutOrganizationNestedInput
-  profile?: Prisma.OrganizationProfileUpdateOneWithoutOrganizationNestedInput
-  company?: Prisma.OrganizationCompanyUpdateOneWithoutOrganizationNestedInput
-  dailyMetrics?: Prisma.DailyMetricsUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUpdateOneWithoutOrganizationNestedInput
-}
-
-export type OrganizationUncheckedUpdateWithoutMetaWhatsAppCredentialInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  name?: Prisma.StringFieldUpdateOperationsInput | string
-  slug?: Prisma.StringFieldUpdateOperationsInput | string
-  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  currentPlanId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  members?: Prisma.MemberUncheckedUpdateManyWithoutOrganizationNestedInput
-  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutOrganizationNestedInput
-  leads?: Prisma.LeadUncheckedUpdateManyWithoutOrganizationNestedInput
-  tickets?: Prisma.TicketUncheckedUpdateManyWithoutOrganizationNestedInput
-  sales?: Prisma.SaleUncheckedUpdateManyWithoutOrganizationNestedInput
-  saleItems?: Prisma.SaleItemUncheckedUpdateManyWithoutOrganizationNestedInput
-  products?: Prisma.ProductUncheckedUpdateManyWithoutOrganizationNestedInput
-  productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutOrganizationNestedInput
-  appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutOrganizationNestedInput
-  attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutOrganizationNestedInput
-  platformEvents?: Prisma.PlatformEventUncheckedUpdateManyWithoutOrganizationNestedInput
-  salesAnalytics?: Prisma.SalesAnalyticsUncheckedUpdateManyWithoutOrganizationNestedInput
-  metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedUpdateManyWithoutOrganizationNestedInput
-  whatsappInstances?: Prisma.WhatsappInstanceUncheckedUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
-  whatsappMessages?: Prisma.WhatsappMessageUncheckedUpdateManyWithoutOrganizationNestedInput
-  conversations?: Prisma.ConversationUncheckedUpdateManyWithoutOrganizationNestedInput
-  billingCustomer?: Prisma.BillingCustomerUncheckedUpdateOneWithoutOrganizationNestedInput
-  aiCredits?: Prisma.AICreditsUncheckedUpdateOneWithoutOrganizationNestedInput
-  followUpConfig?: Prisma.FollowUpConfigUncheckedUpdateOneWithoutOrganizationNestedInput
-  profile?: Prisma.OrganizationProfileUncheckedUpdateOneWithoutOrganizationNestedInput
-  company?: Prisma.OrganizationCompanyUncheckedUpdateOneWithoutOrganizationNestedInput
-  dailyMetrics?: Prisma.DailyMetricsUncheckedUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutWhatsappMessagesInput = {
@@ -3556,8 +3072,7 @@ export type OrganizationCreateWithoutWhatsappMessagesInput = {
   salesAnalytics?: Prisma.SalesAnalyticsCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialCreateNestedOneWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookCreateNestedManyWithoutOrganizationInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutOrganizationInput
   currentPlan?: Prisma.PlanCreateNestedOneWithoutOrganizationsInput
   billingCustomer?: Prisma.BillingCustomerCreateNestedOneWithoutOrganizationInput
@@ -3566,9 +3081,6 @@ export type OrganizationCreateWithoutWhatsappMessagesInput = {
   profile?: Prisma.OrganizationProfileCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutWhatsappMessagesInput = {
@@ -3593,8 +3105,7 @@ export type OrganizationUncheckedCreateWithoutWhatsappMessagesInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedCreateNestedOneWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutOrganizationInput
   billingCustomer?: Prisma.BillingCustomerUncheckedCreateNestedOneWithoutOrganizationInput
   aiCredits?: Prisma.AICreditsUncheckedCreateNestedOneWithoutOrganizationInput
@@ -3602,9 +3113,6 @@ export type OrganizationUncheckedCreateWithoutWhatsappMessagesInput = {
   profile?: Prisma.OrganizationProfileUncheckedCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyUncheckedCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutWhatsappMessagesInput = {
@@ -3644,8 +3152,7 @@ export type OrganizationUpdateWithoutWhatsappMessagesInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUpdateOneWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUpdateManyWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutOrganizationNestedInput
   currentPlan?: Prisma.PlanUpdateOneWithoutOrganizationsNestedInput
   billingCustomer?: Prisma.BillingCustomerUpdateOneWithoutOrganizationNestedInput
@@ -3654,9 +3161,6 @@ export type OrganizationUpdateWithoutWhatsappMessagesInput = {
   profile?: Prisma.OrganizationProfileUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutWhatsappMessagesInput = {
@@ -3681,8 +3185,7 @@ export type OrganizationUncheckedUpdateWithoutWhatsappMessagesInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedUpdateOneWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutOrganizationNestedInput
   billingCustomer?: Prisma.BillingCustomerUncheckedUpdateOneWithoutOrganizationNestedInput
   aiCredits?: Prisma.AICreditsUncheckedUpdateOneWithoutOrganizationNestedInput
@@ -3690,9 +3193,6 @@ export type OrganizationUncheckedUpdateWithoutWhatsappMessagesInput = {
   profile?: Prisma.OrganizationProfileUncheckedUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUncheckedUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutConversationsInput = {
@@ -3716,9 +3216,8 @@ export type OrganizationCreateWithoutConversationsInput = {
   salesAnalytics?: Prisma.SalesAnalyticsCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialCreateNestedOneWithoutOrganizationInput
   currentPlan?: Prisma.PlanCreateNestedOneWithoutOrganizationsInput
   billingCustomer?: Prisma.BillingCustomerCreateNestedOneWithoutOrganizationInput
   aiCredits?: Prisma.AICreditsCreateNestedOneWithoutOrganizationInput
@@ -3726,9 +3225,6 @@ export type OrganizationCreateWithoutConversationsInput = {
   profile?: Prisma.OrganizationProfileCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutConversationsInput = {
@@ -3753,18 +3249,14 @@ export type OrganizationUncheckedCreateWithoutConversationsInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedCreateNestedOneWithoutOrganizationInput
   billingCustomer?: Prisma.BillingCustomerUncheckedCreateNestedOneWithoutOrganizationInput
   aiCredits?: Prisma.AICreditsUncheckedCreateNestedOneWithoutOrganizationInput
   followUpConfig?: Prisma.FollowUpConfigUncheckedCreateNestedOneWithoutOrganizationInput
   profile?: Prisma.OrganizationProfileUncheckedCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyUncheckedCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutConversationsInput = {
@@ -3804,9 +3296,8 @@ export type OrganizationUpdateWithoutConversationsInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUpdateOneWithoutOrganizationNestedInput
   currentPlan?: Prisma.PlanUpdateOneWithoutOrganizationsNestedInput
   billingCustomer?: Prisma.BillingCustomerUpdateOneWithoutOrganizationNestedInput
   aiCredits?: Prisma.AICreditsUpdateOneWithoutOrganizationNestedInput
@@ -3814,9 +3305,6 @@ export type OrganizationUpdateWithoutConversationsInput = {
   profile?: Prisma.OrganizationProfileUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutConversationsInput = {
@@ -3841,18 +3329,14 @@ export type OrganizationUncheckedUpdateWithoutConversationsInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedUpdateOneWithoutOrganizationNestedInput
   billingCustomer?: Prisma.BillingCustomerUncheckedUpdateOneWithoutOrganizationNestedInput
   aiCredits?: Prisma.AICreditsUncheckedUpdateOneWithoutOrganizationNestedInput
   followUpConfig?: Prisma.FollowUpConfigUncheckedUpdateOneWithoutOrganizationNestedInput
   profile?: Prisma.OrganizationProfileUncheckedUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUncheckedUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutCurrentPlanInput = {
@@ -3876,9 +3360,8 @@ export type OrganizationCreateWithoutCurrentPlanInput = {
   salesAnalytics?: Prisma.SalesAnalyticsCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutOrganizationInput
   billingCustomer?: Prisma.BillingCustomerCreateNestedOneWithoutOrganizationInput
   aiCredits?: Prisma.AICreditsCreateNestedOneWithoutOrganizationInput
@@ -3886,9 +3369,6 @@ export type OrganizationCreateWithoutCurrentPlanInput = {
   profile?: Prisma.OrganizationProfileCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutCurrentPlanInput = {
@@ -3912,9 +3392,8 @@ export type OrganizationUncheckedCreateWithoutCurrentPlanInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutOrganizationInput
   billingCustomer?: Prisma.BillingCustomerUncheckedCreateNestedOneWithoutOrganizationInput
   aiCredits?: Prisma.AICreditsUncheckedCreateNestedOneWithoutOrganizationInput
@@ -3922,9 +3401,6 @@ export type OrganizationUncheckedCreateWithoutCurrentPlanInput = {
   profile?: Prisma.OrganizationProfileUncheckedCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyUncheckedCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutCurrentPlanInput = {
@@ -3987,9 +3463,8 @@ export type OrganizationCreateWithoutBillingCustomerInput = {
   salesAnalytics?: Prisma.SalesAnalyticsCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutOrganizationInput
   currentPlan?: Prisma.PlanCreateNestedOneWithoutOrganizationsInput
   aiCredits?: Prisma.AICreditsCreateNestedOneWithoutOrganizationInput
@@ -3997,9 +3472,6 @@ export type OrganizationCreateWithoutBillingCustomerInput = {
   profile?: Prisma.OrganizationProfileCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutBillingCustomerInput = {
@@ -4024,18 +3496,14 @@ export type OrganizationUncheckedCreateWithoutBillingCustomerInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutOrganizationInput
   aiCredits?: Prisma.AICreditsUncheckedCreateNestedOneWithoutOrganizationInput
   followUpConfig?: Prisma.FollowUpConfigUncheckedCreateNestedOneWithoutOrganizationInput
   profile?: Prisma.OrganizationProfileUncheckedCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyUncheckedCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutBillingCustomerInput = {
@@ -4075,9 +3543,8 @@ export type OrganizationUpdateWithoutBillingCustomerInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutOrganizationNestedInput
   currentPlan?: Prisma.PlanUpdateOneWithoutOrganizationsNestedInput
   aiCredits?: Prisma.AICreditsUpdateOneWithoutOrganizationNestedInput
@@ -4085,9 +3552,6 @@ export type OrganizationUpdateWithoutBillingCustomerInput = {
   profile?: Prisma.OrganizationProfileUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutBillingCustomerInput = {
@@ -4112,18 +3576,14 @@ export type OrganizationUncheckedUpdateWithoutBillingCustomerInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutOrganizationNestedInput
   aiCredits?: Prisma.AICreditsUncheckedUpdateOneWithoutOrganizationNestedInput
   followUpConfig?: Prisma.FollowUpConfigUncheckedUpdateOneWithoutOrganizationNestedInput
   profile?: Prisma.OrganizationProfileUncheckedUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUncheckedUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutProfileInput = {
@@ -4147,9 +3607,8 @@ export type OrganizationCreateWithoutProfileInput = {
   salesAnalytics?: Prisma.SalesAnalyticsCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutOrganizationInput
   currentPlan?: Prisma.PlanCreateNestedOneWithoutOrganizationsInput
   billingCustomer?: Prisma.BillingCustomerCreateNestedOneWithoutOrganizationInput
@@ -4157,9 +3616,6 @@ export type OrganizationCreateWithoutProfileInput = {
   followUpConfig?: Prisma.FollowUpConfigCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutProfileInput = {
@@ -4184,18 +3640,14 @@ export type OrganizationUncheckedCreateWithoutProfileInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutOrganizationInput
   billingCustomer?: Prisma.BillingCustomerUncheckedCreateNestedOneWithoutOrganizationInput
   aiCredits?: Prisma.AICreditsUncheckedCreateNestedOneWithoutOrganizationInput
   followUpConfig?: Prisma.FollowUpConfigUncheckedCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyUncheckedCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutProfileInput = {
@@ -4235,9 +3687,8 @@ export type OrganizationUpdateWithoutProfileInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutOrganizationNestedInput
   currentPlan?: Prisma.PlanUpdateOneWithoutOrganizationsNestedInput
   billingCustomer?: Prisma.BillingCustomerUpdateOneWithoutOrganizationNestedInput
@@ -4245,9 +3696,6 @@ export type OrganizationUpdateWithoutProfileInput = {
   followUpConfig?: Prisma.FollowUpConfigUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutProfileInput = {
@@ -4272,18 +3720,14 @@ export type OrganizationUncheckedUpdateWithoutProfileInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutOrganizationNestedInput
   billingCustomer?: Prisma.BillingCustomerUncheckedUpdateOneWithoutOrganizationNestedInput
   aiCredits?: Prisma.AICreditsUncheckedUpdateOneWithoutOrganizationNestedInput
   followUpConfig?: Prisma.FollowUpConfigUncheckedUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUncheckedUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutCompanyInput = {
@@ -4307,9 +3751,8 @@ export type OrganizationCreateWithoutCompanyInput = {
   salesAnalytics?: Prisma.SalesAnalyticsCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutOrganizationInput
   currentPlan?: Prisma.PlanCreateNestedOneWithoutOrganizationsInput
   billingCustomer?: Prisma.BillingCustomerCreateNestedOneWithoutOrganizationInput
@@ -4317,9 +3760,6 @@ export type OrganizationCreateWithoutCompanyInput = {
   followUpConfig?: Prisma.FollowUpConfigCreateNestedOneWithoutOrganizationInput
   profile?: Prisma.OrganizationProfileCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutCompanyInput = {
@@ -4344,18 +3784,14 @@ export type OrganizationUncheckedCreateWithoutCompanyInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutOrganizationInput
   billingCustomer?: Prisma.BillingCustomerUncheckedCreateNestedOneWithoutOrganizationInput
   aiCredits?: Prisma.AICreditsUncheckedCreateNestedOneWithoutOrganizationInput
   followUpConfig?: Prisma.FollowUpConfigUncheckedCreateNestedOneWithoutOrganizationInput
   profile?: Prisma.OrganizationProfileUncheckedCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutCompanyInput = {
@@ -4395,9 +3831,8 @@ export type OrganizationUpdateWithoutCompanyInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutOrganizationNestedInput
   currentPlan?: Prisma.PlanUpdateOneWithoutOrganizationsNestedInput
   billingCustomer?: Prisma.BillingCustomerUpdateOneWithoutOrganizationNestedInput
@@ -4405,9 +3840,6 @@ export type OrganizationUpdateWithoutCompanyInput = {
   followUpConfig?: Prisma.FollowUpConfigUpdateOneWithoutOrganizationNestedInput
   profile?: Prisma.OrganizationProfileUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutCompanyInput = {
@@ -4432,18 +3864,14 @@ export type OrganizationUncheckedUpdateWithoutCompanyInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutOrganizationNestedInput
   billingCustomer?: Prisma.BillingCustomerUncheckedUpdateOneWithoutOrganizationNestedInput
   aiCredits?: Prisma.AICreditsUncheckedUpdateOneWithoutOrganizationNestedInput
   followUpConfig?: Prisma.FollowUpConfigUncheckedUpdateOneWithoutOrganizationNestedInput
   profile?: Prisma.OrganizationProfileUncheckedUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutAiCreditsInput = {
@@ -4467,9 +3895,8 @@ export type OrganizationCreateWithoutAiCreditsInput = {
   salesAnalytics?: Prisma.SalesAnalyticsCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutOrganizationInput
   currentPlan?: Prisma.PlanCreateNestedOneWithoutOrganizationsInput
   billingCustomer?: Prisma.BillingCustomerCreateNestedOneWithoutOrganizationInput
@@ -4477,9 +3904,6 @@ export type OrganizationCreateWithoutAiCreditsInput = {
   profile?: Prisma.OrganizationProfileCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutAiCreditsInput = {
@@ -4504,18 +3928,14 @@ export type OrganizationUncheckedCreateWithoutAiCreditsInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutOrganizationInput
   billingCustomer?: Prisma.BillingCustomerUncheckedCreateNestedOneWithoutOrganizationInput
   followUpConfig?: Prisma.FollowUpConfigUncheckedCreateNestedOneWithoutOrganizationInput
   profile?: Prisma.OrganizationProfileUncheckedCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyUncheckedCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutAiCreditsInput = {
@@ -4555,9 +3975,8 @@ export type OrganizationUpdateWithoutAiCreditsInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutOrganizationNestedInput
   currentPlan?: Prisma.PlanUpdateOneWithoutOrganizationsNestedInput
   billingCustomer?: Prisma.BillingCustomerUpdateOneWithoutOrganizationNestedInput
@@ -4565,9 +3984,6 @@ export type OrganizationUpdateWithoutAiCreditsInput = {
   profile?: Prisma.OrganizationProfileUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutAiCreditsInput = {
@@ -4592,18 +4008,14 @@ export type OrganizationUncheckedUpdateWithoutAiCreditsInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutOrganizationNestedInput
   billingCustomer?: Prisma.BillingCustomerUncheckedUpdateOneWithoutOrganizationNestedInput
   followUpConfig?: Prisma.FollowUpConfigUncheckedUpdateOneWithoutOrganizationNestedInput
   profile?: Prisma.OrganizationProfileUncheckedUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUncheckedUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutFollowUpConfigInput = {
@@ -4627,9 +4039,8 @@ export type OrganizationCreateWithoutFollowUpConfigInput = {
   salesAnalytics?: Prisma.SalesAnalyticsCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutOrganizationInput
   currentPlan?: Prisma.PlanCreateNestedOneWithoutOrganizationsInput
   billingCustomer?: Prisma.BillingCustomerCreateNestedOneWithoutOrganizationInput
@@ -4637,9 +4048,6 @@ export type OrganizationCreateWithoutFollowUpConfigInput = {
   profile?: Prisma.OrganizationProfileCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutFollowUpConfigInput = {
@@ -4664,18 +4072,14 @@ export type OrganizationUncheckedCreateWithoutFollowUpConfigInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutOrganizationInput
   billingCustomer?: Prisma.BillingCustomerUncheckedCreateNestedOneWithoutOrganizationInput
   aiCredits?: Prisma.AICreditsUncheckedCreateNestedOneWithoutOrganizationInput
   profile?: Prisma.OrganizationProfileUncheckedCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyUncheckedCreateNestedOneWithoutOrganizationInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutFollowUpConfigInput = {
@@ -4715,9 +4119,8 @@ export type OrganizationUpdateWithoutFollowUpConfigInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutOrganizationNestedInput
   currentPlan?: Prisma.PlanUpdateOneWithoutOrganizationsNestedInput
   billingCustomer?: Prisma.BillingCustomerUpdateOneWithoutOrganizationNestedInput
@@ -4725,9 +4128,6 @@ export type OrganizationUpdateWithoutFollowUpConfigInput = {
   profile?: Prisma.OrganizationProfileUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutFollowUpConfigInput = {
@@ -4752,18 +4152,14 @@ export type OrganizationUncheckedUpdateWithoutFollowUpConfigInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutOrganizationNestedInput
   billingCustomer?: Prisma.BillingCustomerUncheckedUpdateOneWithoutOrganizationNestedInput
   aiCredits?: Prisma.AICreditsUncheckedUpdateOneWithoutOrganizationNestedInput
   profile?: Prisma.OrganizationProfileUncheckedUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUncheckedUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutDailyMetricsInput = {
@@ -4787,9 +4183,8 @@ export type OrganizationCreateWithoutDailyMetricsInput = {
   salesAnalytics?: Prisma.SalesAnalyticsCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutOrganizationInput
   currentPlan?: Prisma.PlanCreateNestedOneWithoutOrganizationsInput
   billingCustomer?: Prisma.BillingCustomerCreateNestedOneWithoutOrganizationInput
@@ -4797,9 +4192,6 @@ export type OrganizationCreateWithoutDailyMetricsInput = {
   followUpConfig?: Prisma.FollowUpConfigCreateNestedOneWithoutOrganizationInput
   profile?: Prisma.OrganizationProfileCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyCreateNestedOneWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutDailyMetricsInput = {
@@ -4824,18 +4216,14 @@ export type OrganizationUncheckedCreateWithoutDailyMetricsInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedCreateNestedManyWithoutOrganizationInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedCreateNestedOneWithoutOrganizationInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutOrganizationInput
   billingCustomer?: Prisma.BillingCustomerUncheckedCreateNestedOneWithoutOrganizationInput
   aiCredits?: Prisma.AICreditsUncheckedCreateNestedOneWithoutOrganizationInput
   followUpConfig?: Prisma.FollowUpConfigUncheckedCreateNestedOneWithoutOrganizationInput
   profile?: Prisma.OrganizationProfileUncheckedCreateNestedOneWithoutOrganizationInput
   company?: Prisma.OrganizationCompanyUncheckedCreateNestedOneWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutDailyMetricsInput = {
@@ -4875,9 +4263,8 @@ export type OrganizationUpdateWithoutDailyMetricsInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutOrganizationNestedInput
   currentPlan?: Prisma.PlanUpdateOneWithoutOrganizationsNestedInput
   billingCustomer?: Prisma.BillingCustomerUpdateOneWithoutOrganizationNestedInput
@@ -4885,9 +4272,6 @@ export type OrganizationUpdateWithoutDailyMetricsInput = {
   followUpConfig?: Prisma.FollowUpConfigUpdateOneWithoutOrganizationNestedInput
   profile?: Prisma.OrganizationProfileUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUpdateOneWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutDailyMetricsInput = {
@@ -4912,498 +4296,14 @@ export type OrganizationUncheckedUpdateWithoutDailyMetricsInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutOrganizationNestedInput
   billingCustomer?: Prisma.BillingCustomerUncheckedUpdateOneWithoutOrganizationNestedInput
   aiCredits?: Prisma.AICreditsUncheckedUpdateOneWithoutOrganizationNestedInput
   followUpConfig?: Prisma.FollowUpConfigUncheckedUpdateOneWithoutOrganizationNestedInput
   profile?: Prisma.OrganizationProfileUncheckedUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUncheckedUpdateOneWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedUpdateOneWithoutOrganizationNestedInput
-}
-
-export type OrganizationCreateWithoutWhatsappTemplatesInput = {
-  id?: string
-  name: string
-  slug: string
-  logo?: string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  members?: Prisma.MemberCreateNestedManyWithoutOrganizationInput
-  invitations?: Prisma.InvitationCreateNestedManyWithoutOrganizationInput
-  leads?: Prisma.LeadCreateNestedManyWithoutOrganizationInput
-  tickets?: Prisma.TicketCreateNestedManyWithoutOrganizationInput
-  sales?: Prisma.SaleCreateNestedManyWithoutOrganizationInput
-  saleItems?: Prisma.SaleItemCreateNestedManyWithoutOrganizationInput
-  products?: Prisma.ProductCreateNestedManyWithoutOrganizationInput
-  productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutOrganizationInput
-  appointments?: Prisma.AppointmentCreateNestedManyWithoutOrganizationInput
-  attendances?: Prisma.AttendanceCreateNestedManyWithoutOrganizationInput
-  platformEvents?: Prisma.PlatformEventCreateNestedManyWithoutOrganizationInput
-  salesAnalytics?: Prisma.SalesAnalyticsCreateNestedManyWithoutOrganizationInput
-  metaAdsMetrics?: Prisma.MetaAdsMetricCreateNestedManyWithoutOrganizationInput
-  whatsappInstances?: Prisma.WhatsappInstanceCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookCreateNestedManyWithoutOrganizationInput
-  whatsappMessages?: Prisma.WhatsappMessageCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialCreateNestedOneWithoutOrganizationInput
-  conversations?: Prisma.ConversationCreateNestedManyWithoutOrganizationInput
-  currentPlan?: Prisma.PlanCreateNestedOneWithoutOrganizationsInput
-  billingCustomer?: Prisma.BillingCustomerCreateNestedOneWithoutOrganizationInput
-  aiCredits?: Prisma.AICreditsCreateNestedOneWithoutOrganizationInput
-  followUpConfig?: Prisma.FollowUpConfigCreateNestedOneWithoutOrganizationInput
-  profile?: Prisma.OrganizationProfileCreateNestedOneWithoutOrganizationInput
-  company?: Prisma.OrganizationCompanyCreateNestedOneWithoutOrganizationInput
-  dailyMetrics?: Prisma.DailyMetricsCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsCreateNestedOneWithoutOrganizationInput
-}
-
-export type OrganizationUncheckedCreateWithoutWhatsappTemplatesInput = {
-  id?: string
-  name: string
-  slug: string
-  logo?: string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  currentPlanId?: string | null
-  members?: Prisma.MemberUncheckedCreateNestedManyWithoutOrganizationInput
-  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutOrganizationInput
-  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutOrganizationInput
-  tickets?: Prisma.TicketUncheckedCreateNestedManyWithoutOrganizationInput
-  sales?: Prisma.SaleUncheckedCreateNestedManyWithoutOrganizationInput
-  saleItems?: Prisma.SaleItemUncheckedCreateNestedManyWithoutOrganizationInput
-  products?: Prisma.ProductUncheckedCreateNestedManyWithoutOrganizationInput
-  productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutOrganizationInput
-  appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutOrganizationInput
-  attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutOrganizationInput
-  platformEvents?: Prisma.PlatformEventUncheckedCreateNestedManyWithoutOrganizationInput
-  salesAnalytics?: Prisma.SalesAnalyticsUncheckedCreateNestedManyWithoutOrganizationInput
-  metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedCreateNestedManyWithoutOrganizationInput
-  whatsappInstances?: Prisma.WhatsappInstanceUncheckedCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
-  whatsappMessages?: Prisma.WhatsappMessageUncheckedCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedCreateNestedOneWithoutOrganizationInput
-  conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutOrganizationInput
-  billingCustomer?: Prisma.BillingCustomerUncheckedCreateNestedOneWithoutOrganizationInput
-  aiCredits?: Prisma.AICreditsUncheckedCreateNestedOneWithoutOrganizationInput
-  followUpConfig?: Prisma.FollowUpConfigUncheckedCreateNestedOneWithoutOrganizationInput
-  profile?: Prisma.OrganizationProfileUncheckedCreateNestedOneWithoutOrganizationInput
-  company?: Prisma.OrganizationCompanyUncheckedCreateNestedOneWithoutOrganizationInput
-  dailyMetrics?: Prisma.DailyMetricsUncheckedCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedCreateNestedOneWithoutOrganizationInput
-}
-
-export type OrganizationCreateOrConnectWithoutWhatsappTemplatesInput = {
-  where: Prisma.OrganizationWhereUniqueInput
-  create: Prisma.XOR<Prisma.OrganizationCreateWithoutWhatsappTemplatesInput, Prisma.OrganizationUncheckedCreateWithoutWhatsappTemplatesInput>
-}
-
-export type OrganizationUpsertWithoutWhatsappTemplatesInput = {
-  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutWhatsappTemplatesInput, Prisma.OrganizationUncheckedUpdateWithoutWhatsappTemplatesInput>
-  create: Prisma.XOR<Prisma.OrganizationCreateWithoutWhatsappTemplatesInput, Prisma.OrganizationUncheckedCreateWithoutWhatsappTemplatesInput>
-  where?: Prisma.OrganizationWhereInput
-}
-
-export type OrganizationUpdateToOneWithWhereWithoutWhatsappTemplatesInput = {
-  where?: Prisma.OrganizationWhereInput
-  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutWhatsappTemplatesInput, Prisma.OrganizationUncheckedUpdateWithoutWhatsappTemplatesInput>
-}
-
-export type OrganizationUpdateWithoutWhatsappTemplatesInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  name?: Prisma.StringFieldUpdateOperationsInput | string
-  slug?: Prisma.StringFieldUpdateOperationsInput | string
-  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  members?: Prisma.MemberUpdateManyWithoutOrganizationNestedInput
-  invitations?: Prisma.InvitationUpdateManyWithoutOrganizationNestedInput
-  leads?: Prisma.LeadUpdateManyWithoutOrganizationNestedInput
-  tickets?: Prisma.TicketUpdateManyWithoutOrganizationNestedInput
-  sales?: Prisma.SaleUpdateManyWithoutOrganizationNestedInput
-  saleItems?: Prisma.SaleItemUpdateManyWithoutOrganizationNestedInput
-  products?: Prisma.ProductUpdateManyWithoutOrganizationNestedInput
-  productCategories?: Prisma.ProductCategoryUpdateManyWithoutOrganizationNestedInput
-  appointments?: Prisma.AppointmentUpdateManyWithoutOrganizationNestedInput
-  attendances?: Prisma.AttendanceUpdateManyWithoutOrganizationNestedInput
-  platformEvents?: Prisma.PlatformEventUpdateManyWithoutOrganizationNestedInput
-  salesAnalytics?: Prisma.SalesAnalyticsUpdateManyWithoutOrganizationNestedInput
-  metaAdsMetrics?: Prisma.MetaAdsMetricUpdateManyWithoutOrganizationNestedInput
-  whatsappInstances?: Prisma.WhatsappInstanceUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUpdateManyWithoutOrganizationNestedInput
-  whatsappMessages?: Prisma.WhatsappMessageUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUpdateOneWithoutOrganizationNestedInput
-  conversations?: Prisma.ConversationUpdateManyWithoutOrganizationNestedInput
-  currentPlan?: Prisma.PlanUpdateOneWithoutOrganizationsNestedInput
-  billingCustomer?: Prisma.BillingCustomerUpdateOneWithoutOrganizationNestedInput
-  aiCredits?: Prisma.AICreditsUpdateOneWithoutOrganizationNestedInput
-  followUpConfig?: Prisma.FollowUpConfigUpdateOneWithoutOrganizationNestedInput
-  profile?: Prisma.OrganizationProfileUpdateOneWithoutOrganizationNestedInput
-  company?: Prisma.OrganizationCompanyUpdateOneWithoutOrganizationNestedInput
-  dailyMetrics?: Prisma.DailyMetricsUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUpdateOneWithoutOrganizationNestedInput
-}
-
-export type OrganizationUncheckedUpdateWithoutWhatsappTemplatesInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  name?: Prisma.StringFieldUpdateOperationsInput | string
-  slug?: Prisma.StringFieldUpdateOperationsInput | string
-  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  currentPlanId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  members?: Prisma.MemberUncheckedUpdateManyWithoutOrganizationNestedInput
-  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutOrganizationNestedInput
-  leads?: Prisma.LeadUncheckedUpdateManyWithoutOrganizationNestedInput
-  tickets?: Prisma.TicketUncheckedUpdateManyWithoutOrganizationNestedInput
-  sales?: Prisma.SaleUncheckedUpdateManyWithoutOrganizationNestedInput
-  saleItems?: Prisma.SaleItemUncheckedUpdateManyWithoutOrganizationNestedInput
-  products?: Prisma.ProductUncheckedUpdateManyWithoutOrganizationNestedInput
-  productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutOrganizationNestedInput
-  appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutOrganizationNestedInput
-  attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutOrganizationNestedInput
-  platformEvents?: Prisma.PlatformEventUncheckedUpdateManyWithoutOrganizationNestedInput
-  salesAnalytics?: Prisma.SalesAnalyticsUncheckedUpdateManyWithoutOrganizationNestedInput
-  metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedUpdateManyWithoutOrganizationNestedInput
-  whatsappInstances?: Prisma.WhatsappInstanceUncheckedUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
-  whatsappMessages?: Prisma.WhatsappMessageUncheckedUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedUpdateOneWithoutOrganizationNestedInput
-  conversations?: Prisma.ConversationUncheckedUpdateManyWithoutOrganizationNestedInput
-  billingCustomer?: Prisma.BillingCustomerUncheckedUpdateOneWithoutOrganizationNestedInput
-  aiCredits?: Prisma.AICreditsUncheckedUpdateOneWithoutOrganizationNestedInput
-  followUpConfig?: Prisma.FollowUpConfigUncheckedUpdateOneWithoutOrganizationNestedInput
-  profile?: Prisma.OrganizationProfileUncheckedUpdateOneWithoutOrganizationNestedInput
-  company?: Prisma.OrganizationCompanyUncheckedUpdateOneWithoutOrganizationNestedInput
-  dailyMetrics?: Prisma.DailyMetricsUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedUpdateOneWithoutOrganizationNestedInput
-}
-
-export type OrganizationCreateWithoutCampaignsInput = {
-  id?: string
-  name: string
-  slug: string
-  logo?: string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  members?: Prisma.MemberCreateNestedManyWithoutOrganizationInput
-  invitations?: Prisma.InvitationCreateNestedManyWithoutOrganizationInput
-  leads?: Prisma.LeadCreateNestedManyWithoutOrganizationInput
-  tickets?: Prisma.TicketCreateNestedManyWithoutOrganizationInput
-  sales?: Prisma.SaleCreateNestedManyWithoutOrganizationInput
-  saleItems?: Prisma.SaleItemCreateNestedManyWithoutOrganizationInput
-  products?: Prisma.ProductCreateNestedManyWithoutOrganizationInput
-  productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutOrganizationInput
-  appointments?: Prisma.AppointmentCreateNestedManyWithoutOrganizationInput
-  attendances?: Prisma.AttendanceCreateNestedManyWithoutOrganizationInput
-  platformEvents?: Prisma.PlatformEventCreateNestedManyWithoutOrganizationInput
-  salesAnalytics?: Prisma.SalesAnalyticsCreateNestedManyWithoutOrganizationInput
-  metaAdsMetrics?: Prisma.MetaAdsMetricCreateNestedManyWithoutOrganizationInput
-  whatsappInstances?: Prisma.WhatsappInstanceCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookCreateNestedManyWithoutOrganizationInput
-  whatsappMessages?: Prisma.WhatsappMessageCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialCreateNestedOneWithoutOrganizationInput
-  conversations?: Prisma.ConversationCreateNestedManyWithoutOrganizationInput
-  currentPlan?: Prisma.PlanCreateNestedOneWithoutOrganizationsInput
-  billingCustomer?: Prisma.BillingCustomerCreateNestedOneWithoutOrganizationInput
-  aiCredits?: Prisma.AICreditsCreateNestedOneWithoutOrganizationInput
-  followUpConfig?: Prisma.FollowUpConfigCreateNestedOneWithoutOrganizationInput
-  profile?: Prisma.OrganizationProfileCreateNestedOneWithoutOrganizationInput
-  company?: Prisma.OrganizationCompanyCreateNestedOneWithoutOrganizationInput
-  dailyMetrics?: Prisma.DailyMetricsCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsCreateNestedOneWithoutOrganizationInput
-}
-
-export type OrganizationUncheckedCreateWithoutCampaignsInput = {
-  id?: string
-  name: string
-  slug: string
-  logo?: string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  currentPlanId?: string | null
-  members?: Prisma.MemberUncheckedCreateNestedManyWithoutOrganizationInput
-  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutOrganizationInput
-  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutOrganizationInput
-  tickets?: Prisma.TicketUncheckedCreateNestedManyWithoutOrganizationInput
-  sales?: Prisma.SaleUncheckedCreateNestedManyWithoutOrganizationInput
-  saleItems?: Prisma.SaleItemUncheckedCreateNestedManyWithoutOrganizationInput
-  products?: Prisma.ProductUncheckedCreateNestedManyWithoutOrganizationInput
-  productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutOrganizationInput
-  appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutOrganizationInput
-  attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutOrganizationInput
-  platformEvents?: Prisma.PlatformEventUncheckedCreateNestedManyWithoutOrganizationInput
-  salesAnalytics?: Prisma.SalesAnalyticsUncheckedCreateNestedManyWithoutOrganizationInput
-  metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedCreateNestedManyWithoutOrganizationInput
-  whatsappInstances?: Prisma.WhatsappInstanceUncheckedCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
-  whatsappMessages?: Prisma.WhatsappMessageUncheckedCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedCreateNestedOneWithoutOrganizationInput
-  conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutOrganizationInput
-  billingCustomer?: Prisma.BillingCustomerUncheckedCreateNestedOneWithoutOrganizationInput
-  aiCredits?: Prisma.AICreditsUncheckedCreateNestedOneWithoutOrganizationInput
-  followUpConfig?: Prisma.FollowUpConfigUncheckedCreateNestedOneWithoutOrganizationInput
-  profile?: Prisma.OrganizationProfileUncheckedCreateNestedOneWithoutOrganizationInput
-  company?: Prisma.OrganizationCompanyUncheckedCreateNestedOneWithoutOrganizationInput
-  dailyMetrics?: Prisma.DailyMetricsUncheckedCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedCreateNestedManyWithoutOrganizationInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedCreateNestedOneWithoutOrganizationInput
-}
-
-export type OrganizationCreateOrConnectWithoutCampaignsInput = {
-  where: Prisma.OrganizationWhereUniqueInput
-  create: Prisma.XOR<Prisma.OrganizationCreateWithoutCampaignsInput, Prisma.OrganizationUncheckedCreateWithoutCampaignsInput>
-}
-
-export type OrganizationUpsertWithoutCampaignsInput = {
-  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutCampaignsInput, Prisma.OrganizationUncheckedUpdateWithoutCampaignsInput>
-  create: Prisma.XOR<Prisma.OrganizationCreateWithoutCampaignsInput, Prisma.OrganizationUncheckedCreateWithoutCampaignsInput>
-  where?: Prisma.OrganizationWhereInput
-}
-
-export type OrganizationUpdateToOneWithWhereWithoutCampaignsInput = {
-  where?: Prisma.OrganizationWhereInput
-  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutCampaignsInput, Prisma.OrganizationUncheckedUpdateWithoutCampaignsInput>
-}
-
-export type OrganizationUpdateWithoutCampaignsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  name?: Prisma.StringFieldUpdateOperationsInput | string
-  slug?: Prisma.StringFieldUpdateOperationsInput | string
-  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  members?: Prisma.MemberUpdateManyWithoutOrganizationNestedInput
-  invitations?: Prisma.InvitationUpdateManyWithoutOrganizationNestedInput
-  leads?: Prisma.LeadUpdateManyWithoutOrganizationNestedInput
-  tickets?: Prisma.TicketUpdateManyWithoutOrganizationNestedInput
-  sales?: Prisma.SaleUpdateManyWithoutOrganizationNestedInput
-  saleItems?: Prisma.SaleItemUpdateManyWithoutOrganizationNestedInput
-  products?: Prisma.ProductUpdateManyWithoutOrganizationNestedInput
-  productCategories?: Prisma.ProductCategoryUpdateManyWithoutOrganizationNestedInput
-  appointments?: Prisma.AppointmentUpdateManyWithoutOrganizationNestedInput
-  attendances?: Prisma.AttendanceUpdateManyWithoutOrganizationNestedInput
-  platformEvents?: Prisma.PlatformEventUpdateManyWithoutOrganizationNestedInput
-  salesAnalytics?: Prisma.SalesAnalyticsUpdateManyWithoutOrganizationNestedInput
-  metaAdsMetrics?: Prisma.MetaAdsMetricUpdateManyWithoutOrganizationNestedInput
-  whatsappInstances?: Prisma.WhatsappInstanceUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUpdateManyWithoutOrganizationNestedInput
-  whatsappMessages?: Prisma.WhatsappMessageUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUpdateOneWithoutOrganizationNestedInput
-  conversations?: Prisma.ConversationUpdateManyWithoutOrganizationNestedInput
-  currentPlan?: Prisma.PlanUpdateOneWithoutOrganizationsNestedInput
-  billingCustomer?: Prisma.BillingCustomerUpdateOneWithoutOrganizationNestedInput
-  aiCredits?: Prisma.AICreditsUpdateOneWithoutOrganizationNestedInput
-  followUpConfig?: Prisma.FollowUpConfigUpdateOneWithoutOrganizationNestedInput
-  profile?: Prisma.OrganizationProfileUpdateOneWithoutOrganizationNestedInput
-  company?: Prisma.OrganizationCompanyUpdateOneWithoutOrganizationNestedInput
-  dailyMetrics?: Prisma.DailyMetricsUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUpdateOneWithoutOrganizationNestedInput
-}
-
-export type OrganizationUncheckedUpdateWithoutCampaignsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  name?: Prisma.StringFieldUpdateOperationsInput | string
-  slug?: Prisma.StringFieldUpdateOperationsInput | string
-  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  currentPlanId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  members?: Prisma.MemberUncheckedUpdateManyWithoutOrganizationNestedInput
-  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutOrganizationNestedInput
-  leads?: Prisma.LeadUncheckedUpdateManyWithoutOrganizationNestedInput
-  tickets?: Prisma.TicketUncheckedUpdateManyWithoutOrganizationNestedInput
-  sales?: Prisma.SaleUncheckedUpdateManyWithoutOrganizationNestedInput
-  saleItems?: Prisma.SaleItemUncheckedUpdateManyWithoutOrganizationNestedInput
-  products?: Prisma.ProductUncheckedUpdateManyWithoutOrganizationNestedInput
-  productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutOrganizationNestedInput
-  appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutOrganizationNestedInput
-  attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutOrganizationNestedInput
-  platformEvents?: Prisma.PlatformEventUncheckedUpdateManyWithoutOrganizationNestedInput
-  salesAnalytics?: Prisma.SalesAnalyticsUncheckedUpdateManyWithoutOrganizationNestedInput
-  metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedUpdateManyWithoutOrganizationNestedInput
-  whatsappInstances?: Prisma.WhatsappInstanceUncheckedUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
-  whatsappMessages?: Prisma.WhatsappMessageUncheckedUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedUpdateOneWithoutOrganizationNestedInput
-  conversations?: Prisma.ConversationUncheckedUpdateManyWithoutOrganizationNestedInput
-  billingCustomer?: Prisma.BillingCustomerUncheckedUpdateOneWithoutOrganizationNestedInput
-  aiCredits?: Prisma.AICreditsUncheckedUpdateOneWithoutOrganizationNestedInput
-  followUpConfig?: Prisma.FollowUpConfigUncheckedUpdateOneWithoutOrganizationNestedInput
-  profile?: Prisma.OrganizationProfileUncheckedUpdateOneWithoutOrganizationNestedInput
-  company?: Prisma.OrganizationCompanyUncheckedUpdateOneWithoutOrganizationNestedInput
-  dailyMetrics?: Prisma.DailyMetricsUncheckedUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedUpdateOneWithoutOrganizationNestedInput
-}
-
-export type OrganizationCreateWithoutCampaignCreditsInput = {
-  id?: string
-  name: string
-  slug: string
-  logo?: string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  members?: Prisma.MemberCreateNestedManyWithoutOrganizationInput
-  invitations?: Prisma.InvitationCreateNestedManyWithoutOrganizationInput
-  leads?: Prisma.LeadCreateNestedManyWithoutOrganizationInput
-  tickets?: Prisma.TicketCreateNestedManyWithoutOrganizationInput
-  sales?: Prisma.SaleCreateNestedManyWithoutOrganizationInput
-  saleItems?: Prisma.SaleItemCreateNestedManyWithoutOrganizationInput
-  products?: Prisma.ProductCreateNestedManyWithoutOrganizationInput
-  productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutOrganizationInput
-  appointments?: Prisma.AppointmentCreateNestedManyWithoutOrganizationInput
-  attendances?: Prisma.AttendanceCreateNestedManyWithoutOrganizationInput
-  platformEvents?: Prisma.PlatformEventCreateNestedManyWithoutOrganizationInput
-  salesAnalytics?: Prisma.SalesAnalyticsCreateNestedManyWithoutOrganizationInput
-  metaAdsMetrics?: Prisma.MetaAdsMetricCreateNestedManyWithoutOrganizationInput
-  whatsappInstances?: Prisma.WhatsappInstanceCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookCreateNestedManyWithoutOrganizationInput
-  whatsappMessages?: Prisma.WhatsappMessageCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialCreateNestedOneWithoutOrganizationInput
-  conversations?: Prisma.ConversationCreateNestedManyWithoutOrganizationInput
-  currentPlan?: Prisma.PlanCreateNestedOneWithoutOrganizationsInput
-  billingCustomer?: Prisma.BillingCustomerCreateNestedOneWithoutOrganizationInput
-  aiCredits?: Prisma.AICreditsCreateNestedOneWithoutOrganizationInput
-  followUpConfig?: Prisma.FollowUpConfigCreateNestedOneWithoutOrganizationInput
-  profile?: Prisma.OrganizationProfileCreateNestedOneWithoutOrganizationInput
-  company?: Prisma.OrganizationCompanyCreateNestedOneWithoutOrganizationInput
-  dailyMetrics?: Prisma.DailyMetricsCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
-}
-
-export type OrganizationUncheckedCreateWithoutCampaignCreditsInput = {
-  id?: string
-  name: string
-  slug: string
-  logo?: string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  currentPlanId?: string | null
-  members?: Prisma.MemberUncheckedCreateNestedManyWithoutOrganizationInput
-  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutOrganizationInput
-  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutOrganizationInput
-  tickets?: Prisma.TicketUncheckedCreateNestedManyWithoutOrganizationInput
-  sales?: Prisma.SaleUncheckedCreateNestedManyWithoutOrganizationInput
-  saleItems?: Prisma.SaleItemUncheckedCreateNestedManyWithoutOrganizationInput
-  products?: Prisma.ProductUncheckedCreateNestedManyWithoutOrganizationInput
-  productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutOrganizationInput
-  appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutOrganizationInput
-  attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutOrganizationInput
-  platformEvents?: Prisma.PlatformEventUncheckedCreateNestedManyWithoutOrganizationInput
-  salesAnalytics?: Prisma.SalesAnalyticsUncheckedCreateNestedManyWithoutOrganizationInput
-  metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedCreateNestedManyWithoutOrganizationInput
-  whatsappInstances?: Prisma.WhatsappInstanceUncheckedCreateNestedManyWithoutOrganizationInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedCreateNestedManyWithoutOrganizationInput
-  whatsappMessages?: Prisma.WhatsappMessageUncheckedCreateNestedManyWithoutOrganizationInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedCreateNestedOneWithoutOrganizationInput
-  conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutOrganizationInput
-  billingCustomer?: Prisma.BillingCustomerUncheckedCreateNestedOneWithoutOrganizationInput
-  aiCredits?: Prisma.AICreditsUncheckedCreateNestedOneWithoutOrganizationInput
-  followUpConfig?: Prisma.FollowUpConfigUncheckedCreateNestedOneWithoutOrganizationInput
-  profile?: Prisma.OrganizationProfileUncheckedCreateNestedOneWithoutOrganizationInput
-  company?: Prisma.OrganizationCompanyUncheckedCreateNestedOneWithoutOrganizationInput
-  dailyMetrics?: Prisma.DailyMetricsUncheckedCreateNestedManyWithoutOrganizationInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedCreateNestedManyWithoutOrganizationInput
-  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
-}
-
-export type OrganizationCreateOrConnectWithoutCampaignCreditsInput = {
-  where: Prisma.OrganizationWhereUniqueInput
-  create: Prisma.XOR<Prisma.OrganizationCreateWithoutCampaignCreditsInput, Prisma.OrganizationUncheckedCreateWithoutCampaignCreditsInput>
-}
-
-export type OrganizationUpsertWithoutCampaignCreditsInput = {
-  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutCampaignCreditsInput, Prisma.OrganizationUncheckedUpdateWithoutCampaignCreditsInput>
-  create: Prisma.XOR<Prisma.OrganizationCreateWithoutCampaignCreditsInput, Prisma.OrganizationUncheckedCreateWithoutCampaignCreditsInput>
-  where?: Prisma.OrganizationWhereInput
-}
-
-export type OrganizationUpdateToOneWithWhereWithoutCampaignCreditsInput = {
-  where?: Prisma.OrganizationWhereInput
-  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutCampaignCreditsInput, Prisma.OrganizationUncheckedUpdateWithoutCampaignCreditsInput>
-}
-
-export type OrganizationUpdateWithoutCampaignCreditsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  name?: Prisma.StringFieldUpdateOperationsInput | string
-  slug?: Prisma.StringFieldUpdateOperationsInput | string
-  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  members?: Prisma.MemberUpdateManyWithoutOrganizationNestedInput
-  invitations?: Prisma.InvitationUpdateManyWithoutOrganizationNestedInput
-  leads?: Prisma.LeadUpdateManyWithoutOrganizationNestedInput
-  tickets?: Prisma.TicketUpdateManyWithoutOrganizationNestedInput
-  sales?: Prisma.SaleUpdateManyWithoutOrganizationNestedInput
-  saleItems?: Prisma.SaleItemUpdateManyWithoutOrganizationNestedInput
-  products?: Prisma.ProductUpdateManyWithoutOrganizationNestedInput
-  productCategories?: Prisma.ProductCategoryUpdateManyWithoutOrganizationNestedInput
-  appointments?: Prisma.AppointmentUpdateManyWithoutOrganizationNestedInput
-  attendances?: Prisma.AttendanceUpdateManyWithoutOrganizationNestedInput
-  platformEvents?: Prisma.PlatformEventUpdateManyWithoutOrganizationNestedInput
-  salesAnalytics?: Prisma.SalesAnalyticsUpdateManyWithoutOrganizationNestedInput
-  metaAdsMetrics?: Prisma.MetaAdsMetricUpdateManyWithoutOrganizationNestedInput
-  whatsappInstances?: Prisma.WhatsappInstanceUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUpdateManyWithoutOrganizationNestedInput
-  whatsappMessages?: Prisma.WhatsappMessageUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUpdateOneWithoutOrganizationNestedInput
-  conversations?: Prisma.ConversationUpdateManyWithoutOrganizationNestedInput
-  currentPlan?: Prisma.PlanUpdateOneWithoutOrganizationsNestedInput
-  billingCustomer?: Prisma.BillingCustomerUpdateOneWithoutOrganizationNestedInput
-  aiCredits?: Prisma.AICreditsUpdateOneWithoutOrganizationNestedInput
-  followUpConfig?: Prisma.FollowUpConfigUpdateOneWithoutOrganizationNestedInput
-  profile?: Prisma.OrganizationProfileUpdateOneWithoutOrganizationNestedInput
-  company?: Prisma.OrganizationCompanyUpdateOneWithoutOrganizationNestedInput
-  dailyMetrics?: Prisma.DailyMetricsUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
-}
-
-export type OrganizationUncheckedUpdateWithoutCampaignCreditsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  name?: Prisma.StringFieldUpdateOperationsInput | string
-  slug?: Prisma.StringFieldUpdateOperationsInput | string
-  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  currentPlanId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  members?: Prisma.MemberUncheckedUpdateManyWithoutOrganizationNestedInput
-  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutOrganizationNestedInput
-  leads?: Prisma.LeadUncheckedUpdateManyWithoutOrganizationNestedInput
-  tickets?: Prisma.TicketUncheckedUpdateManyWithoutOrganizationNestedInput
-  sales?: Prisma.SaleUncheckedUpdateManyWithoutOrganizationNestedInput
-  saleItems?: Prisma.SaleItemUncheckedUpdateManyWithoutOrganizationNestedInput
-  products?: Prisma.ProductUncheckedUpdateManyWithoutOrganizationNestedInput
-  productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutOrganizationNestedInput
-  appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutOrganizationNestedInput
-  attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutOrganizationNestedInput
-  platformEvents?: Prisma.PlatformEventUncheckedUpdateManyWithoutOrganizationNestedInput
-  salesAnalytics?: Prisma.SalesAnalyticsUncheckedUpdateManyWithoutOrganizationNestedInput
-  metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedUpdateManyWithoutOrganizationNestedInput
-  whatsappInstances?: Prisma.WhatsappInstanceUncheckedUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
-  whatsappMessages?: Prisma.WhatsappMessageUncheckedUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedUpdateOneWithoutOrganizationNestedInput
-  conversations?: Prisma.ConversationUncheckedUpdateManyWithoutOrganizationNestedInput
-  billingCustomer?: Prisma.BillingCustomerUncheckedUpdateOneWithoutOrganizationNestedInput
-  aiCredits?: Prisma.AICreditsUncheckedUpdateOneWithoutOrganizationNestedInput
-  followUpConfig?: Prisma.FollowUpConfigUncheckedUpdateOneWithoutOrganizationNestedInput
-  profile?: Prisma.OrganizationProfileUncheckedUpdateOneWithoutOrganizationNestedInput
-  company?: Prisma.OrganizationCompanyUncheckedUpdateOneWithoutOrganizationNestedInput
-  dailyMetrics?: Prisma.DailyMetricsUncheckedUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateManyCurrentPlanInput = {
@@ -5436,9 +4336,8 @@ export type OrganizationUpdateWithoutCurrentPlanInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutOrganizationNestedInput
   billingCustomer?: Prisma.BillingCustomerUpdateOneWithoutOrganizationNestedInput
   aiCredits?: Prisma.AICreditsUpdateOneWithoutOrganizationNestedInput
@@ -5446,9 +4345,6 @@ export type OrganizationUpdateWithoutCurrentPlanInput = {
   profile?: Prisma.OrganizationProfileUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutCurrentPlanInput = {
@@ -5472,9 +4368,8 @@ export type OrganizationUncheckedUpdateWithoutCurrentPlanInput = {
   salesAnalytics?: Prisma.SalesAnalyticsUncheckedUpdateManyWithoutOrganizationNestedInput
   metaAdsMetrics?: Prisma.MetaAdsMetricUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappInstances?: Prisma.WhatsappInstanceUncheckedUpdateManyWithoutOrganizationNestedInput
-  instanceWebhooks?: Prisma.InstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
+  whatsappInstanceWebhooks?: Prisma.WhatsappInstanceWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
   whatsappMessages?: Prisma.WhatsappMessageUncheckedUpdateManyWithoutOrganizationNestedInput
-  metaWhatsAppCredential?: Prisma.MetaWhatsAppCredentialUncheckedUpdateOneWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutOrganizationNestedInput
   billingCustomer?: Prisma.BillingCustomerUncheckedUpdateOneWithoutOrganizationNestedInput
   aiCredits?: Prisma.AICreditsUncheckedUpdateOneWithoutOrganizationNestedInput
@@ -5482,9 +4377,6 @@ export type OrganizationUncheckedUpdateWithoutCurrentPlanInput = {
   profile?: Prisma.OrganizationProfileUncheckedUpdateOneWithoutOrganizationNestedInput
   company?: Prisma.OrganizationCompanyUncheckedUpdateOneWithoutOrganizationNestedInput
   dailyMetrics?: Prisma.DailyMetricsUncheckedUpdateManyWithoutOrganizationNestedInput
-  whatsappTemplates?: Prisma.WhatsAppTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
-  campaignCredits?: Prisma.CampaignCreditsUncheckedUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateManyWithoutCurrentPlanInput = {
@@ -5516,12 +4408,10 @@ export type OrganizationCountOutputType = {
   salesAnalytics: number
   metaAdsMetrics: number
   whatsappInstances: number
-  instanceWebhooks: number
+  whatsappInstanceWebhooks: number
   whatsappMessages: number
   conversations: number
   dailyMetrics: number
-  whatsappTemplates: number
-  campaigns: number
 }
 
 export type OrganizationCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -5539,12 +4429,10 @@ export type OrganizationCountOutputTypeSelect<ExtArgs extends runtime.Types.Exte
   salesAnalytics?: boolean | OrganizationCountOutputTypeCountSalesAnalyticsArgs
   metaAdsMetrics?: boolean | OrganizationCountOutputTypeCountMetaAdsMetricsArgs
   whatsappInstances?: boolean | OrganizationCountOutputTypeCountWhatsappInstancesArgs
-  instanceWebhooks?: boolean | OrganizationCountOutputTypeCountInstanceWebhooksArgs
+  whatsappInstanceWebhooks?: boolean | OrganizationCountOutputTypeCountWhatsappInstanceWebhooksArgs
   whatsappMessages?: boolean | OrganizationCountOutputTypeCountWhatsappMessagesArgs
   conversations?: boolean | OrganizationCountOutputTypeCountConversationsArgs
   dailyMetrics?: boolean | OrganizationCountOutputTypeCountDailyMetricsArgs
-  whatsappTemplates?: boolean | OrganizationCountOutputTypeCountWhatsappTemplatesArgs
-  campaigns?: boolean | OrganizationCountOutputTypeCountCampaignsArgs
 }
 
 /**
@@ -5658,8 +4546,8 @@ export type OrganizationCountOutputTypeCountWhatsappInstancesArgs<ExtArgs extend
 /**
  * OrganizationCountOutputType without action
  */
-export type OrganizationCountOutputTypeCountInstanceWebhooksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.InstanceWebhookWhereInput
+export type OrganizationCountOutputTypeCountWhatsappInstanceWebhooksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.WhatsappInstanceWebhookWhereInput
 }
 
 /**
@@ -5681,20 +4569,6 @@ export type OrganizationCountOutputTypeCountConversationsArgs<ExtArgs extends ru
  */
 export type OrganizationCountOutputTypeCountDailyMetricsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.DailyMetricsWhereInput
-}
-
-/**
- * OrganizationCountOutputType without action
- */
-export type OrganizationCountOutputTypeCountWhatsappTemplatesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.WhatsAppTemplateWhereInput
-}
-
-/**
- * OrganizationCountOutputType without action
- */
-export type OrganizationCountOutputTypeCountCampaignsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.CampaignWhereInput
 }
 
 
@@ -5720,9 +4594,8 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   salesAnalytics?: boolean | Prisma.Organization$salesAnalyticsArgs<ExtArgs>
   metaAdsMetrics?: boolean | Prisma.Organization$metaAdsMetricsArgs<ExtArgs>
   whatsappInstances?: boolean | Prisma.Organization$whatsappInstancesArgs<ExtArgs>
-  instanceWebhooks?: boolean | Prisma.Organization$instanceWebhooksArgs<ExtArgs>
+  whatsappInstanceWebhooks?: boolean | Prisma.Organization$whatsappInstanceWebhooksArgs<ExtArgs>
   whatsappMessages?: boolean | Prisma.Organization$whatsappMessagesArgs<ExtArgs>
-  metaWhatsAppCredential?: boolean | Prisma.Organization$metaWhatsAppCredentialArgs<ExtArgs>
   conversations?: boolean | Prisma.Organization$conversationsArgs<ExtArgs>
   currentPlan?: boolean | Prisma.Organization$currentPlanArgs<ExtArgs>
   billingCustomer?: boolean | Prisma.Organization$billingCustomerArgs<ExtArgs>
@@ -5731,9 +4604,6 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   profile?: boolean | Prisma.Organization$profileArgs<ExtArgs>
   company?: boolean | Prisma.Organization$companyArgs<ExtArgs>
   dailyMetrics?: boolean | Prisma.Organization$dailyMetricsArgs<ExtArgs>
-  whatsappTemplates?: boolean | Prisma.Organization$whatsappTemplatesArgs<ExtArgs>
-  campaigns?: boolean | Prisma.Organization$campaignsArgs<ExtArgs>
-  campaignCredits?: boolean | Prisma.Organization$campaignCreditsArgs<ExtArgs>
   _count?: boolean | Prisma.OrganizationCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["organization"]>
 
@@ -5785,9 +4655,8 @@ export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.Interna
   salesAnalytics?: boolean | Prisma.Organization$salesAnalyticsArgs<ExtArgs>
   metaAdsMetrics?: boolean | Prisma.Organization$metaAdsMetricsArgs<ExtArgs>
   whatsappInstances?: boolean | Prisma.Organization$whatsappInstancesArgs<ExtArgs>
-  instanceWebhooks?: boolean | Prisma.Organization$instanceWebhooksArgs<ExtArgs>
+  whatsappInstanceWebhooks?: boolean | Prisma.Organization$whatsappInstanceWebhooksArgs<ExtArgs>
   whatsappMessages?: boolean | Prisma.Organization$whatsappMessagesArgs<ExtArgs>
-  metaWhatsAppCredential?: boolean | Prisma.Organization$metaWhatsAppCredentialArgs<ExtArgs>
   conversations?: boolean | Prisma.Organization$conversationsArgs<ExtArgs>
   currentPlan?: boolean | Prisma.Organization$currentPlanArgs<ExtArgs>
   billingCustomer?: boolean | Prisma.Organization$billingCustomerArgs<ExtArgs>
@@ -5796,9 +4665,6 @@ export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.Interna
   profile?: boolean | Prisma.Organization$profileArgs<ExtArgs>
   company?: boolean | Prisma.Organization$companyArgs<ExtArgs>
   dailyMetrics?: boolean | Prisma.Organization$dailyMetricsArgs<ExtArgs>
-  whatsappTemplates?: boolean | Prisma.Organization$whatsappTemplatesArgs<ExtArgs>
-  campaigns?: boolean | Prisma.Organization$campaignsArgs<ExtArgs>
-  campaignCredits?: boolean | Prisma.Organization$campaignCreditsArgs<ExtArgs>
   _count?: boolean | Prisma.OrganizationCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type OrganizationIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -5825,9 +4691,8 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     salesAnalytics: Prisma.$SalesAnalyticsPayload<ExtArgs>[]
     metaAdsMetrics: Prisma.$MetaAdsMetricPayload<ExtArgs>[]
     whatsappInstances: Prisma.$WhatsappInstancePayload<ExtArgs>[]
-    instanceWebhooks: Prisma.$InstanceWebhookPayload<ExtArgs>[]
+    whatsappInstanceWebhooks: Prisma.$WhatsappInstanceWebhookPayload<ExtArgs>[]
     whatsappMessages: Prisma.$WhatsappMessagePayload<ExtArgs>[]
-    metaWhatsAppCredential: Prisma.$MetaWhatsAppCredentialPayload<ExtArgs> | null
     conversations: Prisma.$ConversationPayload<ExtArgs>[]
     currentPlan: Prisma.$PlanPayload<ExtArgs> | null
     billingCustomer: Prisma.$BillingCustomerPayload<ExtArgs> | null
@@ -5836,9 +4701,6 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     profile: Prisma.$OrganizationProfilePayload<ExtArgs> | null
     company: Prisma.$OrganizationCompanyPayload<ExtArgs> | null
     dailyMetrics: Prisma.$DailyMetricsPayload<ExtArgs>[]
-    whatsappTemplates: Prisma.$WhatsAppTemplatePayload<ExtArgs>[]
-    campaigns: Prisma.$CampaignPayload<ExtArgs>[]
-    campaignCredits: Prisma.$CampaignCreditsPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -6256,9 +5118,8 @@ export interface Prisma__OrganizationClient<T, Null = never, ExtArgs extends run
   salesAnalytics<T extends Prisma.Organization$salesAnalyticsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$salesAnalyticsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SalesAnalyticsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   metaAdsMetrics<T extends Prisma.Organization$metaAdsMetricsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$metaAdsMetricsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MetaAdsMetricPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   whatsappInstances<T extends Prisma.Organization$whatsappInstancesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$whatsappInstancesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WhatsappInstancePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  instanceWebhooks<T extends Prisma.Organization$instanceWebhooksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$instanceWebhooksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$InstanceWebhookPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  whatsappInstanceWebhooks<T extends Prisma.Organization$whatsappInstanceWebhooksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$whatsappInstanceWebhooksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WhatsappInstanceWebhookPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   whatsappMessages<T extends Prisma.Organization$whatsappMessagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$whatsappMessagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WhatsappMessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  metaWhatsAppCredential<T extends Prisma.Organization$metaWhatsAppCredentialArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$metaWhatsAppCredentialArgs<ExtArgs>>): Prisma.Prisma__MetaWhatsAppCredentialClient<runtime.Types.Result.GetResult<Prisma.$MetaWhatsAppCredentialPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   conversations<T extends Prisma.Organization$conversationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$conversationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ConversationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   currentPlan<T extends Prisma.Organization$currentPlanArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$currentPlanArgs<ExtArgs>>): Prisma.Prisma__PlanClient<runtime.Types.Result.GetResult<Prisma.$PlanPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   billingCustomer<T extends Prisma.Organization$billingCustomerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$billingCustomerArgs<ExtArgs>>): Prisma.Prisma__BillingCustomerClient<runtime.Types.Result.GetResult<Prisma.$BillingCustomerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
@@ -6267,9 +5128,6 @@ export interface Prisma__OrganizationClient<T, Null = never, ExtArgs extends run
   profile<T extends Prisma.Organization$profileArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$profileArgs<ExtArgs>>): Prisma.Prisma__OrganizationProfileClient<runtime.Types.Result.GetResult<Prisma.$OrganizationProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   company<T extends Prisma.Organization$companyArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$companyArgs<ExtArgs>>): Prisma.Prisma__OrganizationCompanyClient<runtime.Types.Result.GetResult<Prisma.$OrganizationCompanyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   dailyMetrics<T extends Prisma.Organization$dailyMetricsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$dailyMetricsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DailyMetricsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  whatsappTemplates<T extends Prisma.Organization$whatsappTemplatesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$whatsappTemplatesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WhatsAppTemplatePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  campaigns<T extends Prisma.Organization$campaignsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$campaignsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CampaignPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  campaignCredits<T extends Prisma.Organization$campaignCreditsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$campaignCreditsArgs<ExtArgs>>): Prisma.Prisma__CampaignCreditsClient<runtime.Types.Result.GetResult<Prisma.$CampaignCreditsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -7038,27 +5896,27 @@ export type Organization$whatsappInstancesArgs<ExtArgs extends runtime.Types.Ext
 }
 
 /**
- * Organization.instanceWebhooks
+ * Organization.whatsappInstanceWebhooks
  */
-export type Organization$instanceWebhooksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type Organization$whatsappInstanceWebhooksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
-   * Select specific fields to fetch from the InstanceWebhook
+   * Select specific fields to fetch from the WhatsappInstanceWebhook
    */
-  select?: Prisma.InstanceWebhookSelect<ExtArgs> | null
+  select?: Prisma.WhatsappInstanceWebhookSelect<ExtArgs> | null
   /**
-   * Omit specific fields from the InstanceWebhook
+   * Omit specific fields from the WhatsappInstanceWebhook
    */
-  omit?: Prisma.InstanceWebhookOmit<ExtArgs> | null
+  omit?: Prisma.WhatsappInstanceWebhookOmit<ExtArgs> | null
   /**
    * Choose, which related nodes to fetch as well
    */
-  include?: Prisma.InstanceWebhookInclude<ExtArgs> | null
-  where?: Prisma.InstanceWebhookWhereInput
-  orderBy?: Prisma.InstanceWebhookOrderByWithRelationInput | Prisma.InstanceWebhookOrderByWithRelationInput[]
-  cursor?: Prisma.InstanceWebhookWhereUniqueInput
+  include?: Prisma.WhatsappInstanceWebhookInclude<ExtArgs> | null
+  where?: Prisma.WhatsappInstanceWebhookWhereInput
+  orderBy?: Prisma.WhatsappInstanceWebhookOrderByWithRelationInput | Prisma.WhatsappInstanceWebhookOrderByWithRelationInput[]
+  cursor?: Prisma.WhatsappInstanceWebhookWhereUniqueInput
   take?: number
   skip?: number
-  distinct?: Prisma.InstanceWebhookScalarFieldEnum | Prisma.InstanceWebhookScalarFieldEnum[]
+  distinct?: Prisma.WhatsappInstanceWebhookScalarFieldEnum | Prisma.WhatsappInstanceWebhookScalarFieldEnum[]
 }
 
 /**
@@ -7083,25 +5941,6 @@ export type Organization$whatsappMessagesArgs<ExtArgs extends runtime.Types.Exte
   take?: number
   skip?: number
   distinct?: Prisma.WhatsappMessageScalarFieldEnum | Prisma.WhatsappMessageScalarFieldEnum[]
-}
-
-/**
- * Organization.metaWhatsAppCredential
- */
-export type Organization$metaWhatsAppCredentialArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the MetaWhatsAppCredential
-   */
-  select?: Prisma.MetaWhatsAppCredentialSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the MetaWhatsAppCredential
-   */
-  omit?: Prisma.MetaWhatsAppCredentialOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.MetaWhatsAppCredentialInclude<ExtArgs> | null
-  where?: Prisma.MetaWhatsAppCredentialWhereInput
 }
 
 /**
@@ -7264,73 +6103,6 @@ export type Organization$dailyMetricsArgs<ExtArgs extends runtime.Types.Extensio
   take?: number
   skip?: number
   distinct?: Prisma.DailyMetricsScalarFieldEnum | Prisma.DailyMetricsScalarFieldEnum[]
-}
-
-/**
- * Organization.whatsappTemplates
- */
-export type Organization$whatsappTemplatesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the WhatsAppTemplate
-   */
-  select?: Prisma.WhatsAppTemplateSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the WhatsAppTemplate
-   */
-  omit?: Prisma.WhatsAppTemplateOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.WhatsAppTemplateInclude<ExtArgs> | null
-  where?: Prisma.WhatsAppTemplateWhereInput
-  orderBy?: Prisma.WhatsAppTemplateOrderByWithRelationInput | Prisma.WhatsAppTemplateOrderByWithRelationInput[]
-  cursor?: Prisma.WhatsAppTemplateWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.WhatsAppTemplateScalarFieldEnum | Prisma.WhatsAppTemplateScalarFieldEnum[]
-}
-
-/**
- * Organization.campaigns
- */
-export type Organization$campaignsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the Campaign
-   */
-  select?: Prisma.CampaignSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the Campaign
-   */
-  omit?: Prisma.CampaignOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.CampaignInclude<ExtArgs> | null
-  where?: Prisma.CampaignWhereInput
-  orderBy?: Prisma.CampaignOrderByWithRelationInput | Prisma.CampaignOrderByWithRelationInput[]
-  cursor?: Prisma.CampaignWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.CampaignScalarFieldEnum | Prisma.CampaignScalarFieldEnum[]
-}
-
-/**
- * Organization.campaignCredits
- */
-export type Organization$campaignCreditsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the CampaignCredits
-   */
-  select?: Prisma.CampaignCreditsSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the CampaignCredits
-   */
-  omit?: Prisma.CampaignCreditsOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.CampaignCreditsInclude<ExtArgs> | null
-  where?: Prisma.CampaignCreditsWhereInput
 }
 
 /**

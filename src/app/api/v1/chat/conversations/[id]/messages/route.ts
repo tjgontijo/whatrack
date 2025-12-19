@@ -9,7 +9,7 @@ import { NextResponse } from 'next/server'
 import { getOrSyncUser, getCurrentOrganization } from '@/server/auth/server'
 import { prisma } from '@/lib/prisma'
 import { createMessage, resolveTicket } from '@/services/chat'
-import { sendTextMessage } from '@/services/whatsapp/uazapi/send-message'
+import { sendWhatsappMessage } from '@/services/whatsapp/uazapi/send-whatsapp-message'
 
 /**
  * GET - List messages for a conversation
@@ -187,9 +187,12 @@ export async function POST(
     if (instance && conversation.lead?.remoteJid) {
       try {
         const phone = conversation.lead.remoteJid.replace('@s.whatsapp.net', '')
-        await sendTextMessage({
-          phone,
-          message: body.content,
+        await sendWhatsappMessage({
+          organizationId: organization.id,
+          instanceId: conversation.instanceId,
+          to: phone,
+          type: 'text',
+          text: body.content,
         })
       } catch (sendError) {
         console.error('Failed to send WhatsApp message:', sendError)

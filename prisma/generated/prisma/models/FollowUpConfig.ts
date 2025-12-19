@@ -14,7 +14,7 @@ import type * as Prisma from "../internal/prismaNamespace"
 
 /**
  * Model FollowUpConfig
- * Follow-up configuration per organization
+ * 
  */
 export type FollowUpConfigModel = runtime.Types.Result.DefaultSelection<Prisma.$FollowUpConfigPayload>
 

@@ -46,7 +46,7 @@ export async function updateWebhook({
     }
 
     // Upsert de webhook local (um por instância)
-    const webhook = await prisma.instanceWebhook.upsert({
+    const webhook = await prisma.whatsappInstanceWebhook.upsert({
         where: {
             organizationId_instanceId_webhook: {
                 organizationId,
@@ -63,7 +63,7 @@ export async function updateWebhook({
 
     const { baseUrl } = getUazapiConfig()
     const appBaseUrl = createAppBaseUrl()
-    const url = `${appBaseUrl}/api/v1/whatsapp/webhook/${webhook.id}`
+    const url = `${appBaseUrl}/api/v1/whatsapp/instances/${instanceId}/webhook/${webhook.id}`
 
     const payload: Record<string, unknown> = {}
     payload.url = url
@@ -101,7 +101,7 @@ export async function updateWebhook({
                 ? responseBody.webhookId
                 : undefined
 
-    await prisma.instanceWebhook.update({
+    await prisma.whatsappInstanceWebhook.update({
         where: {
             organizationId_instanceId_webhook: {
                 organizationId,

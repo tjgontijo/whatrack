@@ -14,7 +14,7 @@ import type * as Prisma from "../internal/prismaNamespace"
 
 /**
  * Model PaymentMethodStored
- * Métodos de pagamento tokenizados
+ * 
  */
 export type PaymentMethodStoredModel = runtime.Types.Result.DefaultSelection<Prisma.$PaymentMethodStoredPayload>
 

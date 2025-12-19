@@ -47,7 +47,7 @@ export async function deleteWhatsappInstance({ instanceId, organizationId }: Del
     }
 
     // Remove webhook local (cascade evita órfãos, mas removemos explicitamente)
-    await prisma.instanceWebhook.deleteMany({
+    await prisma.whatsappInstanceWebhook.deleteMany({
         where: {
             organizationId,
             instanceId,
