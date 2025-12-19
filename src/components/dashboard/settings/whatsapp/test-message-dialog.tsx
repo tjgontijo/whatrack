@@ -228,7 +228,7 @@ export function TestMessageDialog({ instance, open, onOpenChange }: TestMessageD
 
     setIsSending(true)
     try {
-      const endpoint = `/api/v1/whatsapp/u/instances/${instance.instanceId}/test`
+      const endpoint = `/api/v1/whatsapp/instances/${instance.instanceId}/test`
 
       const body: Record<string, unknown> = { phone, type: messageType }
 
