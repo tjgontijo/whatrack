@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { Zap } from 'lucide-react'
+import { authClient } from '@/lib/auth/auth-client'
 import { Badge } from '@/components/ui/badge'
 import {
   Tooltip,
@@ -10,23 +11,32 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 
-interface CreditsResponse {
+type CreditsResponse = {
   balance: number
   usedThisCycle: number
   quota: number
   planName: string
 }
 
-async function fetchCredits(): Promise<CreditsResponse> {
-  const res = await fetch('/api/v1/ai/credits')
+async function fetchCredits(organizationId: string): Promise<CreditsResponse> {
+  const res = await fetch('/api/v1/ai/credits', {
+    headers: {
+      'x-organization-id': organizationId,
+    },
+  })
   if (!res.ok) throw new Error('Failed to fetch credits')
   return res.json()
 }
 
 export function AICreditsBadge() {
+  const { data: activeOrg } = authClient.useActiveOrganization()
+
+  const organizationId = activeOrg?.id
+
   const { data, isLoading } = useQuery({
-    queryKey: ['ai-credits'],
-    queryFn: fetchCredits,
+    queryKey: ['ai-credits', organizationId],
+    queryFn: () => fetchCredits(organizationId!),
+    enabled: Boolean(organizationId),
     refetchInterval: 60000, // Refresh every minute
   })
 
