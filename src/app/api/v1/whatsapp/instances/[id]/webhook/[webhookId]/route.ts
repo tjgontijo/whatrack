@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { upsertLead, upsertConversation, resolveTicket, createMessage } from '@/services/chat'
 
 /**
  * POST /api/v1/whatsapp/instances/[id]/webhook/[webhookId]
@@ -52,11 +53,65 @@ export async function POST(
 
     switch (eventType) {
       case 'messages': {
-        console.log('[whatsapp-webhook] Mensagem recebida:', {
-          from: body.message?.sender,
-          content: body.message?.text || body.message?.content,
-          type: body.message?.type,
-        })
+        const message = body.message
+        const chat = body.chat
+
+        if (!message || message.fromMe) {
+          console.log('[whatsapp-webhook] Ignorando mensagem do bot ou sem conteúdo')
+          break
+        }
+
+        try {
+          const senderPhone = message.sender?.replace('@s.whatsapp.net', '')?.replace('@g.us', '') || ''
+          const contactName = chat?.name || message.senderName || 'Contato'
+
+          console.log('[whatsapp-webhook] Processando mensagem:', {
+            from: senderPhone,
+            content: message.text || message.content,
+            type: message.type,
+            name: contactName,
+          })
+
+          // 1. Upsert lead
+          const lead = await upsertLead({
+            organizationId: webhook.instance.organizationId,
+            remoteJid: message.sender || '',
+            phone: senderPhone,
+            name: contactName,
+          })
+
+          // 2. Upsert conversation
+          const conversation = await upsertConversation({
+            organizationId: webhook.instance.organizationId,
+            leadId: lead.id,
+            instanceId: webhook.instance.instanceId,
+          })
+
+          // 3. Resolve ticket
+          const ticket = await resolveTicket(conversation.id)
+
+          // 4. Create message
+          await createMessage({
+            ticketId: ticket.id,
+            senderType: 'LEAD',
+            senderId: message.sender || null,
+            senderName: contactName,
+            messageType: message.type || 'TEXT',
+            content: message.text || message.content || '',
+            mediaUrl: null,
+            mediaType: null,
+            fileName: null,
+            sentAt: new Date(message.messageTimestamp || Date.now()),
+          })
+
+          console.log('[whatsapp-webhook] Mensagem salva com sucesso:', {
+            leadId: lead.id,
+            conversationId: conversation.id,
+            ticketId: ticket.id,
+          })
+        } catch (err) {
+          console.error('[whatsapp-webhook] Erro ao processar mensagem:', err)
+        }
         break
       }
       case 'connection':
