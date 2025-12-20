@@ -3,7 +3,6 @@ import { usePathname } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import {
-    AlertTriangle,
     BarChart3,
     CreditCard,
     MessageSquare,
@@ -31,7 +30,6 @@ import {
 import { WhatsAppIcon, MetaIcon } from '@/components/icons'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { authClient, useSession } from '@/lib/auth/auth-client'
-import { useOrganizationLimits } from '@/hooks/use-organization-limits'
 import { UserDropdownMenu } from './user-dropdown-menu'
 
 // Icon mapping for dynamic nav items
@@ -65,20 +63,11 @@ export function SidebarClient({ navItems }: SidebarClientProps) {
     const { data: session } = useSession()
     const { data: activeOrg } = authClient.useActiveOrganization()
     const { data: organizations } = authClient.useListOrganizations()
-    const { usage, isNearLimit } = useOrganizationLimits()
 
     const userName = session?.user?.name || 'Usuário'
     const userEmail = session?.user?.email || ''
     const userImage = session?.user?.image
     const organizationName = activeOrg?.name || organizations?.[0]?.name || ''
-
-    // Check if any resource is at or near limit
-    const hasUsageWarning = usage && (
-        isNearLimit('whatsappInstances') ||
-        isNearLimit('members') ||
-        isNearLimit('metaProfiles') ||
-        isNearLimit('metaAdAccounts')
-    )
 
     // Separate nav items into groups
     const platformItems = navItems.filter(item =>
@@ -191,18 +180,6 @@ export function SidebarClient({ navItems }: SidebarClientProps) {
                                             <Link href={item.href}>
                                                 {Icon && <Icon className="h-4 w-4" />}
                                                 <span>{item.title}</span>
-                                                {item.href === '/dashboard/settings/billing' && hasUsageWarning && (
-                                                    <TooltipProvider>
-                                                        <Tooltip>
-                                                            <TooltipTrigger asChild>
-                                                                <AlertTriangle className="ml-auto h-4 w-4 text-warning" />
-                                                            </TooltipTrigger>
-                                                            <TooltipContent>
-                                                                <p>Próximo do limite do plano</p>
-                                                            </TooltipContent>
-                                                        </Tooltip>
-                                                    </TooltipProvider>
-                                                )}
                                             </Link>
                                         </SidebarMenuButton>
                                     </SidebarMenuItem>
@@ -221,7 +198,6 @@ export function SidebarClient({ navItems }: SidebarClientProps) {
                             userName={userName}
                             userEmail={userEmail}
                             userImage={userImage}
-                            hasUsageWarning={!!hasUsageWarning}
                         />
                     </SidebarMenuItem>
                 </SidebarMenu>

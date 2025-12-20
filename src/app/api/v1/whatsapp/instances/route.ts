@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { createWhatsappInstance } from '@/services/whatsapp/uazapi/create-instance'
 import { listWhatsappInstances } from '@/services/whatsapp/uazapi/list-instances'
-import { LimitService } from '@/services/billing'
 import {
     createInstanceSchema,
     whatsappInstanceSchema,
@@ -40,19 +39,6 @@ export async function POST(request: Request) {
     }
 
     try {
-        // Verificar limite do plano
-        const limitService = new LimitService()
-        const limitCheck = await limitService.checkLimit(access.organizationId, 'whatsappInstances')
-
-        if (!limitCheck.allowed) {
-            return NextResponse.json({
-                error: limitCheck.message ?? 'Limite de instâncias WhatsApp atingido',
-                code: 'LIMIT_EXCEEDED',
-                current: limitCheck.current,
-                limit: limitCheck.limit,
-            }, { status: 403 })
-        }
-
         const body = await request.json()
         const parsed = createInstanceSchema.safeParse(body)
 

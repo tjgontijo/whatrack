@@ -36,9 +36,8 @@ model User {
   sessions Session[]
   accounts Account[]
 
-  members      Member[]
-  invitations  Invitation[]
-  dailyMetrics UserDailyMetrics[]
+  members     Member[]
+  invitations Invitation[]
 
   @@map("user")
 }
@@ -118,24 +117,12 @@ model Organization {
   saleItems                SaleItem[]
   products                 Product[]
   productCategories        ProductCategory[]
-  appointments             Appointment[]
-  attendances              Attendance[]
-  platformEvents           PlatformEvent[]
-  salesAnalytics           SalesAnalytics[]
-  metaAdsMetrics           MetaAdsMetric[]
   whatsappInstances        WhatsappInstance[]
   whatsappInstanceWebhooks WhatsappInstanceWebhook[]
   whatsappConversations    WhatsappConversation[]
-  currentPlanId            String?
-  currentPlan              Plan?                    @relation(fields: [currentPlanId], references: [id])
-  billingCustomer          BillingCustomer?
-  aiCredits                AICredits?
-  followUpConfig           FollowUpConfig?
   profile                  OrganizationProfile?
   company                  OrganizationCompany?
-  dailyMetrics             DailyMetrics[]
 
-  @@index([currentPlanId])
   @@map("organization")
 }
 
@@ -178,7 +165,6 @@ model Lead {
   remoteJid      String?      @map("remote_jid")
   mail           String?
 
-  salesAnalytics        SalesAnalytics[]
   whatsappConversations WhatsappConversation[]
 
   createdAt DateTime @default(now()) @map("created_at")
@@ -249,22 +235,6 @@ enum TicketSourceType {
   organic
 }
 
-enum SentimentType {
-  POSITIVE
-  NEUTRAL
-  NEGATIVE
-  FRUSTRATED
-}
-
-enum TicketOutcome {
-  SALE
-  LOST_PRICE
-  LOST_COMPETITOR
-  LOST_TIMING
-  LOST_NEED
-  ABANDONED
-}
-
 // Infrastructure
 model WhatsappInstance {
   id             String                    @id @default(cuid())
@@ -319,8 +289,7 @@ model WhatsappConversation {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 
-  tickets                     Ticket[]
-  whatsappConversationMetrics WhatsappConversationMetrics?
+  tickets Ticket[]
 
   @@unique([leadId, instanceId])
   @@index([organizationId])
@@ -330,31 +299,6 @@ model WhatsappConversation {
   @@index([organizationId, lastMessageAt])
   @@index([instanceId, status])
   @@map("whatsapp_conversations")
-}
-
-model WhatsappConversationMetrics {
-  id                     String               @id @default(cuid())
-  whatsappConversationId String               @unique
-  whatsappConversation   WhatsappConversation @relation(fields: [whatsappConversationId], references: [id], onDelete: Cascade)
-
-  leadAvgResponseTime  Int?
-  agentAvgResponseTime Int?
-
-  leadMessages  Int? @default(0)
-  agentMessages Int? @default(0)
-  totalMessages Int? @default(0)
-
-  satisfactionScore Int?
-  satisfactionCount Int?
-
-  lastLeadMessageAt  DateTime?
-  lastAgentMessageAt DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([whatsappConversationId])
-  @@map("whatsapp_conversation_metrics")
 }
 
 model WhatsappMessage {
@@ -411,9 +355,6 @@ model Ticket {
 
   resolvedAt DateTime?
 
-  followUpEnabled     Boolean @default(false)
-  currentFollowUpStep Int?
-
   gclid    String?
   fbclid   String?
   ctwaclid String?
@@ -436,13 +377,8 @@ model Ticket {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 
-  sales             Sale[]
-  events            PlatformEvent[]
-  analytics         SalesAnalytics?
-  appointments      Appointment[]
-  messages          WhatsappMessage[]
-  scheduledMessages ScheduledMessage[]
-  analysis          TicketAnalysis?
+  sales    Sale[]
+  messages WhatsappMessage[]
 
   @@index([organizationId])
   @@index([whatsappConversationId])
@@ -457,62 +393,6 @@ model Ticket {
   @@map("tickets")
 }
 
-model TicketAnalysis {
-  id       String @id @default(cuid())
-  ticketId String @unique
-  ticket   Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-
-  sentiment      SentimentType?
-  sentimentScore Float?
-
-  buyingSignals    String[]
-  objectionSignals String[]
-
-  aiLeadScore  Int?
-  scoreFactors Json?
-
-  summary String? @db.Text
-  tags    String[]
-
-  outcome       TicketOutcome?
-  outcomeReason String?       @db.Text
-
-  analyzedAt   DateTime
-  messageCount Int
-  creditsUsed  Int @default(2)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("ticket_analyses")
-}
-
-// Automation
-model ScheduledMessage {
-  id             String @id @default(cuid())
-  organizationId String
-  ticketId       String
-  ticket         Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-
-  step    Int
-  content String?
-
-  scheduledAt  DateTime
-  sentAt       DateTime?
-  cancelledAt  DateTime?
-  cancelReason String?
-
-  bullJobId   String?
-  creditsUsed Int @default(1)
-
-  createdAt DateTime @default(now())
-
-  @@index([ticketId])
-  @@index([organizationId])
-  @@index([scheduledAt, sentAt])
-  @@map("scheduled_messages")
-}
-
 // ============================================
 // SEÇÃO 5: VENDAS E PRODUTOS
 // ============================================
@@ -521,17 +401,6 @@ enum SaleStatus {
   pending
   completed
   cancelled
-}
-
-enum AppointmentStatus {
-  scheduled
-  cancelled
-  completed
-}
-
-enum AttendanceStatus {
-  showed
-  no_show
 }
 
 model Sale {
@@ -553,8 +422,7 @@ model Sale {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 
-  items  SaleItem[]
-  events PlatformEvent[]
+  items SaleItem[]
 
   @@index([organizationId])
   @@index([ticketId])
@@ -626,505 +494,6 @@ model ProductCategory {
   @@index([organizationId])
   @@index([active])
   @@map("product_categories")
-}
-
-model Appointment {
-  id             String       @id @default(cuid())
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  ticketId       String?
-  ticket         Ticket?      @relation(fields: [ticketId], references: [id], onDelete: SetNull)
-
-  scheduledFor DateTime
-  status       AppointmentStatus @default(scheduled)
-  notes        String?
-
-  attendance Attendance?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-
-  @@index([organizationId])
-  @@index([ticketId])
-  @@map("appointments")
-}
-
-model Attendance {
-  id             String       @id @default(cuid())
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  appointmentId  String       @unique
-  appointment    Appointment  @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
-
-  status AttendanceStatus
-  notes  String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-
-  @@index([organizationId])
-  @@map("attendance")
-}
-
-model SalesAnalytics {
-  id             String       @id @default(cuid())
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  ticketId       String?      @unique
-  ticket         Ticket?      @relation(fields: [ticketId], references: [id], onDelete: SetNull)
-
-  leadId String?
-  lead   Lead?   @relation(fields: [leadId], references: [id], onDelete: SetNull)
-
-  qualyAudit String?
-  timeAudit  String?
-  metadata   Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-
-  @@index([organizationId])
-  @@index([ticketId])
-  @@index([leadId])
-  @@map("sales_analytics")
-}
-
-// ============================================
-// SEÇÃO 6: MARKETING E ANALYTICS
-// ============================================
-
-enum PlatformEventType {
-  lead
-  contact
-  purchase
-  schedule
-  conversion
-}
-
-enum PlatformEventStatus {
-  sent
-  failed
-  pending
-}
-
-model MetaAdsMetric {
-  id             String       @id @default(cuid())
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  reportDate     DateTime     @map("report_date")
-  campaign       String       @map("campaign_name")
-  campaignId     String       @map("campaign_id")
-  adset          String       @map("adset_name")
-  adsetId        String       @map("adset_id")
-  ad             String       @map("ad_name")
-  adId           String       @map("ad_id")
-  impressions    Int
-  clicks         Int
-  results        Int
-  cost           Decimal      @db.Decimal(12, 2)
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
-
-  @@unique([organizationId, reportDate, campaignId, adsetId, adId])
-  @@index([organizationId])
-  @@map("meta_ads_metrics")
-}
-
-model PlatformEvent {
-  id             String       @id @default(cuid())
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  ticketId String?
-  ticket   Ticket? @relation(fields: [ticketId], references: [id], onDelete: SetNull)
-
-  saleId String?
-  sale   Sale?   @relation(fields: [saleId], references: [id], onDelete: SetNull)
-
-  platform   String
-  eventType  PlatformEventType
-  externalId String?
-  status     PlatformEventStatus?
-  payload    Json?
-  response   Json?
-  sentAt     DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-
-  @@index([ticketId])
-  @@index([saleId])
-  @@index([platform])
-  @@index([eventType])
-  @@index([externalId])
-  @@map("platform_events")
-}
-
-// ============================================
-// SEÇÃO 7: AI E CRÉDITOS
-// ============================================
-
-enum CreditTransactionType {
-  PURCHASE
-  CAMPAIGN_USE
-  REFUND
-  ADJUSTMENT
-}
-
-model AICredits {
-  id             String       @id @default(cuid())
-  organizationId String       @unique
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  balance       Int @default(0)
-  usedThisCycle Int @default(0)
-
-  lastCreditedAt DateTime?
-
-  balanceAtCancellation Int?
-  canceledAt            DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  usageLogs AIUsageLog[]
-
-  @@map("ai_credits")
-}
-
-model AIUsageLog {
-  id             String    @id @default(cuid())
-  organizationId String
-  aiCreditsId    String
-  aiCredits      AICredits @relation(fields: [aiCreditsId], references: [id], onDelete: Cascade)
-
-  action      String
-  creditsUsed Int
-
-  ticketId     String?
-  contactPhone String?
-
-  model        String?
-  inputTokens  Int?
-  outputTokens Int?
-  latencyMs    Int?
-
-  triggeredBy String
-
-  createdAt DateTime @default(now())
-
-  @@index([organizationId, createdAt])
-  @@index([aiCreditsId])
-  @@map("ai_usage_logs")
-}
-
-// ============================================
-// SEÇÃO 8: BILLING E PAGAMENTOS
-// ============================================
-
-enum PlanInterval {
-  monthly
-  yearly
-}
-
-enum SubscriptionStatus {
-  incomplete
-  trialing
-  active
-  past_due
-  unpaid
-  canceled
-  paused
-}
-
-enum PaymentStatus {
-  pending
-  processing
-  succeeded
-  failed
-  refunded
-  canceled
-}
-
-enum PaymentMethod {
-  credit_card
-  debit_card
-  pix
-  boleto
-  bank_transfer
-  wallet
-}
-
-enum BillingProvider {
-  asaas
-  stripe
-  mercadopago
-  manual
-}
-
-model Plan {
-  id          String  @id @default(cuid())
-  name        String  @unique
-  slug        String  @unique
-  description String?
-  isActive    Boolean @default(true)
-  sortOrder   Int     @default(0)
-
-  maxMetaProfiles      Int  @default(0)
-  maxMetaAdAccounts    Int  @default(0)
-  maxWhatsappInstances Int  @default(1)
-  maxMembers           Int  @default(1)
-  maxLeadsPerMonth     Int?
-  maxMessagesPerMonth  Int?
-
-  messageRetentionDays Int?
-  maxMessagesStored    Int?
-
-  aiCreditsQuota Int @default(0)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-
-  prices        PlanPrice[]
-  subscriptions Subscription[]
-  organizations Organization[]
-
-  @@map("plans")
-}
-
-model PlanPrice {
-  id     String @id @default(cuid())
-  planId String
-  plan   Plan   @relation(fields: [planId], references: [id], onDelete: Cascade)
-
-  provider    BillingProvider
-  currency    String
-  interval    PlanInterval
-  amountCents Int
-
-  externalPriceId   String?
-  externalProductId String?
-
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-
-  @@unique([planId, provider, currency, interval])
-  @@index([provider])
-  @@map("plan_prices")
-}
-
-model BillingCustomer {
-  id             String       @id @default(cuid())
-  organizationId String       @unique
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  email   String
-  name    String?
-  taxId   String?
-  phone   String?
-  address Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-
-  externalCustomers BillingCustomerExternal[]
-  paymentMethods    PaymentMethodStored[]
-  subscriptions     Subscription[]
-  invoices          Invoice[]
-  payments          Payment[]
-
-  @@map("billing_customers")
-}
-
-model BillingCustomerExternal {
-  id                String          @id @default(cuid())
-  billingCustomerId String
-  billingCustomer   BillingCustomer @relation(fields: [billingCustomerId], references: [id], onDelete: Cascade)
-
-  provider   BillingProvider
-  externalId String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-
-  @@unique([billingCustomerId, provider])
-  @@unique([provider, externalId])
-  @@map("billing_customer_externals")
-}
-
-model PaymentMethodStored {
-  id                String          @id @default(cuid())
-  billingCustomerId String
-  billingCustomer   BillingCustomer @relation(fields: [billingCustomerId], references: [id], onDelete: Cascade)
-
-  provider   BillingProvider
-  externalId String
-
-  type           PaymentMethod
-  lastFourDigits String?
-  brand          String?
-  expiryMonth    Int?
-  expiryYear     Int?
-
-  isDefault Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-
-  @@unique([provider, externalId])
-  @@index([billingCustomerId])
-  @@map("payment_methods_stored")
-}
-
-model Subscription {
-  id                String          @id @default(cuid())
-  billingCustomerId String
-  billingCustomer   BillingCustomer @relation(fields: [billingCustomerId], references: [id], onDelete: Cascade)
-
-  planId String
-  plan   Plan   @relation(fields: [planId], references: [id])
-
-  provider   BillingProvider
-  externalId String?
-
-  status SubscriptionStatus @default(incomplete)
-
-  interval           PlanInterval
-  currentPeriodStart DateTime?
-  currentPeriodEnd   DateTime?
-  cancelAtPeriodEnd  Boolean      @default(false)
-  canceledAt         DateTime?
-  endedAt            DateTime?
-
-  trialStart DateTime?
-  trialEnd   DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-
-  invoices Invoice[]
-
-  @@unique([provider, externalId])
-  @@index([billingCustomerId])
-  @@index([status])
-  @@map("subscriptions")
-}
-
-model Invoice {
-  id                String          @id @default(cuid())
-  billingCustomerId String
-  billingCustomer   BillingCustomer @relation(fields: [billingCustomerId], references: [id], onDelete: Cascade)
-
-  subscriptionId String?
-  subscription   Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
-
-  provider   BillingProvider
-  externalId String?
-
-  subtotalCents Int
-  discountCents Int    @default(0)
-  taxCents      Int    @default(0)
-  totalCents    Int
-  currency      String @default("BRL")
-
-  status  PaymentStatus @default(pending)
-  dueDate DateTime?
-  paidAt  DateTime?
-
-  description String?
-  metadata    Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-
-  items    InvoiceItem[]
-  payments Payment[]
-
-  @@unique([provider, externalId])
-  @@index([billingCustomerId])
-  @@index([subscriptionId])
-  @@index([status])
-  @@map("invoices")
-}
-
-model InvoiceItem {
-  id        String  @id @default(cuid())
-  invoiceId String
-  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-
-  description String
-  quantity    Int    @default(1)
-  unitCents   Int
-  totalCents  Int
-
-  createdAt DateTime @default(now())
-
-  @@index([invoiceId])
-  @@map("invoice_items")
-}
-
-model Payment {
-  id                String          @id @default(cuid())
-  billingCustomerId String
-  billingCustomer   BillingCustomer @relation(fields: [billingCustomerId], references: [id], onDelete: Cascade)
-
-  invoiceId String?
-  invoice   Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
-
-  provider   BillingProvider
-  externalId String?
-
-  amountCents Int
-  currency    String @default("BRL")
-
-  status     PaymentStatus  @default(pending)
-  method     PaymentMethod?
-  paidAt     DateTime?
-  failedAt   DateTime?
-  refundedAt DateTime?
-
-  pixQrCode     String?   @db.Text
-  pixCopyPaste  String?   @db.Text
-  pixExpiresAt  DateTime?
-  boletoUrl     String?
-  boletoBarcode String?
-  boletoDueDate DateTime?
-  cardLastFour  String?
-  cardBrand     String?
-
-  failureReason String?
-  metadata      Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-
-  @@unique([provider, externalId])
-  @@index([billingCustomerId])
-  @@index([invoiceId])
-  @@index([status])
-  @@map("payments")
-}
-
-model WebhookEvent {
-  id String @id @default(cuid())
-
-  provider  BillingProvider
-  eventId   String
-  eventType String
-
-  processed   Boolean   @default(false)
-  processedAt DateTime?
-  error       String?
-
-  payload Json
-
-  createdAt DateTime @default(now())
-
-  @@unique([provider, eventId])
-  @@index([provider, eventType])
-  @@index([processed])
-  @@map("webhook_events")
 }
 
 // ============================================
@@ -1213,119 +582,4 @@ model OrganizationCompany {
   @@index([uf])
   @@index([situacao])
   @@map("organization_companies")
-}
-
-// ============================================
-// SEÇÃO 11: FOLLOW-UP E AUTOMAÇÃO
-// ============================================
-
-model FollowUpConfig {
-  id             String       @id @default(cuid())
-  organizationId String       @unique
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  isActive Boolean @default(true)
-
-  businessHoursOnly Boolean @default(true)
-  businessStartHour Int     @default(9)
-  businessEndHour   Int     @default(18)
-  businessDays      Int[]   @default([1, 2, 3, 4, 5])
-
-  aiTone             String  @default("professional")
-  businessType       String?
-  productDescription String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  steps FollowUpStep[]
-
-  @@map("followup_configs")
-}
-
-model FollowUpStep {
-  id       String         @id @default(cuid())
-  configId String
-  config   FollowUpConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
-
-  order        Int
-  delayMinutes Int
-
-  createdAt DateTime @default(now())
-
-  @@unique([configId, order])
-  @@map("followup_steps")
-}
-
-// ============================================
-// SEÇÃO 12: DAILY METRICS E ANALYTICS
-// ============================================
-
-model DailyMetrics {
-  id             String       @id @default(cuid())
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  date DateTime @db.Date
-
-  ticketsOpened    Int @default(0)
-  ticketsClosed    Int @default(0)
-  ticketsWon       Int @default(0)
-  ticketsLost      Int @default(0)
-  ticketsAbandoned Int @default(0)
-
-  salesCount   Int     @default(0)
-  salesRevenue Decimal @default(0) @db.Decimal(12, 2)
-
-  lostByPrice      Int @default(0)
-  lostByCompetitor Int @default(0)
-  lostByTiming     Int @default(0)
-  lostByNeed       Int @default(0)
-
-  newLeads       Int @default(0)
-  returningLeads Int @default(0)
-
-  appointmentsCreated Int @default(0)
-  appointmentsShowed  Int @default(0)
-  appointmentsNoShow  Int @default(0)
-
-  messagesReceived  Int  @default(0)
-  messagesSent      Int  @default(0)
-  avgResponseTimeMs Int?
-
-  avgLeadScore      Float?
-  avgSentimentScore Float?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([organizationId, date])
-  @@index([organizationId, date])
-  @@map("daily_metrics")
-}
-
-model UserDailyMetrics {
-  id             String @id @default(cuid())
-  organizationId String
-  userId         String
-  user           User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  date DateTime @db.Date
-
-  ticketsAssigned Int @default(0)
-  ticketsClosed   Int @default(0)
-  ticketsWon      Int @default(0)
-
-  salesCount   Int     @default(0)
-  salesRevenue Decimal @default(0) @db.Decimal(12, 2)
-
-  messagesSent      Int    @default(0)
-  avgResponseTimeMs Int?
-  avgSentimentScore Float?
-
-  createdAt DateTime @default(now())
-
-  @@unique([organizationId, userId, date])
-  @@index([organizationId, date])
-  @@map("user_daily_metrics")
 }

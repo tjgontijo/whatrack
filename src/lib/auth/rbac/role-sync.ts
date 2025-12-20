@@ -1,22 +1,13 @@
 /**
- * Serviço para sincronizar roles baseado em subscriptions
+ * Serviço para sincronizar roles de usuários
  * Mantém as roles atualizadas automaticamente
  */
 
 import { prisma } from '@/lib/prisma'
 import { UserRoleType, getHighestRole } from './roles'
 
-export interface UserWithSubscription {
-  id: string
-  role: string | null
-  subscription: {
-    isActive: boolean
-    expiresAt: Date | null
-  } | null
-}
-
 /**
- * Sincroniza a role de um usuário baseado na sua subscription
+ * Sincroniza a role de um usuário
  */
 export async function syncUserRole(userId: string): Promise<UserRoleType> {
   const user = await prisma.user.findUnique({
@@ -31,10 +22,7 @@ export async function syncUserRole(userId: string): Promise<UserRoleType> {
     throw new Error('Usuário não encontrado')
   }
 
-  const newRole = getHighestRole(
-    user.role,
-    false,
-  )
+  const newRole = getHighestRole(user.role)
 
   // Atualizar role se necessário
   if (user.role !== newRole) {
@@ -62,10 +50,7 @@ export async function syncAllUserRoles(): Promise<{ updated: number }> {
   let updated = 0
 
   for (const user of users) {
-    const newRole = getHighestRole(
-      user.role,
-      false,
-    )
+    const newRole = getHighestRole(user.role)
 
     if (user.role !== newRole) {
       await prisma.user.update({
@@ -77,33 +62,6 @@ export async function syncAllUserRoles(): Promise<{ updated: number }> {
   }
 
   return { updated }
-}
-
-/**
- * Atualiza role quando subscription é criada/atualizada
- */
-export async function onSubscriptionChange(userId: string, subscription: {
-  isActive: boolean
-  expiresAt: Date | null
-}): Promise<void> {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { role: true }
-  })
-
-  if (!user) return
-
-  const newRole = getHighestRole(
-    user.role,
-    subscription.isActive,
-  )
-
-  if (user.role !== newRole) {
-    await prisma.user.update({
-      where: { id: userId },
-      data: { role: newRole }
-    })
-  }
 }
 
 /**

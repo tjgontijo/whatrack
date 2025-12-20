@@ -7,6 +7,7 @@
 import { NextResponse } from 'next/server'
 import { getOrSyncUser, getCurrentOrganization } from '@/server/auth/server'
 import { prisma } from '@/lib/prisma'
+import type { ConversationStatus } from '@prisma/client'
 
 /**
  * GET - List conversations with optional filters
@@ -28,17 +29,23 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url)
     const instanceId = searchParams.get('instanceId')
-    const status = searchParams.get('status')
+    const statusParam = searchParams.get('status')
 
     if (!instanceId) {
       return NextResponse.json({ error: 'instanceId is required' }, { status: 400 })
     }
 
+    // Validate status parameter if provided
+    const validStatuses: ConversationStatus[] = ['OPEN', 'PENDING', 'RESOLVED', 'SNOOZED']
+    const status = statusParam && validStatuses.includes(statusParam as ConversationStatus)
+      ? (statusParam as ConversationStatus)
+      : undefined
+
     const conversations = await prisma.whatsappConversation.findMany({
       where: {
         organizationId: organization.id,
         instanceId,
-        ...(status && { status: status as any }),
+        ...(status && { status }),
       },
       include: {
         lead: {

@@ -62,38 +62,14 @@ export const ModelName = {
   WhatsappInstance: 'WhatsappInstance',
   WhatsappInstanceWebhook: 'WhatsappInstanceWebhook',
   WhatsappConversation: 'WhatsappConversation',
-  WhatsappConversationMetrics: 'WhatsappConversationMetrics',
   WhatsappMessage: 'WhatsappMessage',
   Ticket: 'Ticket',
-  TicketAnalysis: 'TicketAnalysis',
-  ScheduledMessage: 'ScheduledMessage',
   Sale: 'Sale',
   SaleItem: 'SaleItem',
   Product: 'Product',
   ProductCategory: 'ProductCategory',
-  Appointment: 'Appointment',
-  Attendance: 'Attendance',
-  SalesAnalytics: 'SalesAnalytics',
-  MetaAdsMetric: 'MetaAdsMetric',
-  PlatformEvent: 'PlatformEvent',
-  AICredits: 'AICredits',
-  AIUsageLog: 'AIUsageLog',
-  Plan: 'Plan',
-  PlanPrice: 'PlanPrice',
-  BillingCustomer: 'BillingCustomer',
-  BillingCustomerExternal: 'BillingCustomerExternal',
-  PaymentMethodStored: 'PaymentMethodStored',
-  Subscription: 'Subscription',
-  Invoice: 'Invoice',
-  InvoiceItem: 'InvoiceItem',
-  Payment: 'Payment',
-  WebhookEvent: 'WebhookEvent',
   OrganizationProfile: 'OrganizationProfile',
-  OrganizationCompany: 'OrganizationCompany',
-  FollowUpConfig: 'FollowUpConfig',
-  FollowUpStep: 'FollowUpStep',
-  DailyMetrics: 'DailyMetrics',
-  UserDailyMetrics: 'UserDailyMetrics'
+  OrganizationCompany: 'OrganizationCompany'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -183,8 +159,7 @@ export const OrganizationScalarFieldEnum = {
   slug: 'slug',
   logo: 'logo',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
-  currentPlanId: 'currentPlanId'
+  updatedAt: 'updatedAt'
 } as const
 
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
@@ -273,25 +248,6 @@ export const WhatsappConversationScalarFieldEnum = {
 export type WhatsappConversationScalarFieldEnum = (typeof WhatsappConversationScalarFieldEnum)[keyof typeof WhatsappConversationScalarFieldEnum]
 
 
-export const WhatsappConversationMetricsScalarFieldEnum = {
-  id: 'id',
-  whatsappConversationId: 'whatsappConversationId',
-  leadAvgResponseTime: 'leadAvgResponseTime',
-  agentAvgResponseTime: 'agentAvgResponseTime',
-  leadMessages: 'leadMessages',
-  agentMessages: 'agentMessages',
-  totalMessages: 'totalMessages',
-  satisfactionScore: 'satisfactionScore',
-  satisfactionCount: 'satisfactionCount',
-  lastLeadMessageAt: 'lastLeadMessageAt',
-  lastAgentMessageAt: 'lastAgentMessageAt',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type WhatsappConversationMetricsScalarFieldEnum = (typeof WhatsappConversationMetricsScalarFieldEnum)[keyof typeof WhatsappConversationMetricsScalarFieldEnum]
-
-
 export const WhatsappMessageScalarFieldEnum = {
   id: 'id',
   ticketId: 'ticketId',
@@ -325,8 +281,6 @@ export const TicketScalarFieldEnum = {
   assigneeId: 'assigneeId',
   assigneeName: 'assigneeName',
   resolvedAt: 'resolvedAt',
-  followUpEnabled: 'followUpEnabled',
-  currentFollowUpStep: 'currentFollowUpStep',
   gclid: 'gclid',
   fbclid: 'fbclid',
   ctwaclid: 'ctwaclid',
@@ -346,47 +300,6 @@ export const TicketScalarFieldEnum = {
 } as const
 
 export type TicketScalarFieldEnum = (typeof TicketScalarFieldEnum)[keyof typeof TicketScalarFieldEnum]
-
-
-export const TicketAnalysisScalarFieldEnum = {
-  id: 'id',
-  ticketId: 'ticketId',
-  sentiment: 'sentiment',
-  sentimentScore: 'sentimentScore',
-  buyingSignals: 'buyingSignals',
-  objectionSignals: 'objectionSignals',
-  aiLeadScore: 'aiLeadScore',
-  scoreFactors: 'scoreFactors',
-  summary: 'summary',
-  tags: 'tags',
-  outcome: 'outcome',
-  outcomeReason: 'outcomeReason',
-  analyzedAt: 'analyzedAt',
-  messageCount: 'messageCount',
-  creditsUsed: 'creditsUsed',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type TicketAnalysisScalarFieldEnum = (typeof TicketAnalysisScalarFieldEnum)[keyof typeof TicketAnalysisScalarFieldEnum]
-
-
-export const ScheduledMessageScalarFieldEnum = {
-  id: 'id',
-  organizationId: 'organizationId',
-  ticketId: 'ticketId',
-  step: 'step',
-  content: 'content',
-  scheduledAt: 'scheduledAt',
-  sentAt: 'sentAt',
-  cancelledAt: 'cancelledAt',
-  cancelReason: 'cancelReason',
-  bullJobId: 'bullJobId',
-  creditsUsed: 'creditsUsed',
-  createdAt: 'createdAt'
-} as const
-
-export type ScheduledMessageScalarFieldEnum = (typeof ScheduledMessageScalarFieldEnum)[keyof typeof ScheduledMessageScalarFieldEnum]
 
 
 export const SaleScalarFieldEnum = {
@@ -449,310 +362,6 @@ export const ProductCategoryScalarFieldEnum = {
 } as const
 
 export type ProductCategoryScalarFieldEnum = (typeof ProductCategoryScalarFieldEnum)[keyof typeof ProductCategoryScalarFieldEnum]
-
-
-export const AppointmentScalarFieldEnum = {
-  id: 'id',
-  organizationId: 'organizationId',
-  ticketId: 'ticketId',
-  scheduledFor: 'scheduledFor',
-  status: 'status',
-  notes: 'notes',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type AppointmentScalarFieldEnum = (typeof AppointmentScalarFieldEnum)[keyof typeof AppointmentScalarFieldEnum]
-
-
-export const AttendanceScalarFieldEnum = {
-  id: 'id',
-  organizationId: 'organizationId',
-  appointmentId: 'appointmentId',
-  status: 'status',
-  notes: 'notes',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type AttendanceScalarFieldEnum = (typeof AttendanceScalarFieldEnum)[keyof typeof AttendanceScalarFieldEnum]
-
-
-export const SalesAnalyticsScalarFieldEnum = {
-  id: 'id',
-  organizationId: 'organizationId',
-  ticketId: 'ticketId',
-  leadId: 'leadId',
-  qualyAudit: 'qualyAudit',
-  timeAudit: 'timeAudit',
-  metadata: 'metadata',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type SalesAnalyticsScalarFieldEnum = (typeof SalesAnalyticsScalarFieldEnum)[keyof typeof SalesAnalyticsScalarFieldEnum]
-
-
-export const MetaAdsMetricScalarFieldEnum = {
-  id: 'id',
-  organizationId: 'organizationId',
-  reportDate: 'reportDate',
-  campaign: 'campaign',
-  campaignId: 'campaignId',
-  adset: 'adset',
-  adsetId: 'adsetId',
-  ad: 'ad',
-  adId: 'adId',
-  impressions: 'impressions',
-  clicks: 'clicks',
-  results: 'results',
-  cost: 'cost',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type MetaAdsMetricScalarFieldEnum = (typeof MetaAdsMetricScalarFieldEnum)[keyof typeof MetaAdsMetricScalarFieldEnum]
-
-
-export const PlatformEventScalarFieldEnum = {
-  id: 'id',
-  organizationId: 'organizationId',
-  ticketId: 'ticketId',
-  saleId: 'saleId',
-  platform: 'platform',
-  eventType: 'eventType',
-  externalId: 'externalId',
-  status: 'status',
-  payload: 'payload',
-  response: 'response',
-  sentAt: 'sentAt',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type PlatformEventScalarFieldEnum = (typeof PlatformEventScalarFieldEnum)[keyof typeof PlatformEventScalarFieldEnum]
-
-
-export const AICreditsScalarFieldEnum = {
-  id: 'id',
-  organizationId: 'organizationId',
-  balance: 'balance',
-  usedThisCycle: 'usedThisCycle',
-  lastCreditedAt: 'lastCreditedAt',
-  balanceAtCancellation: 'balanceAtCancellation',
-  canceledAt: 'canceledAt',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type AICreditsScalarFieldEnum = (typeof AICreditsScalarFieldEnum)[keyof typeof AICreditsScalarFieldEnum]
-
-
-export const AIUsageLogScalarFieldEnum = {
-  id: 'id',
-  organizationId: 'organizationId',
-  aiCreditsId: 'aiCreditsId',
-  action: 'action',
-  creditsUsed: 'creditsUsed',
-  ticketId: 'ticketId',
-  contactPhone: 'contactPhone',
-  model: 'model',
-  inputTokens: 'inputTokens',
-  outputTokens: 'outputTokens',
-  latencyMs: 'latencyMs',
-  triggeredBy: 'triggeredBy',
-  createdAt: 'createdAt'
-} as const
-
-export type AIUsageLogScalarFieldEnum = (typeof AIUsageLogScalarFieldEnum)[keyof typeof AIUsageLogScalarFieldEnum]
-
-
-export const PlanScalarFieldEnum = {
-  id: 'id',
-  name: 'name',
-  slug: 'slug',
-  description: 'description',
-  isActive: 'isActive',
-  sortOrder: 'sortOrder',
-  maxMetaProfiles: 'maxMetaProfiles',
-  maxMetaAdAccounts: 'maxMetaAdAccounts',
-  maxWhatsappInstances: 'maxWhatsappInstances',
-  maxMembers: 'maxMembers',
-  maxLeadsPerMonth: 'maxLeadsPerMonth',
-  maxMessagesPerMonth: 'maxMessagesPerMonth',
-  messageRetentionDays: 'messageRetentionDays',
-  maxMessagesStored: 'maxMessagesStored',
-  aiCreditsQuota: 'aiCreditsQuota',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type PlanScalarFieldEnum = (typeof PlanScalarFieldEnum)[keyof typeof PlanScalarFieldEnum]
-
-
-export const PlanPriceScalarFieldEnum = {
-  id: 'id',
-  planId: 'planId',
-  provider: 'provider',
-  currency: 'currency',
-  interval: 'interval',
-  amountCents: 'amountCents',
-  externalPriceId: 'externalPriceId',
-  externalProductId: 'externalProductId',
-  isActive: 'isActive',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type PlanPriceScalarFieldEnum = (typeof PlanPriceScalarFieldEnum)[keyof typeof PlanPriceScalarFieldEnum]
-
-
-export const BillingCustomerScalarFieldEnum = {
-  id: 'id',
-  organizationId: 'organizationId',
-  email: 'email',
-  name: 'name',
-  taxId: 'taxId',
-  phone: 'phone',
-  address: 'address',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type BillingCustomerScalarFieldEnum = (typeof BillingCustomerScalarFieldEnum)[keyof typeof BillingCustomerScalarFieldEnum]
-
-
-export const BillingCustomerExternalScalarFieldEnum = {
-  id: 'id',
-  billingCustomerId: 'billingCustomerId',
-  provider: 'provider',
-  externalId: 'externalId',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type BillingCustomerExternalScalarFieldEnum = (typeof BillingCustomerExternalScalarFieldEnum)[keyof typeof BillingCustomerExternalScalarFieldEnum]
-
-
-export const PaymentMethodStoredScalarFieldEnum = {
-  id: 'id',
-  billingCustomerId: 'billingCustomerId',
-  provider: 'provider',
-  externalId: 'externalId',
-  type: 'type',
-  lastFourDigits: 'lastFourDigits',
-  brand: 'brand',
-  expiryMonth: 'expiryMonth',
-  expiryYear: 'expiryYear',
-  isDefault: 'isDefault',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type PaymentMethodStoredScalarFieldEnum = (typeof PaymentMethodStoredScalarFieldEnum)[keyof typeof PaymentMethodStoredScalarFieldEnum]
-
-
-export const SubscriptionScalarFieldEnum = {
-  id: 'id',
-  billingCustomerId: 'billingCustomerId',
-  planId: 'planId',
-  provider: 'provider',
-  externalId: 'externalId',
-  status: 'status',
-  interval: 'interval',
-  currentPeriodStart: 'currentPeriodStart',
-  currentPeriodEnd: 'currentPeriodEnd',
-  cancelAtPeriodEnd: 'cancelAtPeriodEnd',
-  canceledAt: 'canceledAt',
-  endedAt: 'endedAt',
-  trialStart: 'trialStart',
-  trialEnd: 'trialEnd',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type SubscriptionScalarFieldEnum = (typeof SubscriptionScalarFieldEnum)[keyof typeof SubscriptionScalarFieldEnum]
-
-
-export const InvoiceScalarFieldEnum = {
-  id: 'id',
-  billingCustomerId: 'billingCustomerId',
-  subscriptionId: 'subscriptionId',
-  provider: 'provider',
-  externalId: 'externalId',
-  subtotalCents: 'subtotalCents',
-  discountCents: 'discountCents',
-  taxCents: 'taxCents',
-  totalCents: 'totalCents',
-  currency: 'currency',
-  status: 'status',
-  dueDate: 'dueDate',
-  paidAt: 'paidAt',
-  description: 'description',
-  metadata: 'metadata',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type InvoiceScalarFieldEnum = (typeof InvoiceScalarFieldEnum)[keyof typeof InvoiceScalarFieldEnum]
-
-
-export const InvoiceItemScalarFieldEnum = {
-  id: 'id',
-  invoiceId: 'invoiceId',
-  description: 'description',
-  quantity: 'quantity',
-  unitCents: 'unitCents',
-  totalCents: 'totalCents',
-  createdAt: 'createdAt'
-} as const
-
-export type InvoiceItemScalarFieldEnum = (typeof InvoiceItemScalarFieldEnum)[keyof typeof InvoiceItemScalarFieldEnum]
-
-
-export const PaymentScalarFieldEnum = {
-  id: 'id',
-  billingCustomerId: 'billingCustomerId',
-  invoiceId: 'invoiceId',
-  provider: 'provider',
-  externalId: 'externalId',
-  amountCents: 'amountCents',
-  currency: 'currency',
-  status: 'status',
-  method: 'method',
-  paidAt: 'paidAt',
-  failedAt: 'failedAt',
-  refundedAt: 'refundedAt',
-  pixQrCode: 'pixQrCode',
-  pixCopyPaste: 'pixCopyPaste',
-  pixExpiresAt: 'pixExpiresAt',
-  boletoUrl: 'boletoUrl',
-  boletoBarcode: 'boletoBarcode',
-  boletoDueDate: 'boletoDueDate',
-  cardLastFour: 'cardLastFour',
-  cardBrand: 'cardBrand',
-  failureReason: 'failureReason',
-  metadata: 'metadata',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type PaymentScalarFieldEnum = (typeof PaymentScalarFieldEnum)[keyof typeof PaymentScalarFieldEnum]
-
-
-export const WebhookEventScalarFieldEnum = {
-  id: 'id',
-  provider: 'provider',
-  eventId: 'eventId',
-  eventType: 'eventType',
-  processed: 'processed',
-  processedAt: 'processedAt',
-  error: 'error',
-  payload: 'payload',
-  createdAt: 'createdAt'
-} as const
-
-export type WebhookEventScalarFieldEnum = (typeof WebhookEventScalarFieldEnum)[keyof typeof WebhookEventScalarFieldEnum]
 
 
 export const OrganizationProfileScalarFieldEnum = {
@@ -819,86 +428,6 @@ export const OrganizationCompanyScalarFieldEnum = {
 export type OrganizationCompanyScalarFieldEnum = (typeof OrganizationCompanyScalarFieldEnum)[keyof typeof OrganizationCompanyScalarFieldEnum]
 
 
-export const FollowUpConfigScalarFieldEnum = {
-  id: 'id',
-  organizationId: 'organizationId',
-  isActive: 'isActive',
-  businessHoursOnly: 'businessHoursOnly',
-  businessStartHour: 'businessStartHour',
-  businessEndHour: 'businessEndHour',
-  businessDays: 'businessDays',
-  aiTone: 'aiTone',
-  businessType: 'businessType',
-  productDescription: 'productDescription',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type FollowUpConfigScalarFieldEnum = (typeof FollowUpConfigScalarFieldEnum)[keyof typeof FollowUpConfigScalarFieldEnum]
-
-
-export const FollowUpStepScalarFieldEnum = {
-  id: 'id',
-  configId: 'configId',
-  order: 'order',
-  delayMinutes: 'delayMinutes',
-  createdAt: 'createdAt'
-} as const
-
-export type FollowUpStepScalarFieldEnum = (typeof FollowUpStepScalarFieldEnum)[keyof typeof FollowUpStepScalarFieldEnum]
-
-
-export const DailyMetricsScalarFieldEnum = {
-  id: 'id',
-  organizationId: 'organizationId',
-  date: 'date',
-  ticketsOpened: 'ticketsOpened',
-  ticketsClosed: 'ticketsClosed',
-  ticketsWon: 'ticketsWon',
-  ticketsLost: 'ticketsLost',
-  ticketsAbandoned: 'ticketsAbandoned',
-  salesCount: 'salesCount',
-  salesRevenue: 'salesRevenue',
-  lostByPrice: 'lostByPrice',
-  lostByCompetitor: 'lostByCompetitor',
-  lostByTiming: 'lostByTiming',
-  lostByNeed: 'lostByNeed',
-  newLeads: 'newLeads',
-  returningLeads: 'returningLeads',
-  appointmentsCreated: 'appointmentsCreated',
-  appointmentsShowed: 'appointmentsShowed',
-  appointmentsNoShow: 'appointmentsNoShow',
-  messagesReceived: 'messagesReceived',
-  messagesSent: 'messagesSent',
-  avgResponseTimeMs: 'avgResponseTimeMs',
-  avgLeadScore: 'avgLeadScore',
-  avgSentimentScore: 'avgSentimentScore',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type DailyMetricsScalarFieldEnum = (typeof DailyMetricsScalarFieldEnum)[keyof typeof DailyMetricsScalarFieldEnum]
-
-
-export const UserDailyMetricsScalarFieldEnum = {
-  id: 'id',
-  organizationId: 'organizationId',
-  userId: 'userId',
-  date: 'date',
-  ticketsAssigned: 'ticketsAssigned',
-  ticketsClosed: 'ticketsClosed',
-  ticketsWon: 'ticketsWon',
-  salesCount: 'salesCount',
-  salesRevenue: 'salesRevenue',
-  messagesSent: 'messagesSent',
-  avgResponseTimeMs: 'avgResponseTimeMs',
-  avgSentimentScore: 'avgSentimentScore',
-  createdAt: 'createdAt'
-} as const
-
-export type UserDailyMetricsScalarFieldEnum = (typeof UserDailyMetricsScalarFieldEnum)[keyof typeof UserDailyMetricsScalarFieldEnum]
-
-
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -913,13 +442,6 @@ export const NullableJsonNullValueInput = {
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
-
-
-export const JsonNullValueInput = {
-  JsonNull: 'JsonNull'
-} as const
-
-export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {

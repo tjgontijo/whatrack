@@ -1,7 +1,6 @@
 import 'dotenv/config'
 import { PrismaClient } from '../generated/prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
-import { seedBillingPlans } from './seed-billing'
 
 interface PgTableRow {
   tablename: string
@@ -85,9 +84,6 @@ async function main() {
     if (process.env.TRUNCATE_DB === '1') {
       await truncateAllTables()
     }
-
-    // Seed billing plans (idempotente - usa upsert)
-    await seedBillingPlans(prisma)
 
     console.log('✅ Seed concluído com sucesso!')
   } catch (error) {

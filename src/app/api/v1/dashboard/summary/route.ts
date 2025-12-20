@@ -16,26 +16,12 @@ import { dashboardSummaryResponseSchema } from '@/schemas/dashboard-summary'
 
 
 async function fetchInvestment(
-  organizationId: string,
-  dateRange: DateRange | undefined,
-  trafficType: string | undefined,
+  _organizationId: string,
+  _dateRange: DateRange | undefined,
+  _trafficType: string | undefined,
 ) {
-  if (trafficType === 'organic') {
-    return 0
-  }
-
-  const where: Prisma.MetaAdsMetricWhereInput = { organizationId }
-  if (dateRange) {
-    where.reportDate = { gte: dateRange.gte, lte: dateRange.lte }
-  }
-
-  const aggregate = await prisma.metaAdsMetric.aggregate({
-    where,
-    _sum: { cost: true },
-  })
-
-  const sum = aggregate._sum.cost
-  return sum ? Number(sum) : 0
+  // Investment data is no longer available (MetaAdsMetric model was removed)
+  return 0
 }
 
 async function fetchTrafficSources(organizationId: string) {

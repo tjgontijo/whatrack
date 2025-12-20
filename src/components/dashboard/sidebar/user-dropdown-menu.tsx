@@ -11,7 +11,6 @@ import {
     LogOut,
     Building2,
     User,
-    AlertTriangle,
 } from 'lucide-react'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -33,14 +32,12 @@ interface UserDropdownMenuProps {
     userName: string
     userEmail: string
     userImage?: string | null
-    hasUsageWarning?: boolean
 }
 
 export function UserDropdownMenu({
     userName,
     userEmail,
     userImage,
-    hasUsageWarning,
 }: UserDropdownMenuProps) {
     const router = useRouter()
     const [avatarLoaded, setAvatarLoaded] = React.useState(false)
@@ -174,18 +171,6 @@ export function UserDropdownMenu({
                     <DropdownMenuItem onSelect={() => handleNavigate('/dashboard/settings/billing')}>
                         <CreditCard className="mr-2 h-4 w-4" />
                         Billing
-                        {hasUsageWarning && (
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <AlertTriangle className="ml-auto h-4 w-4 text-warning" />
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p>Próximo do limite do plano</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
-                        )}
                     </DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => handleNavigate('/dashboard/settings')}>
                         <Settings className="mr-2 h-4 w-4" />

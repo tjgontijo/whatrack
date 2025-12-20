@@ -17,7 +17,6 @@ import { RefreshCw } from 'lucide-react'
 import { DashboardMetricCard, DashboardMetricGrid } from '@/components/dashboard/charts/card'
 import { DashboardPieChart } from '@/components/dashboard/charts/pie'
 import { FunnelChart } from '@/components/dashboard/charts/funnel-chart'
-import { MetaAdsCampaignsTable } from '@/components/dashboard/charts/meta-ads-campaigns-table'
 import { formatCurrencyBRL } from '@/lib/mask/formatters'
 import { ORGANIZATION_HEADER } from '@/lib/constants'
 import { authClient } from '@/lib/auth/auth-client'
@@ -314,9 +313,6 @@ export default function DashboardPage() {
           />
           <div className="xl:col-span-4 xl:row-span-2 md:col-span-2 md:row-span-2">
             <FunnelChart steps={funnelSteps} />
-          </div>
-          <div className="xl:col-span-4 xl:row-span-3 md:col-span-2 md:row-span-3">
-            <MetaAdsCampaignsTable rows={data?.paidCampaigns ?? []} isLoading={isFetching} className="h-full" />
           </div>
         </DashboardMetricGrid>
       </section>

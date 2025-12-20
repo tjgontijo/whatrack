@@ -53,16 +53,6 @@ export async function buildPaidCampaignsSummary(
           totalAmount: true,
         },
       },
-      appointments: {
-        select: {
-          scheduledFor: true,
-          attendance: {
-            select: {
-              createdAt: true,
-            },
-          },
-        },
-      },
     },
   })
 
@@ -128,24 +118,6 @@ export async function buildPaidCampaignsSummary(
       bucket.leadIds.add(ticket.whatsappConversation.leadId)
     }
 
-    for (const appointment of ticket.appointments) {
-      const inRange =
-        !dateRange ||
-        (appointment.scheduledFor >= dateRange.gte && appointment.scheduledFor <= dateRange.lte)
-      if (inRange) {
-        bucket.schedules += 1
-      }
-
-      if (appointment.attendance) {
-        const attendanceInRange =
-          !dateRange ||
-          (appointment.attendance.createdAt >= dateRange.gte && appointment.attendance.createdAt <= dateRange.lte)
-        if (attendanceInRange) {
-          bucket.attendances += 1
-        }
-      }
-    }
-
     for (const sale of ticket.sales) {
       const isCompleted = sale.status === 'completed'
       const saleInRange = !dateRange || (sale.createdAt >= dateRange.gte && sale.createdAt <= dateRange.lte)
@@ -156,60 +128,6 @@ export async function buildPaidCampaignsSummary(
         bucket.revenue += Number.isFinite(numericAmount) ? numericAmount : 0
       }
     }
-  }
-
-  const metricsWhere: Prisma.MetaAdsMetricWhereInput = { organizationId }
-  if (dateRange) {
-    metricsWhere.reportDate = { gte: dateRange.gte, lte: dateRange.lte }
-  }
-
-  const metaCosts = await prisma.metaAdsMetric.groupBy({
-    by: ['campaignId', 'adsetId', 'adId', 'campaign', 'adset', 'ad'],
-    where: metricsWhere,
-    _sum: { cost: true },
-  })
-
-  for (const metric of metaCosts) {
-    const campaignId = sanitizeId(metric.campaignId)
-    const adsetId = sanitizeId(metric.adsetId)
-    const adId = sanitizeId(metric.adId)
-    if (!campaignId || !adsetId || !adId) {
-      continue
-    }
-
-    const key = buildCampaignKey({ campaignId, adsetId, adId })
-
-    let bucket = buckets.get(key)
-    if (!bucket) {
-      bucket = {
-        campaignId,
-        adsetId,
-        adId,
-        campaign: null,
-        adset: null,
-        ad: null,
-        leadIds: new Set<string>(),
-        schedules: 0,
-        attendances: 0,
-        sales: 0,
-        revenue: 0,
-        investment: 0,
-      }
-      buckets.set(key, bucket)
-    }
-
-    if (!bucket.campaign) {
-      bucket.campaign = sanitizeLabel(metric.campaign)
-    }
-    if (!bucket.adset) {
-      bucket.adset = sanitizeLabel(metric.adset)
-    }
-    if (!bucket.ad) {
-      bucket.ad = sanitizeLabel(metric.ad)
-    }
-
-    const numericCost = metric._sum.cost ? Number(metric._sum.cost) : 0
-    bucket.investment += Number.isFinite(numericCost) ? numericCost : 0
   }
 
   const result: PaidCampaignSummary[] = []

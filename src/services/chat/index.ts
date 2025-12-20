@@ -151,8 +151,6 @@ export async function resolveTicket(conversationId: string): Promise<Ticket> {
       organizationId: conversation.organizationId,
       whatsappConversationId: conversationId,
       status: 'OPEN',
-      followUpEnabled: false,
-      currentFollowUpStep: 0,
     },
   })
 }

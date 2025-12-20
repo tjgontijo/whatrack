@@ -259,7 +259,6 @@ export type WhatsappConversationWhereInput = {
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   lead?: Prisma.XOR<Prisma.LeadScalarRelationFilter, Prisma.LeadWhereInput>
   tickets?: Prisma.TicketListRelationFilter
-  whatsappConversationMetrics?: Prisma.XOR<Prisma.WhatsappConversationMetricsNullableScalarRelationFilter, Prisma.WhatsappConversationMetricsWhereInput> | null
 }
 
 export type WhatsappConversationOrderByWithRelationInput = {
@@ -276,7 +275,6 @@ export type WhatsappConversationOrderByWithRelationInput = {
   organization?: Prisma.OrganizationOrderByWithRelationInput
   lead?: Prisma.LeadOrderByWithRelationInput
   tickets?: Prisma.TicketOrderByRelationAggregateInput
-  whatsappConversationMetrics?: Prisma.WhatsappConversationMetricsOrderByWithRelationInput
 }
 
 export type WhatsappConversationWhereUniqueInput = Prisma.AtLeast<{
@@ -297,7 +295,6 @@ export type WhatsappConversationWhereUniqueInput = Prisma.AtLeast<{
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   lead?: Prisma.XOR<Prisma.LeadScalarRelationFilter, Prisma.LeadWhereInput>
   tickets?: Prisma.TicketListRelationFilter
-  whatsappConversationMetrics?: Prisma.XOR<Prisma.WhatsappConversationMetricsNullableScalarRelationFilter, Prisma.WhatsappConversationMetricsWhereInput> | null
 }, "id" | "leadId_instanceId">
 
 export type WhatsappConversationOrderByWithAggregationInput = {
@@ -346,7 +343,6 @@ export type WhatsappConversationCreateInput = {
   organization: Prisma.OrganizationCreateNestedOneWithoutWhatsappConversationsInput
   lead: Prisma.LeadCreateNestedOneWithoutWhatsappConversationsInput
   tickets?: Prisma.TicketCreateNestedManyWithoutWhatsappConversationInput
-  whatsappConversationMetrics?: Prisma.WhatsappConversationMetricsCreateNestedOneWithoutWhatsappConversationInput
 }
 
 export type WhatsappConversationUncheckedCreateInput = {
@@ -361,7 +357,6 @@ export type WhatsappConversationUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   tickets?: Prisma.TicketUncheckedCreateNestedManyWithoutWhatsappConversationInput
-  whatsappConversationMetrics?: Prisma.WhatsappConversationMetricsUncheckedCreateNestedOneWithoutWhatsappConversationInput
 }
 
 export type WhatsappConversationUpdateInput = {
@@ -376,7 +371,6 @@ export type WhatsappConversationUpdateInput = {
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutWhatsappConversationsNestedInput
   lead?: Prisma.LeadUpdateOneRequiredWithoutWhatsappConversationsNestedInput
   tickets?: Prisma.TicketUpdateManyWithoutWhatsappConversationNestedInput
-  whatsappConversationMetrics?: Prisma.WhatsappConversationMetricsUpdateOneWithoutWhatsappConversationNestedInput
 }
 
 export type WhatsappConversationUncheckedUpdateInput = {
@@ -391,7 +385,6 @@ export type WhatsappConversationUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tickets?: Prisma.TicketUncheckedUpdateManyWithoutWhatsappConversationNestedInput
-  whatsappConversationMetrics?: Prisma.WhatsappConversationMetricsUncheckedUpdateOneWithoutWhatsappConversationNestedInput
 }
 
 export type WhatsappConversationCreateManyInput = {
@@ -598,20 +591,6 @@ export type IntFieldUpdateOperationsInput = {
   divide?: number
 }
 
-export type WhatsappConversationCreateNestedOneWithoutWhatsappConversationMetricsInput = {
-  create?: Prisma.XOR<Prisma.WhatsappConversationCreateWithoutWhatsappConversationMetricsInput, Prisma.WhatsappConversationUncheckedCreateWithoutWhatsappConversationMetricsInput>
-  connectOrCreate?: Prisma.WhatsappConversationCreateOrConnectWithoutWhatsappConversationMetricsInput
-  connect?: Prisma.WhatsappConversationWhereUniqueInput
-}
-
-export type WhatsappConversationUpdateOneRequiredWithoutWhatsappConversationMetricsNestedInput = {
-  create?: Prisma.XOR<Prisma.WhatsappConversationCreateWithoutWhatsappConversationMetricsInput, Prisma.WhatsappConversationUncheckedCreateWithoutWhatsappConversationMetricsInput>
-  connectOrCreate?: Prisma.WhatsappConversationCreateOrConnectWithoutWhatsappConversationMetricsInput
-  upsert?: Prisma.WhatsappConversationUpsertWithoutWhatsappConversationMetricsInput
-  connect?: Prisma.WhatsappConversationWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.WhatsappConversationUpdateToOneWithWhereWithoutWhatsappConversationMetricsInput, Prisma.WhatsappConversationUpdateWithoutWhatsappConversationMetricsInput>, Prisma.WhatsappConversationUncheckedUpdateWithoutWhatsappConversationMetricsInput>
-}
-
 export type WhatsappConversationCreateNestedOneWithoutTicketsInput = {
   create?: Prisma.XOR<Prisma.WhatsappConversationCreateWithoutTicketsInput, Prisma.WhatsappConversationUncheckedCreateWithoutTicketsInput>
   connectOrCreate?: Prisma.WhatsappConversationCreateOrConnectWithoutTicketsInput
@@ -637,7 +616,6 @@ export type WhatsappConversationCreateWithoutOrganizationInput = {
   updatedAt?: Date | string
   lead: Prisma.LeadCreateNestedOneWithoutWhatsappConversationsInput
   tickets?: Prisma.TicketCreateNestedManyWithoutWhatsappConversationInput
-  whatsappConversationMetrics?: Prisma.WhatsappConversationMetricsCreateNestedOneWithoutWhatsappConversationInput
 }
 
 export type WhatsappConversationUncheckedCreateWithoutOrganizationInput = {
@@ -651,7 +629,6 @@ export type WhatsappConversationUncheckedCreateWithoutOrganizationInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   tickets?: Prisma.TicketUncheckedCreateNestedManyWithoutWhatsappConversationInput
-  whatsappConversationMetrics?: Prisma.WhatsappConversationMetricsUncheckedCreateNestedOneWithoutWhatsappConversationInput
 }
 
 export type WhatsappConversationCreateOrConnectWithoutOrganizationInput = {
@@ -707,7 +684,6 @@ export type WhatsappConversationCreateWithoutLeadInput = {
   updatedAt?: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutWhatsappConversationsInput
   tickets?: Prisma.TicketCreateNestedManyWithoutWhatsappConversationInput
-  whatsappConversationMetrics?: Prisma.WhatsappConversationMetricsCreateNestedOneWithoutWhatsappConversationInput
 }
 
 export type WhatsappConversationUncheckedCreateWithoutLeadInput = {
@@ -721,7 +697,6 @@ export type WhatsappConversationUncheckedCreateWithoutLeadInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   tickets?: Prisma.TicketUncheckedCreateNestedManyWithoutWhatsappConversationInput
-  whatsappConversationMetrics?: Prisma.WhatsappConversationMetricsUncheckedCreateNestedOneWithoutWhatsappConversationInput
 }
 
 export type WhatsappConversationCreateOrConnectWithoutLeadInput = {
@@ -750,78 +725,6 @@ export type WhatsappConversationUpdateManyWithWhereWithoutLeadInput = {
   data: Prisma.XOR<Prisma.WhatsappConversationUpdateManyMutationInput, Prisma.WhatsappConversationUncheckedUpdateManyWithoutLeadInput>
 }
 
-export type WhatsappConversationCreateWithoutWhatsappConversationMetricsInput = {
-  id?: string
-  instanceId: string
-  status?: $Enums.ConversationStatus
-  priority?: $Enums.ConversationPriority
-  unreadCount?: number
-  lastMessageAt?: Date | string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  organization: Prisma.OrganizationCreateNestedOneWithoutWhatsappConversationsInput
-  lead: Prisma.LeadCreateNestedOneWithoutWhatsappConversationsInput
-  tickets?: Prisma.TicketCreateNestedManyWithoutWhatsappConversationInput
-}
-
-export type WhatsappConversationUncheckedCreateWithoutWhatsappConversationMetricsInput = {
-  id?: string
-  organizationId: string
-  leadId: string
-  instanceId: string
-  status?: $Enums.ConversationStatus
-  priority?: $Enums.ConversationPriority
-  unreadCount?: number
-  lastMessageAt?: Date | string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  tickets?: Prisma.TicketUncheckedCreateNestedManyWithoutWhatsappConversationInput
-}
-
-export type WhatsappConversationCreateOrConnectWithoutWhatsappConversationMetricsInput = {
-  where: Prisma.WhatsappConversationWhereUniqueInput
-  create: Prisma.XOR<Prisma.WhatsappConversationCreateWithoutWhatsappConversationMetricsInput, Prisma.WhatsappConversationUncheckedCreateWithoutWhatsappConversationMetricsInput>
-}
-
-export type WhatsappConversationUpsertWithoutWhatsappConversationMetricsInput = {
-  update: Prisma.XOR<Prisma.WhatsappConversationUpdateWithoutWhatsappConversationMetricsInput, Prisma.WhatsappConversationUncheckedUpdateWithoutWhatsappConversationMetricsInput>
-  create: Prisma.XOR<Prisma.WhatsappConversationCreateWithoutWhatsappConversationMetricsInput, Prisma.WhatsappConversationUncheckedCreateWithoutWhatsappConversationMetricsInput>
-  where?: Prisma.WhatsappConversationWhereInput
-}
-
-export type WhatsappConversationUpdateToOneWithWhereWithoutWhatsappConversationMetricsInput = {
-  where?: Prisma.WhatsappConversationWhereInput
-  data: Prisma.XOR<Prisma.WhatsappConversationUpdateWithoutWhatsappConversationMetricsInput, Prisma.WhatsappConversationUncheckedUpdateWithoutWhatsappConversationMetricsInput>
-}
-
-export type WhatsappConversationUpdateWithoutWhatsappConversationMetricsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  instanceId?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.EnumConversationStatusFieldUpdateOperationsInput | $Enums.ConversationStatus
-  priority?: Prisma.EnumConversationPriorityFieldUpdateOperationsInput | $Enums.ConversationPriority
-  unreadCount?: Prisma.IntFieldUpdateOperationsInput | number
-  lastMessageAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  organization?: Prisma.OrganizationUpdateOneRequiredWithoutWhatsappConversationsNestedInput
-  lead?: Prisma.LeadUpdateOneRequiredWithoutWhatsappConversationsNestedInput
-  tickets?: Prisma.TicketUpdateManyWithoutWhatsappConversationNestedInput
-}
-
-export type WhatsappConversationUncheckedUpdateWithoutWhatsappConversationMetricsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
-  leadId?: Prisma.StringFieldUpdateOperationsInput | string
-  instanceId?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.EnumConversationStatusFieldUpdateOperationsInput | $Enums.ConversationStatus
-  priority?: Prisma.EnumConversationPriorityFieldUpdateOperationsInput | $Enums.ConversationPriority
-  unreadCount?: Prisma.IntFieldUpdateOperationsInput | number
-  lastMessageAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  tickets?: Prisma.TicketUncheckedUpdateManyWithoutWhatsappConversationNestedInput
-}
-
 export type WhatsappConversationCreateWithoutTicketsInput = {
   id?: string
   instanceId: string
@@ -833,7 +736,6 @@ export type WhatsappConversationCreateWithoutTicketsInput = {
   updatedAt?: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutWhatsappConversationsInput
   lead: Prisma.LeadCreateNestedOneWithoutWhatsappConversationsInput
-  whatsappConversationMetrics?: Prisma.WhatsappConversationMetricsCreateNestedOneWithoutWhatsappConversationInput
 }
 
 export type WhatsappConversationUncheckedCreateWithoutTicketsInput = {
@@ -847,7 +749,6 @@ export type WhatsappConversationUncheckedCreateWithoutTicketsInput = {
   lastMessageAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  whatsappConversationMetrics?: Prisma.WhatsappConversationMetricsUncheckedCreateNestedOneWithoutWhatsappConversationInput
 }
 
 export type WhatsappConversationCreateOrConnectWithoutTicketsInput = {
@@ -877,7 +778,6 @@ export type WhatsappConversationUpdateWithoutTicketsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutWhatsappConversationsNestedInput
   lead?: Prisma.LeadUpdateOneRequiredWithoutWhatsappConversationsNestedInput
-  whatsappConversationMetrics?: Prisma.WhatsappConversationMetricsUpdateOneWithoutWhatsappConversationNestedInput
 }
 
 export type WhatsappConversationUncheckedUpdateWithoutTicketsInput = {
@@ -891,7 +791,6 @@ export type WhatsappConversationUncheckedUpdateWithoutTicketsInput = {
   lastMessageAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  whatsappConversationMetrics?: Prisma.WhatsappConversationMetricsUncheckedUpdateOneWithoutWhatsappConversationNestedInput
 }
 
 export type WhatsappConversationCreateManyOrganizationInput = {
@@ -917,7 +816,6 @@ export type WhatsappConversationUpdateWithoutOrganizationInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lead?: Prisma.LeadUpdateOneRequiredWithoutWhatsappConversationsNestedInput
   tickets?: Prisma.TicketUpdateManyWithoutWhatsappConversationNestedInput
-  whatsappConversationMetrics?: Prisma.WhatsappConversationMetricsUpdateOneWithoutWhatsappConversationNestedInput
 }
 
 export type WhatsappConversationUncheckedUpdateWithoutOrganizationInput = {
@@ -931,7 +829,6 @@ export type WhatsappConversationUncheckedUpdateWithoutOrganizationInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tickets?: Prisma.TicketUncheckedUpdateManyWithoutWhatsappConversationNestedInput
-  whatsappConversationMetrics?: Prisma.WhatsappConversationMetricsUncheckedUpdateOneWithoutWhatsappConversationNestedInput
 }
 
 export type WhatsappConversationUncheckedUpdateManyWithoutOrganizationInput = {
@@ -969,7 +866,6 @@ export type WhatsappConversationUpdateWithoutLeadInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutWhatsappConversationsNestedInput
   tickets?: Prisma.TicketUpdateManyWithoutWhatsappConversationNestedInput
-  whatsappConversationMetrics?: Prisma.WhatsappConversationMetricsUpdateOneWithoutWhatsappConversationNestedInput
 }
 
 export type WhatsappConversationUncheckedUpdateWithoutLeadInput = {
@@ -983,7 +879,6 @@ export type WhatsappConversationUncheckedUpdateWithoutLeadInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tickets?: Prisma.TicketUncheckedUpdateManyWithoutWhatsappConversationNestedInput
-  whatsappConversationMetrics?: Prisma.WhatsappConversationMetricsUncheckedUpdateOneWithoutWhatsappConversationNestedInput
 }
 
 export type WhatsappConversationUncheckedUpdateManyWithoutLeadInput = {
@@ -1043,7 +938,6 @@ export type WhatsappConversationSelect<ExtArgs extends runtime.Types.Extensions.
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   lead?: boolean | Prisma.LeadDefaultArgs<ExtArgs>
   tickets?: boolean | Prisma.WhatsappConversation$ticketsArgs<ExtArgs>
-  whatsappConversationMetrics?: boolean | Prisma.WhatsappConversation$whatsappConversationMetricsArgs<ExtArgs>
   _count?: boolean | Prisma.WhatsappConversationCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["whatsappConversation"]>
 
@@ -1095,7 +989,6 @@ export type WhatsappConversationInclude<ExtArgs extends runtime.Types.Extensions
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   lead?: boolean | Prisma.LeadDefaultArgs<ExtArgs>
   tickets?: boolean | Prisma.WhatsappConversation$ticketsArgs<ExtArgs>
-  whatsappConversationMetrics?: boolean | Prisma.WhatsappConversation$whatsappConversationMetricsArgs<ExtArgs>
   _count?: boolean | Prisma.WhatsappConversationCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type WhatsappConversationIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1113,7 +1006,6 @@ export type $WhatsappConversationPayload<ExtArgs extends runtime.Types.Extension
     organization: Prisma.$OrganizationPayload<ExtArgs>
     lead: Prisma.$LeadPayload<ExtArgs>
     tickets: Prisma.$TicketPayload<ExtArgs>[]
-    whatsappConversationMetrics: Prisma.$WhatsappConversationMetricsPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1523,7 +1415,6 @@ export interface Prisma__WhatsappConversationClient<T, Null = never, ExtArgs ext
   organization<T extends Prisma.OrganizationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   lead<T extends Prisma.LeadDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.LeadDefaultArgs<ExtArgs>>): Prisma.Prisma__LeadClient<runtime.Types.Result.GetResult<Prisma.$LeadPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   tickets<T extends Prisma.WhatsappConversation$ticketsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.WhatsappConversation$ticketsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TicketPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  whatsappConversationMetrics<T extends Prisma.WhatsappConversation$whatsappConversationMetricsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.WhatsappConversation$whatsappConversationMetricsArgs<ExtArgs>>): Prisma.Prisma__WhatsappConversationMetricsClient<runtime.Types.Result.GetResult<Prisma.$WhatsappConversationMetricsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1980,25 +1871,6 @@ export type WhatsappConversation$ticketsArgs<ExtArgs extends runtime.Types.Exten
   take?: number
   skip?: number
   distinct?: Prisma.TicketScalarFieldEnum | Prisma.TicketScalarFieldEnum[]
-}
-
-/**
- * WhatsappConversation.whatsappConversationMetrics
- */
-export type WhatsappConversation$whatsappConversationMetricsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the WhatsappConversationMetrics
-   */
-  select?: Prisma.WhatsappConversationMetricsSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the WhatsappConversationMetrics
-   */
-  omit?: Prisma.WhatsappConversationMetricsOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.WhatsappConversationMetricsInclude<ExtArgs> | null
-  where?: Prisma.WhatsappConversationMetricsWhereInput
 }
 
 /**

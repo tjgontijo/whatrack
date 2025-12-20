@@ -45,16 +45,6 @@ export async function buildOriginsSummary(
           totalAmount: true,
         },
       },
-      appointments: {
-        select: {
-          scheduledFor: true,
-          attendance: {
-            select: {
-              createdAt: true,
-            },
-          },
-        },
-      },
     },
   })
 
@@ -100,26 +90,6 @@ export async function buildOriginsSummary(
       bucket.campaignIds.add(ticket.campaignId)
     }
 
-    for (const appointment of ticket.appointments) {
-      const inRange =
-        !dateRange ||
-        (appointment.scheduledFor >= dateRange.gte && appointment.scheduledFor <= dateRange.lte)
-
-      if (inRange) {
-        bucket.schedules += 1
-      }
-
-      if (appointment.attendance) {
-        const attendanceInRange =
-          !dateRange ||
-          (appointment.attendance.createdAt >= dateRange.gte && appointment.attendance.createdAt <= dateRange.lte)
-
-        if (attendanceInRange) {
-          bucket.attendances += 1
-        }
-      }
-    }
-
     for (const sale of ticket.sales) {
       const isCompleted = sale.status === 'completed'
       const saleInRange = !dateRange || (sale.createdAt >= dateRange.gte && sale.createdAt <= dateRange.lte)
@@ -132,51 +102,13 @@ export async function buildOriginsSummary(
     }
   }
 
-  // Fetch Meta Ads costs for paid traffic
-  const allCampaignIds = new Set<string>()
-  for (const bucket of buckets.values()) {
-    for (const campaignId of bucket.campaignIds) {
-      allCampaignIds.add(campaignId)
-    }
-  }
-
-  const costByCampaignId = new Map<string, number>()
-
-  if (allCampaignIds.size > 0) {
-    const metaAdsWhere: Prisma.MetaAdsMetricWhereInput = {
-      organizationId,
-      campaignId: { in: Array.from(allCampaignIds) },
-    }
-
-    if (dateRange) {
-      metaAdsWhere.reportDate = { gte: dateRange.gte, lte: dateRange.lte }
-    }
-
-    const metaAdsMetrics = await prisma.metaAdsMetric.findMany({
-      where: metaAdsWhere,
-      select: {
-        campaignId: true,
-        cost: true,
-      },
-    })
-
-    for (const metric of metaAdsMetrics) {
-      const currentCost = costByCampaignId.get(metric.campaignId) || 0
-      const metricCost = metric.cost ? Number(metric.cost) : 0
-      costByCampaignId.set(metric.campaignId, currentCost + metricCost)
-    }
-  }
-
   const result: OriginSummary[] = []
 
   for (const bucket of buckets.values()) {
     const leads = bucket.leadIds.size
 
-    // Calculate total cost from Meta Ads campaigns
-    let cost = 0
-    for (const campaignId of bucket.campaignIds) {
-      cost += costByCampaignId.get(campaignId) || 0
-    }
+    // Cost data is no longer available (MetaAdsMetric model was removed)
+    const cost = 0
 
     const roas = cost > 0 ? bucket.revenue / cost : null
     const cac = leads > 0 && cost > 0 ? cost / leads : null

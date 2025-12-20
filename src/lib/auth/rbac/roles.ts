@@ -132,10 +132,6 @@ export function canAccessResource(
 
 export function getHighestRole(
   currentRole: string | null | undefined,
-  hasActiveSubscription: boolean,
 ): UserRoleType {
-  const normalized = normalizeRole(currentRole)
-  if (normalized === 'owner') return 'owner'
-  if (normalized === 'admin') return 'admin'
-  return hasActiveSubscription ? 'admin' : 'user'
+  return normalizeRole(currentRole)
 }

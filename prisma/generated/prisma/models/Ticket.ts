@@ -20,18 +20,8 @@ export type TicketModel = runtime.Types.Result.DefaultSelection<Prisma.$TicketPa
 
 export type AggregateTicket = {
   _count: TicketCountAggregateOutputType | null
-  _avg: TicketAvgAggregateOutputType | null
-  _sum: TicketSumAggregateOutputType | null
   _min: TicketMinAggregateOutputType | null
   _max: TicketMaxAggregateOutputType | null
-}
-
-export type TicketAvgAggregateOutputType = {
-  currentFollowUpStep: number | null
-}
-
-export type TicketSumAggregateOutputType = {
-  currentFollowUpStep: number | null
 }
 
 export type TicketMinAggregateOutputType = {
@@ -42,8 +32,6 @@ export type TicketMinAggregateOutputType = {
   assigneeId: string | null
   assigneeName: string | null
   resolvedAt: Date | null
-  followUpEnabled: boolean | null
-  currentFollowUpStep: number | null
   gclid: string | null
   fbclid: string | null
   ctwaclid: string | null
@@ -70,8 +58,6 @@ export type TicketMaxAggregateOutputType = {
   assigneeId: string | null
   assigneeName: string | null
   resolvedAt: Date | null
-  followUpEnabled: boolean | null
-  currentFollowUpStep: number | null
   gclid: string | null
   fbclid: string | null
   ctwaclid: string | null
@@ -98,8 +84,6 @@ export type TicketCountAggregateOutputType = {
   assigneeId: number
   assigneeName: number
   resolvedAt: number
-  followUpEnabled: number
-  currentFollowUpStep: number
   gclid: number
   fbclid: number
   ctwaclid: number
@@ -120,14 +104,6 @@ export type TicketCountAggregateOutputType = {
 }
 
 
-export type TicketAvgAggregateInputType = {
-  currentFollowUpStep?: true
-}
-
-export type TicketSumAggregateInputType = {
-  currentFollowUpStep?: true
-}
-
 export type TicketMinAggregateInputType = {
   id?: true
   organizationId?: true
@@ -136,8 +112,6 @@ export type TicketMinAggregateInputType = {
   assigneeId?: true
   assigneeName?: true
   resolvedAt?: true
-  followUpEnabled?: true
-  currentFollowUpStep?: true
   gclid?: true
   fbclid?: true
   ctwaclid?: true
@@ -164,8 +138,6 @@ export type TicketMaxAggregateInputType = {
   assigneeId?: true
   assigneeName?: true
   resolvedAt?: true
-  followUpEnabled?: true
-  currentFollowUpStep?: true
   gclid?: true
   fbclid?: true
   ctwaclid?: true
@@ -192,8 +164,6 @@ export type TicketCountAggregateInputType = {
   assigneeId?: true
   assigneeName?: true
   resolvedAt?: true
-  followUpEnabled?: true
-  currentFollowUpStep?: true
   gclid?: true
   fbclid?: true
   ctwaclid?: true
@@ -251,18 +221,6 @@ export type TicketAggregateArgs<ExtArgs extends runtime.Types.Extensions.Interna
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
-   * Select which fields to average
-  **/
-  _avg?: TicketAvgAggregateInputType
-  /**
-   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-   * 
-   * Select which fields to sum
-  **/
-  _sum?: TicketSumAggregateInputType
-  /**
-   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-   * 
    * Select which fields to find the minimum value
   **/
   _min?: TicketMinAggregateInputType
@@ -293,8 +251,6 @@ export type TicketGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   take?: number
   skip?: number
   _count?: TicketCountAggregateInputType | true
-  _avg?: TicketAvgAggregateInputType
-  _sum?: TicketSumAggregateInputType
   _min?: TicketMinAggregateInputType
   _max?: TicketMaxAggregateInputType
 }
@@ -307,8 +263,6 @@ export type TicketGroupByOutputType = {
   assigneeId: string | null
   assigneeName: string | null
   resolvedAt: Date | null
-  followUpEnabled: boolean
-  currentFollowUpStep: number | null
   gclid: string | null
   fbclid: string | null
   ctwaclid: string | null
@@ -326,8 +280,6 @@ export type TicketGroupByOutputType = {
   createdAt: Date
   updatedAt: Date
   _count: TicketCountAggregateOutputType | null
-  _avg: TicketAvgAggregateOutputType | null
-  _sum: TicketSumAggregateOutputType | null
   _min: TicketMinAggregateOutputType | null
   _max: TicketMaxAggregateOutputType | null
 }
@@ -358,8 +310,6 @@ export type TicketWhereInput = {
   assigneeId?: Prisma.StringNullableFilter<"Ticket"> | string | null
   assigneeName?: Prisma.StringNullableFilter<"Ticket"> | string | null
   resolvedAt?: Prisma.DateTimeNullableFilter<"Ticket"> | Date | string | null
-  followUpEnabled?: Prisma.BoolFilter<"Ticket"> | boolean
-  currentFollowUpStep?: Prisma.IntNullableFilter<"Ticket"> | number | null
   gclid?: Prisma.StringNullableFilter<"Ticket"> | string | null
   fbclid?: Prisma.StringNullableFilter<"Ticket"> | string | null
   ctwaclid?: Prisma.StringNullableFilter<"Ticket"> | string | null
@@ -379,12 +329,7 @@ export type TicketWhereInput = {
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   whatsappConversation?: Prisma.XOR<Prisma.WhatsappConversationScalarRelationFilter, Prisma.WhatsappConversationWhereInput>
   sales?: Prisma.SaleListRelationFilter
-  events?: Prisma.PlatformEventListRelationFilter
-  analytics?: Prisma.XOR<Prisma.SalesAnalyticsNullableScalarRelationFilter, Prisma.SalesAnalyticsWhereInput> | null
-  appointments?: Prisma.AppointmentListRelationFilter
   messages?: Prisma.WhatsappMessageListRelationFilter
-  scheduledMessages?: Prisma.ScheduledMessageListRelationFilter
-  analysis?: Prisma.XOR<Prisma.TicketAnalysisNullableScalarRelationFilter, Prisma.TicketAnalysisWhereInput> | null
 }
 
 export type TicketOrderByWithRelationInput = {
@@ -395,8 +340,6 @@ export type TicketOrderByWithRelationInput = {
   assigneeId?: Prisma.SortOrderInput | Prisma.SortOrder
   assigneeName?: Prisma.SortOrderInput | Prisma.SortOrder
   resolvedAt?: Prisma.SortOrderInput | Prisma.SortOrder
-  followUpEnabled?: Prisma.SortOrder
-  currentFollowUpStep?: Prisma.SortOrderInput | Prisma.SortOrder
   gclid?: Prisma.SortOrderInput | Prisma.SortOrder
   fbclid?: Prisma.SortOrderInput | Prisma.SortOrder
   ctwaclid?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -416,12 +359,7 @@ export type TicketOrderByWithRelationInput = {
   organization?: Prisma.OrganizationOrderByWithRelationInput
   whatsappConversation?: Prisma.WhatsappConversationOrderByWithRelationInput
   sales?: Prisma.SaleOrderByRelationAggregateInput
-  events?: Prisma.PlatformEventOrderByRelationAggregateInput
-  analytics?: Prisma.SalesAnalyticsOrderByWithRelationInput
-  appointments?: Prisma.AppointmentOrderByRelationAggregateInput
   messages?: Prisma.WhatsappMessageOrderByRelationAggregateInput
-  scheduledMessages?: Prisma.ScheduledMessageOrderByRelationAggregateInput
-  analysis?: Prisma.TicketAnalysisOrderByWithRelationInput
 }
 
 export type TicketWhereUniqueInput = Prisma.AtLeast<{
@@ -435,8 +373,6 @@ export type TicketWhereUniqueInput = Prisma.AtLeast<{
   assigneeId?: Prisma.StringNullableFilter<"Ticket"> | string | null
   assigneeName?: Prisma.StringNullableFilter<"Ticket"> | string | null
   resolvedAt?: Prisma.DateTimeNullableFilter<"Ticket"> | Date | string | null
-  followUpEnabled?: Prisma.BoolFilter<"Ticket"> | boolean
-  currentFollowUpStep?: Prisma.IntNullableFilter<"Ticket"> | number | null
   gclid?: Prisma.StringNullableFilter<"Ticket"> | string | null
   fbclid?: Prisma.StringNullableFilter<"Ticket"> | string | null
   ctwaclid?: Prisma.StringNullableFilter<"Ticket"> | string | null
@@ -456,12 +392,7 @@ export type TicketWhereUniqueInput = Prisma.AtLeast<{
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   whatsappConversation?: Prisma.XOR<Prisma.WhatsappConversationScalarRelationFilter, Prisma.WhatsappConversationWhereInput>
   sales?: Prisma.SaleListRelationFilter
-  events?: Prisma.PlatformEventListRelationFilter
-  analytics?: Prisma.XOR<Prisma.SalesAnalyticsNullableScalarRelationFilter, Prisma.SalesAnalyticsWhereInput> | null
-  appointments?: Prisma.AppointmentListRelationFilter
   messages?: Prisma.WhatsappMessageListRelationFilter
-  scheduledMessages?: Prisma.ScheduledMessageListRelationFilter
-  analysis?: Prisma.XOR<Prisma.TicketAnalysisNullableScalarRelationFilter, Prisma.TicketAnalysisWhereInput> | null
 }, "id">
 
 export type TicketOrderByWithAggregationInput = {
@@ -472,8 +403,6 @@ export type TicketOrderByWithAggregationInput = {
   assigneeId?: Prisma.SortOrderInput | Prisma.SortOrder
   assigneeName?: Prisma.SortOrderInput | Prisma.SortOrder
   resolvedAt?: Prisma.SortOrderInput | Prisma.SortOrder
-  followUpEnabled?: Prisma.SortOrder
-  currentFollowUpStep?: Prisma.SortOrderInput | Prisma.SortOrder
   gclid?: Prisma.SortOrderInput | Prisma.SortOrder
   fbclid?: Prisma.SortOrderInput | Prisma.SortOrder
   ctwaclid?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -491,10 +420,8 @@ export type TicketOrderByWithAggregationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.TicketCountOrderByAggregateInput
-  _avg?: Prisma.TicketAvgOrderByAggregateInput
   _max?: Prisma.TicketMaxOrderByAggregateInput
   _min?: Prisma.TicketMinOrderByAggregateInput
-  _sum?: Prisma.TicketSumOrderByAggregateInput
 }
 
 export type TicketScalarWhereWithAggregatesInput = {
@@ -508,8 +435,6 @@ export type TicketScalarWhereWithAggregatesInput = {
   assigneeId?: Prisma.StringNullableWithAggregatesFilter<"Ticket"> | string | null
   assigneeName?: Prisma.StringNullableWithAggregatesFilter<"Ticket"> | string | null
   resolvedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Ticket"> | Date | string | null
-  followUpEnabled?: Prisma.BoolWithAggregatesFilter<"Ticket"> | boolean
-  currentFollowUpStep?: Prisma.IntNullableWithAggregatesFilter<"Ticket"> | number | null
   gclid?: Prisma.StringNullableWithAggregatesFilter<"Ticket"> | string | null
   fbclid?: Prisma.StringNullableWithAggregatesFilter<"Ticket"> | string | null
   ctwaclid?: Prisma.StringNullableWithAggregatesFilter<"Ticket"> | string | null
@@ -534,8 +459,6 @@ export type TicketCreateInput = {
   assigneeId?: string | null
   assigneeName?: string | null
   resolvedAt?: Date | string | null
-  followUpEnabled?: boolean
-  currentFollowUpStep?: number | null
   gclid?: string | null
   fbclid?: string | null
   ctwaclid?: string | null
@@ -555,12 +478,7 @@ export type TicketCreateInput = {
   organization: Prisma.OrganizationCreateNestedOneWithoutTicketsInput
   whatsappConversation: Prisma.WhatsappConversationCreateNestedOneWithoutTicketsInput
   sales?: Prisma.SaleCreateNestedManyWithoutTicketInput
-  events?: Prisma.PlatformEventCreateNestedManyWithoutTicketInput
-  analytics?: Prisma.SalesAnalyticsCreateNestedOneWithoutTicketInput
-  appointments?: Prisma.AppointmentCreateNestedManyWithoutTicketInput
   messages?: Prisma.WhatsappMessageCreateNestedManyWithoutTicketInput
-  scheduledMessages?: Prisma.ScheduledMessageCreateNestedManyWithoutTicketInput
-  analysis?: Prisma.TicketAnalysisCreateNestedOneWithoutTicketInput
 }
 
 export type TicketUncheckedCreateInput = {
@@ -571,8 +489,6 @@ export type TicketUncheckedCreateInput = {
   assigneeId?: string | null
   assigneeName?: string | null
   resolvedAt?: Date | string | null
-  followUpEnabled?: boolean
-  currentFollowUpStep?: number | null
   gclid?: string | null
   fbclid?: string | null
   ctwaclid?: string | null
@@ -590,12 +506,7 @@ export type TicketUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutTicketInput
-  events?: Prisma.PlatformEventUncheckedCreateNestedManyWithoutTicketInput
-  analytics?: Prisma.SalesAnalyticsUncheckedCreateNestedOneWithoutTicketInput
-  appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutTicketInput
   messages?: Prisma.WhatsappMessageUncheckedCreateNestedManyWithoutTicketInput
-  scheduledMessages?: Prisma.ScheduledMessageUncheckedCreateNestedManyWithoutTicketInput
-  analysis?: Prisma.TicketAnalysisUncheckedCreateNestedOneWithoutTicketInput
 }
 
 export type TicketUpdateInput = {
@@ -604,8 +515,6 @@ export type TicketUpdateInput = {
   assigneeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assigneeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  followUpEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  currentFollowUpStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fbclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ctwaclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -625,12 +534,7 @@ export type TicketUpdateInput = {
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutTicketsNestedInput
   whatsappConversation?: Prisma.WhatsappConversationUpdateOneRequiredWithoutTicketsNestedInput
   sales?: Prisma.SaleUpdateManyWithoutTicketNestedInput
-  events?: Prisma.PlatformEventUpdateManyWithoutTicketNestedInput
-  analytics?: Prisma.SalesAnalyticsUpdateOneWithoutTicketNestedInput
-  appointments?: Prisma.AppointmentUpdateManyWithoutTicketNestedInput
   messages?: Prisma.WhatsappMessageUpdateManyWithoutTicketNestedInput
-  scheduledMessages?: Prisma.ScheduledMessageUpdateManyWithoutTicketNestedInput
-  analysis?: Prisma.TicketAnalysisUpdateOneWithoutTicketNestedInput
 }
 
 export type TicketUncheckedUpdateInput = {
@@ -641,8 +545,6 @@ export type TicketUncheckedUpdateInput = {
   assigneeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assigneeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  followUpEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  currentFollowUpStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fbclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ctwaclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -660,12 +562,7 @@ export type TicketUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sales?: Prisma.SaleUncheckedUpdateManyWithoutTicketNestedInput
-  events?: Prisma.PlatformEventUncheckedUpdateManyWithoutTicketNestedInput
-  analytics?: Prisma.SalesAnalyticsUncheckedUpdateOneWithoutTicketNestedInput
-  appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutTicketNestedInput
   messages?: Prisma.WhatsappMessageUncheckedUpdateManyWithoutTicketNestedInput
-  scheduledMessages?: Prisma.ScheduledMessageUncheckedUpdateManyWithoutTicketNestedInput
-  analysis?: Prisma.TicketAnalysisUncheckedUpdateOneWithoutTicketNestedInput
 }
 
 export type TicketCreateManyInput = {
@@ -676,8 +573,6 @@ export type TicketCreateManyInput = {
   assigneeId?: string | null
   assigneeName?: string | null
   resolvedAt?: Date | string | null
-  followUpEnabled?: boolean
-  currentFollowUpStep?: number | null
   gclid?: string | null
   fbclid?: string | null
   ctwaclid?: string | null
@@ -702,8 +597,6 @@ export type TicketUpdateManyMutationInput = {
   assigneeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assigneeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  followUpEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  currentFollowUpStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fbclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ctwaclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -730,8 +623,6 @@ export type TicketUncheckedUpdateManyInput = {
   assigneeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assigneeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  followUpEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  currentFollowUpStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fbclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ctwaclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -773,8 +664,6 @@ export type TicketCountOrderByAggregateInput = {
   assigneeId?: Prisma.SortOrder
   assigneeName?: Prisma.SortOrder
   resolvedAt?: Prisma.SortOrder
-  followUpEnabled?: Prisma.SortOrder
-  currentFollowUpStep?: Prisma.SortOrder
   gclid?: Prisma.SortOrder
   fbclid?: Prisma.SortOrder
   ctwaclid?: Prisma.SortOrder
@@ -793,10 +682,6 @@ export type TicketCountOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
 }
 
-export type TicketAvgOrderByAggregateInput = {
-  currentFollowUpStep?: Prisma.SortOrder
-}
-
 export type TicketMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
@@ -805,8 +690,6 @@ export type TicketMaxOrderByAggregateInput = {
   assigneeId?: Prisma.SortOrder
   assigneeName?: Prisma.SortOrder
   resolvedAt?: Prisma.SortOrder
-  followUpEnabled?: Prisma.SortOrder
-  currentFollowUpStep?: Prisma.SortOrder
   gclid?: Prisma.SortOrder
   fbclid?: Prisma.SortOrder
   ctwaclid?: Prisma.SortOrder
@@ -833,8 +716,6 @@ export type TicketMinOrderByAggregateInput = {
   assigneeId?: Prisma.SortOrder
   assigneeName?: Prisma.SortOrder
   resolvedAt?: Prisma.SortOrder
-  followUpEnabled?: Prisma.SortOrder
-  currentFollowUpStep?: Prisma.SortOrder
   gclid?: Prisma.SortOrder
   fbclid?: Prisma.SortOrder
   ctwaclid?: Prisma.SortOrder
@@ -851,10 +732,6 @@ export type TicketMinOrderByAggregateInput = {
   closedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-}
-
-export type TicketSumOrderByAggregateInput = {
-  currentFollowUpStep?: Prisma.SortOrder
 }
 
 export type TicketNullableScalarRelationFilter = {
@@ -968,34 +845,6 @@ export type NullableEnumTicketSourceTypeFieldUpdateOperationsInput = {
   set?: $Enums.TicketSourceType | null
 }
 
-export type TicketCreateNestedOneWithoutAnalysisInput = {
-  create?: Prisma.XOR<Prisma.TicketCreateWithoutAnalysisInput, Prisma.TicketUncheckedCreateWithoutAnalysisInput>
-  connectOrCreate?: Prisma.TicketCreateOrConnectWithoutAnalysisInput
-  connect?: Prisma.TicketWhereUniqueInput
-}
-
-export type TicketUpdateOneRequiredWithoutAnalysisNestedInput = {
-  create?: Prisma.XOR<Prisma.TicketCreateWithoutAnalysisInput, Prisma.TicketUncheckedCreateWithoutAnalysisInput>
-  connectOrCreate?: Prisma.TicketCreateOrConnectWithoutAnalysisInput
-  upsert?: Prisma.TicketUpsertWithoutAnalysisInput
-  connect?: Prisma.TicketWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.TicketUpdateToOneWithWhereWithoutAnalysisInput, Prisma.TicketUpdateWithoutAnalysisInput>, Prisma.TicketUncheckedUpdateWithoutAnalysisInput>
-}
-
-export type TicketCreateNestedOneWithoutScheduledMessagesInput = {
-  create?: Prisma.XOR<Prisma.TicketCreateWithoutScheduledMessagesInput, Prisma.TicketUncheckedCreateWithoutScheduledMessagesInput>
-  connectOrCreate?: Prisma.TicketCreateOrConnectWithoutScheduledMessagesInput
-  connect?: Prisma.TicketWhereUniqueInput
-}
-
-export type TicketUpdateOneRequiredWithoutScheduledMessagesNestedInput = {
-  create?: Prisma.XOR<Prisma.TicketCreateWithoutScheduledMessagesInput, Prisma.TicketUncheckedCreateWithoutScheduledMessagesInput>
-  connectOrCreate?: Prisma.TicketCreateOrConnectWithoutScheduledMessagesInput
-  upsert?: Prisma.TicketUpsertWithoutScheduledMessagesInput
-  connect?: Prisma.TicketWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.TicketUpdateToOneWithWhereWithoutScheduledMessagesInput, Prisma.TicketUpdateWithoutScheduledMessagesInput>, Prisma.TicketUncheckedUpdateWithoutScheduledMessagesInput>
-}
-
 export type TicketCreateNestedOneWithoutSalesInput = {
   create?: Prisma.XOR<Prisma.TicketCreateWithoutSalesInput, Prisma.TicketUncheckedCreateWithoutSalesInput>
   connectOrCreate?: Prisma.TicketCreateOrConnectWithoutSalesInput
@@ -1012,62 +861,12 @@ export type TicketUpdateOneWithoutSalesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.TicketUpdateToOneWithWhereWithoutSalesInput, Prisma.TicketUpdateWithoutSalesInput>, Prisma.TicketUncheckedUpdateWithoutSalesInput>
 }
 
-export type TicketCreateNestedOneWithoutAppointmentsInput = {
-  create?: Prisma.XOR<Prisma.TicketCreateWithoutAppointmentsInput, Prisma.TicketUncheckedCreateWithoutAppointmentsInput>
-  connectOrCreate?: Prisma.TicketCreateOrConnectWithoutAppointmentsInput
-  connect?: Prisma.TicketWhereUniqueInput
-}
-
-export type TicketUpdateOneWithoutAppointmentsNestedInput = {
-  create?: Prisma.XOR<Prisma.TicketCreateWithoutAppointmentsInput, Prisma.TicketUncheckedCreateWithoutAppointmentsInput>
-  connectOrCreate?: Prisma.TicketCreateOrConnectWithoutAppointmentsInput
-  upsert?: Prisma.TicketUpsertWithoutAppointmentsInput
-  disconnect?: Prisma.TicketWhereInput | boolean
-  delete?: Prisma.TicketWhereInput | boolean
-  connect?: Prisma.TicketWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.TicketUpdateToOneWithWhereWithoutAppointmentsInput, Prisma.TicketUpdateWithoutAppointmentsInput>, Prisma.TicketUncheckedUpdateWithoutAppointmentsInput>
-}
-
-export type TicketCreateNestedOneWithoutAnalyticsInput = {
-  create?: Prisma.XOR<Prisma.TicketCreateWithoutAnalyticsInput, Prisma.TicketUncheckedCreateWithoutAnalyticsInput>
-  connectOrCreate?: Prisma.TicketCreateOrConnectWithoutAnalyticsInput
-  connect?: Prisma.TicketWhereUniqueInput
-}
-
-export type TicketUpdateOneWithoutAnalyticsNestedInput = {
-  create?: Prisma.XOR<Prisma.TicketCreateWithoutAnalyticsInput, Prisma.TicketUncheckedCreateWithoutAnalyticsInput>
-  connectOrCreate?: Prisma.TicketCreateOrConnectWithoutAnalyticsInput
-  upsert?: Prisma.TicketUpsertWithoutAnalyticsInput
-  disconnect?: Prisma.TicketWhereInput | boolean
-  delete?: Prisma.TicketWhereInput | boolean
-  connect?: Prisma.TicketWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.TicketUpdateToOneWithWhereWithoutAnalyticsInput, Prisma.TicketUpdateWithoutAnalyticsInput>, Prisma.TicketUncheckedUpdateWithoutAnalyticsInput>
-}
-
-export type TicketCreateNestedOneWithoutEventsInput = {
-  create?: Prisma.XOR<Prisma.TicketCreateWithoutEventsInput, Prisma.TicketUncheckedCreateWithoutEventsInput>
-  connectOrCreate?: Prisma.TicketCreateOrConnectWithoutEventsInput
-  connect?: Prisma.TicketWhereUniqueInput
-}
-
-export type TicketUpdateOneWithoutEventsNestedInput = {
-  create?: Prisma.XOR<Prisma.TicketCreateWithoutEventsInput, Prisma.TicketUncheckedCreateWithoutEventsInput>
-  connectOrCreate?: Prisma.TicketCreateOrConnectWithoutEventsInput
-  upsert?: Prisma.TicketUpsertWithoutEventsInput
-  disconnect?: Prisma.TicketWhereInput | boolean
-  delete?: Prisma.TicketWhereInput | boolean
-  connect?: Prisma.TicketWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.TicketUpdateToOneWithWhereWithoutEventsInput, Prisma.TicketUpdateWithoutEventsInput>, Prisma.TicketUncheckedUpdateWithoutEventsInput>
-}
-
 export type TicketCreateWithoutOrganizationInput = {
   id?: string
   status?: $Enums.TicketStatus
   assigneeId?: string | null
   assigneeName?: string | null
   resolvedAt?: Date | string | null
-  followUpEnabled?: boolean
-  currentFollowUpStep?: number | null
   gclid?: string | null
   fbclid?: string | null
   ctwaclid?: string | null
@@ -1086,12 +885,7 @@ export type TicketCreateWithoutOrganizationInput = {
   updatedAt?: Date | string
   whatsappConversation: Prisma.WhatsappConversationCreateNestedOneWithoutTicketsInput
   sales?: Prisma.SaleCreateNestedManyWithoutTicketInput
-  events?: Prisma.PlatformEventCreateNestedManyWithoutTicketInput
-  analytics?: Prisma.SalesAnalyticsCreateNestedOneWithoutTicketInput
-  appointments?: Prisma.AppointmentCreateNestedManyWithoutTicketInput
   messages?: Prisma.WhatsappMessageCreateNestedManyWithoutTicketInput
-  scheduledMessages?: Prisma.ScheduledMessageCreateNestedManyWithoutTicketInput
-  analysis?: Prisma.TicketAnalysisCreateNestedOneWithoutTicketInput
 }
 
 export type TicketUncheckedCreateWithoutOrganizationInput = {
@@ -1101,8 +895,6 @@ export type TicketUncheckedCreateWithoutOrganizationInput = {
   assigneeId?: string | null
   assigneeName?: string | null
   resolvedAt?: Date | string | null
-  followUpEnabled?: boolean
-  currentFollowUpStep?: number | null
   gclid?: string | null
   fbclid?: string | null
   ctwaclid?: string | null
@@ -1120,12 +912,7 @@ export type TicketUncheckedCreateWithoutOrganizationInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutTicketInput
-  events?: Prisma.PlatformEventUncheckedCreateNestedManyWithoutTicketInput
-  analytics?: Prisma.SalesAnalyticsUncheckedCreateNestedOneWithoutTicketInput
-  appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutTicketInput
   messages?: Prisma.WhatsappMessageUncheckedCreateNestedManyWithoutTicketInput
-  scheduledMessages?: Prisma.ScheduledMessageUncheckedCreateNestedManyWithoutTicketInput
-  analysis?: Prisma.TicketAnalysisUncheckedCreateNestedOneWithoutTicketInput
 }
 
 export type TicketCreateOrConnectWithoutOrganizationInput = {
@@ -1165,8 +952,6 @@ export type TicketScalarWhereInput = {
   assigneeId?: Prisma.StringNullableFilter<"Ticket"> | string | null
   assigneeName?: Prisma.StringNullableFilter<"Ticket"> | string | null
   resolvedAt?: Prisma.DateTimeNullableFilter<"Ticket"> | Date | string | null
-  followUpEnabled?: Prisma.BoolFilter<"Ticket"> | boolean
-  currentFollowUpStep?: Prisma.IntNullableFilter<"Ticket"> | number | null
   gclid?: Prisma.StringNullableFilter<"Ticket"> | string | null
   fbclid?: Prisma.StringNullableFilter<"Ticket"> | string | null
   ctwaclid?: Prisma.StringNullableFilter<"Ticket"> | string | null
@@ -1191,8 +976,6 @@ export type TicketCreateWithoutWhatsappConversationInput = {
   assigneeId?: string | null
   assigneeName?: string | null
   resolvedAt?: Date | string | null
-  followUpEnabled?: boolean
-  currentFollowUpStep?: number | null
   gclid?: string | null
   fbclid?: string | null
   ctwaclid?: string | null
@@ -1211,12 +994,7 @@ export type TicketCreateWithoutWhatsappConversationInput = {
   updatedAt?: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutTicketsInput
   sales?: Prisma.SaleCreateNestedManyWithoutTicketInput
-  events?: Prisma.PlatformEventCreateNestedManyWithoutTicketInput
-  analytics?: Prisma.SalesAnalyticsCreateNestedOneWithoutTicketInput
-  appointments?: Prisma.AppointmentCreateNestedManyWithoutTicketInput
   messages?: Prisma.WhatsappMessageCreateNestedManyWithoutTicketInput
-  scheduledMessages?: Prisma.ScheduledMessageCreateNestedManyWithoutTicketInput
-  analysis?: Prisma.TicketAnalysisCreateNestedOneWithoutTicketInput
 }
 
 export type TicketUncheckedCreateWithoutWhatsappConversationInput = {
@@ -1226,8 +1004,6 @@ export type TicketUncheckedCreateWithoutWhatsappConversationInput = {
   assigneeId?: string | null
   assigneeName?: string | null
   resolvedAt?: Date | string | null
-  followUpEnabled?: boolean
-  currentFollowUpStep?: number | null
   gclid?: string | null
   fbclid?: string | null
   ctwaclid?: string | null
@@ -1245,12 +1021,7 @@ export type TicketUncheckedCreateWithoutWhatsappConversationInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutTicketInput
-  events?: Prisma.PlatformEventUncheckedCreateNestedManyWithoutTicketInput
-  analytics?: Prisma.SalesAnalyticsUncheckedCreateNestedOneWithoutTicketInput
-  appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutTicketInput
   messages?: Prisma.WhatsappMessageUncheckedCreateNestedManyWithoutTicketInput
-  scheduledMessages?: Prisma.ScheduledMessageUncheckedCreateNestedManyWithoutTicketInput
-  analysis?: Prisma.TicketAnalysisUncheckedCreateNestedOneWithoutTicketInput
 }
 
 export type TicketCreateOrConnectWithoutWhatsappConversationInput = {
@@ -1285,8 +1056,6 @@ export type TicketCreateWithoutMessagesInput = {
   assigneeId?: string | null
   assigneeName?: string | null
   resolvedAt?: Date | string | null
-  followUpEnabled?: boolean
-  currentFollowUpStep?: number | null
   gclid?: string | null
   fbclid?: string | null
   ctwaclid?: string | null
@@ -1306,11 +1075,6 @@ export type TicketCreateWithoutMessagesInput = {
   organization: Prisma.OrganizationCreateNestedOneWithoutTicketsInput
   whatsappConversation: Prisma.WhatsappConversationCreateNestedOneWithoutTicketsInput
   sales?: Prisma.SaleCreateNestedManyWithoutTicketInput
-  events?: Prisma.PlatformEventCreateNestedManyWithoutTicketInput
-  analytics?: Prisma.SalesAnalyticsCreateNestedOneWithoutTicketInput
-  appointments?: Prisma.AppointmentCreateNestedManyWithoutTicketInput
-  scheduledMessages?: Prisma.ScheduledMessageCreateNestedManyWithoutTicketInput
-  analysis?: Prisma.TicketAnalysisCreateNestedOneWithoutTicketInput
 }
 
 export type TicketUncheckedCreateWithoutMessagesInput = {
@@ -1321,8 +1085,6 @@ export type TicketUncheckedCreateWithoutMessagesInput = {
   assigneeId?: string | null
   assigneeName?: string | null
   resolvedAt?: Date | string | null
-  followUpEnabled?: boolean
-  currentFollowUpStep?: number | null
   gclid?: string | null
   fbclid?: string | null
   ctwaclid?: string | null
@@ -1340,11 +1102,6 @@ export type TicketUncheckedCreateWithoutMessagesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutTicketInput
-  events?: Prisma.PlatformEventUncheckedCreateNestedManyWithoutTicketInput
-  analytics?: Prisma.SalesAnalyticsUncheckedCreateNestedOneWithoutTicketInput
-  appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutTicketInput
-  scheduledMessages?: Prisma.ScheduledMessageUncheckedCreateNestedManyWithoutTicketInput
-  analysis?: Prisma.TicketAnalysisUncheckedCreateNestedOneWithoutTicketInput
 }
 
 export type TicketCreateOrConnectWithoutMessagesInput = {
@@ -1369,8 +1126,6 @@ export type TicketUpdateWithoutMessagesInput = {
   assigneeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assigneeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  followUpEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  currentFollowUpStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fbclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ctwaclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1390,11 +1145,6 @@ export type TicketUpdateWithoutMessagesInput = {
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutTicketsNestedInput
   whatsappConversation?: Prisma.WhatsappConversationUpdateOneRequiredWithoutTicketsNestedInput
   sales?: Prisma.SaleUpdateManyWithoutTicketNestedInput
-  events?: Prisma.PlatformEventUpdateManyWithoutTicketNestedInput
-  analytics?: Prisma.SalesAnalyticsUpdateOneWithoutTicketNestedInput
-  appointments?: Prisma.AppointmentUpdateManyWithoutTicketNestedInput
-  scheduledMessages?: Prisma.ScheduledMessageUpdateManyWithoutTicketNestedInput
-  analysis?: Prisma.TicketAnalysisUpdateOneWithoutTicketNestedInput
 }
 
 export type TicketUncheckedUpdateWithoutMessagesInput = {
@@ -1405,8 +1155,6 @@ export type TicketUncheckedUpdateWithoutMessagesInput = {
   assigneeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assigneeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  followUpEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  currentFollowUpStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fbclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ctwaclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1424,315 +1172,6 @@ export type TicketUncheckedUpdateWithoutMessagesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sales?: Prisma.SaleUncheckedUpdateManyWithoutTicketNestedInput
-  events?: Prisma.PlatformEventUncheckedUpdateManyWithoutTicketNestedInput
-  analytics?: Prisma.SalesAnalyticsUncheckedUpdateOneWithoutTicketNestedInput
-  appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutTicketNestedInput
-  scheduledMessages?: Prisma.ScheduledMessageUncheckedUpdateManyWithoutTicketNestedInput
-  analysis?: Prisma.TicketAnalysisUncheckedUpdateOneWithoutTicketNestedInput
-}
-
-export type TicketCreateWithoutAnalysisInput = {
-  id?: string
-  status?: $Enums.TicketStatus
-  assigneeId?: string | null
-  assigneeName?: string | null
-  resolvedAt?: Date | string | null
-  followUpEnabled?: boolean
-  currentFollowUpStep?: number | null
-  gclid?: string | null
-  fbclid?: string | null
-  ctwaclid?: string | null
-  utmSource?: string | null
-  utmMedium?: string | null
-  utmCampaign?: string | null
-  utmTerm?: string | null
-  utmContent?: string | null
-  campaignId?: string | null
-  adsetId?: string | null
-  adId?: string | null
-  sourceType?: $Enums.TicketSourceType | null
-  platformId?: string | null
-  closedAt?: Date | string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  organization: Prisma.OrganizationCreateNestedOneWithoutTicketsInput
-  whatsappConversation: Prisma.WhatsappConversationCreateNestedOneWithoutTicketsInput
-  sales?: Prisma.SaleCreateNestedManyWithoutTicketInput
-  events?: Prisma.PlatformEventCreateNestedManyWithoutTicketInput
-  analytics?: Prisma.SalesAnalyticsCreateNestedOneWithoutTicketInput
-  appointments?: Prisma.AppointmentCreateNestedManyWithoutTicketInput
-  messages?: Prisma.WhatsappMessageCreateNestedManyWithoutTicketInput
-  scheduledMessages?: Prisma.ScheduledMessageCreateNestedManyWithoutTicketInput
-}
-
-export type TicketUncheckedCreateWithoutAnalysisInput = {
-  id?: string
-  organizationId: string
-  whatsappConversationId: string
-  status?: $Enums.TicketStatus
-  assigneeId?: string | null
-  assigneeName?: string | null
-  resolvedAt?: Date | string | null
-  followUpEnabled?: boolean
-  currentFollowUpStep?: number | null
-  gclid?: string | null
-  fbclid?: string | null
-  ctwaclid?: string | null
-  utmSource?: string | null
-  utmMedium?: string | null
-  utmCampaign?: string | null
-  utmTerm?: string | null
-  utmContent?: string | null
-  campaignId?: string | null
-  adsetId?: string | null
-  adId?: string | null
-  sourceType?: $Enums.TicketSourceType | null
-  platformId?: string | null
-  closedAt?: Date | string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  sales?: Prisma.SaleUncheckedCreateNestedManyWithoutTicketInput
-  events?: Prisma.PlatformEventUncheckedCreateNestedManyWithoutTicketInput
-  analytics?: Prisma.SalesAnalyticsUncheckedCreateNestedOneWithoutTicketInput
-  appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutTicketInput
-  messages?: Prisma.WhatsappMessageUncheckedCreateNestedManyWithoutTicketInput
-  scheduledMessages?: Prisma.ScheduledMessageUncheckedCreateNestedManyWithoutTicketInput
-}
-
-export type TicketCreateOrConnectWithoutAnalysisInput = {
-  where: Prisma.TicketWhereUniqueInput
-  create: Prisma.XOR<Prisma.TicketCreateWithoutAnalysisInput, Prisma.TicketUncheckedCreateWithoutAnalysisInput>
-}
-
-export type TicketUpsertWithoutAnalysisInput = {
-  update: Prisma.XOR<Prisma.TicketUpdateWithoutAnalysisInput, Prisma.TicketUncheckedUpdateWithoutAnalysisInput>
-  create: Prisma.XOR<Prisma.TicketCreateWithoutAnalysisInput, Prisma.TicketUncheckedCreateWithoutAnalysisInput>
-  where?: Prisma.TicketWhereInput
-}
-
-export type TicketUpdateToOneWithWhereWithoutAnalysisInput = {
-  where?: Prisma.TicketWhereInput
-  data: Prisma.XOR<Prisma.TicketUpdateWithoutAnalysisInput, Prisma.TicketUncheckedUpdateWithoutAnalysisInput>
-}
-
-export type TicketUpdateWithoutAnalysisInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
-  assigneeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  assigneeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  followUpEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  currentFollowUpStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  gclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fbclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  ctwaclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmMedium?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmCampaign?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmTerm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmContent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  campaignId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  adsetId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  adId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  sourceType?: Prisma.NullableEnumTicketSourceTypeFieldUpdateOperationsInput | $Enums.TicketSourceType | null
-  platformId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  organization?: Prisma.OrganizationUpdateOneRequiredWithoutTicketsNestedInput
-  whatsappConversation?: Prisma.WhatsappConversationUpdateOneRequiredWithoutTicketsNestedInput
-  sales?: Prisma.SaleUpdateManyWithoutTicketNestedInput
-  events?: Prisma.PlatformEventUpdateManyWithoutTicketNestedInput
-  analytics?: Prisma.SalesAnalyticsUpdateOneWithoutTicketNestedInput
-  appointments?: Prisma.AppointmentUpdateManyWithoutTicketNestedInput
-  messages?: Prisma.WhatsappMessageUpdateManyWithoutTicketNestedInput
-  scheduledMessages?: Prisma.ScheduledMessageUpdateManyWithoutTicketNestedInput
-}
-
-export type TicketUncheckedUpdateWithoutAnalysisInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
-  whatsappConversationId?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
-  assigneeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  assigneeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  followUpEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  currentFollowUpStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  gclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fbclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  ctwaclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmMedium?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmCampaign?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmTerm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmContent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  campaignId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  adsetId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  adId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  sourceType?: Prisma.NullableEnumTicketSourceTypeFieldUpdateOperationsInput | $Enums.TicketSourceType | null
-  platformId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  sales?: Prisma.SaleUncheckedUpdateManyWithoutTicketNestedInput
-  events?: Prisma.PlatformEventUncheckedUpdateManyWithoutTicketNestedInput
-  analytics?: Prisma.SalesAnalyticsUncheckedUpdateOneWithoutTicketNestedInput
-  appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutTicketNestedInput
-  messages?: Prisma.WhatsappMessageUncheckedUpdateManyWithoutTicketNestedInput
-  scheduledMessages?: Prisma.ScheduledMessageUncheckedUpdateManyWithoutTicketNestedInput
-}
-
-export type TicketCreateWithoutScheduledMessagesInput = {
-  id?: string
-  status?: $Enums.TicketStatus
-  assigneeId?: string | null
-  assigneeName?: string | null
-  resolvedAt?: Date | string | null
-  followUpEnabled?: boolean
-  currentFollowUpStep?: number | null
-  gclid?: string | null
-  fbclid?: string | null
-  ctwaclid?: string | null
-  utmSource?: string | null
-  utmMedium?: string | null
-  utmCampaign?: string | null
-  utmTerm?: string | null
-  utmContent?: string | null
-  campaignId?: string | null
-  adsetId?: string | null
-  adId?: string | null
-  sourceType?: $Enums.TicketSourceType | null
-  platformId?: string | null
-  closedAt?: Date | string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  organization: Prisma.OrganizationCreateNestedOneWithoutTicketsInput
-  whatsappConversation: Prisma.WhatsappConversationCreateNestedOneWithoutTicketsInput
-  sales?: Prisma.SaleCreateNestedManyWithoutTicketInput
-  events?: Prisma.PlatformEventCreateNestedManyWithoutTicketInput
-  analytics?: Prisma.SalesAnalyticsCreateNestedOneWithoutTicketInput
-  appointments?: Prisma.AppointmentCreateNestedManyWithoutTicketInput
-  messages?: Prisma.WhatsappMessageCreateNestedManyWithoutTicketInput
-  analysis?: Prisma.TicketAnalysisCreateNestedOneWithoutTicketInput
-}
-
-export type TicketUncheckedCreateWithoutScheduledMessagesInput = {
-  id?: string
-  organizationId: string
-  whatsappConversationId: string
-  status?: $Enums.TicketStatus
-  assigneeId?: string | null
-  assigneeName?: string | null
-  resolvedAt?: Date | string | null
-  followUpEnabled?: boolean
-  currentFollowUpStep?: number | null
-  gclid?: string | null
-  fbclid?: string | null
-  ctwaclid?: string | null
-  utmSource?: string | null
-  utmMedium?: string | null
-  utmCampaign?: string | null
-  utmTerm?: string | null
-  utmContent?: string | null
-  campaignId?: string | null
-  adsetId?: string | null
-  adId?: string | null
-  sourceType?: $Enums.TicketSourceType | null
-  platformId?: string | null
-  closedAt?: Date | string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  sales?: Prisma.SaleUncheckedCreateNestedManyWithoutTicketInput
-  events?: Prisma.PlatformEventUncheckedCreateNestedManyWithoutTicketInput
-  analytics?: Prisma.SalesAnalyticsUncheckedCreateNestedOneWithoutTicketInput
-  appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutTicketInput
-  messages?: Prisma.WhatsappMessageUncheckedCreateNestedManyWithoutTicketInput
-  analysis?: Prisma.TicketAnalysisUncheckedCreateNestedOneWithoutTicketInput
-}
-
-export type TicketCreateOrConnectWithoutScheduledMessagesInput = {
-  where: Prisma.TicketWhereUniqueInput
-  create: Prisma.XOR<Prisma.TicketCreateWithoutScheduledMessagesInput, Prisma.TicketUncheckedCreateWithoutScheduledMessagesInput>
-}
-
-export type TicketUpsertWithoutScheduledMessagesInput = {
-  update: Prisma.XOR<Prisma.TicketUpdateWithoutScheduledMessagesInput, Prisma.TicketUncheckedUpdateWithoutScheduledMessagesInput>
-  create: Prisma.XOR<Prisma.TicketCreateWithoutScheduledMessagesInput, Prisma.TicketUncheckedCreateWithoutScheduledMessagesInput>
-  where?: Prisma.TicketWhereInput
-}
-
-export type TicketUpdateToOneWithWhereWithoutScheduledMessagesInput = {
-  where?: Prisma.TicketWhereInput
-  data: Prisma.XOR<Prisma.TicketUpdateWithoutScheduledMessagesInput, Prisma.TicketUncheckedUpdateWithoutScheduledMessagesInput>
-}
-
-export type TicketUpdateWithoutScheduledMessagesInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
-  assigneeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  assigneeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  followUpEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  currentFollowUpStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  gclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fbclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  ctwaclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmMedium?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmCampaign?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmTerm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmContent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  campaignId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  adsetId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  adId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  sourceType?: Prisma.NullableEnumTicketSourceTypeFieldUpdateOperationsInput | $Enums.TicketSourceType | null
-  platformId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  organization?: Prisma.OrganizationUpdateOneRequiredWithoutTicketsNestedInput
-  whatsappConversation?: Prisma.WhatsappConversationUpdateOneRequiredWithoutTicketsNestedInput
-  sales?: Prisma.SaleUpdateManyWithoutTicketNestedInput
-  events?: Prisma.PlatformEventUpdateManyWithoutTicketNestedInput
-  analytics?: Prisma.SalesAnalyticsUpdateOneWithoutTicketNestedInput
-  appointments?: Prisma.AppointmentUpdateManyWithoutTicketNestedInput
-  messages?: Prisma.WhatsappMessageUpdateManyWithoutTicketNestedInput
-  analysis?: Prisma.TicketAnalysisUpdateOneWithoutTicketNestedInput
-}
-
-export type TicketUncheckedUpdateWithoutScheduledMessagesInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
-  whatsappConversationId?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
-  assigneeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  assigneeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  followUpEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  currentFollowUpStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  gclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fbclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  ctwaclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmMedium?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmCampaign?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmTerm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmContent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  campaignId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  adsetId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  adId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  sourceType?: Prisma.NullableEnumTicketSourceTypeFieldUpdateOperationsInput | $Enums.TicketSourceType | null
-  platformId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  sales?: Prisma.SaleUncheckedUpdateManyWithoutTicketNestedInput
-  events?: Prisma.PlatformEventUncheckedUpdateManyWithoutTicketNestedInput
-  analytics?: Prisma.SalesAnalyticsUncheckedUpdateOneWithoutTicketNestedInput
-  appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutTicketNestedInput
-  messages?: Prisma.WhatsappMessageUncheckedUpdateManyWithoutTicketNestedInput
-  analysis?: Prisma.TicketAnalysisUncheckedUpdateOneWithoutTicketNestedInput
 }
 
 export type TicketCreateWithoutSalesInput = {
@@ -1741,8 +1180,6 @@ export type TicketCreateWithoutSalesInput = {
   assigneeId?: string | null
   assigneeName?: string | null
   resolvedAt?: Date | string | null
-  followUpEnabled?: boolean
-  currentFollowUpStep?: number | null
   gclid?: string | null
   fbclid?: string | null
   ctwaclid?: string | null
@@ -1761,12 +1198,7 @@ export type TicketCreateWithoutSalesInput = {
   updatedAt?: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutTicketsInput
   whatsappConversation: Prisma.WhatsappConversationCreateNestedOneWithoutTicketsInput
-  events?: Prisma.PlatformEventCreateNestedManyWithoutTicketInput
-  analytics?: Prisma.SalesAnalyticsCreateNestedOneWithoutTicketInput
-  appointments?: Prisma.AppointmentCreateNestedManyWithoutTicketInput
   messages?: Prisma.WhatsappMessageCreateNestedManyWithoutTicketInput
-  scheduledMessages?: Prisma.ScheduledMessageCreateNestedManyWithoutTicketInput
-  analysis?: Prisma.TicketAnalysisCreateNestedOneWithoutTicketInput
 }
 
 export type TicketUncheckedCreateWithoutSalesInput = {
@@ -1777,8 +1209,6 @@ export type TicketUncheckedCreateWithoutSalesInput = {
   assigneeId?: string | null
   assigneeName?: string | null
   resolvedAt?: Date | string | null
-  followUpEnabled?: boolean
-  currentFollowUpStep?: number | null
   gclid?: string | null
   fbclid?: string | null
   ctwaclid?: string | null
@@ -1795,12 +1225,7 @@ export type TicketUncheckedCreateWithoutSalesInput = {
   closedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  events?: Prisma.PlatformEventUncheckedCreateNestedManyWithoutTicketInput
-  analytics?: Prisma.SalesAnalyticsUncheckedCreateNestedOneWithoutTicketInput
-  appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutTicketInput
   messages?: Prisma.WhatsappMessageUncheckedCreateNestedManyWithoutTicketInput
-  scheduledMessages?: Prisma.ScheduledMessageUncheckedCreateNestedManyWithoutTicketInput
-  analysis?: Prisma.TicketAnalysisUncheckedCreateNestedOneWithoutTicketInput
 }
 
 export type TicketCreateOrConnectWithoutSalesInput = {
@@ -1825,8 +1250,6 @@ export type TicketUpdateWithoutSalesInput = {
   assigneeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assigneeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  followUpEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  currentFollowUpStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fbclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ctwaclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1845,12 +1268,7 @@ export type TicketUpdateWithoutSalesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutTicketsNestedInput
   whatsappConversation?: Prisma.WhatsappConversationUpdateOneRequiredWithoutTicketsNestedInput
-  events?: Prisma.PlatformEventUpdateManyWithoutTicketNestedInput
-  analytics?: Prisma.SalesAnalyticsUpdateOneWithoutTicketNestedInput
-  appointments?: Prisma.AppointmentUpdateManyWithoutTicketNestedInput
   messages?: Prisma.WhatsappMessageUpdateManyWithoutTicketNestedInput
-  scheduledMessages?: Prisma.ScheduledMessageUpdateManyWithoutTicketNestedInput
-  analysis?: Prisma.TicketAnalysisUpdateOneWithoutTicketNestedInput
 }
 
 export type TicketUncheckedUpdateWithoutSalesInput = {
@@ -1861,8 +1279,6 @@ export type TicketUncheckedUpdateWithoutSalesInput = {
   assigneeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assigneeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  followUpEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  currentFollowUpStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fbclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ctwaclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1879,468 +1295,7 @@ export type TicketUncheckedUpdateWithoutSalesInput = {
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  events?: Prisma.PlatformEventUncheckedUpdateManyWithoutTicketNestedInput
-  analytics?: Prisma.SalesAnalyticsUncheckedUpdateOneWithoutTicketNestedInput
-  appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutTicketNestedInput
   messages?: Prisma.WhatsappMessageUncheckedUpdateManyWithoutTicketNestedInput
-  scheduledMessages?: Prisma.ScheduledMessageUncheckedUpdateManyWithoutTicketNestedInput
-  analysis?: Prisma.TicketAnalysisUncheckedUpdateOneWithoutTicketNestedInput
-}
-
-export type TicketCreateWithoutAppointmentsInput = {
-  id?: string
-  status?: $Enums.TicketStatus
-  assigneeId?: string | null
-  assigneeName?: string | null
-  resolvedAt?: Date | string | null
-  followUpEnabled?: boolean
-  currentFollowUpStep?: number | null
-  gclid?: string | null
-  fbclid?: string | null
-  ctwaclid?: string | null
-  utmSource?: string | null
-  utmMedium?: string | null
-  utmCampaign?: string | null
-  utmTerm?: string | null
-  utmContent?: string | null
-  campaignId?: string | null
-  adsetId?: string | null
-  adId?: string | null
-  sourceType?: $Enums.TicketSourceType | null
-  platformId?: string | null
-  closedAt?: Date | string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  organization: Prisma.OrganizationCreateNestedOneWithoutTicketsInput
-  whatsappConversation: Prisma.WhatsappConversationCreateNestedOneWithoutTicketsInput
-  sales?: Prisma.SaleCreateNestedManyWithoutTicketInput
-  events?: Prisma.PlatformEventCreateNestedManyWithoutTicketInput
-  analytics?: Prisma.SalesAnalyticsCreateNestedOneWithoutTicketInput
-  messages?: Prisma.WhatsappMessageCreateNestedManyWithoutTicketInput
-  scheduledMessages?: Prisma.ScheduledMessageCreateNestedManyWithoutTicketInput
-  analysis?: Prisma.TicketAnalysisCreateNestedOneWithoutTicketInput
-}
-
-export type TicketUncheckedCreateWithoutAppointmentsInput = {
-  id?: string
-  organizationId: string
-  whatsappConversationId: string
-  status?: $Enums.TicketStatus
-  assigneeId?: string | null
-  assigneeName?: string | null
-  resolvedAt?: Date | string | null
-  followUpEnabled?: boolean
-  currentFollowUpStep?: number | null
-  gclid?: string | null
-  fbclid?: string | null
-  ctwaclid?: string | null
-  utmSource?: string | null
-  utmMedium?: string | null
-  utmCampaign?: string | null
-  utmTerm?: string | null
-  utmContent?: string | null
-  campaignId?: string | null
-  adsetId?: string | null
-  adId?: string | null
-  sourceType?: $Enums.TicketSourceType | null
-  platformId?: string | null
-  closedAt?: Date | string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  sales?: Prisma.SaleUncheckedCreateNestedManyWithoutTicketInput
-  events?: Prisma.PlatformEventUncheckedCreateNestedManyWithoutTicketInput
-  analytics?: Prisma.SalesAnalyticsUncheckedCreateNestedOneWithoutTicketInput
-  messages?: Prisma.WhatsappMessageUncheckedCreateNestedManyWithoutTicketInput
-  scheduledMessages?: Prisma.ScheduledMessageUncheckedCreateNestedManyWithoutTicketInput
-  analysis?: Prisma.TicketAnalysisUncheckedCreateNestedOneWithoutTicketInput
-}
-
-export type TicketCreateOrConnectWithoutAppointmentsInput = {
-  where: Prisma.TicketWhereUniqueInput
-  create: Prisma.XOR<Prisma.TicketCreateWithoutAppointmentsInput, Prisma.TicketUncheckedCreateWithoutAppointmentsInput>
-}
-
-export type TicketUpsertWithoutAppointmentsInput = {
-  update: Prisma.XOR<Prisma.TicketUpdateWithoutAppointmentsInput, Prisma.TicketUncheckedUpdateWithoutAppointmentsInput>
-  create: Prisma.XOR<Prisma.TicketCreateWithoutAppointmentsInput, Prisma.TicketUncheckedCreateWithoutAppointmentsInput>
-  where?: Prisma.TicketWhereInput
-}
-
-export type TicketUpdateToOneWithWhereWithoutAppointmentsInput = {
-  where?: Prisma.TicketWhereInput
-  data: Prisma.XOR<Prisma.TicketUpdateWithoutAppointmentsInput, Prisma.TicketUncheckedUpdateWithoutAppointmentsInput>
-}
-
-export type TicketUpdateWithoutAppointmentsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
-  assigneeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  assigneeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  followUpEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  currentFollowUpStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  gclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fbclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  ctwaclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmMedium?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmCampaign?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmTerm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmContent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  campaignId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  adsetId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  adId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  sourceType?: Prisma.NullableEnumTicketSourceTypeFieldUpdateOperationsInput | $Enums.TicketSourceType | null
-  platformId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  organization?: Prisma.OrganizationUpdateOneRequiredWithoutTicketsNestedInput
-  whatsappConversation?: Prisma.WhatsappConversationUpdateOneRequiredWithoutTicketsNestedInput
-  sales?: Prisma.SaleUpdateManyWithoutTicketNestedInput
-  events?: Prisma.PlatformEventUpdateManyWithoutTicketNestedInput
-  analytics?: Prisma.SalesAnalyticsUpdateOneWithoutTicketNestedInput
-  messages?: Prisma.WhatsappMessageUpdateManyWithoutTicketNestedInput
-  scheduledMessages?: Prisma.ScheduledMessageUpdateManyWithoutTicketNestedInput
-  analysis?: Prisma.TicketAnalysisUpdateOneWithoutTicketNestedInput
-}
-
-export type TicketUncheckedUpdateWithoutAppointmentsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
-  whatsappConversationId?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
-  assigneeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  assigneeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  followUpEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  currentFollowUpStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  gclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fbclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  ctwaclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmMedium?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmCampaign?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmTerm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmContent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  campaignId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  adsetId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  adId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  sourceType?: Prisma.NullableEnumTicketSourceTypeFieldUpdateOperationsInput | $Enums.TicketSourceType | null
-  platformId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  sales?: Prisma.SaleUncheckedUpdateManyWithoutTicketNestedInput
-  events?: Prisma.PlatformEventUncheckedUpdateManyWithoutTicketNestedInput
-  analytics?: Prisma.SalesAnalyticsUncheckedUpdateOneWithoutTicketNestedInput
-  messages?: Prisma.WhatsappMessageUncheckedUpdateManyWithoutTicketNestedInput
-  scheduledMessages?: Prisma.ScheduledMessageUncheckedUpdateManyWithoutTicketNestedInput
-  analysis?: Prisma.TicketAnalysisUncheckedUpdateOneWithoutTicketNestedInput
-}
-
-export type TicketCreateWithoutAnalyticsInput = {
-  id?: string
-  status?: $Enums.TicketStatus
-  assigneeId?: string | null
-  assigneeName?: string | null
-  resolvedAt?: Date | string | null
-  followUpEnabled?: boolean
-  currentFollowUpStep?: number | null
-  gclid?: string | null
-  fbclid?: string | null
-  ctwaclid?: string | null
-  utmSource?: string | null
-  utmMedium?: string | null
-  utmCampaign?: string | null
-  utmTerm?: string | null
-  utmContent?: string | null
-  campaignId?: string | null
-  adsetId?: string | null
-  adId?: string | null
-  sourceType?: $Enums.TicketSourceType | null
-  platformId?: string | null
-  closedAt?: Date | string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  organization: Prisma.OrganizationCreateNestedOneWithoutTicketsInput
-  whatsappConversation: Prisma.WhatsappConversationCreateNestedOneWithoutTicketsInput
-  sales?: Prisma.SaleCreateNestedManyWithoutTicketInput
-  events?: Prisma.PlatformEventCreateNestedManyWithoutTicketInput
-  appointments?: Prisma.AppointmentCreateNestedManyWithoutTicketInput
-  messages?: Prisma.WhatsappMessageCreateNestedManyWithoutTicketInput
-  scheduledMessages?: Prisma.ScheduledMessageCreateNestedManyWithoutTicketInput
-  analysis?: Prisma.TicketAnalysisCreateNestedOneWithoutTicketInput
-}
-
-export type TicketUncheckedCreateWithoutAnalyticsInput = {
-  id?: string
-  organizationId: string
-  whatsappConversationId: string
-  status?: $Enums.TicketStatus
-  assigneeId?: string | null
-  assigneeName?: string | null
-  resolvedAt?: Date | string | null
-  followUpEnabled?: boolean
-  currentFollowUpStep?: number | null
-  gclid?: string | null
-  fbclid?: string | null
-  ctwaclid?: string | null
-  utmSource?: string | null
-  utmMedium?: string | null
-  utmCampaign?: string | null
-  utmTerm?: string | null
-  utmContent?: string | null
-  campaignId?: string | null
-  adsetId?: string | null
-  adId?: string | null
-  sourceType?: $Enums.TicketSourceType | null
-  platformId?: string | null
-  closedAt?: Date | string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  sales?: Prisma.SaleUncheckedCreateNestedManyWithoutTicketInput
-  events?: Prisma.PlatformEventUncheckedCreateNestedManyWithoutTicketInput
-  appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutTicketInput
-  messages?: Prisma.WhatsappMessageUncheckedCreateNestedManyWithoutTicketInput
-  scheduledMessages?: Prisma.ScheduledMessageUncheckedCreateNestedManyWithoutTicketInput
-  analysis?: Prisma.TicketAnalysisUncheckedCreateNestedOneWithoutTicketInput
-}
-
-export type TicketCreateOrConnectWithoutAnalyticsInput = {
-  where: Prisma.TicketWhereUniqueInput
-  create: Prisma.XOR<Prisma.TicketCreateWithoutAnalyticsInput, Prisma.TicketUncheckedCreateWithoutAnalyticsInput>
-}
-
-export type TicketUpsertWithoutAnalyticsInput = {
-  update: Prisma.XOR<Prisma.TicketUpdateWithoutAnalyticsInput, Prisma.TicketUncheckedUpdateWithoutAnalyticsInput>
-  create: Prisma.XOR<Prisma.TicketCreateWithoutAnalyticsInput, Prisma.TicketUncheckedCreateWithoutAnalyticsInput>
-  where?: Prisma.TicketWhereInput
-}
-
-export type TicketUpdateToOneWithWhereWithoutAnalyticsInput = {
-  where?: Prisma.TicketWhereInput
-  data: Prisma.XOR<Prisma.TicketUpdateWithoutAnalyticsInput, Prisma.TicketUncheckedUpdateWithoutAnalyticsInput>
-}
-
-export type TicketUpdateWithoutAnalyticsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
-  assigneeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  assigneeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  followUpEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  currentFollowUpStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  gclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fbclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  ctwaclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmMedium?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmCampaign?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmTerm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmContent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  campaignId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  adsetId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  adId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  sourceType?: Prisma.NullableEnumTicketSourceTypeFieldUpdateOperationsInput | $Enums.TicketSourceType | null
-  platformId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  organization?: Prisma.OrganizationUpdateOneRequiredWithoutTicketsNestedInput
-  whatsappConversation?: Prisma.WhatsappConversationUpdateOneRequiredWithoutTicketsNestedInput
-  sales?: Prisma.SaleUpdateManyWithoutTicketNestedInput
-  events?: Prisma.PlatformEventUpdateManyWithoutTicketNestedInput
-  appointments?: Prisma.AppointmentUpdateManyWithoutTicketNestedInput
-  messages?: Prisma.WhatsappMessageUpdateManyWithoutTicketNestedInput
-  scheduledMessages?: Prisma.ScheduledMessageUpdateManyWithoutTicketNestedInput
-  analysis?: Prisma.TicketAnalysisUpdateOneWithoutTicketNestedInput
-}
-
-export type TicketUncheckedUpdateWithoutAnalyticsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
-  whatsappConversationId?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
-  assigneeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  assigneeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  followUpEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  currentFollowUpStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  gclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fbclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  ctwaclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmMedium?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmCampaign?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmTerm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmContent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  campaignId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  adsetId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  adId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  sourceType?: Prisma.NullableEnumTicketSourceTypeFieldUpdateOperationsInput | $Enums.TicketSourceType | null
-  platformId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  sales?: Prisma.SaleUncheckedUpdateManyWithoutTicketNestedInput
-  events?: Prisma.PlatformEventUncheckedUpdateManyWithoutTicketNestedInput
-  appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutTicketNestedInput
-  messages?: Prisma.WhatsappMessageUncheckedUpdateManyWithoutTicketNestedInput
-  scheduledMessages?: Prisma.ScheduledMessageUncheckedUpdateManyWithoutTicketNestedInput
-  analysis?: Prisma.TicketAnalysisUncheckedUpdateOneWithoutTicketNestedInput
-}
-
-export type TicketCreateWithoutEventsInput = {
-  id?: string
-  status?: $Enums.TicketStatus
-  assigneeId?: string | null
-  assigneeName?: string | null
-  resolvedAt?: Date | string | null
-  followUpEnabled?: boolean
-  currentFollowUpStep?: number | null
-  gclid?: string | null
-  fbclid?: string | null
-  ctwaclid?: string | null
-  utmSource?: string | null
-  utmMedium?: string | null
-  utmCampaign?: string | null
-  utmTerm?: string | null
-  utmContent?: string | null
-  campaignId?: string | null
-  adsetId?: string | null
-  adId?: string | null
-  sourceType?: $Enums.TicketSourceType | null
-  platformId?: string | null
-  closedAt?: Date | string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  organization: Prisma.OrganizationCreateNestedOneWithoutTicketsInput
-  whatsappConversation: Prisma.WhatsappConversationCreateNestedOneWithoutTicketsInput
-  sales?: Prisma.SaleCreateNestedManyWithoutTicketInput
-  analytics?: Prisma.SalesAnalyticsCreateNestedOneWithoutTicketInput
-  appointments?: Prisma.AppointmentCreateNestedManyWithoutTicketInput
-  messages?: Prisma.WhatsappMessageCreateNestedManyWithoutTicketInput
-  scheduledMessages?: Prisma.ScheduledMessageCreateNestedManyWithoutTicketInput
-  analysis?: Prisma.TicketAnalysisCreateNestedOneWithoutTicketInput
-}
-
-export type TicketUncheckedCreateWithoutEventsInput = {
-  id?: string
-  organizationId: string
-  whatsappConversationId: string
-  status?: $Enums.TicketStatus
-  assigneeId?: string | null
-  assigneeName?: string | null
-  resolvedAt?: Date | string | null
-  followUpEnabled?: boolean
-  currentFollowUpStep?: number | null
-  gclid?: string | null
-  fbclid?: string | null
-  ctwaclid?: string | null
-  utmSource?: string | null
-  utmMedium?: string | null
-  utmCampaign?: string | null
-  utmTerm?: string | null
-  utmContent?: string | null
-  campaignId?: string | null
-  adsetId?: string | null
-  adId?: string | null
-  sourceType?: $Enums.TicketSourceType | null
-  platformId?: string | null
-  closedAt?: Date | string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  sales?: Prisma.SaleUncheckedCreateNestedManyWithoutTicketInput
-  analytics?: Prisma.SalesAnalyticsUncheckedCreateNestedOneWithoutTicketInput
-  appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutTicketInput
-  messages?: Prisma.WhatsappMessageUncheckedCreateNestedManyWithoutTicketInput
-  scheduledMessages?: Prisma.ScheduledMessageUncheckedCreateNestedManyWithoutTicketInput
-  analysis?: Prisma.TicketAnalysisUncheckedCreateNestedOneWithoutTicketInput
-}
-
-export type TicketCreateOrConnectWithoutEventsInput = {
-  where: Prisma.TicketWhereUniqueInput
-  create: Prisma.XOR<Prisma.TicketCreateWithoutEventsInput, Prisma.TicketUncheckedCreateWithoutEventsInput>
-}
-
-export type TicketUpsertWithoutEventsInput = {
-  update: Prisma.XOR<Prisma.TicketUpdateWithoutEventsInput, Prisma.TicketUncheckedUpdateWithoutEventsInput>
-  create: Prisma.XOR<Prisma.TicketCreateWithoutEventsInput, Prisma.TicketUncheckedCreateWithoutEventsInput>
-  where?: Prisma.TicketWhereInput
-}
-
-export type TicketUpdateToOneWithWhereWithoutEventsInput = {
-  where?: Prisma.TicketWhereInput
-  data: Prisma.XOR<Prisma.TicketUpdateWithoutEventsInput, Prisma.TicketUncheckedUpdateWithoutEventsInput>
-}
-
-export type TicketUpdateWithoutEventsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
-  assigneeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  assigneeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  followUpEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  currentFollowUpStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  gclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fbclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  ctwaclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmMedium?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmCampaign?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmTerm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmContent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  campaignId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  adsetId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  adId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  sourceType?: Prisma.NullableEnumTicketSourceTypeFieldUpdateOperationsInput | $Enums.TicketSourceType | null
-  platformId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  organization?: Prisma.OrganizationUpdateOneRequiredWithoutTicketsNestedInput
-  whatsappConversation?: Prisma.WhatsappConversationUpdateOneRequiredWithoutTicketsNestedInput
-  sales?: Prisma.SaleUpdateManyWithoutTicketNestedInput
-  analytics?: Prisma.SalesAnalyticsUpdateOneWithoutTicketNestedInput
-  appointments?: Prisma.AppointmentUpdateManyWithoutTicketNestedInput
-  messages?: Prisma.WhatsappMessageUpdateManyWithoutTicketNestedInput
-  scheduledMessages?: Prisma.ScheduledMessageUpdateManyWithoutTicketNestedInput
-  analysis?: Prisma.TicketAnalysisUpdateOneWithoutTicketNestedInput
-}
-
-export type TicketUncheckedUpdateWithoutEventsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
-  whatsappConversationId?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
-  assigneeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  assigneeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  followUpEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  currentFollowUpStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  gclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fbclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  ctwaclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmMedium?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmCampaign?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmTerm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  utmContent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  campaignId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  adsetId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  adId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  sourceType?: Prisma.NullableEnumTicketSourceTypeFieldUpdateOperationsInput | $Enums.TicketSourceType | null
-  platformId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  sales?: Prisma.SaleUncheckedUpdateManyWithoutTicketNestedInput
-  analytics?: Prisma.SalesAnalyticsUncheckedUpdateOneWithoutTicketNestedInput
-  appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutTicketNestedInput
-  messages?: Prisma.WhatsappMessageUncheckedUpdateManyWithoutTicketNestedInput
-  scheduledMessages?: Prisma.ScheduledMessageUncheckedUpdateManyWithoutTicketNestedInput
-  analysis?: Prisma.TicketAnalysisUncheckedUpdateOneWithoutTicketNestedInput
 }
 
 export type TicketCreateManyOrganizationInput = {
@@ -2350,8 +1305,6 @@ export type TicketCreateManyOrganizationInput = {
   assigneeId?: string | null
   assigneeName?: string | null
   resolvedAt?: Date | string | null
-  followUpEnabled?: boolean
-  currentFollowUpStep?: number | null
   gclid?: string | null
   fbclid?: string | null
   ctwaclid?: string | null
@@ -2376,8 +1329,6 @@ export type TicketUpdateWithoutOrganizationInput = {
   assigneeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assigneeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  followUpEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  currentFollowUpStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fbclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ctwaclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2396,12 +1347,7 @@ export type TicketUpdateWithoutOrganizationInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   whatsappConversation?: Prisma.WhatsappConversationUpdateOneRequiredWithoutTicketsNestedInput
   sales?: Prisma.SaleUpdateManyWithoutTicketNestedInput
-  events?: Prisma.PlatformEventUpdateManyWithoutTicketNestedInput
-  analytics?: Prisma.SalesAnalyticsUpdateOneWithoutTicketNestedInput
-  appointments?: Prisma.AppointmentUpdateManyWithoutTicketNestedInput
   messages?: Prisma.WhatsappMessageUpdateManyWithoutTicketNestedInput
-  scheduledMessages?: Prisma.ScheduledMessageUpdateManyWithoutTicketNestedInput
-  analysis?: Prisma.TicketAnalysisUpdateOneWithoutTicketNestedInput
 }
 
 export type TicketUncheckedUpdateWithoutOrganizationInput = {
@@ -2411,8 +1357,6 @@ export type TicketUncheckedUpdateWithoutOrganizationInput = {
   assigneeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assigneeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  followUpEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  currentFollowUpStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fbclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ctwaclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2430,12 +1374,7 @@ export type TicketUncheckedUpdateWithoutOrganizationInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sales?: Prisma.SaleUncheckedUpdateManyWithoutTicketNestedInput
-  events?: Prisma.PlatformEventUncheckedUpdateManyWithoutTicketNestedInput
-  analytics?: Prisma.SalesAnalyticsUncheckedUpdateOneWithoutTicketNestedInput
-  appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutTicketNestedInput
   messages?: Prisma.WhatsappMessageUncheckedUpdateManyWithoutTicketNestedInput
-  scheduledMessages?: Prisma.ScheduledMessageUncheckedUpdateManyWithoutTicketNestedInput
-  analysis?: Prisma.TicketAnalysisUncheckedUpdateOneWithoutTicketNestedInput
 }
 
 export type TicketUncheckedUpdateManyWithoutOrganizationInput = {
@@ -2445,8 +1384,6 @@ export type TicketUncheckedUpdateManyWithoutOrganizationInput = {
   assigneeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assigneeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  followUpEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  currentFollowUpStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fbclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ctwaclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2472,8 +1409,6 @@ export type TicketCreateManyWhatsappConversationInput = {
   assigneeId?: string | null
   assigneeName?: string | null
   resolvedAt?: Date | string | null
-  followUpEnabled?: boolean
-  currentFollowUpStep?: number | null
   gclid?: string | null
   fbclid?: string | null
   ctwaclid?: string | null
@@ -2498,8 +1433,6 @@ export type TicketUpdateWithoutWhatsappConversationInput = {
   assigneeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assigneeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  followUpEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  currentFollowUpStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fbclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ctwaclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2518,12 +1451,7 @@ export type TicketUpdateWithoutWhatsappConversationInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutTicketsNestedInput
   sales?: Prisma.SaleUpdateManyWithoutTicketNestedInput
-  events?: Prisma.PlatformEventUpdateManyWithoutTicketNestedInput
-  analytics?: Prisma.SalesAnalyticsUpdateOneWithoutTicketNestedInput
-  appointments?: Prisma.AppointmentUpdateManyWithoutTicketNestedInput
   messages?: Prisma.WhatsappMessageUpdateManyWithoutTicketNestedInput
-  scheduledMessages?: Prisma.ScheduledMessageUpdateManyWithoutTicketNestedInput
-  analysis?: Prisma.TicketAnalysisUpdateOneWithoutTicketNestedInput
 }
 
 export type TicketUncheckedUpdateWithoutWhatsappConversationInput = {
@@ -2533,8 +1461,6 @@ export type TicketUncheckedUpdateWithoutWhatsappConversationInput = {
   assigneeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assigneeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  followUpEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  currentFollowUpStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fbclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ctwaclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2552,12 +1478,7 @@ export type TicketUncheckedUpdateWithoutWhatsappConversationInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sales?: Prisma.SaleUncheckedUpdateManyWithoutTicketNestedInput
-  events?: Prisma.PlatformEventUncheckedUpdateManyWithoutTicketNestedInput
-  analytics?: Prisma.SalesAnalyticsUncheckedUpdateOneWithoutTicketNestedInput
-  appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutTicketNestedInput
   messages?: Prisma.WhatsappMessageUncheckedUpdateManyWithoutTicketNestedInput
-  scheduledMessages?: Prisma.ScheduledMessageUncheckedUpdateManyWithoutTicketNestedInput
-  analysis?: Prisma.TicketAnalysisUncheckedUpdateOneWithoutTicketNestedInput
 }
 
 export type TicketUncheckedUpdateManyWithoutWhatsappConversationInput = {
@@ -2567,8 +1488,6 @@ export type TicketUncheckedUpdateManyWithoutWhatsappConversationInput = {
   assigneeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assigneeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  followUpEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  currentFollowUpStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fbclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ctwaclid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2594,18 +1513,12 @@ export type TicketUncheckedUpdateManyWithoutWhatsappConversationInput = {
 
 export type TicketCountOutputType = {
   sales: number
-  events: number
-  appointments: number
   messages: number
-  scheduledMessages: number
 }
 
 export type TicketCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   sales?: boolean | TicketCountOutputTypeCountSalesArgs
-  events?: boolean | TicketCountOutputTypeCountEventsArgs
-  appointments?: boolean | TicketCountOutputTypeCountAppointmentsArgs
   messages?: boolean | TicketCountOutputTypeCountMessagesArgs
-  scheduledMessages?: boolean | TicketCountOutputTypeCountScheduledMessagesArgs
 }
 
 /**
@@ -2628,29 +1541,8 @@ export type TicketCountOutputTypeCountSalesArgs<ExtArgs extends runtime.Types.Ex
 /**
  * TicketCountOutputType without action
  */
-export type TicketCountOutputTypeCountEventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.PlatformEventWhereInput
-}
-
-/**
- * TicketCountOutputType without action
- */
-export type TicketCountOutputTypeCountAppointmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.AppointmentWhereInput
-}
-
-/**
- * TicketCountOutputType without action
- */
 export type TicketCountOutputTypeCountMessagesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.WhatsappMessageWhereInput
-}
-
-/**
- * TicketCountOutputType without action
- */
-export type TicketCountOutputTypeCountScheduledMessagesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.ScheduledMessageWhereInput
 }
 
 
@@ -2662,8 +1554,6 @@ export type TicketSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   assigneeId?: boolean
   assigneeName?: boolean
   resolvedAt?: boolean
-  followUpEnabled?: boolean
-  currentFollowUpStep?: boolean
   gclid?: boolean
   fbclid?: boolean
   ctwaclid?: boolean
@@ -2683,12 +1573,7 @@ export type TicketSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   whatsappConversation?: boolean | Prisma.WhatsappConversationDefaultArgs<ExtArgs>
   sales?: boolean | Prisma.Ticket$salesArgs<ExtArgs>
-  events?: boolean | Prisma.Ticket$eventsArgs<ExtArgs>
-  analytics?: boolean | Prisma.Ticket$analyticsArgs<ExtArgs>
-  appointments?: boolean | Prisma.Ticket$appointmentsArgs<ExtArgs>
   messages?: boolean | Prisma.Ticket$messagesArgs<ExtArgs>
-  scheduledMessages?: boolean | Prisma.Ticket$scheduledMessagesArgs<ExtArgs>
-  analysis?: boolean | Prisma.Ticket$analysisArgs<ExtArgs>
   _count?: boolean | Prisma.TicketCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["ticket"]>
 
@@ -2700,8 +1585,6 @@ export type TicketSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   assigneeId?: boolean
   assigneeName?: boolean
   resolvedAt?: boolean
-  followUpEnabled?: boolean
-  currentFollowUpStep?: boolean
   gclid?: boolean
   fbclid?: boolean
   ctwaclid?: boolean
@@ -2730,8 +1613,6 @@ export type TicketSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   assigneeId?: boolean
   assigneeName?: boolean
   resolvedAt?: boolean
-  followUpEnabled?: boolean
-  currentFollowUpStep?: boolean
   gclid?: boolean
   fbclid?: boolean
   ctwaclid?: boolean
@@ -2760,8 +1641,6 @@ export type TicketSelectScalar = {
   assigneeId?: boolean
   assigneeName?: boolean
   resolvedAt?: boolean
-  followUpEnabled?: boolean
-  currentFollowUpStep?: boolean
   gclid?: boolean
   fbclid?: boolean
   ctwaclid?: boolean
@@ -2780,17 +1659,12 @@ export type TicketSelectScalar = {
   updatedAt?: boolean
 }
 
-export type TicketOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "whatsappConversationId" | "status" | "assigneeId" | "assigneeName" | "resolvedAt" | "followUpEnabled" | "currentFollowUpStep" | "gclid" | "fbclid" | "ctwaclid" | "utmSource" | "utmMedium" | "utmCampaign" | "utmTerm" | "utmContent" | "campaignId" | "adsetId" | "adId" | "sourceType" | "platformId" | "closedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["ticket"]>
+export type TicketOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "whatsappConversationId" | "status" | "assigneeId" | "assigneeName" | "resolvedAt" | "gclid" | "fbclid" | "ctwaclid" | "utmSource" | "utmMedium" | "utmCampaign" | "utmTerm" | "utmContent" | "campaignId" | "adsetId" | "adId" | "sourceType" | "platformId" | "closedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["ticket"]>
 export type TicketInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   whatsappConversation?: boolean | Prisma.WhatsappConversationDefaultArgs<ExtArgs>
   sales?: boolean | Prisma.Ticket$salesArgs<ExtArgs>
-  events?: boolean | Prisma.Ticket$eventsArgs<ExtArgs>
-  analytics?: boolean | Prisma.Ticket$analyticsArgs<ExtArgs>
-  appointments?: boolean | Prisma.Ticket$appointmentsArgs<ExtArgs>
   messages?: boolean | Prisma.Ticket$messagesArgs<ExtArgs>
-  scheduledMessages?: boolean | Prisma.Ticket$scheduledMessagesArgs<ExtArgs>
-  analysis?: boolean | Prisma.Ticket$analysisArgs<ExtArgs>
   _count?: boolean | Prisma.TicketCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type TicketIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2808,12 +1682,7 @@ export type $TicketPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     organization: Prisma.$OrganizationPayload<ExtArgs>
     whatsappConversation: Prisma.$WhatsappConversationPayload<ExtArgs>
     sales: Prisma.$SalePayload<ExtArgs>[]
-    events: Prisma.$PlatformEventPayload<ExtArgs>[]
-    analytics: Prisma.$SalesAnalyticsPayload<ExtArgs> | null
-    appointments: Prisma.$AppointmentPayload<ExtArgs>[]
     messages: Prisma.$WhatsappMessagePayload<ExtArgs>[]
-    scheduledMessages: Prisma.$ScheduledMessagePayload<ExtArgs>[]
-    analysis: Prisma.$TicketAnalysisPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2823,8 +1692,6 @@ export type $TicketPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     assigneeId: string | null
     assigneeName: string | null
     resolvedAt: Date | null
-    followUpEnabled: boolean
-    currentFollowUpStep: number | null
     gclid: string | null
     fbclid: string | null
     ctwaclid: string | null
@@ -3238,12 +2105,7 @@ export interface Prisma__TicketClient<T, Null = never, ExtArgs extends runtime.T
   organization<T extends Prisma.OrganizationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   whatsappConversation<T extends Prisma.WhatsappConversationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.WhatsappConversationDefaultArgs<ExtArgs>>): Prisma.Prisma__WhatsappConversationClient<runtime.Types.Result.GetResult<Prisma.$WhatsappConversationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   sales<T extends Prisma.Ticket$salesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Ticket$salesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SalePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  events<T extends Prisma.Ticket$eventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Ticket$eventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PlatformEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  analytics<T extends Prisma.Ticket$analyticsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Ticket$analyticsArgs<ExtArgs>>): Prisma.Prisma__SalesAnalyticsClient<runtime.Types.Result.GetResult<Prisma.$SalesAnalyticsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-  appointments<T extends Prisma.Ticket$appointmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Ticket$appointmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AppointmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   messages<T extends Prisma.Ticket$messagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Ticket$messagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WhatsappMessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  scheduledMessages<T extends Prisma.Ticket$scheduledMessagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Ticket$scheduledMessagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ScheduledMessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  analysis<T extends Prisma.Ticket$analysisArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Ticket$analysisArgs<ExtArgs>>): Prisma.Prisma__TicketAnalysisClient<runtime.Types.Result.GetResult<Prisma.$TicketAnalysisPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3280,8 +2142,6 @@ export interface TicketFieldRefs {
   readonly assigneeId: Prisma.FieldRef<"Ticket", 'String'>
   readonly assigneeName: Prisma.FieldRef<"Ticket", 'String'>
   readonly resolvedAt: Prisma.FieldRef<"Ticket", 'DateTime'>
-  readonly followUpEnabled: Prisma.FieldRef<"Ticket", 'Boolean'>
-  readonly currentFollowUpStep: Prisma.FieldRef<"Ticket", 'Int'>
   readonly gclid: Prisma.FieldRef<"Ticket", 'String'>
   readonly fbclid: Prisma.FieldRef<"Ticket", 'String'>
   readonly ctwaclid: Prisma.FieldRef<"Ticket", 'String'>
@@ -3718,73 +2578,6 @@ export type Ticket$salesArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
 }
 
 /**
- * Ticket.events
- */
-export type Ticket$eventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the PlatformEvent
-   */
-  select?: Prisma.PlatformEventSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the PlatformEvent
-   */
-  omit?: Prisma.PlatformEventOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.PlatformEventInclude<ExtArgs> | null
-  where?: Prisma.PlatformEventWhereInput
-  orderBy?: Prisma.PlatformEventOrderByWithRelationInput | Prisma.PlatformEventOrderByWithRelationInput[]
-  cursor?: Prisma.PlatformEventWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.PlatformEventScalarFieldEnum | Prisma.PlatformEventScalarFieldEnum[]
-}
-
-/**
- * Ticket.analytics
- */
-export type Ticket$analyticsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the SalesAnalytics
-   */
-  select?: Prisma.SalesAnalyticsSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the SalesAnalytics
-   */
-  omit?: Prisma.SalesAnalyticsOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.SalesAnalyticsInclude<ExtArgs> | null
-  where?: Prisma.SalesAnalyticsWhereInput
-}
-
-/**
- * Ticket.appointments
- */
-export type Ticket$appointmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the Appointment
-   */
-  select?: Prisma.AppointmentSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the Appointment
-   */
-  omit?: Prisma.AppointmentOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.AppointmentInclude<ExtArgs> | null
-  where?: Prisma.AppointmentWhereInput
-  orderBy?: Prisma.AppointmentOrderByWithRelationInput | Prisma.AppointmentOrderByWithRelationInput[]
-  cursor?: Prisma.AppointmentWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.AppointmentScalarFieldEnum | Prisma.AppointmentScalarFieldEnum[]
-}
-
-/**
  * Ticket.messages
  */
 export type Ticket$messagesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -3806,49 +2599,6 @@ export type Ticket$messagesArgs<ExtArgs extends runtime.Types.Extensions.Interna
   take?: number
   skip?: number
   distinct?: Prisma.WhatsappMessageScalarFieldEnum | Prisma.WhatsappMessageScalarFieldEnum[]
-}
-
-/**
- * Ticket.scheduledMessages
- */
-export type Ticket$scheduledMessagesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the ScheduledMessage
-   */
-  select?: Prisma.ScheduledMessageSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the ScheduledMessage
-   */
-  omit?: Prisma.ScheduledMessageOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.ScheduledMessageInclude<ExtArgs> | null
-  where?: Prisma.ScheduledMessageWhereInput
-  orderBy?: Prisma.ScheduledMessageOrderByWithRelationInput | Prisma.ScheduledMessageOrderByWithRelationInput[]
-  cursor?: Prisma.ScheduledMessageWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.ScheduledMessageScalarFieldEnum | Prisma.ScheduledMessageScalarFieldEnum[]
-}
-
-/**
- * Ticket.analysis
- */
-export type Ticket$analysisArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the TicketAnalysis
-   */
-  select?: Prisma.TicketAnalysisSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the TicketAnalysis
-   */
-  omit?: Prisma.TicketAnalysisOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.TicketAnalysisInclude<ExtArgs> | null
-  where?: Prisma.TicketAnalysisWhereInput
 }
 
 /**

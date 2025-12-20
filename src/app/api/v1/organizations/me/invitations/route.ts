@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth/auth"
 import { prisma } from "@/lib/prisma"
-import { LimitService } from "@/services/billing"
 
 export async function POST(req: NextRequest) {
   const session = await auth.api.getSession({ headers: req.headers })
@@ -11,28 +10,6 @@ export async function POST(req: NextRequest) {
   }
 
   const organizationId = session.session.activeOrganizationId
-
-  // Verificar limite do plano (considera membros + convites pendentes)
-  const limitService = new LimitService()
-  const limitCheck = await limitService.checkLimit(organizationId, 'members')
-
-  // Também contar convites pendentes como "slots ocupados"
-  const pendingInvitations = await prisma.invitation.count({
-    where: {
-      organizationId,
-      status: 'pending',
-    },
-  })
-
-  const totalWithPending = limitCheck.current + pendingInvitations
-  if (totalWithPending >= limitCheck.limit) {
-    return NextResponse.json({
-      error: `Limite de membros atingido (${limitCheck.current} membros + ${pendingInvitations} convites pendentes / ${limitCheck.limit})`,
-      code: 'LIMIT_EXCEEDED',
-      current: totalWithPending,
-      limit: limitCheck.limit,
-    }, { status: 403 })
-  }
 
   const body = await req.json()
   const { email, role } = body

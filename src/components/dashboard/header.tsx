@@ -14,7 +14,6 @@ import {
 } from '@/components/ui/breadcrumb'
 import { Separator } from '@/components/ui/separator'
 import { HeaderActionsSlot } from './header-actions'
-import { AICreditsBadge } from './ai-credits-badge'
 
 // Route labels mapping (excluding /dashboard prefix)
 const ROUTE_LABELS: Record<string, string> = {
@@ -109,7 +108,6 @@ export function DashboardHeader() {
             </Breadcrumb>
 
             <div className="ml-auto flex items-center gap-2">
-                <AICreditsBadge />
                 <HeaderActionsSlot />
             </div>
         </header>

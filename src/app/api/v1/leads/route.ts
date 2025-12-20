@@ -17,7 +17,6 @@ const leadSchema = z.object({
   createdAt: z.date(),
   hasTickets: z.boolean(),
   hasSales: z.boolean(),
-  hasAudit: z.boolean(),
   hasMessages: z.boolean(),
 })
 
@@ -208,7 +207,6 @@ export async function GET(req: Request) {
   const hasMessagesFilter = parseBooleanParam(
     searchParams.get('hasMessages') ?? searchParams.get('hasMessage')
   )
-  const hasAuditFilter = parseBooleanParam(searchParams.get('hasAudit'))
 
   const ors: Prisma.LeadWhereInput[] = []
   if (q) {
@@ -253,14 +251,6 @@ export async function GET(req: Request) {
     )
   }
 
-  if (hasAuditFilter !== undefined) {
-    filterConditions.push(
-      hasAuditFilter
-        ? { salesAnalytics: { some: {} } }
-        : { salesAnalytics: { none: {} } }
-    )
-  }
-
   const baseWhere: Prisma.LeadWhereInput = { organizationId }
   let where: Prisma.LeadWhereInput = baseWhere
   if (filterConditions.length === 1) {
@@ -278,7 +268,6 @@ export async function GET(req: Request) {
       hasTickets: hasTicketsFilter,
       hasSales: hasSalesFilter,
       hasMessages: hasMessagesFilter,
-      hasAudit: hasAuditFilter,
     })
     console.log('[api/leads] where', JSON.stringify(where))
 
@@ -305,11 +294,6 @@ export async function GET(req: Request) {
           mail: true,
           remoteJid: true,
           createdAt: true,
-          _count: {
-            select: {
-              salesAnalytics: true,
-            },
-          },
           whatsappConversations: {
             select: {
               tickets: {
@@ -341,7 +325,6 @@ export async function GET(req: Request) {
           createdAt: lead.createdAt,
           hasTickets: allTickets.length > 0,
           hasSales: allTickets.some((ticket) => ticket._count.sales > 0),
-          hasAudit: lead._count.salesAnalytics > 0,
           hasMessages: allTickets.some((ticket) => ticket._count.messages > 0),
         }
       })

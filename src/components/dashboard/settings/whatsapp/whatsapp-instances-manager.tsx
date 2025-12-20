@@ -13,9 +13,7 @@ import { InstanceDetailsDialog } from '@/components/dashboard/whatsapp/instance-
 import { CreateInstanceDialog } from '@/components/dashboard/whatsapp/create-instance-dialog'
 import { TestMessageDialog } from './test-message-dialog'
 import { whatsappInstancesResponseSchema, type WhatsappInstance} from '@/schemas/whatsapp'
-import { useOrganizationLimits } from '@/hooks/use-organization-limits'
 import { formatWhatsAppWithFlag } from '@/lib/mask/phone-mask'
-import Link from 'next/link'
 
 export function WhatsappInstancesManager() {
   const { data: activeOrg } = authClient.useActiveOrganization()
@@ -24,8 +22,6 @@ export function WhatsappInstancesManager() {
   const [selectedInstance, setSelectedInstance] = useState<WhatsappInstance | null>(null)
   const [testInstance, setTestInstance] = useState<WhatsappInstance | null>(null)
   const [refreshIndex, setRefreshIndex] = useState(0)
-
-  const { limits, isLoading: limitsLoading } = useOrganizationLimits()
 
   const { data, isFetching, refetch, isLoading } = useQuery<WhatsappInstance[]>({
     queryKey: ['whatsapp-instances', organizationId, refreshIndex],
@@ -64,9 +60,6 @@ export function WhatsappInstancesManager() {
   }
 
   const orderedItems = useMemo(() => data ?? [], [data])
-
-  const usedInstances = orderedItems.length
-  const maxInstances = limits?.maxWhatsappInstances ?? 0
 
   if (!organizationId) {
     return (
@@ -126,22 +119,6 @@ export function WhatsappInstancesManager() {
             />
           ))}
         </ul>
-      )}
-
-      {/* Usage indicator */}
-      {!limitsLoading && maxInstances > 0 && (
-        <div className="flex items-center justify-between rounded-lg border border-border bg-muted/50 px-4 py-3 text-sm">
-          <span className="text-muted-foreground">
-            Usando <span className="font-medium text-foreground">{usedInstances}</span> de{' '}
-            <span className="font-medium text-foreground">{maxInstances}</span> números do seu plano
-          </span>
-          <Link
-            href="/pricing"
-            className="text-primary hover:underline text-sm font-medium"
-          >
-            Ver planos
-          </Link>
-        </div>
       )}
 
       {selectedInstance && (

@@ -291,7 +291,6 @@ export type SaleWhereInput = {
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   ticket?: Prisma.XOR<Prisma.TicketNullableScalarRelationFilter, Prisma.TicketWhereInput> | null
   items?: Prisma.SaleItemListRelationFilter
-  events?: Prisma.PlatformEventListRelationFilter
 }
 
 export type SaleOrderByWithRelationInput = {
@@ -311,7 +310,6 @@ export type SaleOrderByWithRelationInput = {
   organization?: Prisma.OrganizationOrderByWithRelationInput
   ticket?: Prisma.TicketOrderByWithRelationInput
   items?: Prisma.SaleItemOrderByRelationAggregateInput
-  events?: Prisma.PlatformEventOrderByRelationAggregateInput
 }
 
 export type SaleWhereUniqueInput = Prisma.AtLeast<{
@@ -334,7 +332,6 @@ export type SaleWhereUniqueInput = Prisma.AtLeast<{
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   ticket?: Prisma.XOR<Prisma.TicketNullableScalarRelationFilter, Prisma.TicketWhereInput> | null
   items?: Prisma.SaleItemListRelationFilter
-  events?: Prisma.PlatformEventListRelationFilter
 }, "id">
 
 export type SaleOrderByWithAggregationInput = {
@@ -392,7 +389,6 @@ export type SaleCreateInput = {
   organization: Prisma.OrganizationCreateNestedOneWithoutSalesInput
   ticket?: Prisma.TicketCreateNestedOneWithoutSalesInput
   items?: Prisma.SaleItemCreateNestedManyWithoutSaleInput
-  events?: Prisma.PlatformEventCreateNestedManyWithoutSaleInput
 }
 
 export type SaleUncheckedCreateInput = {
@@ -410,7 +406,6 @@ export type SaleUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   items?: Prisma.SaleItemUncheckedCreateNestedManyWithoutSaleInput
-  events?: Prisma.PlatformEventUncheckedCreateNestedManyWithoutSaleInput
 }
 
 export type SaleUpdateInput = {
@@ -428,7 +423,6 @@ export type SaleUpdateInput = {
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutSalesNestedInput
   ticket?: Prisma.TicketUpdateOneWithoutSalesNestedInput
   items?: Prisma.SaleItemUpdateManyWithoutSaleNestedInput
-  events?: Prisma.PlatformEventUpdateManyWithoutSaleNestedInput
 }
 
 export type SaleUncheckedUpdateInput = {
@@ -446,7 +440,6 @@ export type SaleUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.SaleItemUncheckedUpdateManyWithoutSaleNestedInput
-  events?: Prisma.PlatformEventUncheckedUpdateManyWithoutSaleNestedInput
 }
 
 export type SaleCreateManyInput = {
@@ -570,11 +563,6 @@ export type SaleScalarRelationFilter = {
   isNot?: Prisma.SaleWhereInput
 }
 
-export type SaleNullableScalarRelationFilter = {
-  is?: Prisma.SaleWhereInput | null
-  isNot?: Prisma.SaleWhereInput | null
-}
-
 export type SaleCreateNestedManyWithoutOrganizationInput = {
   create?: Prisma.XOR<Prisma.SaleCreateWithoutOrganizationInput, Prisma.SaleUncheckedCreateWithoutOrganizationInput> | Prisma.SaleCreateWithoutOrganizationInput[] | Prisma.SaleUncheckedCreateWithoutOrganizationInput[]
   connectOrCreate?: Prisma.SaleCreateOrConnectWithoutOrganizationInput | Prisma.SaleCreateOrConnectWithoutOrganizationInput[]
@@ -685,22 +673,6 @@ export type SaleUpdateOneRequiredWithoutItemsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.SaleUpdateToOneWithWhereWithoutItemsInput, Prisma.SaleUpdateWithoutItemsInput>, Prisma.SaleUncheckedUpdateWithoutItemsInput>
 }
 
-export type SaleCreateNestedOneWithoutEventsInput = {
-  create?: Prisma.XOR<Prisma.SaleCreateWithoutEventsInput, Prisma.SaleUncheckedCreateWithoutEventsInput>
-  connectOrCreate?: Prisma.SaleCreateOrConnectWithoutEventsInput
-  connect?: Prisma.SaleWhereUniqueInput
-}
-
-export type SaleUpdateOneWithoutEventsNestedInput = {
-  create?: Prisma.XOR<Prisma.SaleCreateWithoutEventsInput, Prisma.SaleUncheckedCreateWithoutEventsInput>
-  connectOrCreate?: Prisma.SaleCreateOrConnectWithoutEventsInput
-  upsert?: Prisma.SaleUpsertWithoutEventsInput
-  disconnect?: Prisma.SaleWhereInput | boolean
-  delete?: Prisma.SaleWhereInput | boolean
-  connect?: Prisma.SaleWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.SaleUpdateToOneWithWhereWithoutEventsInput, Prisma.SaleUpdateWithoutEventsInput>, Prisma.SaleUncheckedUpdateWithoutEventsInput>
-}
-
 export type SaleCreateWithoutOrganizationInput = {
   id?: string
   totalAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -715,7 +687,6 @@ export type SaleCreateWithoutOrganizationInput = {
   updatedAt?: Date | string
   ticket?: Prisma.TicketCreateNestedOneWithoutSalesInput
   items?: Prisma.SaleItemCreateNestedManyWithoutSaleInput
-  events?: Prisma.PlatformEventCreateNestedManyWithoutSaleInput
 }
 
 export type SaleUncheckedCreateWithoutOrganizationInput = {
@@ -732,7 +703,6 @@ export type SaleUncheckedCreateWithoutOrganizationInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   items?: Prisma.SaleItemUncheckedCreateNestedManyWithoutSaleInput
-  events?: Prisma.PlatformEventUncheckedCreateNestedManyWithoutSaleInput
 }
 
 export type SaleCreateOrConnectWithoutOrganizationInput = {
@@ -794,7 +764,6 @@ export type SaleCreateWithoutTicketInput = {
   updatedAt?: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutSalesInput
   items?: Prisma.SaleItemCreateNestedManyWithoutSaleInput
-  events?: Prisma.PlatformEventCreateNestedManyWithoutSaleInput
 }
 
 export type SaleUncheckedCreateWithoutTicketInput = {
@@ -811,7 +780,6 @@ export type SaleUncheckedCreateWithoutTicketInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   items?: Prisma.SaleItemUncheckedCreateNestedManyWithoutSaleInput
-  events?: Prisma.PlatformEventUncheckedCreateNestedManyWithoutSaleInput
 }
 
 export type SaleCreateOrConnectWithoutTicketInput = {
@@ -854,7 +822,6 @@ export type SaleCreateWithoutItemsInput = {
   updatedAt?: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutSalesInput
   ticket?: Prisma.TicketCreateNestedOneWithoutSalesInput
-  events?: Prisma.PlatformEventCreateNestedManyWithoutSaleInput
 }
 
 export type SaleUncheckedCreateWithoutItemsInput = {
@@ -871,7 +838,6 @@ export type SaleUncheckedCreateWithoutItemsInput = {
   statusChangedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  events?: Prisma.PlatformEventUncheckedCreateNestedManyWithoutSaleInput
 }
 
 export type SaleCreateOrConnectWithoutItemsInput = {
@@ -904,7 +870,6 @@ export type SaleUpdateWithoutItemsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutSalesNestedInput
   ticket?: Prisma.TicketUpdateOneWithoutSalesNestedInput
-  events?: Prisma.PlatformEventUpdateManyWithoutSaleNestedInput
 }
 
 export type SaleUncheckedUpdateWithoutItemsInput = {
@@ -921,91 +886,6 @@ export type SaleUncheckedUpdateWithoutItemsInput = {
   statusChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  events?: Prisma.PlatformEventUncheckedUpdateManyWithoutSaleNestedInput
-}
-
-export type SaleCreateWithoutEventsInput = {
-  id?: string
-  totalAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  profit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  discount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  status?: $Enums.SaleStatus | null
-  notes?: string | null
-  createdBy?: string | null
-  updatedBy?: string | null
-  statusChangedAt?: Date | string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  organization: Prisma.OrganizationCreateNestedOneWithoutSalesInput
-  ticket?: Prisma.TicketCreateNestedOneWithoutSalesInput
-  items?: Prisma.SaleItemCreateNestedManyWithoutSaleInput
-}
-
-export type SaleUncheckedCreateWithoutEventsInput = {
-  id?: string
-  organizationId: string
-  ticketId?: string | null
-  totalAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  profit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  discount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  status?: $Enums.SaleStatus | null
-  notes?: string | null
-  createdBy?: string | null
-  updatedBy?: string | null
-  statusChangedAt?: Date | string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  items?: Prisma.SaleItemUncheckedCreateNestedManyWithoutSaleInput
-}
-
-export type SaleCreateOrConnectWithoutEventsInput = {
-  where: Prisma.SaleWhereUniqueInput
-  create: Prisma.XOR<Prisma.SaleCreateWithoutEventsInput, Prisma.SaleUncheckedCreateWithoutEventsInput>
-}
-
-export type SaleUpsertWithoutEventsInput = {
-  update: Prisma.XOR<Prisma.SaleUpdateWithoutEventsInput, Prisma.SaleUncheckedUpdateWithoutEventsInput>
-  create: Prisma.XOR<Prisma.SaleCreateWithoutEventsInput, Prisma.SaleUncheckedCreateWithoutEventsInput>
-  where?: Prisma.SaleWhereInput
-}
-
-export type SaleUpdateToOneWithWhereWithoutEventsInput = {
-  where?: Prisma.SaleWhereInput
-  data: Prisma.XOR<Prisma.SaleUpdateWithoutEventsInput, Prisma.SaleUncheckedUpdateWithoutEventsInput>
-}
-
-export type SaleUpdateWithoutEventsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  totalAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  profit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  discount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  status?: Prisma.NullableEnumSaleStatusFieldUpdateOperationsInput | $Enums.SaleStatus | null
-  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  updatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  statusChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  organization?: Prisma.OrganizationUpdateOneRequiredWithoutSalesNestedInput
-  ticket?: Prisma.TicketUpdateOneWithoutSalesNestedInput
-  items?: Prisma.SaleItemUpdateManyWithoutSaleNestedInput
-}
-
-export type SaleUncheckedUpdateWithoutEventsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
-  ticketId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  totalAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  profit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  discount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  status?: Prisma.NullableEnumSaleStatusFieldUpdateOperationsInput | $Enums.SaleStatus | null
-  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  updatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  statusChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  items?: Prisma.SaleItemUncheckedUpdateManyWithoutSaleNestedInput
 }
 
 export type SaleCreateManyOrganizationInput = {
@@ -1037,7 +917,6 @@ export type SaleUpdateWithoutOrganizationInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ticket?: Prisma.TicketUpdateOneWithoutSalesNestedInput
   items?: Prisma.SaleItemUpdateManyWithoutSaleNestedInput
-  events?: Prisma.PlatformEventUpdateManyWithoutSaleNestedInput
 }
 
 export type SaleUncheckedUpdateWithoutOrganizationInput = {
@@ -1054,7 +933,6 @@ export type SaleUncheckedUpdateWithoutOrganizationInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.SaleItemUncheckedUpdateManyWithoutSaleNestedInput
-  events?: Prisma.PlatformEventUncheckedUpdateManyWithoutSaleNestedInput
 }
 
 export type SaleUncheckedUpdateManyWithoutOrganizationInput = {
@@ -1101,7 +979,6 @@ export type SaleUpdateWithoutTicketInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutSalesNestedInput
   items?: Prisma.SaleItemUpdateManyWithoutSaleNestedInput
-  events?: Prisma.PlatformEventUpdateManyWithoutSaleNestedInput
 }
 
 export type SaleUncheckedUpdateWithoutTicketInput = {
@@ -1118,7 +995,6 @@ export type SaleUncheckedUpdateWithoutTicketInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.SaleItemUncheckedUpdateManyWithoutSaleNestedInput
-  events?: Prisma.PlatformEventUncheckedUpdateManyWithoutSaleNestedInput
 }
 
 export type SaleUncheckedUpdateManyWithoutTicketInput = {
@@ -1143,12 +1019,10 @@ export type SaleUncheckedUpdateManyWithoutTicketInput = {
 
 export type SaleCountOutputType = {
   items: number
-  events: number
 }
 
 export type SaleCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   items?: boolean | SaleCountOutputTypeCountItemsArgs
-  events?: boolean | SaleCountOutputTypeCountEventsArgs
 }
 
 /**
@@ -1166,13 +1040,6 @@ export type SaleCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensi
  */
 export type SaleCountOutputTypeCountItemsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.SaleItemWhereInput
-}
-
-/**
- * SaleCountOutputType without action
- */
-export type SaleCountOutputTypeCountEventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.PlatformEventWhereInput
 }
 
 
@@ -1193,7 +1060,6 @@ export type SaleSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   ticket?: boolean | Prisma.Sale$ticketArgs<ExtArgs>
   items?: boolean | Prisma.Sale$itemsArgs<ExtArgs>
-  events?: boolean | Prisma.Sale$eventsArgs<ExtArgs>
   _count?: boolean | Prisma.SaleCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["sale"]>
 
@@ -1254,7 +1120,6 @@ export type SaleInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   ticket?: boolean | Prisma.Sale$ticketArgs<ExtArgs>
   items?: boolean | Prisma.Sale$itemsArgs<ExtArgs>
-  events?: boolean | Prisma.Sale$eventsArgs<ExtArgs>
   _count?: boolean | Prisma.SaleCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type SaleIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1272,7 +1137,6 @@ export type $SalePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     organization: Prisma.$OrganizationPayload<ExtArgs>
     ticket: Prisma.$TicketPayload<ExtArgs> | null
     items: Prisma.$SaleItemPayload<ExtArgs>[]
-    events: Prisma.$PlatformEventPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1685,7 +1549,6 @@ export interface Prisma__SaleClient<T, Null = never, ExtArgs extends runtime.Typ
   organization<T extends Prisma.OrganizationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   ticket<T extends Prisma.Sale$ticketArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Sale$ticketArgs<ExtArgs>>): Prisma.Prisma__TicketClient<runtime.Types.Result.GetResult<Prisma.$TicketPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   items<T extends Prisma.Sale$itemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Sale$itemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SaleItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  events<T extends Prisma.Sale$eventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Sale$eventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PlatformEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2164,30 +2027,6 @@ export type Sale$itemsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs
   take?: number
   skip?: number
   distinct?: Prisma.SaleItemScalarFieldEnum | Prisma.SaleItemScalarFieldEnum[]
-}
-
-/**
- * Sale.events
- */
-export type Sale$eventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the PlatformEvent
-   */
-  select?: Prisma.PlatformEventSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the PlatformEvent
-   */
-  omit?: Prisma.PlatformEventOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.PlatformEventInclude<ExtArgs> | null
-  where?: Prisma.PlatformEventWhereInput
-  orderBy?: Prisma.PlatformEventOrderByWithRelationInput | Prisma.PlatformEventOrderByWithRelationInput[]
-  cursor?: Prisma.PlatformEventWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.PlatformEventScalarFieldEnum | Prisma.PlatformEventScalarFieldEnum[]
 }
 
 /**

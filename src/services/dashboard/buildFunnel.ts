@@ -1,5 +1,3 @@
-import type { Prisma } from '@prisma/client'
-
 import { prisma } from '@/lib/prisma'
 import type { DateRange } from '@/lib/date/dateRange'
 
@@ -20,14 +18,14 @@ export async function buildFunnel(organizationId: string, dateRange?: DateRange)
 }
 
 async function buildLeadsCount(organizationId: string, dateRange?: DateRange) {
-  const ticketWhere: Prisma.TicketWhereInput = { organizationId }
+  const where: any = { organizationId }
 
   if (dateRange) {
-    ticketWhere.createdAt = { gte: dateRange.gte, lte: dateRange.lte }
+    where.createdAt = { gte: dateRange.gte, lte: dateRange.lte }
   }
 
   const tickets = await prisma.ticket.findMany({
-    where: ticketWhere,
+    where,
     select: {
       whatsappConversation: {
         select: { leadId: true },
@@ -46,34 +44,12 @@ async function buildLeadsCount(organizationId: string, dateRange?: DateRange) {
   return leadIds.size
 }
 
-async function buildAppointmentsCount(organizationId: string, dateRange?: DateRange) {
-  if (!dateRange) {
-    return prisma.appointment.count({ where: { organizationId } })
-  }
-
-  return prisma.appointment.count({
-    where: {
-      organizationId,
-      scheduledFor: {
-        gte: dateRange.gte,
-        lte: dateRange.lte,
-      },
-    },
-  })
+async function buildAppointmentsCount(_organizationId: string, _dateRange?: DateRange) {
+  // Appointment model was removed - schedules are no longer tracked
+  return 0
 }
 
-async function buildAttendancesCount(organizationId: string, dateRange?: DateRange) {
-  if (!dateRange) {
-    return prisma.attendance.count({ where: { organizationId } })
-  }
-
-  return prisma.attendance.count({
-    where: {
-      organizationId,
-      createdAt: {
-        gte: dateRange.gte,
-        lte: dateRange.lte,
-      },
-    },
-  })
+async function buildAttendancesCount(_organizationId: string, _dateRange?: DateRange) {
+  // Attendance model was removed - attendances are no longer tracked
+  return 0
 }

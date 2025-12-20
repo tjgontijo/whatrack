@@ -207,7 +207,6 @@ export type LeadWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"Lead"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Lead"> | Date | string
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
-  salesAnalytics?: Prisma.SalesAnalyticsListRelationFilter
   whatsappConversations?: Prisma.WhatsappConversationListRelationFilter
 }
 
@@ -221,7 +220,6 @@ export type LeadOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   organization?: Prisma.OrganizationOrderByWithRelationInput
-  salesAnalytics?: Prisma.SalesAnalyticsOrderByRelationAggregateInput
   whatsappConversations?: Prisma.WhatsappConversationOrderByRelationAggregateInput
 }
 
@@ -240,7 +238,6 @@ export type LeadWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"Lead"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Lead"> | Date | string
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
-  salesAnalytics?: Prisma.SalesAnalyticsListRelationFilter
   whatsappConversations?: Prisma.WhatsappConversationListRelationFilter
 }, "id" | "organizationId_phone" | "organizationId_remoteJid">
 
@@ -281,7 +278,6 @@ export type LeadCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutLeadsInput
-  salesAnalytics?: Prisma.SalesAnalyticsCreateNestedManyWithoutLeadInput
   whatsappConversations?: Prisma.WhatsappConversationCreateNestedManyWithoutLeadInput
 }
 
@@ -294,7 +290,6 @@ export type LeadUncheckedCreateInput = {
   mail?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  salesAnalytics?: Prisma.SalesAnalyticsUncheckedCreateNestedManyWithoutLeadInput
   whatsappConversations?: Prisma.WhatsappConversationUncheckedCreateNestedManyWithoutLeadInput
 }
 
@@ -307,7 +302,6 @@ export type LeadUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutLeadsNestedInput
-  salesAnalytics?: Prisma.SalesAnalyticsUpdateManyWithoutLeadNestedInput
   whatsappConversations?: Prisma.WhatsappConversationUpdateManyWithoutLeadNestedInput
 }
 
@@ -320,7 +314,6 @@ export type LeadUncheckedUpdateInput = {
   mail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  salesAnalytics?: Prisma.SalesAnalyticsUncheckedUpdateManyWithoutLeadNestedInput
   whatsappConversations?: Prisma.WhatsappConversationUncheckedUpdateManyWithoutLeadNestedInput
 }
 
@@ -414,11 +407,6 @@ export type LeadScalarRelationFilter = {
   isNot?: Prisma.LeadWhereInput
 }
 
-export type LeadNullableScalarRelationFilter = {
-  is?: Prisma.LeadWhereInput | null
-  isNot?: Prisma.LeadWhereInput | null
-}
-
 export type LeadCreateNestedManyWithoutOrganizationInput = {
   create?: Prisma.XOR<Prisma.LeadCreateWithoutOrganizationInput, Prisma.LeadUncheckedCreateWithoutOrganizationInput> | Prisma.LeadCreateWithoutOrganizationInput[] | Prisma.LeadUncheckedCreateWithoutOrganizationInput[]
   connectOrCreate?: Prisma.LeadCreateOrConnectWithoutOrganizationInput | Prisma.LeadCreateOrConnectWithoutOrganizationInput[]
@@ -475,22 +463,6 @@ export type LeadUpdateOneRequiredWithoutWhatsappConversationsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.LeadUpdateToOneWithWhereWithoutWhatsappConversationsInput, Prisma.LeadUpdateWithoutWhatsappConversationsInput>, Prisma.LeadUncheckedUpdateWithoutWhatsappConversationsInput>
 }
 
-export type LeadCreateNestedOneWithoutSalesAnalyticsInput = {
-  create?: Prisma.XOR<Prisma.LeadCreateWithoutSalesAnalyticsInput, Prisma.LeadUncheckedCreateWithoutSalesAnalyticsInput>
-  connectOrCreate?: Prisma.LeadCreateOrConnectWithoutSalesAnalyticsInput
-  connect?: Prisma.LeadWhereUniqueInput
-}
-
-export type LeadUpdateOneWithoutSalesAnalyticsNestedInput = {
-  create?: Prisma.XOR<Prisma.LeadCreateWithoutSalesAnalyticsInput, Prisma.LeadUncheckedCreateWithoutSalesAnalyticsInput>
-  connectOrCreate?: Prisma.LeadCreateOrConnectWithoutSalesAnalyticsInput
-  upsert?: Prisma.LeadUpsertWithoutSalesAnalyticsInput
-  disconnect?: Prisma.LeadWhereInput | boolean
-  delete?: Prisma.LeadWhereInput | boolean
-  connect?: Prisma.LeadWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.LeadUpdateToOneWithWhereWithoutSalesAnalyticsInput, Prisma.LeadUpdateWithoutSalesAnalyticsInput>, Prisma.LeadUncheckedUpdateWithoutSalesAnalyticsInput>
-}
-
 export type LeadCreateWithoutOrganizationInput = {
   id?: string
   name?: string | null
@@ -499,7 +471,6 @@ export type LeadCreateWithoutOrganizationInput = {
   mail?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  salesAnalytics?: Prisma.SalesAnalyticsCreateNestedManyWithoutLeadInput
   whatsappConversations?: Prisma.WhatsappConversationCreateNestedManyWithoutLeadInput
 }
 
@@ -511,7 +482,6 @@ export type LeadUncheckedCreateWithoutOrganizationInput = {
   mail?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  salesAnalytics?: Prisma.SalesAnalyticsUncheckedCreateNestedManyWithoutLeadInput
   whatsappConversations?: Prisma.WhatsappConversationUncheckedCreateNestedManyWithoutLeadInput
 }
 
@@ -564,7 +534,6 @@ export type LeadCreateWithoutWhatsappConversationsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutLeadsInput
-  salesAnalytics?: Prisma.SalesAnalyticsCreateNestedManyWithoutLeadInput
 }
 
 export type LeadUncheckedCreateWithoutWhatsappConversationsInput = {
@@ -576,7 +545,6 @@ export type LeadUncheckedCreateWithoutWhatsappConversationsInput = {
   mail?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  salesAnalytics?: Prisma.SalesAnalyticsUncheckedCreateNestedManyWithoutLeadInput
 }
 
 export type LeadCreateOrConnectWithoutWhatsappConversationsInput = {
@@ -604,7 +572,6 @@ export type LeadUpdateWithoutWhatsappConversationsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutLeadsNestedInput
-  salesAnalytics?: Prisma.SalesAnalyticsUpdateManyWithoutLeadNestedInput
 }
 
 export type LeadUncheckedUpdateWithoutWhatsappConversationsInput = {
@@ -616,71 +583,6 @@ export type LeadUncheckedUpdateWithoutWhatsappConversationsInput = {
   mail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  salesAnalytics?: Prisma.SalesAnalyticsUncheckedUpdateManyWithoutLeadNestedInput
-}
-
-export type LeadCreateWithoutSalesAnalyticsInput = {
-  id?: string
-  name?: string | null
-  phone?: string | null
-  remoteJid?: string | null
-  mail?: string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  organization: Prisma.OrganizationCreateNestedOneWithoutLeadsInput
-  whatsappConversations?: Prisma.WhatsappConversationCreateNestedManyWithoutLeadInput
-}
-
-export type LeadUncheckedCreateWithoutSalesAnalyticsInput = {
-  id?: string
-  organizationId: string
-  name?: string | null
-  phone?: string | null
-  remoteJid?: string | null
-  mail?: string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  whatsappConversations?: Prisma.WhatsappConversationUncheckedCreateNestedManyWithoutLeadInput
-}
-
-export type LeadCreateOrConnectWithoutSalesAnalyticsInput = {
-  where: Prisma.LeadWhereUniqueInput
-  create: Prisma.XOR<Prisma.LeadCreateWithoutSalesAnalyticsInput, Prisma.LeadUncheckedCreateWithoutSalesAnalyticsInput>
-}
-
-export type LeadUpsertWithoutSalesAnalyticsInput = {
-  update: Prisma.XOR<Prisma.LeadUpdateWithoutSalesAnalyticsInput, Prisma.LeadUncheckedUpdateWithoutSalesAnalyticsInput>
-  create: Prisma.XOR<Prisma.LeadCreateWithoutSalesAnalyticsInput, Prisma.LeadUncheckedCreateWithoutSalesAnalyticsInput>
-  where?: Prisma.LeadWhereInput
-}
-
-export type LeadUpdateToOneWithWhereWithoutSalesAnalyticsInput = {
-  where?: Prisma.LeadWhereInput
-  data: Prisma.XOR<Prisma.LeadUpdateWithoutSalesAnalyticsInput, Prisma.LeadUncheckedUpdateWithoutSalesAnalyticsInput>
-}
-
-export type LeadUpdateWithoutSalesAnalyticsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  remoteJid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  organization?: Prisma.OrganizationUpdateOneRequiredWithoutLeadsNestedInput
-  whatsappConversations?: Prisma.WhatsappConversationUpdateManyWithoutLeadNestedInput
-}
-
-export type LeadUncheckedUpdateWithoutSalesAnalyticsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
-  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  remoteJid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  whatsappConversations?: Prisma.WhatsappConversationUncheckedUpdateManyWithoutLeadNestedInput
 }
 
 export type LeadCreateManyOrganizationInput = {
@@ -701,7 +603,6 @@ export type LeadUpdateWithoutOrganizationInput = {
   mail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  salesAnalytics?: Prisma.SalesAnalyticsUpdateManyWithoutLeadNestedInput
   whatsappConversations?: Prisma.WhatsappConversationUpdateManyWithoutLeadNestedInput
 }
 
@@ -713,7 +614,6 @@ export type LeadUncheckedUpdateWithoutOrganizationInput = {
   mail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  salesAnalytics?: Prisma.SalesAnalyticsUncheckedUpdateManyWithoutLeadNestedInput
   whatsappConversations?: Prisma.WhatsappConversationUncheckedUpdateManyWithoutLeadNestedInput
 }
 
@@ -733,12 +633,10 @@ export type LeadUncheckedUpdateManyWithoutOrganizationInput = {
  */
 
 export type LeadCountOutputType = {
-  salesAnalytics: number
   whatsappConversations: number
 }
 
 export type LeadCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  salesAnalytics?: boolean | LeadCountOutputTypeCountSalesAnalyticsArgs
   whatsappConversations?: boolean | LeadCountOutputTypeCountWhatsappConversationsArgs
 }
 
@@ -750,13 +648,6 @@ export type LeadCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensi
    * Select specific fields to fetch from the LeadCountOutputType
    */
   select?: Prisma.LeadCountOutputTypeSelect<ExtArgs> | null
-}
-
-/**
- * LeadCountOutputType without action
- */
-export type LeadCountOutputTypeCountSalesAnalyticsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.SalesAnalyticsWhereInput
 }
 
 /**
@@ -777,7 +668,6 @@ export type LeadSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   createdAt?: boolean
   updatedAt?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
-  salesAnalytics?: boolean | Prisma.Lead$salesAnalyticsArgs<ExtArgs>
   whatsappConversations?: boolean | Prisma.Lead$whatsappConversationsArgs<ExtArgs>
   _count?: boolean | Prisma.LeadCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["lead"]>
@@ -820,7 +710,6 @@ export type LeadSelectScalar = {
 export type LeadOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "name" | "phone" | "remoteJid" | "mail" | "createdAt" | "updatedAt", ExtArgs["result"]["lead"]>
 export type LeadInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
-  salesAnalytics?: boolean | Prisma.Lead$salesAnalyticsArgs<ExtArgs>
   whatsappConversations?: boolean | Prisma.Lead$whatsappConversationsArgs<ExtArgs>
   _count?: boolean | Prisma.LeadCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -835,7 +724,6 @@ export type $LeadPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   name: "Lead"
   objects: {
     organization: Prisma.$OrganizationPayload<ExtArgs>
-    salesAnalytics: Prisma.$SalesAnalyticsPayload<ExtArgs>[]
     whatsappConversations: Prisma.$WhatsappConversationPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1242,7 +1130,6 @@ readonly fields: LeadFieldRefs;
 export interface Prisma__LeadClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   organization<T extends Prisma.OrganizationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  salesAnalytics<T extends Prisma.Lead$salesAnalyticsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Lead$salesAnalyticsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SalesAnalyticsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   whatsappConversations<T extends Prisma.Lead$whatsappConversationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Lead$whatsappConversationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WhatsappConversationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1674,30 +1561,6 @@ export type LeadDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Internal
    * Limit how many Leads to delete.
    */
   limit?: number
-}
-
-/**
- * Lead.salesAnalytics
- */
-export type Lead$salesAnalyticsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the SalesAnalytics
-   */
-  select?: Prisma.SalesAnalyticsSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the SalesAnalytics
-   */
-  omit?: Prisma.SalesAnalyticsOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.SalesAnalyticsInclude<ExtArgs> | null
-  where?: Prisma.SalesAnalyticsWhereInput
-  orderBy?: Prisma.SalesAnalyticsOrderByWithRelationInput | Prisma.SalesAnalyticsOrderByWithRelationInput[]
-  cursor?: Prisma.SalesAnalyticsWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.SalesAnalyticsScalarFieldEnum | Prisma.SalesAnalyticsScalarFieldEnum[]
 }
 
 /**

@@ -73,11 +73,6 @@ export type WhatsappInstanceWebhook = Prisma.WhatsappInstanceWebhookModel
  */
 export type WhatsappConversation = Prisma.WhatsappConversationModel
 /**
- * Model WhatsappConversationMetrics
- * 
- */
-export type WhatsappConversationMetrics = Prisma.WhatsappConversationMetricsModel
-/**
  * Model WhatsappMessage
  * 
  */
@@ -87,16 +82,6 @@ export type WhatsappMessage = Prisma.WhatsappMessageModel
  * 
  */
 export type Ticket = Prisma.TicketModel
-/**
- * Model TicketAnalysis
- * 
- */
-export type TicketAnalysis = Prisma.TicketAnalysisModel
-/**
- * Model ScheduledMessage
- * 
- */
-export type ScheduledMessage = Prisma.ScheduledMessageModel
 /**
  * Model Sale
  * 
@@ -118,91 +103,6 @@ export type Product = Prisma.ProductModel
  */
 export type ProductCategory = Prisma.ProductCategoryModel
 /**
- * Model Appointment
- * 
- */
-export type Appointment = Prisma.AppointmentModel
-/**
- * Model Attendance
- * 
- */
-export type Attendance = Prisma.AttendanceModel
-/**
- * Model SalesAnalytics
- * 
- */
-export type SalesAnalytics = Prisma.SalesAnalyticsModel
-/**
- * Model MetaAdsMetric
- * 
- */
-export type MetaAdsMetric = Prisma.MetaAdsMetricModel
-/**
- * Model PlatformEvent
- * 
- */
-export type PlatformEvent = Prisma.PlatformEventModel
-/**
- * Model AICredits
- * 
- */
-export type AICredits = Prisma.AICreditsModel
-/**
- * Model AIUsageLog
- * 
- */
-export type AIUsageLog = Prisma.AIUsageLogModel
-/**
- * Model Plan
- * 
- */
-export type Plan = Prisma.PlanModel
-/**
- * Model PlanPrice
- * 
- */
-export type PlanPrice = Prisma.PlanPriceModel
-/**
- * Model BillingCustomer
- * 
- */
-export type BillingCustomer = Prisma.BillingCustomerModel
-/**
- * Model BillingCustomerExternal
- * 
- */
-export type BillingCustomerExternal = Prisma.BillingCustomerExternalModel
-/**
- * Model PaymentMethodStored
- * 
- */
-export type PaymentMethodStored = Prisma.PaymentMethodStoredModel
-/**
- * Model Subscription
- * 
- */
-export type Subscription = Prisma.SubscriptionModel
-/**
- * Model Invoice
- * 
- */
-export type Invoice = Prisma.InvoiceModel
-/**
- * Model InvoiceItem
- * 
- */
-export type InvoiceItem = Prisma.InvoiceItemModel
-/**
- * Model Payment
- * 
- */
-export type Payment = Prisma.PaymentModel
-/**
- * Model WebhookEvent
- * 
- */
-export type WebhookEvent = Prisma.WebhookEventModel
-/**
  * Model OrganizationProfile
  * 
  */
@@ -212,23 +112,3 @@ export type OrganizationProfile = Prisma.OrganizationProfileModel
  * 
  */
 export type OrganizationCompany = Prisma.OrganizationCompanyModel
-/**
- * Model FollowUpConfig
- * 
- */
-export type FollowUpConfig = Prisma.FollowUpConfigModel
-/**
- * Model FollowUpStep
- * 
- */
-export type FollowUpStep = Prisma.FollowUpStepModel
-/**
- * Model DailyMetrics
- * 
- */
-export type DailyMetrics = Prisma.DailyMetricsModel
-/**
- * Model UserDailyMetrics
- * 
- */
-export type UserDailyMetrics = Prisma.UserDailyMetricsModel
