@@ -31,7 +31,7 @@ export type WhatsappInstanceMinAggregateOutputType = {
   token: string | null
   label: string | null
   phone: string | null
-  provider: string | null
+  provider: $Enums.WhatsappProvider | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -43,7 +43,7 @@ export type WhatsappInstanceMaxAggregateOutputType = {
   token: string | null
   label: string | null
   phone: string | null
-  provider: string | null
+  provider: $Enums.WhatsappProvider | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -178,7 +178,7 @@ export type WhatsappInstanceGroupByOutputType = {
   token: string | null
   label: string | null
   phone: string | null
-  provider: string
+  provider: $Enums.WhatsappProvider
   createdAt: Date
   updatedAt: Date
   _count: WhatsappInstanceCountAggregateOutputType | null
@@ -211,7 +211,7 @@ export type WhatsappInstanceWhereInput = {
   token?: Prisma.StringNullableFilter<"WhatsappInstance"> | string | null
   label?: Prisma.StringNullableFilter<"WhatsappInstance"> | string | null
   phone?: Prisma.StringNullableFilter<"WhatsappInstance"> | string | null
-  provider?: Prisma.StringFilter<"WhatsappInstance"> | string
+  provider?: Prisma.EnumWhatsappProviderFilter<"WhatsappInstance"> | $Enums.WhatsappProvider
   createdAt?: Prisma.DateTimeFilter<"WhatsappInstance"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"WhatsappInstance"> | Date | string
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
@@ -243,7 +243,7 @@ export type WhatsappInstanceWhereUniqueInput = Prisma.AtLeast<{
   token?: Prisma.StringNullableFilter<"WhatsappInstance"> | string | null
   label?: Prisma.StringNullableFilter<"WhatsappInstance"> | string | null
   phone?: Prisma.StringNullableFilter<"WhatsappInstance"> | string | null
-  provider?: Prisma.StringFilter<"WhatsappInstance"> | string
+  provider?: Prisma.EnumWhatsappProviderFilter<"WhatsappInstance"> | $Enums.WhatsappProvider
   createdAt?: Prisma.DateTimeFilter<"WhatsappInstance"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"WhatsappInstance"> | Date | string
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
@@ -275,7 +275,7 @@ export type WhatsappInstanceScalarWhereWithAggregatesInput = {
   token?: Prisma.StringNullableWithAggregatesFilter<"WhatsappInstance"> | string | null
   label?: Prisma.StringNullableWithAggregatesFilter<"WhatsappInstance"> | string | null
   phone?: Prisma.StringNullableWithAggregatesFilter<"WhatsappInstance"> | string | null
-  provider?: Prisma.StringWithAggregatesFilter<"WhatsappInstance"> | string
+  provider?: Prisma.EnumWhatsappProviderWithAggregatesFilter<"WhatsappInstance"> | $Enums.WhatsappProvider
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"WhatsappInstance"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"WhatsappInstance"> | Date | string
 }
@@ -286,7 +286,7 @@ export type WhatsappInstanceCreateInput = {
   token?: string | null
   label?: string | null
   phone?: string | null
-  provider?: string
+  provider?: $Enums.WhatsappProvider
   createdAt?: Date | string
   updatedAt?: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutWhatsappInstancesInput
@@ -300,7 +300,7 @@ export type WhatsappInstanceUncheckedCreateInput = {
   token?: string | null
   label?: string | null
   phone?: string | null
-  provider?: string
+  provider?: $Enums.WhatsappProvider
   createdAt?: Date | string
   updatedAt?: Date | string
   webhooks?: Prisma.WhatsappInstanceWebhookUncheckedCreateNestedManyWithoutInstanceInput
@@ -312,7 +312,7 @@ export type WhatsappInstanceUpdateInput = {
   token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  provider?: Prisma.StringFieldUpdateOperationsInput | string
+  provider?: Prisma.EnumWhatsappProviderFieldUpdateOperationsInput | $Enums.WhatsappProvider
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutWhatsappInstancesNestedInput
@@ -326,7 +326,7 @@ export type WhatsappInstanceUncheckedUpdateInput = {
   token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  provider?: Prisma.StringFieldUpdateOperationsInput | string
+  provider?: Prisma.EnumWhatsappProviderFieldUpdateOperationsInput | $Enums.WhatsappProvider
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   webhooks?: Prisma.WhatsappInstanceWebhookUncheckedUpdateManyWithoutInstanceNestedInput
@@ -339,7 +339,7 @@ export type WhatsappInstanceCreateManyInput = {
   token?: string | null
   label?: string | null
   phone?: string | null
-  provider?: string
+  provider?: $Enums.WhatsappProvider
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -350,7 +350,7 @@ export type WhatsappInstanceUpdateManyMutationInput = {
   token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  provider?: Prisma.StringFieldUpdateOperationsInput | string
+  provider?: Prisma.EnumWhatsappProviderFieldUpdateOperationsInput | $Enums.WhatsappProvider
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -362,7 +362,7 @@ export type WhatsappInstanceUncheckedUpdateManyInput = {
   token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  provider?: Prisma.StringFieldUpdateOperationsInput | string
+  provider?: Prisma.EnumWhatsappProviderFieldUpdateOperationsInput | $Enums.WhatsappProvider
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -465,6 +465,10 @@ export type WhatsappInstanceUncheckedUpdateManyWithoutOrganizationNestedInput = 
   deleteMany?: Prisma.WhatsappInstanceScalarWhereInput | Prisma.WhatsappInstanceScalarWhereInput[]
 }
 
+export type EnumWhatsappProviderFieldUpdateOperationsInput = {
+  set?: $Enums.WhatsappProvider
+}
+
 export type WhatsappInstanceCreateNestedOneWithoutWebhooksInput = {
   create?: Prisma.XOR<Prisma.WhatsappInstanceCreateWithoutWebhooksInput, Prisma.WhatsappInstanceUncheckedCreateWithoutWebhooksInput>
   connectOrCreate?: Prisma.WhatsappInstanceCreateOrConnectWithoutWebhooksInput
@@ -485,7 +489,7 @@ export type WhatsappInstanceCreateWithoutOrganizationInput = {
   token?: string | null
   label?: string | null
   phone?: string | null
-  provider?: string
+  provider?: $Enums.WhatsappProvider
   createdAt?: Date | string
   updatedAt?: Date | string
   webhooks?: Prisma.WhatsappInstanceWebhookCreateNestedManyWithoutInstanceInput
@@ -497,7 +501,7 @@ export type WhatsappInstanceUncheckedCreateWithoutOrganizationInput = {
   token?: string | null
   label?: string | null
   phone?: string | null
-  provider?: string
+  provider?: $Enums.WhatsappProvider
   createdAt?: Date | string
   updatedAt?: Date | string
   webhooks?: Prisma.WhatsappInstanceWebhookUncheckedCreateNestedManyWithoutInstanceInput
@@ -539,7 +543,7 @@ export type WhatsappInstanceScalarWhereInput = {
   token?: Prisma.StringNullableFilter<"WhatsappInstance"> | string | null
   label?: Prisma.StringNullableFilter<"WhatsappInstance"> | string | null
   phone?: Prisma.StringNullableFilter<"WhatsappInstance"> | string | null
-  provider?: Prisma.StringFilter<"WhatsappInstance"> | string
+  provider?: Prisma.EnumWhatsappProviderFilter<"WhatsappInstance"> | $Enums.WhatsappProvider
   createdAt?: Prisma.DateTimeFilter<"WhatsappInstance"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"WhatsappInstance"> | Date | string
 }
@@ -550,7 +554,7 @@ export type WhatsappInstanceCreateWithoutWebhooksInput = {
   token?: string | null
   label?: string | null
   phone?: string | null
-  provider?: string
+  provider?: $Enums.WhatsappProvider
   createdAt?: Date | string
   updatedAt?: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutWhatsappInstancesInput
@@ -563,7 +567,7 @@ export type WhatsappInstanceUncheckedCreateWithoutWebhooksInput = {
   token?: string | null
   label?: string | null
   phone?: string | null
-  provider?: string
+  provider?: $Enums.WhatsappProvider
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -590,7 +594,7 @@ export type WhatsappInstanceUpdateWithoutWebhooksInput = {
   token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  provider?: Prisma.StringFieldUpdateOperationsInput | string
+  provider?: Prisma.EnumWhatsappProviderFieldUpdateOperationsInput | $Enums.WhatsappProvider
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutWhatsappInstancesNestedInput
@@ -603,7 +607,7 @@ export type WhatsappInstanceUncheckedUpdateWithoutWebhooksInput = {
   token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  provider?: Prisma.StringFieldUpdateOperationsInput | string
+  provider?: Prisma.EnumWhatsappProviderFieldUpdateOperationsInput | $Enums.WhatsappProvider
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -614,7 +618,7 @@ export type WhatsappInstanceCreateManyOrganizationInput = {
   token?: string | null
   label?: string | null
   phone?: string | null
-  provider?: string
+  provider?: $Enums.WhatsappProvider
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -625,7 +629,7 @@ export type WhatsappInstanceUpdateWithoutOrganizationInput = {
   token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  provider?: Prisma.StringFieldUpdateOperationsInput | string
+  provider?: Prisma.EnumWhatsappProviderFieldUpdateOperationsInput | $Enums.WhatsappProvider
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   webhooks?: Prisma.WhatsappInstanceWebhookUpdateManyWithoutInstanceNestedInput
@@ -637,7 +641,7 @@ export type WhatsappInstanceUncheckedUpdateWithoutOrganizationInput = {
   token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  provider?: Prisma.StringFieldUpdateOperationsInput | string
+  provider?: Prisma.EnumWhatsappProviderFieldUpdateOperationsInput | $Enums.WhatsappProvider
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   webhooks?: Prisma.WhatsappInstanceWebhookUncheckedUpdateManyWithoutInstanceNestedInput
@@ -649,7 +653,7 @@ export type WhatsappInstanceUncheckedUpdateManyWithoutOrganizationInput = {
   token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  provider?: Prisma.StringFieldUpdateOperationsInput | string
+  provider?: Prisma.EnumWhatsappProviderFieldUpdateOperationsInput | $Enums.WhatsappProvider
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -764,7 +768,7 @@ export type $WhatsappInstancePayload<ExtArgs extends runtime.Types.Extensions.In
     token: string | null
     label: string | null
     phone: string | null
-    provider: string
+    provider: $Enums.WhatsappProvider
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["whatsappInstance"]>
@@ -1198,7 +1202,7 @@ export interface WhatsappInstanceFieldRefs {
   readonly token: Prisma.FieldRef<"WhatsappInstance", 'String'>
   readonly label: Prisma.FieldRef<"WhatsappInstance", 'String'>
   readonly phone: Prisma.FieldRef<"WhatsappInstance", 'String'>
-  readonly provider: Prisma.FieldRef<"WhatsappInstance", 'String'>
+  readonly provider: Prisma.FieldRef<"WhatsappInstance", 'WhatsappProvider'>
   readonly createdAt: Prisma.FieldRef<"WhatsappInstance", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"WhatsappInstance", 'DateTime'>
 }

@@ -11,6 +11,7 @@ import { getOrSyncUser, getCurrentOrganization } from '@/server/auth/server'
 import { analyzeTicket, type TicketAnalysisResult } from '@/services/ai/ticket-analyzer'
 import { aiCreditsService } from '@/services/credits/ai-credits-service'
 import { AI_CREDIT_COSTS } from '@/services/credits/types'
+import type { SentimentType, TicketOutcome } from '@prisma/client'
 
 type RouteParams = {
   params: Promise<{ id: string }>
@@ -37,7 +38,7 @@ export async function GET(request: Request, { params }: RouteParams) {
     const ticket = await prisma.ticket.findFirst({
       where: {
         id,
-        conversation: {
+        whatsappConversation: {
           organizationId: organization.id,
         },
       },
@@ -116,7 +117,7 @@ export async function POST(request: Request, { params }: RouteParams) {
     const ticket = await prisma.ticket.findFirst({
       where: {
         id,
-        conversation: {
+        whatsappConversation: {
           organizationId: organization.id,
         },
       },
@@ -149,12 +150,31 @@ export async function POST(request: Request, { params }: RouteParams) {
       messages: ticket.messages,
     })
 
+    // Convert AI analyzer results to database enums
+    const sentimentMap: Record<string, SentimentType> = {
+      positive: 'POSITIVE',
+      neutral: 'NEUTRAL',
+      negative: 'NEGATIVE',
+      frustrated: 'FRUSTRATED',
+    }
+
+    const outcomeMap: Record<string, TicketOutcome> = {
+      won: 'SALE',
+      lost: 'LOST_COMPETITOR',
+      abandoned: 'ABANDONED',
+      follow_up: 'LOST_NEED',
+      negotiating: 'LOST_PRICE',
+    }
+
+    const sentiment = sentimentMap[result.sentiment] as SentimentType
+    const outcome = result.outcome ? (outcomeMap[result.outcome] as TicketOutcome) : null
+
     // Save analysis to database
     const analysis = await prisma.ticketAnalysis.upsert({
       where: { ticketId: id },
       create: {
         ticketId: id,
-        sentiment: result.sentiment,
+        sentiment,
         sentimentScore: result.sentimentScore,
         buyingSignals: result.buyingSignals,
         objectionSignals: result.objectionSignals,
@@ -162,14 +182,14 @@ export async function POST(request: Request, { params }: RouteParams) {
         scoreFactors: result.scoreFactors,
         summary: result.summary,
         tags: result.tags,
-        outcome: result.outcome,
+        outcome,
         outcomeReason: result.outcomeReason,
         analyzedAt: new Date(),
         messageCount: ticket.messages.length,
         creditsUsed: AI_CREDIT_COSTS.ticket_analysis,
       },
       update: {
-        sentiment: result.sentiment,
+        sentiment,
         sentimentScore: result.sentimentScore,
         buyingSignals: result.buyingSignals,
         objectionSignals: result.objectionSignals,
@@ -177,7 +197,7 @@ export async function POST(request: Request, { params }: RouteParams) {
         scoreFactors: result.scoreFactors,
         summary: result.summary,
         tags: result.tags,
-        outcome: result.outcome,
+        outcome,
         outcomeReason: result.outcomeReason,
         analyzedAt: new Date(),
         messageCount: ticket.messages.length,

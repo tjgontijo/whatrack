@@ -40,7 +40,7 @@ export async function GET(req: Request, context: { params: Promise<{ leadId: str
     // Buscar tickets através da conversation
     const ticketRecords = await prisma.ticket.findMany({
       where: {
-        conversation: {
+        whatsappConversation: {
           leadId,
         },
       },

@@ -35,7 +35,7 @@ export async function GET(
     const limit = parseInt(searchParams.get('limit') || '50', 10)
 
     // Verify conversation belongs to organization
-    const conversation = await prisma.conversation.findFirst({
+    const conversation = await prisma.whatsappConversation.findFirst({
       where: {
         id: conversationId,
         organizationId: organization.id,
@@ -64,7 +64,7 @@ export async function GET(
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
 
     // Fetch messages from the ticket (only last 7 days)
-    const messages = await prisma.message.findMany({
+    const messages = await prisma.whatsappMessage.findMany({
       where: {
         ticketId,
         sentAt: { gte: sevenDaysAgo },
@@ -144,7 +144,7 @@ export async function POST(
     }
 
     // Get conversation with lead
-    const conversation = await prisma.conversation.findFirst({
+    const conversation = await prisma.whatsappConversation.findFirst({
       where: {
         id: conversationId,
         organizationId: organization.id,
@@ -201,7 +201,7 @@ export async function POST(
     }
 
     // Update conversation lastMessageAt
-    await prisma.conversation.update({
+    await prisma.whatsappConversation.update({
       where: { id: conversationId },
       data: { lastMessageAt: new Date() },
     })

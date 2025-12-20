@@ -13,8 +13,7 @@ import type { ConversationMetricsData, MessageForMetrics, LeadScoreResult } from
 export async function calculateConversationMetrics(
   conversationId: string
 ): Promise<ConversationMetricsData> {
-  // Get all messages from tickets in this conversation
-  const conversation = await prisma.conversation.findUnique({
+  const conversation = await prisma.whatsappConversation.findUnique({
     where: { id: conversationId },
     include: {
       tickets: {
@@ -39,14 +38,25 @@ export async function calculateConversationMetrics(
   }
 
   // Flatten all messages from all tickets
-  const messages: MessageForMetrics[] = conversation.tickets.flatMap((ticket) =>
-    ticket.messages.map((m) => ({
-      id: m.id,
-      senderType: m.senderType as 'LEAD' | 'USER' | 'AI' | 'SYSTEM',
-      sentAt: m.sentAt,
-      content: m.content,
-      mediaUrl: m.mediaUrl,
-    }))
+  const messages: MessageForMetrics[] = conversation.tickets.flatMap(
+    (ticket: {
+      messages: {
+        id: string
+        senderType: string
+        sentAt: Date | null
+        content: string | null
+        mediaUrl: string | null
+      }[]
+    }) =>
+      ticket.messages.map(
+        (m): MessageForMetrics => ({
+          id: m.id,
+          senderType: m.senderType as 'LEAD' | 'USER' | 'AI' | 'SYSTEM',
+          sentAt: m.sentAt,
+          content: m.content,
+          mediaUrl: m.mediaUrl,
+        })
+      )
   )
 
   return calculateMetricsFromMessages(conversationId, messages)
@@ -197,34 +207,24 @@ export async function updateConversationMetrics(
   const metricsData = await calculateConversationMetrics(conversationId)
   const scoreResult = calculateLeadScore(metricsData)
 
-  await prisma.conversationMetrics.upsert({
-    where: { conversationId },
+  await prisma.whatsappConversationMetrics.upsert({
+    where: { whatsappConversationId: conversationId },
     create: {
-      conversationId,
+      whatsappConversationId: conversationId,
       leadAvgResponseTime: metricsData.leadAvgResponseTime,
       agentAvgResponseTime: metricsData.agentAvgResponseTime,
-      leadFastestResponse: metricsData.leadFastestResponse,
-      messagesFromLead: metricsData.messagesFromLead,
-      messagesFromAgent: metricsData.messagesFromAgent,
+      leadMessages: metricsData.messagesFromLead,
+      agentMessages: metricsData.messagesFromAgent,
       totalMessages: metricsData.totalMessages,
-      mediaShared: metricsData.mediaShared,
-      avgMessageLength: metricsData.avgMessageLength,
-      conversationDuration: metricsData.conversationDuration,
-      basicLeadScore: scoreResult.score,
       lastLeadMessageAt: metricsData.lastLeadMessageAt,
       lastAgentMessageAt: metricsData.lastAgentMessageAt,
     },
     update: {
       leadAvgResponseTime: metricsData.leadAvgResponseTime,
       agentAvgResponseTime: metricsData.agentAvgResponseTime,
-      leadFastestResponse: metricsData.leadFastestResponse,
-      messagesFromLead: metricsData.messagesFromLead,
-      messagesFromAgent: metricsData.messagesFromAgent,
+      leadMessages: metricsData.messagesFromLead,
+      agentMessages: metricsData.messagesFromAgent,
       totalMessages: metricsData.totalMessages,
-      mediaShared: metricsData.mediaShared,
-      avgMessageLength: metricsData.avgMessageLength,
-      conversationDuration: metricsData.conversationDuration,
-      basicLeadScore: scoreResult.score,
       lastLeadMessageAt: metricsData.lastLeadMessageAt,
       lastAgentMessageAt: metricsData.lastAgentMessageAt,
     },
@@ -239,8 +239,8 @@ export async function updateConversationMetrics(
 export async function getConversationMetrics(
   conversationId: string
 ): Promise<{ metrics: ConversationMetricsData; score: LeadScoreResult } | null> {
-  const existing = await prisma.conversationMetrics.findUnique({
-    where: { conversationId },
+  const existing = await prisma.whatsappConversationMetrics.findUnique({
+    where: { whatsappConversationId: conversationId },
   })
 
   if (!existing) {
@@ -248,17 +248,17 @@ export async function getConversationMetrics(
   }
 
   const metricsData: ConversationMetricsData = {
-    conversationId: existing.conversationId,
+    conversationId: existing.whatsappConversationId,
     leadAvgResponseTime: existing.leadAvgResponseTime,
     agentAvgResponseTime: existing.agentAvgResponseTime,
-    leadFastestResponse: existing.leadFastestResponse,
-    messagesFromLead: existing.messagesFromLead,
-    messagesFromAgent: existing.messagesFromAgent,
-    totalMessages: existing.totalMessages,
-    mediaShared: existing.mediaShared,
-    avgMessageLength: existing.avgMessageLength,
-    conversationDuration: existing.conversationDuration,
-    basicLeadScore: existing.basicLeadScore,
+    leadFastestResponse: null,
+    messagesFromLead: existing.leadMessages ?? 0,
+    messagesFromAgent: existing.agentMessages ?? 0,
+    totalMessages: existing.totalMessages ?? 0,
+    mediaShared: 0,
+    avgMessageLength: 0,
+    conversationDuration: 0,
+    basicLeadScore: 50,
     lastLeadMessageAt: existing.lastLeadMessageAt,
     lastAgentMessageAt: existing.lastAgentMessageAt,
   }

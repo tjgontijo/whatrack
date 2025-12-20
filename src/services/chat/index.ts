@@ -4,7 +4,14 @@
  */
 
 import { prisma } from '@/lib/prisma'
-import type { Lead, Conversation, Ticket, Message, MessageSenderType, MessageType } from '@prisma/client'
+import type {
+  Lead,
+  Ticket,
+  WhatsappMessage,
+  MessageSenderType,
+  MessageType,
+  WhatsappConversation,
+} from '@prisma/client'
 
 // =============================================================================
 // Lead Operations
@@ -53,7 +60,6 @@ export async function upsertLead(params: UpsertLeadParams): Promise<Lead> {
       phone,
       name,
       remoteJid,
-      firstSource: 'whatsapp',
     },
   })
 }
@@ -70,11 +76,11 @@ interface UpsertConversationParams {
 
 export async function upsertConversation(
   params: UpsertConversationParams
-): Promise<Conversation> {
+): Promise<WhatsappConversation> {
   const { organizationId, leadId, instanceId } = params
 
   // Conversation is unique per (leadId, instanceId) - allows N conversations per lead across instances
-  const existing = await prisma.conversation.findUnique({
+  const existing = await prisma.whatsappConversation.findUnique({
     where: {
       leadId_instanceId: {
         leadId,
@@ -88,7 +94,7 @@ export async function upsertConversation(
   }
 
   // Create new conversation
-  return prisma.conversation.create({
+  return prisma.whatsappConversation.create({
     data: {
       organizationId,
       leadId,
@@ -102,8 +108,8 @@ export async function upsertConversation(
 export async function updateConversationLastMessage(
   conversationId: string,
   lastMessageAt: Date
-): Promise<Conversation> {
-  return prisma.conversation.update({
+): Promise<WhatsappConversation> {
+  return prisma.whatsappConversation.update({
     where: { id: conversationId },
     data: {
       lastMessageAt,
@@ -120,7 +126,7 @@ export async function resolveTicket(conversationId: string): Promise<Ticket> {
   // Find open ticket for this conversation
   const existing = await prisma.ticket.findFirst({
     where: {
-      conversationId,
+      whatsappConversationId: conversationId,
       status: 'OPEN',
     },
   })
@@ -129,10 +135,10 @@ export async function resolveTicket(conversationId: string): Promise<Ticket> {
     return existing
   }
 
-  // Get conversation to get organizationId and leadId
-  const conversation = await prisma.conversation.findUnique({
+  // Get conversation to get organizationId
+  const conversation = await prisma.whatsappConversation.findUnique({
     where: { id: conversationId },
-    select: { organizationId: true, leadId: true },
+    select: { organizationId: true },
   })
 
   if (!conversation) {
@@ -143,8 +149,7 @@ export async function resolveTicket(conversationId: string): Promise<Ticket> {
   return prisma.ticket.create({
     data: {
       organizationId: conversation.organizationId,
-      conversationId,
-      leadId: conversation.leadId,
+      whatsappConversationId: conversationId,
       status: 'OPEN',
       followUpEnabled: false,
       currentFollowUpStep: 0,
@@ -172,7 +177,7 @@ interface CreateMessageParams {
   sentAt: Date
 }
 
-export async function createMessage(params: CreateMessageParams): Promise<Message> {
+export async function createMessage(params: CreateMessageParams): Promise<WhatsappMessage> {
   const {
     ticketId,
     senderType,
@@ -192,7 +197,7 @@ export async function createMessage(params: CreateMessageParams): Promise<Messag
   // Map message type to valid enum value
   const validMessageType = mapMessageType(messageType)
 
-  return prisma.message.create({
+  return prisma.whatsappMessage.create({
     data: {
       ticketId,
       senderType: senderType as MessageSenderType,

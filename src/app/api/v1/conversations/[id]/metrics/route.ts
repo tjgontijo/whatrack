@@ -32,7 +32,7 @@ export async function GET(request: Request, { params }: RouteParams) {
     }
 
     // Verify conversation belongs to this organization
-    const conversation = await prisma.conversation.findFirst({
+    const conversation = await prisma.whatsappConversation.findFirst({
       where: {
         id,
         organizationId: organization.id,
@@ -98,7 +98,7 @@ export async function POST(request: Request, { params }: RouteParams) {
     }
 
     // Verify conversation belongs to this organization
-    const conversation = await prisma.conversation.findFirst({
+    const conversation = await prisma.whatsappConversation.findFirst({
       where: {
         id,
         organizationId: organization.id,

@@ -20,7 +20,7 @@ export async function findOrCreateConversation(input: FindOrCreateConversationIn
   const { organizationId, instanceId, leadId, reopenIfResolved = true } = input;
 
   // Try to find existing conversation by leadId (1:1 relationship)
-  const existing = await prisma.conversation.findFirst({
+  const existing = await prisma.whatsappConversation.findFirst({
     where: {
       leadId,
       organizationId,
@@ -30,7 +30,7 @@ export async function findOrCreateConversation(input: FindOrCreateConversationIn
   if (existing) {
     // Reopen if resolved and flag is set
     if (reopenIfResolved && existing.status === "RESOLVED") {
-      return await prisma.conversation.update({
+      return await prisma.whatsappConversation.update({
         where: { id: existing.id },
         data: {
           status: "OPEN",
@@ -41,7 +41,7 @@ export async function findOrCreateConversation(input: FindOrCreateConversationIn
   }
 
   // Create new conversation (1:1 with Lead)
-  return await prisma.conversation.create({
+  return await prisma.whatsappConversation.create({
     data: {
       organizationId,
       leadId,
@@ -56,7 +56,7 @@ export async function findOrCreateConversation(input: FindOrCreateConversationIn
  * Update conversation lastMessageAt timestamp
  */
 export async function updateConversationLastMessage(conversationId: string) {
-  return await prisma.conversation.update({
+  return await prisma.whatsappConversation.update({
     where: { id: conversationId },
     data: {
       lastMessageAt: new Date(),
@@ -68,7 +68,7 @@ export async function updateConversationLastMessage(conversationId: string) {
  * Get conversation ID (for AI agent)
  */
 export async function getConversationThreadId(conversationId: string): Promise<string | null> {
-  const conversation = await prisma.conversation.findUnique({
+  const conversation = await prisma.whatsappConversation.findUnique({
     where: { id: conversationId },
     select: { id: true },
   });

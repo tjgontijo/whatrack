@@ -14,7 +14,7 @@ import type * as Prisma from "../internal/prismaNamespace"
 
 /**
  * Model TicketAnalysis
- * AI Analysis of a ticket
+ * 
  */
 export type TicketAnalysisModel = runtime.Types.Result.DefaultSelection<Prisma.$TicketAnalysisPayload>
 
@@ -43,11 +43,11 @@ export type TicketAnalysisSumAggregateOutputType = {
 export type TicketAnalysisMinAggregateOutputType = {
   id: string | null
   ticketId: string | null
-  sentiment: string | null
+  sentiment: $Enums.SentimentType | null
   sentimentScore: number | null
   aiLeadScore: number | null
   summary: string | null
-  outcome: string | null
+  outcome: $Enums.TicketOutcome | null
   outcomeReason: string | null
   analyzedAt: Date | null
   messageCount: number | null
@@ -59,11 +59,11 @@ export type TicketAnalysisMinAggregateOutputType = {
 export type TicketAnalysisMaxAggregateOutputType = {
   id: string | null
   ticketId: string | null
-  sentiment: string | null
+  sentiment: $Enums.SentimentType | null
   sentimentScore: number | null
   aiLeadScore: number | null
   summary: string | null
-  outcome: string | null
+  outcome: $Enums.TicketOutcome | null
   outcomeReason: string | null
   analyzedAt: Date | null
   messageCount: number | null
@@ -250,7 +250,7 @@ export type TicketAnalysisGroupByArgs<ExtArgs extends runtime.Types.Extensions.I
 export type TicketAnalysisGroupByOutputType = {
   id: string
   ticketId: string
-  sentiment: string | null
+  sentiment: $Enums.SentimentType | null
   sentimentScore: number | null
   buyingSignals: string[]
   objectionSignals: string[]
@@ -258,7 +258,7 @@ export type TicketAnalysisGroupByOutputType = {
   scoreFactors: runtime.JsonValue | null
   summary: string | null
   tags: string[]
-  outcome: string | null
+  outcome: $Enums.TicketOutcome | null
   outcomeReason: string | null
   analyzedAt: Date
   messageCount: number
@@ -293,7 +293,7 @@ export type TicketAnalysisWhereInput = {
   NOT?: Prisma.TicketAnalysisWhereInput | Prisma.TicketAnalysisWhereInput[]
   id?: Prisma.StringFilter<"TicketAnalysis"> | string
   ticketId?: Prisma.StringFilter<"TicketAnalysis"> | string
-  sentiment?: Prisma.StringNullableFilter<"TicketAnalysis"> | string | null
+  sentiment?: Prisma.EnumSentimentTypeNullableFilter<"TicketAnalysis"> | $Enums.SentimentType | null
   sentimentScore?: Prisma.FloatNullableFilter<"TicketAnalysis"> | number | null
   buyingSignals?: Prisma.StringNullableListFilter<"TicketAnalysis">
   objectionSignals?: Prisma.StringNullableListFilter<"TicketAnalysis">
@@ -301,7 +301,7 @@ export type TicketAnalysisWhereInput = {
   scoreFactors?: Prisma.JsonNullableFilter<"TicketAnalysis">
   summary?: Prisma.StringNullableFilter<"TicketAnalysis"> | string | null
   tags?: Prisma.StringNullableListFilter<"TicketAnalysis">
-  outcome?: Prisma.StringNullableFilter<"TicketAnalysis"> | string | null
+  outcome?: Prisma.EnumTicketOutcomeNullableFilter<"TicketAnalysis"> | $Enums.TicketOutcome | null
   outcomeReason?: Prisma.StringNullableFilter<"TicketAnalysis"> | string | null
   analyzedAt?: Prisma.DateTimeFilter<"TicketAnalysis"> | Date | string
   messageCount?: Prisma.IntFilter<"TicketAnalysis"> | number
@@ -338,7 +338,7 @@ export type TicketAnalysisWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.TicketAnalysisWhereInput | Prisma.TicketAnalysisWhereInput[]
   OR?: Prisma.TicketAnalysisWhereInput[]
   NOT?: Prisma.TicketAnalysisWhereInput | Prisma.TicketAnalysisWhereInput[]
-  sentiment?: Prisma.StringNullableFilter<"TicketAnalysis"> | string | null
+  sentiment?: Prisma.EnumSentimentTypeNullableFilter<"TicketAnalysis"> | $Enums.SentimentType | null
   sentimentScore?: Prisma.FloatNullableFilter<"TicketAnalysis"> | number | null
   buyingSignals?: Prisma.StringNullableListFilter<"TicketAnalysis">
   objectionSignals?: Prisma.StringNullableListFilter<"TicketAnalysis">
@@ -346,7 +346,7 @@ export type TicketAnalysisWhereUniqueInput = Prisma.AtLeast<{
   scoreFactors?: Prisma.JsonNullableFilter<"TicketAnalysis">
   summary?: Prisma.StringNullableFilter<"TicketAnalysis"> | string | null
   tags?: Prisma.StringNullableListFilter<"TicketAnalysis">
-  outcome?: Prisma.StringNullableFilter<"TicketAnalysis"> | string | null
+  outcome?: Prisma.EnumTicketOutcomeNullableFilter<"TicketAnalysis"> | $Enums.TicketOutcome | null
   outcomeReason?: Prisma.StringNullableFilter<"TicketAnalysis"> | string | null
   analyzedAt?: Prisma.DateTimeFilter<"TicketAnalysis"> | Date | string
   messageCount?: Prisma.IntFilter<"TicketAnalysis"> | number
@@ -387,7 +387,7 @@ export type TicketAnalysisScalarWhereWithAggregatesInput = {
   NOT?: Prisma.TicketAnalysisScalarWhereWithAggregatesInput | Prisma.TicketAnalysisScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"TicketAnalysis"> | string
   ticketId?: Prisma.StringWithAggregatesFilter<"TicketAnalysis"> | string
-  sentiment?: Prisma.StringNullableWithAggregatesFilter<"TicketAnalysis"> | string | null
+  sentiment?: Prisma.EnumSentimentTypeNullableWithAggregatesFilter<"TicketAnalysis"> | $Enums.SentimentType | null
   sentimentScore?: Prisma.FloatNullableWithAggregatesFilter<"TicketAnalysis"> | number | null
   buyingSignals?: Prisma.StringNullableListFilter<"TicketAnalysis">
   objectionSignals?: Prisma.StringNullableListFilter<"TicketAnalysis">
@@ -395,7 +395,7 @@ export type TicketAnalysisScalarWhereWithAggregatesInput = {
   scoreFactors?: Prisma.JsonNullableWithAggregatesFilter<"TicketAnalysis">
   summary?: Prisma.StringNullableWithAggregatesFilter<"TicketAnalysis"> | string | null
   tags?: Prisma.StringNullableListFilter<"TicketAnalysis">
-  outcome?: Prisma.StringNullableWithAggregatesFilter<"TicketAnalysis"> | string | null
+  outcome?: Prisma.EnumTicketOutcomeNullableWithAggregatesFilter<"TicketAnalysis"> | $Enums.TicketOutcome | null
   outcomeReason?: Prisma.StringNullableWithAggregatesFilter<"TicketAnalysis"> | string | null
   analyzedAt?: Prisma.DateTimeWithAggregatesFilter<"TicketAnalysis"> | Date | string
   messageCount?: Prisma.IntWithAggregatesFilter<"TicketAnalysis"> | number
@@ -406,7 +406,7 @@ export type TicketAnalysisScalarWhereWithAggregatesInput = {
 
 export type TicketAnalysisCreateInput = {
   id?: string
-  sentiment?: string | null
+  sentiment?: $Enums.SentimentType | null
   sentimentScore?: number | null
   buyingSignals?: Prisma.TicketAnalysisCreatebuyingSignalsInput | string[]
   objectionSignals?: Prisma.TicketAnalysisCreateobjectionSignalsInput | string[]
@@ -414,7 +414,7 @@ export type TicketAnalysisCreateInput = {
   scoreFactors?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   summary?: string | null
   tags?: Prisma.TicketAnalysisCreatetagsInput | string[]
-  outcome?: string | null
+  outcome?: $Enums.TicketOutcome | null
   outcomeReason?: string | null
   analyzedAt: Date | string
   messageCount: number
@@ -427,7 +427,7 @@ export type TicketAnalysisCreateInput = {
 export type TicketAnalysisUncheckedCreateInput = {
   id?: string
   ticketId: string
-  sentiment?: string | null
+  sentiment?: $Enums.SentimentType | null
   sentimentScore?: number | null
   buyingSignals?: Prisma.TicketAnalysisCreatebuyingSignalsInput | string[]
   objectionSignals?: Prisma.TicketAnalysisCreateobjectionSignalsInput | string[]
@@ -435,7 +435,7 @@ export type TicketAnalysisUncheckedCreateInput = {
   scoreFactors?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   summary?: string | null
   tags?: Prisma.TicketAnalysisCreatetagsInput | string[]
-  outcome?: string | null
+  outcome?: $Enums.TicketOutcome | null
   outcomeReason?: string | null
   analyzedAt: Date | string
   messageCount: number
@@ -446,7 +446,7 @@ export type TicketAnalysisUncheckedCreateInput = {
 
 export type TicketAnalysisUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  sentiment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentiment?: Prisma.NullableEnumSentimentTypeFieldUpdateOperationsInput | $Enums.SentimentType | null
   sentimentScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   buyingSignals?: Prisma.TicketAnalysisUpdatebuyingSignalsInput | string[]
   objectionSignals?: Prisma.TicketAnalysisUpdateobjectionSignalsInput | string[]
@@ -454,7 +454,7 @@ export type TicketAnalysisUpdateInput = {
   scoreFactors?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tags?: Prisma.TicketAnalysisUpdatetagsInput | string[]
-  outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  outcome?: Prisma.NullableEnumTicketOutcomeFieldUpdateOperationsInput | $Enums.TicketOutcome | null
   outcomeReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   analyzedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   messageCount?: Prisma.IntFieldUpdateOperationsInput | number
@@ -467,7 +467,7 @@ export type TicketAnalysisUpdateInput = {
 export type TicketAnalysisUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   ticketId?: Prisma.StringFieldUpdateOperationsInput | string
-  sentiment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentiment?: Prisma.NullableEnumSentimentTypeFieldUpdateOperationsInput | $Enums.SentimentType | null
   sentimentScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   buyingSignals?: Prisma.TicketAnalysisUpdatebuyingSignalsInput | string[]
   objectionSignals?: Prisma.TicketAnalysisUpdateobjectionSignalsInput | string[]
@@ -475,7 +475,7 @@ export type TicketAnalysisUncheckedUpdateInput = {
   scoreFactors?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tags?: Prisma.TicketAnalysisUpdatetagsInput | string[]
-  outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  outcome?: Prisma.NullableEnumTicketOutcomeFieldUpdateOperationsInput | $Enums.TicketOutcome | null
   outcomeReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   analyzedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   messageCount?: Prisma.IntFieldUpdateOperationsInput | number
@@ -487,7 +487,7 @@ export type TicketAnalysisUncheckedUpdateInput = {
 export type TicketAnalysisCreateManyInput = {
   id?: string
   ticketId: string
-  sentiment?: string | null
+  sentiment?: $Enums.SentimentType | null
   sentimentScore?: number | null
   buyingSignals?: Prisma.TicketAnalysisCreatebuyingSignalsInput | string[]
   objectionSignals?: Prisma.TicketAnalysisCreateobjectionSignalsInput | string[]
@@ -495,7 +495,7 @@ export type TicketAnalysisCreateManyInput = {
   scoreFactors?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   summary?: string | null
   tags?: Prisma.TicketAnalysisCreatetagsInput | string[]
-  outcome?: string | null
+  outcome?: $Enums.TicketOutcome | null
   outcomeReason?: string | null
   analyzedAt: Date | string
   messageCount: number
@@ -506,7 +506,7 @@ export type TicketAnalysisCreateManyInput = {
 
 export type TicketAnalysisUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  sentiment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentiment?: Prisma.NullableEnumSentimentTypeFieldUpdateOperationsInput | $Enums.SentimentType | null
   sentimentScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   buyingSignals?: Prisma.TicketAnalysisUpdatebuyingSignalsInput | string[]
   objectionSignals?: Prisma.TicketAnalysisUpdateobjectionSignalsInput | string[]
@@ -514,7 +514,7 @@ export type TicketAnalysisUpdateManyMutationInput = {
   scoreFactors?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tags?: Prisma.TicketAnalysisUpdatetagsInput | string[]
-  outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  outcome?: Prisma.NullableEnumTicketOutcomeFieldUpdateOperationsInput | $Enums.TicketOutcome | null
   outcomeReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   analyzedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   messageCount?: Prisma.IntFieldUpdateOperationsInput | number
@@ -526,7 +526,7 @@ export type TicketAnalysisUpdateManyMutationInput = {
 export type TicketAnalysisUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   ticketId?: Prisma.StringFieldUpdateOperationsInput | string
-  sentiment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentiment?: Prisma.NullableEnumSentimentTypeFieldUpdateOperationsInput | $Enums.SentimentType | null
   sentimentScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   buyingSignals?: Prisma.TicketAnalysisUpdatebuyingSignalsInput | string[]
   objectionSignals?: Prisma.TicketAnalysisUpdateobjectionSignalsInput | string[]
@@ -534,7 +534,7 @@ export type TicketAnalysisUncheckedUpdateManyInput = {
   scoreFactors?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tags?: Prisma.TicketAnalysisUpdatetagsInput | string[]
-  outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  outcome?: Prisma.NullableEnumTicketOutcomeFieldUpdateOperationsInput | $Enums.TicketOutcome | null
   outcomeReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   analyzedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   messageCount?: Prisma.IntFieldUpdateOperationsInput | number
@@ -666,6 +666,10 @@ export type TicketAnalysisCreatetagsInput = {
   set: string[]
 }
 
+export type NullableEnumSentimentTypeFieldUpdateOperationsInput = {
+  set?: $Enums.SentimentType | null
+}
+
 export type NullableFloatFieldUpdateOperationsInput = {
   set?: number | null
   increment?: number
@@ -689,9 +693,13 @@ export type TicketAnalysisUpdatetagsInput = {
   push?: string | string[]
 }
 
+export type NullableEnumTicketOutcomeFieldUpdateOperationsInput = {
+  set?: $Enums.TicketOutcome | null
+}
+
 export type TicketAnalysisCreateWithoutTicketInput = {
   id?: string
-  sentiment?: string | null
+  sentiment?: $Enums.SentimentType | null
   sentimentScore?: number | null
   buyingSignals?: Prisma.TicketAnalysisCreatebuyingSignalsInput | string[]
   objectionSignals?: Prisma.TicketAnalysisCreateobjectionSignalsInput | string[]
@@ -699,7 +707,7 @@ export type TicketAnalysisCreateWithoutTicketInput = {
   scoreFactors?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   summary?: string | null
   tags?: Prisma.TicketAnalysisCreatetagsInput | string[]
-  outcome?: string | null
+  outcome?: $Enums.TicketOutcome | null
   outcomeReason?: string | null
   analyzedAt: Date | string
   messageCount: number
@@ -710,7 +718,7 @@ export type TicketAnalysisCreateWithoutTicketInput = {
 
 export type TicketAnalysisUncheckedCreateWithoutTicketInput = {
   id?: string
-  sentiment?: string | null
+  sentiment?: $Enums.SentimentType | null
   sentimentScore?: number | null
   buyingSignals?: Prisma.TicketAnalysisCreatebuyingSignalsInput | string[]
   objectionSignals?: Prisma.TicketAnalysisCreateobjectionSignalsInput | string[]
@@ -718,7 +726,7 @@ export type TicketAnalysisUncheckedCreateWithoutTicketInput = {
   scoreFactors?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   summary?: string | null
   tags?: Prisma.TicketAnalysisCreatetagsInput | string[]
-  outcome?: string | null
+  outcome?: $Enums.TicketOutcome | null
   outcomeReason?: string | null
   analyzedAt: Date | string
   messageCount: number
@@ -745,7 +753,7 @@ export type TicketAnalysisUpdateToOneWithWhereWithoutTicketInput = {
 
 export type TicketAnalysisUpdateWithoutTicketInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  sentiment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentiment?: Prisma.NullableEnumSentimentTypeFieldUpdateOperationsInput | $Enums.SentimentType | null
   sentimentScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   buyingSignals?: Prisma.TicketAnalysisUpdatebuyingSignalsInput | string[]
   objectionSignals?: Prisma.TicketAnalysisUpdateobjectionSignalsInput | string[]
@@ -753,7 +761,7 @@ export type TicketAnalysisUpdateWithoutTicketInput = {
   scoreFactors?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tags?: Prisma.TicketAnalysisUpdatetagsInput | string[]
-  outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  outcome?: Prisma.NullableEnumTicketOutcomeFieldUpdateOperationsInput | $Enums.TicketOutcome | null
   outcomeReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   analyzedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   messageCount?: Prisma.IntFieldUpdateOperationsInput | number
@@ -764,7 +772,7 @@ export type TicketAnalysisUpdateWithoutTicketInput = {
 
 export type TicketAnalysisUncheckedUpdateWithoutTicketInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  sentiment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentiment?: Prisma.NullableEnumSentimentTypeFieldUpdateOperationsInput | $Enums.SentimentType | null
   sentimentScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   buyingSignals?: Prisma.TicketAnalysisUpdatebuyingSignalsInput | string[]
   objectionSignals?: Prisma.TicketAnalysisUpdateobjectionSignalsInput | string[]
@@ -772,7 +780,7 @@ export type TicketAnalysisUncheckedUpdateWithoutTicketInput = {
   scoreFactors?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tags?: Prisma.TicketAnalysisUpdatetagsInput | string[]
-  outcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  outcome?: Prisma.NullableEnumTicketOutcomeFieldUpdateOperationsInput | $Enums.TicketOutcome | null
   outcomeReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   analyzedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   messageCount?: Prisma.IntFieldUpdateOperationsInput | number
@@ -885,7 +893,7 @@ export type $TicketAnalysisPayload<ExtArgs extends runtime.Types.Extensions.Inte
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     ticketId: string
-    sentiment: string | null
+    sentiment: $Enums.SentimentType | null
     sentimentScore: number | null
     buyingSignals: string[]
     objectionSignals: string[]
@@ -893,7 +901,7 @@ export type $TicketAnalysisPayload<ExtArgs extends runtime.Types.Extensions.Inte
     scoreFactors: runtime.JsonValue | null
     summary: string | null
     tags: string[]
-    outcome: string | null
+    outcome: $Enums.TicketOutcome | null
     outcomeReason: string | null
     analyzedAt: Date
     messageCount: number
@@ -1326,7 +1334,7 @@ export interface Prisma__TicketAnalysisClient<T, Null = never, ExtArgs extends r
 export interface TicketAnalysisFieldRefs {
   readonly id: Prisma.FieldRef<"TicketAnalysis", 'String'>
   readonly ticketId: Prisma.FieldRef<"TicketAnalysis", 'String'>
-  readonly sentiment: Prisma.FieldRef<"TicketAnalysis", 'String'>
+  readonly sentiment: Prisma.FieldRef<"TicketAnalysis", 'SentimentType'>
   readonly sentimentScore: Prisma.FieldRef<"TicketAnalysis", 'Float'>
   readonly buyingSignals: Prisma.FieldRef<"TicketAnalysis", 'String[]'>
   readonly objectionSignals: Prisma.FieldRef<"TicketAnalysis", 'String[]'>
@@ -1334,7 +1342,7 @@ export interface TicketAnalysisFieldRefs {
   readonly scoreFactors: Prisma.FieldRef<"TicketAnalysis", 'Json'>
   readonly summary: Prisma.FieldRef<"TicketAnalysis", 'String'>
   readonly tags: Prisma.FieldRef<"TicketAnalysis", 'String[]'>
-  readonly outcome: Prisma.FieldRef<"TicketAnalysis", 'String'>
+  readonly outcome: Prisma.FieldRef<"TicketAnalysis", 'TicketOutcome'>
   readonly outcomeReason: Prisma.FieldRef<"TicketAnalysis", 'String'>
   readonly analyzedAt: Prisma.FieldRef<"TicketAnalysis", 'DateTime'>
   readonly messageCount: Prisma.FieldRef<"TicketAnalysis", 'Int'>

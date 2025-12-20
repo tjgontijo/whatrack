@@ -91,7 +91,7 @@ export async function cancelFollowupsOnReply(ticketId: string): Promise<void> {
   const ticket = await prisma.ticket.findUnique({
     where: { id: ticketId },
     include: {
-      conversation: true,
+      whatsappConversation: true,
     },
   })
 
@@ -138,7 +138,7 @@ export async function cancelFollowupsOnReply(ticketId: string): Promise<void> {
 
   // Re-schedule step 1
   const config = await prisma.followUpConfig.findUnique({
-    where: { organizationId: ticket.conversation.organizationId },
+    where: { organizationId: ticket.whatsappConversation.organizationId },
     include: {
       steps: {
         orderBy: { order: 'asc' },
@@ -149,7 +149,7 @@ export async function cancelFollowupsOnReply(ticketId: string): Promise<void> {
   if (config?.steps.length) {
     await scheduleFollowupStep(
       ticketId,
-      ticket.conversation.organizationId,
+      ticket.whatsappConversation.organizationId,
       1,
       config.steps[0].delayMinutes,
       config
@@ -223,7 +223,7 @@ export async function skipToNextStep(ticketId: string): Promise<boolean> {
   const ticket = await prisma.ticket.findUnique({
     where: { id: ticketId },
     include: {
-      conversation: true,
+      whatsappConversation: true,
     },
   })
 
@@ -232,7 +232,7 @@ export async function skipToNextStep(ticketId: string): Promise<boolean> {
   }
 
   const config = await prisma.followUpConfig.findUnique({
-    where: { organizationId: ticket.conversation.organizationId },
+    where: { organizationId: ticket.whatsappConversation.organizationId },
     include: {
       steps: {
         orderBy: { order: 'asc' },
@@ -254,7 +254,7 @@ export async function skipToNextStep(ticketId: string): Promise<boolean> {
   // Schedule next step with immediate delay
   await scheduleFollowupStep(
     ticketId,
-    ticket.conversation.organizationId,
+    ticket.whatsappConversation.organizationId,
     nextStep.order,
     0, // Immediate
     config

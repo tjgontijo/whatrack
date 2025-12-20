@@ -34,7 +34,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'instanceId is required' }, { status: 400 })
     }
 
-    const conversations = await prisma.conversation.findMany({
+    const conversations = await prisma.whatsappConversation.findMany({
       where: {
         organizationId: organization.id,
         instanceId,

@@ -71,7 +71,7 @@ export interface ConversationListItem {
 }
 
 // Message (from GET /api/conversations/[id]/messages)
-export interface Message {
+export interface ChatMessage {
   id: string;
   content: string | null;
   senderType: SenderType;
@@ -87,6 +87,9 @@ export interface Message {
   readAt: string | null;
 }
 
+// Backward compatibility alias
+export type Message = ChatMessage
+
 // Conversation detail (from GET /api/conversations/[id])
 export interface ConversationDetail {
   id: string;
@@ -101,12 +104,12 @@ export interface ConversationDetail {
   createdAt: string;
   instance: InstanceInfo;
   contact: ContactInfo;
-  messages: Message[];
+  messages: ChatMessage[];
 }
 
 // Messages response (from GET /api/conversations/[id]/messages)
 export interface MessagesResponse {
-  messages: Message[];
+  messages: ChatMessage[];
   nextCursor: string | null;
   hasMore: boolean;
 }

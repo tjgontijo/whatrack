@@ -117,10 +117,9 @@ export async function GET(req: Request) {
     ors.push({ gclid: { contains: q, mode: imode } })
     ors.push({ fbclid: { contains: q, mode: imode } })
     ors.push({ ctwaclid: { contains: q, mode: imode } })
-    ors.push({ lead: { name: { contains: q, mode: imode } } })
-    ors.push({ lead: { phone: { contains: q, mode: imode } } })
-    ors.push({ lead: { mail: { contains: q, mode: imode } } })
-    ors.push({ lead: { instagram: { contains: q, mode: imode } } })
+    ors.push({ whatsappConversation: { lead: { name: { contains: q, mode: imode } } } })
+    ors.push({ whatsappConversation: { lead: { phone: { contains: q, mode: imode } } } })
+    ors.push({ whatsappConversation: { lead: { mail: { contains: q, mode: imode } } } })
   }
 
   const filters: Prisma.TicketWhereInput[] = []
@@ -178,13 +177,16 @@ export async function GET(req: Request) {
           utmContent: true,
           createdAt: true,
           updatedAt: true,
-          lead: {
+          whatsappConversation: {
             select: {
-              id: true,
-              name: true,
-              phone: true,
-              instagram: true,
-              mail: true,
+              lead: {
+                select: {
+                  id: true,
+                  name: true,
+                  phone: true,
+                  mail: true,
+                },
+              },
             },
           },
         },
@@ -211,11 +213,10 @@ export async function GET(req: Request) {
         utmContent: ticket.utmContent,
         createdAt: ticket.createdAt.toISOString(),
         updatedAt: ticket.updatedAt.toISOString(),
-        leadId: ticket.lead?.id ?? null,
-        leadName: ticket.lead?.name ?? null,
-        leadPhone: ticket.lead?.phone ?? null,
-        leadInstagram: ticket.lead?.instagram ?? null,
-        leadMail: ticket.lead?.mail ?? null,
+        leadId: ticket.whatsappConversation?.lead?.id ?? null,
+        leadName: ticket.whatsappConversation?.lead?.name ?? null,
+        leadPhone: ticket.whatsappConversation?.lead?.phone ?? null,
+        leadMail: ticket.whatsappConversation?.lead?.mail ?? null,
       }))
 
       const availableStatuses = statusGroups.map((group) => (group.closedAt ? 'closed' : 'open'))

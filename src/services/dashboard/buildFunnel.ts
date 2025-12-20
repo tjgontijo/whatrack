@@ -28,14 +28,18 @@ async function buildLeadsCount(organizationId: string, dateRange?: DateRange) {
 
   const tickets = await prisma.ticket.findMany({
     where: ticketWhere,
-    select: { leadId: true },
+    select: {
+      whatsappConversation: {
+        select: { leadId: true },
+      },
+    },
   })
 
   const leadIds = new Set<string>()
 
   for (const ticket of tickets) {
-    if (ticket.leadId) {
-      leadIds.add(ticket.leadId)
+    if (ticket.whatsappConversation?.leadId) {
+      leadIds.add(ticket.whatsappConversation.leadId)
     }
   }
 

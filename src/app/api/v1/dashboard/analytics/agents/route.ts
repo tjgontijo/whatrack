@@ -162,23 +162,23 @@ export async function GET(request: Request) {
         const [assignedCount, closedCount, messagesCount] = await Promise.all([
           prisma.ticket.count({
             where: {
-              conversation: { organizationId },
+              whatsappConversation: { organizationId },
               assigneeId: member.userId,
               createdAt: { gte: dateRange.gte, lte: dateRange.lte },
             },
           }),
           prisma.ticket.count({
             where: {
-              conversation: { organizationId },
+              whatsappConversation: { organizationId },
               assigneeId: member.userId,
               status: 'RESOLVED',
               updatedAt: { gte: dateRange.gte, lte: dateRange.lte },
             },
           }),
-          prisma.message.count({
+          prisma.whatsappMessage.count({
             where: {
               ticket: {
-                conversation: { organizationId },
+                whatsappConversation: { organizationId },
                 assigneeId: member.userId,
               },
               senderType: 'USER',

@@ -197,10 +197,9 @@ export async function GET(req: Request) {
     ors.push({ ticket: { gclid: { contains: q, mode: imode } } })
     ors.push({ ticket: { fbclid: { contains: q, mode: imode } } })
     ors.push({ ticket: { ctwaclid: { contains: q, mode: imode } } })
-    ors.push({ ticket: { lead: { name: { contains: q, mode: imode } } } })
-    ors.push({ ticket: { lead: { phone: { contains: q, mode: imode } } } })
-    ors.push({ ticket: { lead: { mail: { contains: q, mode: imode } } } })
-    ors.push({ ticket: { lead: { instagram: { contains: q, mode: imode } } } })
+    ors.push({ ticket: { whatsappConversation: { lead: { name: { contains: q, mode: imode } } } } })
+    ors.push({ ticket: { whatsappConversation: { lead: { phone: { contains: q, mode: imode } } } } })
+    ors.push({ ticket: { whatsappConversation: { lead: { mail: { contains: q, mode: imode } } } } })
   }
 
   const filters: Prisma.SaleWhereInput[] = []
@@ -254,13 +253,16 @@ export async function GET(req: Request) {
               utmSource: true,
               utmMedium: true,
               utmCampaign: true,
-              lead: {
+              whatsappConversation: {
                 select: {
-                  id: true,
-                  name: true,
-                  phone: true,
-                  instagram: true,
-                  mail: true,
+                  lead: {
+                    select: {
+                      id: true,
+                      name: true,
+                      phone: true,
+                      mail: true,
+                    },
+                  },
                 },
               },
             },
@@ -290,11 +292,10 @@ export async function GET(req: Request) {
         ticketUtmSource: sale.ticket?.utmSource ?? null,
         ticketUtmMedium: sale.ticket?.utmMedium ?? null,
         ticketUtmCampaign: sale.ticket?.utmCampaign ?? null,
-        leadId: sale.ticket?.lead?.id ?? null,
-        leadName: sale.ticket?.lead?.name ?? null,
-        leadPhone: sale.ticket?.lead?.phone ?? null,
-        leadInstagram: sale.ticket?.lead?.instagram ?? null,
-        leadMail: sale.ticket?.lead?.mail ?? null,
+        leadId: sale.ticket?.whatsappConversation?.lead?.id ?? null,
+        leadName: sale.ticket?.whatsappConversation?.lead?.name ?? null,
+        leadPhone: sale.ticket?.whatsappConversation?.lead?.phone ?? null,
+        leadMail: sale.ticket?.whatsappConversation?.lead?.mail ?? null,
       }))
 
       const availableStatuses = statusGroups.map((group) => group.status ?? null)

@@ -7,7 +7,7 @@
 import { prisma } from "@/lib/prisma";
 import { findOrCreateContact, findOrCreateContactChannel } from "./contact-service";
 import { findOrCreateConversation, updateConversationLastMessage } from "./conversation-service";
-import type { Conversation, Message } from "@prisma/client";
+import type { WhatsappConversation, WhatsappMessage } from "@prisma/client";
 import { MessageType } from "@prisma/client";
 
 // Valid message types from Prisma enum
@@ -62,8 +62,8 @@ interface ProcessIncomingMessageInput {
 }
 
 interface ProcessIncomingMessageResult {
-  conversation: Conversation;
-  message: Message;
+  conversation: WhatsappConversation;
+  message: WhatsappMessage;
 }
 
 /**
@@ -81,7 +81,7 @@ export async function createIncomingMessage(input: CreateIncomingMessageInput) {
     fileName,
   } = input;
 
-  return await prisma.message.create({
+  return await prisma.whatsappMessage.create({
     data: {
       ticketId: conversationId,
       senderType: "LEAD",
@@ -103,7 +103,7 @@ export async function createIncomingMessage(input: CreateIncomingMessageInput) {
 export async function createAIMessage(input: CreateAIMessageInput) {
   const { conversationId, instanceId, content, agentId } = input;
 
-  return await prisma.message.create({
+  return await prisma.whatsappMessage.create({
     data: {
       ticketId: conversationId,
       senderType: "AI",

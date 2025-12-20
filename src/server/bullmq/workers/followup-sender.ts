@@ -42,7 +42,7 @@ async function processFollowup(job: Job<FollowupJobData>): Promise<void> {
   const ticket = await prisma.ticket.findUnique({
     where: { id: ticketId },
     include: {
-      conversation: {
+      whatsappConversation: {
         include: {
           lead: true,
         },
@@ -70,7 +70,7 @@ async function processFollowup(job: Job<FollowupJobData>): Promise<void> {
     return
   }
 
-  const conversation = ticket.conversation
+  const conversation = ticket.whatsappConversation
 
   // 3. Get WhatsApp instance separately (it's not a relation in Conversation)
   const instance = await prisma.whatsappInstance.findFirst({
@@ -189,7 +189,7 @@ async function processFollowup(job: Job<FollowupJobData>): Promise<void> {
   })
 
   // 9. Create message in database
-  await prisma.message.create({
+  await prisma.whatsappMessage.create({
     data: {
       ticketId,
       content: messageContent,

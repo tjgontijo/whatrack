@@ -48,6 +48,16 @@ export type User = Prisma.UserModel
  */
 export type Session = Prisma.SessionModel
 /**
+ * Model Account
+ * 
+ */
+export type Account = Prisma.AccountModel
+/**
+ * Model Verification
+ * 
+ */
+export type Verification = Prisma.VerificationModel
+/**
  * Model Organization
  * 
  */
@@ -63,25 +73,50 @@ export type Member = Prisma.MemberModel
  */
 export type Invitation = Prisma.InvitationModel
 /**
- * Model Account
- * 
- */
-export type Account = Prisma.AccountModel
-/**
- * Model Verification
- * 
- */
-export type Verification = Prisma.VerificationModel
-/**
  * Model Lead
  * 
  */
 export type Lead = Prisma.LeadModel
 /**
+ * Model WhatsappInstance
+ * 
+ */
+export type WhatsappInstance = Prisma.WhatsappInstanceModel
+/**
+ * Model WhatsappInstanceWebhook
+ * 
+ */
+export type WhatsappInstanceWebhook = Prisma.WhatsappInstanceWebhookModel
+/**
+ * Model WhatsappConversation
+ * 
+ */
+export type WhatsappConversation = Prisma.WhatsappConversationModel
+/**
+ * Model WhatsappConversationMetrics
+ * 
+ */
+export type WhatsappConversationMetrics = Prisma.WhatsappConversationMetricsModel
+/**
+ * Model WhatsappMessage
+ * 
+ */
+export type WhatsappMessage = Prisma.WhatsappMessageModel
+/**
  * Model Ticket
  * 
  */
 export type Ticket = Prisma.TicketModel
+/**
+ * Model TicketAnalysis
+ * 
+ */
+export type TicketAnalysis = Prisma.TicketAnalysisModel
+/**
+ * Model ScheduledMessage
+ * 
+ */
+export type ScheduledMessage = Prisma.ScheduledMessageModel
 /**
  * Model Sale
  * 
@@ -113,11 +148,6 @@ export type Appointment = Prisma.AppointmentModel
  */
 export type Attendance = Prisma.AttendanceModel
 /**
- * Model PlatformEvent
- * 
- */
-export type PlatformEvent = Prisma.PlatformEventModel
-/**
  * Model SalesAnalytics
  * 
  */
@@ -128,40 +158,20 @@ export type SalesAnalytics = Prisma.SalesAnalyticsModel
  */
 export type MetaAdsMetric = Prisma.MetaAdsMetricModel
 /**
- * Model WhatsappInstance
+ * Model PlatformEvent
  * 
  */
-export type WhatsappInstance = Prisma.WhatsappInstanceModel
+export type PlatformEvent = Prisma.PlatformEventModel
 /**
- * Model WhatsappInstanceWebhook
+ * Model AICredits
  * 
  */
-export type WhatsappInstanceWebhook = Prisma.WhatsappInstanceWebhookModel
+export type AICredits = Prisma.AICreditsModel
 /**
- * Model WhatsappMessage
+ * Model AIUsageLog
  * 
  */
-export type WhatsappMessage = Prisma.WhatsappMessageModel
-/**
- * Model Conversation
- * Conversation threads - 1:1 with Lead
- */
-export type Conversation = Prisma.ConversationModel
-/**
- * Model TicketAnalysis
- * AI Analysis of a ticket
- */
-export type TicketAnalysis = Prisma.TicketAnalysisModel
-/**
- * Model ConversationMetrics
- * Conversation Metrics - Aggregated stats for a conversation
- */
-export type ConversationMetrics = Prisma.ConversationMetricsModel
-/**
- * Model Message
- * Messages in tickets
- */
-export type Message = Prisma.MessageModel
+export type AIUsageLog = Prisma.AIUsageLogModel
 /**
  * Model Plan
  * 
@@ -199,44 +209,29 @@ export type Subscription = Prisma.SubscriptionModel
 export type Invoice = Prisma.InvoiceModel
 /**
  * Model InvoiceItem
- * Itens da fatura
+ * 
  */
 export type InvoiceItem = Prisma.InvoiceItemModel
 /**
  * Model Payment
- * Pagamento realizado
+ * 
  */
 export type Payment = Prisma.PaymentModel
 /**
  * Model WebhookEvent
- * Eventos de webhook processados (idempotência)
+ * 
  */
 export type WebhookEvent = Prisma.WebhookEventModel
 /**
  * Model OrganizationProfile
- * Perfil e dados de negócio da organização
+ * 
  */
 export type OrganizationProfile = Prisma.OrganizationProfileModel
 /**
  * Model OrganizationCompany
- * Dados da empresa vinculada à organização (via ReceitaWS)
- */
-export type OrganizationCompany = Prisma.OrganizationCompanyModel
-/**
- * Model AICredits
- * AI Credits balance per organization
- */
-export type AICredits = Prisma.AICreditsModel
-/**
- * Model AIUsageLog
- * AI Usage Log - tracks each AI action
- */
-export type AIUsageLog = Prisma.AIUsageLogModel
-/**
- * Model ScheduledMessage
  * 
  */
-export type ScheduledMessage = Prisma.ScheduledMessageModel
+export type OrganizationCompany = Prisma.OrganizationCompanyModel
 /**
  * Model FollowUpConfig
  * 

@@ -8,11 +8,7 @@ const updateLeadSchema = z.object({
   name: z.string().optional(),
   phone: z.string().optional(),
   mail: z.string().email().optional().or(z.literal('')).nullable(),
-  instagram: z.string().optional(),
   remoteJid: z.string().optional(),
-  assignedTo: z.string().optional().nullable(),
-  notes: z.string().optional().nullable(),
-  status: z.string().optional(),
 })
 
 export async function PUT(
@@ -47,12 +43,8 @@ export async function PUT(
       data: {
         name: validated.name,
         phone: validated.phone,
-        mail: validated.mail ?? undefined,
-        instagram: validated.instagram,
-        remoteJid: validated.remoteJid,
-        assignedTo: validated.assignedTo ?? undefined,
-        notes: validated.notes ?? undefined,
-        status: validated.status,
+        mail: validated.mail ?? undefined,        
+        remoteJid: validated.remoteJid,               
       },
     })
 
@@ -109,14 +101,6 @@ export async function DELETE(
     if (!existing) {
       return NextResponse.json({ error: 'Lead não encontrado' }, { status: 404 })
     }
-
-    // Soft delete: set status to 'deleted'
-    await prisma.lead.update({
-      where: { id: leadId },
-      data: {
-        status: 'deleted',
-      },
-    })
 
     return NextResponse.json({ success: true })
   } catch (error) {

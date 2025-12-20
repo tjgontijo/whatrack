@@ -29,7 +29,7 @@ export async function GET(
 
     const { id } = await params
 
-    const conversation = await prisma.conversation.findFirst({
+    const conversation = await prisma.whatsappConversation.findFirst({
       where: {
         id,
         organizationId: organization.id,
@@ -110,7 +110,7 @@ export async function PATCH(
     const body = await request.json()
 
     // Verify conversation belongs to organization
-    const existing = await prisma.conversation.findFirst({
+    const existing = await prisma.whatsappConversation.findFirst({
       where: {
         id,
         organizationId: organization.id,
@@ -133,7 +133,7 @@ export async function PATCH(
       updateData.assigneeId = body.assigneeId
     }
 
-    const conversation = await prisma.conversation.update({
+    const conversation = await prisma.whatsappConversation.update({
       where: { id },
       data: updateData,
       include: {

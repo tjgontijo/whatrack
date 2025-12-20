@@ -9,6 +9,12 @@ type SendMessageParams = {
     text?: string
     mediaUrl?: string
     caption?: string
+    // Campos opcionais para preview de link (apenas para texto)
+    linkPreview?: boolean
+    linkPreviewTitle?: string
+    linkPreviewDescription?: string
+    linkPreviewImage?: string
+    linkPreviewLarge?: boolean
 }
 
 /**
@@ -27,6 +33,11 @@ export async function sendWhatsappMessage({
     text,
     mediaUrl,
     caption,
+    linkPreview,
+    linkPreviewTitle,
+    linkPreviewDescription,
+    linkPreviewImage,
+    linkPreviewLarge,
 }: SendMessageParams) {
     const link = await prisma.whatsappInstance.findUnique({
         where: {
@@ -58,6 +69,11 @@ export async function sendWhatsappMessage({
                 to,
                 text: text || '',
             }
+            if (typeof linkPreview === 'boolean') payload.linkPreview = linkPreview
+            if (linkPreviewTitle) payload.linkPreviewTitle = linkPreviewTitle
+            if (linkPreviewDescription) payload.linkPreviewDescription = linkPreviewDescription
+            if (linkPreviewImage) payload.linkPreviewImage = linkPreviewImage
+            if (typeof linkPreviewLarge === 'boolean') payload.linkPreviewLarge = linkPreviewLarge
             break
 
         case 'image':

@@ -147,11 +147,7 @@ export async function POST(req: Request) {
         name: validated.name,
         phone: validated.phone,
         mail: validated.mail || null,
-        instagram: validated.instagram,
         remoteJid: validated.remoteJid,
-        assignedTo: validated.assignedTo,
-        notes: validated.notes,
-        status: validated.status || 'new',
       },
     })
 
@@ -219,8 +215,7 @@ export async function GET(req: Request) {
     const imode = 'insensitive' as Prisma.QueryMode
     ors.push({ name: { contains: q, mode: imode } })
     ors.push({ phone: { contains: q, mode: imode } })
-    ors.push({ mail: { contains: q, mode: imode } })
-    ors.push({ instagram: { contains: q, mode: imode } })
+    ors.push({ mail: { contains: q, mode: imode } })    
     ors.push({ remoteJid: { contains: q, mode: imode } })
     const looksLikeUuid = /^[0-9a-fA-F-]{32,36}$/.test(q)
     if (looksLikeUuid) ors.push({ id: q })
@@ -238,23 +233,23 @@ export async function GET(req: Request) {
 
   if (hasTicketsFilter !== undefined) {
     filterConditions.push(
-      hasTicketsFilter ? { tickets: { some: {} } } : { tickets: { none: {} } }
+      hasTicketsFilter ? { whatsappConversations: { some: { tickets: { some: {} } } } } : { whatsappConversations: { none: { tickets: { some: {} } } } }
     )
   }
 
   if (hasSalesFilter !== undefined) {
     filterConditions.push(
       hasSalesFilter
-        ? { tickets: { some: { sales: { some: {} } } } }
-        : { tickets: { none: { sales: { some: {} } } } }
+        ? { whatsappConversations: { some: { tickets: { some: { sales: { some: {} } } } } } }
+        : { whatsappConversations: { none: { tickets: { some: { sales: { some: {} } } } } } }
     )
   }
 
   if (hasMessagesFilter !== undefined) {
     filterConditions.push(
       hasMessagesFilter
-        ? { whatsappMessages: { some: {} } }
-        : { whatsappMessages: { none: {} } }
+        ? { whatsappConversations: { some: { tickets: { some: { messages: { some: {} } } } } } }
+        : { whatsappConversations: { none: { tickets: { some: { messages: { some: {} } } } } } }
     )
   }
 
@@ -308,22 +303,24 @@ export async function GET(req: Request) {
           name: true,
           phone: true,
           mail: true,
-          instagram: true,
           remoteJid: true,
           createdAt: true,
           _count: {
             select: {
-              tickets: true,
               salesAnalytics: true,
-              whatsappMessages: true,
             },
           },
-          tickets: {
+          whatsappConversations: {
             select: {
-              id: true,
-              _count: {
+              tickets: {
                 select: {
-                  sales: true,
+                  id: true,
+                  _count: {
+                    select: {
+                      sales: true,
+                      messages: true,
+                    },
+                  },
                 },
               },
             },
@@ -333,19 +330,21 @@ export async function GET(req: Request) {
 
       const total = await prisma.lead.count({ where })
 
-      const items = leads.map((lead) => ({
-        id: lead.id,
-        name: lead.name,
-        phone: lead.phone,
-        mail: lead.mail,
-        instagram: lead.instagram,
-        remoteJid: lead.remoteJid,
-        createdAt: lead.createdAt,
-        hasTickets: lead._count.tickets > 0,
-        hasSales: lead.tickets.some((ticket) => ticket._count.sales > 0),
-        hasAudit: lead._count.salesAnalytics > 0,
-        hasMessages: lead._count.whatsappMessages > 0,
-      }))
+      const items = leads.map((lead) => {
+        const allTickets = lead.whatsappConversations.flatMap((conv) => conv.tickets)
+        return {
+          id: lead.id,
+          name: lead.name,
+          phone: lead.phone,
+          mail: lead.mail,
+          remoteJid: lead.remoteJid,
+          createdAt: lead.createdAt,
+          hasTickets: allTickets.length > 0,
+          hasSales: allTickets.some((ticket) => ticket._count.sales > 0),
+          hasAudit: lead._count.salesAnalytics > 0,
+          hasMessages: allTickets.some((ticket) => ticket._count.messages > 0),
+        }
+      })
 
       return [items, total] as const
     })

@@ -47,7 +47,9 @@ export async function GET(req: Request, context: { params: Promise<{ leadId: str
       where: {
         organizationId,
         ticket: {
-          leadId,
+          whatsappConversation: {
+            leadId,
+          },
         },
       },
       orderBy: {

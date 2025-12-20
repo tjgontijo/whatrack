@@ -14,7 +14,7 @@ import type * as Prisma from "../internal/prismaNamespace"
 
 /**
  * Model OrganizationCompany
- * Dados da empresa vinculada à organização (via ReceitaWS)
+ * 
  */
 export type OrganizationCompanyModel = runtime.Types.Result.DefaultSelection<Prisma.$OrganizationCompanyPayload>
 

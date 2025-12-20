@@ -14,7 +14,7 @@ import type * as Prisma from "../internal/prismaNamespace"
 
 /**
  * Model WebhookEvent
- * Eventos de webhook processados (idempotência)
+ * 
  */
 export type WebhookEventModel = runtime.Types.Result.DefaultSelection<Prisma.$WebhookEventPayload>
 

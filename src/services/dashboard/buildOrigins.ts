@@ -32,9 +32,11 @@ export async function buildOriginsSummary(
     select: {
       id: true,
       sourceType: true,
-      leadId: true,
       campaignId: true,
       adsetId: true,
+      whatsappConversation: {
+        select: { leadId: true },
+      },
       sales: {
         select: {
           id: true,
@@ -89,8 +91,8 @@ export async function buildOriginsSummary(
       buckets.set(key, bucket)
     }
 
-    if (ticket.leadId) {
-      bucket.leadIds.add(ticket.leadId)
+    if (ticket.whatsappConversation?.leadId) {
+      bucket.leadIds.add(ticket.whatsappConversation.leadId)
     }
 
     // Track campaign IDs for paid traffic

@@ -139,7 +139,7 @@ export async function GET(request: Request) {
           createdAt: { gte: dateRange.gte, lte: dateRange.lte },
         },
       }),
-      prisma.conversation.count({
+      prisma.whatsappConversation.count({
         where: {
           organizationId,
           createdAt: { gte: dateRange.gte, lte: dateRange.lte },
@@ -147,27 +147,27 @@ export async function GET(request: Request) {
       }),
       prisma.ticket.count({
         where: {
-          conversation: { organizationId },
+          whatsappConversation: { organizationId },
           status: 'OPEN',
         },
       }),
       prisma.ticket.count({
         where: {
-          conversation: { organizationId },
+          whatsappConversation: { organizationId },
           status: 'RESOLVED',
           createdAt: { gte: dateRange.gte, lte: dateRange.lte },
         },
       }),
       prisma.ticket.count({
         where: {
-          conversation: { organizationId },
+          whatsappConversation: { organizationId },
           status: 'FOLLOW_UP',
           createdAt: { gte: dateRange.gte, lte: dateRange.lte },
         },
       }),
-      prisma.message.count({
+      prisma.whatsappMessage.count({
         where: {
-          ticket: { conversation: { organizationId } },
+          ticket: { whatsappConversation: { organizationId } },
           createdAt: { gte: dateRange.gte, lte: dateRange.lte },
         },
       }),

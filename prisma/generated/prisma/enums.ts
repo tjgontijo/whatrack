@@ -18,12 +18,104 @@ export const UserRole = {
 export type UserRole = (typeof UserRole)[keyof typeof UserRole]
 
 
+export const ConversationStatus = {
+  OPEN: 'OPEN',
+  PENDING: 'PENDING',
+  RESOLVED: 'RESOLVED',
+  SNOOZED: 'SNOOZED'
+} as const
+
+export type ConversationStatus = (typeof ConversationStatus)[keyof typeof ConversationStatus]
+
+
+export const ConversationPriority = {
+  LOW: 'LOW',
+  MEDIUM: 'MEDIUM',
+  HIGH: 'HIGH',
+  URGENT: 'URGENT'
+} as const
+
+export type ConversationPriority = (typeof ConversationPriority)[keyof typeof ConversationPriority]
+
+
+export const MessageSenderType = {
+  LEAD: 'LEAD',
+  USER: 'USER',
+  AI: 'AI',
+  SYSTEM: 'SYSTEM'
+} as const
+
+export type MessageSenderType = (typeof MessageSenderType)[keyof typeof MessageSenderType]
+
+
+export const MessageStatus = {
+  PENDING: 'PENDING',
+  SENT: 'SENT',
+  DELIVERED: 'DELIVERED',
+  READ: 'READ',
+  FAILED: 'FAILED'
+} as const
+
+export type MessageStatus = (typeof MessageStatus)[keyof typeof MessageStatus]
+
+
+export const MessageType = {
+  TEXT: 'TEXT',
+  IMAGE: 'IMAGE',
+  VIDEO: 'VIDEO',
+  AUDIO: 'AUDIO',
+  DOCUMENT: 'DOCUMENT'
+} as const
+
+export type MessageType = (typeof MessageType)[keyof typeof MessageType]
+
+
+export const WhatsappProvider = {
+  WUZAPI: 'WUZAPI',
+  UAZAPI: 'UAZAPI',
+  META_CLOUD: 'META_CLOUD'
+} as const
+
+export type WhatsappProvider = (typeof WhatsappProvider)[keyof typeof WhatsappProvider]
+
+
+export const TicketStatus = {
+  OPEN: 'OPEN',
+  RESOLVED: 'RESOLVED',
+  FOLLOW_UP: 'FOLLOW_UP'
+} as const
+
+export type TicketStatus = (typeof TicketStatus)[keyof typeof TicketStatus]
+
+
 export const TicketSourceType = {
   paid: 'paid',
   organic: 'organic'
 } as const
 
 export type TicketSourceType = (typeof TicketSourceType)[keyof typeof TicketSourceType]
+
+
+export const SentimentType = {
+  POSITIVE: 'POSITIVE',
+  NEUTRAL: 'NEUTRAL',
+  NEGATIVE: 'NEGATIVE',
+  FRUSTRATED: 'FRUSTRATED'
+} as const
+
+export type SentimentType = (typeof SentimentType)[keyof typeof SentimentType]
+
+
+export const TicketOutcome = {
+  SALE: 'SALE',
+  LOST_PRICE: 'LOST_PRICE',
+  LOST_COMPETITOR: 'LOST_COMPETITOR',
+  LOST_TIMING: 'LOST_TIMING',
+  LOST_NEED: 'LOST_NEED',
+  ABANDONED: 'ABANDONED'
+} as const
+
+export type TicketOutcome = (typeof TicketOutcome)[keyof typeof TicketOutcome]
 
 
 export const SaleStatus = {
@@ -72,95 +164,6 @@ export const PlatformEventStatus = {
 export type PlatformEventStatus = (typeof PlatformEventStatus)[keyof typeof PlatformEventStatus]
 
 
-export const MessageDirection = {
-  INBOUND: 'INBOUND',
-  OUTBOUND: 'OUTBOUND'
-} as const
-
-export type MessageDirection = (typeof MessageDirection)[keyof typeof MessageDirection]
-
-
-export const ConversationStatus = {
-  OPEN: 'OPEN',
-  PENDING: 'PENDING',
-  RESOLVED: 'RESOLVED',
-  SNOOZED: 'SNOOZED'
-} as const
-
-export type ConversationStatus = (typeof ConversationStatus)[keyof typeof ConversationStatus]
-
-
-export const ConversationPriority = {
-  LOW: 'LOW',
-  MEDIUM: 'MEDIUM',
-  HIGH: 'HIGH',
-  URGENT: 'URGENT'
-} as const
-
-export type ConversationPriority = (typeof ConversationPriority)[keyof typeof ConversationPriority]
-
-
-export const MessageSenderType = {
-  LEAD: 'LEAD',
-  USER: 'USER',
-  AI: 'AI',
-  SYSTEM: 'SYSTEM'
-} as const
-
-export type MessageSenderType = (typeof MessageSenderType)[keyof typeof MessageSenderType]
-
-
-export const TicketStatus = {
-  OPEN: 'OPEN',
-  RESOLVED: 'RESOLVED',
-  FOLLOW_UP: 'FOLLOW_UP'
-} as const
-
-export type TicketStatus = (typeof TicketStatus)[keyof typeof TicketStatus]
-
-
-export const MessageStatus = {
-  PENDING: 'PENDING',
-  SENT: 'SENT',
-  DELIVERED: 'DELIVERED',
-  READ: 'READ',
-  FAILED: 'FAILED'
-} as const
-
-export type MessageStatus = (typeof MessageStatus)[keyof typeof MessageStatus]
-
-
-export const TemplateCategory = {
-  MARKETING: 'MARKETING',
-  UTILITY: 'UTILITY',
-  AUTHENTICATION: 'AUTHENTICATION'
-} as const
-
-export type TemplateCategory = (typeof TemplateCategory)[keyof typeof TemplateCategory]
-
-
-export const TemplateStatus = {
-  APPROVED: 'APPROVED',
-  PENDING: 'PENDING',
-  REJECTED: 'REJECTED',
-  PAUSED: 'PAUSED'
-} as const
-
-export type TemplateStatus = (typeof TemplateStatus)[keyof typeof TemplateStatus]
-
-
-export const CampaignStatus = {
-  DRAFT: 'DRAFT',
-  SCHEDULED: 'SCHEDULED',
-  PROCESSING: 'PROCESSING',
-  COMPLETED: 'COMPLETED',
-  FAILED: 'FAILED',
-  CANCELLED: 'CANCELLED'
-} as const
-
-export type CampaignStatus = (typeof CampaignStatus)[keyof typeof CampaignStatus]
-
-
 export const CreditTransactionType = {
   PURCHASE: 'PURCHASE',
   CAMPAIGN_USE: 'CAMPAIGN_USE',
@@ -169,17 +172,6 @@ export const CreditTransactionType = {
 } as const
 
 export type CreditTransactionType = (typeof CreditTransactionType)[keyof typeof CreditTransactionType]
-
-
-export const MessageType = {
-  TEXT: 'TEXT',
-  IMAGE: 'IMAGE',
-  VIDEO: 'VIDEO',
-  AUDIO: 'AUDIO',
-  DOCUMENT: 'DOCUMENT'
-} as const
-
-export type MessageType = (typeof MessageType)[keyof typeof MessageType]
 
 
 export const PlanInterval = {

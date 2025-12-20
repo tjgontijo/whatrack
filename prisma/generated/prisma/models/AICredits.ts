@@ -14,7 +14,7 @@ import type * as Prisma from "../internal/prismaNamespace"
 
 /**
  * Model AICredits
- * AI Credits balance per organization
+ * 
  */
 export type AICreditsModel = runtime.Types.Result.DefaultSelection<Prisma.$AICreditsPayload>
 

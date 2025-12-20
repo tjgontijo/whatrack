@@ -14,7 +14,7 @@ import type * as Prisma from "../internal/prismaNamespace"
 
 /**
  * Model OrganizationProfile
- * Perfil e dados de negócio da organização
+ * 
  */
 export type OrganizationProfileModel = runtime.Types.Result.DefaultSelection<Prisma.$OrganizationProfilePayload>
 

@@ -36,7 +36,6 @@ export async function buildPaidCampaignsSummary(
     where: ticketWhere,
     select: {
       id: true,
-      leadId: true,
       campaignId: true,
       adsetId: true,
       adId: true,
@@ -44,6 +43,9 @@ export async function buildPaidCampaignsSummary(
       utmCampaign: true,
       utmContent: true,
       utmTerm: true,
+      whatsappConversation: {
+        select: { leadId: true },
+      },
       sales: {
         select: {
           status: true,
@@ -122,8 +124,8 @@ export async function buildPaidCampaignsSummary(
       bucket.ad = sanitizeLabel(ticket.utmTerm)
     }
 
-    if (ticket.leadId) {
-      bucket.leadIds.add(ticket.leadId)
+    if (ticket.whatsappConversation?.leadId) {
+      bucket.leadIds.add(ticket.whatsappConversation.leadId)
     }
 
     for (const appointment of ticket.appointments) {

@@ -14,7 +14,7 @@ import type * as Prisma from "../internal/prismaNamespace"
 
 /**
  * Model AIUsageLog
- * AI Usage Log - tracks each AI action
+ * 
  */
 export type AIUsageLogModel = runtime.Types.Result.DefaultSelection<Prisma.$AIUsageLogPayload>
 

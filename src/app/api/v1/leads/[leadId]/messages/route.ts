@@ -45,18 +45,35 @@ export async function GET(req: Request, context: { params: Promise<{ leadId: str
       return NextResponse.json({ error: 'Lead não encontrado' }, { status: 404 })
     }
 
+    // Get messages through the conversation relationship
     const messagesRecords = await prisma.whatsappMessage.findMany({
-      where: { leadId, organizationId },
+      where: {
+        ticket: {
+          whatsappConversation: {
+            leadId,
+            organizationId,
+          },
+        },
+      },
       orderBy: [{ sentAt: 'asc' }, { createdAt: 'asc' }],
       select: {
         id: true,
-        leadId: true,
         providerMessageId: true,
         messageType: true,
-        contentText: true,
+        content: true,
         sentAt: true,
-        direction: true,
-        remoteJid: true,
+        senderType: true,
+        ticket: {
+          select: {
+            whatsappConversation: {
+              select: {
+                lead: {
+                  select: { remoteJid: true },
+                },
+              },
+            },
+          },
+        },
       },
     })
 
@@ -70,14 +87,14 @@ export async function GET(req: Request, context: { params: Promise<{ leadId: str
       messages: messagesRecords.map((message) => ({
         id: message.id,
         message_id: message.providerMessageId,
-        lead_id: message.leadId ?? '',
+        lead_id: leadRecord.id,
         type: message.messageType,
-        body: message.contentText,
+        body: message.content,
         raw_payload: null,
         sent_at: message.sentAt ? message.sentAt.toISOString() : null,
         author: {
-          number: message.remoteJid ?? null,
-          role: message.direction === 'INBOUND' ? CONTACT_ROLE : TEAM_ROLE,
+          number: message.ticket?.whatsappConversation?.lead?.remoteJid ?? null,
+          role: message.senderType === 'LEAD' ? CONTACT_ROLE : TEAM_ROLE,
         },
       })),
     }

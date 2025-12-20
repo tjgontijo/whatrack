@@ -38,63 +38,66 @@ export type WhatsappMessageSumAggregateOutputType = {
 
 export type WhatsappMessageMinAggregateOutputType = {
   id: string | null
-  organizationId: string | null
-  instanceId: string | null
-  leadId: string | null
   ticketId: string | null
-  remoteJid: string | null
-  direction: $Enums.MessageDirection | null
-  providerMessageId: string | null
-  messageType: string | null
-  mediaType: string | null
-  contentText: string | null
+  senderType: $Enums.MessageSenderType | null
+  senderId: string | null
+  senderName: string | null
+  messageType: $Enums.MessageType | null
+  content: string | null
   mediaUrl: string | null
-  mediaMimeType: string | null
+  mediaType: string | null
+  fileName: string | null
   mediaSizeBytes: number | null
   mediaDurationSeconds: number | null
+  providerMessageId: string | null
+  status: $Enums.MessageStatus | null
   sentAt: Date | null
+  deliveredAt: Date | null
+  readAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
 
 export type WhatsappMessageMaxAggregateOutputType = {
   id: string | null
-  organizationId: string | null
-  instanceId: string | null
-  leadId: string | null
   ticketId: string | null
-  remoteJid: string | null
-  direction: $Enums.MessageDirection | null
-  providerMessageId: string | null
-  messageType: string | null
-  mediaType: string | null
-  contentText: string | null
+  senderType: $Enums.MessageSenderType | null
+  senderId: string | null
+  senderName: string | null
+  messageType: $Enums.MessageType | null
+  content: string | null
   mediaUrl: string | null
-  mediaMimeType: string | null
+  mediaType: string | null
+  fileName: string | null
   mediaSizeBytes: number | null
   mediaDurationSeconds: number | null
+  providerMessageId: string | null
+  status: $Enums.MessageStatus | null
   sentAt: Date | null
+  deliveredAt: Date | null
+  readAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
 
 export type WhatsappMessageCountAggregateOutputType = {
   id: number
-  organizationId: number
-  instanceId: number
-  leadId: number
   ticketId: number
-  remoteJid: number
-  direction: number
-  providerMessageId: number
+  senderType: number
+  senderId: number
+  senderName: number
   messageType: number
-  mediaType: number
-  contentText: number
+  content: number
   mediaUrl: number
-  mediaMimeType: number
+  mediaType: number
+  fileName: number
   mediaSizeBytes: number
   mediaDurationSeconds: number
+  providerMessageId: number
+  status: number
   sentAt: number
+  deliveredAt: number
+  readAt: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -113,63 +116,66 @@ export type WhatsappMessageSumAggregateInputType = {
 
 export type WhatsappMessageMinAggregateInputType = {
   id?: true
-  organizationId?: true
-  instanceId?: true
-  leadId?: true
   ticketId?: true
-  remoteJid?: true
-  direction?: true
-  providerMessageId?: true
+  senderType?: true
+  senderId?: true
+  senderName?: true
   messageType?: true
-  mediaType?: true
-  contentText?: true
+  content?: true
   mediaUrl?: true
-  mediaMimeType?: true
+  mediaType?: true
+  fileName?: true
   mediaSizeBytes?: true
   mediaDurationSeconds?: true
+  providerMessageId?: true
+  status?: true
   sentAt?: true
+  deliveredAt?: true
+  readAt?: true
   createdAt?: true
   updatedAt?: true
 }
 
 export type WhatsappMessageMaxAggregateInputType = {
   id?: true
-  organizationId?: true
-  instanceId?: true
-  leadId?: true
   ticketId?: true
-  remoteJid?: true
-  direction?: true
-  providerMessageId?: true
+  senderType?: true
+  senderId?: true
+  senderName?: true
   messageType?: true
-  mediaType?: true
-  contentText?: true
+  content?: true
   mediaUrl?: true
-  mediaMimeType?: true
+  mediaType?: true
+  fileName?: true
   mediaSizeBytes?: true
   mediaDurationSeconds?: true
+  providerMessageId?: true
+  status?: true
   sentAt?: true
+  deliveredAt?: true
+  readAt?: true
   createdAt?: true
   updatedAt?: true
 }
 
 export type WhatsappMessageCountAggregateInputType = {
   id?: true
-  organizationId?: true
-  instanceId?: true
-  leadId?: true
   ticketId?: true
-  remoteJid?: true
-  direction?: true
-  providerMessageId?: true
+  senderType?: true
+  senderId?: true
+  senderName?: true
   messageType?: true
-  mediaType?: true
-  contentText?: true
+  content?: true
   mediaUrl?: true
-  mediaMimeType?: true
+  mediaType?: true
+  fileName?: true
   mediaSizeBytes?: true
   mediaDurationSeconds?: true
+  providerMessageId?: true
+  status?: true
   sentAt?: true
+  deliveredAt?: true
+  readAt?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -263,21 +269,22 @@ export type WhatsappMessageGroupByArgs<ExtArgs extends runtime.Types.Extensions.
 
 export type WhatsappMessageGroupByOutputType = {
   id: string
-  organizationId: string
-  instanceId: string
-  leadId: string | null
-  ticketId: string | null
-  remoteJid: string
-  direction: $Enums.MessageDirection
-  providerMessageId: string
-  messageType: string
-  mediaType: string
-  contentText: string
+  ticketId: string
+  senderType: $Enums.MessageSenderType
+  senderId: string | null
+  senderName: string | null
+  messageType: $Enums.MessageType
+  content: string | null
   mediaUrl: string | null
-  mediaMimeType: string | null
+  mediaType: string | null
+  fileName: string | null
   mediaSizeBytes: number | null
   mediaDurationSeconds: number | null
+  providerMessageId: string | null
+  status: $Enums.MessageStatus
   sentAt: Date
+  deliveredAt: Date | null
+  readAt: Date | null
   createdAt: Date
   updatedAt: Date
   _count: WhatsappMessageCountAggregateOutputType | null
@@ -307,97 +314,94 @@ export type WhatsappMessageWhereInput = {
   OR?: Prisma.WhatsappMessageWhereInput[]
   NOT?: Prisma.WhatsappMessageWhereInput | Prisma.WhatsappMessageWhereInput[]
   id?: Prisma.StringFilter<"WhatsappMessage"> | string
-  organizationId?: Prisma.StringFilter<"WhatsappMessage"> | string
-  instanceId?: Prisma.StringFilter<"WhatsappMessage"> | string
-  leadId?: Prisma.StringNullableFilter<"WhatsappMessage"> | string | null
-  ticketId?: Prisma.StringNullableFilter<"WhatsappMessage"> | string | null
-  remoteJid?: Prisma.StringFilter<"WhatsappMessage"> | string
-  direction?: Prisma.EnumMessageDirectionFilter<"WhatsappMessage"> | $Enums.MessageDirection
-  providerMessageId?: Prisma.StringFilter<"WhatsappMessage"> | string
-  messageType?: Prisma.StringFilter<"WhatsappMessage"> | string
-  mediaType?: Prisma.StringFilter<"WhatsappMessage"> | string
-  contentText?: Prisma.StringFilter<"WhatsappMessage"> | string
+  ticketId?: Prisma.StringFilter<"WhatsappMessage"> | string
+  senderType?: Prisma.EnumMessageSenderTypeFilter<"WhatsappMessage"> | $Enums.MessageSenderType
+  senderId?: Prisma.StringNullableFilter<"WhatsappMessage"> | string | null
+  senderName?: Prisma.StringNullableFilter<"WhatsappMessage"> | string | null
+  messageType?: Prisma.EnumMessageTypeFilter<"WhatsappMessage"> | $Enums.MessageType
+  content?: Prisma.StringNullableFilter<"WhatsappMessage"> | string | null
   mediaUrl?: Prisma.StringNullableFilter<"WhatsappMessage"> | string | null
-  mediaMimeType?: Prisma.StringNullableFilter<"WhatsappMessage"> | string | null
+  mediaType?: Prisma.StringNullableFilter<"WhatsappMessage"> | string | null
+  fileName?: Prisma.StringNullableFilter<"WhatsappMessage"> | string | null
   mediaSizeBytes?: Prisma.IntNullableFilter<"WhatsappMessage"> | number | null
   mediaDurationSeconds?: Prisma.IntNullableFilter<"WhatsappMessage"> | number | null
+  providerMessageId?: Prisma.StringNullableFilter<"WhatsappMessage"> | string | null
+  status?: Prisma.EnumMessageStatusFilter<"WhatsappMessage"> | $Enums.MessageStatus
   sentAt?: Prisma.DateTimeFilter<"WhatsappMessage"> | Date | string
+  deliveredAt?: Prisma.DateTimeNullableFilter<"WhatsappMessage"> | Date | string | null
+  readAt?: Prisma.DateTimeNullableFilter<"WhatsappMessage"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"WhatsappMessage"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"WhatsappMessage"> | Date | string
-  organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
-  lead?: Prisma.XOR<Prisma.LeadNullableScalarRelationFilter, Prisma.LeadWhereInput> | null
-  ticket?: Prisma.XOR<Prisma.TicketNullableScalarRelationFilter, Prisma.TicketWhereInput> | null
+  ticket?: Prisma.XOR<Prisma.TicketScalarRelationFilter, Prisma.TicketWhereInput>
 }
 
 export type WhatsappMessageOrderByWithRelationInput = {
   id?: Prisma.SortOrder
-  organizationId?: Prisma.SortOrder
-  instanceId?: Prisma.SortOrder
-  leadId?: Prisma.SortOrderInput | Prisma.SortOrder
-  ticketId?: Prisma.SortOrderInput | Prisma.SortOrder
-  remoteJid?: Prisma.SortOrder
-  direction?: Prisma.SortOrder
-  providerMessageId?: Prisma.SortOrder
+  ticketId?: Prisma.SortOrder
+  senderType?: Prisma.SortOrder
+  senderId?: Prisma.SortOrderInput | Prisma.SortOrder
+  senderName?: Prisma.SortOrderInput | Prisma.SortOrder
   messageType?: Prisma.SortOrder
-  mediaType?: Prisma.SortOrder
-  contentText?: Prisma.SortOrder
+  content?: Prisma.SortOrderInput | Prisma.SortOrder
   mediaUrl?: Prisma.SortOrderInput | Prisma.SortOrder
-  mediaMimeType?: Prisma.SortOrderInput | Prisma.SortOrder
+  mediaType?: Prisma.SortOrderInput | Prisma.SortOrder
+  fileName?: Prisma.SortOrderInput | Prisma.SortOrder
   mediaSizeBytes?: Prisma.SortOrderInput | Prisma.SortOrder
   mediaDurationSeconds?: Prisma.SortOrderInput | Prisma.SortOrder
+  providerMessageId?: Prisma.SortOrderInput | Prisma.SortOrder
+  status?: Prisma.SortOrder
   sentAt?: Prisma.SortOrder
+  deliveredAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  readAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  organization?: Prisma.OrganizationOrderByWithRelationInput
-  lead?: Prisma.LeadOrderByWithRelationInput
   ticket?: Prisma.TicketOrderByWithRelationInput
 }
 
 export type WhatsappMessageWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  organization_message_unique?: Prisma.WhatsappMessageOrganization_message_uniqueCompoundUniqueInput
+  providerMessageId?: string
   AND?: Prisma.WhatsappMessageWhereInput | Prisma.WhatsappMessageWhereInput[]
   OR?: Prisma.WhatsappMessageWhereInput[]
   NOT?: Prisma.WhatsappMessageWhereInput | Prisma.WhatsappMessageWhereInput[]
-  organizationId?: Prisma.StringFilter<"WhatsappMessage"> | string
-  instanceId?: Prisma.StringFilter<"WhatsappMessage"> | string
-  leadId?: Prisma.StringNullableFilter<"WhatsappMessage"> | string | null
-  ticketId?: Prisma.StringNullableFilter<"WhatsappMessage"> | string | null
-  remoteJid?: Prisma.StringFilter<"WhatsappMessage"> | string
-  direction?: Prisma.EnumMessageDirectionFilter<"WhatsappMessage"> | $Enums.MessageDirection
-  providerMessageId?: Prisma.StringFilter<"WhatsappMessage"> | string
-  messageType?: Prisma.StringFilter<"WhatsappMessage"> | string
-  mediaType?: Prisma.StringFilter<"WhatsappMessage"> | string
-  contentText?: Prisma.StringFilter<"WhatsappMessage"> | string
+  ticketId?: Prisma.StringFilter<"WhatsappMessage"> | string
+  senderType?: Prisma.EnumMessageSenderTypeFilter<"WhatsappMessage"> | $Enums.MessageSenderType
+  senderId?: Prisma.StringNullableFilter<"WhatsappMessage"> | string | null
+  senderName?: Prisma.StringNullableFilter<"WhatsappMessage"> | string | null
+  messageType?: Prisma.EnumMessageTypeFilter<"WhatsappMessage"> | $Enums.MessageType
+  content?: Prisma.StringNullableFilter<"WhatsappMessage"> | string | null
   mediaUrl?: Prisma.StringNullableFilter<"WhatsappMessage"> | string | null
-  mediaMimeType?: Prisma.StringNullableFilter<"WhatsappMessage"> | string | null
+  mediaType?: Prisma.StringNullableFilter<"WhatsappMessage"> | string | null
+  fileName?: Prisma.StringNullableFilter<"WhatsappMessage"> | string | null
   mediaSizeBytes?: Prisma.IntNullableFilter<"WhatsappMessage"> | number | null
   mediaDurationSeconds?: Prisma.IntNullableFilter<"WhatsappMessage"> | number | null
+  status?: Prisma.EnumMessageStatusFilter<"WhatsappMessage"> | $Enums.MessageStatus
   sentAt?: Prisma.DateTimeFilter<"WhatsappMessage"> | Date | string
+  deliveredAt?: Prisma.DateTimeNullableFilter<"WhatsappMessage"> | Date | string | null
+  readAt?: Prisma.DateTimeNullableFilter<"WhatsappMessage"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"WhatsappMessage"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"WhatsappMessage"> | Date | string
-  organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
-  lead?: Prisma.XOR<Prisma.LeadNullableScalarRelationFilter, Prisma.LeadWhereInput> | null
-  ticket?: Prisma.XOR<Prisma.TicketNullableScalarRelationFilter, Prisma.TicketWhereInput> | null
-}, "id" | "organization_message_unique">
+  ticket?: Prisma.XOR<Prisma.TicketScalarRelationFilter, Prisma.TicketWhereInput>
+}, "id" | "providerMessageId">
 
 export type WhatsappMessageOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
-  organizationId?: Prisma.SortOrder
-  instanceId?: Prisma.SortOrder
-  leadId?: Prisma.SortOrderInput | Prisma.SortOrder
-  ticketId?: Prisma.SortOrderInput | Prisma.SortOrder
-  remoteJid?: Prisma.SortOrder
-  direction?: Prisma.SortOrder
-  providerMessageId?: Prisma.SortOrder
+  ticketId?: Prisma.SortOrder
+  senderType?: Prisma.SortOrder
+  senderId?: Prisma.SortOrderInput | Prisma.SortOrder
+  senderName?: Prisma.SortOrderInput | Prisma.SortOrder
   messageType?: Prisma.SortOrder
-  mediaType?: Prisma.SortOrder
-  contentText?: Prisma.SortOrder
+  content?: Prisma.SortOrderInput | Prisma.SortOrder
   mediaUrl?: Prisma.SortOrderInput | Prisma.SortOrder
-  mediaMimeType?: Prisma.SortOrderInput | Prisma.SortOrder
+  mediaType?: Prisma.SortOrderInput | Prisma.SortOrder
+  fileName?: Prisma.SortOrderInput | Prisma.SortOrder
   mediaSizeBytes?: Prisma.SortOrderInput | Prisma.SortOrder
   mediaDurationSeconds?: Prisma.SortOrderInput | Prisma.SortOrder
+  providerMessageId?: Prisma.SortOrderInput | Prisma.SortOrder
+  status?: Prisma.SortOrder
   sentAt?: Prisma.SortOrder
+  deliveredAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  readAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.WhatsappMessageCountOrderByAggregateInput
@@ -412,167 +416,253 @@ export type WhatsappMessageScalarWhereWithAggregatesInput = {
   OR?: Prisma.WhatsappMessageScalarWhereWithAggregatesInput[]
   NOT?: Prisma.WhatsappMessageScalarWhereWithAggregatesInput | Prisma.WhatsappMessageScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"WhatsappMessage"> | string
-  organizationId?: Prisma.StringWithAggregatesFilter<"WhatsappMessage"> | string
-  instanceId?: Prisma.StringWithAggregatesFilter<"WhatsappMessage"> | string
-  leadId?: Prisma.StringNullableWithAggregatesFilter<"WhatsappMessage"> | string | null
-  ticketId?: Prisma.StringNullableWithAggregatesFilter<"WhatsappMessage"> | string | null
-  remoteJid?: Prisma.StringWithAggregatesFilter<"WhatsappMessage"> | string
-  direction?: Prisma.EnumMessageDirectionWithAggregatesFilter<"WhatsappMessage"> | $Enums.MessageDirection
-  providerMessageId?: Prisma.StringWithAggregatesFilter<"WhatsappMessage"> | string
-  messageType?: Prisma.StringWithAggregatesFilter<"WhatsappMessage"> | string
-  mediaType?: Prisma.StringWithAggregatesFilter<"WhatsappMessage"> | string
-  contentText?: Prisma.StringWithAggregatesFilter<"WhatsappMessage"> | string
+  ticketId?: Prisma.StringWithAggregatesFilter<"WhatsappMessage"> | string
+  senderType?: Prisma.EnumMessageSenderTypeWithAggregatesFilter<"WhatsappMessage"> | $Enums.MessageSenderType
+  senderId?: Prisma.StringNullableWithAggregatesFilter<"WhatsappMessage"> | string | null
+  senderName?: Prisma.StringNullableWithAggregatesFilter<"WhatsappMessage"> | string | null
+  messageType?: Prisma.EnumMessageTypeWithAggregatesFilter<"WhatsappMessage"> | $Enums.MessageType
+  content?: Prisma.StringNullableWithAggregatesFilter<"WhatsappMessage"> | string | null
   mediaUrl?: Prisma.StringNullableWithAggregatesFilter<"WhatsappMessage"> | string | null
-  mediaMimeType?: Prisma.StringNullableWithAggregatesFilter<"WhatsappMessage"> | string | null
+  mediaType?: Prisma.StringNullableWithAggregatesFilter<"WhatsappMessage"> | string | null
+  fileName?: Prisma.StringNullableWithAggregatesFilter<"WhatsappMessage"> | string | null
   mediaSizeBytes?: Prisma.IntNullableWithAggregatesFilter<"WhatsappMessage"> | number | null
   mediaDurationSeconds?: Prisma.IntNullableWithAggregatesFilter<"WhatsappMessage"> | number | null
+  providerMessageId?: Prisma.StringNullableWithAggregatesFilter<"WhatsappMessage"> | string | null
+  status?: Prisma.EnumMessageStatusWithAggregatesFilter<"WhatsappMessage"> | $Enums.MessageStatus
   sentAt?: Prisma.DateTimeWithAggregatesFilter<"WhatsappMessage"> | Date | string
+  deliveredAt?: Prisma.DateTimeNullableWithAggregatesFilter<"WhatsappMessage"> | Date | string | null
+  readAt?: Prisma.DateTimeNullableWithAggregatesFilter<"WhatsappMessage"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"WhatsappMessage"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"WhatsappMessage"> | Date | string
 }
 
 export type WhatsappMessageCreateInput = {
   id?: string
-  instanceId: string
-  remoteJid: string
-  direction: $Enums.MessageDirection
-  providerMessageId: string
-  messageType: string
-  mediaType: string
-  contentText: string
+  senderType: $Enums.MessageSenderType
+  senderId?: string | null
+  senderName?: string | null
+  messageType: $Enums.MessageType
+  content?: string | null
   mediaUrl?: string | null
-  mediaMimeType?: string | null
+  mediaType?: string | null
+  fileName?: string | null
   mediaSizeBytes?: number | null
   mediaDurationSeconds?: number | null
+  providerMessageId?: string | null
+  status?: $Enums.MessageStatus
   sentAt: Date | string
+  deliveredAt?: Date | string | null
+  readAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  organization: Prisma.OrganizationCreateNestedOneWithoutWhatsappMessagesInput
-  lead?: Prisma.LeadCreateNestedOneWithoutWhatsappMessagesInput
-  ticket?: Prisma.TicketCreateNestedOneWithoutWhatsappMessagesInput
+  ticket: Prisma.TicketCreateNestedOneWithoutMessagesInput
 }
 
 export type WhatsappMessageUncheckedCreateInput = {
   id?: string
-  organizationId: string
-  instanceId: string
-  leadId?: string | null
-  ticketId?: string | null
-  remoteJid: string
-  direction: $Enums.MessageDirection
-  providerMessageId: string
-  messageType: string
-  mediaType: string
-  contentText: string
+  ticketId: string
+  senderType: $Enums.MessageSenderType
+  senderId?: string | null
+  senderName?: string | null
+  messageType: $Enums.MessageType
+  content?: string | null
   mediaUrl?: string | null
-  mediaMimeType?: string | null
+  mediaType?: string | null
+  fileName?: string | null
   mediaSizeBytes?: number | null
   mediaDurationSeconds?: number | null
+  providerMessageId?: string | null
+  status?: $Enums.MessageStatus
   sentAt: Date | string
+  deliveredAt?: Date | string | null
+  readAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
 
 export type WhatsappMessageUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  instanceId?: Prisma.StringFieldUpdateOperationsInput | string
-  remoteJid?: Prisma.StringFieldUpdateOperationsInput | string
-  direction?: Prisma.EnumMessageDirectionFieldUpdateOperationsInput | $Enums.MessageDirection
-  providerMessageId?: Prisma.StringFieldUpdateOperationsInput | string
-  messageType?: Prisma.StringFieldUpdateOperationsInput | string
-  mediaType?: Prisma.StringFieldUpdateOperationsInput | string
-  contentText?: Prisma.StringFieldUpdateOperationsInput | string
+  senderType?: Prisma.EnumMessageSenderTypeFieldUpdateOperationsInput | $Enums.MessageSenderType
+  senderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  senderName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messageType?: Prisma.EnumMessageTypeFieldUpdateOperationsInput | $Enums.MessageType
+  content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mediaMimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mediaType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fileName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaSizeBytes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   mediaDurationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  providerMessageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumMessageStatusFieldUpdateOperationsInput | $Enums.MessageStatus
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  organization?: Prisma.OrganizationUpdateOneRequiredWithoutWhatsappMessagesNestedInput
-  lead?: Prisma.LeadUpdateOneWithoutWhatsappMessagesNestedInput
-  ticket?: Prisma.TicketUpdateOneWithoutWhatsappMessagesNestedInput
+  ticket?: Prisma.TicketUpdateOneRequiredWithoutMessagesNestedInput
 }
 
 export type WhatsappMessageUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
-  instanceId?: Prisma.StringFieldUpdateOperationsInput | string
-  leadId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  ticketId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  remoteJid?: Prisma.StringFieldUpdateOperationsInput | string
-  direction?: Prisma.EnumMessageDirectionFieldUpdateOperationsInput | $Enums.MessageDirection
-  providerMessageId?: Prisma.StringFieldUpdateOperationsInput | string
-  messageType?: Prisma.StringFieldUpdateOperationsInput | string
-  mediaType?: Prisma.StringFieldUpdateOperationsInput | string
-  contentText?: Prisma.StringFieldUpdateOperationsInput | string
+  ticketId?: Prisma.StringFieldUpdateOperationsInput | string
+  senderType?: Prisma.EnumMessageSenderTypeFieldUpdateOperationsInput | $Enums.MessageSenderType
+  senderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  senderName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messageType?: Prisma.EnumMessageTypeFieldUpdateOperationsInput | $Enums.MessageType
+  content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mediaMimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mediaType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fileName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaSizeBytes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   mediaDurationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  providerMessageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumMessageStatusFieldUpdateOperationsInput | $Enums.MessageStatus
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type WhatsappMessageCreateManyInput = {
   id?: string
-  organizationId: string
-  instanceId: string
-  leadId?: string | null
-  ticketId?: string | null
-  remoteJid: string
-  direction: $Enums.MessageDirection
-  providerMessageId: string
-  messageType: string
-  mediaType: string
-  contentText: string
+  ticketId: string
+  senderType: $Enums.MessageSenderType
+  senderId?: string | null
+  senderName?: string | null
+  messageType: $Enums.MessageType
+  content?: string | null
   mediaUrl?: string | null
-  mediaMimeType?: string | null
+  mediaType?: string | null
+  fileName?: string | null
   mediaSizeBytes?: number | null
   mediaDurationSeconds?: number | null
+  providerMessageId?: string | null
+  status?: $Enums.MessageStatus
   sentAt: Date | string
+  deliveredAt?: Date | string | null
+  readAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
 
 export type WhatsappMessageUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  instanceId?: Prisma.StringFieldUpdateOperationsInput | string
-  remoteJid?: Prisma.StringFieldUpdateOperationsInput | string
-  direction?: Prisma.EnumMessageDirectionFieldUpdateOperationsInput | $Enums.MessageDirection
-  providerMessageId?: Prisma.StringFieldUpdateOperationsInput | string
-  messageType?: Prisma.StringFieldUpdateOperationsInput | string
-  mediaType?: Prisma.StringFieldUpdateOperationsInput | string
-  contentText?: Prisma.StringFieldUpdateOperationsInput | string
+  senderType?: Prisma.EnumMessageSenderTypeFieldUpdateOperationsInput | $Enums.MessageSenderType
+  senderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  senderName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messageType?: Prisma.EnumMessageTypeFieldUpdateOperationsInput | $Enums.MessageType
+  content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mediaMimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mediaType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fileName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaSizeBytes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   mediaDurationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  providerMessageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumMessageStatusFieldUpdateOperationsInput | $Enums.MessageStatus
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type WhatsappMessageUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
-  instanceId?: Prisma.StringFieldUpdateOperationsInput | string
-  leadId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  ticketId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  remoteJid?: Prisma.StringFieldUpdateOperationsInput | string
-  direction?: Prisma.EnumMessageDirectionFieldUpdateOperationsInput | $Enums.MessageDirection
-  providerMessageId?: Prisma.StringFieldUpdateOperationsInput | string
-  messageType?: Prisma.StringFieldUpdateOperationsInput | string
-  mediaType?: Prisma.StringFieldUpdateOperationsInput | string
-  contentText?: Prisma.StringFieldUpdateOperationsInput | string
+  ticketId?: Prisma.StringFieldUpdateOperationsInput | string
+  senderType?: Prisma.EnumMessageSenderTypeFieldUpdateOperationsInput | $Enums.MessageSenderType
+  senderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  senderName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messageType?: Prisma.EnumMessageTypeFieldUpdateOperationsInput | $Enums.MessageType
+  content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mediaMimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mediaType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fileName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaSizeBytes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   mediaDurationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  providerMessageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumMessageStatusFieldUpdateOperationsInput | $Enums.MessageStatus
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type WhatsappMessageCountOrderByAggregateInput = {
+  id?: Prisma.SortOrder
+  ticketId?: Prisma.SortOrder
+  senderType?: Prisma.SortOrder
+  senderId?: Prisma.SortOrder
+  senderName?: Prisma.SortOrder
+  messageType?: Prisma.SortOrder
+  content?: Prisma.SortOrder
+  mediaUrl?: Prisma.SortOrder
+  mediaType?: Prisma.SortOrder
+  fileName?: Prisma.SortOrder
+  mediaSizeBytes?: Prisma.SortOrder
+  mediaDurationSeconds?: Prisma.SortOrder
+  providerMessageId?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  sentAt?: Prisma.SortOrder
+  deliveredAt?: Prisma.SortOrder
+  readAt?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
+}
+
+export type WhatsappMessageAvgOrderByAggregateInput = {
+  mediaSizeBytes?: Prisma.SortOrder
+  mediaDurationSeconds?: Prisma.SortOrder
+}
+
+export type WhatsappMessageMaxOrderByAggregateInput = {
+  id?: Prisma.SortOrder
+  ticketId?: Prisma.SortOrder
+  senderType?: Prisma.SortOrder
+  senderId?: Prisma.SortOrder
+  senderName?: Prisma.SortOrder
+  messageType?: Prisma.SortOrder
+  content?: Prisma.SortOrder
+  mediaUrl?: Prisma.SortOrder
+  mediaType?: Prisma.SortOrder
+  fileName?: Prisma.SortOrder
+  mediaSizeBytes?: Prisma.SortOrder
+  mediaDurationSeconds?: Prisma.SortOrder
+  providerMessageId?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  sentAt?: Prisma.SortOrder
+  deliveredAt?: Prisma.SortOrder
+  readAt?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
+}
+
+export type WhatsappMessageMinOrderByAggregateInput = {
+  id?: Prisma.SortOrder
+  ticketId?: Prisma.SortOrder
+  senderType?: Prisma.SortOrder
+  senderId?: Prisma.SortOrder
+  senderName?: Prisma.SortOrder
+  messageType?: Prisma.SortOrder
+  content?: Prisma.SortOrder
+  mediaUrl?: Prisma.SortOrder
+  mediaType?: Prisma.SortOrder
+  fileName?: Prisma.SortOrder
+  mediaSizeBytes?: Prisma.SortOrder
+  mediaDurationSeconds?: Prisma.SortOrder
+  providerMessageId?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  sentAt?: Prisma.SortOrder
+  deliveredAt?: Prisma.SortOrder
+  readAt?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
+}
+
+export type WhatsappMessageSumOrderByAggregateInput = {
+  mediaSizeBytes?: Prisma.SortOrder
+  mediaDurationSeconds?: Prisma.SortOrder
 }
 
 export type WhatsappMessageListRelationFilter = {
@@ -585,166 +675,16 @@ export type WhatsappMessageOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
-export type WhatsappMessageOrganization_message_uniqueCompoundUniqueInput = {
-  organizationId: string
-  providerMessageId: string
+export type EnumMessageSenderTypeFieldUpdateOperationsInput = {
+  set?: $Enums.MessageSenderType
 }
 
-export type WhatsappMessageCountOrderByAggregateInput = {
-  id?: Prisma.SortOrder
-  organizationId?: Prisma.SortOrder
-  instanceId?: Prisma.SortOrder
-  leadId?: Prisma.SortOrder
-  ticketId?: Prisma.SortOrder
-  remoteJid?: Prisma.SortOrder
-  direction?: Prisma.SortOrder
-  providerMessageId?: Prisma.SortOrder
-  messageType?: Prisma.SortOrder
-  mediaType?: Prisma.SortOrder
-  contentText?: Prisma.SortOrder
-  mediaUrl?: Prisma.SortOrder
-  mediaMimeType?: Prisma.SortOrder
-  mediaSizeBytes?: Prisma.SortOrder
-  mediaDurationSeconds?: Prisma.SortOrder
-  sentAt?: Prisma.SortOrder
-  createdAt?: Prisma.SortOrder
-  updatedAt?: Prisma.SortOrder
+export type EnumMessageTypeFieldUpdateOperationsInput = {
+  set?: $Enums.MessageType
 }
 
-export type WhatsappMessageAvgOrderByAggregateInput = {
-  mediaSizeBytes?: Prisma.SortOrder
-  mediaDurationSeconds?: Prisma.SortOrder
-}
-
-export type WhatsappMessageMaxOrderByAggregateInput = {
-  id?: Prisma.SortOrder
-  organizationId?: Prisma.SortOrder
-  instanceId?: Prisma.SortOrder
-  leadId?: Prisma.SortOrder
-  ticketId?: Prisma.SortOrder
-  remoteJid?: Prisma.SortOrder
-  direction?: Prisma.SortOrder
-  providerMessageId?: Prisma.SortOrder
-  messageType?: Prisma.SortOrder
-  mediaType?: Prisma.SortOrder
-  contentText?: Prisma.SortOrder
-  mediaUrl?: Prisma.SortOrder
-  mediaMimeType?: Prisma.SortOrder
-  mediaSizeBytes?: Prisma.SortOrder
-  mediaDurationSeconds?: Prisma.SortOrder
-  sentAt?: Prisma.SortOrder
-  createdAt?: Prisma.SortOrder
-  updatedAt?: Prisma.SortOrder
-}
-
-export type WhatsappMessageMinOrderByAggregateInput = {
-  id?: Prisma.SortOrder
-  organizationId?: Prisma.SortOrder
-  instanceId?: Prisma.SortOrder
-  leadId?: Prisma.SortOrder
-  ticketId?: Prisma.SortOrder
-  remoteJid?: Prisma.SortOrder
-  direction?: Prisma.SortOrder
-  providerMessageId?: Prisma.SortOrder
-  messageType?: Prisma.SortOrder
-  mediaType?: Prisma.SortOrder
-  contentText?: Prisma.SortOrder
-  mediaUrl?: Prisma.SortOrder
-  mediaMimeType?: Prisma.SortOrder
-  mediaSizeBytes?: Prisma.SortOrder
-  mediaDurationSeconds?: Prisma.SortOrder
-  sentAt?: Prisma.SortOrder
-  createdAt?: Prisma.SortOrder
-  updatedAt?: Prisma.SortOrder
-}
-
-export type WhatsappMessageSumOrderByAggregateInput = {
-  mediaSizeBytes?: Prisma.SortOrder
-  mediaDurationSeconds?: Prisma.SortOrder
-}
-
-export type WhatsappMessageCreateNestedManyWithoutOrganizationInput = {
-  create?: Prisma.XOR<Prisma.WhatsappMessageCreateWithoutOrganizationInput, Prisma.WhatsappMessageUncheckedCreateWithoutOrganizationInput> | Prisma.WhatsappMessageCreateWithoutOrganizationInput[] | Prisma.WhatsappMessageUncheckedCreateWithoutOrganizationInput[]
-  connectOrCreate?: Prisma.WhatsappMessageCreateOrConnectWithoutOrganizationInput | Prisma.WhatsappMessageCreateOrConnectWithoutOrganizationInput[]
-  createMany?: Prisma.WhatsappMessageCreateManyOrganizationInputEnvelope
-  connect?: Prisma.WhatsappMessageWhereUniqueInput | Prisma.WhatsappMessageWhereUniqueInput[]
-}
-
-export type WhatsappMessageUncheckedCreateNestedManyWithoutOrganizationInput = {
-  create?: Prisma.XOR<Prisma.WhatsappMessageCreateWithoutOrganizationInput, Prisma.WhatsappMessageUncheckedCreateWithoutOrganizationInput> | Prisma.WhatsappMessageCreateWithoutOrganizationInput[] | Prisma.WhatsappMessageUncheckedCreateWithoutOrganizationInput[]
-  connectOrCreate?: Prisma.WhatsappMessageCreateOrConnectWithoutOrganizationInput | Prisma.WhatsappMessageCreateOrConnectWithoutOrganizationInput[]
-  createMany?: Prisma.WhatsappMessageCreateManyOrganizationInputEnvelope
-  connect?: Prisma.WhatsappMessageWhereUniqueInput | Prisma.WhatsappMessageWhereUniqueInput[]
-}
-
-export type WhatsappMessageUpdateManyWithoutOrganizationNestedInput = {
-  create?: Prisma.XOR<Prisma.WhatsappMessageCreateWithoutOrganizationInput, Prisma.WhatsappMessageUncheckedCreateWithoutOrganizationInput> | Prisma.WhatsappMessageCreateWithoutOrganizationInput[] | Prisma.WhatsappMessageUncheckedCreateWithoutOrganizationInput[]
-  connectOrCreate?: Prisma.WhatsappMessageCreateOrConnectWithoutOrganizationInput | Prisma.WhatsappMessageCreateOrConnectWithoutOrganizationInput[]
-  upsert?: Prisma.WhatsappMessageUpsertWithWhereUniqueWithoutOrganizationInput | Prisma.WhatsappMessageUpsertWithWhereUniqueWithoutOrganizationInput[]
-  createMany?: Prisma.WhatsappMessageCreateManyOrganizationInputEnvelope
-  set?: Prisma.WhatsappMessageWhereUniqueInput | Prisma.WhatsappMessageWhereUniqueInput[]
-  disconnect?: Prisma.WhatsappMessageWhereUniqueInput | Prisma.WhatsappMessageWhereUniqueInput[]
-  delete?: Prisma.WhatsappMessageWhereUniqueInput | Prisma.WhatsappMessageWhereUniqueInput[]
-  connect?: Prisma.WhatsappMessageWhereUniqueInput | Prisma.WhatsappMessageWhereUniqueInput[]
-  update?: Prisma.WhatsappMessageUpdateWithWhereUniqueWithoutOrganizationInput | Prisma.WhatsappMessageUpdateWithWhereUniqueWithoutOrganizationInput[]
-  updateMany?: Prisma.WhatsappMessageUpdateManyWithWhereWithoutOrganizationInput | Prisma.WhatsappMessageUpdateManyWithWhereWithoutOrganizationInput[]
-  deleteMany?: Prisma.WhatsappMessageScalarWhereInput | Prisma.WhatsappMessageScalarWhereInput[]
-}
-
-export type WhatsappMessageUncheckedUpdateManyWithoutOrganizationNestedInput = {
-  create?: Prisma.XOR<Prisma.WhatsappMessageCreateWithoutOrganizationInput, Prisma.WhatsappMessageUncheckedCreateWithoutOrganizationInput> | Prisma.WhatsappMessageCreateWithoutOrganizationInput[] | Prisma.WhatsappMessageUncheckedCreateWithoutOrganizationInput[]
-  connectOrCreate?: Prisma.WhatsappMessageCreateOrConnectWithoutOrganizationInput | Prisma.WhatsappMessageCreateOrConnectWithoutOrganizationInput[]
-  upsert?: Prisma.WhatsappMessageUpsertWithWhereUniqueWithoutOrganizationInput | Prisma.WhatsappMessageUpsertWithWhereUniqueWithoutOrganizationInput[]
-  createMany?: Prisma.WhatsappMessageCreateManyOrganizationInputEnvelope
-  set?: Prisma.WhatsappMessageWhereUniqueInput | Prisma.WhatsappMessageWhereUniqueInput[]
-  disconnect?: Prisma.WhatsappMessageWhereUniqueInput | Prisma.WhatsappMessageWhereUniqueInput[]
-  delete?: Prisma.WhatsappMessageWhereUniqueInput | Prisma.WhatsappMessageWhereUniqueInput[]
-  connect?: Prisma.WhatsappMessageWhereUniqueInput | Prisma.WhatsappMessageWhereUniqueInput[]
-  update?: Prisma.WhatsappMessageUpdateWithWhereUniqueWithoutOrganizationInput | Prisma.WhatsappMessageUpdateWithWhereUniqueWithoutOrganizationInput[]
-  updateMany?: Prisma.WhatsappMessageUpdateManyWithWhereWithoutOrganizationInput | Prisma.WhatsappMessageUpdateManyWithWhereWithoutOrganizationInput[]
-  deleteMany?: Prisma.WhatsappMessageScalarWhereInput | Prisma.WhatsappMessageScalarWhereInput[]
-}
-
-export type WhatsappMessageCreateNestedManyWithoutLeadInput = {
-  create?: Prisma.XOR<Prisma.WhatsappMessageCreateWithoutLeadInput, Prisma.WhatsappMessageUncheckedCreateWithoutLeadInput> | Prisma.WhatsappMessageCreateWithoutLeadInput[] | Prisma.WhatsappMessageUncheckedCreateWithoutLeadInput[]
-  connectOrCreate?: Prisma.WhatsappMessageCreateOrConnectWithoutLeadInput | Prisma.WhatsappMessageCreateOrConnectWithoutLeadInput[]
-  createMany?: Prisma.WhatsappMessageCreateManyLeadInputEnvelope
-  connect?: Prisma.WhatsappMessageWhereUniqueInput | Prisma.WhatsappMessageWhereUniqueInput[]
-}
-
-export type WhatsappMessageUncheckedCreateNestedManyWithoutLeadInput = {
-  create?: Prisma.XOR<Prisma.WhatsappMessageCreateWithoutLeadInput, Prisma.WhatsappMessageUncheckedCreateWithoutLeadInput> | Prisma.WhatsappMessageCreateWithoutLeadInput[] | Prisma.WhatsappMessageUncheckedCreateWithoutLeadInput[]
-  connectOrCreate?: Prisma.WhatsappMessageCreateOrConnectWithoutLeadInput | Prisma.WhatsappMessageCreateOrConnectWithoutLeadInput[]
-  createMany?: Prisma.WhatsappMessageCreateManyLeadInputEnvelope
-  connect?: Prisma.WhatsappMessageWhereUniqueInput | Prisma.WhatsappMessageWhereUniqueInput[]
-}
-
-export type WhatsappMessageUpdateManyWithoutLeadNestedInput = {
-  create?: Prisma.XOR<Prisma.WhatsappMessageCreateWithoutLeadInput, Prisma.WhatsappMessageUncheckedCreateWithoutLeadInput> | Prisma.WhatsappMessageCreateWithoutLeadInput[] | Prisma.WhatsappMessageUncheckedCreateWithoutLeadInput[]
-  connectOrCreate?: Prisma.WhatsappMessageCreateOrConnectWithoutLeadInput | Prisma.WhatsappMessageCreateOrConnectWithoutLeadInput[]
-  upsert?: Prisma.WhatsappMessageUpsertWithWhereUniqueWithoutLeadInput | Prisma.WhatsappMessageUpsertWithWhereUniqueWithoutLeadInput[]
-  createMany?: Prisma.WhatsappMessageCreateManyLeadInputEnvelope
-  set?: Prisma.WhatsappMessageWhereUniqueInput | Prisma.WhatsappMessageWhereUniqueInput[]
-  disconnect?: Prisma.WhatsappMessageWhereUniqueInput | Prisma.WhatsappMessageWhereUniqueInput[]
-  delete?: Prisma.WhatsappMessageWhereUniqueInput | Prisma.WhatsappMessageWhereUniqueInput[]
-  connect?: Prisma.WhatsappMessageWhereUniqueInput | Prisma.WhatsappMessageWhereUniqueInput[]
-  update?: Prisma.WhatsappMessageUpdateWithWhereUniqueWithoutLeadInput | Prisma.WhatsappMessageUpdateWithWhereUniqueWithoutLeadInput[]
-  updateMany?: Prisma.WhatsappMessageUpdateManyWithWhereWithoutLeadInput | Prisma.WhatsappMessageUpdateManyWithWhereWithoutLeadInput[]
-  deleteMany?: Prisma.WhatsappMessageScalarWhereInput | Prisma.WhatsappMessageScalarWhereInput[]
-}
-
-export type WhatsappMessageUncheckedUpdateManyWithoutLeadNestedInput = {
-  create?: Prisma.XOR<Prisma.WhatsappMessageCreateWithoutLeadInput, Prisma.WhatsappMessageUncheckedCreateWithoutLeadInput> | Prisma.WhatsappMessageCreateWithoutLeadInput[] | Prisma.WhatsappMessageUncheckedCreateWithoutLeadInput[]
-  connectOrCreate?: Prisma.WhatsappMessageCreateOrConnectWithoutLeadInput | Prisma.WhatsappMessageCreateOrConnectWithoutLeadInput[]
-  upsert?: Prisma.WhatsappMessageUpsertWithWhereUniqueWithoutLeadInput | Prisma.WhatsappMessageUpsertWithWhereUniqueWithoutLeadInput[]
-  createMany?: Prisma.WhatsappMessageCreateManyLeadInputEnvelope
-  set?: Prisma.WhatsappMessageWhereUniqueInput | Prisma.WhatsappMessageWhereUniqueInput[]
-  disconnect?: Prisma.WhatsappMessageWhereUniqueInput | Prisma.WhatsappMessageWhereUniqueInput[]
-  delete?: Prisma.WhatsappMessageWhereUniqueInput | Prisma.WhatsappMessageWhereUniqueInput[]
-  connect?: Prisma.WhatsappMessageWhereUniqueInput | Prisma.WhatsappMessageWhereUniqueInput[]
-  update?: Prisma.WhatsappMessageUpdateWithWhereUniqueWithoutLeadInput | Prisma.WhatsappMessageUpdateWithWhereUniqueWithoutLeadInput[]
-  updateMany?: Prisma.WhatsappMessageUpdateManyWithWhereWithoutLeadInput | Prisma.WhatsappMessageUpdateManyWithWhereWithoutLeadInput[]
-  deleteMany?: Prisma.WhatsappMessageScalarWhereInput | Prisma.WhatsappMessageScalarWhereInput[]
+export type EnumMessageStatusFieldUpdateOperationsInput = {
+  set?: $Enums.MessageStatus
 }
 
 export type WhatsappMessageCreateNestedManyWithoutTicketInput = {
@@ -789,202 +729,44 @@ export type WhatsappMessageUncheckedUpdateManyWithoutTicketNestedInput = {
   deleteMany?: Prisma.WhatsappMessageScalarWhereInput | Prisma.WhatsappMessageScalarWhereInput[]
 }
 
-export type EnumMessageDirectionFieldUpdateOperationsInput = {
-  set?: $Enums.MessageDirection
-}
-
-export type WhatsappMessageCreateWithoutOrganizationInput = {
-  id?: string
-  instanceId: string
-  remoteJid: string
-  direction: $Enums.MessageDirection
-  providerMessageId: string
-  messageType: string
-  mediaType: string
-  contentText: string
-  mediaUrl?: string | null
-  mediaMimeType?: string | null
-  mediaSizeBytes?: number | null
-  mediaDurationSeconds?: number | null
-  sentAt: Date | string
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  lead?: Prisma.LeadCreateNestedOneWithoutWhatsappMessagesInput
-  ticket?: Prisma.TicketCreateNestedOneWithoutWhatsappMessagesInput
-}
-
-export type WhatsappMessageUncheckedCreateWithoutOrganizationInput = {
-  id?: string
-  instanceId: string
-  leadId?: string | null
-  ticketId?: string | null
-  remoteJid: string
-  direction: $Enums.MessageDirection
-  providerMessageId: string
-  messageType: string
-  mediaType: string
-  contentText: string
-  mediaUrl?: string | null
-  mediaMimeType?: string | null
-  mediaSizeBytes?: number | null
-  mediaDurationSeconds?: number | null
-  sentAt: Date | string
-  createdAt?: Date | string
-  updatedAt?: Date | string
-}
-
-export type WhatsappMessageCreateOrConnectWithoutOrganizationInput = {
-  where: Prisma.WhatsappMessageWhereUniqueInput
-  create: Prisma.XOR<Prisma.WhatsappMessageCreateWithoutOrganizationInput, Prisma.WhatsappMessageUncheckedCreateWithoutOrganizationInput>
-}
-
-export type WhatsappMessageCreateManyOrganizationInputEnvelope = {
-  data: Prisma.WhatsappMessageCreateManyOrganizationInput | Prisma.WhatsappMessageCreateManyOrganizationInput[]
-  skipDuplicates?: boolean
-}
-
-export type WhatsappMessageUpsertWithWhereUniqueWithoutOrganizationInput = {
-  where: Prisma.WhatsappMessageWhereUniqueInput
-  update: Prisma.XOR<Prisma.WhatsappMessageUpdateWithoutOrganizationInput, Prisma.WhatsappMessageUncheckedUpdateWithoutOrganizationInput>
-  create: Prisma.XOR<Prisma.WhatsappMessageCreateWithoutOrganizationInput, Prisma.WhatsappMessageUncheckedCreateWithoutOrganizationInput>
-}
-
-export type WhatsappMessageUpdateWithWhereUniqueWithoutOrganizationInput = {
-  where: Prisma.WhatsappMessageWhereUniqueInput
-  data: Prisma.XOR<Prisma.WhatsappMessageUpdateWithoutOrganizationInput, Prisma.WhatsappMessageUncheckedUpdateWithoutOrganizationInput>
-}
-
-export type WhatsappMessageUpdateManyWithWhereWithoutOrganizationInput = {
-  where: Prisma.WhatsappMessageScalarWhereInput
-  data: Prisma.XOR<Prisma.WhatsappMessageUpdateManyMutationInput, Prisma.WhatsappMessageUncheckedUpdateManyWithoutOrganizationInput>
-}
-
-export type WhatsappMessageScalarWhereInput = {
-  AND?: Prisma.WhatsappMessageScalarWhereInput | Prisma.WhatsappMessageScalarWhereInput[]
-  OR?: Prisma.WhatsappMessageScalarWhereInput[]
-  NOT?: Prisma.WhatsappMessageScalarWhereInput | Prisma.WhatsappMessageScalarWhereInput[]
-  id?: Prisma.StringFilter<"WhatsappMessage"> | string
-  organizationId?: Prisma.StringFilter<"WhatsappMessage"> | string
-  instanceId?: Prisma.StringFilter<"WhatsappMessage"> | string
-  leadId?: Prisma.StringNullableFilter<"WhatsappMessage"> | string | null
-  ticketId?: Prisma.StringNullableFilter<"WhatsappMessage"> | string | null
-  remoteJid?: Prisma.StringFilter<"WhatsappMessage"> | string
-  direction?: Prisma.EnumMessageDirectionFilter<"WhatsappMessage"> | $Enums.MessageDirection
-  providerMessageId?: Prisma.StringFilter<"WhatsappMessage"> | string
-  messageType?: Prisma.StringFilter<"WhatsappMessage"> | string
-  mediaType?: Prisma.StringFilter<"WhatsappMessage"> | string
-  contentText?: Prisma.StringFilter<"WhatsappMessage"> | string
-  mediaUrl?: Prisma.StringNullableFilter<"WhatsappMessage"> | string | null
-  mediaMimeType?: Prisma.StringNullableFilter<"WhatsappMessage"> | string | null
-  mediaSizeBytes?: Prisma.IntNullableFilter<"WhatsappMessage"> | number | null
-  mediaDurationSeconds?: Prisma.IntNullableFilter<"WhatsappMessage"> | number | null
-  sentAt?: Prisma.DateTimeFilter<"WhatsappMessage"> | Date | string
-  createdAt?: Prisma.DateTimeFilter<"WhatsappMessage"> | Date | string
-  updatedAt?: Prisma.DateTimeFilter<"WhatsappMessage"> | Date | string
-}
-
-export type WhatsappMessageCreateWithoutLeadInput = {
-  id?: string
-  instanceId: string
-  remoteJid: string
-  direction: $Enums.MessageDirection
-  providerMessageId: string
-  messageType: string
-  mediaType: string
-  contentText: string
-  mediaUrl?: string | null
-  mediaMimeType?: string | null
-  mediaSizeBytes?: number | null
-  mediaDurationSeconds?: number | null
-  sentAt: Date | string
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  organization: Prisma.OrganizationCreateNestedOneWithoutWhatsappMessagesInput
-  ticket?: Prisma.TicketCreateNestedOneWithoutWhatsappMessagesInput
-}
-
-export type WhatsappMessageUncheckedCreateWithoutLeadInput = {
-  id?: string
-  organizationId: string
-  instanceId: string
-  ticketId?: string | null
-  remoteJid: string
-  direction: $Enums.MessageDirection
-  providerMessageId: string
-  messageType: string
-  mediaType: string
-  contentText: string
-  mediaUrl?: string | null
-  mediaMimeType?: string | null
-  mediaSizeBytes?: number | null
-  mediaDurationSeconds?: number | null
-  sentAt: Date | string
-  createdAt?: Date | string
-  updatedAt?: Date | string
-}
-
-export type WhatsappMessageCreateOrConnectWithoutLeadInput = {
-  where: Prisma.WhatsappMessageWhereUniqueInput
-  create: Prisma.XOR<Prisma.WhatsappMessageCreateWithoutLeadInput, Prisma.WhatsappMessageUncheckedCreateWithoutLeadInput>
-}
-
-export type WhatsappMessageCreateManyLeadInputEnvelope = {
-  data: Prisma.WhatsappMessageCreateManyLeadInput | Prisma.WhatsappMessageCreateManyLeadInput[]
-  skipDuplicates?: boolean
-}
-
-export type WhatsappMessageUpsertWithWhereUniqueWithoutLeadInput = {
-  where: Prisma.WhatsappMessageWhereUniqueInput
-  update: Prisma.XOR<Prisma.WhatsappMessageUpdateWithoutLeadInput, Prisma.WhatsappMessageUncheckedUpdateWithoutLeadInput>
-  create: Prisma.XOR<Prisma.WhatsappMessageCreateWithoutLeadInput, Prisma.WhatsappMessageUncheckedCreateWithoutLeadInput>
-}
-
-export type WhatsappMessageUpdateWithWhereUniqueWithoutLeadInput = {
-  where: Prisma.WhatsappMessageWhereUniqueInput
-  data: Prisma.XOR<Prisma.WhatsappMessageUpdateWithoutLeadInput, Prisma.WhatsappMessageUncheckedUpdateWithoutLeadInput>
-}
-
-export type WhatsappMessageUpdateManyWithWhereWithoutLeadInput = {
-  where: Prisma.WhatsappMessageScalarWhereInput
-  data: Prisma.XOR<Prisma.WhatsappMessageUpdateManyMutationInput, Prisma.WhatsappMessageUncheckedUpdateManyWithoutLeadInput>
-}
-
 export type WhatsappMessageCreateWithoutTicketInput = {
   id?: string
-  instanceId: string
-  remoteJid: string
-  direction: $Enums.MessageDirection
-  providerMessageId: string
-  messageType: string
-  mediaType: string
-  contentText: string
+  senderType: $Enums.MessageSenderType
+  senderId?: string | null
+  senderName?: string | null
+  messageType: $Enums.MessageType
+  content?: string | null
   mediaUrl?: string | null
-  mediaMimeType?: string | null
+  mediaType?: string | null
+  fileName?: string | null
   mediaSizeBytes?: number | null
   mediaDurationSeconds?: number | null
+  providerMessageId?: string | null
+  status?: $Enums.MessageStatus
   sentAt: Date | string
+  deliveredAt?: Date | string | null
+  readAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  organization: Prisma.OrganizationCreateNestedOneWithoutWhatsappMessagesInput
-  lead?: Prisma.LeadCreateNestedOneWithoutWhatsappMessagesInput
 }
 
 export type WhatsappMessageUncheckedCreateWithoutTicketInput = {
   id?: string
-  organizationId: string
-  instanceId: string
-  leadId?: string | null
-  remoteJid: string
-  direction: $Enums.MessageDirection
-  providerMessageId: string
-  messageType: string
-  mediaType: string
-  contentText: string
+  senderType: $Enums.MessageSenderType
+  senderId?: string | null
+  senderName?: string | null
+  messageType: $Enums.MessageType
+  content?: string | null
   mediaUrl?: string | null
-  mediaMimeType?: string | null
+  mediaType?: string | null
+  fileName?: string | null
   mediaSizeBytes?: number | null
   mediaDurationSeconds?: number | null
+  providerMessageId?: string | null
+  status?: $Enums.MessageStatus
   sentAt: Date | string
+  deliveredAt?: Date | string | null
+  readAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1015,242 +797,111 @@ export type WhatsappMessageUpdateManyWithWhereWithoutTicketInput = {
   data: Prisma.XOR<Prisma.WhatsappMessageUpdateManyMutationInput, Prisma.WhatsappMessageUncheckedUpdateManyWithoutTicketInput>
 }
 
-export type WhatsappMessageCreateManyOrganizationInput = {
-  id?: string
-  instanceId: string
-  leadId?: string | null
-  ticketId?: string | null
-  remoteJid: string
-  direction: $Enums.MessageDirection
-  providerMessageId: string
-  messageType: string
-  mediaType: string
-  contentText: string
-  mediaUrl?: string | null
-  mediaMimeType?: string | null
-  mediaSizeBytes?: number | null
-  mediaDurationSeconds?: number | null
-  sentAt: Date | string
-  createdAt?: Date | string
-  updatedAt?: Date | string
-}
-
-export type WhatsappMessageUpdateWithoutOrganizationInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  instanceId?: Prisma.StringFieldUpdateOperationsInput | string
-  remoteJid?: Prisma.StringFieldUpdateOperationsInput | string
-  direction?: Prisma.EnumMessageDirectionFieldUpdateOperationsInput | $Enums.MessageDirection
-  providerMessageId?: Prisma.StringFieldUpdateOperationsInput | string
-  messageType?: Prisma.StringFieldUpdateOperationsInput | string
-  mediaType?: Prisma.StringFieldUpdateOperationsInput | string
-  contentText?: Prisma.StringFieldUpdateOperationsInput | string
-  mediaUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mediaMimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mediaSizeBytes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  mediaDurationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  lead?: Prisma.LeadUpdateOneWithoutWhatsappMessagesNestedInput
-  ticket?: Prisma.TicketUpdateOneWithoutWhatsappMessagesNestedInput
-}
-
-export type WhatsappMessageUncheckedUpdateWithoutOrganizationInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  instanceId?: Prisma.StringFieldUpdateOperationsInput | string
-  leadId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  ticketId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  remoteJid?: Prisma.StringFieldUpdateOperationsInput | string
-  direction?: Prisma.EnumMessageDirectionFieldUpdateOperationsInput | $Enums.MessageDirection
-  providerMessageId?: Prisma.StringFieldUpdateOperationsInput | string
-  messageType?: Prisma.StringFieldUpdateOperationsInput | string
-  mediaType?: Prisma.StringFieldUpdateOperationsInput | string
-  contentText?: Prisma.StringFieldUpdateOperationsInput | string
-  mediaUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mediaMimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mediaSizeBytes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  mediaDurationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-}
-
-export type WhatsappMessageUncheckedUpdateManyWithoutOrganizationInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  instanceId?: Prisma.StringFieldUpdateOperationsInput | string
-  leadId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  ticketId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  remoteJid?: Prisma.StringFieldUpdateOperationsInput | string
-  direction?: Prisma.EnumMessageDirectionFieldUpdateOperationsInput | $Enums.MessageDirection
-  providerMessageId?: Prisma.StringFieldUpdateOperationsInput | string
-  messageType?: Prisma.StringFieldUpdateOperationsInput | string
-  mediaType?: Prisma.StringFieldUpdateOperationsInput | string
-  contentText?: Prisma.StringFieldUpdateOperationsInput | string
-  mediaUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mediaMimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mediaSizeBytes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  mediaDurationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-}
-
-export type WhatsappMessageCreateManyLeadInput = {
-  id?: string
-  organizationId: string
-  instanceId: string
-  ticketId?: string | null
-  remoteJid: string
-  direction: $Enums.MessageDirection
-  providerMessageId: string
-  messageType: string
-  mediaType: string
-  contentText: string
-  mediaUrl?: string | null
-  mediaMimeType?: string | null
-  mediaSizeBytes?: number | null
-  mediaDurationSeconds?: number | null
-  sentAt: Date | string
-  createdAt?: Date | string
-  updatedAt?: Date | string
-}
-
-export type WhatsappMessageUpdateWithoutLeadInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  instanceId?: Prisma.StringFieldUpdateOperationsInput | string
-  remoteJid?: Prisma.StringFieldUpdateOperationsInput | string
-  direction?: Prisma.EnumMessageDirectionFieldUpdateOperationsInput | $Enums.MessageDirection
-  providerMessageId?: Prisma.StringFieldUpdateOperationsInput | string
-  messageType?: Prisma.StringFieldUpdateOperationsInput | string
-  mediaType?: Prisma.StringFieldUpdateOperationsInput | string
-  contentText?: Prisma.StringFieldUpdateOperationsInput | string
-  mediaUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mediaMimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mediaSizeBytes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  mediaDurationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  organization?: Prisma.OrganizationUpdateOneRequiredWithoutWhatsappMessagesNestedInput
-  ticket?: Prisma.TicketUpdateOneWithoutWhatsappMessagesNestedInput
-}
-
-export type WhatsappMessageUncheckedUpdateWithoutLeadInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
-  instanceId?: Prisma.StringFieldUpdateOperationsInput | string
-  ticketId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  remoteJid?: Prisma.StringFieldUpdateOperationsInput | string
-  direction?: Prisma.EnumMessageDirectionFieldUpdateOperationsInput | $Enums.MessageDirection
-  providerMessageId?: Prisma.StringFieldUpdateOperationsInput | string
-  messageType?: Prisma.StringFieldUpdateOperationsInput | string
-  mediaType?: Prisma.StringFieldUpdateOperationsInput | string
-  contentText?: Prisma.StringFieldUpdateOperationsInput | string
-  mediaUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mediaMimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mediaSizeBytes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  mediaDurationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-}
-
-export type WhatsappMessageUncheckedUpdateManyWithoutLeadInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
-  instanceId?: Prisma.StringFieldUpdateOperationsInput | string
-  ticketId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  remoteJid?: Prisma.StringFieldUpdateOperationsInput | string
-  direction?: Prisma.EnumMessageDirectionFieldUpdateOperationsInput | $Enums.MessageDirection
-  providerMessageId?: Prisma.StringFieldUpdateOperationsInput | string
-  messageType?: Prisma.StringFieldUpdateOperationsInput | string
-  mediaType?: Prisma.StringFieldUpdateOperationsInput | string
-  contentText?: Prisma.StringFieldUpdateOperationsInput | string
-  mediaUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mediaMimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mediaSizeBytes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  mediaDurationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+export type WhatsappMessageScalarWhereInput = {
+  AND?: Prisma.WhatsappMessageScalarWhereInput | Prisma.WhatsappMessageScalarWhereInput[]
+  OR?: Prisma.WhatsappMessageScalarWhereInput[]
+  NOT?: Prisma.WhatsappMessageScalarWhereInput | Prisma.WhatsappMessageScalarWhereInput[]
+  id?: Prisma.StringFilter<"WhatsappMessage"> | string
+  ticketId?: Prisma.StringFilter<"WhatsappMessage"> | string
+  senderType?: Prisma.EnumMessageSenderTypeFilter<"WhatsappMessage"> | $Enums.MessageSenderType
+  senderId?: Prisma.StringNullableFilter<"WhatsappMessage"> | string | null
+  senderName?: Prisma.StringNullableFilter<"WhatsappMessage"> | string | null
+  messageType?: Prisma.EnumMessageTypeFilter<"WhatsappMessage"> | $Enums.MessageType
+  content?: Prisma.StringNullableFilter<"WhatsappMessage"> | string | null
+  mediaUrl?: Prisma.StringNullableFilter<"WhatsappMessage"> | string | null
+  mediaType?: Prisma.StringNullableFilter<"WhatsappMessage"> | string | null
+  fileName?: Prisma.StringNullableFilter<"WhatsappMessage"> | string | null
+  mediaSizeBytes?: Prisma.IntNullableFilter<"WhatsappMessage"> | number | null
+  mediaDurationSeconds?: Prisma.IntNullableFilter<"WhatsappMessage"> | number | null
+  providerMessageId?: Prisma.StringNullableFilter<"WhatsappMessage"> | string | null
+  status?: Prisma.EnumMessageStatusFilter<"WhatsappMessage"> | $Enums.MessageStatus
+  sentAt?: Prisma.DateTimeFilter<"WhatsappMessage"> | Date | string
+  deliveredAt?: Prisma.DateTimeNullableFilter<"WhatsappMessage"> | Date | string | null
+  readAt?: Prisma.DateTimeNullableFilter<"WhatsappMessage"> | Date | string | null
+  createdAt?: Prisma.DateTimeFilter<"WhatsappMessage"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"WhatsappMessage"> | Date | string
 }
 
 export type WhatsappMessageCreateManyTicketInput = {
   id?: string
-  organizationId: string
-  instanceId: string
-  leadId?: string | null
-  remoteJid: string
-  direction: $Enums.MessageDirection
-  providerMessageId: string
-  messageType: string
-  mediaType: string
-  contentText: string
+  senderType: $Enums.MessageSenderType
+  senderId?: string | null
+  senderName?: string | null
+  messageType: $Enums.MessageType
+  content?: string | null
   mediaUrl?: string | null
-  mediaMimeType?: string | null
+  mediaType?: string | null
+  fileName?: string | null
   mediaSizeBytes?: number | null
   mediaDurationSeconds?: number | null
+  providerMessageId?: string | null
+  status?: $Enums.MessageStatus
   sentAt: Date | string
+  deliveredAt?: Date | string | null
+  readAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
 
 export type WhatsappMessageUpdateWithoutTicketInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  instanceId?: Prisma.StringFieldUpdateOperationsInput | string
-  remoteJid?: Prisma.StringFieldUpdateOperationsInput | string
-  direction?: Prisma.EnumMessageDirectionFieldUpdateOperationsInput | $Enums.MessageDirection
-  providerMessageId?: Prisma.StringFieldUpdateOperationsInput | string
-  messageType?: Prisma.StringFieldUpdateOperationsInput | string
-  mediaType?: Prisma.StringFieldUpdateOperationsInput | string
-  contentText?: Prisma.StringFieldUpdateOperationsInput | string
+  senderType?: Prisma.EnumMessageSenderTypeFieldUpdateOperationsInput | $Enums.MessageSenderType
+  senderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  senderName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messageType?: Prisma.EnumMessageTypeFieldUpdateOperationsInput | $Enums.MessageType
+  content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mediaMimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mediaType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fileName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaSizeBytes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   mediaDurationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  providerMessageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumMessageStatusFieldUpdateOperationsInput | $Enums.MessageStatus
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  organization?: Prisma.OrganizationUpdateOneRequiredWithoutWhatsappMessagesNestedInput
-  lead?: Prisma.LeadUpdateOneWithoutWhatsappMessagesNestedInput
 }
 
 export type WhatsappMessageUncheckedUpdateWithoutTicketInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
-  instanceId?: Prisma.StringFieldUpdateOperationsInput | string
-  leadId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  remoteJid?: Prisma.StringFieldUpdateOperationsInput | string
-  direction?: Prisma.EnumMessageDirectionFieldUpdateOperationsInput | $Enums.MessageDirection
-  providerMessageId?: Prisma.StringFieldUpdateOperationsInput | string
-  messageType?: Prisma.StringFieldUpdateOperationsInput | string
-  mediaType?: Prisma.StringFieldUpdateOperationsInput | string
-  contentText?: Prisma.StringFieldUpdateOperationsInput | string
+  senderType?: Prisma.EnumMessageSenderTypeFieldUpdateOperationsInput | $Enums.MessageSenderType
+  senderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  senderName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messageType?: Prisma.EnumMessageTypeFieldUpdateOperationsInput | $Enums.MessageType
+  content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mediaMimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mediaType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fileName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaSizeBytes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   mediaDurationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  providerMessageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumMessageStatusFieldUpdateOperationsInput | $Enums.MessageStatus
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type WhatsappMessageUncheckedUpdateManyWithoutTicketInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
-  instanceId?: Prisma.StringFieldUpdateOperationsInput | string
-  leadId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  remoteJid?: Prisma.StringFieldUpdateOperationsInput | string
-  direction?: Prisma.EnumMessageDirectionFieldUpdateOperationsInput | $Enums.MessageDirection
-  providerMessageId?: Prisma.StringFieldUpdateOperationsInput | string
-  messageType?: Prisma.StringFieldUpdateOperationsInput | string
-  mediaType?: Prisma.StringFieldUpdateOperationsInput | string
-  contentText?: Prisma.StringFieldUpdateOperationsInput | string
+  senderType?: Prisma.EnumMessageSenderTypeFieldUpdateOperationsInput | $Enums.MessageSenderType
+  senderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  senderName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messageType?: Prisma.EnumMessageTypeFieldUpdateOperationsInput | $Enums.MessageType
+  content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mediaMimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mediaType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fileName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaSizeBytes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   mediaDurationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  providerMessageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumMessageStatusFieldUpdateOperationsInput | $Enums.MessageStatus
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1259,138 +910,129 @@ export type WhatsappMessageUncheckedUpdateManyWithoutTicketInput = {
 
 export type WhatsappMessageSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  organizationId?: boolean
-  instanceId?: boolean
-  leadId?: boolean
   ticketId?: boolean
-  remoteJid?: boolean
-  direction?: boolean
-  providerMessageId?: boolean
+  senderType?: boolean
+  senderId?: boolean
+  senderName?: boolean
   messageType?: boolean
-  mediaType?: boolean
-  contentText?: boolean
+  content?: boolean
   mediaUrl?: boolean
-  mediaMimeType?: boolean
+  mediaType?: boolean
+  fileName?: boolean
   mediaSizeBytes?: boolean
   mediaDurationSeconds?: boolean
+  providerMessageId?: boolean
+  status?: boolean
   sentAt?: boolean
+  deliveredAt?: boolean
+  readAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
-  lead?: boolean | Prisma.WhatsappMessage$leadArgs<ExtArgs>
-  ticket?: boolean | Prisma.WhatsappMessage$ticketArgs<ExtArgs>
+  ticket?: boolean | Prisma.TicketDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["whatsappMessage"]>
 
 export type WhatsappMessageSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  organizationId?: boolean
-  instanceId?: boolean
-  leadId?: boolean
   ticketId?: boolean
-  remoteJid?: boolean
-  direction?: boolean
-  providerMessageId?: boolean
+  senderType?: boolean
+  senderId?: boolean
+  senderName?: boolean
   messageType?: boolean
-  mediaType?: boolean
-  contentText?: boolean
+  content?: boolean
   mediaUrl?: boolean
-  mediaMimeType?: boolean
+  mediaType?: boolean
+  fileName?: boolean
   mediaSizeBytes?: boolean
   mediaDurationSeconds?: boolean
+  providerMessageId?: boolean
+  status?: boolean
   sentAt?: boolean
+  deliveredAt?: boolean
+  readAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
-  lead?: boolean | Prisma.WhatsappMessage$leadArgs<ExtArgs>
-  ticket?: boolean | Prisma.WhatsappMessage$ticketArgs<ExtArgs>
+  ticket?: boolean | Prisma.TicketDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["whatsappMessage"]>
 
 export type WhatsappMessageSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  organizationId?: boolean
-  instanceId?: boolean
-  leadId?: boolean
   ticketId?: boolean
-  remoteJid?: boolean
-  direction?: boolean
-  providerMessageId?: boolean
+  senderType?: boolean
+  senderId?: boolean
+  senderName?: boolean
   messageType?: boolean
-  mediaType?: boolean
-  contentText?: boolean
+  content?: boolean
   mediaUrl?: boolean
-  mediaMimeType?: boolean
+  mediaType?: boolean
+  fileName?: boolean
   mediaSizeBytes?: boolean
   mediaDurationSeconds?: boolean
+  providerMessageId?: boolean
+  status?: boolean
   sentAt?: boolean
+  deliveredAt?: boolean
+  readAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
-  lead?: boolean | Prisma.WhatsappMessage$leadArgs<ExtArgs>
-  ticket?: boolean | Prisma.WhatsappMessage$ticketArgs<ExtArgs>
+  ticket?: boolean | Prisma.TicketDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["whatsappMessage"]>
 
 export type WhatsappMessageSelectScalar = {
   id?: boolean
-  organizationId?: boolean
-  instanceId?: boolean
-  leadId?: boolean
   ticketId?: boolean
-  remoteJid?: boolean
-  direction?: boolean
-  providerMessageId?: boolean
+  senderType?: boolean
+  senderId?: boolean
+  senderName?: boolean
   messageType?: boolean
-  mediaType?: boolean
-  contentText?: boolean
+  content?: boolean
   mediaUrl?: boolean
-  mediaMimeType?: boolean
+  mediaType?: boolean
+  fileName?: boolean
   mediaSizeBytes?: boolean
   mediaDurationSeconds?: boolean
+  providerMessageId?: boolean
+  status?: boolean
   sentAt?: boolean
+  deliveredAt?: boolean
+  readAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type WhatsappMessageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "instanceId" | "leadId" | "ticketId" | "remoteJid" | "direction" | "providerMessageId" | "messageType" | "mediaType" | "contentText" | "mediaUrl" | "mediaMimeType" | "mediaSizeBytes" | "mediaDurationSeconds" | "sentAt" | "createdAt" | "updatedAt", ExtArgs["result"]["whatsappMessage"]>
+export type WhatsappMessageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ticketId" | "senderType" | "senderId" | "senderName" | "messageType" | "content" | "mediaUrl" | "mediaType" | "fileName" | "mediaSizeBytes" | "mediaDurationSeconds" | "providerMessageId" | "status" | "sentAt" | "deliveredAt" | "readAt" | "createdAt" | "updatedAt", ExtArgs["result"]["whatsappMessage"]>
 export type WhatsappMessageInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
-  lead?: boolean | Prisma.WhatsappMessage$leadArgs<ExtArgs>
-  ticket?: boolean | Prisma.WhatsappMessage$ticketArgs<ExtArgs>
+  ticket?: boolean | Prisma.TicketDefaultArgs<ExtArgs>
 }
 export type WhatsappMessageIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
-  lead?: boolean | Prisma.WhatsappMessage$leadArgs<ExtArgs>
-  ticket?: boolean | Prisma.WhatsappMessage$ticketArgs<ExtArgs>
+  ticket?: boolean | Prisma.TicketDefaultArgs<ExtArgs>
 }
 export type WhatsappMessageIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
-  lead?: boolean | Prisma.WhatsappMessage$leadArgs<ExtArgs>
-  ticket?: boolean | Prisma.WhatsappMessage$ticketArgs<ExtArgs>
+  ticket?: boolean | Prisma.TicketDefaultArgs<ExtArgs>
 }
 
 export type $WhatsappMessagePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "WhatsappMessage"
   objects: {
-    organization: Prisma.$OrganizationPayload<ExtArgs>
-    lead: Prisma.$LeadPayload<ExtArgs> | null
-    ticket: Prisma.$TicketPayload<ExtArgs> | null
+    ticket: Prisma.$TicketPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
-    organizationId: string
-    instanceId: string
-    leadId: string | null
-    ticketId: string | null
-    remoteJid: string
-    direction: $Enums.MessageDirection
-    providerMessageId: string
-    messageType: string
-    mediaType: string
-    contentText: string
+    ticketId: string
+    senderType: $Enums.MessageSenderType
+    senderId: string | null
+    senderName: string | null
+    messageType: $Enums.MessageType
+    content: string | null
     mediaUrl: string | null
-    mediaMimeType: string | null
+    mediaType: string | null
+    fileName: string | null
     mediaSizeBytes: number | null
     mediaDurationSeconds: number | null
+    providerMessageId: string | null
+    status: $Enums.MessageStatus
     sentAt: Date
+    deliveredAt: Date | null
+    readAt: Date | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["whatsappMessage"]>
@@ -1787,9 +1429,7 @@ readonly fields: WhatsappMessageFieldRefs;
  */
 export interface Prisma__WhatsappMessageClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  organization<T extends Prisma.OrganizationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  lead<T extends Prisma.WhatsappMessage$leadArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.WhatsappMessage$leadArgs<ExtArgs>>): Prisma.Prisma__LeadClient<runtime.Types.Result.GetResult<Prisma.$LeadPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-  ticket<T extends Prisma.WhatsappMessage$ticketArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.WhatsappMessage$ticketArgs<ExtArgs>>): Prisma.Prisma__TicketClient<runtime.Types.Result.GetResult<Prisma.$TicketPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  ticket<T extends Prisma.TicketDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TicketDefaultArgs<ExtArgs>>): Prisma.Prisma__TicketClient<runtime.Types.Result.GetResult<Prisma.$TicketPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1820,21 +1460,22 @@ export interface Prisma__WhatsappMessageClient<T, Null = never, ExtArgs extends 
  */
 export interface WhatsappMessageFieldRefs {
   readonly id: Prisma.FieldRef<"WhatsappMessage", 'String'>
-  readonly organizationId: Prisma.FieldRef<"WhatsappMessage", 'String'>
-  readonly instanceId: Prisma.FieldRef<"WhatsappMessage", 'String'>
-  readonly leadId: Prisma.FieldRef<"WhatsappMessage", 'String'>
   readonly ticketId: Prisma.FieldRef<"WhatsappMessage", 'String'>
-  readonly remoteJid: Prisma.FieldRef<"WhatsappMessage", 'String'>
-  readonly direction: Prisma.FieldRef<"WhatsappMessage", 'MessageDirection'>
-  readonly providerMessageId: Prisma.FieldRef<"WhatsappMessage", 'String'>
-  readonly messageType: Prisma.FieldRef<"WhatsappMessage", 'String'>
-  readonly mediaType: Prisma.FieldRef<"WhatsappMessage", 'String'>
-  readonly contentText: Prisma.FieldRef<"WhatsappMessage", 'String'>
+  readonly senderType: Prisma.FieldRef<"WhatsappMessage", 'MessageSenderType'>
+  readonly senderId: Prisma.FieldRef<"WhatsappMessage", 'String'>
+  readonly senderName: Prisma.FieldRef<"WhatsappMessage", 'String'>
+  readonly messageType: Prisma.FieldRef<"WhatsappMessage", 'MessageType'>
+  readonly content: Prisma.FieldRef<"WhatsappMessage", 'String'>
   readonly mediaUrl: Prisma.FieldRef<"WhatsappMessage", 'String'>
-  readonly mediaMimeType: Prisma.FieldRef<"WhatsappMessage", 'String'>
+  readonly mediaType: Prisma.FieldRef<"WhatsappMessage", 'String'>
+  readonly fileName: Prisma.FieldRef<"WhatsappMessage", 'String'>
   readonly mediaSizeBytes: Prisma.FieldRef<"WhatsappMessage", 'Int'>
   readonly mediaDurationSeconds: Prisma.FieldRef<"WhatsappMessage", 'Int'>
+  readonly providerMessageId: Prisma.FieldRef<"WhatsappMessage", 'String'>
+  readonly status: Prisma.FieldRef<"WhatsappMessage", 'MessageStatus'>
   readonly sentAt: Prisma.FieldRef<"WhatsappMessage", 'DateTime'>
+  readonly deliveredAt: Prisma.FieldRef<"WhatsappMessage", 'DateTime'>
+  readonly readAt: Prisma.FieldRef<"WhatsappMessage", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"WhatsappMessage", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"WhatsappMessage", 'DateTime'>
 }
@@ -2230,44 +1871,6 @@ export type WhatsappMessageDeleteManyArgs<ExtArgs extends runtime.Types.Extensio
    * Limit how many WhatsappMessages to delete.
    */
   limit?: number
-}
-
-/**
- * WhatsappMessage.lead
- */
-export type WhatsappMessage$leadArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the Lead
-   */
-  select?: Prisma.LeadSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the Lead
-   */
-  omit?: Prisma.LeadOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.LeadInclude<ExtArgs> | null
-  where?: Prisma.LeadWhereInput
-}
-
-/**
- * WhatsappMessage.ticket
- */
-export type WhatsappMessage$ticketArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the Ticket
-   */
-  select?: Prisma.TicketSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the Ticket
-   */
-  omit?: Prisma.TicketOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.TicketInclude<ExtArgs> | null
-  where?: Prisma.TicketWhereInput
 }
 
 /**

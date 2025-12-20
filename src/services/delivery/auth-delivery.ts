@@ -127,7 +127,7 @@ class AuthDeliveryService {
             const instance = await prisma.whatsappInstance.findFirst({
               where: {
                 organizationId: member.organizationId,
-                provider: 'uazapi',
+                provider: 'UAZAPI',
                 token: { not: null },
               },
               select: {

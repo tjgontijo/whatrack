@@ -53,7 +53,7 @@ export async function GET(request: Request, { params }: RouteParams) {
     const ticket = await prisma.ticket.findFirst({
       where: {
         id,
-        conversation: {
+        whatsappConversation: {
           organizationId: organization.id,
         },
       },
@@ -129,7 +129,7 @@ export async function POST(request: Request, { params }: RouteParams) {
     const ticket = await prisma.ticket.findFirst({
       where: {
         id,
-        conversation: {
+        whatsappConversation: {
           organizationId: organization.id,
         },
       },
@@ -175,7 +175,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     const ticket = await prisma.ticket.findFirst({
       where: {
         id,
-        conversation: {
+        whatsappConversation: {
           organizationId: organization.id,
         },
       },
@@ -216,7 +216,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     const ticket = await prisma.ticket.findFirst({
       where: {
         id,
-        conversation: {
+        whatsappConversation: {
           organizationId: organization.id,
         },
       },
