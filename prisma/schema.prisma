@@ -392,7 +392,7 @@ model WhatsappMessage {
   @@index([ticketId, sentAt])
   @@index([ticketId, status])
   @@index([senderType, sentAt])
-  @@map("messages")
+  @@map("whatsapp_messages")
 }
 
 // Tickets & Support
