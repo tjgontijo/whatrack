@@ -498,8 +498,8 @@ export function OnboardingOverlay({ onComplete, onSkip }: OnboardingOverlayProps
               
               
               <AnimatedStep>                
-                                <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 mb-6 flex items-start gap-3">
-                    <InfoIcon className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                  <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 mb-6 flex items-start gap-3">
+                  <InfoIcon className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                     <div className="text-sm">
                       <p className="font-medium text-foreground mb-1">
                         Bem-vindo ao WhaTrack!
@@ -509,7 +509,6 @@ export function OnboardingOverlay({ onComplete, onSkip }: OnboardingOverlayProps
                       </p>
                     </div>
                   </div>
-
                 <StepWrapper
                   question="Qual é o CNPJ da sua empresa?"
                   onNext={goNext}
