@@ -25,8 +25,7 @@ interface Lead {
   name: string | null
   phone: string | null
   mail: string | null
-  instagram: string | null
-  created_at: string
+  createdAt: Date
   hasTickets: boolean
   hasSales: boolean
   hasAudit: boolean
@@ -43,7 +42,7 @@ interface LeadCardProps {
  * LeadCard - Mobile card view for a lead
  *
  * Features:
- * - Displays lead info (name, phone, email, instagram)
+ * - Displays lead info (name, phone, email)
  * - 4 action buttons with status indicators
  * - WhatsApp integration
  * - Responsive layout
@@ -52,8 +51,7 @@ interface LeadCardProps {
 export const LeadCard = React.memo(
   React.forwardRef<HTMLDivElement, LeadCardProps>(
     ({ lead, onOpenDialog, className }, ref) => {
-      const createdDate = new Date(lead.created_at)
-      const formattedDate = createdDate.toLocaleString('pt-BR', {
+      const formattedDate = lead.createdAt.toLocaleString('pt-BR', {
         month: 'short',
         day: 'numeric',
         hour: '2-digit',
@@ -84,21 +82,6 @@ export const LeadCard = React.memo(
                   aria-label={`Enviar email para ${lead.mail}`}
                 >
                   {lead.mail}
-                </a>
-              </DataTableCardRow>
-            )}
-
-            {/* Instagram */}
-            {lead.instagram && (
-              <DataTableCardRow label="Instagram">
-                <a
-                  href={`https://instagram.com/${lead.instagram}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-pink-600 hover:underline"
-                  aria-label={`Ver perfil do Instagram @${lead.instagram}`}
-                >
-                  @{lead.instagram}
                 </a>
               </DataTableCardRow>
             )}

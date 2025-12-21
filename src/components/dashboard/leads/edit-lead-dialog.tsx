@@ -42,7 +42,6 @@ const editLeadSchema = z.object({
   name: z.string().trim().optional(),
   phone: z.string().trim().optional(),
   mail: z.string().email('Email inválido').optional().or(z.literal('')),
-  instagram: z.string().trim().optional(),
   assignedTo: z.string().trim().optional(),
   notes: z.string().trim().optional(),
   status: z.string().optional(),
@@ -55,7 +54,6 @@ export type Lead = {
   name: string | null
   phone: string | null
   mail: string | null
-  instagram: string | null
   assignedTo?: string | null
   notes?: string | null
   status?: string | null
@@ -84,7 +82,6 @@ export function EditLeadDialog({ lead, onSuccess, trigger }: EditLeadDialogProps
       name: lead.name || '',
       phone: lead.phone || '',
       mail: lead.mail || '',
-      instagram: lead.instagram || '',
       assignedTo: lead.assignedTo || '',
       notes: lead.notes || '',
       status: lead.status || 'new',
@@ -97,7 +94,6 @@ export function EditLeadDialog({ lead, onSuccess, trigger }: EditLeadDialogProps
         name: lead.name || '',
         phone: lead.phone || '',
         mail: lead.mail || '',
-        instagram: lead.instagram || '',
         assignedTo: lead.assignedTo || '',
         notes: lead.notes || '',
         status: lead.status || 'new',
@@ -174,12 +170,6 @@ export function EditLeadDialog({ lead, onSuccess, trigger }: EditLeadDialogProps
             <Label htmlFor="edit-mail">Email</Label>
             <Input id="edit-mail" type="email" placeholder="email@example.com" {...register('mail')} />
             {errors.mail && <p className="text-sm text-destructive">{errors.mail.message}</p>}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="edit-instagram">Instagram</Label>
-            <Input id="edit-instagram" placeholder="@usuario" {...register('instagram')} />
-            {errors.instagram && <p className="text-sm text-destructive">{errors.instagram.message}</p>}
           </div>
 
           <div className="space-y-2">

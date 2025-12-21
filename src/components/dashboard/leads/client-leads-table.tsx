@@ -51,9 +51,8 @@ type Lead = {
   name: string | null
   phone: string | null
   mail: string | null
-  instagram: string | null
-  remote_jid: string | null
-  created_at: string
+  remoteJid: string | null
+  createdAt: Date
   hasTickets: boolean
   hasSales: boolean
   hasAudit: boolean
@@ -204,7 +203,7 @@ export default function ClientLeadsTable() {
       { header: 'Nome', accessorKey: 'name', cell: ({ getValue }) => getValue() || '-' },
       { header: 'Telefone', accessorKey: 'phone', cell: ({ getValue }) => getValue() || '-' },
       { header: 'Email', accessorKey: 'mail', cell: ({ getValue }) => getValue() || '-' },
-      { header: 'Criado em', accessorKey: 'created_at', cell: ({ getValue }) => new Date(getValue() as string).toLocaleString('pt-BR') },
+      { header: 'Criado em', accessorKey: 'createdAt', cell: ({ getValue }) => new Date(getValue() as Date).toLocaleString('pt-BR') },
       { header: 'Tickets', accessorKey: 'hasTickets', cell: ({ getValue }) => (getValue() ? '✓' : '') },
       { header: 'Vendas', accessorKey: 'hasSales', cell: ({ getValue }) => (getValue() ? '✓' : '') },
       { header: 'Mensagens', accessorKey: 'hasMessages', cell: ({ getValue }) => (getValue() ? '✓' : '') },

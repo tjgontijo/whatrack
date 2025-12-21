@@ -63,7 +63,6 @@ const createLeadSchema = z.object({
     .trim()
     .optional()
     .refine((value) => !value || validateWhatsApp(value), 'Informe um WhatsApp válido'),
-  instagram: z.string().trim().optional(),
   origin: z
     .string()
     .trim()
@@ -101,7 +100,6 @@ export function NewLeadDialog({ onSuccess, open: controlledOpen, onOpenChange }:
     defaultValues: {
       name: '',
       whatsapp: '',
-      instagram: '',
       origin: '',
       medium: '',
     },
@@ -118,9 +116,7 @@ export function NewLeadDialog({ onSuccess, open: controlledOpen, onOpenChange }:
     const payload = {
       name: values.name,
       phone: values.whatsapp ? normalizeWhatsApp(values.whatsapp) : undefined,
-      instagram: values.instagram?.trim() || undefined,
       notes: `Origem: ${values.origin}, Meio: ${values.medium}`,
-      status: 'new',
     }
 
     try {
@@ -190,12 +186,6 @@ export function NewLeadDialog({ onSuccess, open: controlledOpen, onOpenChange }:
               )}
             />
             {errors.whatsapp ? <p className="text-sm text-destructive">{errors.whatsapp.message}</p> : null}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="lead-instagram">Instagram</Label>
-            <Input id="lead-instagram" placeholder="@usuario" {...register('instagram')} />
-            {errors.instagram ? <p className="text-sm text-destructive">{errors.instagram.message}</p> : null}
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">

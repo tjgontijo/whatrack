@@ -12,12 +12,12 @@ const leadSchema = z.object({
   name: z.string().nullable(),
   phone: z.string().nullable(),
   mail: z.string().nullable(),
-  instagram: z.string().nullable(),
   remoteJid: z.string().nullable(),
   createdAt: z.date(),
   hasTickets: z.boolean(),
   hasSales: z.boolean(),
   hasMessages: z.boolean(),
+  hasAudit: z.boolean(),
 })
 
 const leadsResponseSchema = z.object({
@@ -122,11 +122,7 @@ const createLeadSchema = z.object({
   name: z.string().optional(),
   phone: z.string().optional(),
   mail: z.string().email().optional().or(z.literal('')),
-  instagram: z.string().optional(),
   remoteJid: z.string().optional(),
-  assignedTo: z.string().optional(),
-  notes: z.string().optional(),
-  status: z.string().optional().default('new'),
 })
 
 export async function POST(req: Request) {
@@ -326,6 +322,7 @@ export async function GET(req: Request) {
           hasTickets: allTickets.length > 0,
           hasSales: allTickets.some((ticket) => ticket._count.sales > 0),
           hasMessages: allTickets.some((ticket) => ticket._count.messages > 0),
+          hasAudit: false, // TODO: Implement audit record detection
         }
       })
 
