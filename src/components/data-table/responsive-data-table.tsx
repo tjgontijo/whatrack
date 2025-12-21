@@ -30,6 +30,7 @@ interface ResponsiveDataTableProps<TData> {
   className?: string
   tableClassName?: string
   paginationClassName?: string
+  forceCardView?: boolean
 }
 
 /**
@@ -69,10 +70,12 @@ export const ResponsiveDataTable = React.forwardRef<
       className,
       tableClassName,
       paginationClassName,
+      forceCardView = false,
     },
     ref
   ) => {
     const isMobile = useIsMobile()
+    const showCards = isMobile || forceCardView
     const { table } = useDataTable({
       data,
       columns,
@@ -89,7 +92,7 @@ export const ResponsiveDataTable = React.forwardRef<
     if (isLoading) {
       return (
         <div ref={ref} className={className}>
-          <DataTableSkeleton isMobile={isMobile} rows={5} className={tableClassName} />
+          <DataTableSkeleton isMobile={showCards} rows={5} className={tableClassName} />
         </div>
       )
     }
@@ -123,8 +126,8 @@ export const ResponsiveDataTable = React.forwardRef<
 
     return (
       <div ref={ref} className={cn('space-y-4', className)}>
-        {/* Mobile view */}
-        {isMobile && (
+        {/* Mobile/Card view */}
+        {showCards && (
           <DataTableCardList
             rows={rows}
             renderCard={mobileCard}
@@ -132,8 +135,8 @@ export const ResponsiveDataTable = React.forwardRef<
           />
         )}
 
-        {/* Desktop view */}
-        {!isMobile && (
+        {/* Desktop/Table view */}
+        {!showCards && (
           <DataTableView
             headers={table.getHeaderGroups()[0]?.headers ?? []}
             rows={rows}
