@@ -77,7 +77,7 @@ export async function POST(request: Request) {
       data: {
         id: createId(),
         organizationId: organization.id,
-        onboardingCompleted: body.onboardingCompleted || false,
+        onboardingStatus: 'pending',
       },
     });
 

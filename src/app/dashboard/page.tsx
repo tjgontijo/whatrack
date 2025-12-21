@@ -12,8 +12,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet'
 import { HeaderActions } from '@/components/dashboard/header-actions'
-import { RefreshCw } from 'lucide-react'
+import { RefreshCw, SlidersHorizontal } from 'lucide-react'
 import { DashboardMetricCard, DashboardMetricGrid } from '@/components/dashboard/charts/card'
 import { DashboardPieChart } from '@/components/dashboard/charts/pie'
 import { FunnelChart } from '@/components/dashboard/charts/funnel-chart'
@@ -69,6 +76,7 @@ export default function DashboardPage() {
   const { data: activeOrg } = authClient.useActiveOrganization()
   const organizationId = activeOrg?.id
   const [filters, setFilters] = React.useState<DashboardFilters>(defaultFilters)
+  const [isFilterSheetOpen, setIsFilterSheetOpen] = React.useState(false)
 
   const handleFilterChange = React.useCallback(
     <K extends keyof DashboardFilters>(key: K, value: DashboardFilters[K]) => {
@@ -183,10 +191,68 @@ export default function DashboardPage() {
         <Button variant="ghost" size="sm" onClick={handleApplyFilters}>
           <RefreshCw className="h-4 w-4" />
         </Button>
+
+        {/* Mobile Filters Button */}
+        <Sheet open={isFilterSheetOpen} onOpenChange={setIsFilterSheetOpen}>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="sm" className="md:hidden">
+              <SlidersHorizontal className="h-4 w-4" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="bottom" className="h-auto max-h-[85vh] overflow-y-auto px-4 py-6">
+            <SheetHeader className="mb-8">
+              <SheetTitle>Filtros</SheetTitle>
+            </SheetHeader>
+            <div className="space-y-8">
+              <FilterSelect
+                label="Período"
+                value={filters.period}
+                options={periodOptions}
+                onValueChange={(value) => handleFilterChange('period', value)}
+              />
+              <FilterSelect
+                label="Tipo de tráfego"
+                value={filters.trafficType}
+                options={trafficTypeOptions}
+                onValueChange={(value) => handleFilterChange('trafficType', value)}
+              />
+              <FilterSelect
+                label="Fonte de tráfego"
+                value={filters.trafficSource}
+                options={trafficSourceOptions}
+                onValueChange={(value) => handleFilterChange('trafficSource', value)}
+              />
+              <FilterSelect
+                label="Categoria de serviço"
+                value={filters.serviceCategory}
+                options={serviceCategoryOptions}
+                onValueChange={(value) => {
+                  handleFilterChange('serviceCategory', value)
+                  // sempre que a categoria mudar, resetamos o produto para 'any'
+                  handleFilterChange('product', 'any')
+                }}
+              />
+              <FilterSelect
+                label="Produto/Serviço"
+                value={filters.product}
+                options={productOptions}
+                onValueChange={(value) => handleFilterChange('product', value)}
+                disabled={filters.serviceCategory === 'any'}
+              />
+              <Button
+                onClick={() => setIsFilterSheetOpen(false)}
+                className="w-full mt-6"
+              >
+                Aplicar Filtros
+              </Button>
+            </div>
+          </SheetContent>
+        </Sheet>
       </HeaderActions>
 
       <div className="space-y-8" data-testid="dashboard-page">
-        <section className="rounded-2xl border border-border/60 bg-card p-6 shadow-sm" data-testid="dashboard-filters">
+        {/* Desktop Filters */}
+        <section className="hidden md:block rounded-2xl border border-border/60 bg-card p-6 shadow-sm" data-testid="dashboard-filters">
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
             <FilterSelect
               label="Período"

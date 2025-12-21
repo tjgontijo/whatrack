@@ -23,7 +23,7 @@ export function DashboardContent({ organization, userId, children }: DashboardCo
     setShowOnboarding(false)
   }
 
-  const isOnboardingIncomplete = organization && organization.profile && !organization.profile.onboardingCompleted
+  const isOnboardingIncomplete = organization && organization.profile && organization.profile.onboardingStatus === 'pending'
 
   return (
     <>

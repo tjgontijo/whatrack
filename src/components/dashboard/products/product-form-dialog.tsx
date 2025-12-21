@@ -59,12 +59,16 @@ type FormValues = z.infer<typeof formSchema>
 type ProductFormDialogProps = {
   categories: CategoryOption[]
   onSuccess?: () => void
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
-export function ProductFormDialog({ categories, onSuccess }: ProductFormDialogProps) {
+export function ProductFormDialog({ categories, onSuccess, open: controlledOpen, onOpenChange }: ProductFormDialogProps) {
   const { data: activeOrg } = authClient.useActiveOrganization()
   const organizationId = activeOrg?.id
-  const [open, setOpen] = useState(false)
+  const [internalOpen, setInternalOpen] = useState(false)
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen
+  const setOpen = controlledOpen !== undefined ? onOpenChange || (() => {}) : setInternalOpen
 
   const {
     control,
@@ -118,11 +122,13 @@ export function ProductFormDialog({ categories, onSuccess }: ProductFormDialogPr
 
   return (
     <Dialog open={open} onOpenChange={(next) => (next ? setOpen(true) : closeDialog())}>
-      <DialogTrigger asChild>
-        <Button type="button" className="cursor-pointer">
-          Novo produto
-        </Button>
-      </DialogTrigger>
+      {controlledOpen === undefined && (
+        <DialogTrigger asChild>
+          <Button type="button" className="cursor-pointer">
+            Novo produto
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Novo produto</DialogTitle>

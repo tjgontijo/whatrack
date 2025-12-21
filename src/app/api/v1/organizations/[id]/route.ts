@@ -10,6 +10,45 @@ import { getOrSyncUser } from "@/server/auth/server";
 import { createId } from "@paralleldrive/cuid2";
 import { calculateMetrics } from "@/services/onboarding-metrics/metrics-calculator";
 
+/**
+ * Gera slug único a partir do nome da empresa
+ * - Normaliza para lowercase
+ * - Remove acentos
+ * - Substitui espaços por hífens
+ * - Remove caracteres especiais
+ * - Adiciona sufixo aleatório se houver duplicata
+ */
+async function generateUniqueSlug(
+  name: string,
+  excludeOrgId?: string
+): Promise<string> {
+  const baseSlug = name
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // Remove acentos
+    .replace(/[^\w\s-]/g, "") // Remove caracteres especiais
+    .replace(/\s+/g, "-") // Espaços → hífens
+    .replace(/-+/g, "-") // Remove hífens duplicados
+    .replace(/^-|-$/g, ""); // Remove hífens das pontas
+
+  // Verificar se slug já existe
+  const existing = await prisma.organization.findFirst({
+    where: {
+      slug: baseSlug,
+      ...(excludeOrgId && { id: { not: excludeOrgId } }),
+    },
+  });
+
+  // Se não existe, retornar base slug
+  if (!existing) {
+    return baseSlug;
+  }
+
+  // Se existe, adicionar sufixo aleatório de 4 caracteres
+  const randomSuffix = Math.random().toString(36).substring(2, 6);
+  return `${baseSlug}-${randomSuffix}`;
+}
+
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -53,12 +92,19 @@ export async function PATCH(
       });
     }
 
+    // Gerar novo slug se companyName for fornecido
+    let newSlug: string | undefined;
+    if (body.companyName) {
+      newSlug = await generateUniqueSlug(body.companyName, organizationId);
+    }
+
     // Atualizar organização (apenas campos que existem no schema)
     const organization = await prisma.organization.update({
       where: { id: organizationId },
       data: {
         ...(body.name && { name: body.name }),
         ...(body.companyName && { name: body.companyName }), // companyName -> name
+        ...(newSlug && { slug: newSlug }),
       },
     });
 
@@ -78,8 +124,8 @@ export async function PATCH(
           leadsPerDay: body.leadsPerDay || null,
           monthlyRevenue: body.monthlyRevenue || null,
           monthlyAdSpend: body.monthlyAdSpend || null,
-          onboardingCompleted: body.onboardingCompleted !== undefined ? body.onboardingCompleted : undefined,
-          onboardingCompletedAt: body.onboardingCompleted ? new Date() : undefined,
+          ...(body.onboardingStatus && { onboardingStatus: body.onboardingStatus }),
+          ...(body.onboardingStatus === 'completed' && { onboardingCompletedAt: new Date() }),
           ...metrics,
         },
       });
@@ -95,8 +141,8 @@ export async function PATCH(
           leadsPerDay: body.leadsPerDay || null,
           monthlyRevenue: body.monthlyRevenue || null,
           monthlyAdSpend: body.monthlyAdSpend || null,
-          onboardingCompleted: body.onboardingCompleted || false,
-          onboardingCompletedAt: body.onboardingCompleted ? new Date() : null,
+          ...(body.onboardingStatus && { onboardingStatus: body.onboardingStatus }),
+          ...(body.onboardingStatus === 'completed' && { onboardingCompletedAt: new Date() }),
           ...metrics,
         },
       });

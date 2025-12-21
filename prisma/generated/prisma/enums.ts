@@ -18,6 +18,15 @@ export const UserRole = {
 export type UserRole = (typeof UserRole)[keyof typeof UserRole]
 
 
+export const OnboardingStatus = {
+  pending: 'pending',
+  completed: 'completed',
+  skipped: 'skipped'
+} as const
+
+export type OnboardingStatus = (typeof OnboardingStatus)[keyof typeof OnboardingStatus]
+
+
 export const ConversationStatus = {
   OPEN: 'OPEN',
   PENDING: 'PENDING',

@@ -2,29 +2,22 @@
 
 import * as React from 'react'
 import { useQuery } from '@tanstack/react-query'
-import {
-  ColumnDef,
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-} from '@tanstack/react-table'
+import { ColumnDef } from '@tanstack/react-table'
 import { useRouter, useSearchParams } from 'next/navigation'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import Image from 'next/image'
-import { formatCurrencyBRL, formatDateTime } from '@/lib/mask/formatters'
-import { SalesListResponse, SaleListItem, salesListResponseSchema } from '@/schemas/lead-tickets'
-import { applyWhatsAppMask } from '@/lib/mask/phone-mask'
+import { useState } from 'react'
+
+import { ResponsiveDataTable } from '@/components/data-table/responsive-data-table'
+import { SaleCard } from '@/components/data-table/cards/sale-card'
+import { FilterBar, FilterBarSection } from '@/components/data-table/filters/filter-bar'
+import { FilterInput } from '@/components/data-table/filters/filter-input'
+import { FilterSelect } from '@/components/data-table/filters/filter-select'
+import { DataTableFiltersButton } from '@/components/data-table/filters/data-table-filters-button'
+import { DataTableFiltersSheet } from '@/components/data-table/filters/data-table-filters-sheet'
+import { FilterGroup } from '@/components/data-table/filters/filter-group'
+
 import { LeadSalesDialog } from '@/components/dashboard/sales/lead-sales-dialog'
-import { X } from 'lucide-react'
+import { formatCurrencyBRL } from '@/lib/mask/formatters'
+import { SalesListResponse, SaleListItem, salesListResponseSchema } from '@/schemas/lead-tickets'
 
 const DATE_FILTER_OPTIONS = [
   { value: '1d', label: '1 dia' },
@@ -39,21 +32,15 @@ const DATE_FILTER_OPTIONS = [
 type DateFilterValue = (typeof DATE_FILTER_OPTIONS)[number]['value']
 type DateFilterSelectValue = DateFilterValue | 'all'
 
-type LeadDialogState = {
-  leadId: string
-  leadName: string | null
-  leadPhone: string | null
-} | null
-
 export default function ClientSalesTable() {
   const searchParams = useSearchParams()
   const router = useRouter()
 
+  // Filters
   const q = (searchParams.get('q') || '').trim()
   const page = Math.max(1, Number.parseInt(searchParams.get('page') || '1', 10) || 1)
   const pageSize = Math.max(1, Math.min(100, Number.parseInt(searchParams.get('pageSize') || '20', 10) || 20))
   const status = searchParams.get('status') || undefined
-  const statusSelectValue = status ?? 'all'
 
   const rawDateRange = searchParams.get('dateRange')
   const dateRange = React.useMemo<DateFilterValue | undefined>(() => {
@@ -63,8 +50,7 @@ export default function ClientSalesTable() {
       : undefined
   }, [rawDateRange])
 
-  const dateSelectValue = dateRange ?? 'all'
-
+  // Update query params
   const updateQueryParams = React.useCallback(
     (mutator: (params: URLSearchParams) => void) => {
       const params = new URLSearchParams(Array.from(searchParams.entries()))
@@ -72,35 +58,28 @@ export default function ClientSalesTable() {
       params.set('page', '1')
       router.push(`/dashboard/sales?${params.toString()}`)
     },
-    [router, searchParams],
+    [router, searchParams]
   )
 
-  const handleDateSelectChange = React.useCallback(
-    (value: DateFilterSelectValue) => {
-      updateQueryParams((params) => {
-        if (value === 'all') {
-          params.delete('dateRange')
-        } else {
-          params.set('dateRange', value)
-        }
-      })
-    },
-    [updateQueryParams],
-  )
+  // Search with debounce
+  const [input, setInput] = React.useState(q)
+  React.useEffect(() => setInput(q), [q])
 
-  const handleStatusSelectChange = React.useCallback(
-    (value: string) => {
-      updateQueryParams((params) => {
-        if (value === 'all') {
-          params.delete('status')
-        } else {
-          params.set('status', value)
-        }
-      })
-    },
-    [updateQueryParams],
-  )
+  React.useEffect(() => {
+    const trimmed = input.trim()
+    if (trimmed.length === 0 || trimmed.length < 3 || trimmed === q) {
+      if (trimmed.length === 0 && q) {
+        updateQueryParams((params) => params.delete('q'))
+      }
+      return
+    }
+    const handle = window.setTimeout(() => {
+      updateQueryParams((params) => params.set('q', trimmed))
+    }, 400)
+    return () => window.clearTimeout(handle)
+  }, [input, q, updateQueryParams])
 
+  // Fetch data
   const { data, isLoading, isError } = useQuery<SalesListResponse>({
     queryKey: ['sales', q, page, pageSize, dateRange ?? null, status ?? null] as const,
     queryFn: async () => {
@@ -110,11 +89,9 @@ export default function ClientSalesTable() {
       url.searchParams.set('pageSize', String(pageSize))
       if (dateRange) url.searchParams.set('dateRange', dateRange)
       if (status) url.searchParams.set('status', status)
-
       const response = await fetch(url.toString(), { cache: 'no-store' })
       if (!response.ok) throw new Error('Falha ao carregar vendas')
-      const json = await response.json()
-      return salesListResponseSchema.parse(json)
+      return salesListResponseSchema.parse(await response.json())
     },
     placeholderData: (prev) => prev as SalesListResponse | undefined,
     staleTime: 10_000,
@@ -125,316 +102,207 @@ export default function ClientSalesTable() {
 
   const items = data?.items ?? []
   const total = data?.total ?? 0
-  const pageSizeFromData = data?.pageSize ?? pageSize
   const statusOptions = React.useMemo(() => {
     const list = data?.availableStatuses?.filter((value): value is string => Boolean(value?.length)) ?? []
     return Array.from(new Set(list))
   }, [data?.availableStatuses])
 
-  const [dialog, setDialog] = React.useState<LeadDialogState>(null)
+  // Dialog state
+  const [dialog, setDialog] = React.useState<{ leadId: string; leadName: string | null; leadPhone: string | null } | null>(null)
 
+  // Columns for desktop view
   const columns = React.useMemo<ColumnDef<SaleListItem>[]>(
     () => [
-      {
-        header: 'Data',
-        accessorKey: 'createdAt',
-        cell: ({ getValue }) => formatDateTime(getValue() as string),
-      },
-      {
-        header: 'Valor',
-        accessorKey: 'amount',
-        cell: ({ getValue }) => formatCurrencyBRL(getValue() as number | null | undefined),
-      },
-      {
-        header: 'Serviços',
-        accessorKey: 'serviceCount',
-        cell: ({ getValue }) => {
-          const value = getValue() as number | null
-          return value === null || value === undefined ? '—' : value
-        },
-      },
-      {
-        header: 'Status',
-        accessorKey: 'ticketStatus',
-        cell: ({ getValue }) => {
-          const statusValue = (getValue() as string | null) ?? 'Sem status'
-          return <Badge variant="outline">{statusValue}</Badge>
-        },
-      },
-      {
-        header: 'Lead',
-        accessorKey: 'leadName',
-        cell: ({ row }) => {
-          const leadName = row.original.leadName ?? '—'
-          const mail = row.original.leadMail
-          const instagram = row.original.leadInstagram
-          return (
-            <div className="space-y-1">
-              <p className="font-medium text-foreground">{leadName}</p>
-              <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                {mail ? <span>{mail}</span> : null}
-                {instagram ? <span>@{instagram}</span> : null}
-              </div>
-            </div>
-          )
-        },
-      },
-      {
-        header: 'Telefone',
-        accessorKey: 'leadPhone',
-        cell: ({ row, getValue }) => {
-          const phone = getValue() as string | null
-          if (!phone) return '—'
-          const masked = applyWhatsAppMask(phone)
-          const whatsappNumber = phone.replace(/\D/g, '')
-          return (
-            <div className="flex items-center gap-2">
-              <span>{masked}</span>
-              {whatsappNumber.length >= 10 ? (
-                <a
-                  href={`https://wa.me/${whatsappNumber}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-transparent text-muted-foreground transition hover:border-emerald-500/40 hover:bg-emerald-50 hover:text-emerald-600"
-                >
-                  <Image src="/images/whatsapp.png" alt="WhatsApp" width={16} height={16} className="h-4 w-4 object-contain" />
-                </a>
-              ) : null}
-              {row.original.leadId ? (
-                <Button                  
-                  variant="outline"
-                  className="ml-1 cursor-pointer"
-                  onClick={() =>
-                    setDialog({
-                      leadId: row.original.leadId!,
-                      leadName: row.original.leadName,
-                      leadPhone: row.original.leadPhone,
-                    })
-                  }
-                >
-                  Ver lead
-                </Button>
-              ) : null}
-            </div>
-          )
-        },
-      },
-      {
-        header: 'Pipefy',
-        accessorKey: 'ticketPipefyId',
-        cell: ({ row }) => {
-          const pipefyId = row.original.ticketPipefyId
-          const pipefyUrl = row.original.ticketPipefyUrl
-          if (!pipefyId) return '—'
-          if (!pipefyUrl) return pipefyId
-          return (
-            <a
-              href={pipefyUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-primary underline underline-offset-4"
-            >
-              {pipefyId}
-            </a>
-          )
-        },
-      },
-      {
-        header: 'FBTrace',
-        accessorKey: 'fbtraceId',
-        cell: ({ getValue }) => (getValue() as string | null) ?? '—',
-      },
+      { header: 'Data', accessorKey: 'createdAt', cell: ({ getValue }) => new Date(getValue() as string).toLocaleString('pt-BR') },
+      { header: 'Valor', accessorKey: 'amount', cell: ({ getValue }) => formatCurrencyBRL(getValue() as number | null) },
+      { header: 'Serviços', accessorKey: 'serviceCount', cell: ({ getValue }) => getValue() ?? '—' },
+      { header: 'Status', accessorKey: 'ticketStatus', cell: ({ getValue }) => getValue() ?? '—' },
+      { header: 'Lead', accessorKey: 'leadName', cell: ({ getValue }) => getValue() ?? '—' },
     ],
-    [],
+    []
   )
 
-  const table = useReactTable({
-    data: items,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    manualPagination: true,
-    pageCount: data ? Math.ceil(total / pageSizeFromData) : -1,
-    state: {
-      pagination: {
-        pageIndex: page - 1,
-        pageSize,
-      },
-    },
-    onPaginationChange: (updater) => {
-      const next = typeof updater === 'function' ? updater({ pageIndex: page - 1, pageSize }) : updater
-      const nextPage = (next.pageIndex ?? 0) + 1
-      const params = new URLSearchParams(Array.from(searchParams.entries()))
-      params.set('page', String(nextPage))
-      params.set('pageSize', String(next.pageSize ?? pageSize))
-      router.push(`/dashboard/sales?${params.toString()}`)
-    },
-  })
+  // Mobile filters state
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false)
 
-  const [searchInput, setSearchInput] = React.useState(q)
-  React.useEffect(() => setSearchInput(q), [q])
-
-  React.useEffect(() => {
-    const trimmed = searchInput.trim()
-
-    if (!trimmed) {
-      if (q) {
-        updateQueryParams((params) => {
-          params.delete('q')
-        })
-      }
-      return undefined
-    }
-
-    if (trimmed.length < 3) {
-      return undefined
-    }
-
-    if (trimmed === q) {
-      return undefined
-    }
-
-    const handle = window.setTimeout(() => {
-      updateQueryParams((params) => {
-        params.set('q', trimmed)
-      })
-    }, 400)
-
-    return () => {
-      window.clearTimeout(handle)
-    }
-  }, [searchInput, q, updateQueryParams])
+  // Count active filters
+  const activeFilterCount = React.useMemo(() => {
+    let count = 0
+    if (q) count++
+    if (dateRange) count++
+    if (status) count++
+    return count
+  }, [q, dateRange, status])
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <Select value={dateSelectValue} onValueChange={(val) => handleDateSelectChange(val as DateFilterSelectValue)}>
-          <SelectTrigger className="w-[160px] justify-between">
-            <div className="flex flex-col text-left leading-tight">
-              <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Datas</span>
-              <SelectValue placeholder="Todas as datas" />
-            </div>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todas as datas</SelectItem>
-            {DATE_FILTER_OPTIONS.map(({ value, label }) => (
-              <SelectItem key={value} value={value}>
-                {label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      {/* Desktop Filters */}
+      <div className="hidden md:block">
+        <FilterBar
+          onClearAll={() => {
+            updateQueryParams((params) => {
+              params.delete('q')
+              params.delete('dateRange')
+              params.delete('status')
+            })
+          }}
+          showClearButton={activeFilterCount > 0}
+        >
+          <FilterBarSection title="Busca">
+            <FilterInput value={input} onChange={setInput} placeholder="Pesquisar vendas..." />
+          </FilterBarSection>
 
-        <Select value={statusSelectValue} onValueChange={handleStatusSelectChange}>
-          <SelectTrigger className="w-[200px] justify-between">
-            <div className="flex flex-col text-left leading-tight">
-              <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Status do ticket</span>
-              <SelectValue placeholder="Todos os status" />
-            </div>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos os status</SelectItem>
-            {statusOptions.map((statusValue) => (
-              <SelectItem key={statusValue} value={statusValue}>
-                {statusValue}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <div className="flex min-w-[280px] flex-1 items-center gap-2">
-          <div className="relative w-full">
-            <Input
-              className="pr-10"
-              placeholder="Pesquisar..."
-              value={searchInput}
-              onChange={(event) => setSearchInput(event.target.value)}
+          <FilterBarSection title="Data">
+            <FilterSelect
+              value={dateRange ?? 'all'}
+              onChange={(val) => {
+                updateQueryParams((params) => {
+                  if (val === 'all') {
+                    params.delete('dateRange')
+                  } else {
+                    params.set('dateRange', val)
+                  }
+                })
+              }}
+              options={[
+                { value: 'all', label: 'Todas as datas' },
+                ...DATE_FILTER_OPTIONS,
+              ]}
+              placeholder="Selecione data"
             />
-            {searchInput.trim().length > 0 ? (
-              <button
-                type="button"
-                onClick={() => setSearchInput('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer rounded-full border border-transparent p-1 text-muted-foreground transition hover:border-border hover:bg-muted"
-                aria-label="Limpar busca"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            ) : null}
-          </div>
-        </div>
+          </FilterBarSection>
+
+          {statusOptions.length > 0 && (
+            <FilterBarSection title="Status">
+              <FilterSelect
+                value={status ?? 'all'}
+                onChange={(val) => {
+                  updateQueryParams((params) => {
+                    if (val === 'all') {
+                      params.delete('status')
+                    } else {
+                      params.set('status', val)
+                    }
+                  })
+                }}
+                options={[
+                  { value: 'all', label: 'Todos os status' },
+                  ...statusOptions.map((s) => ({ value: s, label: s })),
+                ]}
+                placeholder="Selecione status"
+              />
+            </FilterBarSection>
+          )}
+        </FilterBar>
       </div>
 
-      <div className="rounded-md border">
-        <table className="w-full text-sm">
-          <thead>
-            {table.getHeaderGroups().map((headGroup) => (
-              <tr key={headGroup.id} className="border-b bg-muted/50">
-                {headGroup.headers.map((header) => (
-                  <th key={header.id} className="px-3 py-2 text-left font-medium">
-                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody>
-            {isLoading ? (
-              <tr>
-                <td className="px-3 py-2" colSpan={columns.length}>
-                  Carregando...
-                </td>
-              </tr>
-            ) : isError ? (
-              <tr>
-                <td className="px-3 py-2 text-red-600" colSpan={columns.length}>
-                  Erro ao carregar
-                </td>
-              </tr>
-            ) : table.getRowModel().rows.length ? (
-              table.getRowModel().rows.map((row) => (
-                <tr key={row.id} className="border-b hover:bg-muted/30">
-                  {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="px-3 py-2">
-                      {flexRender(cell.column.columnDef.cell ?? ((ctx) => String(ctx.getValue() ?? '')), cell.getContext())}
-                    </td>
-                  ))}
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td className="px-3 py-2" colSpan={columns.length}>
-                  Nenhum resultado
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+      {/* Mobile Header */}
+      <div className="md:hidden">
+        <DataTableFiltersButton activeCount={activeFilterCount} onClick={() => setIsFiltersOpen(true)} />
       </div>
 
-      <div className="flex items-center justify-between">
-        <div>
-          Página {page} de {data ? Math.max(1, Math.ceil(total / pageSizeFromData)) : 1}
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            className="cursor-pointer"
-            disabled={page <= 1 || isLoading}
-            onClick={() => table.setPageIndex(page - 2)}
-          >
-            Anterior
-          </Button>
-          <Button
-            variant="outline"
-            className="cursor-pointer"
-            disabled={isLoading || (data && page >= Math.ceil(total / pageSizeFromData))}
-            onClick={() => table.setPageIndex(page)}
-          >
-            Próxima
-          </Button>
-        </div>
-      </div>
+      {/* Mobile Filters Sheet */}
+      <DataTableFiltersSheet open={isFiltersOpen} onOpenChange={setIsFiltersOpen} title="Filtros">
+        <FilterGroup label="Busca">
+          <FilterInput value={input} onChange={setInput} placeholder="Pesquisar vendas..." />
+        </FilterGroup>
 
-      {dialog ? (
+        <FilterGroup label="Data">
+          <FilterSelect
+            value={dateRange ?? 'all'}
+            onChange={(val) => {
+              updateQueryParams((params) => {
+                if (val === 'all') {
+                  params.delete('dateRange')
+                } else {
+                  params.set('dateRange', val)
+                }
+              })
+            }}
+            options={[
+              { value: 'all', label: 'Todas as datas' },
+              ...DATE_FILTER_OPTIONS,
+            ]}
+            placeholder="Selecione data"
+          />
+        </FilterGroup>
+
+        {statusOptions.length > 0 && (
+          <FilterGroup label="Status">
+            <FilterSelect
+              value={status ?? 'all'}
+              onChange={(val) => {
+                updateQueryParams((params) => {
+                  if (val === 'all') {
+                    params.delete('status')
+                  } else {
+                    params.set('status', val)
+                  }
+                })
+              }}
+              options={[
+                { value: 'all', label: 'Todos os status' },
+                ...statusOptions.map((s) => ({ value: s, label: s })),
+              ]}
+              placeholder="Selecione status"
+            />
+          </FilterGroup>
+        )}
+      </DataTableFiltersSheet>
+
+      {/* Responsive Table */}
+      <ResponsiveDataTable
+        data={items}
+        columns={columns}
+        mobileCard={(row) => (
+          <SaleCard
+            id={row.original.id}
+            amount={row.original.amount}
+            serviceCount={row.original.serviceCount}
+            createdAt={row.original.createdAt}
+            ticketStatus={row.original.ticketStatus}
+            ticketPipefyId={row.original.ticketPipefyId}
+            ticketPipefyUrl={row.original.ticketPipefyUrl}
+            ticketUtmSource={row.original.ticketUtmSource}
+            ticketUtmMedium={row.original.ticketUtmMedium}
+            ticketUtmCampaign={row.original.ticketUtmCampaign}
+            leadId={row.original.leadId}
+            leadName={row.original.leadName}
+            leadPhone={row.original.leadPhone}
+            onViewLead={(leadId) => {
+              const lead = items.find((s) => s.leadId === leadId)
+              if (lead) {
+                setDialog({
+                  leadId,
+                  leadName: lead.leadName,
+                  leadPhone: lead.leadPhone,
+                })
+              }
+            }}
+          />
+        )}
+        pagination={{
+          page,
+          pageSize,
+          total,
+          onPageChange: (newPage) => {
+            const params = new URLSearchParams(Array.from(searchParams.entries()))
+            params.set('page', String(newPage))
+            router.push(`/dashboard/sales?${params.toString()}`)
+          },
+          onPageSizeChange: (newPageSize) => {
+            const params = new URLSearchParams(Array.from(searchParams.entries()))
+            params.set('pageSize', String(newPageSize))
+            params.set('page', '1')
+            router.push(`/dashboard/sales?${params.toString()}`)
+          },
+        }}
+        isLoading={isLoading}
+        isError={isError}
+      />
+
+      {/* Dialog */}
+      {dialog && (
         <LeadSalesDialog
           leadId={dialog.leadId}
           leadName={dialog.leadName}
@@ -444,7 +312,7 @@ export default function ClientSalesTable() {
             if (!open) setDialog(null)
           }}
         />
-      ) : null}
+      )}
     </div>
   )
 }

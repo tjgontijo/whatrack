@@ -1,42 +1,28 @@
-'use client';
+'use client'
 
-import * as React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import {
-  ColumnDef,
-  getCoreRowModel,
-  useReactTable,
-  flexRender,
-} from '@tanstack/react-table';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import Image from 'next/image';
-import { applyWhatsAppMask } from '@/lib/mask/phone-mask';
-import {
-  CheckCircle2,
-  CircleDashed,
-  MessageCircle,
-  Inbox,
-  ShoppingBag,
-  MessageSquareText,
-  ClipboardCheck,
-  X,
-} from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
-import { LeadTicketsDialog } from '@/components/dashboard/tickets/lead-tickets-dialog';
-import { LeadSalesDialog } from '@/components/dashboard/sales/lead-sales-dialog';
-import { LeadMessagesDialog } from '@/components/dashboard/messages/lead-messages-dialog';
-import { LeadAuditDialog } from '@/components/dashboard/sales_analytics/lead-audit-dialog';
-import { cn } from '@/lib/utils';
+import * as React from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { ColumnDef } from '@tanstack/react-table'
+import { useSearchParams, useRouter } from 'next/navigation'
+import { useState } from 'react'
+
+import { ResponsiveDataTable } from '@/components/data-table/responsive-data-table'
+import { LeadCard } from '@/components/data-table/cards/lead-card'
+import { FilterInput } from '@/components/data-table/filters/filter-input'
+import { FilterSelect } from '@/components/data-table/filters/filter-select'
+import { FilterSwitch } from '@/components/data-table/filters/filter-switch'
+import { FilterGroup } from '@/components/data-table/filters/filter-group'
+import { DataTableFiltersButton } from '@/components/data-table/filters/data-table-filters-button'
+import { DataTableFiltersSheet } from '@/components/data-table/filters/data-table-filters-sheet'
+import { FloatingActionButton } from '@/components/data-table/floating-action-button'
+
+import { LeadTicketsDialog } from '@/components/dashboard/tickets/lead-tickets-dialog'
+import { LeadSalesDialog } from '@/components/dashboard/sales/lead-sales-dialog'
+import { LeadMessagesDialog } from '@/components/dashboard/messages/lead-messages-dialog'
+import { LeadAuditDialog } from '@/components/dashboard/sales_analytics/lead-audit-dialog'
+import { NewLeadDialog } from '@/components/dashboard/leads/new-lead_dialog'
+
+import { Inbox, ShoppingBag, MessageSquareText, ClipboardCheck, Plus } from 'lucide-react'
 
 const DATE_FILTER_OPTIONS = [
   { value: '1d', label: '1 dia' },
@@ -46,62 +32,56 @@ const DATE_FILTER_OPTIONS = [
   { value: '30d', label: '30 dias' },
   { value: 'thisMonth', label: 'Este mês' },
   { value: 'lastMonth', label: 'Mês anterior' },
-] as const;
+] as const
 
-type DateFilterValue = (typeof DATE_FILTER_OPTIONS)[number]['value'];
+type DateFilterValue = (typeof DATE_FILTER_OPTIONS)[number]['value']
+type DateFilterSelectValue = DateFilterValue | 'all'
+type BooleanFilterKey = 'hasTickets' | 'hasSales' | 'hasMessages' | 'hasAudit'
 
-type DateFilterSelectValue = DateFilterValue | 'all';
-
-type BooleanFilterKey = 'hasTickets' | 'hasSales' | 'hasMessages' | 'hasAudit';
-
-const BOOLEAN_FILTER_OPTIONS: Array<{
-  key: BooleanFilterKey;
-  label: string;
-}> = [
-  { key: 'hasTickets', label: 'Tickets' },
-  { key: 'hasSales', label: 'Vendas' },
-  { key: 'hasMessages', label: 'Mensagens' },
-  { key: 'hasAudit', label: 'Auditorias' },
-];
+const BOOLEAN_FILTER_OPTIONS: Array<{ key: BooleanFilterKey; label: string }> = [
+  { key: 'hasTickets', label: 'Com Tickets' },
+  { key: 'hasSales', label: 'Com Vendas' },
+  { key: 'hasMessages', label: 'Com Mensagens' },
+  { key: 'hasAudit', label: 'Com Auditoria' },
+]
 
 type Lead = {
-  id: string;
-  name: string | null;
-  phone: string | null;
-  mail: string | null;
-  instagram: string | null;
-  remote_jid: string | null;
-  created_at: string;
-  hasTickets: boolean;
-  hasSales: boolean;
-  hasAudit: boolean;
-  hasMessages: boolean;
-};
+  id: string
+  name: string | null
+  phone: string | null
+  mail: string | null
+  instagram: string | null
+  remote_jid: string | null
+  created_at: string
+  hasTickets: boolean
+  hasSales: boolean
+  hasAudit: boolean
+  hasMessages: boolean
+}
 
 type ApiResponse = {
-  items: Lead[];
-  total: number;
-  page: number;
-  pageSize: number;
-};
+  items: Lead[]
+  total: number
+  page: number
+  pageSize: number
+}
 
 export default function ClientLeadsTable() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
+  const searchParams = useSearchParams()
+  const router = useRouter()
 
-  const q = (searchParams.get('q') || '').trim();
-  const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1);
-  const pageSize = Math.max(1, Math.min(100, parseInt(searchParams.get('pageSize') || '20', 10) || 20));
+  // Filters
+  const q = (searchParams.get('q') || '').trim()
+  const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1)
+  const pageSize = Math.max(1, Math.min(100, parseInt(searchParams.get('pageSize') || '20', 10) || 20))
 
-  const rawDateRange = searchParams.get('dateRange');
+  const rawDateRange = searchParams.get('dateRange')
   const dateRange = React.useMemo<DateFilterValue | undefined>(() => {
-    if (!rawDateRange) return undefined;
+    if (!rawDateRange) return undefined
     return DATE_FILTER_OPTIONS.some((option) => option.value === rawDateRange)
       ? (rawDateRange as DateFilterValue)
-      : undefined;
-  }, [rawDateRange]);
-
-  const dateSelectValue = dateRange ?? 'all';
+      : undefined
+  }, [rawDateRange])
 
   const activeBooleanFilters = React.useMemo<Record<BooleanFilterKey, boolean>>(() => {
     return {
@@ -109,439 +89,247 @@ export default function ClientLeadsTable() {
       hasSales: searchParams.get('hasSales') === 'true',
       hasMessages: searchParams.get('hasMessages') === 'true',
       hasAudit: searchParams.get('hasAudit') === 'true',
-    };
-  }, [searchParams]);
+    }
+  }, [searchParams])
 
-  const booleanFilterKey = React.useMemo(() => JSON.stringify(activeBooleanFilters), [activeBooleanFilters]);
+  const booleanFilterKey = React.useMemo(() => JSON.stringify(activeBooleanFilters), [activeBooleanFilters])
 
+  // Update query params
   const updateQueryParams = React.useCallback(
     (mutator: (params: URLSearchParams) => void) => {
-      const params = new URLSearchParams(Array.from(searchParams.entries()));
-      mutator(params);
-      params.set('page', '1');
-      router.push(`/dashboard/leads?${params.toString()}`);
+      const params = new URLSearchParams(Array.from(searchParams.entries()))
+      mutator(params)
+      params.set('page', '1')
+      router.push(`/dashboard/leads?${params.toString()}`)
     },
     [router, searchParams]
-  );
+  )
 
-  const handleDateSelectChange = React.useCallback(
-    (value: DateFilterSelectValue) => {
+  // Search input state with debounce
+  const [input, setInput] = React.useState(q)
+  React.useEffect(() => setInput(q), [q])
+
+  React.useEffect(() => {
+    const trimmed = input.trim()
+
+    if (trimmed.length === 0) {
+      if (q) {
+        updateQueryParams((params) => {
+          params.delete('q')
+        })
+      }
+      return undefined
+    }
+
+    if (trimmed.length < 3) {
+      if (q) {
+        updateQueryParams((params) => {
+          params.delete('q')
+        })
+      }
+      return undefined
+    }
+
+    if (trimmed === q) {
+      return undefined
+    }
+
+    const handle = window.setTimeout(() => {
       updateQueryParams((params) => {
-        if (value === 'all') {
-          params.delete('dateRange');
-        } else {
-          params.set('dateRange', value);
-        }
-      });
-    },
-    [updateQueryParams]
-  );
+        params.set('q', trimmed)
+      })
+    }, 400)
 
-  const handleBooleanSwitchChange = React.useCallback(
-    (key: BooleanFilterKey, checked: boolean) => {
-      updateQueryParams((params) => {
-        if (!checked) {
-          params.delete(key);
-        } else {
-          params.set(key, 'true');
-        }
-      });
-    },
-    [updateQueryParams]
-  );
+    return () => {
+      window.clearTimeout(handle)
+    }
+  }, [input, q, updateQueryParams])
 
+  // Fetch data
   const { data, isLoading, isError } = useQuery<ApiResponse>({
     queryKey: ['leads', q, page, pageSize, dateRange ?? null, booleanFilterKey] as const,
     queryFn: async (): Promise<ApiResponse> => {
-      const u = new URL('/api/v1/leads', window.location.origin);
-      if (q) u.searchParams.set('q', q);
-      u.searchParams.set('page', String(page));
-      u.searchParams.set('pageSize', String(pageSize));
+      const u = new URL('/api/v1/leads', window.location.origin)
+      if (q) u.searchParams.set('q', q)
+      u.searchParams.set('page', String(page))
+      u.searchParams.set('pageSize', String(pageSize))
       if (dateRange) {
-        u.searchParams.set('dateRange', dateRange);
+        u.searchParams.set('dateRange', dateRange)
       }
       for (const [key, value] of Object.entries(activeBooleanFilters)) {
         if (value) {
-          u.searchParams.set(key, 'true');
+          u.searchParams.set(key, 'true')
         }
       }
-      console.log('[ClientLeadsTable] fetch', u.toString());
-      const res = await fetch(u.toString(), { cache: 'no-store' });
-      console.log('[ClientLeadsTable] response', { ok: res.ok, status: res.status });
-      if (!res.ok) throw new Error('Failed to fetch');
-      const json = (await res.json()) as ApiResponse;
-      console.log('[ClientLeadsTable] data', { total: json.total, itemsLen: json.items?.length ?? 0 });
-      return json;
+      const res = await fetch(u.toString(), { cache: 'no-store' })
+      if (!res.ok) throw new Error('Failed to fetch')
+      return (await res.json()) as ApiResponse
     },
     placeholderData: (prev) => prev as ApiResponse | undefined,
     staleTime: 10_000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     retry: 0,
-  });
+  })
 
+  const items = data?.items ?? []
+  const total = data?.total ?? 0
+  const pageSizeFromData = data?.pageSize ?? pageSize
+
+  // Dialog state
   const [dialog, setDialog] = React.useState<
     | { lead: Lead; mode: 'tickets' }
     | { lead: Lead; mode: 'sales' }
     | { lead: Lead; mode: 'messages' }
     | { lead: Lead; mode: 'audits' }
     | null
-  >(null);
+  >(null)
+  const [isNewLeadDialogOpen, setIsNewLeadDialogOpen] = React.useState(false)
 
-  const handleOpenDialog = React.useCallback((lead: Lead, mode: 'tickets' | 'sales' | 'messages' | 'audits') => {
-    setDialog({ lead, mode });
-  }, []);
+  const handleOpenDialog = React.useCallback((leadId: string, mode: 'tickets' | 'sales' | 'messages' | 'audits') => {
+    const lead = items.find((l) => l.id === leadId)
+    if (lead) {
+      setDialog({ lead, mode })
+    }
+  }, [items])
 
   const handleCloseDialog = React.useCallback(() => {
-    setDialog(null);
-  }, []);
+    setDialog(null)
+  }, [])
 
+  // Desktop columns for ResponsiveDataTable
   const columns = React.useMemo<ColumnDef<Lead>[]>(
     () => [
-      { header: 'Nome', accessorKey: 'name' },
-      {
-        header: 'Telefone',
-        accessorKey: 'phone',
-        cell: ({ getValue }) => {
-          const value = getValue() as string | null;
-
-          if (!value) {
-            return '';
-          }
-
-          const masked = applyWhatsAppMask(value);
-          const whatsappNumber = value.replace(/\D/g, '');
-
-          return (
-            <div className="flex items-center gap-2">
-              <span>{masked}</span>
-              {whatsappNumber.length >= 10 && (
-                <a
-                  href={`https://wa.me/${whatsappNumber}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-transparent text-muted-foreground transition hover:border-emerald-500/40 hover:bg-emerald-50 hover:text-emerald-600"
-                  aria-label={`Conversar no WhatsApp com ${masked}`}
-                >
-                  <Image
-                    src="/images/whatsapp.png"
-                    alt="WhatsApp"
-                    width={16}
-                    height={16}
-                    className="h-4 w-4 object-contain"
-                  />
-                </a>
-              )}
-            </div>
-          );
-        },
-      },
-      {
-        header: 'Criado em',
-        accessorKey: 'created_at',
-        cell: ({ getValue }) => {
-          const v = getValue() as string | null;
-          return v ? new Date(v).toLocaleString('pt-BR') : '';
-        },
-      },
-      {
-        header: () => <span className="block text-center">Ticket</span>,
-        accessorKey: 'hasTickets',
-        size: 80,
-        meta: { className: 'w-20 text-center' },
-        cell: ({ getValue, row }) => {
-          const value = getValue<boolean>();
-          const lead = row.original;
-          return (
-            <div className="flex justify-center">
-              <StatusIconButton
-                hasData={value}
-                label="Ver tickets do lead"
-                onClick={() => handleOpenDialog(lead, 'tickets')}
-                activeIcon={Inbox}
-                inactiveIcon={Inbox}
-                activeClassName="text-blue-600"
-                inactiveClassName="text-muted-foreground"
-              />
-            </div>
-          );
-        },
-      },
-      {
-        header: () => <span className="block text-center">Vendas</span>,
-        accessorKey: 'hasSales',
-        size: 80,
-        meta: { className: 'w-20 text-center' },
-        cell: ({ getValue, row }) => {
-          const value = getValue<boolean>();
-          const lead = row.original;
-          return (
-            <div className="flex justify-center">
-              <StatusIconButton
-                hasData={value}
-                label="Ver vendas do lead"
-                onClick={() => handleOpenDialog(lead, 'sales')}
-                activeIcon={ShoppingBag}
-                inactiveIcon={ShoppingBag}
-                activeClassName="text-amber-600"
-                inactiveClassName="text-muted-foreground"
-              />
-            </div>
-          );
-        },
-      },
-      {
-        header: () => <span className="block text-center">Mensagens</span>,
-        accessorKey: 'hasMessages',
-        size: 80,
-        meta: { className: 'w-20 text-center' },
-        cell: ({ getValue, row }) => {
-          const value = getValue<boolean>();
-          const lead = row.original;
-          return (
-            <div className="flex justify-center">
-              <StatusIconButton
-                hasData={value}
-                label="Ver mensagens do lead"
-                onClick={() => handleOpenDialog(lead, 'messages')}
-                activeIcon={MessageSquareText}
-                inactiveIcon={MessageCircle}
-                activeClassName="text-emerald-600"
-                inactiveClassName="text-muted-foreground"
-              />
-            </div>
-          );
-        },
-      },
-      {
-        header: () => <span className="block text-center">Auditoria</span>,
-        accessorKey: 'hasAudit',
-        size: 80,
-        meta: { className: 'w-20 text-center' },
-        cell: ({ getValue, row }) => {
-          const value = getValue<boolean>();
-          const lead = row.original;
-          return (
-            <div className="flex justify-center">
-              <StatusIconButton
-                hasData={value}
-                label="Ver auditoria do lead"
-                onClick={() => handleOpenDialog(lead, 'audits')}
-                activeIcon={ClipboardCheck}
-                inactiveIcon={ClipboardCheck}
-                activeClassName="text-violet-600"
-                inactiveClassName="text-muted-foreground"
-              />
-            </div>
-          );
-        },
-      },
+      { header: 'Nome', accessorKey: 'name', cell: ({ getValue }) => getValue() || '-' },
+      { header: 'Telefone', accessorKey: 'phone', cell: ({ getValue }) => getValue() || '-' },
+      { header: 'Email', accessorKey: 'mail', cell: ({ getValue }) => getValue() || '-' },
+      { header: 'Criado em', accessorKey: 'created_at', cell: ({ getValue }) => new Date(getValue() as string).toLocaleString('pt-BR') },
+      { header: 'Tickets', accessorKey: 'hasTickets', cell: ({ getValue }) => (getValue() ? '✓' : '') },
+      { header: 'Vendas', accessorKey: 'hasSales', cell: ({ getValue }) => (getValue() ? '✓' : '') },
+      { header: 'Mensagens', accessorKey: 'hasMessages', cell: ({ getValue }) => (getValue() ? '✓' : '') },
+      { header: 'Auditoria', accessorKey: 'hasAudit', cell: ({ getValue }) => (getValue() ? '✓' : '') },
     ],
-    [handleOpenDialog]
-  );
+    []
+  )
 
-  const items = data?.items ?? [];
-  const total = data?.total ?? 0;
-  const pageSizeFromData = data?.pageSize ?? pageSize;
-  console.log('[ClientLeadsTable] state', { isLoading, isError, total, itemsLen: items.length, page, pageSize: pageSizeFromData });
+  // Mobile filters state
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false)
 
-  const table = useReactTable({
-    data: items,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    manualPagination: true,
-    pageCount: data ? Math.ceil(total / pageSizeFromData) : -1,
-    state: {
-      pagination: {
-        pageIndex: page - 1,
-        pageSize,
-      },
-    },
-    onPaginationChange: (updater) => {
-      const next = typeof updater === 'function' ? updater({ pageIndex: page - 1, pageSize }) : updater;
-      const nextPage = (next.pageIndex ?? 0) + 1;
-      const params = new URLSearchParams(Array.from(searchParams.entries()));
-      params.set('page', String(nextPage));
-      params.set('pageSize', String(next.pageSize ?? pageSize));
-      router.push(`/dashboard/leads?${params.toString()}`);
-    },
-  });
-  console.log('[ClientLeadsTable] table rows', table.getRowModel().rows.length);
+  // Count active filters
+  const activeFilterCount = React.useMemo(() => {
+    let count = 0
+    if (q) count++
+    if (dateRange) count++
+    if (Object.values(activeBooleanFilters).some(Boolean)) count++
+    return count
+  }, [q, dateRange, activeBooleanFilters])
 
-  const [input, setInput] = React.useState(q);
-  React.useEffect(() => setInput(q), [q]);
-
-  React.useEffect(() => {
-    const trimmed = input.trim();
-
-    if (trimmed.length === 0) {
-      if (q) {
-        updateQueryParams((params) => {
-          params.delete('q');
-        });
-      }
-      return undefined;
-    }
-
-    if (trimmed.length < 3) {
-      if (q) {
-        updateQueryParams((params) => {
-          params.delete('q');
-        });
-      }
-      return undefined;
-    }
-
-    if (trimmed === q) {
-      return undefined;
-    }
-
-    const handle = window.setTimeout(() => {
-      updateQueryParams((params) => {
-        params.set('q', trimmed);
-      });
-    }, 400);
-
-    return () => {
-      window.clearTimeout(handle);
-    };
-  }, [input, q, updateQueryParams]);
+  // Clear all filters
+  const handleClearAllFilters = React.useCallback(() => {
+    updateQueryParams((params) => {
+      params.delete('q')
+      params.delete('dateRange')
+      params.delete('hasTickets')
+      params.delete('hasSales')
+      params.delete('hasMessages')
+      params.delete('hasAudit')
+    })
+  }, [updateQueryParams])
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2">     
-        <Select
-          value={dateSelectValue}
-          onValueChange={(val) => handleDateSelectChange(val as DateFilterSelectValue)}
-        >
-          <SelectTrigger className="w-[160px] justify-between">
-            <div className="flex flex-col text-left leading-tight">
-              <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Datas</span>
-              <SelectValue placeholder="Todas as datas" />
-            </div>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todas as datas</SelectItem>
-            {DATE_FILTER_OPTIONS.map(({ value, label }) => (
-              <SelectItem key={value} value={value}>
-                {label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      {/* Filter Button (Desktop and Mobile) */}
+      <DataTableFiltersButton
+        activeCount={activeFilterCount}
+        onClick={() => setIsFiltersOpen(true)}
+      />
 
-        {BOOLEAN_FILTER_OPTIONS.map(({ key, label }) => (
-          <div
-            key={key}
-            className="flex items-center gap-3 rounded-md border bg-background px-3 py-2 shadow-xs"
-          >
-            <div className="flex flex-col leading-tight">
-              <span className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</span>
-            </div>
-            <Switch
-              className="cursor-pointer"
-              id={`filter-${key}`}
+      {/* Mobile Filters Sheet */}
+      <DataTableFiltersSheet
+        open={isFiltersOpen}
+        onOpenChange={setIsFiltersOpen}
+        title="Filtros"
+        onApply={() => setIsFiltersOpen(false)}
+      >
+        <FilterGroup label="Busca">
+          <FilterInput
+            value={input}
+            onChange={setInput}
+            placeholder="Pesquisar leads..."
+          />
+        </FilterGroup>
+
+        <FilterGroup label="Data">
+          <FilterSelect
+            value={dateRange ?? 'all'}
+            onChange={(val) => {
+              updateQueryParams((params) => {
+                if (val === 'all') {
+                  params.delete('dateRange')
+                } else {
+                  params.set('dateRange', val)
+                }
+              })
+            }}
+            options={[
+              { value: 'all', label: 'Todas as datas' },
+              ...DATE_FILTER_OPTIONS,
+            ]}
+            placeholder="Selecione data"
+          />
+        </FilterGroup>
+
+        <FilterGroup label="Status">
+          {BOOLEAN_FILTER_OPTIONS.map(({ key, label }) => (
+            <FilterSwitch
+              key={key}
+              label={label}
               checked={activeBooleanFilters[key]}
-              onCheckedChange={(checked) => handleBooleanSwitchChange(key, checked)}
-              aria-label={`Filtrar por ${label}`}
+              onChange={(checked) => {
+                updateQueryParams((params) => {
+                  if (!checked) {
+                    params.delete(key)
+                  } else {
+                    params.set(key, 'true')
+                  }
+                })
+              }}
             />
-          </div>
-        ))}
-        <div className="flex min-w-[280px] flex-1 items-center gap-2">
-          <div className="relative w-full">
-            <Input
-              className="pr-10"
-              placeholder="Pesquisar..."
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-            />
-            {input.trim().length > 0 ? (
-              <button
-                type="button"
-                onClick={() => setInput('')}
-                className="absolute cursor-pointer right-2 top-1/2 -translate-y-1/2 rounded-full border border-transparent p-1 text-muted-foreground transition hover:border-border hover:bg-muted"
-                aria-label="Limpar busca"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            ) : null}
-          </div>
-        </div>
-      </div>
+          ))}
+        </FilterGroup>
+      </DataTableFiltersSheet>
 
-      <div className="rounded-md border">
-        <table className="w-full text-sm">
-          <thead>
-            {table.getHeaderGroups().map((hg) => (
-              <tr key={hg.id} className="border-b bg-muted/50">
-                {hg.headers.map((header) => {
-                  const metaClass = (header.column.columnDef.meta as { className?: string } | undefined)?.className;
-                  return (
-                    <th
-                      key={header.id}
-                      className={cn('px-3 py-2 text-left font-medium', metaClass)}
-                      style={{ width: header.column.getSize() ? `${header.column.getSize()}px` : undefined }}
-                    >
-                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                    </th>
-                  );
-                })}
-              </tr>
-            ))}
-          </thead>
-          <tbody>
-            {isLoading ? (
-              <tr><td className="px-3 py-2" colSpan={columns.length}>Carregando...</td></tr>
-            ) : isError ? (
-              <tr><td className="px-3 py-2 text-red-600" colSpan={columns.length}>Erro ao carregar</td></tr>
-            ) : table.getRowModel().rows.length ? (
-              table.getRowModel().rows.map((row) => (
-                <tr key={row.id} className="border-b hover:bg-muted/30">
-                  {row.getVisibleCells().map((cell) => {
-                    const metaClass = (cell.column.columnDef.meta as { className?: string } | undefined)?.className;
-                    return (
-                      <td
-                        key={cell.id}
-                        className={cn('px-3 py-2', metaClass)}
-                        style={{ width: cell.column.getSize() ? `${cell.column.getSize()}px` : undefined }}
-                      >
-                        {flexRender(cell.column.columnDef.cell ?? ((ctx) => String(ctx.getValue() ?? '')), cell.getContext())}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))
-            ) : (
-              <tr><td className="px-3 py-2" colSpan={columns.length}>Nenhum resultado</td></tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      {/* Responsive Table */}
+      <ResponsiveDataTable
+        data={items}
+        columns={columns}
+        mobileCard={(row) => (
+          <LeadCard
+            lead={row.original}
+            onOpenDialog={handleOpenDialog}
+          />
+        )}
+        pagination={{
+          page,
+          pageSize,
+          total,
+          onPageChange: (newPage) => {
+            const params = new URLSearchParams(Array.from(searchParams.entries()))
+            params.set('page', String(newPage))
+            router.push(`/dashboard/leads?${params.toString()}`)
+          },
+          onPageSizeChange: (newPageSize) => {
+            const params = new URLSearchParams(Array.from(searchParams.entries()))
+            params.set('pageSize', String(newPageSize))
+            params.set('page', '1')
+            router.push(`/dashboard/leads?${params.toString()}`)
+          },
+        }}
+        isLoading={isLoading}
+        isError={isError}
+      />
 
-      <div className="flex items-center justify-between">
-        <div>
-          Página {page} de {data ? Math.max(1, Math.ceil(total / pageSizeFromData)) : 1}
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            className="cursor-pointer"
-            disabled={page <= 1 || isLoading}
-            onClick={() => table.setPageIndex(page - 2)}
-          >
-            Anterior
-          </Button>
-          <Button
-            variant="outline"
-            className="cursor-pointer"
-            disabled={isLoading || (data && page >= Math.ceil(total / pageSizeFromData))}
-            onClick={() => table.setPageIndex(page)}
-          >
-            Próxima
-          </Button>
-        </div>
-      </div>
-
+      {/* Dialogs */}
       {dialog && dialog.mode === 'tickets' && (
         <LeadTicketsDialog
           leadId={dialog.lead.id}
@@ -550,7 +338,7 @@ export default function ClientLeadsTable() {
           open={Boolean(dialog)}
           onOpenChange={(open: boolean) => {
             if (!open) {
-              handleCloseDialog();
+              handleCloseDialog()
             }
           }}
         />
@@ -564,7 +352,7 @@ export default function ClientLeadsTable() {
           open={Boolean(dialog)}
           onOpenChange={(open: boolean) => {
             if (!open) {
-              handleCloseDialog();
+              handleCloseDialog()
             }
           }}
         />
@@ -578,7 +366,7 @@ export default function ClientLeadsTable() {
           open={Boolean(dialog)}
           onOpenChange={(open: boolean) => {
             if (!open) {
-              handleCloseDialog();
+              handleCloseDialog()
             }
           }}
         />
@@ -592,55 +380,24 @@ export default function ClientLeadsTable() {
           open={Boolean(dialog)}
           onOpenChange={(open: boolean) => {
             if (!open) {
-              handleCloseDialog();
+              handleCloseDialog()
             }
           }}
         />
       )}
+
+      {/* New Lead Dialog */}
+      <NewLeadDialog
+        open={isNewLeadDialogOpen}
+        onOpenChange={setIsNewLeadDialogOpen}
+      />
+
+      {/* Floating Action Button */}
+      <FloatingActionButton
+        icon={Plus}
+        label="Criar novo lead"
+        onClick={() => setIsNewLeadDialogOpen(true)}
+      />
     </div>
-  );
-}
-
-type StatusIconButtonProps = {
-  hasData: boolean;
-  label: string;
-  onClick: () => void;
-  activeIcon?: LucideIcon;
-  inactiveIcon?: LucideIcon;
-  activeClassName?: string;
-  inactiveClassName?: string;
-};
-
-function StatusIconButton({
-  hasData,
-  label,
-  onClick,
-  activeIcon,
-  inactiveIcon,
-  activeClassName,
-  inactiveClassName,
-}: StatusIconButtonProps) {
-  const ActiveIcon = activeIcon ?? CheckCircle2;
-  const InactiveIcon = inactiveIcon ?? CircleDashed;
-
-  return (
-    <button
-      type="button"
-      title={label}
-      onClick={hasData ? onClick : undefined}
-      disabled={!hasData}
-      className={cn(
-        'inline-flex h-8 w-8 items-center justify-center rounded-full border border-transparent transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-        hasData
-          ? 'cursor-pointer hover:border-muted-foreground/40 hover:bg-muted/40'
-          : 'cursor-not-allowed opacity-50'
-      )}
-    >
-      {hasData ? (
-        <ActiveIcon className={cn('h-4 w-4 text-emerald-600', activeClassName)} />
-      ) : (
-        <InactiveIcon className={cn('h-4 w-4 text-muted-foreground', inactiveClassName)} />
-      )}
-    </button>
-  );
+  )
 }

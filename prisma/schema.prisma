@@ -18,6 +18,12 @@ enum UserRole {
   user
 }
 
+enum OnboardingStatus {
+  pending
+  completed
+  skipped
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String
@@ -507,7 +513,7 @@ model OrganizationProfile {
 
   cpf String? @unique
 
-  onboardingCompleted   Boolean   @default(false)
+  onboardingStatus      OnboardingStatus @default(pending)
   onboardingCompletedAt DateTime?
 
   avgTicket       String?

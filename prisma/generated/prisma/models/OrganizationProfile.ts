@@ -50,7 +50,7 @@ export type OrganizationProfileMinAggregateOutputType = {
   id: string | null
   organizationId: string | null
   cpf: string | null
-  onboardingCompleted: boolean | null
+  onboardingStatus: $Enums.OnboardingStatus | null
   onboardingCompletedAt: Date | null
   avgTicket: string | null
   attendantsCount: string | null
@@ -73,7 +73,7 @@ export type OrganizationProfileMaxAggregateOutputType = {
   id: string | null
   organizationId: string | null
   cpf: string | null
-  onboardingCompleted: boolean | null
+  onboardingStatus: $Enums.OnboardingStatus | null
   onboardingCompletedAt: Date | null
   avgTicket: string | null
   attendantsCount: string | null
@@ -96,7 +96,7 @@ export type OrganizationProfileCountAggregateOutputType = {
   id: number
   organizationId: number
   cpf: number
-  onboardingCompleted: number
+  onboardingStatus: number
   onboardingCompletedAt: number
   avgTicket: number
   attendantsCount: number
@@ -141,7 +141,7 @@ export type OrganizationProfileMinAggregateInputType = {
   id?: true
   organizationId?: true
   cpf?: true
-  onboardingCompleted?: true
+  onboardingStatus?: true
   onboardingCompletedAt?: true
   avgTicket?: true
   attendantsCount?: true
@@ -164,7 +164,7 @@ export type OrganizationProfileMaxAggregateInputType = {
   id?: true
   organizationId?: true
   cpf?: true
-  onboardingCompleted?: true
+  onboardingStatus?: true
   onboardingCompletedAt?: true
   avgTicket?: true
   attendantsCount?: true
@@ -187,7 +187,7 @@ export type OrganizationProfileCountAggregateInputType = {
   id?: true
   organizationId?: true
   cpf?: true
-  onboardingCompleted?: true
+  onboardingStatus?: true
   onboardingCompletedAt?: true
   avgTicket?: true
   attendantsCount?: true
@@ -297,7 +297,7 @@ export type OrganizationProfileGroupByOutputType = {
   id: string
   organizationId: string
   cpf: string | null
-  onboardingCompleted: boolean
+  onboardingStatus: $Enums.OnboardingStatus
   onboardingCompletedAt: Date | null
   avgTicket: string | null
   attendantsCount: string | null
@@ -343,7 +343,7 @@ export type OrganizationProfileWhereInput = {
   id?: Prisma.StringFilter<"OrganizationProfile"> | string
   organizationId?: Prisma.StringFilter<"OrganizationProfile"> | string
   cpf?: Prisma.StringNullableFilter<"OrganizationProfile"> | string | null
-  onboardingCompleted?: Prisma.BoolFilter<"OrganizationProfile"> | boolean
+  onboardingStatus?: Prisma.EnumOnboardingStatusFilter<"OrganizationProfile"> | $Enums.OnboardingStatus
   onboardingCompletedAt?: Prisma.DateTimeNullableFilter<"OrganizationProfile"> | Date | string | null
   avgTicket?: Prisma.StringNullableFilter<"OrganizationProfile"> | string | null
   attendantsCount?: Prisma.StringNullableFilter<"OrganizationProfile"> | string | null
@@ -367,7 +367,7 @@ export type OrganizationProfileOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   cpf?: Prisma.SortOrderInput | Prisma.SortOrder
-  onboardingCompleted?: Prisma.SortOrder
+  onboardingStatus?: Prisma.SortOrder
   onboardingCompletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   avgTicket?: Prisma.SortOrderInput | Prisma.SortOrder
   attendantsCount?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -394,7 +394,7 @@ export type OrganizationProfileWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.OrganizationProfileWhereInput | Prisma.OrganizationProfileWhereInput[]
   OR?: Prisma.OrganizationProfileWhereInput[]
   NOT?: Prisma.OrganizationProfileWhereInput | Prisma.OrganizationProfileWhereInput[]
-  onboardingCompleted?: Prisma.BoolFilter<"OrganizationProfile"> | boolean
+  onboardingStatus?: Prisma.EnumOnboardingStatusFilter<"OrganizationProfile"> | $Enums.OnboardingStatus
   onboardingCompletedAt?: Prisma.DateTimeNullableFilter<"OrganizationProfile"> | Date | string | null
   avgTicket?: Prisma.StringNullableFilter<"OrganizationProfile"> | string | null
   attendantsCount?: Prisma.StringNullableFilter<"OrganizationProfile"> | string | null
@@ -418,7 +418,7 @@ export type OrganizationProfileOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   cpf?: Prisma.SortOrderInput | Prisma.SortOrder
-  onboardingCompleted?: Prisma.SortOrder
+  onboardingStatus?: Prisma.SortOrder
   onboardingCompletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   avgTicket?: Prisma.SortOrderInput | Prisma.SortOrder
   attendantsCount?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -449,7 +449,7 @@ export type OrganizationProfileScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"OrganizationProfile"> | string
   organizationId?: Prisma.StringWithAggregatesFilter<"OrganizationProfile"> | string
   cpf?: Prisma.StringNullableWithAggregatesFilter<"OrganizationProfile"> | string | null
-  onboardingCompleted?: Prisma.BoolWithAggregatesFilter<"OrganizationProfile"> | boolean
+  onboardingStatus?: Prisma.EnumOnboardingStatusWithAggregatesFilter<"OrganizationProfile"> | $Enums.OnboardingStatus
   onboardingCompletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"OrganizationProfile"> | Date | string | null
   avgTicket?: Prisma.StringNullableWithAggregatesFilter<"OrganizationProfile"> | string | null
   attendantsCount?: Prisma.StringNullableWithAggregatesFilter<"OrganizationProfile"> | string | null
@@ -471,7 +471,7 @@ export type OrganizationProfileScalarWhereWithAggregatesInput = {
 export type OrganizationProfileCreateInput = {
   id?: string
   cpf?: string | null
-  onboardingCompleted?: boolean
+  onboardingStatus?: $Enums.OnboardingStatus
   onboardingCompletedAt?: Date | string | null
   avgTicket?: string | null
   attendantsCount?: string | null
@@ -495,7 +495,7 @@ export type OrganizationProfileUncheckedCreateInput = {
   id?: string
   organizationId: string
   cpf?: string | null
-  onboardingCompleted?: boolean
+  onboardingStatus?: $Enums.OnboardingStatus
   onboardingCompletedAt?: Date | string | null
   avgTicket?: string | null
   attendantsCount?: string | null
@@ -517,7 +517,7 @@ export type OrganizationProfileUncheckedCreateInput = {
 export type OrganizationProfileUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   cpf?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  onboardingStatus?: Prisma.EnumOnboardingStatusFieldUpdateOperationsInput | $Enums.OnboardingStatus
   onboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avgTicket?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attendantsCount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -541,7 +541,7 @@ export type OrganizationProfileUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   cpf?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  onboardingStatus?: Prisma.EnumOnboardingStatusFieldUpdateOperationsInput | $Enums.OnboardingStatus
   onboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avgTicket?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attendantsCount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -564,7 +564,7 @@ export type OrganizationProfileCreateManyInput = {
   id?: string
   organizationId: string
   cpf?: string | null
-  onboardingCompleted?: boolean
+  onboardingStatus?: $Enums.OnboardingStatus
   onboardingCompletedAt?: Date | string | null
   avgTicket?: string | null
   attendantsCount?: string | null
@@ -586,7 +586,7 @@ export type OrganizationProfileCreateManyInput = {
 export type OrganizationProfileUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   cpf?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  onboardingStatus?: Prisma.EnumOnboardingStatusFieldUpdateOperationsInput | $Enums.OnboardingStatus
   onboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avgTicket?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attendantsCount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -609,7 +609,7 @@ export type OrganizationProfileUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   cpf?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  onboardingStatus?: Prisma.EnumOnboardingStatusFieldUpdateOperationsInput | $Enums.OnboardingStatus
   onboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avgTicket?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attendantsCount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -637,7 +637,7 @@ export type OrganizationProfileCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   cpf?: Prisma.SortOrder
-  onboardingCompleted?: Prisma.SortOrder
+  onboardingStatus?: Prisma.SortOrder
   onboardingCompletedAt?: Prisma.SortOrder
   avgTicket?: Prisma.SortOrder
   attendantsCount?: Prisma.SortOrder
@@ -670,7 +670,7 @@ export type OrganizationProfileMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   cpf?: Prisma.SortOrder
-  onboardingCompleted?: Prisma.SortOrder
+  onboardingStatus?: Prisma.SortOrder
   onboardingCompletedAt?: Prisma.SortOrder
   avgTicket?: Prisma.SortOrder
   attendantsCount?: Prisma.SortOrder
@@ -693,7 +693,7 @@ export type OrganizationProfileMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   cpf?: Prisma.SortOrder
-  onboardingCompleted?: Prisma.SortOrder
+  onboardingStatus?: Prisma.SortOrder
   onboardingCompletedAt?: Prisma.SortOrder
   avgTicket?: Prisma.SortOrder
   attendantsCount?: Prisma.SortOrder
@@ -754,6 +754,10 @@ export type OrganizationProfileUncheckedUpdateOneWithoutOrganizationNestedInput 
   update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationProfileUpdateToOneWithWhereWithoutOrganizationInput, Prisma.OrganizationProfileUpdateWithoutOrganizationInput>, Prisma.OrganizationProfileUncheckedUpdateWithoutOrganizationInput>
 }
 
+export type EnumOnboardingStatusFieldUpdateOperationsInput = {
+  set?: $Enums.OnboardingStatus
+}
+
 export type NullableFloatFieldUpdateOperationsInput = {
   set?: number | null
   increment?: number
@@ -765,7 +769,7 @@ export type NullableFloatFieldUpdateOperationsInput = {
 export type OrganizationProfileCreateWithoutOrganizationInput = {
   id?: string
   cpf?: string | null
-  onboardingCompleted?: boolean
+  onboardingStatus?: $Enums.OnboardingStatus
   onboardingCompletedAt?: Date | string | null
   avgTicket?: string | null
   attendantsCount?: string | null
@@ -787,7 +791,7 @@ export type OrganizationProfileCreateWithoutOrganizationInput = {
 export type OrganizationProfileUncheckedCreateWithoutOrganizationInput = {
   id?: string
   cpf?: string | null
-  onboardingCompleted?: boolean
+  onboardingStatus?: $Enums.OnboardingStatus
   onboardingCompletedAt?: Date | string | null
   avgTicket?: string | null
   attendantsCount?: string | null
@@ -825,7 +829,7 @@ export type OrganizationProfileUpdateToOneWithWhereWithoutOrganizationInput = {
 export type OrganizationProfileUpdateWithoutOrganizationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   cpf?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  onboardingStatus?: Prisma.EnumOnboardingStatusFieldUpdateOperationsInput | $Enums.OnboardingStatus
   onboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avgTicket?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attendantsCount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -847,7 +851,7 @@ export type OrganizationProfileUpdateWithoutOrganizationInput = {
 export type OrganizationProfileUncheckedUpdateWithoutOrganizationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   cpf?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  onboardingStatus?: Prisma.EnumOnboardingStatusFieldUpdateOperationsInput | $Enums.OnboardingStatus
   onboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avgTicket?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attendantsCount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -872,7 +876,7 @@ export type OrganizationProfileSelect<ExtArgs extends runtime.Types.Extensions.I
   id?: boolean
   organizationId?: boolean
   cpf?: boolean
-  onboardingCompleted?: boolean
+  onboardingStatus?: boolean
   onboardingCompletedAt?: boolean
   avgTicket?: boolean
   attendantsCount?: boolean
@@ -896,7 +900,7 @@ export type OrganizationProfileSelectCreateManyAndReturn<ExtArgs extends runtime
   id?: boolean
   organizationId?: boolean
   cpf?: boolean
-  onboardingCompleted?: boolean
+  onboardingStatus?: boolean
   onboardingCompletedAt?: boolean
   avgTicket?: boolean
   attendantsCount?: boolean
@@ -920,7 +924,7 @@ export type OrganizationProfileSelectUpdateManyAndReturn<ExtArgs extends runtime
   id?: boolean
   organizationId?: boolean
   cpf?: boolean
-  onboardingCompleted?: boolean
+  onboardingStatus?: boolean
   onboardingCompletedAt?: boolean
   avgTicket?: boolean
   attendantsCount?: boolean
@@ -944,7 +948,7 @@ export type OrganizationProfileSelectScalar = {
   id?: boolean
   organizationId?: boolean
   cpf?: boolean
-  onboardingCompleted?: boolean
+  onboardingStatus?: boolean
   onboardingCompletedAt?: boolean
   avgTicket?: boolean
   attendantsCount?: boolean
@@ -963,7 +967,7 @@ export type OrganizationProfileSelectScalar = {
   updatedAt?: boolean
 }
 
-export type OrganizationProfileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "cpf" | "onboardingCompleted" | "onboardingCompletedAt" | "avgTicket" | "attendantsCount" | "mainChannel" | "leadsPerDay" | "monthlyRevenue" | "monthlyAdSpend" | "estimatedConversionRate" | "estimatedCPL" | "estimatedCAC" | "estimatedROAS" | "estimatedLeadValue" | "leadsPerAttendant" | "revenuePerAttendant" | "createdAt" | "updatedAt", ExtArgs["result"]["organizationProfile"]>
+export type OrganizationProfileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "cpf" | "onboardingStatus" | "onboardingCompletedAt" | "avgTicket" | "attendantsCount" | "mainChannel" | "leadsPerDay" | "monthlyRevenue" | "monthlyAdSpend" | "estimatedConversionRate" | "estimatedCPL" | "estimatedCAC" | "estimatedROAS" | "estimatedLeadValue" | "leadsPerAttendant" | "revenuePerAttendant" | "createdAt" | "updatedAt", ExtArgs["result"]["organizationProfile"]>
 export type OrganizationProfileInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }
@@ -983,7 +987,7 @@ export type $OrganizationProfilePayload<ExtArgs extends runtime.Types.Extensions
     id: string
     organizationId: string
     cpf: string | null
-    onboardingCompleted: boolean
+    onboardingStatus: $Enums.OnboardingStatus
     onboardingCompletedAt: Date | null
     avgTicket: string | null
     attendantsCount: string | null
@@ -1427,7 +1431,7 @@ export interface OrganizationProfileFieldRefs {
   readonly id: Prisma.FieldRef<"OrganizationProfile", 'String'>
   readonly organizationId: Prisma.FieldRef<"OrganizationProfile", 'String'>
   readonly cpf: Prisma.FieldRef<"OrganizationProfile", 'String'>
-  readonly onboardingCompleted: Prisma.FieldRef<"OrganizationProfile", 'Boolean'>
+  readonly onboardingStatus: Prisma.FieldRef<"OrganizationProfile", 'OnboardingStatus'>
   readonly onboardingCompletedAt: Prisma.FieldRef<"OrganizationProfile", 'DateTime'>
   readonly avgTicket: Prisma.FieldRef<"OrganizationProfile", 'String'>
   readonly attendantsCount: Prisma.FieldRef<"OrganizationProfile", 'String'>

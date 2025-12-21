@@ -368,7 +368,7 @@ export const OrganizationProfileScalarFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
   cpf: 'cpf',
-  onboardingCompleted: 'onboardingCompleted',
+  onboardingStatus: 'onboardingStatus',
   onboardingCompletedAt: 'onboardingCompletedAt',
   avgTicket: 'avgTicket',
   attendantsCount: 'attendantsCount',

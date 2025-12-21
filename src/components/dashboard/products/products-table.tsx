@@ -1,23 +1,26 @@
-"use client"
+'use client'
 
 import * as React from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { ColumnDef } from '@tanstack/react-table'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { X } from 'lucide-react'
+import { useState } from 'react'
+import { Plus } from 'lucide-react'
 
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { ResponsiveDataTable } from '@/components/data-table/responsive-data-table'
+import { ProductCard } from '@/components/data-table/cards/product-card'
+import { FilterBar, FilterBarSection } from '@/components/data-table/filters/filter-bar'
+import { FilterInput } from '@/components/data-table/filters/filter-input'
+import { FilterSelect } from '@/components/data-table/filters/filter-select'
+import { DataTableFiltersButton } from '@/components/data-table/filters/data-table-filters-button'
+import { DataTableFiltersSheet } from '@/components/data-table/filters/data-table-filters-sheet'
+import { FilterGroup } from '@/components/data-table/filters/filter-group'
+import { FloatingActionButton } from '@/components/data-table/floating-action-button'
+
 import { ProductFormDialog } from './product-form-dialog'
 import { ORGANIZATION_HEADER } from '@/lib/constants'
 import { authClient } from '@/lib/auth/auth-client'
+import { formatCurrencyBRL } from '@/lib/mask/formatters'
 
 type Product = {
   id: string
@@ -53,20 +56,25 @@ export function ProductsTable() {
   const searchParams = useSearchParams()
   const router = useRouter()
 
+  // Filters
   const q = (searchParams.get('q') || '').trim()
   const status = (searchParams.get('status') as (typeof STATUS_OPTIONS)[number]['value']) ?? 'all'
   const categoryFilter = searchParams.get('categoryId') ?? 'all'
   const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1)
+  const pageSize = 20
 
+  // Update query params
   const updateQueryParams = React.useCallback(
     (mutator: (params: URLSearchParams) => void) => {
       const params = new URLSearchParams(Array.from(searchParams.entries()))
       mutator(params)
+      params.set('page', '1')
       router.push(`/dashboard/products?${params.toString()}`)
     },
-    [router, searchParams],
+    [router, searchParams]
   )
 
+  // Fetch categories
   const categoriesQuery = useQuery({
     queryKey: ['product-categories', organizationId],
     queryFn: async () => {
@@ -74,32 +82,27 @@ export function ProductsTable() {
       url.searchParams.set('status', 'active')
       url.searchParams.set('pageSize', '200')
       const response = await fetch(url.toString(), {
-        headers: {
-          [ORGANIZATION_HEADER]: organizationId!,
-        },
+        headers: { [ORGANIZATION_HEADER]: organizationId! },
       })
       if (!response.ok) throw new Error('Não foi possível carregar categorias')
-      const json = (await response.json()) as CategoryResponse
-      return json.items
+      return ((await response.json()) as CategoryResponse).items
     },
     staleTime: 60_000,
     enabled: !!organizationId,
   })
 
+  // Fetch products
   const productsQuery = useQuery({
     queryKey: ['products', organizationId, q, status, categoryFilter, page],
     queryFn: async () => {
       const url = new URL('/api/v1/products', window.location.origin)
       url.searchParams.set('page', String(page))
-      url.searchParams.set('pageSize', '10')
+      url.searchParams.set('pageSize', String(pageSize))
       if (q) url.searchParams.set('search', q)
       if (status !== 'all') url.searchParams.set('status', status)
       if (categoryFilter !== 'all') url.searchParams.set('categoryId', categoryFilter)
-
       const response = await fetch(url.toString(), {
-        headers: {
-          [ORGANIZATION_HEADER]: organizationId!,
-        },
+        headers: { [ORGANIZATION_HEADER]: organizationId! },
       })
       if (!response.ok) throw new Error('Não foi possível carregar produtos')
       return (await response.json()) as ProductResponse
@@ -107,214 +110,210 @@ export function ProductsTable() {
     enabled: !!organizationId,
   })
 
+  const items = productsQuery.data?.items ?? []
+  const total = productsQuery.data?.total ?? 0
+  const categories = categoriesQuery.data ?? []
+
+  // Search input with debounce
   const [input, setInput] = React.useState(q)
   React.useEffect(() => setInput(q), [q])
 
   React.useEffect(() => {
     const trimmed = input.trim()
-
-    if (!trimmed.length || trimmed.length < 3) {
-      if (q) {
-        updateQueryParams((params) => {
-          params.delete('q')
-          params.set('page', '1')
-        })
+    if (trimmed.length === 0 || trimmed.length < 2 || trimmed === q) {
+      if (trimmed.length === 0 && q) {
+        updateQueryParams((params) => params.delete('q'))
       }
-      return undefined
+      return
     }
-
-    if (trimmed === q) {
-      return undefined
-    }
-
     const handle = window.setTimeout(() => {
-      updateQueryParams((params) => {
-        params.set('q', trimmed)
-        params.set('page', '1')
-      })
+      updateQueryParams((params) => params.set('q', trimmed))
     }, 400)
-
-    return () => {
-      window.clearTimeout(handle)
-    }
+    return () => window.clearTimeout(handle)
   }, [input, q, updateQueryParams])
 
-  const totalPages = React.useMemo(() => {
-    if (!productsQuery.data) return 1
-    return Math.max(1, Math.ceil(productsQuery.data.total / productsQuery.data.pageSize))
-  }, [productsQuery.data])
 
-  const handleStatusChange = (value: (typeof STATUS_OPTIONS)[number]['value']) => {
-    updateQueryParams((params) => {
-      if (value === 'all') {
-        params.delete('status')
-      } else {
-        params.set('status', value)
-      }
-      params.set('page', '1')
-    })
-  }
+  // Columns for desktop
+  const columns = React.useMemo<ColumnDef<Product>[]>(
+    () => [
+      { header: 'Nome', accessorKey: 'name', cell: ({ getValue }) => getValue() },
+      { header: 'Categoria', accessorKey: 'category', cell: ({ getValue }) => (getValue() as any)?.name ?? '—' },
+      { header: 'Preço', accessorKey: 'price', cell: ({ getValue }) => formatCurrencyBRL(getValue() as number | null) },
+      { header: 'Status', accessorKey: 'active', cell: ({ getValue }) => (getValue() ? 'Ativo' : 'Inativo') },
+    ],
+    []
+  )
 
-  const handleCategoryChange = (value: string) => {
-    updateQueryParams((params) => {
-      if (value === 'all') {
-        params.delete('categoryId')
-      } else {
-        params.set('categoryId', value)
-      }
-      params.set('page', '1')
-    })
-  }
+  // Mobile filters state
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false)
 
-  const goToPage = (next: number) => {
-    updateQueryParams((params) => {
-      params.set('page', String(Math.max(1, next)))
-    })
-  }
+  // Dialog state
+  const [isProductFormDialogOpen, setIsProductFormDialogOpen] = useState(false)
+
+  // Count active filters
+  const activeFilterCount = React.useMemo(() => {
+    let count = 0
+    if (q) count++
+    if (status !== 'all') count++
+    if (categoryFilter !== 'all') count++
+    return count
+  }, [q, status, categoryFilter])
 
   return (
-    <section className="space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex flex-1 flex-wrap items-center gap-3">
-          <div className="relative min-w-[240px] flex-1">
-            <Input
-              className="pr-10"
-              placeholder="Nome do produto"
-              value={input}
-              onChange={(event) => setInput(event.target.value)}
-            />
-            {input.trim().length > 0 ? (
-              <button
-                type="button"
-                onClick={() => setInput('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full border border-transparent p-1 text-muted-foreground transition hover:border-border hover:bg-muted"
-                aria-label="Limpar busca"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            ) : null}
-          </div>
-          <Select value={status} onValueChange={(value) => handleStatusChange(value as typeof status)}>
-            <SelectTrigger className="w-[180px] justify-between">
-              <div className="flex flex-col text-left leading-tight">
-                <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Status</span>
-                <SelectValue placeholder="Todos" />
-              </div>
-            </SelectTrigger>
-            <SelectContent>
-              {STATUS_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={categoryFilter} onValueChange={handleCategoryChange}>
-            <SelectTrigger className="min-w-[200px] justify-between">
-              <div className="flex flex-col text-left leading-tight">
-                <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Categoria</span>
-                <SelectValue placeholder="Todas" />
-              </div>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas</SelectItem>
-              {(categoriesQuery.data ?? []).map((category) => (
-                <SelectItem key={category.id} value={category.id}>
-                  {category.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <ProductFormDialog
-          categories={categoriesQuery.data ?? []}
-          onSuccess={() => {
-            void productsQuery.refetch()
-            void categoriesQuery.refetch()
+    <div className="space-y-4">
+      {/* Desktop Filters */}
+      <div className="hidden md:block">
+        <FilterBar
+          onClearAll={() => {
+            updateQueryParams((params) => {
+              params.delete('q')
+              params.delete('status')
+              params.delete('categoryId')
+            })
           }}
-        />
+          showClearButton={activeFilterCount > 0}
+        >
+          <FilterBarSection title="Busca">
+            <FilterInput value={input} onChange={setInput} placeholder="Pesquisar produtos..." />
+          </FilterBarSection>
+
+          <FilterBarSection title="Status">
+            <FilterSelect
+              value={status}
+              onChange={(val) => {
+                updateQueryParams((params) => {
+                  if (val === 'all') {
+                    params.delete('status')
+                  } else {
+                    params.set('status', val)
+                  }
+                })
+              }}
+              options={STATUS_OPTIONS as any}
+              placeholder="Selecione status"
+            />
+          </FilterBarSection>
+
+          {categories.length > 0 && (
+            <FilterBarSection title="Categoria">
+              <FilterSelect
+                value={categoryFilter}
+                onChange={(val) => {
+                  updateQueryParams((params) => {
+                    if (val === 'all') {
+                      params.delete('categoryId')
+                    } else {
+                      params.set('categoryId', val)
+                    }
+                  })
+                }}
+                options={[
+                  { value: 'all', label: 'Todas' },
+                  ...categories.map((c) => ({ value: c.id, label: c.name })),
+                ]}
+                placeholder="Selecione categoria"
+              />
+            </FilterBarSection>
+          )}
+        </FilterBar>
       </div>
 
-      <div className="overflow-hidden rounded-xl border bg-card">
-        <table className="min-w-full border-collapse text-sm">
-          <thead className="bg-muted/50 text-left">
-            <tr>
-              <th className="px-4 py-3 font-medium text-muted-foreground">Produto</th>
-              <th className="px-4 py-3 font-medium text-muted-foreground">Categoria</th>
-              <th className="px-4 py-3 font-medium text-muted-foreground">Preço</th>
-              <th className="px-4 py-3 font-medium text-muted-foreground">Custo</th>
-              <th className="px-4 py-3 font-medium text-muted-foreground">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {productsQuery.data?.items.map((product) => (
-              <tr key={product.id} className="border-t">
-                <td className="px-4 py-3">
-                  <div className="font-medium text-foreground">{product.name}</div>
-                  <p className="text-xs text-muted-foreground">
-                    Atualizado em {new Date(product.updatedAt).toLocaleDateString('pt-BR')}
-                  </p>
-                </td>
-                <td className="px-4 py-3">{product.category?.name ?? '—'}</td>
-                <td className="px-4 py-3">
-                  {product.price != null ? formatCurrency(product.price) : '—'}
-                </td>
-                <td className="px-4 py-3">
-                  {product.cost != null ? formatCurrency(product.cost) : '—'}
-                </td>
-                <td className="px-4 py-3">
-                  <Badge variant={product.active ? 'default' : 'secondary'}>
-                    {product.active ? 'Ativo' : 'Inativo'}
-                  </Badge>
-                </td>
-              </tr>
-            ))}
-            {!productsQuery.data?.items.length && !productsQuery.isFetching ? (
-              <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-sm text-muted-foreground">
-                  Nenhum produto encontrado.
-                </td>
-              </tr>
-            ) : null}
-          </tbody>
-        </table>
-        {productsQuery.isFetching ? (
-          <div className="border-t px-4 py-2 text-sm text-muted-foreground">Atualizando...</div>
-        ) : null}
+      {/* Mobile Header */}
+      <div className="md:hidden">
+        <DataTableFiltersButton activeCount={activeFilterCount} onClick={() => setIsFiltersOpen(true)} />
       </div>
 
-      <div className="flex items-center justify-between text-sm">
-        <span>
-          Página {productsQuery.data?.page ?? 1} de {totalPages}
-        </span>
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            className="cursor-pointer"
-            disabled={page <= 1 || productsQuery.isFetching}
-            onClick={() => goToPage(page - 1)}
-          >
-            Anterior
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            className="cursor-pointer"
-            disabled={productsQuery.isFetching || page >= totalPages}
-            onClick={() => goToPage(page + 1)}
-          >
-            Próxima
-          </Button>
-        </div>
-      </div>
-    </section>
+      {/* Mobile Filters Sheet */}
+      <DataTableFiltersSheet open={isFiltersOpen} onOpenChange={setIsFiltersOpen} title="Filtros">
+        <FilterGroup label="Busca">
+          <FilterInput value={input} onChange={setInput} placeholder="Pesquisar produtos..." />
+        </FilterGroup>
+
+        <FilterGroup label="Status">
+          <FilterSelect
+            value={status}
+            onChange={(val) => {
+              updateQueryParams((params) => {
+                if (val === 'all') {
+                  params.delete('status')
+                } else {
+                  params.set('status', val)
+                }
+              })
+            }}
+            options={STATUS_OPTIONS as any}
+            placeholder="Selecione status"
+          />
+        </FilterGroup>
+
+        {categories.length > 0 && (
+          <FilterGroup label="Categoria">
+            <FilterSelect
+              value={categoryFilter}
+              onChange={(val) => {
+                updateQueryParams((params) => {
+                  if (val === 'all') {
+                    params.delete('categoryId')
+                  } else {
+                    params.set('categoryId', val)
+                  }
+                })
+              }}
+              options={[
+                { value: 'all', label: 'Todas' },
+                ...categories.map((c) => ({ value: c.id, label: c.name })),
+              ]}
+              placeholder="Selecione categoria"
+            />
+          </FilterGroup>
+        )}
+      </DataTableFiltersSheet>
+
+      {/* Responsive Table */}
+      <ResponsiveDataTable
+        data={items}
+        columns={columns}
+        mobileCard={(row) => (
+          <ProductCard
+            id={row.original.id}
+            name={row.original.name}
+            active={row.original.active}
+            category={row.original.category}
+            price={row.original.price}
+            cost={row.original.cost}
+            updatedAt={row.original.updatedAt}
+          />
+        )}
+        pagination={{
+          page,
+          pageSize,
+          total,
+          onPageChange: (newPage) => {
+            const params = new URLSearchParams(Array.from(searchParams.entries()))
+            params.set('page', String(newPage))
+            router.push(`/dashboard/products?${params.toString()}`)
+          },
+          onPageSizeChange: () => {
+            // Keep default page size for products
+          },
+        }}
+        isLoading={productsQuery.isLoading}
+        isError={productsQuery.isError}
+      />
+
+      {/* Product Form Dialog */}
+      <ProductFormDialog
+        categories={categories}
+        open={isProductFormDialogOpen}
+        onOpenChange={setIsProductFormDialogOpen}
+      />
+
+      {/* Floating Action Button */}
+      <FloatingActionButton
+        icon={Plus}
+        label="Criar novo produto"
+        onClick={() => setIsProductFormDialogOpen(true)}
+      />
+    </div>
   )
-}
-
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(value)
 }

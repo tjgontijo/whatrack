@@ -80,10 +80,14 @@ export type CreateLeadFormValues = z.infer<typeof createLeadSchema>
 
 export type NewLeadDialogProps = {
   onSuccess?: () => void
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
-export function NewLeadDialog({ onSuccess }: NewLeadDialogProps) {
-  const [open, setOpen] = useState(false)
+export function NewLeadDialog({ onSuccess, open: controlledOpen, onOpenChange }: NewLeadDialogProps) {
+  const [internalOpen, setInternalOpen] = useState(false)
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen
+  const setOpen = controlledOpen !== undefined ? onOpenChange || (() => {}) : setInternalOpen
   const queryClient = useQueryClient()
 
   const {
@@ -147,12 +151,14 @@ export function NewLeadDialog({ onSuccess }: NewLeadDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        <Button type="button" className="gap-2 cursor-pointer">
-          <Plus className="h-4 w-4" />
-          Novo lead
-        </Button>
-      </DialogTrigger>
+      {controlledOpen === undefined && (
+        <DialogTrigger asChild>
+          <Button type="button" className="gap-2 cursor-pointer">
+            <Plus className="h-4 w-4" />
+            Novo lead
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="max-h-[90vh] w-full max-w-lg overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Adicionar novo lead</DialogTitle>

@@ -2147,7 +2147,7 @@ export const OrganizationProfileScalarFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
   cpf: 'cpf',
-  onboardingCompleted: 'onboardingCompleted',
+  onboardingStatus: 'onboardingStatus',
   onboardingCompletedAt: 'onboardingCompletedAt',
   avgTicket: 'avgTicket',
   attendantsCount: 'attendantsCount',
@@ -2454,6 +2454,20 @@ export type EnumSaleStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$Prism
  * Reference to a field of type 'SaleStatus[]'
  */
 export type ListEnumSaleStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SaleStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'OnboardingStatus'
+ */
+export type EnumOnboardingStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OnboardingStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'OnboardingStatus[]'
+ */
+export type ListEnumOnboardingStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OnboardingStatus[]'>
     
 
 

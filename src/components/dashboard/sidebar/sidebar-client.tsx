@@ -26,6 +26,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
     SidebarRail,
+    useSidebar,
 } from '@/components/ui/sidebar'
 import { WhatsAppIcon, MetaIcon } from '@/components/icons'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
@@ -60,6 +61,7 @@ type SidebarClientProps = {
 
 export function SidebarClient({ navItems }: SidebarClientProps) {
     const pathname = usePathname()
+    const { isMobile, setOpenMobile } = useSidebar()
     const { data: session } = useSession()
     const { data: activeOrg } = authClient.useActiveOrganization()
     const { data: organizations } = authClient.useListOrganizations()
@@ -68,6 +70,13 @@ export function SidebarClient({ navItems }: SidebarClientProps) {
     const userEmail = session?.user?.email || ''
     const userImage = session?.user?.image
     const organizationName = activeOrg?.name || organizations?.[0]?.name || ''
+
+    // Handler to close sidebar on mobile when clicking a menu item
+    const handleNavClick = () => {
+        if (isMobile) {
+            setOpenMobile(false)
+        }
+    }
 
     // Separate nav items into groups
     const platformItems = navItems.filter(item =>
@@ -131,7 +140,7 @@ export function SidebarClient({ navItems }: SidebarClientProps) {
                                 return (
                                     <SidebarMenuItem key={item.href}>
                                         <SidebarMenuButton asChild isActive={isActive} tooltip={item.title}>
-                                            <Link href={item.href}>
+                                            <Link href={item.href} onClick={handleNavClick}>
                                                 {Icon && <Icon className="h-4 w-4" />}
                                                 <span>{item.title}</span>
                                             </Link>
@@ -154,7 +163,7 @@ export function SidebarClient({ navItems }: SidebarClientProps) {
                                 return (
                                     <SidebarMenuItem key={item.href}>
                                         <SidebarMenuButton asChild isActive={isActive} tooltip={item.title}>
-                                            <Link href={item.href}>
+                                            <Link href={item.href} onClick={handleNavClick}>
                                                 {Icon && <Icon className="h-4 w-4" />}
                                                 <span>{item.title}</span>
                                             </Link>
@@ -177,7 +186,7 @@ export function SidebarClient({ navItems }: SidebarClientProps) {
                                 return (
                                     <SidebarMenuItem key={item.href}>
                                         <SidebarMenuButton asChild isActive={isActive} tooltip={item.title}>
-                                            <Link href={item.href}>
+                                            <Link href={item.href} onClick={handleNavClick}>
                                                 {Icon && <Icon className="h-4 w-4" />}
                                                 <span>{item.title}</span>
                                             </Link>

@@ -3,8 +3,6 @@
 import { Suspense } from 'react'
 
 import ClientLeadsTable from '@/components/dashboard/leads/client-leads-table'
-import { NewLeadDialog } from '@/components/dashboard/leads/new-lead_dialog'
-import { HeaderActions } from '@/components/dashboard/header-actions'
 import { Skeleton } from '@/components/ui/skeleton'
 
 function TableSkeleton() {
@@ -36,14 +34,8 @@ function TableSkeleton() {
 
 export default function LeadsPage() {
   return (
-    <>
-      <HeaderActions>
-        <NewLeadDialog />
-      </HeaderActions>
-
-      <Suspense fallback={<TableSkeleton />}>
-        <ClientLeadsTable />
-      </Suspense>
-    </>
+    <Suspense fallback={<TableSkeleton />}>
+      <ClientLeadsTable />
+    </Suspense>
   )
 }
