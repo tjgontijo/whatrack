@@ -12,7 +12,6 @@ import { FilterInput } from '@/components/data-table/filters/filter-input'
 import { FilterSelect } from '@/components/data-table/filters/filter-select'
 import { FilterSwitch } from '@/components/data-table/filters/filter-switch'
 import { FilterGroup } from '@/components/data-table/filters/filter-group'
-import { FilterBar, FilterBarSection } from '@/components/data-table/filters/filter-bar'
 import { DataTableFiltersButton } from '@/components/data-table/filters/data-table-filters-button'
 import { DataTableFiltersSheet } from '@/components/data-table/filters/data-table-filters-sheet'
 import { FloatingActionButton } from '@/components/data-table/floating-action-button'
@@ -246,112 +245,15 @@ export default function ClientLeadsTable() {
 
   return (
     <div className="space-y-4">
-      {/* Header Actions */}
+      {/* Header Actions - Only Filter Button */}
       <HeaderActions>
-        <div className="flex items-center gap-2">
-          {/* Mobile: Filters Button */}
-          {!isDesktop && (
-            <DataTableFiltersButton
-              activeCount={activeFilterCount}
-              onClick={() => setIsFiltersOpen(true)}
-            />
-          )}
-
-          {/* Desktop: View Mode Toggle */}
-          {isDesktop && (
-            <div className="flex items-center gap-1 border rounded-md p-1">
-              <Button
-                variant={viewMode === 'table' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('table')}
-                title="Visualizar como tabela"
-              >
-                <List className="w-4 h-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'cards' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('cards')}
-                title="Visualizar como cards"
-              >
-                <LayoutGrid className="w-4 h-4" />
-              </Button>
-            </div>
-          )}
-        </div>
+        <DataTableFiltersButton
+          activeCount={activeFilterCount}
+          onClick={() => setIsFiltersOpen(true)}
+        />
       </HeaderActions>
 
-      {/* Desktop Filters Bar */}
-      {isDesktop && (
-        <FilterBar>
-          <FilterBarSection title="Busca e Datas">
-            <div className="flex gap-2">
-              <FilterInput
-                value={input}
-                onChange={setInput}
-                placeholder="Pesquisar leads..."
-              />
-              <FilterSelect
-                value={dateRange ?? 'all'}
-                onChange={(val) => {
-                  updateQueryParams((params) => {
-                    if (val === 'all') {
-                      params.delete('dateRange')
-                    } else {
-                      params.set('dateRange', val)
-                    }
-                  })
-                }}
-                options={[
-                  { value: 'all', label: 'Todas as datas' },
-                  ...DATE_FILTER_OPTIONS,
-                ]}
-                placeholder="Selecione data"
-              />
-            </div>
-          </FilterBarSection>
-
-          <FilterBarSection title="Status">
-            <div className="grid grid-cols-2 gap-2">
-              {BOOLEAN_FILTER_OPTIONS.map(({ key, label }) => (
-                <FilterSwitch
-                  key={key}
-                  label={label}
-                  checked={activeBooleanFilters[key]}
-                  onChange={(checked) => {
-                    updateQueryParams((params) => {
-                      if (!checked) {
-                        params.delete(key)
-                      } else {
-                        params.set(key, 'true')
-                      }
-                    })
-                  }}
-                />
-              ))}
-            </div>
-          </FilterBarSection>
-
-          {/* Clear Filters Button */}
-          {activeFilterCount > 0 && (
-            <div className="flex items-center gap-2 border-l pl-4">
-              <span className="text-xs text-muted-foreground">
-                {activeFilterCount} filtro{activeFilterCount > 1 ? 's' : ''} ativo{activeFilterCount > 1 ? 's' : ''}
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleClearAllFilters}
-              >
-                <X className="w-4 h-4 mr-1" />
-                Limpar
-              </Button>
-            </div>
-          )}
-        </FilterBar>
-      )}
-
-      {/* Mobile Filters Sheet */}
+      {/* Filters Sheet (Mobile & Desktop) */}
       <DataTableFiltersSheet
         open={isFiltersOpen}
         onOpenChange={setIsFiltersOpen}
@@ -405,6 +307,30 @@ export default function ClientLeadsTable() {
           ))}
         </FilterGroup>
       </DataTableFiltersSheet>
+
+      {/* Desktop: View Mode Toggle */}
+      {isDesktop && (
+        <div className="flex justify-end">
+          <div className="flex items-center gap-1 border rounded-md p-1">
+            <Button
+              variant={viewMode === 'table' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('table')}
+              title="Visualizar como tabela"
+            >
+              <List className="w-4 h-4" />
+            </Button>
+            <Button
+              variant={viewMode === 'cards' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('cards')}
+              title="Visualizar como cards"
+            >
+              <LayoutGrid className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Responsive Table */}
       <ResponsiveDataTable
