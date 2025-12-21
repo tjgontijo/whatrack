@@ -3,6 +3,7 @@
 import { Suspense } from 'react'
 
 import ClientLeadsTable from '@/components/dashboard/leads/client-leads-table'
+import { HeaderActions } from '@/components/dashboard/header-actions'
 import { Skeleton } from '@/components/ui/skeleton'
 
 function TableSkeleton() {

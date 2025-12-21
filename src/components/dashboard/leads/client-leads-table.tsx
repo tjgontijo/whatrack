@@ -15,6 +15,7 @@ import { FilterGroup } from '@/components/data-table/filters/filter-group'
 import { DataTableFiltersButton } from '@/components/data-table/filters/data-table-filters-button'
 import { DataTableFiltersSheet } from '@/components/data-table/filters/data-table-filters-sheet'
 import { FloatingActionButton } from '@/components/data-table/floating-action-button'
+import { HeaderActions } from '@/components/dashboard/header-actions'
 
 import { LeadTicketsDialog } from '@/components/dashboard/tickets/lead-tickets-dialog'
 import { LeadSalesDialog } from '@/components/dashboard/sales/lead-sales-dialog'
@@ -238,11 +239,13 @@ export default function ClientLeadsTable() {
 
   return (
     <div className="space-y-4">
-      {/* Filter Button (Desktop and Mobile) */}
-      <DataTableFiltersButton
-        activeCount={activeFilterCount}
-        onClick={() => setIsFiltersOpen(true)}
-      />
+      {/* Render Filter Button in Header */}
+      <HeaderActions>
+        <DataTableFiltersButton
+          activeCount={activeFilterCount}
+          onClick={() => setIsFiltersOpen(true)}
+        />
+      </HeaderActions>
 
       {/* Mobile Filters Sheet */}
       <DataTableFiltersSheet
