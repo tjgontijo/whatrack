@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 
-// Tipar a resposta usando Zod para garantir consistência e evitar `any`
+// Lead schema - simplified without ticket/conversation dependencies
 const leadSchema = z.object({
   id: z.string(),
   name: z.string().nullable(),
@@ -14,10 +14,6 @@ const leadSchema = z.object({
   mail: z.string().nullable(),
   remoteJid: z.string().nullable(),
   createdAt: z.date(),
-  hasTickets: z.boolean(),
-  hasSales: z.boolean(),
-  hasMessages: z.boolean(),
-  hasAudit: z.boolean(),
 })
 
 const leadsResponseSchema = z.object({
@@ -29,9 +25,9 @@ const leadsResponseSchema = z.object({
 
 type LeadPayload = z.infer<typeof leadsResponseSchema>
 
-// Simple in-memory cache to reduce repeated hits from the client in dev
+// Simple in-memory cache
 const cache = new Map<string, { ts: number; data: LeadPayload }>()
-const CACHE_TTL_MS = 3000 // 3s is enough to cut duplicate refetches in dev
+const CACHE_TTL_MS = 3000
 
 // Prevent concurrent requests from exhausting the connection pool
 let running = false
@@ -112,12 +108,6 @@ function resolveDateRange(preset: DateRangePreset): { gte: Date; lte: Date } {
   return { gte: prevMonthStart, lte: prevMonthEnd }
 }
 
-function parseBooleanParam(value: string | null): boolean | undefined {
-  if (value === 'true') return true
-  if (value === 'false') return false
-  return undefined
-}
-
 const createLeadSchema = z.object({
   name: z.string().optional(),
   phone: z.string().optional(),
@@ -153,7 +143,7 @@ export async function POST(req: Request) {
     // Handle Prisma unique constraint violations
     if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
       const meta = (error as { meta?: { target?: string[] } }).meta
-      const field = meta?.target?.[1] // e.g., 'phone' or 'remoteJid'
+      const field = meta?.target?.[1]
 
       if (field === 'phone') {
         return NextResponse.json(
@@ -198,18 +188,13 @@ export async function GET(req: Request) {
 
   const dateRangeValue = searchParams.get('dateRange')
   const dateRangePreset = isDateRangePreset(dateRangeValue) ? (dateRangeValue as DateRangePreset) : undefined
-  const hasTicketsFilter = parseBooleanParam(searchParams.get('hasTickets'))
-  const hasSalesFilter = parseBooleanParam(searchParams.get('hasSales'))
-  const hasMessagesFilter = parseBooleanParam(
-    searchParams.get('hasMessages') ?? searchParams.get('hasMessage')
-  )
 
   const ors: Prisma.LeadWhereInput[] = []
   if (q) {
     const imode = 'insensitive' as Prisma.QueryMode
     ors.push({ name: { contains: q, mode: imode } })
     ors.push({ phone: { contains: q, mode: imode } })
-    ors.push({ mail: { contains: q, mode: imode } })    
+    ors.push({ mail: { contains: q, mode: imode } })
     ors.push({ remoteJid: { contains: q, mode: imode } })
     const looksLikeUuid = /^[0-9a-fA-F-]{32,36}$/.test(q)
     if (looksLikeUuid) ors.push({ id: q })
@@ -225,28 +210,6 @@ export async function GET(req: Request) {
     filterConditions.push({ createdAt: { gte: range.gte, lte: range.lte } })
   }
 
-  if (hasTicketsFilter !== undefined) {
-    filterConditions.push(
-      hasTicketsFilter ? { whatsappConversations: { some: { tickets: { some: {} } } } } : { whatsappConversations: { none: { tickets: { some: {} } } } }
-    )
-  }
-
-  if (hasSalesFilter !== undefined) {
-    filterConditions.push(
-      hasSalesFilter
-        ? { whatsappConversations: { some: { tickets: { some: { sales: { some: {} } } } } } }
-        : { whatsappConversations: { none: { tickets: { some: { sales: { some: {} } } } } } }
-    )
-  }
-
-  if (hasMessagesFilter !== undefined) {
-    filterConditions.push(
-      hasMessagesFilter
-        ? { whatsappConversations: { some: { tickets: { some: { messages: { some: {} } } } } } }
-        : { whatsappConversations: { none: { tickets: { some: { messages: { some: {} } } } } } }
-    )
-  }
-
   const baseWhere: Prisma.LeadWhereInput = { organizationId }
   let where: Prisma.LeadWhereInput = baseWhere
   if (filterConditions.length === 1) {
@@ -256,27 +219,12 @@ export async function GET(req: Request) {
   }
 
   try {
-    console.log('[api/leads] params', {
-      q,
-      page,
-      pageSize,
-      dateRange: dateRangePreset,
-      hasTickets: hasTicketsFilter,
-      hasSales: hasSalesFilter,
-      hasMessages: hasMessagesFilter,
-    })
-    console.log('[api/leads] where', JSON.stringify(where))
-
     const cacheKey = JSON.stringify({ organizationId, q, page, pageSize, where })
     const cached = cache.get(cacheKey)
     if (cached && Date.now() - cached.ts < CACHE_TTL_MS) {
-      console.log('[api/leads] cache hit')
       return NextResponse.json(cached.data)
     }
 
-    console.time('[api/leads] query')
-
-    // ⚠️ Evita uso de $transaction (abre múltiplas conexões)
     const [items, total] = await serialize(async () => {
       const leads = await prisma.lead.findMany({
         where,
@@ -290,47 +238,13 @@ export async function GET(req: Request) {
           mail: true,
           remoteJid: true,
           createdAt: true,
-          whatsappConversations: {
-            select: {
-              tickets: {
-                select: {
-                  id: true,
-                  _count: {
-                    select: {
-                      sales: true,
-                      messages: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
         },
       })
 
       const total = await prisma.lead.count({ where })
 
-      const items = leads.map((lead) => {
-        const allTickets = lead.whatsappConversations.flatMap((conv) => conv.tickets)
-        return {
-          id: lead.id,
-          name: lead.name,
-          phone: lead.phone,
-          mail: lead.mail,
-          remoteJid: lead.remoteJid,
-          createdAt: lead.createdAt,
-          hasTickets: allTickets.length > 0,
-          hasSales: allTickets.some((ticket) => ticket._count.sales > 0),
-          hasMessages: allTickets.some((ticket) => ticket._count.messages > 0),
-          hasAudit: false, // TODO: Implement audit record detection
-        }
-      })
-
-      return [items, total] as const
+      return [leads, total] as const
     })
-
-    console.timeEnd('[api/leads] query')
-    console.log('[api/leads] result', { total, itemsLen: items.length })
 
     const payload = leadsResponseSchema.parse({ items, total, page, pageSize })
     cache.set(cacheKey, { ts: Date.now(), data: payload })

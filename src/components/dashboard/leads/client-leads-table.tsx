@@ -7,25 +7,23 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { useState } from 'react'
 
 import { ResponsiveDataTable } from '@/components/data-table/responsive-data-table'
+import { PageHeader } from '@/components/data-table/page-header'
+import { ContentHeader, ContentHeaderTabs, ContentHeaderActions } from '@/components/data-table/content-header'
+import { ContentHeaderTab } from '@/components/data-table/content-header-tab'
+import { SegmentedControl } from '@/components/data-table/segmented-control'
 import { LeadCard } from '@/components/data-table/cards/lead-card'
 import { FilterInput } from '@/components/data-table/filters/filter-input'
 import { FilterSelect } from '@/components/data-table/filters/filter-select'
-import { FilterSwitch } from '@/components/data-table/filters/filter-switch'
 import { FilterGroup } from '@/components/data-table/filters/filter-group'
 import { DataTableFiltersButton } from '@/components/data-table/filters/data-table-filters-button'
 import { DataTableFiltersSheet } from '@/components/data-table/filters/data-table-filters-sheet'
-import { FloatingActionButton } from '@/components/data-table/floating-action-button'
-import { HeaderActions } from '@/components/dashboard/header-actions'
-import { useIsMobile } from '@/hooks/use-mobile'
 import { Button } from '@/components/ui/button'
+import { FloatingActionButton } from '@/components/data-table/floating-action-button'
+import { useIsMobile } from '@/hooks/use-mobile'
 
-import { LeadTicketsDialog } from '@/components/dashboard/tickets/lead-tickets-dialog'
-import { LeadSalesDialog } from '@/components/dashboard/sales/lead-sales-dialog'
-import { LeadMessagesDialog } from '@/components/dashboard/messages/lead-messages-dialog'
-import { LeadAuditDialog } from '@/components/dashboard/sales_analytics/lead-audit-dialog'
 import { NewLeadDialog } from '@/components/dashboard/leads/new-lead_dialog'
 
-import { Inbox, ShoppingBag, MessageSquareText, ClipboardCheck, Plus, LayoutGrid, List, X } from 'lucide-react'
+import { Plus, LayoutGrid, List } from 'lucide-react'
 
 const DATE_FILTER_OPTIONS = [
   { value: '1d', label: '1 dia' },
@@ -38,15 +36,6 @@ const DATE_FILTER_OPTIONS = [
 ] as const
 
 type DateFilterValue = (typeof DATE_FILTER_OPTIONS)[number]['value']
-type DateFilterSelectValue = DateFilterValue | 'all'
-type BooleanFilterKey = 'hasTickets' | 'hasSales' | 'hasMessages' | 'hasAudit'
-
-const BOOLEAN_FILTER_OPTIONS: Array<{ key: BooleanFilterKey; label: string }> = [
-  { key: 'hasTickets', label: 'Com Tickets' },
-  { key: 'hasSales', label: 'Com Vendas' },
-  { key: 'hasMessages', label: 'Com Mensagens' },
-  { key: 'hasAudit', label: 'Com Auditoria' },
-]
 
 type Lead = {
   id: string
@@ -55,10 +44,6 @@ type Lead = {
   mail: string | null
   remoteJid: string | null
   createdAt: Date
-  hasTickets: boolean
-  hasSales: boolean
-  hasAudit: boolean
-  hasMessages: boolean
 }
 
 type ApiResponse = {
@@ -81,6 +66,7 @@ export default function ClientLeadsTable() {
   const q = (searchParams.get('q') || '').trim()
   const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1)
   const pageSize = Math.max(1, Math.min(100, parseInt(searchParams.get('pageSize') || '20', 10) || 20))
+  const statusFilter = searchParams.get('status') || 'all'
 
   const rawDateRange = searchParams.get('dateRange')
   const dateRange = React.useMemo<DateFilterValue | undefined>(() => {
@@ -89,17 +75,6 @@ export default function ClientLeadsTable() {
       ? (rawDateRange as DateFilterValue)
       : undefined
   }, [rawDateRange])
-
-  const activeBooleanFilters = React.useMemo<Record<BooleanFilterKey, boolean>>(() => {
-    return {
-      hasTickets: searchParams.get('hasTickets') === 'true',
-      hasSales: searchParams.get('hasSales') === 'true',
-      hasMessages: searchParams.get('hasMessages') === 'true',
-      hasAudit: searchParams.get('hasAudit') === 'true',
-    }
-  }, [searchParams])
-
-  const booleanFilterKey = React.useMemo(() => JSON.stringify(activeBooleanFilters), [activeBooleanFilters])
 
   // Update query params
   const updateQueryParams = React.useCallback(
@@ -154,7 +129,7 @@ export default function ClientLeadsTable() {
 
   // Fetch data
   const { data, isLoading, isError } = useQuery<ApiResponse>({
-    queryKey: ['leads', q, page, pageSize, dateRange ?? null, booleanFilterKey] as const,
+    queryKey: ['leads', q, page, pageSize, dateRange ?? null] as const,
     queryFn: async (): Promise<ApiResponse> => {
       const u = new URL('/api/v1/leads', window.location.origin)
       if (q) u.searchParams.set('q', q)
@@ -162,11 +137,6 @@ export default function ClientLeadsTable() {
       u.searchParams.set('pageSize', String(pageSize))
       if (dateRange) {
         u.searchParams.set('dateRange', dateRange)
-      }
-      for (const [key, value] of Object.entries(activeBooleanFilters)) {
-        if (value) {
-          u.searchParams.set(key, 'true')
-        }
       }
       const res = await fetch(u.toString(), { cache: 'no-store' })
       if (!res.ok) throw new Error('Failed to fetch')
@@ -181,28 +151,8 @@ export default function ClientLeadsTable() {
 
   const items = data?.items ?? []
   const total = data?.total ?? 0
-  const pageSizeFromData = data?.pageSize ?? pageSize
 
-  // Dialog state
-  const [dialog, setDialog] = React.useState<
-    | { lead: Lead; mode: 'tickets' }
-    | { lead: Lead; mode: 'sales' }
-    | { lead: Lead; mode: 'messages' }
-    | { lead: Lead; mode: 'audits' }
-    | null
-  >(null)
   const [isNewLeadDialogOpen, setIsNewLeadDialogOpen] = React.useState(false)
-
-  const handleOpenDialog = React.useCallback((leadId: string, mode: 'tickets' | 'sales' | 'messages' | 'audits') => {
-    const lead = items.find((l) => l.id === leadId)
-    if (lead) {
-      setDialog({ lead, mode })
-    }
-  }, [items])
-
-  const handleCloseDialog = React.useCallback(() => {
-    setDialog(null)
-  }, [])
 
   // Desktop columns for ResponsiveDataTable
   const columns = React.useMemo<ColumnDef<Lead>[]>(
@@ -211,10 +161,6 @@ export default function ClientLeadsTable() {
       { header: 'Telefone', accessorKey: 'phone', cell: ({ getValue }) => getValue() || '-' },
       { header: 'Email', accessorKey: 'mail', cell: ({ getValue }) => getValue() || '-' },
       { header: 'Criado em', accessorKey: 'createdAt', cell: ({ getValue }) => new Date(getValue() as Date).toLocaleString('pt-BR') },
-      { header: 'Tickets', accessorKey: 'hasTickets', cell: ({ getValue }) => (getValue() ? '✓' : '') },
-      { header: 'Vendas', accessorKey: 'hasSales', cell: ({ getValue }) => (getValue() ? '✓' : '') },
-      { header: 'Mensagens', accessorKey: 'hasMessages', cell: ({ getValue }) => (getValue() ? '✓' : '') },
-      { header: 'Auditoria', accessorKey: 'hasAudit', cell: ({ getValue }) => (getValue() ? '✓' : '') },
     ],
     []
   )
@@ -227,47 +173,90 @@ export default function ClientLeadsTable() {
     let count = 0
     if (q) count++
     if (dateRange) count++
-    if (Object.values(activeBooleanFilters).some(Boolean)) count++
     return count
-  }, [q, dateRange, activeBooleanFilters])
-
-  // Clear all filters
-  const handleClearAllFilters = React.useCallback(() => {
-    updateQueryParams((params) => {
-      params.delete('q')
-      params.delete('dateRange')
-      params.delete('hasTickets')
-      params.delete('hasSales')
-      params.delete('hasMessages')
-      params.delete('hasAudit')
-    })
-  }, [updateQueryParams])
+  }, [q, dateRange])
 
   return (
     <div className="space-y-4">
-      {/* Header Actions - Only Filter Button */}
-      <HeaderActions>
+      {/* Page Header - Title + Description + Statistics */}
+      <PageHeader
+        title="Leads"
+        description="Manage and track your potential customers."
+        stats={[
+          {
+            label: 'TOTAL LEADS',
+            value: total,
+          },
+        ]}
+      />
+
+      {/* Content Header - Search + Tabs + View Toggle + Filters Button + Add Lead */}
+      <ContentHeader>
+        <FilterInput
+          value={input}
+          onChange={setInput}
+          placeholder="Pesquisar leads..."
+          isLoading={isLoading}
+        />
+
+        <ContentHeaderTabs>
+          <ContentHeaderTab
+            items={[
+              { value: 'all', label: 'All' },
+              { value: 'new', label: 'New' },
+              { value: 'contacted', label: 'Contacted' },
+              { value: 'customer', label: 'Customer' },
+            ]}
+            value={statusFilter}
+            onChange={(value) => {
+              const params = new URLSearchParams(Array.from(searchParams.entries()))
+              if (value === 'all') {
+                params.delete('status')
+              } else {
+                params.set('status', value)
+              }
+              params.set('page', '1')
+              router.push(`/dashboard/leads?${params.toString()}`)
+            }}
+          />
+        </ContentHeaderTabs>
+
+        {isDesktop && (
+          <SegmentedControl
+            value={viewMode}
+            onChange={setViewMode as (value: string) => void}
+            options={[
+              { value: 'table', icon: <List className="w-4 h-4" />, label: 'Tabela' },
+              { value: 'cards', icon: <LayoutGrid className="w-4 h-4" />, label: 'Cards' },
+            ]}
+            aria-label="Modo de visualização"
+          />
+        )}
+
         <DataTableFiltersButton
           activeCount={activeFilterCount}
           onClick={() => setIsFiltersOpen(true)}
         />
-      </HeaderActions>
+
+        <ContentHeaderActions>
+          <Button
+            size="sm"
+            onClick={() => setIsNewLeadDialogOpen(true)}
+            className="gap-1"
+          >
+            <Plus className="h-4 w-4" />
+            <span className="hidden sm:inline">Add Lead</span>
+          </Button>
+        </ContentHeaderActions>
+      </ContentHeader>
 
       {/* Filters Sheet (Mobile & Desktop) */}
       <DataTableFiltersSheet
         open={isFiltersOpen}
         onOpenChange={setIsFiltersOpen}
-        title="Filtros"
+        title="Filtros Avançados"
         onApply={() => setIsFiltersOpen(false)}
       >
-        <FilterGroup label="Busca">
-          <FilterInput
-            value={input}
-            onChange={setInput}
-            placeholder="Pesquisar leads..."
-          />
-        </FilterGroup>
-
         <FilterGroup label="Data">
           <FilterSelect
             value={dateRange ?? 'all'}
@@ -287,50 +276,7 @@ export default function ClientLeadsTable() {
             placeholder="Selecione data"
           />
         </FilterGroup>
-
-        <FilterGroup label="Status">
-          {BOOLEAN_FILTER_OPTIONS.map(({ key, label }) => (
-            <FilterSwitch
-              key={key}
-              label={label}
-              checked={activeBooleanFilters[key]}
-              onChange={(checked) => {
-                updateQueryParams((params) => {
-                  if (!checked) {
-                    params.delete(key)
-                  } else {
-                    params.set(key, 'true')
-                  }
-                })
-              }}
-            />
-          ))}
-        </FilterGroup>
       </DataTableFiltersSheet>
-
-      {/* Desktop: View Mode Toggle */}
-      {isDesktop && (
-        <div className="flex justify-end">
-          <div className="flex items-center gap-1 border rounded-md p-1">
-            <Button
-              variant={viewMode === 'table' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('table')}
-              title="Visualizar como tabela"
-            >
-              <List className="w-4 h-4" />
-            </Button>
-            <Button
-              variant={viewMode === 'cards' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('cards')}
-              title="Visualizar como cards"
-            >
-              <LayoutGrid className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-      )}
 
       {/* Responsive Table */}
       <ResponsiveDataTable
@@ -339,7 +285,7 @@ export default function ClientLeadsTable() {
         mobileCard={(row) => (
           <LeadCard
             lead={row.original}
-            onOpenDialog={handleOpenDialog}
+            onOpenDialog={() => { }}
           />
         )}
         pagination={{
@@ -362,63 +308,6 @@ export default function ClientLeadsTable() {
         isLoading={isLoading}
         isError={isError}
       />
-
-      {/* Dialogs */}
-      {dialog && dialog.mode === 'tickets' && (
-        <LeadTicketsDialog
-          leadId={dialog.lead.id}
-          leadName={dialog.lead.name}
-          leadPhone={dialog.lead.phone}
-          open={Boolean(dialog)}
-          onOpenChange={(open: boolean) => {
-            if (!open) {
-              handleCloseDialog()
-            }
-          }}
-        />
-      )}
-
-      {dialog && dialog.mode === 'sales' && (
-        <LeadSalesDialog
-          leadId={dialog.lead.id}
-          leadName={dialog.lead.name}
-          leadPhone={dialog.lead.phone}
-          open={Boolean(dialog)}
-          onOpenChange={(open: boolean) => {
-            if (!open) {
-              handleCloseDialog()
-            }
-          }}
-        />
-      )}
-
-      {dialog && dialog.mode === 'messages' && (
-        <LeadMessagesDialog
-          leadId={dialog.lead.id}
-          leadName={dialog.lead.name}
-          leadPhone={dialog.lead.phone}
-          open={Boolean(dialog)}
-          onOpenChange={(open: boolean) => {
-            if (!open) {
-              handleCloseDialog()
-            }
-          }}
-        />
-      )}
-
-      {dialog && dialog.mode === 'audits' && (
-        <LeadAuditDialog
-          leadId={dialog.lead.id}
-          leadName={dialog.lead.name}
-          leadPhone={dialog.lead.phone}
-          open={Boolean(dialog)}
-          onOpenChange={(open: boolean) => {
-            if (!open) {
-              handleCloseDialog()
-            }
-          }}
-        />
-      )}
 
       {/* New Lead Dialog */}
       <NewLeadDialog

@@ -2,9 +2,7 @@ import { performance } from 'node:perf_hooks'
 
 import { prisma } from '@/lib/prisma'
 import { resendProvider } from '@/services/mail/resend'
-import { sendWhatsappMessage } from '@/services/whatsapp/uazapi/send-whatsapp-message'
 import { getEmailTemplate } from './get-email'
-import { getWhatsappMessage } from './get-whatsapp'
 import { AuthDeliveryPayload, AuthDeliveryResult } from './types'
 
 interface AuthDeliveryTimingLog {
@@ -27,12 +25,10 @@ const maskEmail = (email: string): string => email.replace(/(?<=.).(?=[^@]*?@)/g
 
 class AuthDeliveryService {
   /**
-   * Envia mensagem de autenticação via email e/ou WhatsApp
-   * Email é enviado imediatamente (síncrono)
-   * WhatsApp é agendado assincronamente com delay de 15s
+   * Envia mensagem de autenticação via email
    */
   async send(payload: AuthDeliveryPayload): Promise<AuthDeliveryResult> {
-    const { email, type, data, channels = ['email', 'whatsapp'] } = payload
+    const { email, type, data } = payload
     const maskedEmail = maskEmail(email)
     const start = performance.now()
     let afterFind = start
@@ -54,7 +50,6 @@ class AuthDeliveryService {
         select: {
           id: true,
           name: true,
-          phone: true,
         },
       })
       afterFind = performance.now()
@@ -79,87 +74,24 @@ class AuthDeliveryService {
       })
       afterTemplate = performance.now()
 
-      let emailDelivered = false
+      const emailResult = await resendProvider.send({
+        to: email,
+        subject: template.subject,
+        text: template.text,
+        html: template.html,
+      })
+      afterEmail = performance.now()
 
-      if (channels.includes('email')) {
-        const emailResult = await resendProvider.send({
-          to: email,
-          subject: template.subject,
-          text: template.text,
-          html: template.html,
-        })
-        afterEmail = performance.now()
-
-        if (emailResult.success) {
-          emailDelivered = true
-          deliveredChannel = 'email'
-        } else {
-          outcome = 'failure'
-          errorMessage = 'email_delivery_failed'
-        }
-      } else {
-        afterEmail = performance.now()
-      }
-
-      if (channels.includes('whatsapp') && user.phone) {
-        const whatsappNumber = user.phone
-        const userName = displayName
-
-        void (async () => {
-          try {
-            await new Promise((resolve) => setTimeout(resolve, 15000))            
-
-            const message = getWhatsappMessage({
-              type,
-              name: userName,
-              data,
-            })
-
-            const member = await prisma.member.findFirst({
-              where: { userId: user.id },
-              select: { organizationId: true },
-            })
-
-            if (!member?.organizationId) {
-              throw new Error('user_without_organization')
-            }
-
-            const instance = await prisma.whatsappInstance.findFirst({
-              where: {
-                organizationId: member.organizationId,
-                provider: 'UAZAPI',
-                token: { not: null },
-              },
-              select: {
-                instanceId: true,
-              },
-            })
-
-            if (!instance?.instanceId) {
-              throw new Error('no_uazapi_instance_available')
-            }
-
-            await sendWhatsappMessage({
-              organizationId: member.organizationId,
-              instanceId: instance.instanceId,
-              to: whatsappNumber,
-              type: 'text',
-              text: message,
-            })
-          } catch (whatsappError) {
-            console.error(`[AuthDeliveryService] Erro ao enviar via WhatsApp:`, whatsappError)
-          }
-        })()
-      }
-
-      if (emailDelivered) {
-        const finalResult = {
+      if (emailResult.success) {
+        deliveredChannel = 'email'
+        return {
           success: true,
-          channel: 'email' as const,
+          channel: 'email',
         }
-        return finalResult
       }
 
+      outcome = 'failure'
+      errorMessage = 'email_delivery_failed'
       return {
         success: false,
         channel: 'none',
@@ -198,3 +130,4 @@ class AuthDeliveryService {
 }
 
 export const authDeliveryService = new AuthDeliveryService()
+

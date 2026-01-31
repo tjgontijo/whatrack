@@ -11,7 +11,11 @@ import {
     LogOut,
     Building2,
     User,
+    Sun,
+    Moon,
+    Monitor,
 } from 'lucide-react'
+import { useTheme } from 'next-themes'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -23,6 +27,10 @@ import {
     DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
+    DropdownMenuSub,
+    DropdownMenuSubTrigger,
+    DropdownMenuSubContent,
+    DropdownMenuPortal,
 } from '@/components/ui/dropdown-menu'
 import { SidebarMenuButton } from '@/components/ui/sidebar'
 import { authClient } from '@/lib/auth/auth-client'
@@ -40,6 +48,7 @@ export function UserDropdownMenu({
     userImage,
 }: UserDropdownMenuProps) {
     const router = useRouter()
+    const { setTheme } = useTheme()
     const [avatarLoaded, setAvatarLoaded] = React.useState(false)
     const [avatarError, setAvatarError] = React.useState(false)
 
@@ -176,6 +185,34 @@ export function UserDropdownMenu({
                         <Settings className="mr-2 h-4 w-4" />
                         Configurações
                     </DropdownMenuItem>
+                </DropdownMenuGroup>
+
+                <DropdownMenuSeparator />
+
+                <DropdownMenuGroup>
+                    <DropdownMenuSub>
+                        <DropdownMenuSubTrigger>
+                            <Sun className="mr-2 h-4 w-4 dark:hidden" />
+                            <Moon className="mr-2 h-4 w-4 hidden dark:block" />
+                            <span>Tema</span>
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuPortal>
+                            <DropdownMenuSubContent>
+                                <DropdownMenuItem onClick={() => setTheme('light')}>
+                                    <Sun className="mr-2 h-4 w-4" />
+                                    <span>Claro</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setTheme('dark')}>
+                                    <Moon className="mr-2 h-4 w-4" />
+                                    <span>Escuro</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setTheme('system')}>
+                                    <Monitor className="mr-2 h-4 w-4" />
+                                    <span>Sistema</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuSubContent>
+                        </DropdownMenuPortal>
+                    </DropdownMenuSub>
                 </DropdownMenuGroup>
 
                 <DropdownMenuSeparator />

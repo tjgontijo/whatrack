@@ -160,31 +160,6 @@ export function getCountryFlag(value: string): string {
   return '';
 }
 
-/**
- * Normaliza telefone para envio via WuzAPI
- * WuzAPI não aceita o nono dígito em alguns casos
- * @param value - Valor com ou sem máscara
- * @returns Formato: 556182482100 (12 dígitos: 55 + DDD + 8 dígitos)
- */
-export function normalizeForWuzapi(value: string): string {
-  // Remove tudo que não é número
-  let numbers = value.replace(/\D/g, '')
-
-  // Se já tem código de país (55), remove para processar
-  if (numbers.startsWith('55') && numbers.length >= 12) {
-    numbers = numbers.slice(2)
-  }
-
-  // Se tem 11 dígitos (DDD + 9 + número), remove o nono dígito
-  // O nono dígito é sempre o terceiro caractere (após o DDD de 2 dígitos)
-  if (numbers.length === 11 && numbers[2] === '9') {
-    numbers = numbers.slice(0, 2) + numbers.slice(3) // DDD + número sem o 9
-  }
-
-  // Agora deve ter 10 dígitos (DDD + número)
-  // Adiciona código do país
-  return '55' + numbers
-}
 
 /**
  * Formata WhatsApp completo com bandeira e número formatado

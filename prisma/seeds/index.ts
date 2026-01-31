@@ -1,6 +1,8 @@
 import 'dotenv/config'
 import { PrismaClient } from '../generated/prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
+import { seedAdPlatforms } from './ad-platforms.seed'
+import { seedTrackingIdentifierTypes } from './tracking-identifier-types.seed'
 
 interface PgTableRow {
   tablename: string
@@ -72,18 +74,21 @@ async function truncateAllTables() {
 }
 
 /**
- * Seed simplificado - apenas billing plans
- * 
+ * Seed de infraestrutura (plataformas e tipos de identificadores).
+ *
  * Usuários e organizações devem ser criados pelo fluxo normal de sign-up.
  * Este seed é idempotente e pode ser executado múltiplas vezes.
  */
-async function main() {
+export async function runSeed() {
   console.log('🌱 Iniciando seed do banco de dados...')
 
   try {
     if (process.env.TRUNCATE_DB === '1') {
       await truncateAllTables()
     }
+
+    await seedAdPlatforms(prisma)
+    await seedTrackingIdentifierTypes(prisma)
 
     console.log('✅ Seed concluído com sucesso!')
   } catch (error) {
@@ -94,10 +99,3 @@ async function main() {
     console.log('🔌 Conexão com o banco de dados encerrada.')
   }
 }
-
-main()
-  .catch((error) => {
-    console.error('❌ Falha na execução do seed')
-    console.error(error)
-    process.exit(1)
-  })

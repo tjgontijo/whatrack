@@ -20,7 +20,7 @@ import { cn } from '@/lib/utils'
 interface TicketCardProps {
   id: string
   createdAt: string
-  status: string | null
+  stage?: { id: string; name: string; color: string } | null
   pipefyId: string | null
   pipefyUrl: string | null
   utmSource: string | null
@@ -52,7 +52,7 @@ export const TicketCard = React.memo(
       {
         id,
         createdAt,
-        status,
+        stage,
         pipefyId,
         pipefyUrl,
         utmSource,
@@ -74,10 +74,10 @@ export const TicketCard = React.memo(
         <DataTableCard ref={ref} className={className}>
           <DataTableCardHeader>
             <DataTableCardTitle className="text-base">{formattedDate}</DataTableCardTitle>
-            {status && (
+            {stage && (
               <DataTableCardMeta>
-                <Badge variant="secondary" className="text-xs">
-                  {status}
+                <Badge variant="secondary" className="text-xs" style={{ backgroundColor: stage.color, color: 'white' }}>
+                  {stage.name}
                 </Badge>
               </DataTableCardMeta>
             )}

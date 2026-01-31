@@ -1,5 +1,8 @@
 'use client';
 
+import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
+
+
 import * as React from 'react'
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -29,13 +32,15 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   )
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        {children}
-      </ThemeProvider>
-      {process.env.NODE_ENV === 'development' && (
-        <ReactQueryDevtools initialIsOpen={false} position="bottom" />
-      )}
-    </QueryClientProvider>
+    <AppRouterCacheProvider>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          {children}
+        </ThemeProvider>
+        {process.env.NODE_ENV === 'development' && (
+          <ReactQueryDevtools initialIsOpen={false} position="bottom" />
+        )}
+      </QueryClientProvider>
+    </AppRouterCacheProvider>
   )
 }

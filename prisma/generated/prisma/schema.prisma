@@ -1,0 +1,387 @@
+generator client {
+  provider        = "prisma-client-js"
+  output          = "./generated/prisma"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// SEÇÃO 1: AUTENTICAÇÃO E USUÁRIOS
+// ============================================
+
+enum UserRole {
+  owner
+  admin
+  user
+}
+
+enum OnboardingStatus {
+  pending
+  completed
+  skipped
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  phone         String?   @unique
+  emailVerified Boolean?  @default(true)
+  image         String?
+  role          UserRole  @default(user)
+  banned        Boolean   @default(false)
+  banReason     String?
+  banExpires    DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  sessions Session[]
+  accounts Account[]
+
+  members     Member[]
+  invitations Invitation[]
+
+  @@map("user")
+}
+
+model Session {
+  id             String   @id @default(cuid())
+  expiresAt      DateTime
+  token          String   @unique
+  ipAddress      String?
+  userAgent      String?
+  impersonatedBy String?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  activeOrganizationId String?
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id         String @id @default(cuid())
+  accountId  String
+  providerId String
+  userId     String
+  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@unique([providerId, accountId])
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@map("verification")
+}
+
+// ============================================
+// SEÇÃO 2: ORGANIZAÇÃO E MEMBROS
+// ============================================
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  logo      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members           Member[]
+  invitations       Invitation[]
+  leads             Lead[]
+  sales             Sale[]
+  saleItems         SaleItem[]
+  products          Product[]
+  productCategories ProductCategory[]
+  profile           OrganizationProfile?
+  company           OrganizationCompany?
+  whatsappConfig    WhatsAppConfig?
+
+  @@map("organization")
+}
+
+model Member {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role           String
+  createdAt      DateTime
+
+  @@map("member")
+}
+
+model Invitation {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  email          String
+  role           String?
+  status         String
+  expiresAt      DateTime
+  inviterId      String
+  user           User         @relation(fields: [inviterId], references: [id], onDelete: Cascade)
+
+  @@map("invitation")
+}
+
+// ============================================
+// SEÇÃO 3: CRM E LEADS
+// ============================================
+
+model Lead {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String?
+  phone          String?
+  remoteJid      String?      @map("remote_jid")
+  mail           String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@unique([organizationId, phone])
+  @@unique([organizationId, remoteJid])
+  @@index([organizationId])
+  @@map("leads")
+}
+
+// ============================================
+// SEÇÃO 4: VENDAS E PRODUTOS
+// ============================================
+
+enum SaleStatus {
+  pending
+  completed
+  cancelled
+}
+
+model Sale {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  totalAmount     Decimal?    @db.Decimal(12, 2)
+  profit          Decimal?    @db.Decimal(12, 2)
+  discount        Decimal?    @db.Decimal(12, 2)
+  status          SaleStatus? @default(pending)
+  notes           String?
+  createdBy       String?
+  updatedBy       String?
+  statusChangedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  items SaleItem[]
+
+  @@index([organizationId])
+  @@index([createdAt])
+  @@map("sales")
+}
+
+model SaleItem {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  saleId String
+  sale   Sale   @relation(fields: [saleId], references: [id], onDelete: Cascade)
+
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  name      String
+  quantity  Int     @default(1)
+  unitPrice Decimal @db.Decimal(12, 2)
+  total     Decimal @db.Decimal(12, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([organizationId])
+  @@index([saleId])
+  @@index([productId])
+  @@map("sale_items")
+}
+
+model Product {
+  id             String           @id @default(cuid())
+  organizationId String
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  categoryId     String?
+  category       ProductCategory? @relation(fields: [categoryId], references: [id])
+
+  name   String
+  price  Decimal? @db.Decimal(12, 2)
+  cost   Decimal? @db.Decimal(12, 2)
+  active Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  saleItems SaleItem[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+  @@index([active])
+  @@map("products")
+}
+
+model ProductCategory {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  active         Boolean      @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  products Product[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+  @@index([active])
+  @@map("product_categories")
+}
+
+// ============================================
+// SEÇÃO 5: ORGANIZAÇÃO - PROFILE E DADOS
+// ============================================
+
+model OrganizationProfile {
+  id             String       @id @default(cuid())
+  organizationId String       @unique
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  cpf String? @unique
+
+  onboardingStatus      OnboardingStatus @default(pending)
+  onboardingCompletedAt DateTime?
+
+  avgTicket       String?
+  attendantsCount String?
+  mainChannel     String?
+  leadsPerDay     String?
+  monthlyRevenue  String?
+  monthlyAdSpend  String?
+
+  estimatedConversionRate Float?
+  estimatedCPL            Float?
+  estimatedCAC            Float?
+  estimatedROAS           Float?
+  estimatedLeadValue      Float?
+  leadsPerAttendant       Float?
+  revenuePerAttendant     Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("organization_profiles")
+}
+
+// ============================================
+// SEÇÃO 6: ORGANIZAÇÃO - COMPANY DATA
+// ============================================
+
+model OrganizationCompany {
+  id             String       @id @default(cuid())
+  organizationId String       @unique
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  cnpj            String  @unique
+  razaoSocial     String
+  nomeFantasia    String?
+  cnaeCode        String
+  cnaeDescription String
+  municipio       String
+  uf              String  @db.Char(2)
+
+  tipo             String?
+  porte            String?
+  naturezaJuridica String?
+  capitalSocial    Decimal?
+  situacao         String?
+  dataAbertura     DateTime?
+  dataSituacao     DateTime?
+  simplesOptante   Boolean   @default(false)
+  simeiOptante     Boolean   @default(false)
+
+  logradouro  String?
+  numero      String?
+  complemento String?
+  bairro      String?
+  cep         String?
+
+  email    String?
+  telefone String?
+
+  qsa                   Json?
+  atividadesSecundarias Json?
+
+  authorizedByUserId String
+  authorizedAt       DateTime @default(now())
+
+  fetchedAt DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([cnaeCode])
+  @@index([porte])
+  @@index([uf])
+  @@index([situacao])
+  @@map("organization_companies")
+}
+
+// ============================================
+// SEÇÃO 7: WHATSAPP & META CONFIG
+// ============================================
+
+model WhatsAppConfig {
+  id             String       @id @default(cuid())
+  organizationId String       @unique
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  wabaId      String? // WhatsApp Business Account ID
+  phoneId     String? // Phone Number ID
+  accessToken String? // Account-level access token
+  status      String  @default("pending") // connected, pending, disconnected
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("whatsapp_configs")
+}

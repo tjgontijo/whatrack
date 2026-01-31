@@ -34,7 +34,7 @@ export const DataTableCardList = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        'space-y-3',
+        'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3',
         className
       )}
       role="list"

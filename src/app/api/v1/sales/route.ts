@@ -4,12 +4,27 @@ import { z } from 'zod'
 import { revalidateTag } from 'next/cache'
 
 import { prisma } from '@/lib/prisma'
-import { salesListResponseSchema } from '@/schemas/lead-tickets'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 
+// Sales schema - simplified without ticket dependencies
+const saleSchema = z.object({
+  id: z.string(),
+  totalAmount: z.number().nullable(),
+  status: z.string().nullable(),
+  notes: z.string().nullable(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+})
+
+const salesResponseSchema = z.object({
+  items: z.array(saleSchema),
+  total: z.number().int().nonnegative(),
+  page: z.number().int().positive(),
+  pageSize: z.number().int().positive(),
+})
+
 const createSaleSchema = z.object({
-  ticketId: z.string().optional(),
   totalAmount: z.number().optional(),
   profit: z.number().optional(),
   discount: z.number().optional(),
@@ -127,7 +142,6 @@ export async function POST(req: Request) {
     const sale = await prisma.sale.create({
       data: {
         organizationId,
-        ticketId: validated.ticketId,
         totalAmount: calculatedTotal,
         profit: validated.profit,
         discount: validated.discount,
@@ -187,19 +201,7 @@ export async function GET(req: Request) {
 
   if (q) {
     const imode = 'insensitive' as Prisma.QueryMode
-    // Campos existentes em Sale / Ticket
     ors.push({ notes: { contains: q, mode: imode } })
-    ors.push({ ticket: { utmSource: { contains: q, mode: imode } } })
-    ors.push({ ticket: { utmMedium: { contains: q, mode: imode } } })
-    ors.push({ ticket: { utmCampaign: { contains: q, mode: imode } } })
-    ors.push({ ticket: { utmTerm: { contains: q, mode: imode } } })
-    ors.push({ ticket: { utmContent: { contains: q, mode: imode } } })
-    ors.push({ ticket: { gclid: { contains: q, mode: imode } } })
-    ors.push({ ticket: { fbclid: { contains: q, mode: imode } } })
-    ors.push({ ticket: { ctwaclid: { contains: q, mode: imode } } })
-    ors.push({ ticket: { whatsappConversation: { lead: { name: { contains: q, mode: imode } } } } })
-    ors.push({ ticket: { whatsappConversation: { lead: { phone: { contains: q, mode: imode } } } } })
-    ors.push({ ticket: { whatsappConversation: { lead: { mail: { contains: q, mode: imode } } } } })
   }
 
   const filters: Prisma.SaleWhereInput[] = []
@@ -232,9 +234,7 @@ export async function GET(req: Request) {
       return NextResponse.json(cached.data)
     }
 
-    console.time('[api/sales] query')
-
-    const [items, total, statuses] = await serialize(async () => {
+    const [items, total] = await serialize(async () => {
       const sales = await prisma.sale.findMany({
         where,
         orderBy: { createdAt: 'desc' },
@@ -247,70 +247,28 @@ export async function GET(req: Request) {
           notes: true,
           createdAt: true,
           updatedAt: true,
-          ticket: {
-            select: {
-              id: true,
-              utmSource: true,
-              utmMedium: true,
-              utmCampaign: true,
-              whatsappConversation: {
-                select: {
-                  lead: {
-                    select: {
-                      id: true,
-                      name: true,
-                      phone: true,
-                      mail: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
         },
       })
 
-      const [totalCount, statusGroups] = await Promise.all([
-        prisma.sale.count({ where }),
-        prisma.sale.groupBy({
-          by: ['status'],
-          _count: { status: true },
-        }),
-      ])
+      const totalCount = await prisma.sale.count({ where })
 
       const items = sales.map((sale) => ({
         id: sale.id,
-        amount: sale.totalAmount ? Number(sale.totalAmount) : null,
-        serviceCount: null,
-        fbtraceId: null,
+        totalAmount: sale.totalAmount ? Number(sale.totalAmount) : null,
+        status: sale.status,
+        notes: sale.notes,
         createdAt: sale.createdAt.toISOString(),
         updatedAt: sale.updatedAt.toISOString(),
-        ticketId: sale.ticket?.id ?? null,
-        ticketStatus: sale.status ?? null,
-        ticketPipefyId: null,
-        ticketPipefyUrl: null,
-        ticketUtmSource: sale.ticket?.utmSource ?? null,
-        ticketUtmMedium: sale.ticket?.utmMedium ?? null,
-        ticketUtmCampaign: sale.ticket?.utmCampaign ?? null,
-        leadId: sale.ticket?.whatsappConversation?.lead?.id ?? null,
-        leadName: sale.ticket?.whatsappConversation?.lead?.name ?? null,
-        leadPhone: sale.ticket?.whatsappConversation?.lead?.phone ?? null,
-        leadMail: sale.ticket?.whatsappConversation?.lead?.mail ?? null,
       }))
 
-      const availableStatuses = statusGroups.map((group) => group.status ?? null)
-
-      return [items, totalCount, availableStatuses] as const
+      return [items, totalCount] as const
     })
 
-    console.timeEnd('[api/sales] query')
-
-    const payload = salesListResponseSchema.parse({
+    const payload = salesResponseSchema.parse({
       items,
       total,
       page,
       pageSize,
-      availableStatuses: statuses,
     })
     cache.set(cacheKey, { ts: Date.now(), data: payload })
 

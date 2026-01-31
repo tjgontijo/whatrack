@@ -160,7 +160,7 @@ export default function SignUpPage() {
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>WhatsApp</FormLabel>
+                  <FormLabel>WhatsApp Pessoal</FormLabel>
                   <FormControl>
                     <Input
                       type="tel"

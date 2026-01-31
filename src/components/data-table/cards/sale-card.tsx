@@ -22,7 +22,7 @@ interface SaleCardProps {
   amount: number | null
   serviceCount: number | null
   createdAt: string
-  ticketStatus: string | null
+  ticketStageName: string | null
   ticketPipefyId: string | null
   ticketPipefyUrl: string | null
   ticketUtmSource: string | null
@@ -54,7 +54,7 @@ export const SaleCard = React.memo(
         amount,
         serviceCount,
         createdAt,
-        ticketStatus,
+        ticketStageName,
         ticketPipefyId,
         ticketPipefyUrl,
         ticketUtmSource,
@@ -93,10 +93,10 @@ export const SaleCard = React.memo(
               </>
             )}
 
-            {/* Ticket Status */}
-            {ticketStatus && (
-              <DataTableCardRow label="Status">
-                <Badge variant="secondary">{ticketStatus}</Badge>
+            {/* Ticket Stage */}
+            {ticketStageName && (
+              <DataTableCardRow label="Estágio">
+                <Badge variant="secondary">{ticketStageName}</Badge>
               </DataTableCardRow>
             )}
 

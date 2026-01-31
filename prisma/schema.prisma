@@ -1,11 +1,12 @@
 generator client {
-  provider        = "prisma-client"
+  provider        = "prisma-client-js"
   output          = "./generated/prisma"
   previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 // ============================================
@@ -115,19 +116,16 @@ model Organization {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  members                  Member[]
-  invitations              Invitation[]
-  leads                    Lead[]
-  tickets                  Ticket[]
-  sales                    Sale[]
-  saleItems                SaleItem[]
-  products                 Product[]
-  productCategories        ProductCategory[]
-  whatsappInstances        WhatsappInstance[]
-  whatsappInstanceWebhooks WhatsappInstanceWebhook[]
-  whatsappConversations    WhatsappConversation[]
-  profile                  OrganizationProfile?
-  company                  OrganizationCompany?
+  members           Member[]
+  invitations       Invitation[]
+  leads             Lead[]
+  sales             Sale[]
+  saleItems         SaleItem[]
+  products          Product[]
+  productCategories ProductCategory[]
+  profile           OrganizationProfile?
+  company           OrganizationCompany?
+  whatsappConfig    WhatsAppConfig?
 
   @@map("organization")
 }
@@ -171,8 +169,6 @@ model Lead {
   remoteJid      String?      @map("remote_jid")
   mail           String?
 
-  whatsappConversations WhatsappConversation[]
-
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
 
@@ -183,224 +179,7 @@ model Lead {
 }
 
 // ============================================
-// SEÇÃO 4: WHATSAPP - CHAT E ATENDIMENTO
-// ============================================
-
-// Enums
-enum ConversationStatus {
-  OPEN
-  PENDING
-  RESOLVED
-  SNOOZED
-}
-
-enum ConversationPriority {
-  LOW
-  MEDIUM
-  HIGH
-  URGENT
-}
-
-enum MessageSenderType {
-  LEAD
-  USER
-  AI
-  SYSTEM
-}
-
-enum MessageStatus {
-  PENDING
-  SENT
-  DELIVERED
-  READ
-  FAILED
-}
-
-enum MessageType {
-  TEXT
-  IMAGE
-  VIDEO
-  AUDIO
-  DOCUMENT
-}
-
-enum WhatsappProvider {
-  WUZAPI
-  UAZAPI
-  META_CLOUD
-}
-
-enum TicketStatus {
-  OPEN
-  RESOLVED
-  FOLLOW_UP
-}
-
-enum TicketSourceType {
-  paid
-  organic
-}
-
-// Infrastructure
-model WhatsappInstance {
-  id             String                    @id @default(cuid())
-  organizationId String
-  organization   Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  instanceId     String
-  token          String?
-  label          String?
-  phone          String?
-  provider       WhatsappProvider          @default(WUZAPI)
-  createdAt      DateTime                  @default(now())
-  updatedAt      DateTime                  @default(now()) @updatedAt
-  webhooks       WhatsappInstanceWebhook[]
-
-  @@unique([organizationId, instanceId], name: "organizationId_instanceId")
-  @@index([organizationId])
-  @@index([provider])
-  @@map("whatsapp_instances")
-}
-
-model WhatsappInstanceWebhook {
-  id                String           @id @default(cuid())
-  organizationId    String
-  organization      Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  instanceId        String
-  instance          WhatsappInstance @relation(fields: [organizationId, instanceId], references: [organizationId, instanceId], onDelete: Cascade)
-  providerWebhookId String?
-  url               String
-  secret            String?
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @default(now()) @updatedAt
-
-  @@unique([organizationId, instanceId], name: "organizationId_instanceId_webhook")
-  @@map("whatsapp_instance_webhook")
-}
-
-// Conversation Flow
-model WhatsappConversation {
-  id             String       @id @default(cuid())
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  leadId         String
-  lead           Lead         @relation(fields: [leadId], references: [id], onDelete: Cascade)
-  instanceId     String
-
-  status   ConversationStatus   @default(OPEN)
-  priority ConversationPriority @default(MEDIUM)
-
-  unreadCount   Int       @default(0)
-  lastMessageAt DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-
-  tickets Ticket[]
-
-  @@unique([leadId, instanceId])
-  @@index([organizationId])
-  @@index([instanceId])
-  @@index([status])
-  @@index([organizationId, status])
-  @@index([organizationId, lastMessageAt])
-  @@index([instanceId, status])
-  @@map("whatsapp_conversations")
-}
-
-model WhatsappMessage {
-  id       String @id @default(cuid())
-  ticketId String
-  ticket   Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-
-  senderType MessageSenderType
-  senderId   String?
-  senderName String?
-
-  messageType MessageType
-  content     String?
-
-  mediaUrl             String?
-  mediaType            String?
-  fileName             String?
-  mediaSizeBytes       Int?
-  mediaDurationSeconds Int?
-
-  providerMessageId String? @unique
-
-  status MessageStatus @default(PENDING)
-
-  sentAt      DateTime
-  deliveredAt DateTime?
-  readAt      DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-
-  @@index([ticketId])
-  @@index([sentAt])
-  @@index([providerMessageId])
-  @@index([ticketId, sentAt])
-  @@index([ticketId, status])
-  @@index([senderType, sentAt])
-  @@map("whatsapp_messages")
-}
-
-// Tickets & Support
-model Ticket {
-  id             String       @id @default(cuid())
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  whatsappConversationId String
-  whatsappConversation   WhatsappConversation @relation(fields: [whatsappConversationId], references: [id], onDelete: Cascade)
-
-  status TicketStatus @default(OPEN)
-
-  assigneeId   String?
-  assigneeName String?
-
-  resolvedAt DateTime?
-
-  gclid    String?
-  fbclid   String?
-  ctwaclid String?
-
-  utmSource   String?
-  utmMedium   String?
-  utmCampaign String?
-  utmTerm     String?
-  utmContent  String?
-
-  campaignId String? @map("campaign_id")
-  adsetId    String? @map("adset_id")
-  adId       String? @map("ad_id")
-
-  sourceType TicketSourceType?
-  platformId String?
-
-  closedAt DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-
-  sales    Sale[]
-  messages WhatsappMessage[]
-
-  @@index([organizationId])
-  @@index([whatsappConversationId])
-  @@index([status])
-  @@index([assigneeId])
-  @@index([sourceType])
-  @@index([campaignId])
-  @@index([adsetId])
-  @@index([adId])
-  @@index([whatsappConversationId, status])
-  @@index([organizationId, status, createdAt])
-  @@map("tickets")
-}
-
-// ============================================
-// SEÇÃO 5: VENDAS E PRODUTOS
+// SEÇÃO 4: VENDAS E PRODUTOS
 // ============================================
 
 enum SaleStatus {
@@ -413,8 +192,6 @@ model Sale {
   id             String       @id @default(cuid())
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  ticketId       String?
-  ticket         Ticket?      @relation(fields: [ticketId], references: [id], onDelete: SetNull)
 
   totalAmount     Decimal?    @db.Decimal(12, 2)
   profit          Decimal?    @db.Decimal(12, 2)
@@ -431,7 +208,6 @@ model Sale {
   items SaleItem[]
 
   @@index([organizationId])
-  @@index([ticketId])
   @@index([createdAt])
   @@map("sales")
 }
@@ -503,7 +279,7 @@ model ProductCategory {
 }
 
 // ============================================
-// SEÇÃO 9: ORGANIZAÇÃO - PROFILE E DADOS
+// SEÇÃO 5: ORGANIZAÇÃO - PROFILE E DADOS
 // ============================================
 
 model OrganizationProfile {
@@ -538,7 +314,7 @@ model OrganizationProfile {
 }
 
 // ============================================
-// SEÇÃO 10: ORGANIZAÇÃO - COMPANY DATA
+// SEÇÃO 6: ORGANIZAÇÃO - COMPANY DATA
 // ============================================
 
 model OrganizationCompany {
@@ -588,4 +364,24 @@ model OrganizationCompany {
   @@index([uf])
   @@index([situacao])
   @@map("organization_companies")
+}
+
+// ============================================
+// SEÇÃO 7: WHATSAPP & META CONFIG
+// ============================================
+
+model WhatsAppConfig {
+  id             String       @id @default(cuid())
+  organizationId String       @unique
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  wabaId         String?      // WhatsApp Business Account ID
+  phoneId        String?      // Phone Number ID
+  accessToken    String?      // Account-level access token
+  status         String       @default("pending") // connected, pending, disconnected
+
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@map("whatsapp_configs")
 }

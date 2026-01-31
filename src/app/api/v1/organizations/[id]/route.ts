@@ -55,7 +55,7 @@ export async function PATCH(
 ) {
   try {
     const user = await getOrSyncUser(request);
-    
+
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

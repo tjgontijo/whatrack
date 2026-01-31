@@ -1,7 +1,5 @@
-import type { Prisma } from '@prisma/client'
-
+import type { Prisma } from '../../../prisma/generated/prisma/client'
 import { prisma } from '@/lib/prisma'
-import { salesByServiceResponseSchema } from '@/schemas/lead-tickets'
 import type { DateRange } from '@/lib/date/dateRange'
 
 export async function buildSalesByService(organizationId: string, dateRange?: DateRange) {
@@ -34,18 +32,14 @@ export async function buildSalesByService(organizationId: string, dateRange?: Da
     }
   }
 
-  const rows = Array.from(accumulator.entries())
-    .map(([name, value]) => ({ name, value }))
+  const slices = Array.from(accumulator.entries())
+    .map(([name, value]) => ({
+      id: name,
+      label: name,
+      value: Number(value.toFixed(2)),
+    }))
     .filter((row) => row.value > 0)
     .sort((a, b) => b.value - a.value)
 
-  const parsed = salesByServiceResponseSchema.parse({
-    slices: rows.map((row) => ({
-      id: row.name ?? 'indefinido',
-      label: row.name ?? 'Indefinido',
-      value: Number(row.value.toFixed(2)),
-    })),
-  })
-
-  return parsed.slices
+  return slices
 }

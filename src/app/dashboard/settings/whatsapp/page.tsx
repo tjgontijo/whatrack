@@ -1,7 +1,8 @@
-'use client'
+'use client';
 
-import { WhatsappInstancesManager } from '@/components/dashboard/settings/whatsapp/whatsapp-instances-manager'
+import React from 'react';
+import { WhatsAppFeature } from '@/features/whatsapp';
 
-export default function WhatsappSettingsPage() {
-  return <WhatsappInstancesManager />
+export default function WhatsAppSettingsPage() {
+    return <WhatsAppFeature />;
 }

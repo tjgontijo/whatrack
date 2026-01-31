@@ -3,6 +3,7 @@
 import { Fragment } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
+import { useQueryClient } from '@tanstack/react-query'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import {
     Breadcrumb,
@@ -32,15 +33,29 @@ const ROUTE_LABELS: Record<string, string> = {
     'chat': 'Chat',
 }
 
-function getRouteLabel(segment: string, fullPath: string): string {
-    // Try full path first (for nested routes like settings/whatsapp)
+function getRouteLabel(segment: string, fullPath: string, queryClient: any): string {
+    // 1. Check if we have a dynamic WhatsApp phone number in cache
+    if (fullPath.startsWith('settings/whatsapp/')) {
+        const phoneId = segment;
+        // Try to find the phone in the "listPhoneNumbers" query cache
+        const phoneNumbers = queryClient.getQueryData(['whatsapp', 'phone-numbers']) as any[];
+        if (phoneNumbers) {
+            const phone = phoneNumbers.find((p: any) => p.id === phoneId);
+            if (phone) return phone.display_phone_number;
+        }
+    }
+
+    // 2. Try full path from mapping
     if (ROUTE_LABELS[fullPath]) {
         return ROUTE_LABELS[fullPath]
     }
-    // Fall back to segment
+    // 3. Fall back to segment
     if (ROUTE_LABELS[segment]) {
         return ROUTE_LABELS[segment]
     }
+    // 4. Case-by-case friendly names
+    if (segment === 'whatsapp') return 'WhatsApp'
+
     // Capitalize first letter as fallback
     return segment.charAt(0).toUpperCase() + segment.slice(1)
 }
@@ -51,12 +66,10 @@ type BreadcrumbItemData = {
     isCurrentPage: boolean
 }
 
-function generateBreadcrumbs(pathname: string): BreadcrumbItemData[] {
-    // Remove /dashboard prefix and split
+function generateBreadcrumbs(pathname: string, queryClient: any): BreadcrumbItemData[] {
     const withoutDashboard = pathname.replace(/^\/dashboard\/?/, '')
 
     if (!withoutDashboard) {
-        // We're on /dashboard root
         return [{ label: 'Visão Geral', href: '/dashboard', isCurrentPage: true }]
     }
 
@@ -70,7 +83,7 @@ function generateBreadcrumbs(pathname: string): BreadcrumbItemData[] {
         const isLast = index === segments.length - 1
 
         breadcrumbs.push({
-            label: getRouteLabel(segment, currentPath),
+            label: getRouteLabel(segment, currentPath, queryClient),
             href: `/dashboard/${currentPath}`,
             isCurrentPage: isLast,
         })
@@ -81,10 +94,11 @@ function generateBreadcrumbs(pathname: string): BreadcrumbItemData[] {
 
 export function DashboardHeader() {
     const pathname = usePathname()
-    const breadcrumbs = generateBreadcrumbs(pathname)
+    const queryClient = useQueryClient()
+    const breadcrumbs = generateBreadcrumbs(pathname, queryClient)
 
     return (
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+        <header className="flex h-12 shrink-0 items-center gap-2 border-b px-4 bg-background">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4" />
 
@@ -95,7 +109,7 @@ export function DashboardHeader() {
                             {index > 0 && <BreadcrumbSeparator />}
                             <BreadcrumbItem>
                                 {item.isCurrentPage ? (
-                                    <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                                    <BreadcrumbPage className="font-semibold text-foreground">{item.label}</BreadcrumbPage>
                                 ) : (
                                     <BreadcrumbLink asChild>
                                         <Link href={item.href}>{item.label}</Link>

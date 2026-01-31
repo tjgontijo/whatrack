@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import type { Prisma } from '../../../prisma/generated/prisma/client'
 import type { DateRange } from '@/lib/date/dateRange'
 
 export type FunnelSummary = {
@@ -18,30 +19,13 @@ export async function buildFunnel(organizationId: string, dateRange?: DateRange)
 }
 
 async function buildLeadsCount(organizationId: string, dateRange?: DateRange) {
-  const where: any = { organizationId }
+  const where: Prisma.LeadWhereInput = { organizationId }
 
   if (dateRange) {
     where.createdAt = { gte: dateRange.gte, lte: dateRange.lte }
   }
 
-  const tickets = await prisma.ticket.findMany({
-    where,
-    select: {
-      whatsappConversation: {
-        select: { leadId: true },
-      },
-    },
-  })
-
-  const leadIds = new Set<string>()
-
-  for (const ticket of tickets) {
-    if (ticket.whatsappConversation?.leadId) {
-      leadIds.add(ticket.whatsappConversation.leadId)
-    }
-  }
-
-  return leadIds.size
+  return prisma.lead.count({ where })
 }
 
 async function buildAppointmentsCount(_organizationId: string, _dateRange?: DateRange) {

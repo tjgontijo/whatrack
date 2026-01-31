@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { X, Search } from 'lucide-react'
+import { X, Search, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface FilterInputProps
@@ -14,6 +14,8 @@ interface FilterInputProps
   clearable?: boolean
   debounceMs?: number
   icon?: React.ReactNode
+  /** Mostrar loading spinner */
+  isLoading?: boolean
 }
 
 /**
@@ -34,6 +36,7 @@ export const FilterInput = React.forwardRef<HTMLInputElement, FilterInputProps>(
       clearable = true,
       debounceMs = 400,
       icon,
+      isLoading = false,
       className,
       placeholder = 'Pesquisar...',
       ...props
@@ -90,7 +93,14 @@ export const FilterInput = React.forwardRef<HTMLInputElement, FilterInputProps>(
             )}
             {...props}
           />
-          {clearable && displayValue && (
+          {isLoading && (
+            <Loader2
+              className="absolute right-3 h-4 w-4 text-muted-foreground animate-spin"
+              aria-hidden="true"
+            />
+          )}
+
+          {clearable && displayValue && !isLoading && (
             <Button
               type="button"
               variant="ghost"

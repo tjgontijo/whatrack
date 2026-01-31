@@ -3,6 +3,7 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
+import { z } from 'zod'
 
 import {
   Dialog,
@@ -14,10 +15,29 @@ import {
 import { SalesList } from '@/components/dashboard/sales/sales-list'
 import { applyWhatsAppMask } from '@/lib/mask/phone-mask'
 import { formatCurrencyBRL } from '@/lib/mask/formatters'
-import {
-  leadSalesResponseSchema,
-  type LeadSalesResponse,
-} from '@/schemas/lead-tickets'
+
+// Inline schema for lead sales - simplified without ticket dependencies
+const leadSaleSchema = z.object({
+  id: z.string(),
+  totalAmount: z.number().nullable(),
+  status: z.string().nullable(),
+  createdAt: z.string(),
+  items: z.array(z.object({
+    name: z.string(),
+    quantity: z.number(),
+    unitPrice: z.number(),
+  })).optional(),
+})
+
+const leadSalesResponseSchema = z.object({
+  sales: z.array(leadSaleSchema),
+  totals: z.object({
+    totalAmount: z.number(),
+    sales: z.number(),
+  }),
+})
+
+type LeadSalesResponse = z.infer<typeof leadSalesResponseSchema>
 
 async function fetchLeadSales(leadId: string): Promise<LeadSalesResponse> {
   const response = await fetch(`/api/v1/leads/${leadId}/sales`, {
@@ -114,7 +134,19 @@ export function LeadSalesDialog({
           <div className="space-y-4">
             <section className="space-y-3">
               <h3 className="text-lg font-semibold">Vendas</h3>
-              <SalesList sales={data.sales} />
+              <SalesList
+                sales={data.sales.map((sale) => ({
+                  id: sale.id,
+                  amount: sale.totalAmount,
+                  createdAt: sale.createdAt,
+                  updatedAt: sale.createdAt, // API doesn't return updatedAt, use createdAt as fallback
+                  services: (sale.items ?? []).map((item) => ({
+                    name: item.name,
+                    price: item.unitPrice * item.quantity,
+                    quantity: item.quantity,
+                  })),
+                }))}
+              />
             </section>
           </div>
         )}

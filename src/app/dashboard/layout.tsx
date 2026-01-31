@@ -49,14 +49,12 @@ export default async function DashboardLayout({ children }: { children: ReactNod
           <SidebarInset>
             <DashboardHeader />
 
-            <main className="flex-1 overflow-y-auto p-6">
+            <main className="flex-1 overflow-y-auto px-4 py-2">
               <DashboardContent
                 organization={organization}
                 userId={session.user.id}
-                // se você quiser passar role para UI:
-                // role={membership.role}
               >
-                <div className="mx-auto w-full space-y-6">
+                <div className="mx-auto w-full">
                   <OrganizationSelectorGate />
                   {children}
                 </div>

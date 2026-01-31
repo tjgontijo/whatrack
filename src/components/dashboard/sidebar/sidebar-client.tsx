@@ -84,7 +84,7 @@ export function SidebarClient({ navItems }: SidebarClientProps) {
     )
 
     const dataItems = navItems.filter(item =>
-        ['Users', 'MessageSquare', 'ShoppingBag', 'Package'].includes(item.icon)
+        ['Users', 'Inbox', 'MessageSquare', 'ShoppingBag', 'Package'].includes(item.icon)
     )
 
     const configItems = [

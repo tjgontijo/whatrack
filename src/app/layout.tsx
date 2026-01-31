@@ -30,7 +30,7 @@ export default async function RootLayout({
   const locale = store.get("locale")?.value ?? "pt-BR";
   const messages = getMessages(locale);
   return (
-    <html lang={locale} className="dark" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <Providers>
           <I18nProvider locale={locale} messages={messages}>{children}</I18nProvider>

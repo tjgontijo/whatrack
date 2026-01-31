@@ -8,6 +8,7 @@ import { useState } from 'react'
 import { Plus } from 'lucide-react'
 
 import { ResponsiveDataTable } from '@/components/data-table/responsive-data-table'
+import { PageHeader } from '@/components/data-table/page-header'
 import { ProductCard } from '@/components/data-table/cards/product-card'
 import { FilterBar, FilterBarSection } from '@/components/data-table/filters/filter-bar'
 import { FilterInput } from '@/components/data-table/filters/filter-input'
@@ -161,6 +162,18 @@ export function ProductsTable() {
 
   return (
     <div className="space-y-4">
+      {/* Page Header - Title + Description + Statistics */}
+      <PageHeader
+        title="Produtos"
+        description="Gerencie seus produtos e categorias."
+        stats={[
+          {
+            label: 'TOTAL PRODUTOS',
+            value: total,
+          },
+        ]}
+      />
+
       {/* Desktop Filters */}
       <div className="hidden md:block">
         <FilterBar

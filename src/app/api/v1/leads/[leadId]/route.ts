@@ -3,12 +3,44 @@ import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ leadId: string }> }
+) {
+  const access = await validateFullAccess(req)
+  if (!access.hasAccess || !access.organizationId) {
+    return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
+  }
+  const organizationId = access.organizationId
+  const { leadId } = await params
+
+  try {
+    const lead = await prisma.lead.findFirst({
+      where: {
+        id: leadId,
+        organizationId,
+      },
+    })
+
+    if (!lead) {
+      return NextResponse.json({ error: 'Lead não encontrado' }, { status: 404 })
+    }
+
+    return NextResponse.json(lead)
+  } catch (error) {
+    console.error('[api/leads/[leadId]] GET error:', error)
+    return NextResponse.json(
+      { error: 'Falha ao buscar lead', details: String(error) },
+      { status: 500 }
+    )
+  }
+}
 
 const updateLeadSchema = z.object({
   name: z.string().optional(),
   phone: z.string().optional(),
   mail: z.string().email().optional().or(z.literal('')).nullable(),
-  remoteJid: z.string().optional(),
+  remoteJid: z.string().optional().nullable(),
 })
 
 export async function PUT(
@@ -43,8 +75,8 @@ export async function PUT(
       data: {
         name: validated.name,
         phone: validated.phone,
-        mail: validated.mail ?? undefined,        
-        remoteJid: validated.remoteJid,               
+        mail: validated.mail ?? undefined,
+        remoteJid: validated.remoteJid,
       },
     })
 
@@ -101,6 +133,10 @@ export async function DELETE(
     if (!existing) {
       return NextResponse.json({ error: 'Lead não encontrado' }, { status: 404 })
     }
+
+    await prisma.lead.delete({
+      where: { id: leadId },
+    })
 
     return NextResponse.json({ success: true })
   } catch (error) {

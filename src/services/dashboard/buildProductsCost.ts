@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client'
+import { Prisma } from '../../../prisma/generated/prisma/client'
 
 import { prisma } from '@/lib/prisma'
 
@@ -17,7 +17,7 @@ export async function buildProductsCost(where: Prisma.SaleWhereInput): Promise<P
     return { cost: 0, servicesCount: 0 }
   }
 
-  const saleIds = sales.map((sale) => sale.id)
+  const saleIds = sales.map((sale: { id: string }) => sale.id)
 
   const saleItems = await prisma.saleItem.findMany({
     where: { saleId: { in: saleIds } },
@@ -28,7 +28,7 @@ export async function buildProductsCost(where: Prisma.SaleWhereInput): Promise<P
   })
 
   const productIds = Array.from(
-    new Set(saleItems.map((item) => item.productId).filter((id): id is string => Boolean(id))),
+    new Set(saleItems.map((item: { productId: string | null }) => item.productId).filter((id): id is string => Boolean(id))),
   )
 
   const products = productIds.length

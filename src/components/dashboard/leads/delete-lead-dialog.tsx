@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { Loader2, Trash2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 
 import {
   AlertDialog,
@@ -14,19 +14,16 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import { Button } from '@/components/ui/button'
 
 export type DeleteLeadDialogProps = {
   leadId: string
-  leadName?: string | null
+  open: boolean
+  onOpenChange: (open: boolean) => void
   onSuccess?: () => void
-  trigger?: React.ReactNode
 }
 
-export function DeleteLeadDialog({ leadId, leadName, onSuccess, trigger }: DeleteLeadDialogProps) {
-  const [open, setOpen] = useState(false)
+export function DeleteLeadDialog({ leadId, open, onOpenChange, onSuccess }: DeleteLeadDialogProps) {
   const [isDeleting, setIsDeleting] = useState(false)
   const queryClient = useQueryClient()
 
@@ -44,7 +41,7 @@ export function DeleteLeadDialog({ leadId, leadName, onSuccess, trigger }: Delet
       }
 
       toast.success('Lead removido com sucesso!')
-      setOpen(false)
+      onOpenChange(false)
       await queryClient.invalidateQueries({ queryKey: ['leads'] })
       onSuccess?.()
     } catch (error) {
@@ -58,22 +55,12 @@ export function DeleteLeadDialog({ leadId, leadName, onSuccess, trigger }: Delet
   }
 
   return (
-    <AlertDialog open={open} onOpenChange={setOpen}>
-      <AlertDialogTrigger asChild>
-        {trigger || (
-          <Button variant="ghost" size="sm" className="gap-2 text-destructive hover:text-destructive">
-            <Trash2 className="h-4 w-4" />
-            Deletar
-          </Button>
-        )}
-      </AlertDialogTrigger>
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
           <AlertDialogDescription>
-            {leadName
-              ? `Tem certeza que deseja remover o lead "${leadName}"?`
-              : 'Tem certeza que deseja remover este lead?'}
+            Tem certeza que deseja remover este lead?
             <br />
             Esta ação não pode ser desfeita.
           </AlertDialogDescription>

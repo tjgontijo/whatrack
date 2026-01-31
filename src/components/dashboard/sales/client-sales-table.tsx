@@ -5,8 +5,10 @@ import { useQuery } from '@tanstack/react-query'
 import { ColumnDef } from '@tanstack/react-table'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
+import { z } from 'zod'
 
 import { ResponsiveDataTable } from '@/components/data-table/responsive-data-table'
+import { PageHeader } from '@/components/data-table/page-header'
 import { SaleCard } from '@/components/data-table/cards/sale-card'
 import { FilterBar, FilterBarSection } from '@/components/data-table/filters/filter-bar'
 import { FilterInput } from '@/components/data-table/filters/filter-input'
@@ -15,9 +17,7 @@ import { DataTableFiltersButton } from '@/components/data-table/filters/data-tab
 import { DataTableFiltersSheet } from '@/components/data-table/filters/data-table-filters-sheet'
 import { FilterGroup } from '@/components/data-table/filters/filter-group'
 
-import { LeadSalesDialog } from '@/components/dashboard/sales/lead-sales-dialog'
 import { formatCurrencyBRL } from '@/lib/mask/formatters'
-import { SalesListResponse, SaleListItem, salesListResponseSchema } from '@/schemas/lead-tickets'
 
 const DATE_FILTER_OPTIONS = [
   { value: '1d', label: '1 dia' },
@@ -30,7 +30,26 @@ const DATE_FILTER_OPTIONS = [
 ] as const
 
 type DateFilterValue = (typeof DATE_FILTER_OPTIONS)[number]['value']
-type DateFilterSelectValue = DateFilterValue | 'all'
+
+// Inline types for sales - simplified without ticket dependencies
+const saleItemSchema = z.object({
+  id: z.string(),
+  totalAmount: z.number().nullable(),
+  status: z.string().nullable(),
+  notes: z.string().nullable(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+})
+
+const salesListResponseSchema = z.object({
+  items: z.array(saleItemSchema),
+  total: z.number().int().nonnegative(),
+  page: z.number().int().positive(),
+  pageSize: z.number().int().positive(),
+})
+
+type SaleListItem = z.infer<typeof saleItemSchema>
+type SalesListResponse = z.infer<typeof salesListResponseSchema>
 
 export default function ClientSalesTable() {
   const searchParams = useSearchParams()
@@ -102,22 +121,15 @@ export default function ClientSalesTable() {
 
   const items = data?.items ?? []
   const total = data?.total ?? 0
-  const statusOptions = React.useMemo(() => {
-    const list = data?.availableStatuses?.filter((value): value is string => Boolean(value?.length)) ?? []
-    return Array.from(new Set(list))
-  }, [data?.availableStatuses])
-
-  // Dialog state
-  const [dialog, setDialog] = React.useState<{ leadId: string; leadName: string | null; leadPhone: string | null } | null>(null)
+  const statusOptions = ['pending', 'completed', 'cancelled']
 
   // Columns for desktop view
   const columns = React.useMemo<ColumnDef<SaleListItem>[]>(
     () => [
       { header: 'Data', accessorKey: 'createdAt', cell: ({ getValue }) => new Date(getValue() as string).toLocaleString('pt-BR') },
-      { header: 'Valor', accessorKey: 'amount', cell: ({ getValue }) => formatCurrencyBRL(getValue() as number | null) },
-      { header: 'Serviços', accessorKey: 'serviceCount', cell: ({ getValue }) => getValue() ?? '—' },
-      { header: 'Status', accessorKey: 'ticketStatus', cell: ({ getValue }) => getValue() ?? '—' },
-      { header: 'Lead', accessorKey: 'leadName', cell: ({ getValue }) => getValue() ?? '—' },
+      { header: 'Valor', accessorKey: 'totalAmount', cell: ({ getValue }) => formatCurrencyBRL(getValue() as number | null) },
+      { header: 'Status', accessorKey: 'status', cell: ({ getValue }) => getValue() ?? '—' },
+      { header: 'Notas', accessorKey: 'notes', cell: ({ getValue }) => getValue() ?? '—' },
     ],
     []
   )
@@ -136,6 +148,22 @@ export default function ClientSalesTable() {
 
   return (
     <div className="space-y-4">
+      {/* Page Header - Title + Description + Statistics */}
+      <PageHeader
+        title="Vendas"
+        description="Acompanhe e gerencie suas vendas."
+        stats={[
+          {
+            label: 'TOTAL VENDAS',
+            value: formatCurrencyBRL(items.reduce((sum, item) => sum + (item.totalAmount || 0), 0)),
+          },
+          {
+            label: 'QUANTIDADE',
+            value: total,
+          },
+        ]}
+      />
+
       {/* Desktop Filters */}
       <div className="hidden md:block">
         <FilterBar
@@ -257,28 +285,19 @@ export default function ClientSalesTable() {
         mobileCard={(row) => (
           <SaleCard
             id={row.original.id}
-            amount={row.original.amount}
-            serviceCount={row.original.serviceCount}
+            amount={row.original.totalAmount}
+            serviceCount={0}
             createdAt={row.original.createdAt}
-            ticketStatus={row.original.ticketStatus}
-            ticketPipefyId={row.original.ticketPipefyId}
-            ticketPipefyUrl={row.original.ticketPipefyUrl}
-            ticketUtmSource={row.original.ticketUtmSource}
-            ticketUtmMedium={row.original.ticketUtmMedium}
-            ticketUtmCampaign={row.original.ticketUtmCampaign}
-            leadId={row.original.leadId}
-            leadName={row.original.leadName}
-            leadPhone={row.original.leadPhone}
-            onViewLead={(leadId) => {
-              const lead = items.find((s) => s.leadId === leadId)
-              if (lead) {
-                setDialog({
-                  leadId,
-                  leadName: lead.leadName,
-                  leadPhone: lead.leadPhone,
-                })
-              }
-            }}
+            ticketStageName={null}
+            ticketPipefyId={null}
+            ticketPipefyUrl={null}
+            ticketUtmSource={null}
+            ticketUtmMedium={null}
+            ticketUtmCampaign={null}
+            leadId={null}
+            leadName={null}
+            leadPhone={null}
+            onViewLead={() => { }}
           />
         )}
         pagination={{
@@ -300,19 +319,6 @@ export default function ClientSalesTable() {
         isLoading={isLoading}
         isError={isError}
       />
-
-      {/* Dialog */}
-      {dialog && (
-        <LeadSalesDialog
-          leadId={dialog.leadId}
-          leadName={dialog.leadName}
-          leadPhone={dialog.leadPhone}
-          open={Boolean(dialog)}
-          onOpenChange={(open) => {
-            if (!open) setDialog(null)
-          }}
-        />
-      )}
     </div>
   )
 }
