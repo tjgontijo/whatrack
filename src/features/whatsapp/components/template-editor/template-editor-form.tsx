@@ -30,7 +30,7 @@ const templateSchema = z.object({
         .min(1, 'Nome é obrigatório')
         .max(512, 'Nome muito longo')
         .regex(/^[a-z0-9_]+$/, 'Apenas letras minúsculas, números e underscores'),
-    category: z.enum(['MARKETING', 'UTILITY']),
+    category: z.enum(['MARKETING', 'UTILITY', 'AUTHENTICATION']),
     language: z.string().min(2, 'Idioma é obrigatório'),
     bodyText: z.string().min(1, 'O corpo da mensagem é obrigatório').max(1024, 'Limite de 1024 caracteres'),
     samples: z.record(z.string(), z.string().min(1, 'Amostra obrigatória')).optional(),
@@ -178,6 +178,11 @@ export function TemplateEditorForm({ template, onClose }: TemplateEditorFormProp
                                                             <p className="font-bold text-primary mb-1">Utilidade</p>
                                                             <p className="text-[11px] leading-snug opacity-90">Confirmações de pedidos, atualizações de conta, lembretes de agendamento e alertas importantes de transações já iniciadas pelo cliente.</p>
                                                         </div>
+                                                        <Separator className="opacity-20" />
+                                                        <div>
+                                                            <p className="font-bold text-primary mb-1">Autenticação</p>
+                                                            <p className="text-[11px] leading-snug opacity-90">Envio de códigos de verificação (OTP) para logins, recuperação de senha ou validação de identidade. Possui regras rígidas de texto da Meta.</p>
+                                                        </div>
                                                     </TooltipContent>
                                                 </Tooltip>
                                             </div>
@@ -188,6 +193,7 @@ export function TemplateEditorForm({ template, onClose }: TemplateEditorFormProp
                                                 <SelectContent>
                                                     <SelectItem value="UTILITY">Utilidade</SelectItem>
                                                     <SelectItem value="MARKETING">Marketing</SelectItem>
+                                                    <SelectItem value="AUTHENTICATION">Autenticação</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                             <FieldError errors={[fieldState.error]} />
