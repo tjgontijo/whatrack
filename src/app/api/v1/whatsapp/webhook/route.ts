@@ -62,15 +62,17 @@ export async function POST(request: Request) {
         // Find the organization associated with this WhatsApp config
         let organizationId: string | null = null
         if (phoneId || wabaId) {
+            console.log('[meta-cloud/webhook] Searching for config with:', { phoneId, wabaId })
             const config = await prisma.whatsAppConfig.findFirst({
                 where: {
                     OR: [
-                        phoneId ? { phoneId } : {},
-                        wabaId ? { wabaId } : {},
-                    ].filter(cond => Object.keys(cond).length > 0)
+                        phoneId ? { phoneId: phoneId } : null,
+                        wabaId ? { wabaId: wabaId } : null,
+                    ].filter((cond): cond is { phoneId: string } | { wabaId: string } => cond !== null)
                 },
                 select: { organizationId: true }
             })
+            console.log('[meta-cloud/webhook] Found config:', config)
             organizationId = config?.organizationId ?? null
         }
 
@@ -79,6 +81,8 @@ export async function POST(request: Request) {
         if (value?.messages) eventType = 'messages'
         else if (value?.statuses) eventType = 'statuses'
         else if (changes?.field) eventType = changes.field // e.g., "message_template_status_update"
+
+        console.log('[meta-cloud/webhook] Event type:', eventType, 'Org ID:', organizationId)
 
         // Persist the payload for auditing
         try {
