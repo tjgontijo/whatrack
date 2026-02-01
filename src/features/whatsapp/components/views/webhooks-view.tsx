@@ -167,7 +167,6 @@ export function WebhooksView() {
     const { data: logs, isLoading: isLoadingLogs, refetch: refetchLogs } = useQuery({
         queryKey: ['whatsapp', 'webhook', 'logs'],
         queryFn: () => whatsappApi.getWebhookLogs(),
-        refetchInterval: 10000 // Refresh a cada 10 segundos para logs vivos
     })
 
     const copyToClipboard = () => {
@@ -293,27 +292,6 @@ export function WebhooksView() {
                                 </Card>
                             </div>
 
-                            <div className="space-y-6">
-                                <Card className="bg-muted/5 border-dashed">
-                                    <CardHeader>
-                                        <CardTitle className="text-sm font-bold flex items-center gap-2 text-muted-foreground">
-                                            <Database className="h-4 w-4" />
-                                            Status Global
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="space-y-4">
-                                        <div className="flex flex-col items-center justify-center py-6 text-center space-y-3">
-                                            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center animate-pulse">
-                                                <RefreshCw className="h-6 w-6 text-primary" />
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-bold uppercase tracking-tighter">Escuta Ativa</p>
-                                                <p className="text-[10px] text-muted-foreground">O sistema está pronto para processar novos eventos.</p>
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </div>
                         </div>
                     </TabsContent>
 
