@@ -2,47 +2,26 @@
 
 import React, { useState } from 'react'
 import {
-    LayoutDashboard,
-    User,
-    FileText,
-    Send,
-    History,
     RefreshCw
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
-import {
-    TemplateMainShell,
-    TemplateMainHeader,
-} from '@/components/dashboard/leads'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { whatsappApi } from '../api/whatsapp'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { parsePhoneNumberFromString } from 'libphonenumber-js'
+import * as Flags from 'country-flag-icons/react/3x2'
 
-import { OverviewView } from './views/overview-view'
-import { ProfileView } from './views/profile-view'
-import { TemplatesView } from './views/templates-view'
-import { SendTestView } from './views/send-test-view'
-import { HistoryView } from './views/history-view'
+import { OverviewView } from '@/features/whatsapp/components/views/overview-view'
 
 interface InstanceDetailProps {
     phoneId: string
 }
 
-type SubView = 'overview' | 'profile' | 'templates' | 'send' | 'history'
-
-const SUB_VIEW_OPTIONS = [
-    { value: 'overview' as const, label: 'Visão Geral', icon: LayoutDashboard },
-    { value: 'profile' as const, label: 'Perfil', icon: User },
-    { value: 'templates' as const, label: 'Templates', icon: FileText },
-    { value: 'send' as const, label: 'Enviar Teste', icon: Send },
-    { value: 'history' as const, label: 'Logs', icon: History },
-]
-
 export function InstanceDetail({ phoneId }: InstanceDetailProps) {
     const isMobile = useIsMobile()
     const router = useRouter()
-    const [currentSubView, setCurrentSubView] = useState<SubView>('overview')
 
     const { data: phone, isLoading } = useQuery({
         queryKey: ['whatsapp', 'phone', phoneId],
@@ -51,7 +30,7 @@ export function InstanceDetail({ phoneId }: InstanceDetailProps) {
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center h-screen">
+            <div className="flex items-center justify-center h-[400px]">
                 <RefreshCw className="h-8 w-8 animate-spin text-primary" />
             </div>
         )
@@ -59,53 +38,61 @@ export function InstanceDetail({ phoneId }: InstanceDetailProps) {
 
     if (!phone) {
         return (
-            <div className="flex flex-col items-center justify-center h-screen gap-4">
+            <div className="flex flex-col items-center justify-center h-[400px] gap-4">
                 <h2 className="text-xl font-bold">Instância não encontrada</h2>
-                <Button onClick={() => router.push('/dashboard/settings/whatsapp')}>
+                <Button variant="outline" onClick={() => router.push('/dashboard/settings/whatsapp')}>
                     Voltar para lista
                 </Button>
             </div>
         )
     }
 
-    return (
-        <TemplateMainShell className="flex flex-col h-[calc(100vh-2rem)]">
-            <TemplateMainHeader
-            // Título e Subtítulo removidos para evitar redundância com o Breadcrumb global
-            >
-                <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide py-2 -ml-1 border-t md:border-t-0 mt-2 md:mt-0">
-                    {SUB_VIEW_OPTIONS.map((option) => {
-                        const Icon = option.icon
-                        const isActive = currentSubView === option.value
-                        return (
-                            <button
-                                key={option.value}
-                                onClick={() => setCurrentSubView(option.value)}
-                                className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-all whitespace-nowrap ${isActive
-                                    ? 'bg-primary/10 text-primary font-bold'
-                                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                                    }`}
-                            >
-                                <Icon className="h-4 w-4" />
-                                {option.label}
-                            </button>
-                        )
-                    })}
-                </div>
-            </TemplateMainHeader>
+    // Identificar país e formatar número
+    const rawNumber = phone.display_phone_number
+    const cleanNumber = rawNumber.startsWith('+') ? rawNumber : `+${rawNumber.replace(/\D/g, '')}`
+    const parsedPhone = parsePhoneNumberFromString(cleanNumber)
 
-            <div className={isMobile
-                ? "flex-1 overflow-y-scroll bg-muted/5 p-4 scrollbar-hide"
-                : "flex-1 overflow-y-auto bg-muted/5 p-6"
-            }>
-                <div className="w-full h-full">
-                    {currentSubView === 'overview' && <OverviewView phone={phone} />}
-                    {currentSubView === 'profile' && <ProfileView phone={phone} />}
-                    {currentSubView === 'templates' && <TemplatesView phone={phone} />}
-                    {currentSubView === 'send' && <SendTestView phone={phone} />}
-                    {currentSubView === 'history' && <HistoryView phone={phone} />}
+    // Fallback para US se o número começar com 1 (comum em números de teste da Meta)
+    const detectedCountry = parsedPhone?.country || (rawNumber.startsWith('1') || rawNumber.startsWith('+1') ? 'US' : null)
+    const FlagComponent = detectedCountry ? (Flags as any)[detectedCountry] : null
+
+    return (
+        <div className={isMobile ? "p-4 space-y-6" : "p-8 space-y-8"}>
+            <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b pb-6">
+                <div className="space-y-1">
+                    <div className="flex items-center gap-3">
+                        {FlagComponent && (
+                            <div className="w-7 shadow-sm rounded-sm overflow-hidden border shrink-0">
+                                <FlagComponent />
+                            </div>
+                        )}
+                        <h1 className="text-2xl font-black tracking-tighter text-foreground">
+                            {parsedPhone?.formatInternational() || rawNumber}
+                        </h1>
+                        <Badge variant="outline" className="text-[10px] uppercase font-bold tracking-widest bg-muted/50 border-none">
+                            {phone.verified_name}
+                        </Badge>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
+                            <span className="opacity-50 uppercase text-[9px] font-bold">Phone ID:</span>
+                            <code className="bg-muted px-1.5 py-0.5 rounded text-primary font-mono select-all">
+                                {phone.id}
+                            </code>
+                        </div>
+                        {phone.webhook_configuration?.whatsapp_business_account && (
+                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
+                                <span className="opacity-50 uppercase text-[9px] font-bold">WABA ID:</span>
+                                <code className="bg-muted px-1.5 py-0.5 rounded text-primary font-mono select-all">
+                                    {phone.webhook_configuration.whatsapp_business_account}
+                                </code>
+                            </div>
+                        )}
+                    </div>
                 </div>
-            </div>
-        </TemplateMainShell>
+            </header>
+
+            <OverviewView phone={phone} />
+        </div>
     )
 }

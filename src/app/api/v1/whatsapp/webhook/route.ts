@@ -6,10 +6,12 @@
 
 import { NextResponse } from 'next/server'
 
+import { prisma } from '@/lib/prisma'
+
 export const dynamic = 'force-dynamic'
 
 // Webhook verification token - should match what's configured in Meta Developer Portal
-const VERIFY_TOKEN = process.env.META_WEBHOOK_VERIFY_TOKEN || 'whatrack_verify_token'
+const VERIFY_TOKEN = process.env.META_WEBHOOK_VERIFY_TOKEN
 
 /**
  * GET /api/v1/whatsapp/meta-cloud/webhook
@@ -54,6 +56,25 @@ export async function POST(request: Request) {
         const entry = payload.entry?.[0]
         const changes = entry?.changes?.[0]
         const value = changes?.value
+
+        // Determine event type for logging
+        let eventType = 'unknown'
+        if (value?.messages) eventType = 'messages'
+        else if (value?.statuses) eventType = 'statuses'
+        else if (changes?.field) eventType = changes.field // e.g., "message_template_status_update"
+
+        // Persist the payload for auditing
+        try {
+            await prisma.whatsAppWebhookLog.create({
+                data: {
+                    payload: payload as any,
+                    eventType,
+                }
+            })
+        } catch (dbError) {
+            console.error('[meta-cloud/webhook] Audit log error:', dbError)
+            // Continue even if logging fails
+        }
 
         // Log received data for debugging
         if (value?.messages) {

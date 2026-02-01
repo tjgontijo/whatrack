@@ -8,7 +8,8 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form"
+import { FormProvider as Form, Controller } from "react-hook-form"
+import { Field, FieldError } from "@/components/ui/field"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
@@ -121,38 +122,34 @@ export default function TeamSettingsPage() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmitInvite)} className="flex gap-4">
-              <FormField
+              <Controller
                 control={form.control}
                 name="email"
-                render={({ field }) => (
-                  <FormItem className="flex-1">
-                    <FormControl>
-                      <Input placeholder="email@empresa.com" type="email" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid} className="flex-1">
+                    <Input id={field.name} placeholder="email@empresa.com" type="email" {...field} />
+                    <FieldError errors={[fieldState.error]} />
+                  </Field>
                 )}
               />
 
-              <FormField
+              <Controller
                 control={form.control}
                 name="role"
-                render={({ field }) => (
-                  <FormItem className="w-48">
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid} className="w-48">
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
+                      <SelectTrigger id={field.name}>
+                        <SelectValue />
+                      </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="user">Usuário</SelectItem>
                         <SelectItem value="admin">Administrador</SelectItem>
                         <SelectItem value="owner">Proprietário</SelectItem>
                       </SelectContent>
                     </Select>
-                    <FormMessage />
-                  </FormItem>
+                    <FieldError errors={[fieldState.error]} />
+                  </Field>
                 )}
               />
 

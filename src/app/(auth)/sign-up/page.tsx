@@ -6,7 +6,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 import Link from 'next/link'
 
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { FormProvider as Form, Controller } from 'react-hook-form'
+import { Field, FieldLabel, FieldError } from '@/components/ui/field'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { authClient } from '@/lib/auth/auth-client'
@@ -116,103 +117,98 @@ export default function SignUpPage() {
 
         <Form {...form}>
           <form className="space-y-4" onSubmit={form.handleSubmit(handleSubmit)}>
-            <FormField
+            <Controller
               control={form.control}
               name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nome completo</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Seu nome"
-                      autoComplete="name"
-                      disabled={isSubmitting}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>Nome completo</FieldLabel>
+                  <Input
+                    id={field.name}
+                    placeholder="Seu nome"
+                    autoComplete="name"
+                    disabled={isSubmitting}
+                    {...field}
+                  />
+                  <FieldError errors={[fieldState.error]} />
+                </Field>
               )}
             />
 
-            <FormField
+            <Controller
               control={form.control}
               name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="email"
-                      placeholder="seu@email.com"
-                      autoComplete="email"
-                      disabled={isSubmitting}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>Email</FieldLabel>
+                  <Input
+                    id={field.name}
+                    type="email"
+                    placeholder="seu@email.com"
+                    autoComplete="email"
+                    disabled={isSubmitting}
+                    {...field}
+                  />
+                  <FieldError errors={[fieldState.error]} />
+                </Field>
               )}
             />
 
-            <FormField
+            <Controller
               control={form.control}
               name="phone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>WhatsApp Pessoal</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="tel"
-                      placeholder="(11) 99999-9999"
-                      autoComplete="tel"
-                      disabled={isSubmitting}
-                      {...field}
-                      onChange={(e) => field.onChange(applyPhoneMask(e.target.value))}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>WhatsApp Pessoal</FieldLabel>
+                  <Input
+                    id={field.name}
+                    type="tel"
+                    placeholder="(11) 99999-9999"
+                    autoComplete="tel"
+                    disabled={isSubmitting}
+                    {...field}
+                    onChange={(e) => field.onChange(applyPhoneMask(e.target.value))}
+                  />
+                  <FieldError errors={[fieldState.error]} />
+                </Field>
               )}
             />
 
-            <FormField
+            <Controller
               control={form.control}
               name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Senha</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="password"
-                      placeholder="Mínimo 8 caracteres"
-                      autoComplete="new-password"
-                      disabled={isSubmitting}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>Senha</FieldLabel>
+                  <Input
+                    id={field.name}
+                    type="password"
+                    placeholder="Mínimo 8 caracteres"
+                    autoComplete="new-password"
+                    disabled={isSubmitting}
+                    {...field}
+                  />
+                  <FieldError errors={[fieldState.error]} />
+                </Field>
               )}
             />
 
-            <FormField
+            <Controller
               control={form.control}
               name="confirmPassword"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Confirmar senha</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="password"
-                      placeholder="Repita a senha"
-                      autoComplete="new-password"
-                      disabled={isSubmitting}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>Confirmar senha</FieldLabel>
+                  <Input
+                    id={field.name}
+                    type="password"
+                    placeholder="Repita a senha"
+                    autoComplete="new-password"
+                    disabled={isSubmitting}
+                    {...field}
+                  />
+                  <FieldError errors={[fieldState.error]} />
+                </Field>
               )}
             />
 

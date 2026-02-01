@@ -7,7 +7,8 @@ import { toast } from 'sonner'
 import { ChevronLeft, Info as InfoIcon, Loader2, CheckCircle2, XCircle } from 'lucide-react'
 import { z } from 'zod'
 
-import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
+import { FormProvider as Form, Controller } from 'react-hook-form'
+import { Field, FieldLabel, FieldError } from '@/components/ui/field'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
@@ -98,16 +99,16 @@ const monthlyAdSpendOptions = [
 ] as const
 
 // Componente de opção do quiz
-function QuizOption({ 
-  label, 
-  selected, 
-  onClick, 
-  onSelect 
-}: { 
+function QuizOption({
+  label,
+  selected,
+  onClick,
+  onSelect
+}: {
   label: string
   selected: boolean
   onClick: () => void
-  onSelect?: () => void 
+  onSelect?: () => void
 }) {
   return (
     <button
@@ -129,9 +130,9 @@ function QuizOption({
 }
 
 // Wrapper de cada step
-function StepWrapper({ 
-  question, 
-  children, 
+function StepWrapper({
+  question,
+  children,
   onNext,
   onBack,
   canProceed = true,
@@ -139,7 +140,7 @@ function StepWrapper({
   isSubmitting = false,
   autoAdvance = false,
   nextLabel = 'Continuar',
-}: { 
+}: {
   question: string
   children: ReactNode
   onNext?: () => void
@@ -261,7 +262,7 @@ export function OnboardingOverlay({ onComplete, onSkip }: OnboardingOverlayProps
     // Reset confirmação ao avançar de step
     setShowCnpjConfirmation(false)
   }, [form])
-  
+
   const goBack = useCallback(() => {
     if (showCnpjConfirmation) {
       setShowCnpjConfirmation(false)
@@ -417,7 +418,7 @@ export function OnboardingOverlay({ onComplete, onSkip }: OnboardingOverlayProps
           mainAcquisitionChannel: values.mainAcquisitionChannel,
           monthlyAdSpend: values.monthlyAdSpend,
           onboardingStatus: 'completed',
-          
+
           // Dados para OrganizationCompany (CNPJ/ReceitaWS)
           cnpj: values.hasCnpj ? values.cnpj?.replace(/\D/g, '') : null,
           razaoSocial: values.razaoSocial,
@@ -492,23 +493,23 @@ export function OnboardingOverlay({ onComplete, onSkip }: OnboardingOverlayProps
       <div className="flex items-center justify-center min-h-screen px-4 pt-16 pb-8">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="w-full">
-            
+
             {/* Step 1: CNPJ */}
             {currentStep === 1 && !showCnpjConfirmation && (
-              
-              
-              <AnimatedStep>                
-                  <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 mb-6 flex items-start gap-3">
+
+
+              <AnimatedStep>
+                <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 mb-6 flex items-start gap-3">
                   <InfoIcon className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                    <div className="text-sm">
-                      <p className="font-medium text-foreground mb-1">
-                        Bem-vindo ao WhaTrack!
-                      </p>
-                      <p className="text-muted-foreground">
-                        Responda essas 6 perguntas rápidas sobre seu negócio para personalizarmos sua experiência. Leva apenas <strong>40 segundos</strong>.
-                      </p>
-                    </div>
+                  <div className="text-sm">
+                    <p className="font-medium text-foreground mb-1">
+                      Bem-vindo ao WhaTrack!
+                    </p>
+                    <p className="text-muted-foreground">
+                      Responda essas 6 perguntas rápidas sobre seu negócio para personalizarmos sua experiência. Leva apenas <strong>40 segundos</strong>.
+                    </p>
                   </div>
+                </div>
                 <StepWrapper
                   question="Qual é o CNPJ da sua empresa?"
                   onNext={goNext}
@@ -559,8 +560,8 @@ export function OnboardingOverlay({ onComplete, onSkip }: OnboardingOverlayProps
                     </div>
                     {cnpjError && <p className="text-sm text-destructive">{cnpjError}</p>}
                     {isSearchingCnpj && <p className="text-sm text-muted-foreground">Buscando dados da empresa...</p>}
-                    
-                    <div className="pt-4 border-t border-border">                      
+
+                    <div className="pt-4 border-t border-border">
                       <Button
                         type="button"
                         variant="outline"
@@ -581,7 +582,7 @@ export function OnboardingOverlay({ onComplete, onSkip }: OnboardingOverlayProps
             {/* Step 1: Confirmação de CNPJ */}
             {currentStep === 1 && showCnpjConfirmation && cnpjFound && (
               <AnimatedStep>
-                <StepWrapper 
+                <StepWrapper
                   question="Confirme os dados da sua empresa"
                   onBack={goBack}
                   onNext={goNext}
@@ -632,55 +633,67 @@ export function OnboardingOverlay({ onComplete, onSkip }: OnboardingOverlayProps
                   canProceed={!!form.watch('cpf') && !!form.watch('companyName') && !!form.watch('segment')}
                 >
                   <div className="space-y-4">
-                    <FormField
+                    <Controller
                       control={form.control}
                       name="cpf"
-                      render={({ field }) => (
-                        <FormItem>
-                          <label className="text-sm font-medium">CPF *</label>
-                          <FormControl>
-                            <Input
-                              placeholder="000.000.000-00"
-                              className="h-12"
-                              {...field}
-                              value={field.value || ''}
-                              onChange={(e) => field.onChange(applyCpfMask(e.target.value))}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel htmlFor={field.name}>CPF *</FieldLabel>
+                          <Input
+                            id={field.name}
+                            placeholder="000.000.000-00"
+                            className="h-12"
+                            {...field}
+                            value={field.value || ""}
+                            onChange={(e) =>
+                              field.onChange(applyCpfMask(e.target.value))
+                            }
+                          />
+                          <FieldError errors={[fieldState.error]} />
+                        </Field>
                       )}
                     />
-                    <FormField
+                    <Controller
                       control={form.control}
                       name="companyName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <label className="text-sm font-medium">Nome da Empresa *</label>
-                          <p className="text-xs text-muted-foreground mb-2">Como sua empresa aparecerá nos relatórios e documentos</p>
-                          <FormControl>
-                            <Input placeholder="Nome da empresa" className="h-12" {...field} value={field.value || ''} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel htmlFor={field.name}>Nome da Empresa *</FieldLabel>
+                          <p className="text-xs text-muted-foreground mb-2">
+                            Como sua empresa aparecerá nos relatórios e documentos
+                          </p>
+                          <Input
+                            id={field.name}
+                            placeholder="Nome da empresa"
+                            className="h-12"
+                            {...field}
+                            value={field.value || ""}
+                          />
+                          <FieldError errors={[fieldState.error]} />
+                        </Field>
                       )}
                     />
-                    <FormField
+                    <Controller
                       control={form.control}
                       name="segment"
-                      render={({ field }) => (
-                        <FormItem>
-                          <label className="text-sm font-medium">Área de Atuação *</label>
-                          <FormControl>
-                            <select className="w-full h-12 px-3 rounded-lg border border-border bg-background" {...field} value={field.value || ''}>
-                              <option value="">Selecione a área de atuação</option>
-                              {segmentOptions.map((opt) => (
-                                <option key={opt.value} value={opt.value}>{opt.label}</option>
-                              ))}
-                            </select>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel htmlFor={field.name}>Área de Atuação *</FieldLabel>
+                          <select
+                            id={field.name}
+                            className="w-full h-12 px-3 rounded-lg border border-border bg-background"
+                            {...field}
+                            value={field.value || ""}
+                          >
+                            <option value="">Selecione a área de atuação</option>
+                            {segmentOptions.map((opt) => (
+                              <option key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </option>
+                            ))}
+                          </select>
+                          <FieldError errors={[fieldState.error]} />
+                        </Field>
                       )}
                     />
                   </div>
@@ -703,9 +716,9 @@ export function OnboardingOverlay({ onComplete, onSkip }: OnboardingOverlayProps
                   </p>
                   <div className="space-y-2">
                     {attendantsOptions.map((opt) => (
-                      <QuizOption 
+                      <QuizOption
                         key={opt.value}
-                        label={opt.label} 
+                        label={opt.label}
                         selected={form.watch('attendantsCount') === opt.value}
                         onClick={() => form.setValue('attendantsCount', opt.value)}
                         onSelect={goNext}
@@ -730,9 +743,9 @@ export function OnboardingOverlay({ onComplete, onSkip }: OnboardingOverlayProps
                   </p>
                   <div className="space-y-2">
                     {leadsPerDayOptions.map((opt) => (
-                      <QuizOption 
+                      <QuizOption
                         key={opt.value}
-                        label={opt.label} 
+                        label={opt.label}
                         selected={form.watch('leadsPerDay') === opt.value}
                         onClick={() => form.setValue('leadsPerDay', opt.value)}
                         onSelect={goNext}
@@ -754,9 +767,9 @@ export function OnboardingOverlay({ onComplete, onSkip }: OnboardingOverlayProps
                 >
                   <div className="space-y-2">
                     {avgTicketOptions.map((opt) => (
-                      <QuizOption 
+                      <QuizOption
                         key={opt.value}
-                        label={opt.label} 
+                        label={opt.label}
                         selected={form.watch('avgTicket') === opt.value}
                         onClick={() => form.setValue('avgTicket', opt.value)}
                         onSelect={goNext}
@@ -781,9 +794,9 @@ export function OnboardingOverlay({ onComplete, onSkip }: OnboardingOverlayProps
                   </p>
                   <div className="space-y-2">
                     {monthlyRevenueOptions.map((opt) => (
-                      <QuizOption 
+                      <QuizOption
                         key={opt.value}
-                        label={opt.label} 
+                        label={opt.label}
                         selected={form.watch('monthlyRevenue') === opt.value}
                         onClick={() => form.setValue('monthlyRevenue', opt.value)}
                         onSelect={goNext}
@@ -808,19 +821,19 @@ export function OnboardingOverlay({ onComplete, onSkip }: OnboardingOverlayProps
                 >
                   <div className="space-y-2">
                     {acquisitionChannelOptions.map((opt) => (
-                      <QuizOption 
+                      <QuizOption
                         key={opt.value}
-                        label={opt.label} 
+                        label={opt.label}
                         selected={mainChannel === opt.value}
                         onClick={() => form.setValue('mainAcquisitionChannel', opt.value)}
                       />
                     ))}
-                    
+
                     {/* Pergunta condicional: gasto em anúncios */}
                     {(mainChannel === 'meta' || mainChannel === 'google') && (
                       <div className="mt-6 pt-6 border-t border-border space-y-3">
                         <p className="text-sm font-medium">Quanto você investe por mês em anúncios?</p>
-                        <select 
+                        <select
                           className="w-full h-10 px-3 rounded-lg border border-border bg-background text-sm"
                           value={form.watch('monthlyAdSpend') || ''}
                           onChange={(e) => form.setValue('monthlyAdSpend', e.target.value)}

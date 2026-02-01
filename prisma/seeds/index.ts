@@ -1,8 +1,7 @@
 import 'dotenv/config'
 import { PrismaClient } from '../generated/prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
-import { seedAdPlatforms } from './ad-platforms.seed'
-import { seedTrackingIdentifierTypes } from './tracking-identifier-types.seed'
+import { seedWhatsAppConfig } from './seed_whatsapp_config'
 
 interface PgTableRow {
   tablename: string
@@ -74,7 +73,7 @@ async function truncateAllTables() {
 }
 
 /**
- * Seed de infraestrutura (plataformas e tipos de identificadores).
+ * Seed de infraestrutura.
  *
  * Usuários e organizações devem ser criados pelo fluxo normal de sign-up.
  * Este seed é idempotente e pode ser executado múltiplas vezes.
@@ -87,8 +86,7 @@ export async function runSeed() {
       await truncateAllTables()
     }
 
-    await seedAdPlatforms(prisma)
-    await seedTrackingIdentifierTypes(prisma)
+    await seedWhatsAppConfig(prisma)
 
     console.log('✅ Seed concluído com sucesso!')
   } catch (error) {

@@ -6,7 +6,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 // ============================================
@@ -384,4 +383,13 @@ model WhatsAppConfig {
   updatedAt DateTime @updatedAt
 
   @@map("whatsapp_configs")
+}
+
+model WhatsAppWebhookLog {
+  id        String   @id @default(cuid())
+  payload   Json // The raw JSON received from Meta
+  eventType String? // e.g., "messages", "statuses", "template_approval"
+  createdAt DateTime @default(now())
+
+  @@map("whatsapp_webhook_logs")
 }

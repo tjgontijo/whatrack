@@ -1,39 +1,99 @@
 'use client'
 
-import React from 'react'
-import { FileText, CheckCircle2, XCircle, AlertCircle, ExternalLink } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { MessageSquare, Edit, Trash2, MoreVertical, CheckCircle2, XCircle, AlertCircle } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { whatsappApi } from '../../api/whatsapp'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
+    CrudPageShell,
+    CrudEditDrawer,
+    DeleteConfirmDialog,
+    type ViewType,
+    type ColumnDef,
+    type CardConfig,
+    type RowActions,
+} from '@/components/dashboard/crud'
+import { CrudDataView } from './crud-data-view-wrapper'
 import type { WhatsAppPhoneNumber, WhatsAppTemplate } from '../../types'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { TemplateEditorForm } from '@/features/whatsapp/components/template-editor/template-editor-form'
 
 interface TemplatesViewProps {
     phone: WhatsAppPhoneNumber
 }
 
 export function TemplatesView({ phone }: TemplatesViewProps) {
+    // View & Search state
+    const [view, setView] = useState<ViewType>('cards')
+    const [searchInput, setSearchInput] = useState('')
+
+    // Pagination state
+    const [page, setPage] = useState(1)
+    const [limit, setLimit] = useState(20)
+
+    // Editor drawer state
+    const [editorOpen, setEditorOpen] = useState(false)
+    const [selectedTemplate, setSelectedTemplate] = useState<WhatsAppTemplate | null>(null)
+
+    // Delete dialog state
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+    const [templateToDelete, setTemplateToDelete] = useState<WhatsAppTemplate | null>(null)
+
+    // Fetch templates
     const { data: templates, isLoading } = useQuery<WhatsAppTemplate[]>({
         queryKey: ['whatsapp', 'templates'],
         queryFn: () => whatsappApi.getTemplates(),
     })
 
+    // Filter templates based on search
+    const filteredTemplates = templates?.filter(template => {
+        if (!searchInput) return true
+        const search = searchInput.toLowerCase()
+        return (
+            template.name.toLowerCase().includes(search) ||
+            template.category.toLowerCase().includes(search) ||
+            template.components?.find((c: any) =>
+                c.type === 'BODY' && c.text?.toLowerCase().includes(search)
+            )
+        )
+    }) || []
+
+    // Paginated data
+    const paginatedTemplates = filteredTemplates.slice((page - 1) * limit, page * limit)
+    const totalItems = filteredTemplates.length
+    const totalPages = Math.ceil(totalItems / limit)
+
+    // Reset page when search changes
+    useEffect(() => {
+        setPage(1)
+    }, [searchInput])
+
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'APPROVED': return 'text-green-600 bg-green-50 border-green-200'
-            case 'REJECTED': return 'text-red-600 bg-red-50 border-red-200'
-            case 'PENDING': return 'text-yellow-600 bg-yellow-50 border-yellow-200'
-            default: return 'text-slate-600 bg-slate-50 border-slate-200'
+            case 'APPROVED': return 'text-green-600 bg-green-50 border-green-200 dark:bg-green-950 dark:text-green-400'
+            case 'REJECTED': return 'text-red-600 bg-red-50 border-red-200 dark:bg-red-950 dark:text-red-400'
+            case 'PENDING': return 'text-yellow-600 bg-yellow-50 border-yellow-200 dark:bg-yellow-950 dark:text-yellow-400'
+            case 'PAUSED': return 'text-orange-600 bg-orange-50 border-orange-200 dark:bg-orange-950 dark:text-orange-400'
+            case 'DISABLED': return 'text-slate-400 bg-slate-50 border-slate-200 dark:bg-slate-900 dark:text-slate-500'
+            default: return 'text-slate-600 bg-slate-50 border-slate-200 dark:bg-slate-900 dark:text-slate-400'
         }
     }
 
     const getStatusIcon = (status: string) => {
         switch (status) {
-            case 'APPROVED': return <CheckCircle2 className="h-3.5 w-3.5" />
-            case 'REJECTED': return <XCircle className="h-3.5 w-3.5" />
-            case 'PENDING': return <AlertCircle className="h-3.5 w-3.5" />
-            default: return <AlertCircle className="h-3.5 w-3.5" />
+            case 'APPROVED': return <CheckCircle2 className="h-3 w-3" />
+            case 'REJECTED': return <XCircle className="h-3 w-3" />
+            case 'PENDING': return <AlertCircle className="h-3 w-3" />
+            default: return <AlertCircle className="h-3 w-3" />
         }
     }
 
@@ -46,67 +106,236 @@ export function TemplatesView({ phone }: TemplatesViewProps) {
         return map[category] || category
     }
 
-    return (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500 w-full">
-            <div className="flex justify-between items-center pb-4 border-b">
-                <div>
-                    <h3 className="text-lg font-bold">Meus Templates</h3>
-                    <p className="text-sm text-muted-foreground">Sincronizados com o Gerenciador do WhatsApp</p>
-                </div>
-                <Button variant="outline" size="sm" className="gap-2" asChild>
-                    <a
-                        href={`https://business.facebook.com/wa/manage/message-templates/`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        Criar Template <ExternalLink className="h-3 w-3" />
-                    </a>
-                </Button>
-            </div>
+    const handleEdit = (template: WhatsAppTemplate) => {
+        setSelectedTemplate(template)
+        setEditorOpen(true)
+    }
 
-            {isLoading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {[1, 2, 3, 4].map((i) => (
-                        <div key={i} className="h-32 rounded-xl bg-muted/40 animate-pulse" />
-                    ))}
+    const handleCreate = () => {
+        setSelectedTemplate(null)
+        setEditorOpen(true)
+    }
+
+    const handleDeleteClick = (template: WhatsAppTemplate) => {
+        setTemplateToDelete(template)
+        setDeleteDialogOpen(true)
+    }
+
+    // Column definitions for list view
+    const columns: ColumnDef<WhatsAppTemplate>[] = [
+        {
+            key: 'name',
+            label: 'Nome',
+            render: (item) => (
+                <div className="font-medium text-sm">{item.name}</div>
+            ),
+            width: '25%'
+        },
+        {
+            key: 'category',
+            label: 'Categoria',
+            render: (item) => (
+                <Badge variant="secondary" className="text-xs">
+                    {getCategoryLabel(item.category)}
+                </Badge>
+            ),
+            width: '15%'
+        },
+        {
+            key: 'status',
+            label: 'Status',
+            render: (item) => (
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Badge
+                                variant="outline"
+                                className={`gap-1.5 font-semibold cursor-default ${getStatusColor(item.status)}`}
+                            >
+                                {getStatusIcon(item.status)}
+                                <span className="text-xs">
+                                    {item.status === 'APPROVED' ? 'Aprovado' : item.status}
+                                </span>
+                            </Badge>
+                        </TooltipTrigger>
+                        {item.status === 'REJECTED' && item.rejected_reason && (
+                            <TooltipContent>
+                                <p className="max-w-xs text-xs">{item.rejected_reason}</p>
+                            </TooltipContent>
+                        )}
+                    </Tooltip>
+                </TooltipProvider>
+            ),
+            width: '15%'
+        },
+        {
+            key: 'body',
+            label: 'Prévia',
+            render: (item) => (
+                <div className="text-xs text-muted-foreground italic line-clamp-2">
+                    {item.components?.find((c: any) => c.type === 'BODY')?.text || "—"}
                 </div>
-            ) : !templates || templates.length === 0 ? (
-                <div className="text-center py-12 bg-muted/20 rounded-xl border border-dashed w-full">
-                    <FileText className="h-10 w-10 text-muted-foreground/30 mx-auto mb-4" />
-                    <h3 className="text-sm font-semibold text-muted-foreground">Nenhum template encontrado</h3>
+            ),
+            width: '35%'
+        },
+        {
+            key: 'language',
+            label: 'Idioma',
+            render: (item) => (
+                <span className="text-xs font-mono text-muted-foreground uppercase">
+                    {item.language}
+                </span>
+            ),
+            width: '10%'
+        },
+    ]
+
+    // Card configuration
+    const cardConfig: CardConfig<WhatsAppTemplate> = {
+        title: (item) => item.name,
+        subtitle: (item) => (
+            <div className="flex flex-wrap gap-2 mt-1">
+                <Badge variant="secondary" className="text-[10px] uppercase font-bold">
+                    {getCategoryLabel(item.category)}
+                </Badge>
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Badge
+                                variant="outline"
+                                className={`gap-1.5 font-semibold cursor-default text-[10px] ${getStatusColor(item.status)}`}
+                            >
+                                {getStatusIcon(item.status)}
+                                {item.status === 'APPROVED' ? 'Aprovado' : item.status}
+                            </Badge>
+                        </TooltipTrigger>
+                        {item.status === 'REJECTED' && item.rejected_reason && (
+                            <TooltipContent>
+                                <p className="max-w-xs text-xs">{item.rejected_reason}</p>
+                            </TooltipContent>
+                        )}
+                    </Tooltip>
+                </TooltipProvider>
+            </div>
+        ),
+        footer: (item) => (
+            <div className="flex items-center justify-between w-full">
+                <span className="text-[10px] font-mono text-muted-foreground uppercase font-semibold">
+                    {item.language}
+                </span>
+                <div className="text-xs text-primary font-medium">
+                    Clique para editar →
                 </div>
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {templates.map((template) => (
-                        <Card key={template.name} className="hover:shadow-sm transition-all h-full flex flex-col">
-                            <CardHeader className="pb-2">
-                                <div className="flex items-start justify-between mb-2">
-                                    <Badge variant="secondary" className="text-[10px] uppercase font-bold tracking-wider bg-muted text-muted-foreground">
-                                        {getCategoryLabel(template.category)}
-                                    </Badge>
-                                    <Badge variant="outline" className={`gap-1.5 font-semibold ${getStatusColor(template.status)}`}>
-                                        {getStatusIcon(template.status)}
-                                        {template.status === 'APPROVED' ? 'Aprovado' : template.status}
-                                    </Badge>
-                                </div>
-                                <CardTitle className="text-sm font-bold truncate" title={template.name}>
-                                    {template.name}
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="flex-1">
-                                <div className="text-xs text-muted-foreground bg-muted/30 p-3 rounded-md line-clamp-3 min-h-[3.5rem] italic">
-                                    {template.components?.find((c: any) => c.type === 'BODY')?.text || "Prévia não disponível"}
-                                </div>
-                                <div className="mt-3 flex items-center justify-between">
-                                    <span className="text-[10px] font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                                        {template.language}
-                                    </span>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
-            )}
-        </div>
+            </div>
+        ),
+        onClick: handleEdit,
+    }
+
+    // Row actions
+    const rowActions: RowActions<WhatsAppTemplate> = {
+        customActions: (item) => (
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-7 w-7">
+                        <MoreVertical className="h-4 w-4" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                        className="gap-2 cursor-pointer"
+                        onClick={() => handleEdit(item)}
+                    >
+                        <Edit className="h-4 w-4" /> Editar Template
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                        className="text-destructive focus:text-destructive gap-2 cursor-pointer"
+                        onClick={() => handleDeleteClick(item)}
+                    >
+                        <Trash2 className="h-4 w-4" /> Excluir Template
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+        )
+    }
+
+    return (
+        <TooltipProvider>
+            <CrudPageShell
+                title="Templates WhatsApp"
+                subtitle="Gerencie suas mensagens padronizadas do WhatsApp"
+                icon={MessageSquare}
+                view={view}
+                setView={setView}
+                enabledViews={['list', 'cards']}
+                searchInput={searchInput}
+                onSearchChange={setSearchInput}
+                searchPlaceholder="Buscar por nome, categoria ou conteúdo..."
+                page={page}
+                limit={limit}
+                onPageChange={setPage}
+                onLimitChange={setLimit}
+                totalItems={totalItems}
+                totalPages={totalPages}
+                hasMore={page * limit < totalItems}
+                onAdd={handleCreate}
+                addLabel="Novo Template"
+                isLoading={isLoading}
+            >
+                <CrudDataView
+                    view={view}
+                    data={paginatedTemplates}
+                    columns={columns}
+                    cardConfig={cardConfig}
+                    rowActions={rowActions}
+                    getRowKey={(item) => item.name}
+                    emptyState={{
+                        title: 'Nenhum template encontrado',
+                        description: searchInput
+                            ? 'Nenhum template corresponde à sua busca. Tente outro termo.'
+                            : 'Crie seu primeiro template para começar a enviar mensagens padronizadas.',
+                        action: !searchInput ? {
+                            label: 'Criar primeiro template',
+                            onClick: handleCreate
+                        } : undefined
+                    }}
+                />
+            </CrudPageShell>
+
+            {/* Overlay components (Drawers, Dialogs) */}
+            <div>
+                <CrudEditDrawer
+                    open={editorOpen}
+                    onOpenChange={setEditorOpen}
+                    title={selectedTemplate ? 'Editar Template' : 'Novo Template'}
+                    subtitle={selectedTemplate
+                        ? 'Atualize seu template de mensagem'
+                        : 'Crie uma message reutilizável para seus clientes'}
+                    icon={MessageSquare}
+                    maxWidth="max-w-[95vw]"
+                    showFooter={false}
+                >
+                    <TemplateEditorForm
+                        template={selectedTemplate}
+                        onClose={() => setEditorOpen(false)}
+                    />
+                </CrudEditDrawer>
+
+                <DeleteConfirmDialog
+                    open={deleteDialogOpen}
+                    onOpenChange={setDeleteDialogOpen}
+                    trigger={null}
+                    title="Excluir Template?"
+                    description={`Tem certeza que deseja excluir o template "${templateToDelete?.name}"? Esta ação não pode ser desfeita e ele será removido permanentemente da Meta.`}
+                    onConfirm={async () => {
+                        if (templateToDelete) {
+                            await whatsappApi.deleteTemplate(templateToDelete.name)
+                            setDeleteDialogOpen(false)
+                            setTemplateToDelete(null)
+                        }
+                    }}
+                />
+            </div>
+        </TooltipProvider>
     )
 }

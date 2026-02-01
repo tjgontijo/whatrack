@@ -11,6 +11,7 @@ import {
     LogOut,
     Building2,
     User,
+    Users,
     Sun,
     Moon,
     Monitor,
@@ -159,31 +160,22 @@ export function UserDropdownMenu({
 
                 <DropdownMenuSeparator />
 
-                <DropdownMenuGroup>
-                    <DropdownMenuItem onSelect={() => handleNavigate('/pricing')}>
-                        <Sparkles className="mr-2 h-4 w-4" />
-                        Upgrade para Pro
-                    </DropdownMenuItem>
-                </DropdownMenuGroup>
+
 
                 <DropdownMenuSeparator />
 
                 <DropdownMenuGroup>
                     <DropdownMenuItem onSelect={() => handleNavigate('/dashboard/settings/organization')}>
                         <Building2 className="mr-2 h-4 w-4" />
-                        Minha empresa
+                        Empresa
                     </DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => handleNavigate('/dashboard/settings/profile')}>
                         <User className="mr-2 h-4 w-4" />
                         Perfil
                     </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => handleNavigate('/dashboard/settings/billing')}>
-                        <CreditCard className="mr-2 h-4 w-4" />
-                        Billing
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => handleNavigate('/dashboard/settings')}>
-                        <Settings className="mr-2 h-4 w-4" />
-                        Configurações
+                    <DropdownMenuItem onSelect={() => handleNavigate('/dashboard/settings/team')}>
+                        <Users className="mr-2 h-4 w-4" />
+                        Equipe
                     </DropdownMenuItem>
                 </DropdownMenuGroup>
 

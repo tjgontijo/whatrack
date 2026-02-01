@@ -8,7 +8,8 @@ import { toast } from "sonner"
 import Link from "next/link"
 import { Suspense } from "react"
 
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { FormProvider as Form, Controller } from "react-hook-form"
+import { Field, FieldLabel, FieldError } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 
@@ -121,43 +122,41 @@ function ResetPasswordForm() {
 
         <Form {...form}>
           <form className="space-y-6" onSubmit={form.handleSubmit(handleSubmit)}>
-            <FormField
+            <Controller
               control={form.control}
               name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nova senha</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="password"
-                      autoComplete="new-password"
-                      placeholder="Mínimo 8 caracteres"
-                      disabled={isSubmitting}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>Nova senha</FieldLabel>
+                  <Input
+                    id={field.name}
+                    type="password"
+                    autoComplete="new-password"
+                    placeholder="Mínimo 8 caracteres"
+                    disabled={isSubmitting}
+                    {...field}
+                  />
+                  <FieldError errors={[fieldState.error]} />
+                </Field>
               )}
             />
 
-            <FormField
+            <Controller
               control={form.control}
               name="confirmPassword"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Confirmar senha</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="password"
-                      autoComplete="new-password"
-                      placeholder="Digite novamente"
-                      disabled={isSubmitting}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>Confirmar senha</FieldLabel>
+                  <Input
+                    id={field.name}
+                    type="password"
+                    autoComplete="new-password"
+                    placeholder="Digite novamente"
+                    disabled={isSubmitting}
+                    {...field}
+                  />
+                  <FieldError errors={[fieldState.error]} />
+                </Field>
               )}
             />
 

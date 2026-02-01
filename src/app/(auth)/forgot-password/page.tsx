@@ -7,7 +7,8 @@ import { toast } from "sonner"
 import Link from "next/link"
 import { useState } from "react"
 
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { FormProvider as Form, Controller } from "react-hook-form"
+import { Field, FieldLabel, FieldError } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 
@@ -55,7 +56,7 @@ export default function ForgotPasswordPage() {
       toast.success("Email de recuperação enviado! Verifique sua caixa de entrada.")
     } catch (error) {
       console.error("[forgot-password] erro ao enviar email", error)
-      toast.error("Falha na comunicação com o servidor. Tente novamente.")
+      toast.error("Falha na communication com o servidor. Tente novamente.")
     }
   }
 
@@ -111,24 +112,23 @@ export default function ForgotPasswordPage() {
 
         <Form {...form}>
           <form className="space-y-6" onSubmit={form.handleSubmit(handleSubmit)}>
-            <FormField
+            <Controller
               control={form.control}
               name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="email"
-                      inputMode="email"
-                      autoComplete="email"
-                      placeholder="voce@empresa.com"
-                      disabled={isSubmitting}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>Email</FieldLabel>
+                  <Input
+                    id={field.name}
+                    type="email"
+                    inputMode="email"
+                    autoComplete="email"
+                    placeholder="voce@empresa.com"
+                    disabled={isSubmitting}
+                    {...field}
+                  />
+                  <FieldError errors={[fieldState.error]} />
+                </Field>
               )}
             />
 

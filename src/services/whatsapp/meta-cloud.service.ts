@@ -16,6 +16,17 @@ interface GetTemplatesParams {
     accessToken: string
 }
 
+interface CreateTemplateParams {
+    wabaId: string
+    accessToken: string
+    template: {
+        name: string
+        category: 'MARKETING' | 'UTILITY' | 'AUTHENTICATION'
+        language: string
+        components: any[]
+    }
+}
+
 export class MetaCloudService {
     /**
      * Send a template message (e.g., hello_world)
@@ -88,11 +99,65 @@ export class MetaCloudService {
     }
 
     /**
+     * Create a new message template
+     */
+    static async createTemplate({ wabaId, accessToken, template }: CreateTemplateParams) {
+        const url = `${GRAPH_API_URL}/${API_VERSION}/${wabaId}/message_templates`
+
+        console.log('[MetaCloudService] Creating template:', { url, name: template.name })
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(template),
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+            console.error('[MetaCloudService] Create template error:', data)
+            throw new Error(data.error?.message || 'Failed to create template')
+        }
+
+        return data
+    }
+
+    /**
+     * Delete a message template by name
+     */
+    static async deleteTemplate({ wabaId, accessToken, name }: { wabaId: string, accessToken: string, name: string }) {
+        const url = `${GRAPH_API_URL}/${API_VERSION}/${wabaId}/message_templates?name=${name}`
+
+        console.log('[MetaCloudService] Deleting template:', { url, name })
+
+        const response = await fetch(url, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+            },
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+            console.error('[MetaCloudService] Delete template error:', data)
+            throw new Error(data.error?.message || 'Failed to delete template')
+        }
+
+        return data
+    }
+
+    /**
      * Fetch phone numbers for a WABA
      */
     static async listPhoneNumbers({ wabaId, accessToken }: { wabaId: string, accessToken: string }) {
-        const url = `${GRAPH_API_URL}/${API_VERSION}/${wabaId}/phone_numbers`
+        const url = `${GRAPH_API_URL}/${API_VERSION}/${wabaId}/phone_numbers?fields=display_phone_number,verified_name,status,quality_rating,throughput`
 
+        console.log('[MetaCloudService] DEBUG - AppID Enviado:', process.env.META_APP_ID)
+        console.log('[MetaCloudService] DEBUG - Token Usado (10 chars):', accessToken.substring(0, 10) + '...')
         console.log('[MetaCloudService] Fetching phone numbers:', { url })
 
         const response = await fetch(url, {
@@ -163,11 +228,14 @@ export class MetaCloudService {
     }
 
     /**
-     * Helper to get config for an organization
+     * Helper to get config for an organization.
+     * Reads from the database only. Use the seed to populate development data.
      */
     static async getConfig(organizationId: string) {
-        return prisma.whatsAppConfig.findUnique({
+        const config = await prisma.whatsAppConfig.findUnique({
             where: { organizationId }
         })
+
+        return config
     }
 }

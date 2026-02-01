@@ -7,7 +7,8 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
 import Link from "next/link"
 
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { FormProvider as Form, Controller } from "react-hook-form"
+import { Field, FieldLabel, FieldError } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { authClient } from "@/lib/auth/auth-client"
@@ -78,54 +79,52 @@ export default function LoginPage() {
 
         <Form {...form}>
           <form className="space-y-6" onSubmit={form.handleSubmit(handleSubmit)}>
-            <FormField
+            <Controller
               control={form.control}
               name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="email"
-                      inputMode="email"
-                      autoComplete="email"
-                      placeholder="voce@empresa.com"
-                      disabled={isSubmitting}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>Email</FieldLabel>
+                  <Input
+                    id={field.name}
+                    type="email"
+                    inputMode="email"
+                    autoComplete="email"
+                    placeholder="voce@empresa.com"
+                    disabled={isSubmitting}
+                    {...field}
+                  />
+                  <FieldError errors={[fieldState.error]} />
+                </Field>
               )}
             />
 
-            <FormField
+            <Controller
               control={form.control}
               name="password"
-              render={({ field }) => (
-                <FormItem>
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
                   <div className="flex items-center justify-between">
-                    <FormLabel>Senha</FormLabel>                   
+                    <FieldLabel htmlFor={field.name}>Senha</FieldLabel>
                   </div>
-                  <FormControl>
-                    <Input
-                      type="password"
-                      autoComplete="current-password"
-                      placeholder="Sua senha"
-                      disabled={isSubmitting}
-                      {...field}
-                    />
-                  </FormControl>
-                  <div className="flex items-center justify-end">
-                   <Link
+                  <Input
+                    id={field.name}
+                    type="password"
+                    autoComplete="current-password"
+                    placeholder="Sua senha"
+                    disabled={isSubmitting}
+                    {...field}
+                  />
+                  <div className="flex items-center justify-end pt-1">
+                    <Link
                       href="/forgot-password"
                       className="text-sm font-medium text-primary hover:underline"
                     >
                       Esqueceu a senha?
                     </Link>
-                    </div>
-                  <FormMessage />
-                </FormItem>
+                  </div>
+                  <FieldError errors={[fieldState.error]} />
+                </Field>
               )}
             />
 

@@ -40,6 +40,36 @@ export const whatsappApi = {
         return res.json();
     },
 
+    /**
+     * Cria um novo template de mensagem
+     */
+    async createTemplate(template: any): Promise<any> {
+        const res = await fetch('/api/v1/whatsapp/templates', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(template),
+        });
+        if (!res.ok) {
+            const error = await res.json();
+            throw new Error(error.error || 'Failed to create template');
+        }
+        return res.json();
+    },
+
+    /**
+     * Exclui um template de mensagem pelo nome
+     */
+    async deleteTemplate(name: string): Promise<any> {
+        const res = await fetch(`/api/v1/whatsapp/templates?name=${name}`, {
+            method: 'DELETE',
+        });
+        if (!res.ok) {
+            const error = await res.json();
+            throw new Error(error.error || 'Failed to delete template');
+        }
+        return res.json();
+    },
+
     // ============================================================================
     // MENSAGENS - Envio e Gerenciamento de Mensagens
     // ============================================================================
@@ -89,9 +119,9 @@ export const whatsappApi = {
         return data.phoneNumbers || [];
     },
 
-    async getPhoneNumberById(id: string): Promise<WhatsAppPhoneNumber | undefined> {
+    async getPhoneNumberById(id: string): Promise<WhatsAppPhoneNumber | null> {
         const phones = await this.listPhoneNumbers();
-        return phones.find(p => p.id === id);
+        return phones.find(p => p.id === id) || null;
     },
 
     /**
@@ -185,5 +215,33 @@ export const whatsappApi = {
             throw new Error(error.error || 'Failed to subscribe webhook');
         }
         return res.json();
+    },
+
+    /**
+     * Ativa um número de telefone (register + subscribe)
+     */
+    async activateNumber(): Promise<{ success: boolean; message: string; results: any }> {
+        const res = await fetch('/api/v1/whatsapp/activate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+        });
+        if (!res.ok) {
+            const error = await res.json();
+            throw new Error(error.error || 'Failed to activate number');
+        }
+        return res.json();
+    },
+
+    /**
+     * Obtém os logs de webhook recebidos
+     */
+    async getWebhookLogs(): Promise<any[]> {
+        const res = await fetch('/api/v1/whatsapp/webhook/logs');
+        if (!res.ok) {
+            const error = await res.json();
+            throw new Error(error.error || 'Failed to fetch webhook logs');
+        }
+        const data = await res.json();
+        return data.logs || [];
     },
 };

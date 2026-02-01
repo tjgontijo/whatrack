@@ -3,7 +3,7 @@
  * Client
 **/
 
-import * as runtime from './runtime/library.js';
+import * as runtime from './runtime/client.js';
 import $Types = runtime.Types // general types
 import $Public = runtime.Types.Public
 import $Utils = runtime.Types.Utils
@@ -88,6 +88,11 @@ export type OrganizationCompany = $Result.DefaultSelection<Prisma.$OrganizationC
  * 
  */
 export type WhatsAppConfig = $Result.DefaultSelection<Prisma.$WhatsAppConfigPayload>
+/**
+ * Model WhatsAppWebhookLog
+ * 
+ */
+export type WhatsAppWebhookLog = $Result.DefaultSelection<Prisma.$WhatsAppWebhookLogPayload>
 
 /**
  * Enums
@@ -145,7 +150,7 @@ export const SaleStatus: typeof $Enums.SaleStatus
  * ```
  *
  *
- * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client).
+ * Read more in our [docs](https://pris.ly/d/client).
  */
 export class PrismaClient<
   ClientOptions extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
@@ -166,7 +171,7 @@ export class PrismaClient<
    * ```
    *
    *
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client).
+   * Read more in our [docs](https://pris.ly/d/client).
    */
 
   constructor(optionsArg ?: Prisma.Subset<ClientOptions, Prisma.PrismaClientOptions>);
@@ -189,7 +194,7 @@ export class PrismaClient<
    * const result = await prisma.$executeRaw`UPDATE User SET cool = ${true} WHERE email = ${'user@email.com'};`
    * ```
    *
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+   * Read more in our [docs](https://pris.ly/d/raw-queries).
    */
   $executeRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): Prisma.PrismaPromise<number>;
 
@@ -201,7 +206,7 @@ export class PrismaClient<
    * const result = await prisma.$executeRawUnsafe('UPDATE User SET cool = $1 WHERE email = $2 ;', true, 'user@email.com')
    * ```
    *
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+   * Read more in our [docs](https://pris.ly/d/raw-queries).
    */
   $executeRawUnsafe<T = unknown>(query: string, ...values: any[]): Prisma.PrismaPromise<number>;
 
@@ -212,7 +217,7 @@ export class PrismaClient<
    * const result = await prisma.$queryRaw`SELECT * FROM User WHERE id = ${1} OR email = ${'user@email.com'};`
    * ```
    *
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+   * Read more in our [docs](https://pris.ly/d/raw-queries).
    */
   $queryRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): Prisma.PrismaPromise<T>;
 
@@ -224,7 +229,7 @@ export class PrismaClient<
    * const result = await prisma.$queryRawUnsafe('SELECT * FROM User WHERE id = $1 OR email = $2;', 1, 'user@email.com')
    * ```
    *
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+   * Read more in our [docs](https://pris.ly/d/raw-queries).
    */
   $queryRawUnsafe<T = unknown>(query: string, ...values: any[]): Prisma.PrismaPromise<T>;
 
@@ -245,7 +250,6 @@ export class PrismaClient<
   $transaction<P extends Prisma.PrismaPromise<any>[]>(arg: [...P], options?: { isolationLevel?: Prisma.TransactionIsolationLevel }): $Utils.JsPromise<runtime.Types.Utils.UnwrapTuple<P>>
 
   $transaction<R>(fn: (prisma: Omit<PrismaClient, runtime.ITXClientDenyList>) => $Utils.JsPromise<R>, options?: { maxWait?: number, timeout?: number, isolationLevel?: Prisma.TransactionIsolationLevel }): $Utils.JsPromise<R>
-
 
   $extends: $Extensions.ExtendsHook<"extends", Prisma.TypeMapCb<ClientOptions>, ExtArgs, $Utils.Call<Prisma.TypeMapCb<ClientOptions>, {
     extArgs: ExtArgs
@@ -400,6 +404,16 @@ export class PrismaClient<
     * ```
     */
   get whatsAppConfig(): Prisma.WhatsAppConfigDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.whatsAppWebhookLog`: Exposes CRUD operations for the **WhatsAppWebhookLog** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more WhatsAppWebhookLogs
+    * const whatsAppWebhookLogs = await prisma.whatsAppWebhookLog.findMany()
+    * ```
+    */
+  get whatsAppWebhookLog(): Prisma.WhatsAppWebhookLogDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -440,14 +454,6 @@ export namespace Prisma {
   export type DecimalJsLike = runtime.DecimalJsLike
 
   /**
-   * Metrics
-   */
-  export type Metrics = runtime.Metrics
-  export type Metric<T> = runtime.Metric<T>
-  export type MetricHistogram = runtime.MetricHistogram
-  export type MetricHistogramBucket = runtime.MetricHistogramBucket
-
-  /**
   * Extensions
   */
   export import Extension = $Extensions.UserArgs
@@ -458,11 +464,12 @@ export namespace Prisma {
   export import Exact = $Public.Exact
 
   /**
-   * Prisma Client JS version: 6.19.2
-   * Query Engine version: c2990dca591cba766e3b7ef5d9e8a84796e47ab7
+   * Prisma Client JS version: 7.3.0
+   * Query Engine version: 9d6ad21cbbceab97458517b147a6a09ff43aa735
    */
   export type PrismaVersion = {
     client: string
+    engine: string
   }
 
   export const prismaVersion: PrismaVersion
@@ -855,15 +862,13 @@ export namespace Prisma {
     ProductCategory: 'ProductCategory',
     OrganizationProfile: 'OrganizationProfile',
     OrganizationCompany: 'OrganizationCompany',
-    WhatsAppConfig: 'WhatsAppConfig'
+    WhatsAppConfig: 'WhatsAppConfig',
+    WhatsAppWebhookLog: 'WhatsAppWebhookLog'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
 
 
-  export type Datasources = {
-    db?: Datasource
-  }
 
   interface TypeMapCb<ClientOptions = {}> extends $Utils.Fn<{extArgs: $Extensions.InternalArgs }, $Utils.Record<string, any>> {
     returns: Prisma.TypeMap<this['params']['extArgs'], ClientOptions extends { omit: infer OmitOptions } ? OmitOptions : {}>
@@ -874,7 +879,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "session" | "account" | "verification" | "organization" | "member" | "invitation" | "lead" | "sale" | "saleItem" | "product" | "productCategory" | "organizationProfile" | "organizationCompany" | "whatsAppConfig"
+      modelProps: "user" | "session" | "account" | "verification" | "organization" | "member" | "invitation" | "lead" | "sale" | "saleItem" | "product" | "productCategory" | "organizationProfile" | "organizationCompany" | "whatsAppConfig" | "whatsAppWebhookLog"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1988,6 +1993,80 @@ export namespace Prisma {
           }
         }
       }
+      WhatsAppWebhookLog: {
+        payload: Prisma.$WhatsAppWebhookLogPayload<ExtArgs>
+        fields: Prisma.WhatsAppWebhookLogFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.WhatsAppWebhookLogFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WhatsAppWebhookLogPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.WhatsAppWebhookLogFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WhatsAppWebhookLogPayload>
+          }
+          findFirst: {
+            args: Prisma.WhatsAppWebhookLogFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WhatsAppWebhookLogPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.WhatsAppWebhookLogFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WhatsAppWebhookLogPayload>
+          }
+          findMany: {
+            args: Prisma.WhatsAppWebhookLogFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WhatsAppWebhookLogPayload>[]
+          }
+          create: {
+            args: Prisma.WhatsAppWebhookLogCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WhatsAppWebhookLogPayload>
+          }
+          createMany: {
+            args: Prisma.WhatsAppWebhookLogCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.WhatsAppWebhookLogCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WhatsAppWebhookLogPayload>[]
+          }
+          delete: {
+            args: Prisma.WhatsAppWebhookLogDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WhatsAppWebhookLogPayload>
+          }
+          update: {
+            args: Prisma.WhatsAppWebhookLogUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WhatsAppWebhookLogPayload>
+          }
+          deleteMany: {
+            args: Prisma.WhatsAppWebhookLogDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.WhatsAppWebhookLogUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.WhatsAppWebhookLogUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WhatsAppWebhookLogPayload>[]
+          }
+          upsert: {
+            args: Prisma.WhatsAppWebhookLogUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WhatsAppWebhookLogPayload>
+          }
+          aggregate: {
+            args: Prisma.WhatsAppWebhookLogAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateWhatsAppWebhookLog>
+          }
+          groupBy: {
+            args: Prisma.WhatsAppWebhookLogGroupByArgs<ExtArgs>
+            result: $Utils.Optional<WhatsAppWebhookLogGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.WhatsAppWebhookLogCountArgs<ExtArgs>
+            result: $Utils.Optional<WhatsAppWebhookLogCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -2017,14 +2096,6 @@ export namespace Prisma {
   export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
   export interface PrismaClientOptions {
     /**
-     * Overwrites the datasource url from your schema.prisma file
-     */
-    datasources?: Datasources
-    /**
-     * Overwrites the datasource url from your schema.prisma file
-     */
-    datasourceUrl?: string
-    /**
      * @default "colorless"
      */
     errorFormat?: ErrorFormat
@@ -2050,7 +2121,7 @@ export namespace Prisma {
      *  { emit: 'stdout', level: 'error' }
      * 
      * ```
-     * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/logging#the-log-option).
+     * Read more in our [docs](https://pris.ly/d/logging).
      */
     log?: (LogLevel | LogDefinition)[]
     /**
@@ -2066,7 +2137,11 @@ export namespace Prisma {
     /**
      * Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale`
      */
-    adapter?: runtime.SqlDriverAdapterFactory | null
+    adapter?: runtime.SqlDriverAdapterFactory
+    /**
+     * Prisma Accelerate URL allowing the client to connect through Accelerate instead of a direct database.
+     */
+    accelerateUrl?: string
     /**
      * Global configuration for omitting model fields by default.
      * 
@@ -2082,6 +2157,22 @@ export namespace Prisma {
      * ```
      */
     omit?: Prisma.GlobalOmitConfig
+    /**
+     * SQL commenter plugins that add metadata to SQL queries as comments.
+     * Comments follow the sqlcommenter format: https://google.github.io/sqlcommenter/
+     * 
+     * @example
+     * ```
+     * const prisma = new PrismaClient({
+     *   adapter,
+     *   comments: [
+     *     traceContext(),
+     *     queryInsights(),
+     *   ],
+     * })
+     * ```
+     */
+    comments?: runtime.SqlCommenterPlugin[]
   }
   export type GlobalOmitConfig = {
     user?: UserOmit
@@ -2099,6 +2190,7 @@ export namespace Prisma {
     organizationProfile?: OrganizationProfileOmit
     organizationCompany?: OrganizationCompanyOmit
     whatsAppConfig?: WhatsAppConfigOmit
+    whatsAppWebhookLog?: WhatsAppWebhookLogOmit
   }
 
   /* Types for Logging */
@@ -20098,6 +20190,984 @@ export namespace Prisma {
 
 
   /**
+   * Model WhatsAppWebhookLog
+   */
+
+  export type AggregateWhatsAppWebhookLog = {
+    _count: WhatsAppWebhookLogCountAggregateOutputType | null
+    _min: WhatsAppWebhookLogMinAggregateOutputType | null
+    _max: WhatsAppWebhookLogMaxAggregateOutputType | null
+  }
+
+  export type WhatsAppWebhookLogMinAggregateOutputType = {
+    id: string | null
+    eventType: string | null
+    createdAt: Date | null
+  }
+
+  export type WhatsAppWebhookLogMaxAggregateOutputType = {
+    id: string | null
+    eventType: string | null
+    createdAt: Date | null
+  }
+
+  export type WhatsAppWebhookLogCountAggregateOutputType = {
+    id: number
+    payload: number
+    eventType: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type WhatsAppWebhookLogMinAggregateInputType = {
+    id?: true
+    eventType?: true
+    createdAt?: true
+  }
+
+  export type WhatsAppWebhookLogMaxAggregateInputType = {
+    id?: true
+    eventType?: true
+    createdAt?: true
+  }
+
+  export type WhatsAppWebhookLogCountAggregateInputType = {
+    id?: true
+    payload?: true
+    eventType?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type WhatsAppWebhookLogAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which WhatsAppWebhookLog to aggregate.
+     */
+    where?: WhatsAppWebhookLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WhatsAppWebhookLogs to fetch.
+     */
+    orderBy?: WhatsAppWebhookLogOrderByWithRelationInput | WhatsAppWebhookLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: WhatsAppWebhookLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WhatsAppWebhookLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WhatsAppWebhookLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned WhatsAppWebhookLogs
+    **/
+    _count?: true | WhatsAppWebhookLogCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: WhatsAppWebhookLogMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: WhatsAppWebhookLogMaxAggregateInputType
+  }
+
+  export type GetWhatsAppWebhookLogAggregateType<T extends WhatsAppWebhookLogAggregateArgs> = {
+        [P in keyof T & keyof AggregateWhatsAppWebhookLog]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateWhatsAppWebhookLog[P]>
+      : GetScalarType<T[P], AggregateWhatsAppWebhookLog[P]>
+  }
+
+
+
+
+  export type WhatsAppWebhookLogGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: WhatsAppWebhookLogWhereInput
+    orderBy?: WhatsAppWebhookLogOrderByWithAggregationInput | WhatsAppWebhookLogOrderByWithAggregationInput[]
+    by: WhatsAppWebhookLogScalarFieldEnum[] | WhatsAppWebhookLogScalarFieldEnum
+    having?: WhatsAppWebhookLogScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: WhatsAppWebhookLogCountAggregateInputType | true
+    _min?: WhatsAppWebhookLogMinAggregateInputType
+    _max?: WhatsAppWebhookLogMaxAggregateInputType
+  }
+
+  export type WhatsAppWebhookLogGroupByOutputType = {
+    id: string
+    payload: JsonValue
+    eventType: string | null
+    createdAt: Date
+    _count: WhatsAppWebhookLogCountAggregateOutputType | null
+    _min: WhatsAppWebhookLogMinAggregateOutputType | null
+    _max: WhatsAppWebhookLogMaxAggregateOutputType | null
+  }
+
+  type GetWhatsAppWebhookLogGroupByPayload<T extends WhatsAppWebhookLogGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<WhatsAppWebhookLogGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof WhatsAppWebhookLogGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], WhatsAppWebhookLogGroupByOutputType[P]>
+            : GetScalarType<T[P], WhatsAppWebhookLogGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type WhatsAppWebhookLogSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    payload?: boolean
+    eventType?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["whatsAppWebhookLog"]>
+
+  export type WhatsAppWebhookLogSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    payload?: boolean
+    eventType?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["whatsAppWebhookLog"]>
+
+  export type WhatsAppWebhookLogSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    payload?: boolean
+    eventType?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["whatsAppWebhookLog"]>
+
+  export type WhatsAppWebhookLogSelectScalar = {
+    id?: boolean
+    payload?: boolean
+    eventType?: boolean
+    createdAt?: boolean
+  }
+
+  export type WhatsAppWebhookLogOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "payload" | "eventType" | "createdAt", ExtArgs["result"]["whatsAppWebhookLog"]>
+
+  export type $WhatsAppWebhookLogPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "WhatsAppWebhookLog"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      payload: Prisma.JsonValue
+      eventType: string | null
+      createdAt: Date
+    }, ExtArgs["result"]["whatsAppWebhookLog"]>
+    composites: {}
+  }
+
+  type WhatsAppWebhookLogGetPayload<S extends boolean | null | undefined | WhatsAppWebhookLogDefaultArgs> = $Result.GetResult<Prisma.$WhatsAppWebhookLogPayload, S>
+
+  type WhatsAppWebhookLogCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<WhatsAppWebhookLogFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: WhatsAppWebhookLogCountAggregateInputType | true
+    }
+
+  export interface WhatsAppWebhookLogDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['WhatsAppWebhookLog'], meta: { name: 'WhatsAppWebhookLog' } }
+    /**
+     * Find zero or one WhatsAppWebhookLog that matches the filter.
+     * @param {WhatsAppWebhookLogFindUniqueArgs} args - Arguments to find a WhatsAppWebhookLog
+     * @example
+     * // Get one WhatsAppWebhookLog
+     * const whatsAppWebhookLog = await prisma.whatsAppWebhookLog.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends WhatsAppWebhookLogFindUniqueArgs>(args: SelectSubset<T, WhatsAppWebhookLogFindUniqueArgs<ExtArgs>>): Prisma__WhatsAppWebhookLogClient<$Result.GetResult<Prisma.$WhatsAppWebhookLogPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one WhatsAppWebhookLog that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {WhatsAppWebhookLogFindUniqueOrThrowArgs} args - Arguments to find a WhatsAppWebhookLog
+     * @example
+     * // Get one WhatsAppWebhookLog
+     * const whatsAppWebhookLog = await prisma.whatsAppWebhookLog.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends WhatsAppWebhookLogFindUniqueOrThrowArgs>(args: SelectSubset<T, WhatsAppWebhookLogFindUniqueOrThrowArgs<ExtArgs>>): Prisma__WhatsAppWebhookLogClient<$Result.GetResult<Prisma.$WhatsAppWebhookLogPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first WhatsAppWebhookLog that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WhatsAppWebhookLogFindFirstArgs} args - Arguments to find a WhatsAppWebhookLog
+     * @example
+     * // Get one WhatsAppWebhookLog
+     * const whatsAppWebhookLog = await prisma.whatsAppWebhookLog.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends WhatsAppWebhookLogFindFirstArgs>(args?: SelectSubset<T, WhatsAppWebhookLogFindFirstArgs<ExtArgs>>): Prisma__WhatsAppWebhookLogClient<$Result.GetResult<Prisma.$WhatsAppWebhookLogPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first WhatsAppWebhookLog that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WhatsAppWebhookLogFindFirstOrThrowArgs} args - Arguments to find a WhatsAppWebhookLog
+     * @example
+     * // Get one WhatsAppWebhookLog
+     * const whatsAppWebhookLog = await prisma.whatsAppWebhookLog.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends WhatsAppWebhookLogFindFirstOrThrowArgs>(args?: SelectSubset<T, WhatsAppWebhookLogFindFirstOrThrowArgs<ExtArgs>>): Prisma__WhatsAppWebhookLogClient<$Result.GetResult<Prisma.$WhatsAppWebhookLogPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more WhatsAppWebhookLogs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WhatsAppWebhookLogFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all WhatsAppWebhookLogs
+     * const whatsAppWebhookLogs = await prisma.whatsAppWebhookLog.findMany()
+     * 
+     * // Get first 10 WhatsAppWebhookLogs
+     * const whatsAppWebhookLogs = await prisma.whatsAppWebhookLog.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const whatsAppWebhookLogWithIdOnly = await prisma.whatsAppWebhookLog.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends WhatsAppWebhookLogFindManyArgs>(args?: SelectSubset<T, WhatsAppWebhookLogFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WhatsAppWebhookLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a WhatsAppWebhookLog.
+     * @param {WhatsAppWebhookLogCreateArgs} args - Arguments to create a WhatsAppWebhookLog.
+     * @example
+     * // Create one WhatsAppWebhookLog
+     * const WhatsAppWebhookLog = await prisma.whatsAppWebhookLog.create({
+     *   data: {
+     *     // ... data to create a WhatsAppWebhookLog
+     *   }
+     * })
+     * 
+     */
+    create<T extends WhatsAppWebhookLogCreateArgs>(args: SelectSubset<T, WhatsAppWebhookLogCreateArgs<ExtArgs>>): Prisma__WhatsAppWebhookLogClient<$Result.GetResult<Prisma.$WhatsAppWebhookLogPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many WhatsAppWebhookLogs.
+     * @param {WhatsAppWebhookLogCreateManyArgs} args - Arguments to create many WhatsAppWebhookLogs.
+     * @example
+     * // Create many WhatsAppWebhookLogs
+     * const whatsAppWebhookLog = await prisma.whatsAppWebhookLog.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends WhatsAppWebhookLogCreateManyArgs>(args?: SelectSubset<T, WhatsAppWebhookLogCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many WhatsAppWebhookLogs and returns the data saved in the database.
+     * @param {WhatsAppWebhookLogCreateManyAndReturnArgs} args - Arguments to create many WhatsAppWebhookLogs.
+     * @example
+     * // Create many WhatsAppWebhookLogs
+     * const whatsAppWebhookLog = await prisma.whatsAppWebhookLog.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many WhatsAppWebhookLogs and only return the `id`
+     * const whatsAppWebhookLogWithIdOnly = await prisma.whatsAppWebhookLog.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends WhatsAppWebhookLogCreateManyAndReturnArgs>(args?: SelectSubset<T, WhatsAppWebhookLogCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WhatsAppWebhookLogPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a WhatsAppWebhookLog.
+     * @param {WhatsAppWebhookLogDeleteArgs} args - Arguments to delete one WhatsAppWebhookLog.
+     * @example
+     * // Delete one WhatsAppWebhookLog
+     * const WhatsAppWebhookLog = await prisma.whatsAppWebhookLog.delete({
+     *   where: {
+     *     // ... filter to delete one WhatsAppWebhookLog
+     *   }
+     * })
+     * 
+     */
+    delete<T extends WhatsAppWebhookLogDeleteArgs>(args: SelectSubset<T, WhatsAppWebhookLogDeleteArgs<ExtArgs>>): Prisma__WhatsAppWebhookLogClient<$Result.GetResult<Prisma.$WhatsAppWebhookLogPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one WhatsAppWebhookLog.
+     * @param {WhatsAppWebhookLogUpdateArgs} args - Arguments to update one WhatsAppWebhookLog.
+     * @example
+     * // Update one WhatsAppWebhookLog
+     * const whatsAppWebhookLog = await prisma.whatsAppWebhookLog.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends WhatsAppWebhookLogUpdateArgs>(args: SelectSubset<T, WhatsAppWebhookLogUpdateArgs<ExtArgs>>): Prisma__WhatsAppWebhookLogClient<$Result.GetResult<Prisma.$WhatsAppWebhookLogPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more WhatsAppWebhookLogs.
+     * @param {WhatsAppWebhookLogDeleteManyArgs} args - Arguments to filter WhatsAppWebhookLogs to delete.
+     * @example
+     * // Delete a few WhatsAppWebhookLogs
+     * const { count } = await prisma.whatsAppWebhookLog.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends WhatsAppWebhookLogDeleteManyArgs>(args?: SelectSubset<T, WhatsAppWebhookLogDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more WhatsAppWebhookLogs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WhatsAppWebhookLogUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many WhatsAppWebhookLogs
+     * const whatsAppWebhookLog = await prisma.whatsAppWebhookLog.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends WhatsAppWebhookLogUpdateManyArgs>(args: SelectSubset<T, WhatsAppWebhookLogUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more WhatsAppWebhookLogs and returns the data updated in the database.
+     * @param {WhatsAppWebhookLogUpdateManyAndReturnArgs} args - Arguments to update many WhatsAppWebhookLogs.
+     * @example
+     * // Update many WhatsAppWebhookLogs
+     * const whatsAppWebhookLog = await prisma.whatsAppWebhookLog.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more WhatsAppWebhookLogs and only return the `id`
+     * const whatsAppWebhookLogWithIdOnly = await prisma.whatsAppWebhookLog.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends WhatsAppWebhookLogUpdateManyAndReturnArgs>(args: SelectSubset<T, WhatsAppWebhookLogUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WhatsAppWebhookLogPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one WhatsAppWebhookLog.
+     * @param {WhatsAppWebhookLogUpsertArgs} args - Arguments to update or create a WhatsAppWebhookLog.
+     * @example
+     * // Update or create a WhatsAppWebhookLog
+     * const whatsAppWebhookLog = await prisma.whatsAppWebhookLog.upsert({
+     *   create: {
+     *     // ... data to create a WhatsAppWebhookLog
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the WhatsAppWebhookLog we want to update
+     *   }
+     * })
+     */
+    upsert<T extends WhatsAppWebhookLogUpsertArgs>(args: SelectSubset<T, WhatsAppWebhookLogUpsertArgs<ExtArgs>>): Prisma__WhatsAppWebhookLogClient<$Result.GetResult<Prisma.$WhatsAppWebhookLogPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of WhatsAppWebhookLogs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WhatsAppWebhookLogCountArgs} args - Arguments to filter WhatsAppWebhookLogs to count.
+     * @example
+     * // Count the number of WhatsAppWebhookLogs
+     * const count = await prisma.whatsAppWebhookLog.count({
+     *   where: {
+     *     // ... the filter for the WhatsAppWebhookLogs we want to count
+     *   }
+     * })
+    **/
+    count<T extends WhatsAppWebhookLogCountArgs>(
+      args?: Subset<T, WhatsAppWebhookLogCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], WhatsAppWebhookLogCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a WhatsAppWebhookLog.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WhatsAppWebhookLogAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends WhatsAppWebhookLogAggregateArgs>(args: Subset<T, WhatsAppWebhookLogAggregateArgs>): Prisma.PrismaPromise<GetWhatsAppWebhookLogAggregateType<T>>
+
+    /**
+     * Group by WhatsAppWebhookLog.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WhatsAppWebhookLogGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends WhatsAppWebhookLogGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: WhatsAppWebhookLogGroupByArgs['orderBy'] }
+        : { orderBy?: WhatsAppWebhookLogGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, WhatsAppWebhookLogGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetWhatsAppWebhookLogGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the WhatsAppWebhookLog model
+   */
+  readonly fields: WhatsAppWebhookLogFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for WhatsAppWebhookLog.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__WhatsAppWebhookLogClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the WhatsAppWebhookLog model
+   */
+  interface WhatsAppWebhookLogFieldRefs {
+    readonly id: FieldRef<"WhatsAppWebhookLog", 'String'>
+    readonly payload: FieldRef<"WhatsAppWebhookLog", 'Json'>
+    readonly eventType: FieldRef<"WhatsAppWebhookLog", 'String'>
+    readonly createdAt: FieldRef<"WhatsAppWebhookLog", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * WhatsAppWebhookLog findUnique
+   */
+  export type WhatsAppWebhookLogFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WhatsAppWebhookLog
+     */
+    select?: WhatsAppWebhookLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WhatsAppWebhookLog
+     */
+    omit?: WhatsAppWebhookLogOmit<ExtArgs> | null
+    /**
+     * Filter, which WhatsAppWebhookLog to fetch.
+     */
+    where: WhatsAppWebhookLogWhereUniqueInput
+  }
+
+  /**
+   * WhatsAppWebhookLog findUniqueOrThrow
+   */
+  export type WhatsAppWebhookLogFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WhatsAppWebhookLog
+     */
+    select?: WhatsAppWebhookLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WhatsAppWebhookLog
+     */
+    omit?: WhatsAppWebhookLogOmit<ExtArgs> | null
+    /**
+     * Filter, which WhatsAppWebhookLog to fetch.
+     */
+    where: WhatsAppWebhookLogWhereUniqueInput
+  }
+
+  /**
+   * WhatsAppWebhookLog findFirst
+   */
+  export type WhatsAppWebhookLogFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WhatsAppWebhookLog
+     */
+    select?: WhatsAppWebhookLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WhatsAppWebhookLog
+     */
+    omit?: WhatsAppWebhookLogOmit<ExtArgs> | null
+    /**
+     * Filter, which WhatsAppWebhookLog to fetch.
+     */
+    where?: WhatsAppWebhookLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WhatsAppWebhookLogs to fetch.
+     */
+    orderBy?: WhatsAppWebhookLogOrderByWithRelationInput | WhatsAppWebhookLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for WhatsAppWebhookLogs.
+     */
+    cursor?: WhatsAppWebhookLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WhatsAppWebhookLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WhatsAppWebhookLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of WhatsAppWebhookLogs.
+     */
+    distinct?: WhatsAppWebhookLogScalarFieldEnum | WhatsAppWebhookLogScalarFieldEnum[]
+  }
+
+  /**
+   * WhatsAppWebhookLog findFirstOrThrow
+   */
+  export type WhatsAppWebhookLogFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WhatsAppWebhookLog
+     */
+    select?: WhatsAppWebhookLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WhatsAppWebhookLog
+     */
+    omit?: WhatsAppWebhookLogOmit<ExtArgs> | null
+    /**
+     * Filter, which WhatsAppWebhookLog to fetch.
+     */
+    where?: WhatsAppWebhookLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WhatsAppWebhookLogs to fetch.
+     */
+    orderBy?: WhatsAppWebhookLogOrderByWithRelationInput | WhatsAppWebhookLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for WhatsAppWebhookLogs.
+     */
+    cursor?: WhatsAppWebhookLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WhatsAppWebhookLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WhatsAppWebhookLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of WhatsAppWebhookLogs.
+     */
+    distinct?: WhatsAppWebhookLogScalarFieldEnum | WhatsAppWebhookLogScalarFieldEnum[]
+  }
+
+  /**
+   * WhatsAppWebhookLog findMany
+   */
+  export type WhatsAppWebhookLogFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WhatsAppWebhookLog
+     */
+    select?: WhatsAppWebhookLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WhatsAppWebhookLog
+     */
+    omit?: WhatsAppWebhookLogOmit<ExtArgs> | null
+    /**
+     * Filter, which WhatsAppWebhookLogs to fetch.
+     */
+    where?: WhatsAppWebhookLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WhatsAppWebhookLogs to fetch.
+     */
+    orderBy?: WhatsAppWebhookLogOrderByWithRelationInput | WhatsAppWebhookLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing WhatsAppWebhookLogs.
+     */
+    cursor?: WhatsAppWebhookLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WhatsAppWebhookLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WhatsAppWebhookLogs.
+     */
+    skip?: number
+    distinct?: WhatsAppWebhookLogScalarFieldEnum | WhatsAppWebhookLogScalarFieldEnum[]
+  }
+
+  /**
+   * WhatsAppWebhookLog create
+   */
+  export type WhatsAppWebhookLogCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WhatsAppWebhookLog
+     */
+    select?: WhatsAppWebhookLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WhatsAppWebhookLog
+     */
+    omit?: WhatsAppWebhookLogOmit<ExtArgs> | null
+    /**
+     * The data needed to create a WhatsAppWebhookLog.
+     */
+    data: XOR<WhatsAppWebhookLogCreateInput, WhatsAppWebhookLogUncheckedCreateInput>
+  }
+
+  /**
+   * WhatsAppWebhookLog createMany
+   */
+  export type WhatsAppWebhookLogCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many WhatsAppWebhookLogs.
+     */
+    data: WhatsAppWebhookLogCreateManyInput | WhatsAppWebhookLogCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * WhatsAppWebhookLog createManyAndReturn
+   */
+  export type WhatsAppWebhookLogCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WhatsAppWebhookLog
+     */
+    select?: WhatsAppWebhookLogSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the WhatsAppWebhookLog
+     */
+    omit?: WhatsAppWebhookLogOmit<ExtArgs> | null
+    /**
+     * The data used to create many WhatsAppWebhookLogs.
+     */
+    data: WhatsAppWebhookLogCreateManyInput | WhatsAppWebhookLogCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * WhatsAppWebhookLog update
+   */
+  export type WhatsAppWebhookLogUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WhatsAppWebhookLog
+     */
+    select?: WhatsAppWebhookLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WhatsAppWebhookLog
+     */
+    omit?: WhatsAppWebhookLogOmit<ExtArgs> | null
+    /**
+     * The data needed to update a WhatsAppWebhookLog.
+     */
+    data: XOR<WhatsAppWebhookLogUpdateInput, WhatsAppWebhookLogUncheckedUpdateInput>
+    /**
+     * Choose, which WhatsAppWebhookLog to update.
+     */
+    where: WhatsAppWebhookLogWhereUniqueInput
+  }
+
+  /**
+   * WhatsAppWebhookLog updateMany
+   */
+  export type WhatsAppWebhookLogUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update WhatsAppWebhookLogs.
+     */
+    data: XOR<WhatsAppWebhookLogUpdateManyMutationInput, WhatsAppWebhookLogUncheckedUpdateManyInput>
+    /**
+     * Filter which WhatsAppWebhookLogs to update
+     */
+    where?: WhatsAppWebhookLogWhereInput
+    /**
+     * Limit how many WhatsAppWebhookLogs to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * WhatsAppWebhookLog updateManyAndReturn
+   */
+  export type WhatsAppWebhookLogUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WhatsAppWebhookLog
+     */
+    select?: WhatsAppWebhookLogSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the WhatsAppWebhookLog
+     */
+    omit?: WhatsAppWebhookLogOmit<ExtArgs> | null
+    /**
+     * The data used to update WhatsAppWebhookLogs.
+     */
+    data: XOR<WhatsAppWebhookLogUpdateManyMutationInput, WhatsAppWebhookLogUncheckedUpdateManyInput>
+    /**
+     * Filter which WhatsAppWebhookLogs to update
+     */
+    where?: WhatsAppWebhookLogWhereInput
+    /**
+     * Limit how many WhatsAppWebhookLogs to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * WhatsAppWebhookLog upsert
+   */
+  export type WhatsAppWebhookLogUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WhatsAppWebhookLog
+     */
+    select?: WhatsAppWebhookLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WhatsAppWebhookLog
+     */
+    omit?: WhatsAppWebhookLogOmit<ExtArgs> | null
+    /**
+     * The filter to search for the WhatsAppWebhookLog to update in case it exists.
+     */
+    where: WhatsAppWebhookLogWhereUniqueInput
+    /**
+     * In case the WhatsAppWebhookLog found by the `where` argument doesn't exist, create a new WhatsAppWebhookLog with this data.
+     */
+    create: XOR<WhatsAppWebhookLogCreateInput, WhatsAppWebhookLogUncheckedCreateInput>
+    /**
+     * In case the WhatsAppWebhookLog was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<WhatsAppWebhookLogUpdateInput, WhatsAppWebhookLogUncheckedUpdateInput>
+  }
+
+  /**
+   * WhatsAppWebhookLog delete
+   */
+  export type WhatsAppWebhookLogDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WhatsAppWebhookLog
+     */
+    select?: WhatsAppWebhookLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WhatsAppWebhookLog
+     */
+    omit?: WhatsAppWebhookLogOmit<ExtArgs> | null
+    /**
+     * Filter which WhatsAppWebhookLog to delete.
+     */
+    where: WhatsAppWebhookLogWhereUniqueInput
+  }
+
+  /**
+   * WhatsAppWebhookLog deleteMany
+   */
+  export type WhatsAppWebhookLogDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which WhatsAppWebhookLogs to delete
+     */
+    where?: WhatsAppWebhookLogWhereInput
+    /**
+     * Limit how many WhatsAppWebhookLogs to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * WhatsAppWebhookLog without action
+   */
+  export type WhatsAppWebhookLogDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WhatsAppWebhookLog
+     */
+    select?: WhatsAppWebhookLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WhatsAppWebhookLog
+     */
+    omit?: WhatsAppWebhookLogOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -20365,6 +21435,16 @@ export namespace Prisma {
   export type WhatsAppConfigScalarFieldEnum = (typeof WhatsAppConfigScalarFieldEnum)[keyof typeof WhatsAppConfigScalarFieldEnum]
 
 
+  export const WhatsAppWebhookLogScalarFieldEnum: {
+    id: 'id',
+    payload: 'payload',
+    eventType: 'eventType',
+    createdAt: 'createdAt'
+  };
+
+  export type WhatsAppWebhookLogScalarFieldEnum = (typeof WhatsAppWebhookLogScalarFieldEnum)[keyof typeof WhatsAppWebhookLogScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -20379,6 +21459,13 @@ export namespace Prisma {
   };
 
   export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+  export const JsonNullValueInput: {
+    JsonNull: typeof JsonNull
+  };
+
+  export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
   export const QueryMode: {
@@ -21887,6 +22974,53 @@ export namespace Prisma {
     status?: StringWithAggregatesFilter<"WhatsAppConfig"> | string
     createdAt?: DateTimeWithAggregatesFilter<"WhatsAppConfig"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"WhatsAppConfig"> | Date | string
+  }
+
+  export type WhatsAppWebhookLogWhereInput = {
+    AND?: WhatsAppWebhookLogWhereInput | WhatsAppWebhookLogWhereInput[]
+    OR?: WhatsAppWebhookLogWhereInput[]
+    NOT?: WhatsAppWebhookLogWhereInput | WhatsAppWebhookLogWhereInput[]
+    id?: StringFilter<"WhatsAppWebhookLog"> | string
+    payload?: JsonFilter<"WhatsAppWebhookLog">
+    eventType?: StringNullableFilter<"WhatsAppWebhookLog"> | string | null
+    createdAt?: DateTimeFilter<"WhatsAppWebhookLog"> | Date | string
+  }
+
+  export type WhatsAppWebhookLogOrderByWithRelationInput = {
+    id?: SortOrder
+    payload?: SortOrder
+    eventType?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type WhatsAppWebhookLogWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: WhatsAppWebhookLogWhereInput | WhatsAppWebhookLogWhereInput[]
+    OR?: WhatsAppWebhookLogWhereInput[]
+    NOT?: WhatsAppWebhookLogWhereInput | WhatsAppWebhookLogWhereInput[]
+    payload?: JsonFilter<"WhatsAppWebhookLog">
+    eventType?: StringNullableFilter<"WhatsAppWebhookLog"> | string | null
+    createdAt?: DateTimeFilter<"WhatsAppWebhookLog"> | Date | string
+  }, "id">
+
+  export type WhatsAppWebhookLogOrderByWithAggregationInput = {
+    id?: SortOrder
+    payload?: SortOrder
+    eventType?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: WhatsAppWebhookLogCountOrderByAggregateInput
+    _max?: WhatsAppWebhookLogMaxOrderByAggregateInput
+    _min?: WhatsAppWebhookLogMinOrderByAggregateInput
+  }
+
+  export type WhatsAppWebhookLogScalarWhereWithAggregatesInput = {
+    AND?: WhatsAppWebhookLogScalarWhereWithAggregatesInput | WhatsAppWebhookLogScalarWhereWithAggregatesInput[]
+    OR?: WhatsAppWebhookLogScalarWhereWithAggregatesInput[]
+    NOT?: WhatsAppWebhookLogScalarWhereWithAggregatesInput | WhatsAppWebhookLogScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"WhatsAppWebhookLog"> | string
+    payload?: JsonWithAggregatesFilter<"WhatsAppWebhookLog">
+    eventType?: StringNullableWithAggregatesFilter<"WhatsAppWebhookLog"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"WhatsAppWebhookLog"> | Date | string
   }
 
   export type UserCreateInput = {
@@ -23403,6 +24537,55 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type WhatsAppWebhookLogCreateInput = {
+    id?: string
+    payload: JsonNullValueInput | InputJsonValue
+    eventType?: string | null
+    createdAt?: Date | string
+  }
+
+  export type WhatsAppWebhookLogUncheckedCreateInput = {
+    id?: string
+    payload: JsonNullValueInput | InputJsonValue
+    eventType?: string | null
+    createdAt?: Date | string
+  }
+
+  export type WhatsAppWebhookLogUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    payload?: JsonNullValueInput | InputJsonValue
+    eventType?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WhatsAppWebhookLogUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    payload?: JsonNullValueInput | InputJsonValue
+    eventType?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WhatsAppWebhookLogCreateManyInput = {
+    id?: string
+    payload: JsonNullValueInput | InputJsonValue
+    eventType?: string | null
+    createdAt?: Date | string
+  }
+
+  export type WhatsAppWebhookLogUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    payload?: JsonNullValueInput | InputJsonValue
+    eventType?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WhatsAppWebhookLogUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    payload?: JsonNullValueInput | InputJsonValue
+    eventType?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -24596,6 +25779,74 @@ export namespace Prisma {
     status?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+  }
+  export type JsonFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+
+  export type WhatsAppWebhookLogCountOrderByAggregateInput = {
+    id?: SortOrder
+    payload?: SortOrder
+    eventType?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type WhatsAppWebhookLogMaxOrderByAggregateInput = {
+    id?: SortOrder
+    eventType?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type WhatsAppWebhookLogMinOrderByAggregateInput = {
+    id?: SortOrder
+    eventType?: SortOrder
+    createdAt?: SortOrder
+  }
+  export type JsonWithAggregatesFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedJsonFilter<$PrismaModel>
+    _max?: NestedJsonFilter<$PrismaModel>
   }
 
   export type SessionCreateNestedManyWithoutUserInput = {
@@ -25918,6 +27169,29 @@ export namespace Prisma {
     | OptionalFlat<Omit<Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>
 
   export type NestedJsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+  export type NestedJsonFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<NestedJsonFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>,
+        Required<NestedJsonFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>
+
+  export type NestedJsonFilterBase<$PrismaModel = never> = {
     equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
     path?: string[]
     mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>

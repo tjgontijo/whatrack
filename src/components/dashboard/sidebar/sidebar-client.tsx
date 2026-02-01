@@ -1,4 +1,5 @@
 'use client'
+import { useState } from 'react'
 import { usePathname } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -12,6 +13,10 @@ import {
     ShoppingBag,
     Users,
     Inbox,
+    ChevronRight,
+    FileText,
+    Smartphone,
+    Webhook,
 } from 'lucide-react'
 
 import {
@@ -25,9 +30,17 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+    SidebarMenuSub,
+    SidebarMenuSubButton,
+    SidebarMenuSubItem,
     SidebarRail,
     useSidebar,
 } from '@/components/ui/sidebar'
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/components/ui/collapsible'
 import { WhatsAppIcon, MetaIcon } from '@/components/icons'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { authClient, useSession } from '@/lib/auth/auth-client'
@@ -46,6 +59,10 @@ const ICON_MAP = {
     WhatsApp: WhatsAppIcon,
     Settings,
     CreditCard,
+    FileText,
+    Smartphone,
+    Webhook,
+    ChevronRight,
 } as const
 
 type NavItem = {
@@ -61,10 +78,15 @@ type SidebarClientProps = {
 
 export function SidebarClient({ navItems }: SidebarClientProps) {
     const pathname = usePathname()
-    const { isMobile, setOpenMobile } = useSidebar()
+    const { isMobile, setOpenMobile, open: sidebarOpen } = useSidebar()
     const { data: session } = useSession()
     const { data: activeOrg } = authClient.useActiveOrganization()
     const { data: organizations } = authClient.useListOrganizations()
+
+    // State for collapsible menus
+    const [whatsappOpen, setWhatsappOpen] = useState(() =>
+        pathname.startsWith('/dashboard/settings/whatsapp')
+    )
 
     const userName = session?.user?.name || 'Usuário'
     const userEmail = session?.user?.email || ''
@@ -84,14 +106,15 @@ export function SidebarClient({ navItems }: SidebarClientProps) {
     )
 
     const dataItems = navItems.filter(item =>
-        ['Users', 'Inbox', 'MessageSquare', 'ShoppingBag', 'Package'].includes(item.icon)
+        ['Users', 'ShoppingBag', 'Package'].includes(item.icon)
     )
 
-    const configItems = [
-        { title: 'WhatsApp', href: '/dashboard/settings/whatsapp', icon: 'WhatsApp' },
-        { title: 'Meta Ads', href: '/dashboard/settings/meta-ads', icon: 'Meta' },
-        { title: 'Billing', href: '/dashboard/settings/billing', icon: 'CreditCard' },
+    const whatsappSubItems = [
+        { title: 'Instâncias', href: '/dashboard/settings/whatsapp', icon: Smartphone },
+        { title: 'Webhooks', href: '/dashboard/settings/whatsapp/webhooks', icon: Webhook },
     ]
+
+
 
     return (
         <Sidebar collapsible="icon">
@@ -180,20 +203,50 @@ export function SidebarClient({ navItems }: SidebarClientProps) {
                     <SidebarGroupLabel>Configurações</SidebarGroupLabel>
                     <SidebarGroupContent>
                         <SidebarMenu>
-                            {configItems.map((item) => {
-                                const Icon = ICON_MAP[item.icon as keyof typeof ICON_MAP]
-                                const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`)
-                                return (
-                                    <SidebarMenuItem key={item.href}>
-                                        <SidebarMenuButton asChild isActive={isActive} tooltip={item.title}>
-                                            <Link href={item.href} onClick={handleNavClick}>
-                                                {Icon && <Icon className="h-4 w-4" />}
-                                                <span>{item.title}</span>
-                                            </Link>
+                            {/* WhatsApp with Static Submenu */}
+                            <Collapsible
+                                open={whatsappOpen}
+                                onOpenChange={setWhatsappOpen}
+                                className="group/collapsible"
+                            >
+                                <SidebarMenuItem>
+                                    <CollapsibleTrigger asChild>
+                                        <SidebarMenuButton
+                                            tooltip="WhatsApp"
+                                            className="w-full"
+                                            isActive={pathname.startsWith('/dashboard/settings/whatsapp')}
+                                        >
+                                            <ICON_MAP.WhatsApp className="h-4 w-4" />
+                                            <span>WhatsApp</span>
+                                            <ChevronRight className={`ml-auto h-4 w-4 transition-transform duration-200 ${whatsappOpen ? 'rotate-90' : ''}`} />
                                         </SidebarMenuButton>
-                                    </SidebarMenuItem>
-                                )
-                            })}
+                                    </CollapsibleTrigger>
+                                    <CollapsibleContent>
+                                        <SidebarMenuSub>
+                                            {whatsappSubItems.map((subItem) => {
+                                                const isActive = pathname === subItem.href ||
+                                                    (subItem.title === 'Instâncias' && pathname.startsWith('/dashboard/settings/whatsapp/') && !pathname.includes('/webhooks'))
+                                                const SubIcon = subItem.icon
+                                                return (
+                                                    <SidebarMenuSubItem key={subItem.href}>
+                                                        <SidebarMenuSubButton
+                                                            asChild
+                                                            isActive={isActive}
+                                                        >
+                                                            <Link href={subItem.href} onClick={handleNavClick}>
+                                                                <SubIcon className="h-4 w-4" />
+                                                                <span>{subItem.title}</span>
+                                                            </Link>
+                                                        </SidebarMenuSubButton>
+                                                    </SidebarMenuSubItem>
+                                                )
+                                            })}
+                                        </SidebarMenuSub>
+                                    </CollapsibleContent>
+                                </SidebarMenuItem>
+                            </Collapsible>
+
+
                         </SidebarMenu>
                     </SidebarGroupContent>
                 </SidebarGroup>

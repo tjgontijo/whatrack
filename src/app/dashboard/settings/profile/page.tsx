@@ -7,7 +7,8 @@ import { z } from "zod"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { FormProvider as Form, Controller } from "react-hook-form"
+import { Field, FieldLabel, FieldError } from "@/components/ui/field"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 const profileSchema = z.object({
@@ -99,31 +100,27 @@ export default function ProfilePage() {
         <CardContent>
           <Form {...profileForm}>
             <form onSubmit={profileForm.handleSubmit(onSubmitProfile)} className="space-y-4">
-              <FormField
+              <Controller
                 control={profileForm.control}
                 name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nome completo</FormLabel>
-                    <FormControl>
-                      <Input placeholder="João Silva" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor={field.name}>Nome completo</FieldLabel>
+                    <Input id={field.name} placeholder="João Silva" {...field} />
+                    <FieldError errors={[fieldState.error]} />
+                  </Field>
                 )}
               />
 
-              <FormField
+              <Controller
                 control={profileForm.control}
                 name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="joao@empresa.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor={field.name}>Email</FieldLabel>
+                    <Input id={field.name} type="email" placeholder="joao@empresa.com" {...field} />
+                    <FieldError errors={[fieldState.error]} />
+                  </Field>
                 )}
               />
 
@@ -145,45 +142,39 @@ export default function ProfilePage() {
         <CardContent>
           <Form {...passwordForm}>
             <form onSubmit={passwordForm.handleSubmit(onSubmitPassword)} className="space-y-4">
-              <FormField
+              <Controller
                 control={passwordForm.control}
                 name="currentPassword"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Senha atual</FormLabel>
-                    <FormControl>
-                      <Input type="password" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor={field.name}>Senha atual</FieldLabel>
+                    <Input id={field.name} type="password" {...field} />
+                    <FieldError errors={[fieldState.error]} />
+                  </Field>
                 )}
               />
 
-              <FormField
+              <Controller
                 control={passwordForm.control}
                 name="newPassword"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nova senha</FormLabel>
-                    <FormControl>
-                      <Input type="password" placeholder="Mínimo 8 caracteres" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor={field.name}>Nova senha</FieldLabel>
+                    <Input id={field.name} type="password" placeholder="Mínimo 8 caracteres" {...field} />
+                    <FieldError errors={[fieldState.error]} />
+                  </Field>
                 )}
               />
 
-              <FormField
+              <Controller
                 control={passwordForm.control}
                 name="confirmPassword"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Confirmar nova senha</FormLabel>
-                    <FormControl>
-                      <Input type="password" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor={field.name}>Confirmar nova senha</FieldLabel>
+                    <Input id={field.name} type="password" {...field} />
+                    <FieldError errors={[fieldState.error]} />
+                  </Field>
                 )}
               />
 
