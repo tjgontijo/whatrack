@@ -44,6 +44,7 @@ import {
 import { WhatsAppIcon, MetaIcon } from '@/components/icons'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { authClient, useSession } from '@/lib/auth/auth-client'
+import { Button } from '@/components/ui/button'
 import { UserDropdownMenu } from './user-dropdown-menu'
 
 // Icon mapping for dynamic nav items
@@ -109,12 +110,12 @@ export function SidebarClient({ navItems }: SidebarClientProps) {
         ['Users', 'ShoppingBag', 'Package'].includes(item.icon)
     )
 
-    const whatsappSubItems = [
-        { title: 'Instâncias', href: '/dashboard/settings/whatsapp', icon: Smartphone },
+    const isSuperAdmin = session?.user?.role === 'owner'
+    const whatsappSubItems = isSuperAdmin ? [
         { title: 'Webhooks', href: '/dashboard/settings/whatsapp/webhooks', icon: Webhook },
-    ]
+    ] : []
 
-
+    const isWhatsAppActive = pathname.startsWith('/dashboard/settings/whatsapp')
 
     return (
         <Sidebar collapsible="icon">
@@ -203,50 +204,35 @@ export function SidebarClient({ navItems }: SidebarClientProps) {
                     <SidebarGroupLabel>Configurações</SidebarGroupLabel>
                     <SidebarGroupContent>
                         <SidebarMenu>
-                            {/* WhatsApp with Static Submenu */}
-                            <Collapsible
-                                open={whatsappOpen}
-                                onOpenChange={setWhatsappOpen}
-                                className="group/collapsible"
-                            >
+                            {/* WhatsApp Item */}
+                            <SidebarMenuItem>
+                                <SidebarMenuButton
+                                    asChild
+                                    tooltip="WhatsApp"
+                                    isActive={isWhatsAppActive && !pathname.includes('/webhooks')}
+                                >
+                                    <Link href="/dashboard/settings/whatsapp" onClick={handleNavClick}>
+                                        <ICON_MAP.WhatsApp className="h-4 w-4" />
+                                        <span>WhatsApp</span>
+                                    </Link>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+
+                            {/* Webhook Meta Item (Only for Super Admin) */}
+                            {isSuperAdmin && (
                                 <SidebarMenuItem>
-                                    <CollapsibleTrigger asChild>
-                                        <SidebarMenuButton
-                                            tooltip="WhatsApp"
-                                            className="w-full"
-                                            isActive={pathname.startsWith('/dashboard/settings/whatsapp')}
-                                        >
-                                            <ICON_MAP.WhatsApp className="h-4 w-4" />
-                                            <span>WhatsApp</span>
-                                            <ChevronRight className={`ml-auto h-4 w-4 transition-transform duration-200 ${whatsappOpen ? 'rotate-90' : ''}`} />
-                                        </SidebarMenuButton>
-                                    </CollapsibleTrigger>
-                                    <CollapsibleContent>
-                                        <SidebarMenuSub>
-                                            {whatsappSubItems.map((subItem) => {
-                                                const isActive = pathname === subItem.href ||
-                                                    (subItem.title === 'Instâncias' && pathname.startsWith('/dashboard/settings/whatsapp/') && !pathname.includes('/webhooks'))
-                                                const SubIcon = subItem.icon
-                                                return (
-                                                    <SidebarMenuSubItem key={subItem.href}>
-                                                        <SidebarMenuSubButton
-                                                            asChild
-                                                            isActive={isActive}
-                                                        >
-                                                            <Link href={subItem.href} onClick={handleNavClick}>
-                                                                <SubIcon className="h-4 w-4" />
-                                                                <span>{subItem.title}</span>
-                                                            </Link>
-                                                        </SidebarMenuSubButton>
-                                                    </SidebarMenuSubItem>
-                                                )
-                                            })}
-                                        </SidebarMenuSub>
-                                    </CollapsibleContent>
+                                    <SidebarMenuButton
+                                        asChild
+                                        tooltip="Webhook Meta"
+                                        isActive={pathname.includes('/webhooks')}
+                                    >
+                                        <Link href="/dashboard/settings/whatsapp/webhooks" onClick={handleNavClick}>
+                                            <Webhook className="h-4 w-4" />
+                                            <span>Webhook Meta</span>
+                                        </Link>
+                                    </SidebarMenuButton>
                                 </SidebarMenuItem>
-                            </Collapsible>
-
-
+                            )}
                         </SidebarMenu>
                     </SidebarGroupContent>
                 </SidebarGroup>

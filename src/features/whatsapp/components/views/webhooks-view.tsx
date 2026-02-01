@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Webhook, Shield, Copy, CheckCircle2, Bell, Zap, Database, Clock, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -164,10 +165,28 @@ export function WebhooksView() {
     // URL sem o subdomínio 'app' conforme solicitado
     const webhookUrl = "https://whatrack.com/api/v1/whatsapp/webhook"
 
-    const { data: logs, isLoading: isLoadingLogs, refetch: refetchLogs } = useQuery({
+    const { data: logData, isLoading: isLoadingLogs, refetch: refetchLogs } = useQuery({
         queryKey: ['whatsapp', 'webhook', 'logs'],
         queryFn: () => whatsappApi.getWebhookLogs(),
     })
+
+    const logs = Array.isArray(logData) ? logData : (logData as any)?.logs || []
+    const activeEventTypes = (logData as any)?.eventTypes || []
+
+    if (!isSuperAdmin) {
+        return (
+            <TemplateMainShell className="flex flex-col h-full items-center justify-center text-center p-8">
+                <Shield className="h-12 w-12 text-destructive mb-4 opacity-20" />
+                <h2 className="text-xl font-bold">Acesso Restrito</h2>
+                <p className="text-sm text-muted-foreground max-w-xs mt-2">
+                    Apenas administradores do sistema podem visualizar configurações de Webhooks e Logs de eventos.
+                </p>
+                <Button variant="outline" className="mt-6" asChild>
+                    <Link href="/dashboard">Voltar ao Início</Link>
+                </Button>
+            </TemplateMainShell>
+        )
+    }
 
     const copyToClipboard = () => {
         navigator.clipboard.writeText(webhookUrl)
@@ -193,105 +212,106 @@ export function WebhooksView() {
                                 Visão Geral
                                 <span className="absolute inset-x-0 -bottom-[1px] h-[2px] bg-transparent transition-colors group-hover:bg-muted-foreground/20 group-data-[state=active]:bg-primary group-data-[state=active]:shadow-[0_0_8px_0_var(--color-primary)]" />
                             </TabsTrigger>
-                            {isSuperAdmin && (
-                                <TabsTrigger
-                                    value="logs"
-                                    className="group relative rounded-none border-none bg-transparent data-[state=active]:bg-transparent px-3 py-1.5 text-xs font-medium text-muted-foreground transition-all hover:text-foreground data-[state=active]:text-foreground shadow-none"
-                                >
-                                    <Database className="h-3.5 w-3.5 mr-2" />
-                                    Logs de Eventos
-                                    <span className="absolute inset-x-0 -bottom-[1px] h-[2px] bg-transparent transition-colors group-hover:bg-muted-foreground/20 group-data-[state=active]:bg-primary group-data-[state=active]:shadow-[0_0_8px_0_var(--color-primary)]" />
-                                </TabsTrigger>
-                            )}
+                            <TabsTrigger
+                                value="logs"
+                                className="group relative rounded-none border-none bg-transparent data-[state=active]:bg-transparent px-3 py-1.5 text-xs font-medium text-muted-foreground transition-all hover:text-foreground data-[state=active]:text-foreground shadow-none"
+                            >
+                                <Database className="h-3.5 w-3.5 mr-2" />
+                                Logs de Eventos
+                                <span className="absolute inset-x-0 -bottom-[1px] h-[2px] bg-transparent transition-colors group-hover:bg-muted-foreground/20 group-data-[state=active]:bg-primary group-data-[state=active]:shadow-[0_0_8px_0_var(--color-primary)]" />
+                            </TabsTrigger>
                         </TabsList>
                     </div>
                 </TemplateMainHeader>
 
                 <div className="flex-1 overflow-y-auto bg-muted/5 p-8">
                     <TabsContent value="overview" className="animate-in fade-in-50 duration-500 m-0 outline-none">
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            <div className="lg:col-span-2 space-y-6">
-                                <Card className="border shadow-sm">
-                                    <CardHeader className="pb-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                                                <Webhook className="h-6 w-6" />
+                        <div className="space-y-6 w-full">
+                            <Card className="border shadow-sm">
+                                <CardHeader className="pb-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                                            <Webhook className="h-6 w-6" />
+                                        </div>
+                                        <div>
+                                            <CardTitle className="text-lg font-bold">Endpoint de Conexão</CardTitle>
+                                            <CardDescription className="text-xs">Configure esta URL no seu App da Meta (WhatsApp {'>'} Configuração)</CardDescription>
+                                        </div>
+                                    </div>
+                                </CardHeader>
+                                <CardContent className="space-y-6">
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">
+                                                Webhook Callback URL
+                                            </label>
+                                            <Badge variant="outline" className="text-[10px] bg-green-500/5 text-green-600 border-green-500/20">
+                                                Produção
+                                            </Badge>
+                                        </div>
+                                        <div className="p-3 bg-muted/30 rounded-lg border flex items-center justify-between group">
+                                            <code className="text-sm font-mono font-bold text-primary truncate mr-4">
+                                                {webhookUrl}
+                                            </code>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-8 gap-2 font-bold shrink-0 hover:bg-primary hover:text-white transition-all underline decoration-primary/30 underline-offset-4 decoration-dotted"
+                                                onClick={copyToClipboard}
+                                            >
+                                                <Copy className="h-3.5 w-3.5" />
+                                                Copiar URL
+                                            </Button>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="flex items-center gap-3 p-3 rounded-lg bg-background border border-border/50 shadow-sm">
+                                            <div className="h-8 w-8 rounded-full bg-green-500/10 flex items-center justify-center">
+                                                <CheckCircle2 className="h-4 w-4 text-green-600" />
                                             </div>
                                             <div>
-                                                <CardTitle className="text-lg font-bold">Endpoint de Conexão</CardTitle>
-                                                <CardDescription className="text-xs">Configure esta URL no seu App da Meta (WhatsApp {'>'} Configuração)</CardDescription>
+                                                <p className="text-xs font-bold">Status do Endpoint</p>
+                                                <p className="text-[10px] text-green-600">Ativo e operante</p>
                                             </div>
                                         </div>
-                                    </CardHeader>
-                                    <CardContent className="space-y-6">
-                                        <div className="space-y-2">
-                                            <div className="flex items-center justify-between">
-                                                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">
-                                                    Webhook Callback URL
-                                                </label>
-                                                <Badge variant="outline" className="text-[10px] bg-green-500/5 text-green-600 border-green-500/20">
-                                                    Produção
-                                                </Badge>
+                                        <div className="flex items-center gap-3 p-3 rounded-lg bg-background border border-border/50 shadow-sm">
+                                            <div className="h-8 w-8 rounded-full bg-blue-500/10 flex items-center justify-center">
+                                                <Shield className="h-4 w-4 text-blue-600" />
                                             </div>
-                                            <div className="p-3 bg-muted/30 rounded-lg border flex items-center justify-between group">
-                                                <code className="text-sm font-mono font-bold text-primary truncate mr-4">
-                                                    {webhookUrl}
-                                                </code>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="h-8 gap-2 font-bold shrink-0 hover:bg-primary hover:text-white transition-all underline decoration-primary/30 underline-offset-4 decoration-dotted"
-                                                    onClick={copyToClipboard}
-                                                >
-                                                    <Copy className="h-3.5 w-3.5" />
-                                                    Copiar URL
-                                                </Button>
+                                            <div>
+                                                <p className="text-xs font-bold">Verify Token</p>
+                                                <p className="text-[10px] text-muted-foreground">Configurado via ENV</p>
                                             </div>
                                         </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
 
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                            <div className="flex items-center gap-3 p-3 rounded-lg bg-background border border-border/50 shadow-sm">
-                                                <div className="h-8 w-8 rounded-full bg-green-500/10 flex items-center justify-center">
-                                                    <CheckCircle2 className="h-4 w-4 text-green-600" />
-                                                </div>
-                                                <div>
-                                                    <p className="text-xs font-bold">Status do Endpoint</p>
-                                                    <p className="text-[10px] text-green-600">Ativo e operante</p>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-3 p-3 rounded-lg bg-background border border-border/50 shadow-sm">
-                                                <div className="h-8 w-8 rounded-full bg-blue-500/10 flex items-center justify-center">
-                                                    <Shield className="h-4 w-4 text-blue-600" />
-                                                </div>
-                                                <div>
-                                                    <p className="text-xs font-bold">Verify Token</p>
-                                                    <p className="text-[10px] text-muted-foreground">Configurado via ENV</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-
-                                <Card>
-                                    <CardHeader className="pb-3">
-                                        <CardTitle className="text-sm font-bold flex items-center gap-2">
-                                            <Bell className="h-4 w-4 text-primary" />
-                                            Eventos Inscritos
-                                        </CardTitle>
-                                        <CardDescription className="text-xs">Campos monitorados automaticamente</CardDescription>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="flex flex-wrap gap-2 text-xs">
-                                            {['messages', 'message_deliveries', 'message_echoes', 'message_read', 'phone_number_name_update', 'template_category_update'].map((field) => (
-                                                <Badge key={field} variant="secondary" className="text-[10px] h-6 font-medium">
+                            <Card>
+                                <CardHeader className="pb-3">
+                                    <CardTitle className="text-sm font-bold flex items-center gap-2">
+                                        <Bell className="h-4 w-4 text-primary" />
+                                        Eventos Capturados
+                                    </CardTitle>
+                                    <CardDescription className="text-xs">Tipos de eventos processados pelo sistema (baseado nos logs)</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="flex flex-wrap gap-2 text-xs">
+                                        {activeEventTypes.length > 0 ? (
+                                            activeEventTypes.map((field: string) => (
+                                                <Badge key={field} variant="secondary" className="text-[10px] h-6 font-medium bg-primary/5 text-primary border-primary/10">
                                                     {field}
                                                 </Badge>
-                                            ))}
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </div>
-
+                                            ))
+                                        ) : (
+                                            <span className="text-[10px] text-muted-foreground italic">
+                                                Nenhum evento registrado ainda.
+                                            </span>
+                                        )}
+                                    </div>
+                                </CardContent>
+                            </Card>
                         </div>
                     </TabsContent>
 
@@ -442,7 +462,7 @@ export function WebhooksView() {
                         </div>
                     </TabsContent>
                 </div>
-            </TemplateMainShell>
-        </Tabs>
+            </TemplateMainShell >
+        </Tabs >
     )
 }
