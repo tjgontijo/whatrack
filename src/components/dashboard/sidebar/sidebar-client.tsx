@@ -120,7 +120,7 @@ export function SidebarClient({ navItems }: SidebarClientProps) {
     return (
         <Sidebar collapsible="icon">
             {/* Header with Logo */}
-            <SidebarHeader className="border-b">
+            <SidebarHeader className="h-[65px] border-b justify-center">
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton
