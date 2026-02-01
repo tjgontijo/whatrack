@@ -294,16 +294,13 @@ export function TemplateEditorForm({ template, onClose }: TemplateEditorFormProp
             {/* Preview Area */}
             <div className="hidden lg:flex w-[400px] bg-muted/20 flex-col p-10 items-center border-l">
                 <div className="w-full space-y-6">
-                    <div className="space-y-1">
-                        <h4 className="text-sm font-bold">Prévia no Telefone</h4>
-                        <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Como o cliente verá a mensagem</p>
-                    </div>
 
                     <div className="relative mx-auto w-full max-w-[300px]">
                         {/* Mockup do Celular */}
                         <div className="relative border-slate-900 bg-slate-900 border-[8px] rounded-[2.8rem] h-[580px] w-full shadow-2xl overflow-hidden">
                             <div className="rounded-[2.2rem] h-full bg-[#E5DDD5] relative border border-slate-700 overflow-hidden">
                                 <TemplatePreview
+                                    templateName={form.watch('name')}
                                     bodyText={bodyText}
                                     samples={samples}
                                 />
