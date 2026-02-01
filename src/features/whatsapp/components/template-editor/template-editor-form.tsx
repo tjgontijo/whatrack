@@ -27,12 +27,11 @@ import type { WhatsAppTemplate } from '../../types'
 
 const templateSchema = z.object({
     name: z.string()
-        .min(1, 'É necessário inserir um nome para seu modelo.')
-        .max(512, 'Nome muito longo')
-        .regex(/^[a-z0-9_]+$/, 'Apenas letras minúsculas, números e underscores'),
+        .min(1, 'O nome é obrigatório')
+        .max(512, 'Máximo 512 caracteres')
+        .regex(/^[a-z0-9_]+$/, 'Use apenas letras minúsculas, números e underscores'),
     category: z.enum(['MARKETING', 'UTILITY', 'AUTHENTICATION']),
     language: z.string().min(2, 'Idioma é obrigatório'),
-    headerType: z.enum(['NONE', 'TEXT']),
     headerText: z.string().max(60, 'Máximo 60 caracteres').optional(),
     bodyText: z.string().min(1, 'O corpo da mensagem é obrigatório').max(1024, 'Limite de 1024 caracteres'),
     footerText: z.string().max(60, 'Máximo 60 caracteres').optional(),
@@ -57,7 +56,6 @@ export function TemplateEditorForm({ template, onClose }: TemplateEditorFormProp
             name: '',
             category: 'MARKETING',
             language: 'pt_BR',
-            headerType: 'NONE',
             headerText: '',
             bodyText: '',
             footerText: '',
@@ -66,8 +64,6 @@ export function TemplateEditorForm({ template, onClose }: TemplateEditorFormProp
     })
 
     const name = form.watch('name')
-    const category = form.watch('category')
-    const headerType = form.watch('headerType')
     const headerText = form.watch('headerText')
     const bodyText = form.watch('bodyText')
     const footerText = form.watch('footerText')
@@ -83,7 +79,6 @@ export function TemplateEditorForm({ template, onClose }: TemplateEditorFormProp
                 name: template.name,
                 category: template.category as any,
                 language: template.language,
-                headerType: headerComponent ? 'TEXT' : 'NONE',
                 headerText: headerComponent?.text || '',
                 bodyText: bodyComponent?.text || '',
                 footerText: footerComponent?.text || '',
@@ -106,7 +101,7 @@ export function TemplateEditorForm({ template, onClose }: TemplateEditorFormProp
         mutationFn: (values: TemplateFormValues) => {
             const components: any[] = []
 
-            if (values.headerType === 'TEXT' && values.headerText) {
+            if (values.headerText && values.headerText.trim() !== '') {
                 components.push({ type: 'HEADER', format: 'TEXT', text: values.headerText })
             }
 
@@ -117,7 +112,7 @@ export function TemplateEditorForm({ template, onClose }: TemplateEditorFormProp
             }
             components.push(bodyComp)
 
-            if (values.footerText) {
+            if (values.footerText && values.footerText.trim() !== '') {
                 components.push({ type: 'FOOTER', text: values.footerText })
             }
 
@@ -147,40 +142,27 @@ export function TemplateEditorForm({ template, onClose }: TemplateEditorFormProp
     return (
         <div className="flex flex-col lg:flex-row h-full overflow-hidden bg-background">
             {/* Form Area */}
-            <div className="flex-1 overflow-y-auto p-10 border-r scrollbar-thin scrollbar-thumb-muted">
-                <div className="max-w-2xl mx-auto space-y-12">
-                    <div className="space-y-2">
-                        <h2 className="text-2xl font-bold tracking-tight">
-                            {mode === 'create' ? 'Configurar Template' : 'Editar Template'}
-                        </h2>
-                        <p className="text-sm text-muted-foreground italic">
-                            Preencha as informações para criar um modelo de mensagem do WhatsApp.
-                        </p>
-                    </div>
-
+            <div className="flex-1 overflow-y-auto p-8 border-r scrollbar-thin scrollbar-thumb-muted">
+                <div className="max-w-2xl mx-auto">
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-14">
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
 
                             {/* SECTION 1: Nome e idioma */}
-                            <section className="space-y-8">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <section className="space-y-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <Controller
                                         control={form.control}
                                         name="name"
                                         render={({ field, fieldState }) => (
-                                            <Field data-invalid={fieldState.invalid} className="md:col-span-2 space-y-2">
+                                            <Field data-invalid={fieldState.invalid} className="md:col-span-2 space-y-1.5">
                                                 <FieldLabel className="text-sm font-bold">Nome do modelo de mensagem</FieldLabel>
                                                 <Input
-                                                    placeholder="insira_um_nome_para_o_modelo"
+                                                    placeholder="ex: boas_vindas_vendas"
                                                     className="h-11 font-medium bg-muted/30 border-muted-foreground/20 focus:bg-background transition-all rounded-xl"
                                                     {...field}
                                                     value={field.value ?? ''}
                                                     disabled={mode === 'edit'}
                                                 />
-                                                <div className="flex justify-between items-center px-1">
-                                                    <p className="text-[10px] text-muted-foreground lowercase">letras minúsculas e underscores.</p>
-                                                    <span className="text-[10px] text-muted-foreground tabular-nums">{field.value?.length || 0}/512</span>
-                                                </div>
                                                 <FieldError errors={[fieldState.error]} />
                                             </Field>
                                         )}
@@ -190,7 +172,7 @@ export function TemplateEditorForm({ template, onClose }: TemplateEditorFormProp
                                         control={form.control}
                                         name="category"
                                         render={({ field, fieldState }) => (
-                                            <Field data-invalid={fieldState.invalid} className="space-y-2">
+                                            <Field data-invalid={fieldState.invalid} className="space-y-1.5">
                                                 <div className="flex items-center gap-2">
                                                     <FieldLabel className="text-sm font-bold">Categoria</FieldLabel>
                                                     <TooltipProvider>
@@ -226,7 +208,7 @@ export function TemplateEditorForm({ template, onClose }: TemplateEditorFormProp
                                         control={form.control}
                                         name="language"
                                         render={({ field, fieldState }) => (
-                                            <Field data-invalid={fieldState.invalid} className="space-y-2">
+                                            <Field data-invalid={fieldState.invalid} className="space-y-1.5">
                                                 <FieldLabel className="text-sm font-bold">Idioma</FieldLabel>
                                                 <Select onValueChange={field.onChange} value={field.value}>
                                                     <SelectTrigger className="h-11 bg-muted/30 border-muted-foreground/20 rounded-xl">
@@ -247,93 +229,74 @@ export function TemplateEditorForm({ template, onClose }: TemplateEditorFormProp
                             <Separator />
 
                             {/* SECTION 2: Conteúdo */}
-                            <section className="space-y-10">
-                                <div className="space-y-8">
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                        <Controller
-                                            control={form.control}
-                                            name="headerType"
-                                            render={({ field }) => (
-                                                <Field className="space-y-2">
-                                                    <FieldLabel className="text-xs font-bold uppercase text-muted-foreground">Cabeçalho</FieldLabel>
-                                                    <Select onValueChange={field.onChange} value={field.value}>
-                                                        <SelectTrigger className="h-10 bg-muted/30 border-muted-foreground/20 rounded-xl">
-                                                            <SelectValue />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            <SelectItem value="NONE">Nenhum</SelectItem>
-                                                            <SelectItem value="TEXT">Texto</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                </Field>
-                                            )}
-                                        />
-
-                                        {headerType === 'TEXT' && (
-                                            <Controller
-                                                control={form.control}
-                                                name="headerText"
-                                                render={({ field, fieldState }) => (
-                                                    <Field data-invalid={fieldState.invalid} className="md:col-span-2 space-y-2">
-                                                        <FieldLabel className="text-xs font-bold uppercase text-muted-foreground">Texto do Cabeçalho</FieldLabel>
-                                                        <Input
-                                                            placeholder="Título da mensagem"
-                                                            className="h-10 bg-muted/30 border-muted-foreground/20 rounded-xl"
-                                                            {...field}
-                                                            value={field.value ?? ''}
-                                                        />
-                                                        <FieldError errors={[fieldState.error]} />
-                                                    </Field>
-                                                )}
+                            <section className="space-y-6">
+                                <Controller
+                                    control={form.control}
+                                    name="headerText"
+                                    render={({ field, fieldState }) => (
+                                        <Field data-invalid={fieldState.invalid} className="space-y-1.5">
+                                            <div className="flex justify-between items-center">
+                                                <FieldLabel className="text-xs font-bold uppercase text-muted-foreground">Cabeçalho (Opcional)</FieldLabel>
+                                                <span className="text-[10px] tabular-nums text-muted-foreground">{field.value?.length || 0}/60</span>
+                                            </div>
+                                            <Input
+                                                placeholder="Título da mensagem"
+                                                className="h-11 bg-muted/30 border-muted-foreground/20 rounded-xl"
+                                                {...field}
+                                                value={field.value ?? ''}
                                             />
-                                        )}
-                                    </div>
+                                            <FieldError errors={[fieldState.error]} />
+                                        </Field>
+                                    )}
+                                />
 
-                                    <Controller
-                                        control={form.control}
-                                        name="bodyText"
-                                        render={({ field, fieldState }) => (
-                                            <Field data-invalid={fieldState.invalid} className="space-y-2">
-                                                <div className="flex justify-between">
-                                                    <FieldLabel className="text-xs font-bold uppercase text-muted-foreground">Corpo da Mensagem</FieldLabel>
-                                                    <span className="text-[10px] font-bold tabular-nums text-muted-foreground">{field.value?.length || 0} / 1024</span>
-                                                </div>
-                                                <Textarea
-                                                    placeholder="Digite o conteúdo. Use {{1}}, {{2}} para variáveis."
-                                                    className="min-h-[160px] text-base p-4 bg-muted/30 border-muted-foreground/20 rounded-2xl resize-none"
-                                                    {...field}
-                                                />
-                                                <div className="flex items-center gap-1.5 px-1 py-1">
-                                                    <Info className="h-3 w-3 text-primary/60" />
-                                                    <p className="text-[10px] text-muted-foreground font-medium">As variáveis {"{{1}}, {{2}}"}, etc. serão substituídas por dados reais.</p>
-                                                </div>
-                                                <FieldError errors={[fieldState.error]} />
-                                            </Field>
-                                        )}
-                                    />
+                                <Controller
+                                    control={form.control}
+                                    name="bodyText"
+                                    render={({ field, fieldState }) => (
+                                        <Field data-invalid={fieldState.invalid} className="space-y-1.5">
+                                            <div className="flex justify-between">
+                                                <FieldLabel className="text-xs font-bold uppercase text-muted-foreground">Corpo da Mensagem</FieldLabel>
+                                                <span className="text-[10px] font-bold tabular-nums text-muted-foreground">{field.value?.length || 0} / 1024</span>
+                                            </div>
+                                            <Textarea
+                                                placeholder="Digite o conteúdo. Use {{1}}, {{2}} para variáveis."
+                                                className="min-h-[140px] text-base p-4 bg-muted/30 border-muted-foreground/20 rounded-2xl resize-none"
+                                                {...field}
+                                            />
+                                            <div className="flex items-center gap-1.5 px-0.5 pt-0.5">
+                                                <Info className="h-3 w-3 text-primary/60" />
+                                                <p className="text-[10px] text-muted-foreground font-medium">As variáveis {"{{1}}, {{2}}"}, etc. serão substituídas por dados reais.</p>
+                                            </div>
+                                            <FieldError errors={[fieldState.error]} />
+                                        </Field>
+                                    )}
+                                />
 
-                                    <Controller
-                                        control={form.control}
-                                        name="footerText"
-                                        render={({ field, fieldState }) => (
-                                            <Field data-invalid={fieldState.invalid} className="space-y-2">
+                                <Controller
+                                    control={form.control}
+                                    name="footerText"
+                                    render={({ field, fieldState }) => (
+                                        <Field data-invalid={fieldState.invalid} className="space-y-1.5">
+                                            <div className="flex justify-between items-center">
                                                 <FieldLabel className="text-xs font-bold uppercase text-muted-foreground">Rodapé (Opcional)</FieldLabel>
-                                                <Input
-                                                    placeholder="Legenda no final da mensagem"
-                                                    className="h-11 bg-muted/30 border-muted-foreground/20 rounded-xl"
-                                                    {...field}
-                                                    value={field.value ?? ''}
-                                                />
-                                                <FieldError errors={[fieldState.error]} />
-                                            </Field>
-                                        )}
-                                    />
-                                </div>
+                                                <span className="text-[10px] tabular-nums text-muted-foreground">{field.value?.length || 0}/60</span>
+                                            </div>
+                                            <Input
+                                                placeholder="Legenda no final da mensagem"
+                                                className="h-11 bg-muted/30 border-muted-foreground/20 rounded-xl"
+                                                {...field}
+                                                value={field.value ?? ''}
+                                            />
+                                            <FieldError errors={[fieldState.error]} />
+                                        </Field>
+                                    )}
+                                />
                             </section>
 
                             {/* SECTION 3: Amostras */}
                             {variables.length > 0 && (
-                                <section className="space-y-6 pt-4">
+                                <section className="space-y-4 pt-2">
                                     <div className="flex items-center gap-2">
                                         <h3 className="text-sm font-bold uppercase text-muted-foreground">Amostras de Variáveis</h3>
                                     </div>
@@ -346,11 +309,11 @@ export function TemplateEditorForm({ template, onClose }: TemplateEditorFormProp
                                                     control={form.control}
                                                     name={`samples.${varNumber}` as any}
                                                     render={({ field, fieldState }) => (
-                                                        <Field data-invalid={fieldState.invalid} className="space-y-2">
+                                                        <Field data-invalid={fieldState.invalid} className="space-y-1.5">
                                                             <FieldLabel className="text-[10px] font-bold text-muted-foreground">Valor para {v}</FieldLabel>
                                                             <Input
                                                                 placeholder="Exemplo de conteúdo"
-                                                                className="h-10 bg-muted/30 border-muted-foreground/20 rounded-xl"
+                                                                className="h-10 text-sm bg-muted/10 border-muted-foreground/10 rounded-xl"
                                                                 {...field}
                                                                 value={field.value ?? ''}
                                                             />
@@ -365,11 +328,11 @@ export function TemplateEditorForm({ template, onClose }: TemplateEditorFormProp
                             )}
 
                             {/* Form Buttons */}
-                            <div className="flex items-center gap-4 pt-10 border-t">
+                            <div className="flex items-center gap-3 pt-6">
                                 <Button
                                     type="submit"
                                     size="lg"
-                                    className="px-10 font-bold h-12 bg-primary"
+                                    className="px-8 font-bold h-11 bg-primary"
                                     disabled={mutation.isPending}
                                 >
                                     {mutation.isPending ? 'Enviando...' : 'Enviar para análise'}
@@ -378,7 +341,7 @@ export function TemplateEditorForm({ template, onClose }: TemplateEditorFormProp
                                     type="button"
                                     variant="ghost"
                                     size="lg"
-                                    className="h-12 border border-muted-foreground/10"
+                                    className="h-11 px-6 text-muted-foreground"
                                     onClick={onClose}
                                     disabled={mutation.isPending}
                                 >
@@ -391,18 +354,18 @@ export function TemplateEditorForm({ template, onClose }: TemplateEditorFormProp
             </div>
 
             {/* Preview Area */}
-            <div className="hidden lg:flex w-[480px] bg-muted/5 flex-col items-center border-l h-full overflow-hidden">
-                <div className="w-full flex-1 flex flex-col p-8 space-y-8 overflow-hidden">
+            <div className="hidden lg:flex w-[440px] bg-muted/5 flex-col items-center border-l h-full overflow-hidden">
+                <div className="w-full flex-1 flex flex-col p-8 space-y-6 overflow-hidden">
                     <div className="flex items-center gap-2 border-b border-muted pb-4 w-full">
                         <Layout className="h-4 w-4 text-muted-foreground" />
                         <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground/80">Prévia no WhatsApp</h4>
                     </div>
 
-                    <div className="relative mx-auto w-full max-w-[320px] h-[640px] rounded-[3rem] border-[10px] border-slate-900 bg-slate-900 shadow-2xl overflow-hidden ring-1 ring-white/10">
+                    <div className="relative mx-auto w-full max-w-[300px] h-[600px] rounded-[3rem] border-[10px] border-slate-900 bg-slate-900 shadow-2xl overflow-hidden ring-1 ring-white/10">
                         <div className="h-full bg-[#0b141a] relative overflow-hidden">
                             <TemplatePreview
                                 templateName={name}
-                                headerText={headerType === 'TEXT' ? headerText : ''}
+                                headerText={headerText}
                                 bodyText={bodyText}
                                 footerText={footerText}
                                 samples={samples}
