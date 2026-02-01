@@ -98,26 +98,33 @@ export function DashboardHeader() {
     const breadcrumbs = generateBreadcrumbs(pathname, queryClient)
 
     return (
-        <header className="flex h-12 shrink-0 items-center gap-2 border-b px-4 bg-background">
+        <header className="flex h-[65px] shrink-0 items-center gap-2 border-b px-4 bg-background">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4" />
 
             <Breadcrumb>
                 <BreadcrumbList>
-                    {breadcrumbs.map((item, index) => (
-                        <Fragment key={item.href}>
-                            {index > 0 && <BreadcrumbSeparator />}
-                            <BreadcrumbItem>
-                                {item.isCurrentPage ? (
-                                    <BreadcrumbPage className="font-semibold text-foreground">{item.label}</BreadcrumbPage>
-                                ) : (
-                                    <BreadcrumbLink asChild>
-                                        <Link href={item.href}>{item.label}</Link>
-                                    </BreadcrumbLink>
-                                )}
-                            </BreadcrumbItem>
-                        </Fragment>
-                    ))}
+                    {breadcrumbs.map((item, index) => {
+                        // Check if this is the "settings" segment which shouldn't be clickable
+                        const isSettingsLink = item.href.endsWith('/settings')
+
+                        return (
+                            <Fragment key={item.href}>
+                                {index > 0 && <BreadcrumbSeparator />}
+                                <BreadcrumbItem>
+                                    {item.isCurrentPage || isSettingsLink ? (
+                                        <BreadcrumbPage className={`font-semibold text-foreground ${isSettingsLink ? 'opacity-60 cursor-default' : ''}`}>
+                                            {item.label}
+                                        </BreadcrumbPage>
+                                    ) : (
+                                        <BreadcrumbLink asChild>
+                                            <Link href={item.href}>{item.label}</Link>
+                                        </BreadcrumbLink>
+                                    )}
+                                </BreadcrumbItem>
+                            </Fragment>
+                        )
+                    })}
                 </BreadcrumbList>
             </Breadcrumb>
 
