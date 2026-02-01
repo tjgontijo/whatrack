@@ -10,6 +10,151 @@ import { TemplateMainShell, TemplateMainHeader } from '@/components/dashboard/le
 import { useQuery } from '@tanstack/react-query'
 import { whatsappApi } from '../../api/whatsapp'
 import { Badge } from '@/components/ui/badge'
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog'
+import { Eye, Smartphone, MessageSquare, Info, AlertTriangle } from 'lucide-react'
+
+import { parsePhoneNumber, parsePhoneNumberFromString } from 'libphonenumber-js'
+
+// Helper para traduzir o tipo de mensagem
+function translateMessageType(type: string) {
+    const types: Record<string, string> = {
+        'text': 'Texto',
+        'image': 'Imagem',
+        'audio': 'Áudio',
+        'video': 'Vídeo',
+        'document': 'Documento',
+        'sticker': 'Figurinha',
+        'location': 'Localização',
+        'contacts': 'Contatos',
+        'button': 'Botão',
+        'interactive': 'Interativo',
+        'template': 'Template'
+    }
+    return types[type] || type.charAt(0).toUpperCase() + type.slice(1)
+}
+
+// Helper para formatar o número de telefone
+function formatPhoneNumber(number: string) {
+    if (!number) return 'N/A'
+    try {
+        const cleanNumber = number.startsWith('+') ? number : `+${number}`
+        const phoneNumber = parsePhoneNumberFromString(cleanNumber)
+        if (phoneNumber) return phoneNumber.formatInternational()
+        return number
+    } catch (e) {
+        return number
+    }
+}
+
+// Helper para formatar o payload de forma humana e estruturada
+function formatPayloadHumanly(log: any) {
+    const payload = log.payload
+    const eventType = log.eventType
+
+    try {
+        if (eventType === 'messages') {
+            const message = payload.entry?.[0]?.changes?.[0]?.value?.messages?.[0]
+            const contact = payload.entry?.[0]?.changes?.[0]?.value?.contacts?.[0]
+            if (message) {
+                const name = contact?.profile?.name
+                const from = message.from
+                return (
+                    <div className="flex flex-col gap-0.5 py-1">
+                        <div className="flex items-center gap-1">
+                            <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0">Nome:</span>
+                            <span className="text-xs font-semibold text-foreground truncate">
+                                {name || 'N/A'}
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0">WhatsApp:</span>
+                            <span className="text-xs font-medium text-foreground">
+                                {formatPhoneNumber(from)}
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0">Tipo:</span>
+                            <span className="text-xs font-medium text-primary">
+                                {translateMessageType(message.type)}
+                            </span>
+                        </div>
+                        {message.text?.body && (
+                            <div className="flex items-start gap-1 max-w-md">
+                                <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0 mt-0.5">Mensagem:</span>
+                                <span className="text-xs text-foreground/80 line-clamp-2">
+                                    {message.text.body}
+                                </span>
+                            </div>
+                        )}
+                    </div>
+                )
+            }
+        }
+
+        if (eventType === 'statuses') {
+            const status = payload.entry?.[0]?.changes?.[0]?.value?.statuses?.[0]
+            if (status) {
+                return (
+                    <div className="flex flex-col gap-0.5 py-1">
+                        <div className="flex items-center gap-1">
+                            <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0">Status:</span>
+                            <Badge variant="outline" className={`text-[9px] h-3.5 px-1 font-black uppercase ${status.status === 'read' ? 'text-blue-600 bg-blue-50 border-blue-200' :
+                                status.status === 'delivered' ? 'text-green-600 bg-green-50 border-green-200' : ''
+                                }`}>
+                                {status.status}
+                            </Badge>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0">Para:</span>
+                            <span className="text-xs font-medium text-foreground">{formatPhoneNumber(status.recipient_id)}</span>
+                        </div>
+                    </div>
+                )
+            }
+        }
+
+        if (eventType === 'account_update') {
+            const value = payload.entry?.[0]?.changes?.[0]?.value
+            return (
+                <div className="flex flex-col gap-0.5 py-1 text-xs">
+                    <span className="font-bold text-amber-600 flex items-center gap-1">
+                        <AlertTriangle className="h-3 w-3" />
+                        {value?.event}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">Número: {formatPhoneNumber(value?.phone_number)}</span>
+                </div>
+            )
+        }
+
+        if (eventType === 'message_template_status_update') {
+            const value = payload.entry?.[0]?.changes?.[0]?.value
+            return (
+                <div className="flex flex-col gap-0.5 py-1">
+                    <div className="flex items-center gap-1">
+                        <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0">Template ID:</span>
+                        <span className="text-xs font-bold">{value?.message_template_id}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0">Novo Status:</span>
+                        <Badge variant="outline" className="text-[9px] h-3.5 px-1 font-black uppercase text-primary border-primary/20 bg-primary/5">
+                            {value?.event}
+                        </Badge>
+                    </div>
+                </div>
+            )
+        }
+
+        return <span className="text-xs italic text-muted-foreground">Evento {eventType || 'genérico'} recebido</span>
+    } catch (e) {
+        return <span className="text-xs text-destructive">Erro na formatação dos dados</span>
+    }
+}
 
 export function WebhooksView() {
     // URL sem o subdomínio 'app' conforme solicitado
@@ -191,7 +336,7 @@ export function WebhooksView() {
                                         <tr className="bg-muted/50 border-b">
                                             <th className="px-4 py-3 text-[10px] font-black uppercase tracking-wider text-muted-foreground">Timestamp</th>
                                             <th className="px-4 py-3 text-[10px] font-black uppercase tracking-wider text-muted-foreground">Tipo de Evento</th>
-                                            <th className="px-4 py-3 text-[10px] font-black uppercase tracking-wider text-muted-foreground">Resumo do Payload</th>
+                                            <th className="px-4 py-3 text-[10px] font-black uppercase tracking-wider text-muted-foreground">O que aconteceu?</th>
                                             <th className="px-4 py-3 text-[10px] font-black uppercase tracking-wider text-muted-foreground text-right">Ações</th>
                                         </tr>
                                     </thead>
@@ -213,10 +358,12 @@ export function WebhooksView() {
                                             logs.map((log: any) => (
                                                 <tr key={log.id} className="hover:bg-muted/20 transition-colors group">
                                                     <td className="px-4 py-3 text-xs font-medium whitespace-nowrap">
-                                                        {new Date(log.createdAt).toLocaleTimeString('pt-BR')}
-                                                        <span className="text-[10px] text-muted-foreground ml-2">
-                                                            {new Date(log.createdAt).toLocaleDateString('pt-BR')}
-                                                        </span>
+                                                        <div className="flex flex-col">
+                                                            <span className="font-bold">{new Date(log.createdAt).toLocaleTimeString('pt-BR')}</span>
+                                                            <span className="text-[10px] text-muted-foreground">
+                                                                {new Date(log.createdAt).toLocaleDateString('pt-BR')}
+                                                            </span>
+                                                        </div>
                                                     </td>
                                                     <td className="px-4 py-3">
                                                         <Badge variant="outline" className="text-[9px] font-black uppercase px-2 py-0 border-primary/20 bg-primary/5 text-primary">
@@ -225,18 +372,71 @@ export function WebhooksView() {
                                                     </td>
                                                     <td className="px-4 py-3">
                                                         <div className="flex items-center gap-2">
-                                                            <code className="text-[10px] font-mono text-muted-foreground block max-w-sm truncate group-hover:text-foreground transition-colors">
-                                                                {JSON.stringify(log.payload)}
-                                                            </code>
+                                                            <span className="text-xs font-medium text-foreground max-w-sm truncate group-hover:text-primary transition-colors">
+                                                                {formatPayloadHumanly(log)}
+                                                            </span>
                                                         </div>
                                                     </td>
                                                     <td className="px-4 py-3 text-right">
-                                                        <Button variant="ghost" size="sm" className="h-7 px-3 text-[10px] font-bold" onClick={() => {
-                                                            console.log(log.payload);
-                                                            toast.success("Payload disponível no Console do Navegador");
-                                                        }}>
-                                                            Ver JSON
-                                                        </Button>
+                                                        <Dialog>
+                                                            <DialogTrigger asChild>
+                                                                <Button variant="ghost" size="sm" className="h-7 px-3 text-[10px] font-bold gap-1.5 hover:bg-primary hover:text-white transition-all">
+                                                                    <Eye className="h-3 w-3" />
+                                                                    Explorar Dados
+                                                                </Button>
+                                                            </DialogTrigger>
+                                                            <DialogContent className="sm:max-w-5xl max-h-[85vh] flex flex-col p-0 overflow-hidden">
+                                                                <DialogHeader className="p-6 pb-2">
+                                                                    <div className="flex items-center gap-2 mb-1">
+                                                                        <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 text-[10px] h-5 font-black uppercase tracking-tighter">
+                                                                            {log.eventType}
+                                                                        </Badge>
+                                                                        <span className="text-[10px] text-muted-foreground">
+                                                                            {new Date(log.createdAt).toLocaleString('pt-BR')}
+                                                                        </span>
+                                                                    </div>
+                                                                    <DialogTitle className="text-xl font-bold tracking-tight">Detalhes do Evento Webhook</DialogTitle>
+                                                                </DialogHeader>
+                                                                <div className="flex-1 overflow-y-auto p-6 pt-2">
+                                                                    <div className="bg-muted/30 p-4 rounded-xl border font-mono text-xs overflow-x-auto">
+                                                                        <pre className="text-foreground/80 leading-relaxed whitespace-pre-wrap">
+                                                                            {JSON.stringify(log.payload, null, 2)}
+                                                                        </pre>
+                                                                    </div>
+                                                                    <div className="mt-4 grid grid-cols-2 gap-4">
+                                                                        <div className="p-3 rounded-lg border bg-background flex items-center gap-3">
+                                                                            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                                                                                <Info className="h-4 w-4" />
+                                                                            </div>
+                                                                            <div>
+                                                                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-none mb-1">ID do Log</p>
+                                                                                <p className="text-xs font-mono truncate max-w-[150px]">{log.id}</p>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div className="p-3 rounded-lg border bg-background flex items-center gap-3">
+                                                                            <div className="h-8 w-8 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-600">
+                                                                                <MessageSquare className="h-4 w-4" />
+                                                                            </div>
+                                                                            <div>
+                                                                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-none mb-1">Origem</p>
+                                                                                <p className="text-xs font-medium">WhatsApp Cloud API</p>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="p-4 bg-muted/20 border-t flex justify-end gap-2">
+                                                                    <Button variant="outline" size="sm" className="h-8 text-[10px] font-bold px-4" onClick={() => {
+                                                                        navigator.clipboard.writeText(JSON.stringify(log.payload, null, 2))
+                                                                        toast.success("JSON copiado para a área de transferência!")
+                                                                    }}>
+                                                                        Copiar JSON
+                                                                    </Button>
+                                                                    <DialogTrigger asChild>
+                                                                        <Button size="sm" className="h-8 text-[10px] font-black px-6">Fechar</Button>
+                                                                    </DialogTrigger>
+                                                                </div>
+                                                            </DialogContent>
+                                                        </Dialog>
                                                     </td>
                                                 </tr>
                                             ))
