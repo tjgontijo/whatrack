@@ -32,6 +32,7 @@ const ROUTE_LABELS: Record<string, string> = {
     'settings/team': 'Equipe',
     'meta-ads': 'Meta Ads',
     'chat': 'Chat',
+    'send-test': 'Teste de Envio',
 }
 
 function getRouteLabel(segment: string, fullPath: string, queryClient: any): string {

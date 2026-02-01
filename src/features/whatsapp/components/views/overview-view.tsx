@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { ShieldCheck, Activity, Smartphone, AlertTriangle, Zap, Loader2, FileText, UserCircle, MessageSquare } from 'lucide-react'
+import { ShieldCheck, Activity, Smartphone, AlertTriangle, Zap, Loader2, FileText, UserCircle, MessageSquare, Send } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { whatsappApi } from '../../api/whatsapp'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -141,7 +141,7 @@ export function OverviewView({ phone }: OverviewViewProps) {
             </div>
 
             {/* Hubs - More Balanced */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
                 {/* Templates Hub */}
                 <Card className="group hover:border-primary/40 transition-all duration-300 shadow-sm border-muted flex flex-col h-full">
                     <CardHeader className="pb-3">
@@ -189,6 +189,32 @@ export function OverviewView({ phone }: OverviewViewProps) {
                             <Link href={`/dashboard/settings/whatsapp/${phone.id}/settings`}>
                                 <UserCircle className="h-4 w-4 mr-2" />
                                 Editar Perfil
+                            </Link>
+                        </Button>
+                    </CardContent>
+                </Card>
+
+                {/* Test Send Hub */}
+                <Card className="group hover:border-primary/40 transition-all duration-300 shadow-sm border-muted flex flex-col h-full">
+                    <CardHeader className="pb-3">
+                        <div className="flex items-center gap-3">
+                            <div className="h-9 w-9 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-600">
+                                <Send className="h-5 w-5" />
+                            </div>
+                            <div>
+                                <CardTitle className="text-base font-bold">Teste de Envio</CardTitle>
+                                <CardDescription className="text-xs">Valide sua conexão enviando uma mensagem</CardDescription>
+                            </div>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="flex-1 flex flex-col justify-between space-y-4">
+                        <p className="text-xs text-muted-foreground leading-relaxed">
+                            Envie uma mensagem de teste para qualquer número para garantir que tudo está configurado corretamente.
+                        </p>
+                        <Button asChild variant="outline" className="w-full h-10 rounded-lg font-bold text-sm border-2">
+                            <Link href={`/dashboard/settings/whatsapp/${phone.id}/send-test`}>
+                                <Send className="h-4 w-4 mr-2" />
+                                Testar Agora
                             </Link>
                         </Button>
                     </CardContent>
