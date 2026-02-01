@@ -121,6 +121,7 @@ export function TemplateEditorForm({ template, onClose }: TemplateEditorFormProp
                 category: values.category,
                 language: values.language,
                 components,
+                allow_category_change: true,
             }
             return whatsappApi.createTemplate(payload)
         },

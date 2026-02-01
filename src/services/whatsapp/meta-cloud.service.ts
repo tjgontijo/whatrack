@@ -128,8 +128,10 @@ export class MetaCloudService {
             // Tratamento detalhado de erro da Meta
             const metaError = data.error?.message || 'Erro desconhecido na API da Meta'
             const errorDetails = data.error?.error_data?.details || ''
-            const fullError = `${metaError}${errorDetails ? ` - ${errorDetails}` : ''}`
+            const errorParam = data.error?.error_subcode ? `(Subcode: ${data.error.error_subcode})` : ''
+            const fullError = `${metaError} ${errorParam}${errorDetails ? ` - ${errorDetails}` : ''}`
 
+            console.error('[MetaCloudService] ERRO DETALHADO:', JSON.stringify(data.error, null, 2))
             throw new Error(fullError)
         }
 
