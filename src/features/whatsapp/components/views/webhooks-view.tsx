@@ -10,6 +10,7 @@ import { TemplateMainShell, TemplateMainHeader } from '@/components/dashboard/le
 import { useQuery } from '@tanstack/react-query'
 import { whatsappApi } from '../../api/whatsapp'
 import { Badge } from '@/components/ui/badge'
+import { authClient } from '@/lib/auth/auth-client'
 import {
     Dialog,
     DialogContent,
@@ -157,6 +158,9 @@ function formatPayloadHumanly(log: any) {
 }
 
 export function WebhooksView() {
+    const { data: session } = authClient.useSession()
+    const isSuperAdmin = session?.user?.role === 'owner'
+
     // URL sem o subdomínio 'app' conforme solicitado
     const webhookUrl = "https://whatrack.com/api/v1/whatsapp/webhook"
 
@@ -190,14 +194,16 @@ export function WebhooksView() {
                                 Visão Geral
                                 <span className="absolute inset-x-0 -bottom-[1px] h-[2px] bg-transparent transition-colors group-hover:bg-muted-foreground/20 group-data-[state=active]:bg-primary group-data-[state=active]:shadow-[0_0_8px_0_var(--color-primary)]" />
                             </TabsTrigger>
-                            <TabsTrigger
-                                value="logs"
-                                className="group relative rounded-none border-none bg-transparent data-[state=active]:bg-transparent px-3 py-1.5 text-xs font-medium text-muted-foreground transition-all hover:text-foreground data-[state=active]:text-foreground shadow-none"
-                            >
-                                <Database className="h-3.5 w-3.5 mr-2" />
-                                Logs de Eventos
-                                <span className="absolute inset-x-0 -bottom-[1px] h-[2px] bg-transparent transition-colors group-hover:bg-muted-foreground/20 group-data-[state=active]:bg-primary group-data-[state=active]:shadow-[0_0_8px_0_var(--color-primary)]" />
-                            </TabsTrigger>
+                            {isSuperAdmin && (
+                                <TabsTrigger
+                                    value="logs"
+                                    className="group relative rounded-none border-none bg-transparent data-[state=active]:bg-transparent px-3 py-1.5 text-xs font-medium text-muted-foreground transition-all hover:text-foreground data-[state=active]:text-foreground shadow-none"
+                                >
+                                    <Database className="h-3.5 w-3.5 mr-2" />
+                                    Logs de Eventos
+                                    <span className="absolute inset-x-0 -bottom-[1px] h-[2px] bg-transparent transition-colors group-hover:bg-muted-foreground/20 group-data-[state=active]:bg-primary group-data-[state=active]:shadow-[0_0_8px_0_var(--color-primary)]" />
+                                </TabsTrigger>
+                            )}
                         </TabsList>
                     </div>
                 </TemplateMainHeader>
