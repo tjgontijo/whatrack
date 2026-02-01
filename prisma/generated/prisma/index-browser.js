@@ -331,6 +331,7 @@ exports.Prisma.WhatsAppConfigScalarFieldEnum = {
 
 exports.Prisma.WhatsAppWebhookLogScalarFieldEnum = {
   id: 'id',
+  organizationId: 'organizationId',
   payload: 'payload',
   eventType: 'eventType',
   createdAt: 'createdAt'

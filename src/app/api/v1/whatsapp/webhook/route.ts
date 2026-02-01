@@ -54,8 +54,25 @@ export async function POST(request: Request) {
 
         // Extract basic info from the payload
         const entry = payload.entry?.[0]
+        const wabaId = entry?.id
         const changes = entry?.changes?.[0]
         const value = changes?.value
+        const phoneId = value?.metadata?.phone_number_id
+
+        // Find the organization associated with this WhatsApp config
+        let organizationId: string | null = null
+        if (phoneId || wabaId) {
+            const config = await prisma.whatsAppConfig.findFirst({
+                where: {
+                    OR: [
+                        phoneId ? { phoneId } : {},
+                        wabaId ? { wabaId } : {},
+                    ].filter(cond => Object.keys(cond).length > 0)
+                },
+                select: { organizationId: true }
+            })
+            organizationId = config?.organizationId ?? null
+        }
 
         // Determine event type for logging
         let eventType = 'unknown'
@@ -69,6 +86,7 @@ export async function POST(request: Request) {
                 data: {
                     payload: payload as any,
                     eventType,
+                    organizationId,
                 }
             })
         } catch (dbError) {

@@ -125,6 +125,7 @@ model Organization {
   profile           OrganizationProfile?
   company           OrganizationCompany?
   whatsappConfig    WhatsAppConfig?
+  webhookLogs       WhatsAppWebhookLog[]
 
   @@map("organization")
 }
@@ -386,11 +387,15 @@ model WhatsAppConfig {
 }
 
 model WhatsAppWebhookLog {
-  id        String   @id @default(cuid())
-  payload   Json     // The raw JSON received from Meta
-  eventType String?  // e.g., "messages", "statuses", "template_approval"
-  createdAt DateTime @default(now())
+  id             String        @id @default(cuid())
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  payload        Json          // The raw JSON received from Meta
+  eventType      String?       // e.g., "messages", "statuses", "template_approval"
+  createdAt      DateTime      @default(now())
 
+  @@index([organizationId])
   @@map("whatsapp_webhook_logs")
 }
 

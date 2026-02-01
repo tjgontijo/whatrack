@@ -2336,6 +2336,7 @@ export namespace Prisma {
     saleItems: number
     products: number
     productCategories: number
+    webhookLogs: number
   }
 
   export type OrganizationCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2346,6 +2347,7 @@ export namespace Prisma {
     saleItems?: boolean | OrganizationCountOutputTypeCountSaleItemsArgs
     products?: boolean | OrganizationCountOutputTypeCountProductsArgs
     productCategories?: boolean | OrganizationCountOutputTypeCountProductCategoriesArgs
+    webhookLogs?: boolean | OrganizationCountOutputTypeCountWebhookLogsArgs
   }
 
   // Custom InputTypes
@@ -2406,6 +2408,13 @@ export namespace Prisma {
    */
   export type OrganizationCountOutputTypeCountProductCategoriesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ProductCategoryWhereInput
+  }
+
+  /**
+   * OrganizationCountOutputType without action
+   */
+  export type OrganizationCountOutputTypeCountWebhookLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: WhatsAppWebhookLogWhereInput
   }
 
 
@@ -7226,6 +7235,7 @@ export namespace Prisma {
     profile?: boolean | Organization$profileArgs<ExtArgs>
     company?: boolean | Organization$companyArgs<ExtArgs>
     whatsappConfig?: boolean | Organization$whatsappConfigArgs<ExtArgs>
+    webhookLogs?: boolean | Organization$webhookLogsArgs<ExtArgs>
     _count?: boolean | OrganizationCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["organization"]>
 
@@ -7268,6 +7278,7 @@ export namespace Prisma {
     profile?: boolean | Organization$profileArgs<ExtArgs>
     company?: boolean | Organization$companyArgs<ExtArgs>
     whatsappConfig?: boolean | Organization$whatsappConfigArgs<ExtArgs>
+    webhookLogs?: boolean | Organization$webhookLogsArgs<ExtArgs>
     _count?: boolean | OrganizationCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type OrganizationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -7286,6 +7297,7 @@ export namespace Prisma {
       profile: Prisma.$OrganizationProfilePayload<ExtArgs> | null
       company: Prisma.$OrganizationCompanyPayload<ExtArgs> | null
       whatsappConfig: Prisma.$WhatsAppConfigPayload<ExtArgs> | null
+      webhookLogs: Prisma.$WhatsAppWebhookLogPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -7698,6 +7710,7 @@ export namespace Prisma {
     profile<T extends Organization$profileArgs<ExtArgs> = {}>(args?: Subset<T, Organization$profileArgs<ExtArgs>>): Prisma__OrganizationProfileClient<$Result.GetResult<Prisma.$OrganizationProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     company<T extends Organization$companyArgs<ExtArgs> = {}>(args?: Subset<T, Organization$companyArgs<ExtArgs>>): Prisma__OrganizationCompanyClient<$Result.GetResult<Prisma.$OrganizationCompanyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     whatsappConfig<T extends Organization$whatsappConfigArgs<ExtArgs> = {}>(args?: Subset<T, Organization$whatsappConfigArgs<ExtArgs>>): Prisma__WhatsAppConfigClient<$Result.GetResult<Prisma.$WhatsAppConfigPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    webhookLogs<T extends Organization$webhookLogsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$webhookLogsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WhatsAppWebhookLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -8343,6 +8356,30 @@ export namespace Prisma {
      */
     include?: WhatsAppConfigInclude<ExtArgs> | null
     where?: WhatsAppConfigWhereInput
+  }
+
+  /**
+   * Organization.webhookLogs
+   */
+  export type Organization$webhookLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WhatsAppWebhookLog
+     */
+    select?: WhatsAppWebhookLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WhatsAppWebhookLog
+     */
+    omit?: WhatsAppWebhookLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WhatsAppWebhookLogInclude<ExtArgs> | null
+    where?: WhatsAppWebhookLogWhereInput
+    orderBy?: WhatsAppWebhookLogOrderByWithRelationInput | WhatsAppWebhookLogOrderByWithRelationInput[]
+    cursor?: WhatsAppWebhookLogWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: WhatsAppWebhookLogScalarFieldEnum | WhatsAppWebhookLogScalarFieldEnum[]
   }
 
   /**
@@ -20201,18 +20238,21 @@ export namespace Prisma {
 
   export type WhatsAppWebhookLogMinAggregateOutputType = {
     id: string | null
+    organizationId: string | null
     eventType: string | null
     createdAt: Date | null
   }
 
   export type WhatsAppWebhookLogMaxAggregateOutputType = {
     id: string | null
+    organizationId: string | null
     eventType: string | null
     createdAt: Date | null
   }
 
   export type WhatsAppWebhookLogCountAggregateOutputType = {
     id: number
+    organizationId: number
     payload: number
     eventType: number
     createdAt: number
@@ -20222,18 +20262,21 @@ export namespace Prisma {
 
   export type WhatsAppWebhookLogMinAggregateInputType = {
     id?: true
+    organizationId?: true
     eventType?: true
     createdAt?: true
   }
 
   export type WhatsAppWebhookLogMaxAggregateInputType = {
     id?: true
+    organizationId?: true
     eventType?: true
     createdAt?: true
   }
 
   export type WhatsAppWebhookLogCountAggregateInputType = {
     id?: true
+    organizationId?: true
     payload?: true
     eventType?: true
     createdAt?: true
@@ -20314,6 +20357,7 @@ export namespace Prisma {
 
   export type WhatsAppWebhookLogGroupByOutputType = {
     id: string
+    organizationId: string | null
     payload: JsonValue
     eventType: string | null
     createdAt: Date
@@ -20338,39 +20382,58 @@ export namespace Prisma {
 
   export type WhatsAppWebhookLogSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    organizationId?: boolean
     payload?: boolean
     eventType?: boolean
     createdAt?: boolean
+    organization?: boolean | WhatsAppWebhookLog$organizationArgs<ExtArgs>
   }, ExtArgs["result"]["whatsAppWebhookLog"]>
 
   export type WhatsAppWebhookLogSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    organizationId?: boolean
     payload?: boolean
     eventType?: boolean
     createdAt?: boolean
+    organization?: boolean | WhatsAppWebhookLog$organizationArgs<ExtArgs>
   }, ExtArgs["result"]["whatsAppWebhookLog"]>
 
   export type WhatsAppWebhookLogSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    organizationId?: boolean
     payload?: boolean
     eventType?: boolean
     createdAt?: boolean
+    organization?: boolean | WhatsAppWebhookLog$organizationArgs<ExtArgs>
   }, ExtArgs["result"]["whatsAppWebhookLog"]>
 
   export type WhatsAppWebhookLogSelectScalar = {
     id?: boolean
+    organizationId?: boolean
     payload?: boolean
     eventType?: boolean
     createdAt?: boolean
   }
 
-  export type WhatsAppWebhookLogOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "payload" | "eventType" | "createdAt", ExtArgs["result"]["whatsAppWebhookLog"]>
+  export type WhatsAppWebhookLogOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "organizationId" | "payload" | "eventType" | "createdAt", ExtArgs["result"]["whatsAppWebhookLog"]>
+  export type WhatsAppWebhookLogInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | WhatsAppWebhookLog$organizationArgs<ExtArgs>
+  }
+  export type WhatsAppWebhookLogIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | WhatsAppWebhookLog$organizationArgs<ExtArgs>
+  }
+  export type WhatsAppWebhookLogIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | WhatsAppWebhookLog$organizationArgs<ExtArgs>
+  }
 
   export type $WhatsAppWebhookLogPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "WhatsAppWebhookLog"
-    objects: {}
+    objects: {
+      organization: Prisma.$OrganizationPayload<ExtArgs> | null
+    }
     scalars: $Extensions.GetPayloadResult<{
       id: string
+      organizationId: string | null
       payload: Prisma.JsonValue
       eventType: string | null
       createdAt: Date
@@ -20768,6 +20831,7 @@ export namespace Prisma {
    */
   export interface Prisma__WhatsAppWebhookLogClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
+    organization<T extends WhatsAppWebhookLog$organizationArgs<ExtArgs> = {}>(args?: Subset<T, WhatsAppWebhookLog$organizationArgs<ExtArgs>>): Prisma__OrganizationClient<$Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -20798,6 +20862,7 @@ export namespace Prisma {
    */
   interface WhatsAppWebhookLogFieldRefs {
     readonly id: FieldRef<"WhatsAppWebhookLog", 'String'>
+    readonly organizationId: FieldRef<"WhatsAppWebhookLog", 'String'>
     readonly payload: FieldRef<"WhatsAppWebhookLog", 'Json'>
     readonly eventType: FieldRef<"WhatsAppWebhookLog", 'String'>
     readonly createdAt: FieldRef<"WhatsAppWebhookLog", 'DateTime'>
@@ -20818,6 +20883,10 @@ export namespace Prisma {
      */
     omit?: WhatsAppWebhookLogOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WhatsAppWebhookLogInclude<ExtArgs> | null
+    /**
      * Filter, which WhatsAppWebhookLog to fetch.
      */
     where: WhatsAppWebhookLogWhereUniqueInput
@@ -20836,6 +20905,10 @@ export namespace Prisma {
      */
     omit?: WhatsAppWebhookLogOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WhatsAppWebhookLogInclude<ExtArgs> | null
+    /**
      * Filter, which WhatsAppWebhookLog to fetch.
      */
     where: WhatsAppWebhookLogWhereUniqueInput
@@ -20853,6 +20926,10 @@ export namespace Prisma {
      * Omit specific fields from the WhatsAppWebhookLog
      */
     omit?: WhatsAppWebhookLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WhatsAppWebhookLogInclude<ExtArgs> | null
     /**
      * Filter, which WhatsAppWebhookLog to fetch.
      */
@@ -20902,6 +20979,10 @@ export namespace Prisma {
      */
     omit?: WhatsAppWebhookLogOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WhatsAppWebhookLogInclude<ExtArgs> | null
+    /**
      * Filter, which WhatsAppWebhookLog to fetch.
      */
     where?: WhatsAppWebhookLogWhereInput
@@ -20950,6 +21031,10 @@ export namespace Prisma {
      */
     omit?: WhatsAppWebhookLogOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WhatsAppWebhookLogInclude<ExtArgs> | null
+    /**
      * Filter, which WhatsAppWebhookLogs to fetch.
      */
     where?: WhatsAppWebhookLogWhereInput
@@ -20993,6 +21078,10 @@ export namespace Prisma {
      */
     omit?: WhatsAppWebhookLogOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WhatsAppWebhookLogInclude<ExtArgs> | null
+    /**
      * The data needed to create a WhatsAppWebhookLog.
      */
     data: XOR<WhatsAppWebhookLogCreateInput, WhatsAppWebhookLogUncheckedCreateInput>
@@ -21026,6 +21115,10 @@ export namespace Prisma {
      */
     data: WhatsAppWebhookLogCreateManyInput | WhatsAppWebhookLogCreateManyInput[]
     skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WhatsAppWebhookLogIncludeCreateManyAndReturn<ExtArgs> | null
   }
 
   /**
@@ -21040,6 +21133,10 @@ export namespace Prisma {
      * Omit specific fields from the WhatsAppWebhookLog
      */
     omit?: WhatsAppWebhookLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WhatsAppWebhookLogInclude<ExtArgs> | null
     /**
      * The data needed to update a WhatsAppWebhookLog.
      */
@@ -21092,6 +21189,10 @@ export namespace Prisma {
      * Limit how many WhatsAppWebhookLogs to update.
      */
     limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WhatsAppWebhookLogIncludeUpdateManyAndReturn<ExtArgs> | null
   }
 
   /**
@@ -21106,6 +21207,10 @@ export namespace Prisma {
      * Omit specific fields from the WhatsAppWebhookLog
      */
     omit?: WhatsAppWebhookLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WhatsAppWebhookLogInclude<ExtArgs> | null
     /**
      * The filter to search for the WhatsAppWebhookLog to update in case it exists.
      */
@@ -21133,6 +21238,10 @@ export namespace Prisma {
      */
     omit?: WhatsAppWebhookLogOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WhatsAppWebhookLogInclude<ExtArgs> | null
+    /**
      * Filter which WhatsAppWebhookLog to delete.
      */
     where: WhatsAppWebhookLogWhereUniqueInput
@@ -21153,6 +21262,25 @@ export namespace Prisma {
   }
 
   /**
+   * WhatsAppWebhookLog.organization
+   */
+  export type WhatsAppWebhookLog$organizationArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Organization
+     */
+    select?: OrganizationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Organization
+     */
+    omit?: OrganizationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrganizationInclude<ExtArgs> | null
+    where?: OrganizationWhereInput
+  }
+
+  /**
    * WhatsAppWebhookLog without action
    */
   export type WhatsAppWebhookLogDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -21164,6 +21292,10 @@ export namespace Prisma {
      * Omit specific fields from the WhatsAppWebhookLog
      */
     omit?: WhatsAppWebhookLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WhatsAppWebhookLogInclude<ExtArgs> | null
   }
 
 
@@ -21437,6 +21569,7 @@ export namespace Prisma {
 
   export const WhatsAppWebhookLogScalarFieldEnum: {
     id: 'id',
+    organizationId: 'organizationId',
     payload: 'payload',
     eventType: 'eventType',
     createdAt: 'createdAt'
@@ -21986,6 +22119,7 @@ export namespace Prisma {
     profile?: XOR<OrganizationProfileNullableScalarRelationFilter, OrganizationProfileWhereInput> | null
     company?: XOR<OrganizationCompanyNullableScalarRelationFilter, OrganizationCompanyWhereInput> | null
     whatsappConfig?: XOR<WhatsAppConfigNullableScalarRelationFilter, WhatsAppConfigWhereInput> | null
+    webhookLogs?: WhatsAppWebhookLogListRelationFilter
   }
 
   export type OrganizationOrderByWithRelationInput = {
@@ -22005,6 +22139,7 @@ export namespace Prisma {
     profile?: OrganizationProfileOrderByWithRelationInput
     company?: OrganizationCompanyOrderByWithRelationInput
     whatsappConfig?: WhatsAppConfigOrderByWithRelationInput
+    webhookLogs?: WhatsAppWebhookLogOrderByRelationAggregateInput
   }
 
   export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
@@ -22027,6 +22162,7 @@ export namespace Prisma {
     profile?: XOR<OrganizationProfileNullableScalarRelationFilter, OrganizationProfileWhereInput> | null
     company?: XOR<OrganizationCompanyNullableScalarRelationFilter, OrganizationCompanyWhereInput> | null
     whatsappConfig?: XOR<WhatsAppConfigNullableScalarRelationFilter, WhatsAppConfigWhereInput> | null
+    webhookLogs?: WhatsAppWebhookLogListRelationFilter
   }, "id" | "slug">
 
   export type OrganizationOrderByWithAggregationInput = {
@@ -22981,16 +23117,20 @@ export namespace Prisma {
     OR?: WhatsAppWebhookLogWhereInput[]
     NOT?: WhatsAppWebhookLogWhereInput | WhatsAppWebhookLogWhereInput[]
     id?: StringFilter<"WhatsAppWebhookLog"> | string
+    organizationId?: StringNullableFilter<"WhatsAppWebhookLog"> | string | null
     payload?: JsonFilter<"WhatsAppWebhookLog">
     eventType?: StringNullableFilter<"WhatsAppWebhookLog"> | string | null
     createdAt?: DateTimeFilter<"WhatsAppWebhookLog"> | Date | string
+    organization?: XOR<OrganizationNullableScalarRelationFilter, OrganizationWhereInput> | null
   }
 
   export type WhatsAppWebhookLogOrderByWithRelationInput = {
     id?: SortOrder
+    organizationId?: SortOrderInput | SortOrder
     payload?: SortOrder
     eventType?: SortOrderInput | SortOrder
     createdAt?: SortOrder
+    organization?: OrganizationOrderByWithRelationInput
   }
 
   export type WhatsAppWebhookLogWhereUniqueInput = Prisma.AtLeast<{
@@ -22998,13 +23138,16 @@ export namespace Prisma {
     AND?: WhatsAppWebhookLogWhereInput | WhatsAppWebhookLogWhereInput[]
     OR?: WhatsAppWebhookLogWhereInput[]
     NOT?: WhatsAppWebhookLogWhereInput | WhatsAppWebhookLogWhereInput[]
+    organizationId?: StringNullableFilter<"WhatsAppWebhookLog"> | string | null
     payload?: JsonFilter<"WhatsAppWebhookLog">
     eventType?: StringNullableFilter<"WhatsAppWebhookLog"> | string | null
     createdAt?: DateTimeFilter<"WhatsAppWebhookLog"> | Date | string
+    organization?: XOR<OrganizationNullableScalarRelationFilter, OrganizationWhereInput> | null
   }, "id">
 
   export type WhatsAppWebhookLogOrderByWithAggregationInput = {
     id?: SortOrder
+    organizationId?: SortOrderInput | SortOrder
     payload?: SortOrder
     eventType?: SortOrderInput | SortOrder
     createdAt?: SortOrder
@@ -23018,6 +23161,7 @@ export namespace Prisma {
     OR?: WhatsAppWebhookLogScalarWhereWithAggregatesInput[]
     NOT?: WhatsAppWebhookLogScalarWhereWithAggregatesInput | WhatsAppWebhookLogScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"WhatsAppWebhookLog"> | string
+    organizationId?: StringNullableWithAggregatesFilter<"WhatsAppWebhookLog"> | string | null
     payload?: JsonWithAggregatesFilter<"WhatsAppWebhookLog">
     eventType?: StringNullableWithAggregatesFilter<"WhatsAppWebhookLog"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"WhatsAppWebhookLog"> | Date | string
@@ -23425,6 +23569,7 @@ export namespace Prisma {
     profile?: OrganizationProfileCreateNestedOneWithoutOrganizationInput
     company?: OrganizationCompanyCreateNestedOneWithoutOrganizationInput
     whatsappConfig?: WhatsAppConfigCreateNestedOneWithoutOrganizationInput
+    webhookLogs?: WhatsAppWebhookLogCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateInput = {
@@ -23444,6 +23589,7 @@ export namespace Prisma {
     profile?: OrganizationProfileUncheckedCreateNestedOneWithoutOrganizationInput
     company?: OrganizationCompanyUncheckedCreateNestedOneWithoutOrganizationInput
     whatsappConfig?: WhatsAppConfigUncheckedCreateNestedOneWithoutOrganizationInput
+    webhookLogs?: WhatsAppWebhookLogUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUpdateInput = {
@@ -23463,6 +23609,7 @@ export namespace Prisma {
     profile?: OrganizationProfileUpdateOneWithoutOrganizationNestedInput
     company?: OrganizationCompanyUpdateOneWithoutOrganizationNestedInput
     whatsappConfig?: WhatsAppConfigUpdateOneWithoutOrganizationNestedInput
+    webhookLogs?: WhatsAppWebhookLogUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateInput = {
@@ -23482,6 +23629,7 @@ export namespace Prisma {
     profile?: OrganizationProfileUncheckedUpdateOneWithoutOrganizationNestedInput
     company?: OrganizationCompanyUncheckedUpdateOneWithoutOrganizationNestedInput
     whatsappConfig?: WhatsAppConfigUncheckedUpdateOneWithoutOrganizationNestedInput
+    webhookLogs?: WhatsAppWebhookLogUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationCreateManyInput = {
@@ -24542,10 +24690,12 @@ export namespace Prisma {
     payload: JsonNullValueInput | InputJsonValue
     eventType?: string | null
     createdAt?: Date | string
+    organization?: OrganizationCreateNestedOneWithoutWebhookLogsInput
   }
 
   export type WhatsAppWebhookLogUncheckedCreateInput = {
     id?: string
+    organizationId?: string | null
     payload: JsonNullValueInput | InputJsonValue
     eventType?: string | null
     createdAt?: Date | string
@@ -24556,10 +24706,12 @@ export namespace Prisma {
     payload?: JsonNullValueInput | InputJsonValue
     eventType?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    organization?: OrganizationUpdateOneWithoutWebhookLogsNestedInput
   }
 
   export type WhatsAppWebhookLogUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
     payload?: JsonNullValueInput | InputJsonValue
     eventType?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -24567,6 +24719,7 @@ export namespace Prisma {
 
   export type WhatsAppWebhookLogCreateManyInput = {
     id?: string
+    organizationId?: string | null
     payload: JsonNullValueInput | InputJsonValue
     eventType?: string | null
     createdAt?: Date | string
@@ -24581,6 +24734,7 @@ export namespace Prisma {
 
   export type WhatsAppWebhookLogUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
     payload?: JsonNullValueInput | InputJsonValue
     eventType?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -25004,6 +25158,12 @@ export namespace Prisma {
     isNot?: WhatsAppConfigWhereInput | null
   }
 
+  export type WhatsAppWebhookLogListRelationFilter = {
+    every?: WhatsAppWebhookLogWhereInput
+    some?: WhatsAppWebhookLogWhereInput
+    none?: WhatsAppWebhookLogWhereInput
+  }
+
   export type LeadOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -25021,6 +25181,10 @@ export namespace Prisma {
   }
 
   export type ProductCategoryOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type WhatsAppWebhookLogOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -25804,8 +25968,14 @@ export namespace Prisma {
     not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
   }
 
+  export type OrganizationNullableScalarRelationFilter = {
+    is?: OrganizationWhereInput | null
+    isNot?: OrganizationWhereInput | null
+  }
+
   export type WhatsAppWebhookLogCountOrderByAggregateInput = {
     id?: SortOrder
+    organizationId?: SortOrder
     payload?: SortOrder
     eventType?: SortOrder
     createdAt?: SortOrder
@@ -25813,12 +25983,14 @@ export namespace Prisma {
 
   export type WhatsAppWebhookLogMaxOrderByAggregateInput = {
     id?: SortOrder
+    organizationId?: SortOrder
     eventType?: SortOrder
     createdAt?: SortOrder
   }
 
   export type WhatsAppWebhookLogMinOrderByAggregateInput = {
     id?: SortOrder
+    organizationId?: SortOrder
     eventType?: SortOrder
     createdAt?: SortOrder
   }
@@ -26140,6 +26312,13 @@ export namespace Prisma {
     connect?: WhatsAppConfigWhereUniqueInput
   }
 
+  export type WhatsAppWebhookLogCreateNestedManyWithoutOrganizationInput = {
+    create?: XOR<WhatsAppWebhookLogCreateWithoutOrganizationInput, WhatsAppWebhookLogUncheckedCreateWithoutOrganizationInput> | WhatsAppWebhookLogCreateWithoutOrganizationInput[] | WhatsAppWebhookLogUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: WhatsAppWebhookLogCreateOrConnectWithoutOrganizationInput | WhatsAppWebhookLogCreateOrConnectWithoutOrganizationInput[]
+    createMany?: WhatsAppWebhookLogCreateManyOrganizationInputEnvelope
+    connect?: WhatsAppWebhookLogWhereUniqueInput | WhatsAppWebhookLogWhereUniqueInput[]
+  }
+
   export type MemberUncheckedCreateNestedManyWithoutOrganizationInput = {
     create?: XOR<MemberCreateWithoutOrganizationInput, MemberUncheckedCreateWithoutOrganizationInput> | MemberCreateWithoutOrganizationInput[] | MemberUncheckedCreateWithoutOrganizationInput[]
     connectOrCreate?: MemberCreateOrConnectWithoutOrganizationInput | MemberCreateOrConnectWithoutOrganizationInput[]
@@ -26205,6 +26384,13 @@ export namespace Prisma {
     create?: XOR<WhatsAppConfigCreateWithoutOrganizationInput, WhatsAppConfigUncheckedCreateWithoutOrganizationInput>
     connectOrCreate?: WhatsAppConfigCreateOrConnectWithoutOrganizationInput
     connect?: WhatsAppConfigWhereUniqueInput
+  }
+
+  export type WhatsAppWebhookLogUncheckedCreateNestedManyWithoutOrganizationInput = {
+    create?: XOR<WhatsAppWebhookLogCreateWithoutOrganizationInput, WhatsAppWebhookLogUncheckedCreateWithoutOrganizationInput> | WhatsAppWebhookLogCreateWithoutOrganizationInput[] | WhatsAppWebhookLogUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: WhatsAppWebhookLogCreateOrConnectWithoutOrganizationInput | WhatsAppWebhookLogCreateOrConnectWithoutOrganizationInput[]
+    createMany?: WhatsAppWebhookLogCreateManyOrganizationInputEnvelope
+    connect?: WhatsAppWebhookLogWhereUniqueInput | WhatsAppWebhookLogWhereUniqueInput[]
   }
 
   export type MemberUpdateManyWithoutOrganizationNestedInput = {
@@ -26335,6 +26521,20 @@ export namespace Prisma {
     update?: XOR<XOR<WhatsAppConfigUpdateToOneWithWhereWithoutOrganizationInput, WhatsAppConfigUpdateWithoutOrganizationInput>, WhatsAppConfigUncheckedUpdateWithoutOrganizationInput>
   }
 
+  export type WhatsAppWebhookLogUpdateManyWithoutOrganizationNestedInput = {
+    create?: XOR<WhatsAppWebhookLogCreateWithoutOrganizationInput, WhatsAppWebhookLogUncheckedCreateWithoutOrganizationInput> | WhatsAppWebhookLogCreateWithoutOrganizationInput[] | WhatsAppWebhookLogUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: WhatsAppWebhookLogCreateOrConnectWithoutOrganizationInput | WhatsAppWebhookLogCreateOrConnectWithoutOrganizationInput[]
+    upsert?: WhatsAppWebhookLogUpsertWithWhereUniqueWithoutOrganizationInput | WhatsAppWebhookLogUpsertWithWhereUniqueWithoutOrganizationInput[]
+    createMany?: WhatsAppWebhookLogCreateManyOrganizationInputEnvelope
+    set?: WhatsAppWebhookLogWhereUniqueInput | WhatsAppWebhookLogWhereUniqueInput[]
+    disconnect?: WhatsAppWebhookLogWhereUniqueInput | WhatsAppWebhookLogWhereUniqueInput[]
+    delete?: WhatsAppWebhookLogWhereUniqueInput | WhatsAppWebhookLogWhereUniqueInput[]
+    connect?: WhatsAppWebhookLogWhereUniqueInput | WhatsAppWebhookLogWhereUniqueInput[]
+    update?: WhatsAppWebhookLogUpdateWithWhereUniqueWithoutOrganizationInput | WhatsAppWebhookLogUpdateWithWhereUniqueWithoutOrganizationInput[]
+    updateMany?: WhatsAppWebhookLogUpdateManyWithWhereWithoutOrganizationInput | WhatsAppWebhookLogUpdateManyWithWhereWithoutOrganizationInput[]
+    deleteMany?: WhatsAppWebhookLogScalarWhereInput | WhatsAppWebhookLogScalarWhereInput[]
+  }
+
   export type MemberUncheckedUpdateManyWithoutOrganizationNestedInput = {
     create?: XOR<MemberCreateWithoutOrganizationInput, MemberUncheckedCreateWithoutOrganizationInput> | MemberCreateWithoutOrganizationInput[] | MemberUncheckedCreateWithoutOrganizationInput[]
     connectOrCreate?: MemberCreateOrConnectWithoutOrganizationInput | MemberCreateOrConnectWithoutOrganizationInput[]
@@ -26461,6 +26661,20 @@ export namespace Prisma {
     delete?: WhatsAppConfigWhereInput | boolean
     connect?: WhatsAppConfigWhereUniqueInput
     update?: XOR<XOR<WhatsAppConfigUpdateToOneWithWhereWithoutOrganizationInput, WhatsAppConfigUpdateWithoutOrganizationInput>, WhatsAppConfigUncheckedUpdateWithoutOrganizationInput>
+  }
+
+  export type WhatsAppWebhookLogUncheckedUpdateManyWithoutOrganizationNestedInput = {
+    create?: XOR<WhatsAppWebhookLogCreateWithoutOrganizationInput, WhatsAppWebhookLogUncheckedCreateWithoutOrganizationInput> | WhatsAppWebhookLogCreateWithoutOrganizationInput[] | WhatsAppWebhookLogUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: WhatsAppWebhookLogCreateOrConnectWithoutOrganizationInput | WhatsAppWebhookLogCreateOrConnectWithoutOrganizationInput[]
+    upsert?: WhatsAppWebhookLogUpsertWithWhereUniqueWithoutOrganizationInput | WhatsAppWebhookLogUpsertWithWhereUniqueWithoutOrganizationInput[]
+    createMany?: WhatsAppWebhookLogCreateManyOrganizationInputEnvelope
+    set?: WhatsAppWebhookLogWhereUniqueInput | WhatsAppWebhookLogWhereUniqueInput[]
+    disconnect?: WhatsAppWebhookLogWhereUniqueInput | WhatsAppWebhookLogWhereUniqueInput[]
+    delete?: WhatsAppWebhookLogWhereUniqueInput | WhatsAppWebhookLogWhereUniqueInput[]
+    connect?: WhatsAppWebhookLogWhereUniqueInput | WhatsAppWebhookLogWhereUniqueInput[]
+    update?: WhatsAppWebhookLogUpdateWithWhereUniqueWithoutOrganizationInput | WhatsAppWebhookLogUpdateWithWhereUniqueWithoutOrganizationInput[]
+    updateMany?: WhatsAppWebhookLogUpdateManyWithWhereWithoutOrganizationInput | WhatsAppWebhookLogUpdateManyWithWhereWithoutOrganizationInput[]
+    deleteMany?: WhatsAppWebhookLogScalarWhereInput | WhatsAppWebhookLogScalarWhereInput[]
   }
 
   export type OrganizationCreateNestedOneWithoutMembersInput = {
@@ -26841,6 +27055,22 @@ export namespace Prisma {
     upsert?: OrganizationUpsertWithoutWhatsappConfigInput
     connect?: OrganizationWhereUniqueInput
     update?: XOR<XOR<OrganizationUpdateToOneWithWhereWithoutWhatsappConfigInput, OrganizationUpdateWithoutWhatsappConfigInput>, OrganizationUncheckedUpdateWithoutWhatsappConfigInput>
+  }
+
+  export type OrganizationCreateNestedOneWithoutWebhookLogsInput = {
+    create?: XOR<OrganizationCreateWithoutWebhookLogsInput, OrganizationUncheckedCreateWithoutWebhookLogsInput>
+    connectOrCreate?: OrganizationCreateOrConnectWithoutWebhookLogsInput
+    connect?: OrganizationWhereUniqueInput
+  }
+
+  export type OrganizationUpdateOneWithoutWebhookLogsNestedInput = {
+    create?: XOR<OrganizationCreateWithoutWebhookLogsInput, OrganizationUncheckedCreateWithoutWebhookLogsInput>
+    connectOrCreate?: OrganizationCreateOrConnectWithoutWebhookLogsInput
+    upsert?: OrganizationUpsertWithoutWebhookLogsInput
+    disconnect?: OrganizationWhereInput | boolean
+    delete?: OrganizationWhereInput | boolean
+    connect?: OrganizationWhereUniqueInput
+    update?: XOR<XOR<OrganizationUpdateToOneWithWhereWithoutWebhookLogsInput, OrganizationUpdateWithoutWebhookLogsInput>, OrganizationUncheckedUpdateWithoutWebhookLogsInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -27998,6 +28228,30 @@ export namespace Prisma {
     create: XOR<WhatsAppConfigCreateWithoutOrganizationInput, WhatsAppConfigUncheckedCreateWithoutOrganizationInput>
   }
 
+  export type WhatsAppWebhookLogCreateWithoutOrganizationInput = {
+    id?: string
+    payload: JsonNullValueInput | InputJsonValue
+    eventType?: string | null
+    createdAt?: Date | string
+  }
+
+  export type WhatsAppWebhookLogUncheckedCreateWithoutOrganizationInput = {
+    id?: string
+    payload: JsonNullValueInput | InputJsonValue
+    eventType?: string | null
+    createdAt?: Date | string
+  }
+
+  export type WhatsAppWebhookLogCreateOrConnectWithoutOrganizationInput = {
+    where: WhatsAppWebhookLogWhereUniqueInput
+    create: XOR<WhatsAppWebhookLogCreateWithoutOrganizationInput, WhatsAppWebhookLogUncheckedCreateWithoutOrganizationInput>
+  }
+
+  export type WhatsAppWebhookLogCreateManyOrganizationInputEnvelope = {
+    data: WhatsAppWebhookLogCreateManyOrganizationInput | WhatsAppWebhookLogCreateManyOrganizationInput[]
+    skipDuplicates?: boolean
+  }
+
   export type MemberUpsertWithWhereUniqueWithoutOrganizationInput = {
     where: MemberWhereUniqueInput
     update: XOR<MemberUpdateWithoutOrganizationInput, MemberUncheckedUpdateWithoutOrganizationInput>
@@ -28350,6 +28604,33 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type WhatsAppWebhookLogUpsertWithWhereUniqueWithoutOrganizationInput = {
+    where: WhatsAppWebhookLogWhereUniqueInput
+    update: XOR<WhatsAppWebhookLogUpdateWithoutOrganizationInput, WhatsAppWebhookLogUncheckedUpdateWithoutOrganizationInput>
+    create: XOR<WhatsAppWebhookLogCreateWithoutOrganizationInput, WhatsAppWebhookLogUncheckedCreateWithoutOrganizationInput>
+  }
+
+  export type WhatsAppWebhookLogUpdateWithWhereUniqueWithoutOrganizationInput = {
+    where: WhatsAppWebhookLogWhereUniqueInput
+    data: XOR<WhatsAppWebhookLogUpdateWithoutOrganizationInput, WhatsAppWebhookLogUncheckedUpdateWithoutOrganizationInput>
+  }
+
+  export type WhatsAppWebhookLogUpdateManyWithWhereWithoutOrganizationInput = {
+    where: WhatsAppWebhookLogScalarWhereInput
+    data: XOR<WhatsAppWebhookLogUpdateManyMutationInput, WhatsAppWebhookLogUncheckedUpdateManyWithoutOrganizationInput>
+  }
+
+  export type WhatsAppWebhookLogScalarWhereInput = {
+    AND?: WhatsAppWebhookLogScalarWhereInput | WhatsAppWebhookLogScalarWhereInput[]
+    OR?: WhatsAppWebhookLogScalarWhereInput[]
+    NOT?: WhatsAppWebhookLogScalarWhereInput | WhatsAppWebhookLogScalarWhereInput[]
+    id?: StringFilter<"WhatsAppWebhookLog"> | string
+    organizationId?: StringNullableFilter<"WhatsAppWebhookLog"> | string | null
+    payload?: JsonFilter<"WhatsAppWebhookLog">
+    eventType?: StringNullableFilter<"WhatsAppWebhookLog"> | string | null
+    createdAt?: DateTimeFilter<"WhatsAppWebhookLog"> | Date | string
+  }
+
   export type OrganizationCreateWithoutMembersInput = {
     id?: string
     name: string
@@ -28366,6 +28647,7 @@ export namespace Prisma {
     profile?: OrganizationProfileCreateNestedOneWithoutOrganizationInput
     company?: OrganizationCompanyCreateNestedOneWithoutOrganizationInput
     whatsappConfig?: WhatsAppConfigCreateNestedOneWithoutOrganizationInput
+    webhookLogs?: WhatsAppWebhookLogCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutMembersInput = {
@@ -28384,6 +28666,7 @@ export namespace Prisma {
     profile?: OrganizationProfileUncheckedCreateNestedOneWithoutOrganizationInput
     company?: OrganizationCompanyUncheckedCreateNestedOneWithoutOrganizationInput
     whatsappConfig?: WhatsAppConfigUncheckedCreateNestedOneWithoutOrganizationInput
+    webhookLogs?: WhatsAppWebhookLogUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutMembersInput = {
@@ -28459,6 +28742,7 @@ export namespace Prisma {
     profile?: OrganizationProfileUpdateOneWithoutOrganizationNestedInput
     company?: OrganizationCompanyUpdateOneWithoutOrganizationNestedInput
     whatsappConfig?: WhatsAppConfigUpdateOneWithoutOrganizationNestedInput
+    webhookLogs?: WhatsAppWebhookLogUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutMembersInput = {
@@ -28477,6 +28761,7 @@ export namespace Prisma {
     profile?: OrganizationProfileUncheckedUpdateOneWithoutOrganizationNestedInput
     company?: OrganizationCompanyUncheckedUpdateOneWithoutOrganizationNestedInput
     whatsappConfig?: WhatsAppConfigUncheckedUpdateOneWithoutOrganizationNestedInput
+    webhookLogs?: WhatsAppWebhookLogUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type UserUpsertWithoutMembersInput = {
@@ -28542,6 +28827,7 @@ export namespace Prisma {
     profile?: OrganizationProfileCreateNestedOneWithoutOrganizationInput
     company?: OrganizationCompanyCreateNestedOneWithoutOrganizationInput
     whatsappConfig?: WhatsAppConfigCreateNestedOneWithoutOrganizationInput
+    webhookLogs?: WhatsAppWebhookLogCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutInvitationsInput = {
@@ -28560,6 +28846,7 @@ export namespace Prisma {
     profile?: OrganizationProfileUncheckedCreateNestedOneWithoutOrganizationInput
     company?: OrganizationCompanyUncheckedCreateNestedOneWithoutOrganizationInput
     whatsappConfig?: WhatsAppConfigUncheckedCreateNestedOneWithoutOrganizationInput
+    webhookLogs?: WhatsAppWebhookLogUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutInvitationsInput = {
@@ -28635,6 +28922,7 @@ export namespace Prisma {
     profile?: OrganizationProfileUpdateOneWithoutOrganizationNestedInput
     company?: OrganizationCompanyUpdateOneWithoutOrganizationNestedInput
     whatsappConfig?: WhatsAppConfigUpdateOneWithoutOrganizationNestedInput
+    webhookLogs?: WhatsAppWebhookLogUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutInvitationsInput = {
@@ -28653,6 +28941,7 @@ export namespace Prisma {
     profile?: OrganizationProfileUncheckedUpdateOneWithoutOrganizationNestedInput
     company?: OrganizationCompanyUncheckedUpdateOneWithoutOrganizationNestedInput
     whatsappConfig?: WhatsAppConfigUncheckedUpdateOneWithoutOrganizationNestedInput
+    webhookLogs?: WhatsAppWebhookLogUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type UserUpsertWithoutInvitationsInput = {
@@ -28718,6 +29007,7 @@ export namespace Prisma {
     profile?: OrganizationProfileCreateNestedOneWithoutOrganizationInput
     company?: OrganizationCompanyCreateNestedOneWithoutOrganizationInput
     whatsappConfig?: WhatsAppConfigCreateNestedOneWithoutOrganizationInput
+    webhookLogs?: WhatsAppWebhookLogCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutLeadsInput = {
@@ -28736,6 +29026,7 @@ export namespace Prisma {
     profile?: OrganizationProfileUncheckedCreateNestedOneWithoutOrganizationInput
     company?: OrganizationCompanyUncheckedCreateNestedOneWithoutOrganizationInput
     whatsappConfig?: WhatsAppConfigUncheckedCreateNestedOneWithoutOrganizationInput
+    webhookLogs?: WhatsAppWebhookLogUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutLeadsInput = {
@@ -28770,6 +29061,7 @@ export namespace Prisma {
     profile?: OrganizationProfileUpdateOneWithoutOrganizationNestedInput
     company?: OrganizationCompanyUpdateOneWithoutOrganizationNestedInput
     whatsappConfig?: WhatsAppConfigUpdateOneWithoutOrganizationNestedInput
+    webhookLogs?: WhatsAppWebhookLogUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutLeadsInput = {
@@ -28788,6 +29080,7 @@ export namespace Prisma {
     profile?: OrganizationProfileUncheckedUpdateOneWithoutOrganizationNestedInput
     company?: OrganizationCompanyUncheckedUpdateOneWithoutOrganizationNestedInput
     whatsappConfig?: WhatsAppConfigUncheckedUpdateOneWithoutOrganizationNestedInput
+    webhookLogs?: WhatsAppWebhookLogUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationCreateWithoutSalesInput = {
@@ -28806,6 +29099,7 @@ export namespace Prisma {
     profile?: OrganizationProfileCreateNestedOneWithoutOrganizationInput
     company?: OrganizationCompanyCreateNestedOneWithoutOrganizationInput
     whatsappConfig?: WhatsAppConfigCreateNestedOneWithoutOrganizationInput
+    webhookLogs?: WhatsAppWebhookLogCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutSalesInput = {
@@ -28824,6 +29118,7 @@ export namespace Prisma {
     profile?: OrganizationProfileUncheckedCreateNestedOneWithoutOrganizationInput
     company?: OrganizationCompanyUncheckedCreateNestedOneWithoutOrganizationInput
     whatsappConfig?: WhatsAppConfigUncheckedCreateNestedOneWithoutOrganizationInput
+    webhookLogs?: WhatsAppWebhookLogUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutSalesInput = {
@@ -28892,6 +29187,7 @@ export namespace Prisma {
     profile?: OrganizationProfileUpdateOneWithoutOrganizationNestedInput
     company?: OrganizationCompanyUpdateOneWithoutOrganizationNestedInput
     whatsappConfig?: WhatsAppConfigUpdateOneWithoutOrganizationNestedInput
+    webhookLogs?: WhatsAppWebhookLogUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutSalesInput = {
@@ -28910,6 +29206,7 @@ export namespace Prisma {
     profile?: OrganizationProfileUncheckedUpdateOneWithoutOrganizationNestedInput
     company?: OrganizationCompanyUncheckedUpdateOneWithoutOrganizationNestedInput
     whatsappConfig?: WhatsAppConfigUncheckedUpdateOneWithoutOrganizationNestedInput
+    webhookLogs?: WhatsAppWebhookLogUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type SaleItemUpsertWithWhereUniqueWithoutSaleInput = {
@@ -28944,6 +29241,7 @@ export namespace Prisma {
     profile?: OrganizationProfileCreateNestedOneWithoutOrganizationInput
     company?: OrganizationCompanyCreateNestedOneWithoutOrganizationInput
     whatsappConfig?: WhatsAppConfigCreateNestedOneWithoutOrganizationInput
+    webhookLogs?: WhatsAppWebhookLogCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutSaleItemsInput = {
@@ -28962,6 +29260,7 @@ export namespace Prisma {
     profile?: OrganizationProfileUncheckedCreateNestedOneWithoutOrganizationInput
     company?: OrganizationCompanyUncheckedCreateNestedOneWithoutOrganizationInput
     whatsappConfig?: WhatsAppConfigUncheckedCreateNestedOneWithoutOrganizationInput
+    webhookLogs?: WhatsAppWebhookLogUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutSaleItemsInput = {
@@ -29060,6 +29359,7 @@ export namespace Prisma {
     profile?: OrganizationProfileUpdateOneWithoutOrganizationNestedInput
     company?: OrganizationCompanyUpdateOneWithoutOrganizationNestedInput
     whatsappConfig?: WhatsAppConfigUpdateOneWithoutOrganizationNestedInput
+    webhookLogs?: WhatsAppWebhookLogUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutSaleItemsInput = {
@@ -29078,6 +29378,7 @@ export namespace Prisma {
     profile?: OrganizationProfileUncheckedUpdateOneWithoutOrganizationNestedInput
     company?: OrganizationCompanyUncheckedUpdateOneWithoutOrganizationNestedInput
     whatsappConfig?: WhatsAppConfigUncheckedUpdateOneWithoutOrganizationNestedInput
+    webhookLogs?: WhatsAppWebhookLogUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type SaleUpsertWithoutItemsInput = {
@@ -29172,6 +29473,7 @@ export namespace Prisma {
     profile?: OrganizationProfileCreateNestedOneWithoutOrganizationInput
     company?: OrganizationCompanyCreateNestedOneWithoutOrganizationInput
     whatsappConfig?: WhatsAppConfigCreateNestedOneWithoutOrganizationInput
+    webhookLogs?: WhatsAppWebhookLogCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutProductsInput = {
@@ -29190,6 +29492,7 @@ export namespace Prisma {
     profile?: OrganizationProfileUncheckedCreateNestedOneWithoutOrganizationInput
     company?: OrganizationCompanyUncheckedCreateNestedOneWithoutOrganizationInput
     whatsappConfig?: WhatsAppConfigUncheckedCreateNestedOneWithoutOrganizationInput
+    webhookLogs?: WhatsAppWebhookLogUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutProductsInput = {
@@ -29281,6 +29584,7 @@ export namespace Prisma {
     profile?: OrganizationProfileUpdateOneWithoutOrganizationNestedInput
     company?: OrganizationCompanyUpdateOneWithoutOrganizationNestedInput
     whatsappConfig?: WhatsAppConfigUpdateOneWithoutOrganizationNestedInput
+    webhookLogs?: WhatsAppWebhookLogUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutProductsInput = {
@@ -29299,6 +29603,7 @@ export namespace Prisma {
     profile?: OrganizationProfileUncheckedUpdateOneWithoutOrganizationNestedInput
     company?: OrganizationCompanyUncheckedUpdateOneWithoutOrganizationNestedInput
     whatsappConfig?: WhatsAppConfigUncheckedUpdateOneWithoutOrganizationNestedInput
+    webhookLogs?: WhatsAppWebhookLogUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type ProductCategoryUpsertWithoutProductsInput = {
@@ -29362,6 +29667,7 @@ export namespace Prisma {
     profile?: OrganizationProfileCreateNestedOneWithoutOrganizationInput
     company?: OrganizationCompanyCreateNestedOneWithoutOrganizationInput
     whatsappConfig?: WhatsAppConfigCreateNestedOneWithoutOrganizationInput
+    webhookLogs?: WhatsAppWebhookLogCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutProductCategoriesInput = {
@@ -29380,6 +29686,7 @@ export namespace Prisma {
     profile?: OrganizationProfileUncheckedCreateNestedOneWithoutOrganizationInput
     company?: OrganizationCompanyUncheckedCreateNestedOneWithoutOrganizationInput
     whatsappConfig?: WhatsAppConfigUncheckedCreateNestedOneWithoutOrganizationInput
+    webhookLogs?: WhatsAppWebhookLogUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutProductCategoriesInput = {
@@ -29448,6 +29755,7 @@ export namespace Prisma {
     profile?: OrganizationProfileUpdateOneWithoutOrganizationNestedInput
     company?: OrganizationCompanyUpdateOneWithoutOrganizationNestedInput
     whatsappConfig?: WhatsAppConfigUpdateOneWithoutOrganizationNestedInput
+    webhookLogs?: WhatsAppWebhookLogUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutProductCategoriesInput = {
@@ -29466,6 +29774,7 @@ export namespace Prisma {
     profile?: OrganizationProfileUncheckedUpdateOneWithoutOrganizationNestedInput
     company?: OrganizationCompanyUncheckedUpdateOneWithoutOrganizationNestedInput
     whatsappConfig?: WhatsAppConfigUncheckedUpdateOneWithoutOrganizationNestedInput
+    webhookLogs?: WhatsAppWebhookLogUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type ProductUpsertWithWhereUniqueWithoutCategoryInput = {
@@ -29500,6 +29809,7 @@ export namespace Prisma {
     productCategories?: ProductCategoryCreateNestedManyWithoutOrganizationInput
     company?: OrganizationCompanyCreateNestedOneWithoutOrganizationInput
     whatsappConfig?: WhatsAppConfigCreateNestedOneWithoutOrganizationInput
+    webhookLogs?: WhatsAppWebhookLogCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutProfileInput = {
@@ -29518,6 +29828,7 @@ export namespace Prisma {
     productCategories?: ProductCategoryUncheckedCreateNestedManyWithoutOrganizationInput
     company?: OrganizationCompanyUncheckedCreateNestedOneWithoutOrganizationInput
     whatsappConfig?: WhatsAppConfigUncheckedCreateNestedOneWithoutOrganizationInput
+    webhookLogs?: WhatsAppWebhookLogUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutProfileInput = {
@@ -29552,6 +29863,7 @@ export namespace Prisma {
     productCategories?: ProductCategoryUpdateManyWithoutOrganizationNestedInput
     company?: OrganizationCompanyUpdateOneWithoutOrganizationNestedInput
     whatsappConfig?: WhatsAppConfigUpdateOneWithoutOrganizationNestedInput
+    webhookLogs?: WhatsAppWebhookLogUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutProfileInput = {
@@ -29570,6 +29882,7 @@ export namespace Prisma {
     productCategories?: ProductCategoryUncheckedUpdateManyWithoutOrganizationNestedInput
     company?: OrganizationCompanyUncheckedUpdateOneWithoutOrganizationNestedInput
     whatsappConfig?: WhatsAppConfigUncheckedUpdateOneWithoutOrganizationNestedInput
+    webhookLogs?: WhatsAppWebhookLogUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationCreateWithoutCompanyInput = {
@@ -29588,6 +29901,7 @@ export namespace Prisma {
     productCategories?: ProductCategoryCreateNestedManyWithoutOrganizationInput
     profile?: OrganizationProfileCreateNestedOneWithoutOrganizationInput
     whatsappConfig?: WhatsAppConfigCreateNestedOneWithoutOrganizationInput
+    webhookLogs?: WhatsAppWebhookLogCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutCompanyInput = {
@@ -29606,6 +29920,7 @@ export namespace Prisma {
     productCategories?: ProductCategoryUncheckedCreateNestedManyWithoutOrganizationInput
     profile?: OrganizationProfileUncheckedCreateNestedOneWithoutOrganizationInput
     whatsappConfig?: WhatsAppConfigUncheckedCreateNestedOneWithoutOrganizationInput
+    webhookLogs?: WhatsAppWebhookLogUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutCompanyInput = {
@@ -29640,6 +29955,7 @@ export namespace Prisma {
     productCategories?: ProductCategoryUpdateManyWithoutOrganizationNestedInput
     profile?: OrganizationProfileUpdateOneWithoutOrganizationNestedInput
     whatsappConfig?: WhatsAppConfigUpdateOneWithoutOrganizationNestedInput
+    webhookLogs?: WhatsAppWebhookLogUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutCompanyInput = {
@@ -29658,6 +29974,7 @@ export namespace Prisma {
     productCategories?: ProductCategoryUncheckedUpdateManyWithoutOrganizationNestedInput
     profile?: OrganizationProfileUncheckedUpdateOneWithoutOrganizationNestedInput
     whatsappConfig?: WhatsAppConfigUncheckedUpdateOneWithoutOrganizationNestedInput
+    webhookLogs?: WhatsAppWebhookLogUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationCreateWithoutWhatsappConfigInput = {
@@ -29676,6 +29993,7 @@ export namespace Prisma {
     productCategories?: ProductCategoryCreateNestedManyWithoutOrganizationInput
     profile?: OrganizationProfileCreateNestedOneWithoutOrganizationInput
     company?: OrganizationCompanyCreateNestedOneWithoutOrganizationInput
+    webhookLogs?: WhatsAppWebhookLogCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutWhatsappConfigInput = {
@@ -29694,6 +30012,7 @@ export namespace Prisma {
     productCategories?: ProductCategoryUncheckedCreateNestedManyWithoutOrganizationInput
     profile?: OrganizationProfileUncheckedCreateNestedOneWithoutOrganizationInput
     company?: OrganizationCompanyUncheckedCreateNestedOneWithoutOrganizationInput
+    webhookLogs?: WhatsAppWebhookLogUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutWhatsappConfigInput = {
@@ -29728,6 +30047,7 @@ export namespace Prisma {
     productCategories?: ProductCategoryUpdateManyWithoutOrganizationNestedInput
     profile?: OrganizationProfileUpdateOneWithoutOrganizationNestedInput
     company?: OrganizationCompanyUpdateOneWithoutOrganizationNestedInput
+    webhookLogs?: WhatsAppWebhookLogUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutWhatsappConfigInput = {
@@ -29746,6 +30066,99 @@ export namespace Prisma {
     productCategories?: ProductCategoryUncheckedUpdateManyWithoutOrganizationNestedInput
     profile?: OrganizationProfileUncheckedUpdateOneWithoutOrganizationNestedInput
     company?: OrganizationCompanyUncheckedUpdateOneWithoutOrganizationNestedInput
+    webhookLogs?: WhatsAppWebhookLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  }
+
+  export type OrganizationCreateWithoutWebhookLogsInput = {
+    id?: string
+    name: string
+    slug: string
+    logo?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    members?: MemberCreateNestedManyWithoutOrganizationInput
+    invitations?: InvitationCreateNestedManyWithoutOrganizationInput
+    leads?: LeadCreateNestedManyWithoutOrganizationInput
+    sales?: SaleCreateNestedManyWithoutOrganizationInput
+    saleItems?: SaleItemCreateNestedManyWithoutOrganizationInput
+    products?: ProductCreateNestedManyWithoutOrganizationInput
+    productCategories?: ProductCategoryCreateNestedManyWithoutOrganizationInput
+    profile?: OrganizationProfileCreateNestedOneWithoutOrganizationInput
+    company?: OrganizationCompanyCreateNestedOneWithoutOrganizationInput
+    whatsappConfig?: WhatsAppConfigCreateNestedOneWithoutOrganizationInput
+  }
+
+  export type OrganizationUncheckedCreateWithoutWebhookLogsInput = {
+    id?: string
+    name: string
+    slug: string
+    logo?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    members?: MemberUncheckedCreateNestedManyWithoutOrganizationInput
+    invitations?: InvitationUncheckedCreateNestedManyWithoutOrganizationInput
+    leads?: LeadUncheckedCreateNestedManyWithoutOrganizationInput
+    sales?: SaleUncheckedCreateNestedManyWithoutOrganizationInput
+    saleItems?: SaleItemUncheckedCreateNestedManyWithoutOrganizationInput
+    products?: ProductUncheckedCreateNestedManyWithoutOrganizationInput
+    productCategories?: ProductCategoryUncheckedCreateNestedManyWithoutOrganizationInput
+    profile?: OrganizationProfileUncheckedCreateNestedOneWithoutOrganizationInput
+    company?: OrganizationCompanyUncheckedCreateNestedOneWithoutOrganizationInput
+    whatsappConfig?: WhatsAppConfigUncheckedCreateNestedOneWithoutOrganizationInput
+  }
+
+  export type OrganizationCreateOrConnectWithoutWebhookLogsInput = {
+    where: OrganizationWhereUniqueInput
+    create: XOR<OrganizationCreateWithoutWebhookLogsInput, OrganizationUncheckedCreateWithoutWebhookLogsInput>
+  }
+
+  export type OrganizationUpsertWithoutWebhookLogsInput = {
+    update: XOR<OrganizationUpdateWithoutWebhookLogsInput, OrganizationUncheckedUpdateWithoutWebhookLogsInput>
+    create: XOR<OrganizationCreateWithoutWebhookLogsInput, OrganizationUncheckedCreateWithoutWebhookLogsInput>
+    where?: OrganizationWhereInput
+  }
+
+  export type OrganizationUpdateToOneWithWhereWithoutWebhookLogsInput = {
+    where?: OrganizationWhereInput
+    data: XOR<OrganizationUpdateWithoutWebhookLogsInput, OrganizationUncheckedUpdateWithoutWebhookLogsInput>
+  }
+
+  export type OrganizationUpdateWithoutWebhookLogsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    logo?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    members?: MemberUpdateManyWithoutOrganizationNestedInput
+    invitations?: InvitationUpdateManyWithoutOrganizationNestedInput
+    leads?: LeadUpdateManyWithoutOrganizationNestedInput
+    sales?: SaleUpdateManyWithoutOrganizationNestedInput
+    saleItems?: SaleItemUpdateManyWithoutOrganizationNestedInput
+    products?: ProductUpdateManyWithoutOrganizationNestedInput
+    productCategories?: ProductCategoryUpdateManyWithoutOrganizationNestedInput
+    profile?: OrganizationProfileUpdateOneWithoutOrganizationNestedInput
+    company?: OrganizationCompanyUpdateOneWithoutOrganizationNestedInput
+    whatsappConfig?: WhatsAppConfigUpdateOneWithoutOrganizationNestedInput
+  }
+
+  export type OrganizationUncheckedUpdateWithoutWebhookLogsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    logo?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    members?: MemberUncheckedUpdateManyWithoutOrganizationNestedInput
+    invitations?: InvitationUncheckedUpdateManyWithoutOrganizationNestedInput
+    leads?: LeadUncheckedUpdateManyWithoutOrganizationNestedInput
+    sales?: SaleUncheckedUpdateManyWithoutOrganizationNestedInput
+    saleItems?: SaleItemUncheckedUpdateManyWithoutOrganizationNestedInput
+    products?: ProductUncheckedUpdateManyWithoutOrganizationNestedInput
+    productCategories?: ProductCategoryUncheckedUpdateManyWithoutOrganizationNestedInput
+    profile?: OrganizationProfileUncheckedUpdateOneWithoutOrganizationNestedInput
+    company?: OrganizationCompanyUncheckedUpdateOneWithoutOrganizationNestedInput
+    whatsappConfig?: WhatsAppConfigUncheckedUpdateOneWithoutOrganizationNestedInput
   }
 
   export type SessionCreateManyUserInput = {
@@ -29991,6 +30404,13 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type WhatsAppWebhookLogCreateManyOrganizationInput = {
+    id?: string
+    payload: JsonNullValueInput | InputJsonValue
+    eventType?: string | null
+    createdAt?: Date | string
+  }
+
   export type MemberUpdateWithoutOrganizationInput = {
     id?: StringFieldUpdateOperationsInput | string
     role?: StringFieldUpdateOperationsInput | string
@@ -30208,6 +30628,27 @@ export namespace Prisma {
     active?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WhatsAppWebhookLogUpdateWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    payload?: JsonNullValueInput | InputJsonValue
+    eventType?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WhatsAppWebhookLogUncheckedUpdateWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    payload?: JsonNullValueInput | InputJsonValue
+    eventType?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WhatsAppWebhookLogUncheckedUpdateManyWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    payload?: JsonNullValueInput | InputJsonValue
+    eventType?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type SaleItemCreateManySaleInput = {
