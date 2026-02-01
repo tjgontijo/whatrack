@@ -27,6 +27,8 @@ function isAuthPage(pathname: string) {
 }
 
 function isPublicApi(pathname: string) {
+  // A rota de logs não deve ser pública
+  if (pathname === '/api/v1/whatsapp/webhook/logs') return false
   return PUBLIC_API_PREFIXES.some((prefix) => pathname.startsWith(prefix))
 }
 
