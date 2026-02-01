@@ -45,20 +45,20 @@ export function CrudEditDrawer({
         <Drawer open={open} onOpenChange={onOpenChange} shouldScaleBackground={false}>
             <DrawerContent className="h-[100dvh] max-h-none rounded-none border-none bg-background data-[vaul-drawer-direction=bottom]:mt-0 data-[vaul-drawer-direction=bottom]:max-h-none will-change-transform transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]">
                 <div className={cn("mx-auto w-full flex flex-col h-full overflow-hidden", maxWidth)}>
-                    <DrawerHeader className="border-b pb-4 shrink-0 px-6 pt-6 text-left">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3 min-w-0">
+                    <DrawerHeader className="border-b pb-4 shrink-0 px-6 pt-6 text-left items-start">
+                        <div className="flex items-start justify-between w-full">
+                            <div className="flex items-start gap-4 min-w-0">
                                 {Icon && (
-                                    <div className="h-10 w-10 flex items-center justify-center bg-primary/10 rounded-lg shrink-0">
-                                        <Icon className="h-5 w-5 text-primary" />
+                                    <div className="h-12 w-12 flex items-center justify-center bg-primary/10 rounded-xl shrink-0">
+                                        <Icon className="h-6 w-6 text-primary" />
                                     </div>
                                 )}
-                                <div className="flex flex-col min-w-0">
-                                    <DrawerTitle className="text-xl font-bold tracking-tight truncate">
+                                <div className="flex flex-col min-w-0 text-left items-start">
+                                    <DrawerTitle className="text-2xl font-bold tracking-tight truncate leading-tight">
                                         {title}
                                     </DrawerTitle>
                                     {subtitle && (
-                                        <DrawerDescription className="text-xs text-muted-foreground mt-0.5">
+                                        <DrawerDescription className="text-sm text-muted-foreground mt-1 text-left">
                                             {subtitle}
                                         </DrawerDescription>
                                     )}
