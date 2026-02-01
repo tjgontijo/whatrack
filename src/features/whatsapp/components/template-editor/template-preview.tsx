@@ -21,9 +21,10 @@ export function TemplatePreview({ bodyText, samples = {}, compact = false }: Tem
         const matches = bodyText.match(/\{\{(\d+)\}\}/g) || []
 
         matches.forEach(match => {
-            // A chave no objeto samples é "{{1}}", "{{2}}", etc.
-            const sample = samples[match] || match
-            preview = preview.replace(new RegExp(match.replace(/[{}]/g, '\\$&'), 'g'), sample)
+            // Extrai apenas o número da variável (ex: "1" de "{{1}}")
+            const varNumber = match.replace(/\{\{|\}\}/g, '')
+            const sample = samples[varNumber] || match
+            preview = preview.replaceAll(match, sample)
         })
 
         return preview
@@ -77,69 +78,55 @@ export function TemplatePreview({ bodyText, samples = {}, compact = false }: Tem
     }
 
     return (
-        <div className="h-full flex flex-col bg-gradient-to-b from-[#075E54] to-[#128C7E] p-6 rounded-xl">
-            {/* Header */}
-            <div className="flex items-center gap-3 mb-6 text-white">
-                <MessageCircle className="h-5 w-5" />
+        <div className="h-full flex flex-col bg-[#E5DDD5] relative">
+            {/* Header Simulator */}
+            <div className="bg-[#075E54] p-4 flex items-center gap-3 text-white shadow-md">
+                <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center">
+                    <MessageCircle className="h-6 w-6" />
+                </div>
                 <div>
-                    <h3 className="font-semibold text-sm">Prévia da Mensagem</h3>
-                    <p className="text-xs opacity-75">Como seu cliente verá no WhatsApp</p>
+                    <h3 className="font-bold text-sm">Preview do Cliente</h3>
+                    <p className="text-[10px] opacity-80 uppercase tracking-widest font-medium">Online</p>
                 </div>
             </div>
 
-            {/* Phone mockup */}
-            <div className="flex-1 flex items-center justify-center py-4">
-                <div className="w-full max-w-sm">
-                    {/* Chat bubble */}
-                    <div className="relative">
-                        {/* Sender label */}
-                        <div className="text-xs text-white/60 mb-1.5 px-1">Sua Empresa</div>
+            {/* Message Area */}
+            <div className="flex-1 p-6 flex flex-col justify-end">
+                <div className="max-w-[85%] relative">
+                    {/* Message bubble */}
+                    <div className={cn(
+                        "relative bg-white dark:bg-white rounded-xl rounded-tl-none p-3.5 shadow-sm border border-black/5 transition-all duration-300",
+                        hasContent ? 'opacity-100 scale-100' : 'opacity-60 scale-95'
+                    )}>
+                        {/* Bubble tail */}
+                        <div className="absolute -left-2 top-0 w-0 h-0 border-t-[15px] border-t-white border-r-[15px] border-r-transparent"></div>
 
-                        {/* Message bubble */}
-                        <div className={cn(
-                            "relative bg-white dark:bg-white rounded-lg rounded-tl-none p-3 px-4 shadow-lg transition-all duration-300",
-                            hasContent ? 'opacity-100 scale-100' : 'opacity-50 scale-95'
+                        {/* Message content */}
+                        <p className={cn(
+                            "text-[13px] leading-relaxed whitespace-pre-wrap break-words",
+                            hasContent ? 'text-slate-800' : 'text-slate-400 italic'
                         )}>
-                            {/* Bubble tail */}
-                            <div className="absolute -left-2 top-0 w-0 h-0 border-t-[12px] border-t-white dark:border-t-white border-r-[12px] border-r-transparent"></div>
+                            {previewText}
+                        </p>
 
-                            {/* Message content */}
-                            <p className={cn(
-                                "text-sm leading-relaxed whitespace-pre-wrap break-words",
-                                hasContent ? 'text-gray-900' : 'text-gray-500 italic'
-                            )}>
-                                {previewText}
-                            </p>
-
-                            {/* Timestamp */}
-                            <div className="flex items-center justify-end gap-1 mt-1.5">
-                                <span className="text-[10px] text-gray-500">
-                                    {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                                </span>
-                                {/* Double check mark */}
-                                <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 16 16">
-                                    <path d="M12.354 4.354a.5.5 0 0 0-.708-.708L5 10.293 1.854 7.146a.5.5 0 1 0-.708.708l3.5 3.5a.5.5 0 0 0 .708 0l7-7zm-4.208 7-.896-.897.707-.707.543.543 6.646-6.647a.5.5 0 0 1 .708.708l-7 7a.5.5 0 0 1-.708 0z" />
-                                    <path d="m5.354 7.146.896.897-.707.707-.897-.896a.5.5 0 1 1 .708-.708z" />
-                                </svg>
-                            </div>
+                        {/* Timestamp */}
+                        <div className="flex items-center justify-end gap-1 mt-1.5 pt-1 border-t border-slate-50">
+                            <span className="text-[9px] text-slate-400 font-medium">
+                                {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                            <svg className="w-3.5 h-3.5 text-blue-400" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M12.354 4.354a.5.5 0 0 0-.708-.708L5 10.293 1.854 7.146a.5.5 0 1 0-.708.708l3.5 3.5a.5.5 0 0 0 .708 0l7-7zm-4.208 7-.896-.897.707-.707.543.543 6.646-6.647a.5.5 0 0 1 .708.708l-7 7a.5.5 0 0 1-.708 0z" />
+                                <path d="m5.354 7.146.896.897-.707.707-.897-.896a.5.5 0 1 1 .708-.708z" />
+                            </svg>
                         </div>
-
-                        {/* Helper hint */}
-                        {!hasContent && (
-                            <div className="mt-4 text-center animate-pulse">
-                                <p className="text-xs text-white/60">
-                                    Digite uma mensagem para visualizar
-                                </p>
-                            </div>
-                        )}
                     </div>
                 </div>
             </div>
 
-            {/* Footer hint */}
-            <div className="mt-auto pt-4 border-t border-white/10">
-                <p className="text-xs text-white/50 text-center">
-                    Esta é uma simulação. A aparência real pode variar.
+            {/* Footer simulator */}
+            <div className="bg-slate-100/50 p-2 border-t border-slate-200 mt-auto">
+                <p className="text-[9px] text-slate-400 text-center font-medium">
+                    Simulação de interface do WhatsApp
                 </p>
             </div>
         </div>

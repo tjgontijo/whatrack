@@ -237,26 +237,29 @@ export function TemplateEditorForm({ template, onClose }: TemplateEditorFormProp
                                             <h4 className="text-sm font-bold">Exemplos de Variáveis</h4>
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            {variables.map((v) => (
-                                                <Controller
-                                                    key={v}
-                                                    control={form.control}
-                                                    name={`samples.${v}` as any}
-                                                    render={({ field, fieldState }) => (
-                                                        <Field data-invalid={fieldState.invalid}>
-                                                            <FieldLabel htmlFor={field.name} className="text-[10px] uppercase font-bold text-muted-foreground">Exemplo para {v}</FieldLabel>
-                                                            <Input
-                                                                id={field.name}
-                                                                placeholder="Exemplo de dado"
-                                                                className="h-10 text-sm bg-background border-muted"
-                                                                {...field}
-                                                                value={field.value ?? ''}
-                                                            />
-                                                            <FieldError errors={[fieldState.error]} />
-                                                        </Field>
-                                                    )}
-                                                />
-                                            ))}
+                                            {variables.map((v) => {
+                                                const varNumber = v.replace(/\{\{|\}\}/g, '')
+                                                return (
+                                                    <Controller
+                                                        key={v}
+                                                        control={form.control}
+                                                        name={`samples.${varNumber}` as any}
+                                                        render={({ field, fieldState }) => (
+                                                            <Field data-invalid={fieldState.invalid}>
+                                                                <FieldLabel htmlFor={field.name} className="text-[10px] uppercase font-bold text-muted-foreground">Exemplo para {v}</FieldLabel>
+                                                                <Input
+                                                                    id={field.name}
+                                                                    placeholder="Exemplo de dado"
+                                                                    className="h-10 text-sm bg-background border-muted"
+                                                                    {...field}
+                                                                    value={field.value ?? ''}
+                                                                />
+                                                                <FieldError errors={[fieldState.error]} />
+                                                            </Field>
+                                                        )}
+                                                    />
+                                                )
+                                            })}
                                         </div>
                                     </div>
                                 )}
