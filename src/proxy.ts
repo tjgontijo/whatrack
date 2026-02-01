@@ -27,12 +27,7 @@ function isAuthPage(pathname: string) {
 }
 
 function isPublicApi(pathname: string) {
-  if (pathname.includes('/whatsapp/webhook/logs')) return false
-
-  return PUBLIC_API_PREFIXES.some((prefix) => {
-    if (prefix === '/api/v1/whatsapp/webhook') return pathname === prefix
-    return pathname.startsWith(prefix)
-  })
+  return PUBLIC_API_PREFIXES.some((prefix) => pathname.startsWith(prefix))
 }
 
 function looksLikeSessionCookie(v?: string) {

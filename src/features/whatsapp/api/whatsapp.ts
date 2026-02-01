@@ -236,7 +236,7 @@ export const whatsappApi = {
      * Obtém os logs de webhook recebidos
      */
     async getWebhookLogs(): Promise<any[]> {
-        const res = await fetch('/api/v1/whatsapp/webhook/logs');
+        const res = await fetch('/api/v1/system/webhook-logs');
         if (!res.ok) {
             const error = await res.json();
             throw new Error(error.error || 'Failed to fetch webhook logs');
