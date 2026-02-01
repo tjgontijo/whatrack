@@ -341,6 +341,7 @@ export function WebhooksView() {
                                     <thead>
                                         <tr className="bg-muted/50 border-b">
                                             <th className="px-4 py-3 text-[10px] font-black uppercase tracking-wider text-muted-foreground">Timestamp</th>
+                                            <th className="px-4 py-3 text-[10px] font-black uppercase tracking-wider text-muted-foreground">Organização</th>
                                             <th className="px-4 py-3 text-[10px] font-black uppercase tracking-wider text-muted-foreground">Tipo de Evento</th>
                                             <th className="px-4 py-3 text-[10px] font-black uppercase tracking-wider text-muted-foreground">O que aconteceu?</th>
                                             <th className="px-4 py-3 text-[10px] font-black uppercase tracking-wider text-muted-foreground text-right">Ações</th>
@@ -349,14 +350,14 @@ export function WebhooksView() {
                                     <tbody className="divide-y">
                                         {isLoadingLogs ? (
                                             <tr>
-                                                <td colSpan={4} className="px-4 py-12 text-center text-xs text-muted-foreground">
+                                                <td colSpan={5} className="px-4 py-12 text-center text-xs text-muted-foreground">
                                                     <RefreshCw className="h-5 w-5 animate-spin mx-auto mb-2 opacity-20" />
                                                     Sincronizando logs...
                                                 </td>
                                             </tr>
                                         ) : !logs || logs.length === 0 ? (
                                             <tr>
-                                                <td colSpan={4} className="px-4 py-12 text-center text-xs text-muted-foreground italic">
+                                                <td colSpan={5} className="px-4 py-12 text-center text-xs text-muted-foreground italic">
                                                     Nenhum evento registrado no histórico recente.
                                                 </td>
                                             </tr>
@@ -368,6 +369,16 @@ export function WebhooksView() {
                                                             <span className="font-bold">{new Date(log.createdAt).toLocaleTimeString('pt-BR')}</span>
                                                             <span className="text-[10px] text-muted-foreground">
                                                                 {new Date(log.createdAt).toLocaleDateString('pt-BR')}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <div className="flex flex-col gap-0.5">
+                                                            <span className="text-xs font-bold text-foreground truncate max-w-[120px]">
+                                                                {log.organization?.name || 'Desconhecida'}
+                                                            </span>
+                                                            <span className="text-[10px] font-medium text-muted-foreground font-mono">
+                                                                {formatPhoneNumber(log.payload.entry?.[0]?.changes?.[0]?.value?.metadata?.display_phone_number) || 'N/A'}
                                                             </span>
                                                         </div>
                                                     </td>
