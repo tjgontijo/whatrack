@@ -20,7 +20,8 @@ import { toast } from 'sonner'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
-import { Info } from 'lucide-react'
+import { Info, HelpCircle } from 'lucide-react'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { TemplatePreview } from './template-preview'
 import type { WhatsAppTemplate } from '../../types'
 
@@ -161,7 +162,25 @@ export function TemplateEditorForm({ template, onClose }: TemplateEditorFormProp
                                     name="category"
                                     render={({ field, fieldState }) => (
                                         <Field data-invalid={fieldState.invalid}>
-                                            <FieldLabel htmlFor={field.name}>Categoria</FieldLabel>
+                                            <div className="flex items-center gap-2 mb-1.5">
+                                                <FieldLabel htmlFor={field.name} className="m-0">Categoria</FieldLabel>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <HelpCircle className="h-3.5 w-3.5 text-muted-foreground hover:text-primary cursor-help transition-colors" />
+                                                    </TooltipTrigger>
+                                                    <TooltipContent side="right" className="max-w-[280px] p-3 space-y-2">
+                                                        <div>
+                                                            <p className="font-bold text-primary mb-1">Marketing</p>
+                                                            <p className="text-[11px] leading-snug opacity-90">Ofertas promocionais, anúncios de produtos, convites e qualquer mensagem que incentive o cliente a comprar ou contratar algo.</p>
+                                                        </div>
+                                                        <Separator className="opacity-20" />
+                                                        <div>
+                                                            <p className="font-bold text-primary mb-1">Utilidade</p>
+                                                            <p className="text-[11px] leading-snug opacity-90">Confirmações de pedidos, atualizações de conta, lembretes de agendamento e alertas importantes de transações já iniciadas pelo cliente.</p>
+                                                        </div>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </div>
                                             <Select onValueChange={field.onChange} value={field.value}>
                                                 <SelectTrigger id={field.name} className="h-11">
                                                     <SelectValue />
