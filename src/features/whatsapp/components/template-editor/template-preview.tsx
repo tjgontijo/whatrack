@@ -21,6 +21,7 @@ export function TemplatePreview({ bodyText, samples = {}, compact = false }: Tem
         const matches = bodyText.match(/\{\{(\d+)\}\}/g) || []
 
         matches.forEach(match => {
+            // A chave no objeto samples é "{{1}}", "{{2}}", etc.
             const sample = samples[match] || match
             preview = preview.replace(new RegExp(match.replace(/[{}]/g, '\\$&'), 'g'), sample)
         })

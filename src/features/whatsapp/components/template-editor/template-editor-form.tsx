@@ -1,10 +1,9 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, FormProvider as Form, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { FormProvider as Form, Controller } from 'react-hook-form'
 import { Field, FieldLabel, FieldError } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -21,10 +20,9 @@ import { toast } from 'sonner'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
-import { Info, Sparkles, Eye, EyeOff, LayoutPanelLeft, MousePointer2 } from 'lucide-react'
+import { Info } from 'lucide-react'
 import { TemplatePreview } from './template-preview'
 import type { WhatsAppTemplate } from '../../types'
-import { cn } from '@/lib/utils'
 
 const templateSchema = z.object({
     name: z.string()
@@ -106,7 +104,10 @@ export function TemplateEditorForm({ template, onClose }: TemplateEditorFormProp
             queryClient.invalidateQueries({ queryKey: ['whatsapp', 'templates'] })
             onClose()
         },
-        onError: (error: any) => toast.error(`Erro: ${error.message}`)
+        onError: (error: any) => {
+            console.error('[TemplateForm] Erro:', error)
+            toast.error(`Erro: ${error.message}`)
+        }
     })
 
     function onSubmit(values: TemplateFormValues) {
@@ -114,229 +115,197 @@ export function TemplateEditorForm({ template, onClose }: TemplateEditorFormProp
     }
 
     return (
-        <div className="flex flex-col lg:flex-row h-full min-h-[600px]">
-            {/* Left Side: Form Area */}
-            <div className="flex-1 p-8 lg:p-12 overflow-y-auto">
-                <div className="max-w-4xl mx-auto space-y-12 pb-20">
-                    {/* Stepper/Progress Indicator (Visual only) */}
-                    <div className="flex items-center gap-4 text-xs font-bold uppercase tracking-widest text-muted-foreground/50">
-                        <span className="text-primary">01 Detalhes</span>
-                        <Separator className="w-8" />
-                        <span>02 Conteúdo</span>
-                        <Separator className="w-8" />
-                        <span>03 Aprovação</span>
+        <div className="flex flex-col lg:flex-row h-full overflow-hidden bg-background">
+            {/* Form Area */}
+            <div className="flex-1 overflow-y-auto p-6 md:p-10 border-r">
+                <div className="max-w-2xl mx-auto space-y-10">
+                    <div className="space-y-2">
+                        <h2 className="text-2xl font-bold tracking-tight">
+                            {mode === 'create' ? 'Configurar Template' : 'Editar Template'}
+                        </h2>
+                        <p className="text-sm text-muted-foreground">
+                            Preencha as informações básicas e o conteúdo da mensagem para enviar à Meta.
+                        </p>
                     </div>
 
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-12">
-                            {/* Section 1: Identity */}
-                            <section className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                <div className="space-y-1">
-                                    <h3 className="text-xl font-bold tracking-tight">Identidade do Template</h3>
-                                    <p className="text-sm text-muted-foreground">Defina como o WhatsApp identificará esta mensagem.</p>
-                                </div>
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10">
+                            {/* Identificação */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <Controller
+                                    control={form.control}
+                                    name="name"
+                                    render={({ field, fieldState }) => (
+                                        <Field data-invalid={fieldState.invalid} className="md:col-span-2">
+                                            <FieldLabel htmlFor={field.name} className="flex items-center gap-2">
+                                                Nome do Template
+                                            </FieldLabel>
+                                            <Input
+                                                id={field.name}
+                                                placeholder="ex: boas_vindas_vendas"
+                                                className="h-11 font-medium"
+                                                {...field}
+                                                value={field.value ?? ''}
+                                                disabled={mode === 'edit'}
+                                            />
+                                            <p className="text-[11px] text-muted-foreground">
+                                                Identificador único. Use apenas letras minúsculas, números e underscores.
+                                            </p>
+                                            <FieldError errors={[fieldState.error]} />
+                                        </Field>
+                                    )}
+                                />
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
-                                    <Controller
-                                        control={form.control}
-                                        name="name"
-                                        render={({ field, fieldState }) => (
-                                            <Field data-invalid={fieldState.invalid} className="md:col-span-2">
-                                                <FieldLabel htmlFor={field.name} className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                                                    <MousePointer2 className="h-3 w-3 text-primary" /> Nome Único
-                                                </FieldLabel>
-                                                <Input
-                                                    id={field.name}
-                                                    placeholder="ex: boas_vindas_cliente"
-                                                    className="h-14 text-lg font-medium bg-muted/30 border-none shadow-inner focus-visible:ring-primary/20"
-                                                    {...field}
-                                                    disabled={mode === 'edit'}
-                                                />
-                                                <p className="text-sm text-muted-foreground">Apenas letras minúsculas, números e sublinhados.</p>
-                                                <FieldError errors={[fieldState.error]} />
-                                            </Field>
-                                        )}
-                                    />
+                                <Controller
+                                    control={form.control}
+                                    name="category"
+                                    render={({ field, fieldState }) => (
+                                        <Field data-invalid={fieldState.invalid}>
+                                            <FieldLabel htmlFor={field.name}>Categoria</FieldLabel>
+                                            <Select onValueChange={field.onChange} value={field.value}>
+                                                <SelectTrigger id={field.name} className="h-11">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="UTILITY">Utilidade</SelectItem>
+                                                    <SelectItem value="MARKETING">Marketing</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <FieldError errors={[fieldState.error]} />
+                                        </Field>
+                                    )}
+                                />
 
-                                    <Controller
-                                        control={form.control}
-                                        name="category"
-                                        render={({ field, fieldState }) => (
-                                            <Field data-invalid={fieldState.invalid}>
-                                                <FieldLabel htmlFor={field.name} className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Categoria</FieldLabel>
-                                                <Select onValueChange={field.onChange} value={field.value}>
-                                                    <SelectTrigger id={field.name} className="h-14 bg-muted/30 border-none shadow-inner">
-                                                        <SelectValue />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value="UTILITY" className="py-3">
-                                                            <div className="font-semibold">Utilidade</div>
-                                                            <div className="text-xs text-muted-foreground">Confirmações e alertas</div>
-                                                        </SelectItem>
-                                                        <SelectItem value="MARKETING" className="py-3">
-                                                            <div className="font-semibold">Marketing</div>
-                                                            <div className="text-xs text-muted-foreground">Promoções e ofertas</div>
-                                                        </SelectItem>
-                                                    </SelectContent>
-                                                </Select>
-                                                <FieldError errors={[fieldState.error]} />
-                                            </Field>
-                                        )}
-                                    />
+                                <Controller
+                                    control={form.control}
+                                    name="language"
+                                    render={({ field, fieldState }) => (
+                                        <Field data-invalid={fieldState.invalid}>
+                                            <FieldLabel htmlFor={field.name}>Idioma</FieldLabel>
+                                            <Select onValueChange={field.onChange} value={field.value}>
+                                                <SelectTrigger id={field.name} className="h-11">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="pt_BR">Português (Brasil)</SelectItem>
+                                                    <SelectItem value="en_US">Inglês (EUA)</SelectItem>
+                                                    <SelectItem value="es">Espanhol</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <FieldError errors={[fieldState.error]} />
+                                        </Field>
+                                    )}
+                                />
+                            </div>
 
-                                    <Controller
-                                        control={form.control}
-                                        name="language"
-                                        render={({ field, fieldState }) => (
-                                            <Field data-invalid={fieldState.invalid}>
-                                                <FieldLabel htmlFor={field.name} className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Idioma Nativo</FieldLabel>
-                                                <Select onValueChange={field.onChange} value={field.value}>
-                                                    <SelectTrigger id={field.name} className="h-14 bg-muted/30 border-none shadow-inner">
-                                                        <SelectValue />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value="pt_BR">Português (BR)</SelectItem>
-                                                        <SelectItem value="en_US">English (US)</SelectItem>
-                                                        <SelectItem value="es">Español</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
-                                                <FieldError errors={[fieldState.error]} />
-                                            </Field>
-                                        )}
-                                    />
-                                </div>
-                            </section>
+                            <Separator />
 
-                            <Separator className="opacity-50" />
-
-                            {/* Section 2: Content */}
-                            <section className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100">
-                                <div className="space-y-1">
-                                    <h3 className="text-xl font-bold tracking-tight">O que será dito</h3>
-                                    <p className="text-sm text-muted-foreground">O coração do seu template. Use variáveis para personalizar.</p>
-                                </div>
-
+                            {/* Conteúdo */}
+                            <div className="space-y-6">
                                 <Controller
                                     control={form.control}
                                     name="bodyText"
                                     render={({ field, fieldState }) => (
                                         <Field data-invalid={fieldState.invalid}>
-                                            <FieldLabel htmlFor={field.name} className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
-                                                <span>Texto da Mensagem</span>
-                                                <span className={cn(
-                                                    "text-[10px] tabular-nums px-2 py-0.5 rounded-full border",
-                                                    field.value.length > 900 ? "text-orange-500 border-orange-200" : "text-muted-foreground border-transparent"
-                                                )}>
+                                            <div className="flex items-center justify-between mb-2">
+                                                <FieldLabel htmlFor={field.name} className="m-0 text-sm font-bold uppercase tracking-wider text-muted-foreground">Corpo da Mensagem</FieldLabel>
+                                                <span className="text-[10px] text-muted-foreground tabular-nums">
                                                     {field.value.length}/1024
                                                 </span>
-                                            </FieldLabel>
+                                            </div>
                                             <Textarea
                                                 id={field.name}
-                                                placeholder="Olá {{1}}, seu pedido #{{2}} já saiu para entrega!"
-                                                className="min-h-[200px] text-lg leading-relaxed bg-muted/30 border-none shadow-inner focus-visible:ring-primary/20 resize-none p-6"
+                                                placeholder="Olá {{1}}, bem-vindo à nossa empresa! Seu pedido {{2}} foi confirmado."
+                                                className="min-h-[160px] text-base leading-relaxed p-4 resize-none bg-muted/20 border-none shadow-inner"
                                                 {...field}
                                             />
-                                            <div className="flex gap-2 flex-wrap pt-2">
-                                                <Badge variant="secondary" className="bg-primary/5 text-primary border-none text-[10px]">Sugestão: Use {"{{1}}"} para o nome</Badge>
-                                                <Badge variant="secondary" className="bg-primary/5 text-primary border-none text-[10px]">Sugestão: Curto e direto converte mais</Badge>
+                                            <div className="flex gap-2 pt-2">
+                                                <Badge variant="outline" className="text-[10px] font-normal text-muted-foreground">
+                                                    Dica: Use {"{{1}}"}, {"{{2}}"} para variáveis
+                                                </Badge>
                                             </div>
                                             <FieldError errors={[fieldState.error]} />
                                         </Field>
                                     )}
                                 />
-                            </section>
 
-                            {/* Section 3: Samples (Dynamic) */}
-                            {variables.length > 0 && (
-                                <section className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-200 pt-4 bg-primary/[0.02] -mx-4 p-8 rounded-3xl border border-primary/10">
-                                    <div className="space-y-1">
+                                {/* Amostras de Variáveis */}
+                                {variables.length > 0 && (
+                                    <div className="p-6 rounded-2xl border bg-muted/10 space-y-4">
                                         <div className="flex items-center gap-2">
-                                            <h3 className="text-xl font-bold tracking-tight">Personalizações</h3>
-                                            <Badge className="bg-primary hover:bg-primary shadow-lg shadow-primary/20">{variables.length} Variáveis</Badge>
+                                            <Info className="h-4 w-4 text-primary" />
+                                            <h4 className="text-sm font-bold">Exemplos de Variáveis</h4>
                                         </div>
-                                        <p className="text-sm text-muted-foreground">Exemplos reais ajudam na aprovação da Meta.</p>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {variables.map((v) => (
+                                                <Controller
+                                                    key={v}
+                                                    control={form.control}
+                                                    name={`samples.${v}` as any}
+                                                    render={({ field, fieldState }) => (
+                                                        <Field data-invalid={fieldState.invalid}>
+                                                            <FieldLabel htmlFor={field.name} className="text-[10px] uppercase font-bold text-muted-foreground">Exemplo para {v}</FieldLabel>
+                                                            <Input
+                                                                id={field.name}
+                                                                placeholder="Exemplo de dado"
+                                                                className="h-10 text-sm bg-background border-muted"
+                                                                {...field}
+                                                                value={field.value ?? ''}
+                                                            />
+                                                            <FieldError errors={[fieldState.error]} />
+                                                        </Field>
+                                                    )}
+                                                />
+                                            ))}
+                                        </div>
                                     </div>
+                                )}
+                            </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                        {variables.map((v, i) => (
-                                            <Controller
-                                                key={v}
-                                                control={form.control}
-                                                name={`samples.${v}` as any}
-                                                render={({ field, fieldState }) => (
-                                                    <Field data-invalid={fieldState.invalid}>
-                                                        <FieldLabel htmlFor={field.name} className="text-[10px] font-black uppercase tracking-widest text-primary/60">Conteúdo do campo {v}</FieldLabel>
-                                                        <Input
-                                                            id={field.name}
-                                                            placeholder={i === 0 ? "Maria Silva" : i === 1 ? "#9921" : "exemplo"}
-                                                            className="h-12 bg-background border-primary/10 focus-visible:ring-primary/20"
-                                                            {...field}
-                                                        />
-                                                        <FieldError errors={[fieldState.error]} />
-                                                    </Field>
-                                                )}
-                                            />
-                                        ))}
-                                    </div>
-                                </section>
-                            )}
+                            {/* Ações do Formulário */}
+                            <div className="flex items-center gap-4 pt-6">
+                                <Button
+                                    type="submit"
+                                    size="lg"
+                                    className="px-10 font-bold h-12"
+                                    disabled={mutation.isPending}
+                                >
+                                    {mutation.isPending ? 'Enviando...' : (mode === 'create' ? 'Criar Template' : 'Salvar Alterações')}
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="lg"
+                                    className="h-12"
+                                    onClick={onClose}
+                                    disabled={mutation.isPending}
+                                >
+                                    Cancelar
+                                </Button>
+                            </div>
                         </form>
                     </Form>
                 </div>
             </div>
 
-            {/* Right Side: Premium Preview Panel */}
-            <div className="w-full lg:w-[450px] bg-slate-50 dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 flex flex-col relative overflow-hidden group">
-                {/* Background Decor */}
-                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] rounded-full -mr-32 -mt-32" />
-                <div className="absolute bottom-0 left-0 w-64 h-64 bg-green-500/5 blur-[100px] rounded-full -ml-32 -mb-32" />
-
-                <div className="flex-1 flex flex-col p-8 lg:p-12 relative z-10">
-                    <div className="flex items-center justify-between mb-8">
-                        <div>
-                            <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">Live Preview</h4>
-                            <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Simulação em Tempo Real</p>
-                        </div>
-                        <div className="flex gap-1">
-                            <div className="w-1.5 h-1.5 rounded-full bg-red-400" />
-                            <div className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                            <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
-                        </div>
+            {/* Preview Area */}
+            <div className="hidden lg:flex w-[400px] bg-muted/20 flex-col p-10 items-center border-l">
+                <div className="w-full space-y-6">
+                    <div className="space-y-1">
+                        <h4 className="text-sm font-bold">Prévia no Telefone</h4>
+                        <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Como o cliente verá a mensagem</p>
                     </div>
 
-                    <div className="flex-1 flex items-center justify-center">
-                        <div className="w-full max-w-[320px] scale-110 md:scale-100 transition-transform duration-500 group-hover:scale-[1.02]">
-                            {/* Glass Mockup */}
-                            <div className="relative p-1 rounded-[40px] bg-gradient-to-br from-slate-200 to-slate-400 dark:from-slate-700 dark:to-slate-800 shadow-2xl">
-                                <div className="rounded-[38px] bg-slate-100 dark:bg-slate-950 overflow-hidden border-[6px] border-slate-900 dark:border-slate-800 h-[560px] flex flex-col">
-                                    <TemplatePreview
-                                        bodyText={bodyText}
-                                        samples={samples}
-                                    />
-                                </div>
+                    <div className="relative mx-auto w-full max-w-[300px]">
+                        {/* Mockup do Celular */}
+                        <div className="relative border-slate-900 bg-slate-900 border-[8px] rounded-[2.8rem] h-[580px] w-full shadow-2xl overflow-hidden">
+                            <div className="rounded-[2.2rem] h-full bg-[#E5DDD5] relative border border-slate-700 overflow-hidden">
+                                <TemplatePreview
+                                    bodyText={bodyText}
+                                    samples={samples}
+                                />
                             </div>
                         </div>
-                    </div>
-
-                    {/* Footer Actions */}
-                    <div className="mt-12 flex flex-col gap-3">
-                        <Button
-                            size="lg"
-                            className="w-full h-14 rounded-2xl text-lg font-bold shadow-xl shadow-primary/20 gap-3 group/btn"
-                            disabled={mutation.isPending || !form.formState.isValid}
-                            onClick={form.handleSubmit(onSubmit)}
-                        >
-                            <Sparkles className="h-5 w-5 animate-pulse" />
-                            {mutation.isPending ? 'Propagando...' : 'Publicar Template'}
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="w-full text-slate-500 hover:text-slate-800 font-bold text-[10px] uppercase tracking-widest"
-                            onClick={onClose}
-                        >
-                            Descartar Alterações
-                        </Button>
                     </div>
                 </div>
             </div>

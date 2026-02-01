@@ -51,6 +51,8 @@ export async function POST(request: Request) {
         const body = await request.json()
         const config = await MetaCloudService.getConfig(session.session.activeOrganizationId)
 
+        console.log('[API] RECEBIDA REQUISIÇÃO PARA CRIAR TEMPLATE:', JSON.stringify(body, null, 2))
+
         if (!config || !config.wabaId || !config.accessToken) {
             return NextResponse.json({
                 error: 'WhatsApp not configured for this organization'

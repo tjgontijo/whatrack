@@ -104,7 +104,12 @@ export class MetaCloudService {
     static async createTemplate({ wabaId, accessToken, template }: CreateTemplateParams) {
         const url = `${GRAPH_API_URL}/${API_VERSION}/${wabaId}/message_templates`
 
-        console.log('[MetaCloudService] Creating template:', { url, name: template.name })
+        console.log('[MetaCloudService] INICIANDO CRIAÇÃO DE TEMPLATE:', {
+            wabaId,
+            templateName: template.name,
+            url
+        })
+        console.log('[MetaCloudService] PAYLOAD ENVIADO PARA META:', JSON.stringify(template, null, 2))
 
         const response = await fetch(url, {
             method: 'POST',
@@ -118,10 +123,17 @@ export class MetaCloudService {
         const data = await response.json()
 
         if (!response.ok) {
-            console.error('[MetaCloudService] Create template error:', data)
-            throw new Error(data.error?.message || 'Failed to create template')
+            console.error('[MetaCloudService] ERRO NA RESPOSTA DA META:', JSON.stringify(data, null, 2))
+
+            // Tratamento detalhado de erro da Meta
+            const metaError = data.error?.message || 'Erro desconhecido na API da Meta'
+            const errorDetails = data.error?.error_data?.details || ''
+            const fullError = `${metaError}${errorDetails ? ` - ${errorDetails}` : ''}`
+
+            throw new Error(fullError)
         }
 
+        console.log('[MetaCloudService] TEMPLATE CRIADO COM SUCESSO:', data)
         return data
     }
 

@@ -1,37 +1,40 @@
-# WhaTrack - PRD de Organizacao do SaaS
+# WhaTrack - PRD de Organização do SaaS
 
-## 1) Visao Geral
-Este PRD define como organizar o codigo do SaaS para crescimento sustentavel, com foco em:
-- estrutura previsivel ("onde esta cada coisa")
-- arquivos com nomes autoexplicativos
-- separacao clara de servicos por tema
-- alinhamento com as convencoes do Next.js (App Router)
+## 1) Visão Geral
+Este PRD define como organizar o código do SaaS para crescimento sustentável e **conformidade com a Meta Cloud API (App Review)**, com foco em:
+- Estrutura previsível ("onde está cada coisa")
+- Arquivos com nomes autoexplicativos
+- Separação clara de serviços por tema e camada de responsabilidade
+- Alinhamento com as convenções do Next.js (App Router)
+- Preparação para auditoria (Audit-Ready) para aprovação rápida na Meta
 
-Hoje existe um diretorio `src/features` com varias responsabilidades misturadas (ui, types, api client, etc). A meta e mover para uma estrutura mais "next-native", **mantendo componentes no local geral do SaaS (`src/components`)** e **sem quebrar a divisao atual bem definida entre `lib`, `services`, `server` e `helpers`**.
+Hoje existe um diretório `src/features` com responsabilidades misturadas. A meta é mover para uma estrutura robusta, mantendo componentes organizados por domínio e garantindo que a lógica de negócio interna não se misture com a integração externa.
 
 ## 2) Objetivos
-- Remover a ambiguidade de localizacao (arquivos em locais "nao originais" do Next).
-- Garantir que qualquer arquivo tenha um local obvio, baseado no seu papel.
-- Separar servicos por tema (ex: whatsapp, meta-ads, billing), com arquivos por funcao.
-- Facilitar manutencao por um unico desenvolvedor.
+- Remover a ambiguidade de localização (arquivos em locais "não originais" do Next).
+- Garantir que qualquer arquivo tenha um local óbvio, baseado no seu papel.
+- Separar serviços por tema (ex: whatsapp, meta-ads, billing), com arquivos por função.
+- **Isolamento de Domínio**: O código da API da Meta não deve vazar para a lógica de faturamento ou CRM.
+- **Compliance Linkage**: Facilitar a geração de logs e evidências para o App Review da Meta.
 
-## 3) Nao-objetivos
+## 3) Não-objetivos
 - Reescrever features ou mudar comportamento do produto.
 - Mudar o framework (continuamos no Next.js App Router).
-- Refatoracao profunda de UI fora do necessario para reorganizacao.
+- Refatoração profunda de UI fora do necessário para reorganização.
 
-## 4) Principios de Organizacao
-- **Rotas em `src/app`**: todo acesso do usuario e APIs vivem em `app/`.
-- **Componentes ficam em `src/components`**: inclusive os especificos de um dominio (ex: `src/components/whatsapp/...`).
-- **UI por dominio**: organizacao por tema dentro de `src/components`, `src/hooks`, `src/types`, etc.
-- **Manter a divisao `lib` / `services` / `server` / `helpers`**:
-  - `lib`: infraestrutura e utilitarios transversais (auth, prisma, config, utils).
-  - `services`: integracoes externas (ex: Meta/WhatsApp, gateways, APIs).
-  - `server`: regras e operacoes de dominio internas (ex: organizacao, CRM, tickets).
-  - `helpers`: funcoes pequenas e reutilizaveis, sem estado.
-- **Servicos por tema**: `src/services/<tema>/` com arquivos de responsabilidade unica.
-- **Tipos por tema**: se usados apenas em um dominio, ficam no mesmo dominio.
-- **Import boundaries simples**: UI -> api client -> route handler -> server -> service.
+## 4) Princípios de Organização
+
+### 4.1) Localização de Componentes:
+Todos os componentes devem residir em `src/components`, organizados por categoria ou domínio:
+1.  **`src/components/ui`**: Componentes atômicos e agnósticos (botões, inputs, cards, shadcn).
+2.  **`src/components/dashboard`**: Componentes de layout e casca do sistema.
+3.  **`src/components/whatsapp`**: Todos os componentes relacionados ao domínio WhatsApp, inclusive os específicos de uma página.
+
+### 4.2) Camadas de Lógica:
+- **`lib`**: Infraestrutura e utilitários transversais (auth, prisma, config, utils globais).
+- **`services`**: Integrações EXTERNAS. É o puro "envelope" da API da Meta. Não deve conhecer o banco de dados.
+- **`server`**: Regras de DOMÍNIO e operações internas (Server Actions). Valida permissões, salva no Prisma e chama o `service`.
+- **`helpers`**: Funções pequenas, puras e reutilizáveis, sem estado.
 
 ## 5) Estrutura Proposta
 
@@ -47,145 +50,63 @@ src/
             page.tsx
             settings/page.tsx
             templates/page.tsx
-        webhook-meta/
-          page.tsx
+            send-test/page.tsx
     api/
       v1/
-        whatsapp/
-          account/route.ts
-          activate/route.ts
-          business-profile/route.ts
-          config/route.ts
-          phone-numbers/route.ts
-          send-template/route.ts
-          templates/route.ts
-          webhook/route.ts
+        whatsapp/           # Route Handlers (apenas delegam para src/server)
+          ... (routes)
   components/
-    ui/
-    dashboard/
-    whatsapp/
-    ...
+    ui/                     # Design System (Tailwind + Shadcn)
+    dashboard/              # Layout e componentes gerais do dashboard
+    whatsapp/               # Todos os componentes do domínio WhatsApp
   hooks/
-    whatsapp/
+    whatsapp/               # useWhatsAppTemplates, useSendMessage, etc.
   lib/
     auth/
     prisma.ts
     utils.ts
-    whatsapp-client-api.ts
-  helpers/
-    ...
+    whatsapp/
+      whatsapp-client-api.ts # Client que o front usa para chamar /api/v1
   server/
-    auth/
-    organization/
-    whatsapp/
-    ...
+    whatsapp/               # Regras de Negócio e Server Actions
+      template-actions.ts
+      message-actions.ts
+      account-actions.ts
+    organization/           # Gestão de orgs e permissões
   services/
-    whatsapp/
-      client.ts
-      account.ts
-      activate.ts
-      business-profile.ts
-      phone-numbers.ts
+    whatsapp/               # Comunicação DIRETA com a Meta Graph API
+      client.ts             # Axios/Fetch config + Error Handling Meta
       templates.ts
       messages.ts
-      webhooks.ts
+      phone-numbers.ts
       index.ts
   types/
-    shared/...
+    whatsapp.ts             # Tipos que vêm da API da Meta
+    domain.ts               # Nossos modelos internos
 ```
 
-Notas:
-- `src/features` deixa de existir. Tudo que era especifico de WhatsApp passa para `src/app/(dashboard)/settings/whatsapp`.
-- Componentes ficam em `src/components/whatsapp`, hooks em `src/hooks/whatsapp`, tipos em `src/types/whatsapp` (ou `src/lib/types` se preferir).
-- O client que chama as rotas internas fica em `src/lib/whatsapp-client-api.ts`.
+## 6) Compliance & Meta Review Readiness
+Para facilitar a aprovação do app, a arquitetura deve suportar:
+- **Audit Logs**: Toda mensagem enviada via `services/whatsapp/messages.ts` deve poder ser registrada no banco pela camada `server/`. Isso prova o uso correto da permissão `whatsapp_business_messaging`.
+- **Sandbox Switch**: O `services/whatsapp/client.ts` deve facilitar a alternância entre IDs de teste e produção via env vars.
+- **Vídeo de Demonstração**: A organização centralizada em `src/components/whatsapp` garante consistência visual para as gravações de Review.
 
-## 6) Separacao de Servicos (Requisito Principal)
-Cada tema tera um diretorio com arquivos claros:
+## 7) Migração (Fases)
 
-Exemplo `src/services/whatsapp/`:
-- `client.ts` -> configuracao base do Graph API (base url, versao, headers, errors)
-- `templates.ts` -> listar/criar/remover templates
-- `messages.ts` -> enviar mensagens e obter status
-- `phone-numbers.ts` -> listar e consultar numeros
-- `business-profile.ts` -> ler/atualizar perfil
-- `account.ts` -> informacoes do WABA
-- `webhooks.ts` -> utilitarios de assinatura/log
-- `index.ts` -> reexporta os modulos
+| Fase | Descrição | Risco |
+| :--- | :--- | :--- |
+| **Fase 1 - Core** | Criar `src/services/whatsapp/` e mover o service central (external). | Baixo |
+| **Fase 2 - Brain** | Criar `src/server/whatsapp` para as regras de negócio e acesso ao banco. | Médio |
+| **Fase 3 - UI Move** | Mover tudo de `src/features/whatsapp` para `src/components/whatsapp`. | Médio |
+| **Fase 4 - Limpeza** | Criar `src/lib/whatsapp/whatsapp-client-api.ts` e remover `src/features`. | Baixo |
 
-Racional: o nome do arquivo deve dizer o que ele faz, sem abrir o codigo.
+## 8) Requisitos de Qualidade e Aceite
+- [ ] Nenhum arquivo genérico com múltiplas responsabilidades.
+- [ ] **Isolamento**: `services/` nunca importa `prisma`.
+- [ ] **Fluxo de Dados**: UI -> Hook -> Client API (lib) -> Route Handler (app/api) -> Server Action (server) -> Service.
+- [ ] Todas as rotas funcionam sem mudanças de comportamento.
+- [ ] Erros da API da Meta são tratados centralizadamente no `services/whatsapp/client.ts`.
 
-Complemento:
-- **server** concentra regras e fluxos internos (ex: validar organizacao, permissoes, regras de negocio).
-- **services** encapsulam comunicacao externa (ex: chamadas ao Graph API).
-
-## 7) Padroes de UI e Client API
-- Componentes exclusivos do WhatsApp ficam em `src/components/whatsapp`.
-- Hooks exclusivos do WhatsApp ficam em `src/hooks/whatsapp`.
-- Tipos exclusivos do WhatsApp ficam em `src/types/whatsapp`.
-- O client que chama as rotas internas fica em `src/lib/whatsapp-client-api.ts`.
-
-## 8) Migracao (Fases)
-
-**Fase 1 - Estrutura base**
-- Criar `src/services/whatsapp/` e mover o service central para arquivos por tema.
-- Criar pastas `_components`, `_hooks`, `_types`, `_client` nas rotas WhatsApp.
-
-**Fase 2 - Mover UI**
-- Mover tudo de `src/features/whatsapp` para as pastas locais em `app/`.
-- Ajustar imports no restante do app.
- - Garantir que regras de negocio fiquem em `src/server` (quando aplicavel).
-
-**Fase 3 - Ajustar API client**
-- Substituir `src/features/whatsapp/api/whatsapp.ts` por `src/lib/whatsapp-client-api.ts`.
-
-**Fase 4 - Limpeza**
-- Remover `src/features`.
-- Garantir que nao existem imports quebrados.
-
-## 8.1) Impacto Direto (Arquivos/Imports que vao quebrar)
-Ao remover `src/features`, os seguintes arquivos precisarao de ajuste de import:
-
-**Rotas em `src/app`**
-- `src/app/dashboard/settings/whatsapp/page.tsx` -> importa `@/features/whatsapp`
-- `src/app/dashboard/settings/webhook-meta/page.tsx` -> importa `@/features/whatsapp/components/views/webhooks-view`
-- `src/app/dashboard/settings/whatsapp/[phoneId]/page.tsx` -> importa `@/features/whatsapp/components/instance-detail`
-- `src/app/dashboard/settings/whatsapp/[phoneId]/templates/page.tsx` -> importa `@/features/whatsapp/api/whatsapp` e `@/features/whatsapp/components/views/templates-view`
-- `src/app/dashboard/settings/whatsapp/[phoneId]/settings/page.tsx` -> importa `@/features/whatsapp/api/whatsapp` e `@/features/whatsapp/components/views/profile-view`
-
-**Arquivos internos ao dominio WhatsApp (hoje em `src/features/whatsapp`)**
-- `src/features/whatsapp/page.tsx` -> `./api/whatsapp`
-- `src/features/whatsapp/components/instance-detail.tsx` -> `../api/whatsapp`
-- `src/features/whatsapp/components/views/overview-view.tsx` -> `../../api/whatsapp`
-- `src/features/whatsapp/components/views/templates-view.tsx` -> `../../api/whatsapp` e `@/features/whatsapp/components/template-editor/template-editor-form`
-- `src/features/whatsapp/components/views/send-test-view.tsx` -> `../../api/whatsapp`
-- `src/features/whatsapp/components/views/webhooks-view.tsx` -> `../../api/whatsapp`
-- `src/features/whatsapp/components/views/profile-view.tsx` -> `../../api/whatsapp`
-- `src/features/whatsapp/components/dialogs/*` -> `../../api/whatsapp`
-- `src/features/whatsapp/components/template-editor/*` -> `../../api/whatsapp`
-
-Regra geral de ajuste: qualquer import que comece com `@/features/whatsapp` deve ser movido para o novo destino definido neste PRD (ex: `@/components/whatsapp`, `@/lib/api/whatsapp`, etc).
-
-## 9) Requisitos de Qualidade
-- Nao deve existir arquivo "genérico" com muitas responsabilidades.
-- Tudo que e UI deve estar em `src/components` (organizado por tema).
-- Servicos devem estar separados por tema.
-- A divisao `lib` / `services` / `server` / `helpers` deve ser respeitada.
-- Imports devem ser curtos e previsiveis.
-
-## 10) Criterios de Aceite
-- Nao existe mais `src/features`.
-- Cada servico do WhatsApp tem um arquivo dedicado em `src/services/whatsapp/`.
-- Todas as rotas e paginas continuam funcionando sem mudancas de comportamento.
-- Um novo desenvolvedor consegue localizar qualquer feature sem contexto previo.
-- A divisao `lib` / `services` / `server` / `helpers` segue consistente em todo o projeto.
-
-## 11) Riscos e Mitigacao
-- **Risco:** muitos arquivos movidos causando imports quebrados.
-  - **Mitigacao:** migracao em fases e verificacao incremental.
-
-- **Risco:** confusao entre UI compartilhada e UI local.
-  - **Mitigacao:** regra simples: se nao e reutilizado por outras rotas, fica na rota.
-
-## 12) Perguntas em Aberto
-- Preferimos manter `src/types` para tipos globais, ou tudo deve ser colocalizado?
-- Vamos manter `src/components` apenas para componentes 100% compartilhados?
+## 9) Respostas às Perguntas de Arquitetura
+- **Types**: Manter `src/types/whatsapp.ts` para definições da API externa e colocalizar tipos de props dentro dos próprios componentes em `src/components/whatsapp`.
+- **Componentes**: Todos em `src/components/whatsapp`, eliminando o uso de diretórios privados (`_components`) nas rotas para manter a estrutura do Next.js limpa.
