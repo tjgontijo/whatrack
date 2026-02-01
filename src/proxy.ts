@@ -27,9 +27,12 @@ function isAuthPage(pathname: string) {
 }
 
 function isPublicApi(pathname: string) {
-  // A rota de logs não deve ser pública
-  if (pathname === '/api/v1/whatsapp/webhook/logs') return false
-  return PUBLIC_API_PREFIXES.some((prefix) => pathname.startsWith(prefix))
+  if (pathname.includes('/whatsapp/webhook/logs')) return false
+
+  return PUBLIC_API_PREFIXES.some((prefix) => {
+    if (prefix === '/api/v1/whatsapp/webhook') return pathname === prefix
+    return pathname.startsWith(prefix)
+  })
 }
 
 function looksLikeSessionCookie(v?: string) {
