@@ -102,10 +102,10 @@ export function TemplateEditorForm({ template, onClose }: TemplateEditorFormProp
             const components: any[] = []
 
             if (values.headerText && values.headerText.trim() !== '') {
-                components.push({ type: 'HEADER', format: 'TEXT', text: values.headerText })
+                components.push({ type: 'header', format: 'TEXT', text: values.headerText })
             }
 
-            const bodyComp: any = { type: 'BODY', text: values.bodyText }
+            const bodyComp: any = { type: 'body', text: values.bodyText }
             if (variables.length > 0) {
                 const sampleValues = variables.map(v => values.samples?.[v] || 'exemplo')
                 bodyComp.example = { body_text: [sampleValues] }
@@ -113,15 +113,15 @@ export function TemplateEditorForm({ template, onClose }: TemplateEditorFormProp
             components.push(bodyComp)
 
             if (values.footerText && values.footerText.trim() !== '') {
-                components.push({ type: 'FOOTER', text: values.footerText })
+                components.push({ type: 'footer', text: values.footerText })
             }
 
             const payload = {
                 name: values.name,
-                category: values.category,
+                category: values.category.toLowerCase(),
                 language: values.language,
                 components,
-                allow_category_change: true,
+                parameter_format: 'positional',
             }
             return whatsappApi.createTemplate(payload)
         },
