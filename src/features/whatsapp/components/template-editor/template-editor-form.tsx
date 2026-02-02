@@ -71,9 +71,9 @@ export function TemplateEditorForm({ template, onClose }: TemplateEditorFormProp
 
     useEffect(() => {
         if (mode === 'edit' && template) {
-            const headerComponent = template.components?.find((c: any) => c.type === 'HEADER')
-            const bodyComponent = template.components?.find((c: any) => c.type === 'BODY')
-            const footerComponent = template.components?.find((c: any) => c.type === 'FOOTER')
+            const headerComponent = template.components?.find((c: any) => c.type.toUpperCase() === 'HEADER')
+            const bodyComponent = template.components?.find((c: any) => c.type.toUpperCase() === 'BODY')
+            const footerComponent = template.components?.find((c: any) => c.type.toUpperCase() === 'FOOTER')
 
             form.reset({
                 name: template.name,
@@ -102,7 +102,7 @@ export function TemplateEditorForm({ template, onClose }: TemplateEditorFormProp
             const components: any[] = []
 
             if (values.headerText && values.headerText.trim() !== '') {
-                components.push({ type: 'header', format: 'TEXT', text: values.headerText })
+                components.push({ type: 'header', format: 'text', text: values.headerText })
             }
 
             const bodyComp: any = { type: 'body', text: values.bodyText }
