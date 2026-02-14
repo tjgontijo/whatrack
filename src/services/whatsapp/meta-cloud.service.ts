@@ -41,16 +41,21 @@ export class MetaCloudService {
      */
     static async exchangeCodeForToken(code: string) {
         const url = `${GRAPH_API_URL}/${API_VERSION}/oauth/access_token`
-        const payload = {
-            client_id: process.env.NEXT_PUBLIC_META_APP_ID,
+
+        // Para Embedded Signup v3 com Hosted ES, o redirect_uri precisa bater com o enviado no diálogo
+        // Se o diálogo usou business.facebook.com, precisamos passar exatamente igual.
+        const appId = process.env.NEXT_PUBLIC_META_APP_ID;
+        const configId = process.env.NEXT_PUBLIC_META_CONFIG_ID;
+        const redirectUri = `https://business.facebook.com/messaging/hosted_es/oauth_callback/`;
+
+        const payload: any = {
+            client_id: appId,
             client_secret: process.env.META_APP_SECRET,
             grant_type: 'authorization_code',
-            // redirect_uri is optional for Embedded Signup code exchange usually, 
-            // but some versions require it to match the one sent in the dialog
             code
         }
 
-        console.log('[MetaCloudService] Exchanging code for token:', { url, appId: payload.client_id })
+        console.log('[MetaCloudService] Exchanging code for token:', { url, appId })
 
         const response = await fetch(url, {
             method: 'POST',

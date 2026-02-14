@@ -11,6 +11,7 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
     const [status, setStatus] = useState<OnboardingStatus>('idle');
     const [error, setError] = useState<string | null>(null);
     const pollingStartTime = useRef<number | null>(null);
+    const popupRef = useRef<Window | null>(null);
 
     const checkConnection = useCallback(async (isAuto = false) => {
         if (!isAuto) setStatus('checking');
@@ -59,12 +60,6 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
             return;
         }
 
-        console.log('[Meta Debug] IDs:', {
-            appId: process.env.NEXT_PUBLIC_META_APP_ID,
-            configId: process.env.NEXT_PUBLIC_META_CONFIG_ID,
-            orgId: activeOrg.id
-        });
-
         const extras = {
             featureType: 'whatsapp_business_app_onboarding',
             sessionInfoVersion: '3',
@@ -85,7 +80,7 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
         const left = window.screen.width / 2 - width / 2;
         const top = window.screen.height / 2 - height / 2;
 
-        window.open(
+        popupRef.current = window.open(
             url,
             'whatsapp_onboarding',
             `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no`
@@ -100,30 +95,65 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
     useEffect(() => {
         let intervalId: NodeJS.Timeout;
 
-        // Listener para capturar o WABA ID da janela da Meta
         const handleMessage = async (event: MessageEvent) => {
-            // Verificar origem por segurança em prod
-            if (event.origin !== 'https://business.facebook.com') return;
+            const allowedOrigins = [
+                'https://business.facebook.com',
+                'https://www.facebook.com',
+                'https://web.facebook.com'
+            ];
+
+            if (!allowedOrigins.includes(event.origin)) return;
+
+            console.log('[Meta Debug] Evento bruto recebido:', event.data);
 
             try {
-                const data = JSON.parse(event.data);
-                if (data.type === 'facebookSharedObject' && data.payload?.waba_id) {
-                    const wabaId = data.payload.waba_id;
-                    const code = data.payload.code; // Capture the auth code
-                    console.log('[Onboarding] WABA ID capturado:', wabaId, 'Code:', code ? 'present' : 'missing');
+                const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
 
-                    // Notificar o backend para vincular este WABA à organização atual
+                // 1. Procurar em múltiplas estruturas possíveis
+                const payload = data.type === 'facebookSharedObject' ? data.payload : (data.data || data);
+
+                // 2. Extrair WABA ID (vários nomes possíveis)
+                let wabaId = payload?.waba_id || payload?.wabaId || payload?.waba_business_account_id;
+
+                // 3. Extrair CODE (vários nomes possíveis)
+                let code = payload?.code || payload?.authorization_code || payload?.auth_code;
+
+                // 4. Fallback especial para v3 (session_info)
+                if (!wabaId && payload?.session_info) {
+                    const sessionInfo = Array.isArray(payload.session_info) ? payload.session_info[0] : payload.session_info;
+                    wabaId = sessionInfo?.waba_id;
+                }
+
+                console.log('[Meta Debug] Dados processados:', { wabaId, code: code ? 'OK' : 'MISSING' });
+
+                if (wabaId) {
+                    // Fechar o popup imediatamente se encontrarmos o WABA ID
+                    if (popupRef.current) {
+                        console.log('[Onboarding] Fechando janela...');
+                        popupRef.current.close();
+                        popupRef.current = null;
+                    }
+
+                    // Se não temos o code ainda mas temos o WABA ID, podemos estar em um flow antigo
+                    // mas para v3 com inbox, o CODE é obrigatório para o webhook funcionar.
+
                     await fetch('/api/v1/whatsapp/claim-waba', {
                         method: 'POST',
                         body: JSON.stringify({ wabaId, code }),
                         headers: { 'Content-Type': 'application/json' }
                     });
 
-                    // Forçar uma verificação imediata
-                    checkConnection(true);
+                    setStatus('success');
+                    onSuccess?.();
+                } else if (data.event === 'FINISH' || data.type === 'WA_EMBEDDED_SIGNUP_FINISH') {
+                    // Se recebemos um evento de finalização mas sem dados, fechar assim mesmo
+                    if (popupRef.current) {
+                        popupRef.current.close();
+                        popupRef.current = null;
+                    }
                 }
             } catch (e) {
-                // Não é um JSON válido ou não é o que esperamos, ignorar
+                console.error('[Onboarding] Erro ao tratar mensagem da Meta:', e);
             }
         };
 
@@ -153,7 +183,7 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
             window.removeEventListener('message', handleMessage);
             if (intervalId) clearInterval(intervalId);
         };
-    }, [status, checkConnection]);
+    }, [status, checkConnection, onSuccess]);
 
     return {
         status,
@@ -164,6 +194,7 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
             setStatus('idle');
             setError(null);
             pollingStartTime.current = null;
+            popupRef.current = null;
         },
         setError,
         setStatus
