@@ -59,6 +59,12 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
             return;
         }
 
+        console.log('[Meta Debug] IDs:', {
+            appId: process.env.NEXT_PUBLIC_META_APP_ID,
+            configId: process.env.NEXT_PUBLIC_META_CONFIG_ID,
+            orgId: activeOrg.id
+        });
+
         const extras = {
             featureType: 'whatsapp_business_app_onboarding',
             sessionInfoVersion: '3',
