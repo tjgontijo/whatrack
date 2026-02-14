@@ -374,18 +374,21 @@ model WhatsAppConfig {
   id             String       @id @default(cuid())
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  
-  wabaId         String?               // WABA ID (pode repetir se tivermos múltiplos números na mesma linha ou linhas diferentes para mesma WABA)
-  phoneId        String?      @unique  // Phone Number ID (único no sistema)
-  accessToken    String?               // System User Access Token (Meta Graph API)
-  displayPhone   String?               // Número formatado para exibição (ex: +55 11 91234-5678)
-  verifiedName   String?               // Nome verificado do negócio na Meta
-  status         String       @default("pending") // pending, connected, disconnected
-  connectedAt    DateTime?             // Quando foi conectado
-  lastWebhookAt  DateTime?             // Último evento recebido (detecta integrações mortas)
 
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  wabaId        String? // WABA ID (pode repetir se tivermos múltiplos números na mesma linha ou linhas diferentes para mesma WABA)
+  phoneId       String?   @unique // Phone Number ID (único no sistema)
+  accessToken   String? // System User Access Token (Meta Graph API)
+  displayPhone  String? // Número formatado para exibição (ex: +55 11 91234-5678)
+  verifiedName  String? // Nome verificado do negócio na Meta
+  status        String    @default("pending") // pending, connected, disconnected
+  connectedAt   DateTime? // Quando foi conectado
+  lastWebhookAt DateTime? // Último evento recebido (detecta integrações mortas)
+
+  contacts Contact[]
+  messages Message[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("whatsapp_configs")
 }
@@ -394,12 +397,60 @@ model WhatsAppWebhookLog {
   id             String        @id @default(cuid())
   organizationId String?
   organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  
-  payload        Json          // The raw JSON received from Meta
-  eventType      String?       // e.g., "messages", "statuses", "template_approval"
-  createdAt      DateTime      @default(now())
+
+  payload   Json // The raw JSON received from Meta
+  eventType String? // e.g., "messages", "statuses", "template_approval"
+  createdAt DateTime @default(now())
 
   @@index([organizationId])
   @@map("whatsapp_webhook_logs")
 }
 
+model Contact {
+  id         String         @id @default(cuid())
+  instanceId String
+  instance   WhatsAppConfig @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+
+  waId          String // WhatsApp ID (Phone Number), usually number only
+  pushName      String? // Display Name from WhatsApp
+  profilePicUrl String?
+
+  lastMessageAt DateTime? // For sorting conversations
+
+  messages Message[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([instanceId, waId]) // Unique contact per instance
+  @@index([instanceId])
+  @@map("whatsapp_contacts")
+}
+
+model Message {
+  id String @id @default(cuid())
+
+  wamid String @unique // WhatsApp Message ID
+
+  contactId String
+  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  instanceId String
+  instance   WhatsAppConfig @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+
+  direction String // INBOUND, OUTBOUND
+  type      String // text, image, document, audio, video, etc.
+  body      String? @db.Text // Text content or Caption
+  mediaUrl  String? // Internal URL for media
+  status    String // sent, delivered, read, failed
+
+  timestamp      DateTime // When the message was created/received
+  conversationId String? // Meta conversation ID for billing
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([contactId])
+  @@index([instanceId])
+  @@map("whatsapp_messages")
+}

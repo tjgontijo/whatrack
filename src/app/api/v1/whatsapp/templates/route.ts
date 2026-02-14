@@ -73,6 +73,52 @@ export async function POST(request: Request) {
     }
 }
 
+export async function PUT(request: Request) {
+    try {
+        const session = await auth.api.getSession({
+            headers: await headers()
+        })
+
+        if (!session?.session?.activeOrganizationId) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+
+        const body = await request.json()
+        const { templateId, components } = body
+
+        if (!templateId) {
+            return NextResponse.json({ error: 'Template ID is required' }, { status: 400 })
+        }
+
+        if (!components || !Array.isArray(components)) {
+            return NextResponse.json({ error: 'Components array is required' }, { status: 400 })
+        }
+
+        const config = await MetaCloudService.getConfig(session.session.activeOrganizationId)
+
+        if (!config || !config.wabaId) {
+            return NextResponse.json({
+                error: 'WhatsApp not configured for this organization'
+            }, { status: 404 })
+        }
+
+        console.log('[API] RECEBIDA REQUISIÇÃO PARA EDITAR TEMPLATE:', JSON.stringify(body, null, 2))
+
+        const result = await MetaCloudService.editTemplate({
+            templateId,
+            components,
+        })
+
+        return NextResponse.json(result)
+    } catch (error: any) {
+        console.error('[API] Edit Template Error:', error)
+        return NextResponse.json(
+            { error: error.message || 'Failed to edit template' },
+            { status: 500 }
+        )
+    }
+}
+
 export async function DELETE(request: Request) {
     try {
         const session = await auth.api.getSession({

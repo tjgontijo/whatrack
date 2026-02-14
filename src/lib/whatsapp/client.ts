@@ -70,6 +70,23 @@ export const whatsappApi = {
         return res.json();
     },
 
+    /**
+     * Atualiza um template existente (edita componentes)
+     * Meta API: POST /{TEMPLATE_ID} — nome, categoria e idioma não podem ser alterados
+     */
+    async updateTemplate(templateId: string, components: any[]): Promise<any> {
+        const res = await fetch('/api/v1/whatsapp/templates', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ templateId, components }),
+        });
+        if (!res.ok) {
+            const error = await res.json();
+            throw new Error(error.error || 'Failed to update template');
+        }
+        return res.json();
+    },
+
     // ============================================================================
     // MENSAGENS - Envio e Gerenciamento de Mensagens
     // ============================================================================

@@ -116,6 +116,10 @@ export function TemplateEditorForm({ template, onClose }: TemplateEditorFormProp
                 components.push({ type: 'footer', text: values.footerText })
             }
 
+            if (mode === 'edit' && template?.id) {
+                return whatsappApi.updateTemplate(template.id, components)
+            }
+
             const payload = {
                 name: values.name,
                 category: values.category.toLowerCase(),
@@ -191,7 +195,7 @@ export function TemplateEditorForm({ template, onClose }: TemplateEditorFormProp
                                                         </Tooltip>
                                                     </TooltipProvider>
                                                 </div>
-                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                <Select onValueChange={field.onChange} value={field.value} disabled={mode === 'edit'}>
                                                     <SelectTrigger className="h-11 bg-muted/30 border-muted-foreground/20 rounded-xl">
                                                         <SelectValue />
                                                     </SelectTrigger>
@@ -211,7 +215,7 @@ export function TemplateEditorForm({ template, onClose }: TemplateEditorFormProp
                                         render={({ field, fieldState }) => (
                                             <Field data-invalid={fieldState.invalid} className="space-y-1.5">
                                                 <FieldLabel className="text-sm font-bold">Idioma</FieldLabel>
-                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                <Select onValueChange={field.onChange} value={field.value} disabled={mode === 'edit'}>
                                                     <SelectTrigger className="h-11 bg-muted/30 border-muted-foreground/20 rounded-xl">
                                                         <SelectValue />
                                                     </SelectTrigger>

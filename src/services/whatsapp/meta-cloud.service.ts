@@ -152,6 +152,61 @@ export class MetaCloudService {
     }
 
     /**
+     * Edit an existing message template by its ID.
+     * Meta API requires: POST /{API_VERSION}/{TEMPLATE_ID}
+     * Rules:
+     * - Only APPROVED, REJECTED, or PAUSED templates can be edited
+     * - APPROVED templates: max 10 edits in 30 days, 1 per 24h
+     * - Name, category, and language CANNOT be changed
+     */
+    static async editTemplate({ templateId, accessToken, components }: {
+        templateId: string
+        accessToken?: string
+        components: any[]
+    }) {
+        const token = accessToken || this.accessToken
+        const url = `${GRAPH_API_URL}/${API_VERSION}/${templateId}`
+
+        console.log('[MetaCloudService] INICIANDO EDIÇÃO DE TEMPLATE:', {
+            templateId,
+            url,
+        })
+        console.log('[MetaCloudService] COMPONENTES ENVIADOS:', JSON.stringify(components, null, 2))
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ components }),
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+            console.error('[MetaCloudService] ERRO AO EDITAR TEMPLATE:', JSON.stringify(data, null, 2))
+
+            const metaError = data.error?.message || 'Erro desconhecido na API da Meta'
+            const errorCode = data.error?.code
+            const errorSubcode = data.error?.error_subcode
+
+            // Specific error messages for common edit failures
+            let userMessage = metaError
+            if (errorCode === 100 && errorSubcode === 33) {
+                userMessage = 'Limite de edições atingido. Templates aprovados podem ser editados no máximo 10 vezes em 30 dias (1 vez a cada 24h).'
+            } else if (errorCode === 100) {
+                userMessage = `Erro ao editar template: ${metaError}`
+            }
+
+            throw new Error(userMessage)
+        }
+
+        console.log('[MetaCloudService] TEMPLATE EDITADO COM SUCESSO:', data)
+        return data
+    }
+
+    /**
      * Delete a message template by name
      */
     static async deleteTemplate({ wabaId, accessToken, name }: { wabaId: string, accessToken?: string, name: string }) {
