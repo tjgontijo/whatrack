@@ -11,15 +11,17 @@ export const dynamic = 'force-dynamic'
  */
 export async function GET(
     request: NextRequest,
-    { params }: { params: Promise<{ leadId: string }> }
+    props: { params: Promise<{ leadId: string }> }
 ) {
     try {
+        const params = await props.params
+        const leadId = params.leadId
+
         const access = await validateFullAccess(request)
         if (!access.hasAccess || !access.organizationId) {
             return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
         }
         const organizationId = access.organizationId
-        const { leadId } = await params
 
         const { searchParams } = new URL(request.url)
         const page = parseInt(searchParams.get('page') || '1')

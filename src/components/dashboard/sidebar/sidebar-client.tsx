@@ -103,7 +103,7 @@ export function SidebarClient({ navItems }: SidebarClientProps) {
 
     // Separate nav items into groups
     const platformItems = navItems.filter(item =>
-        ['LayoutDashboard'].includes(item.icon)
+        ['LayoutDashboard', 'MessageSquare'].includes(item.icon)
     )
 
     const dataItems = navItems.filter(item =>
