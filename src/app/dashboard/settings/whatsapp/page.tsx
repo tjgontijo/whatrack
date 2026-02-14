@@ -48,12 +48,14 @@ export default function WhatsAppSettingsPage() {
         // CASO A: Usuário cancelou ou erro da Meta
         if (errorParam) {
             console.log('[WhatsAppSettings] Conexão cancelada ou erro:', errorParam)
-            toast.error('Conexão cancelada ou recusada.')
 
             if (window.opener && window.opener !== window) {
+                // No popup, não mostramos toast, apenas avisamos a tela principal
                 window.opener.postMessage({ type: 'WA_CALLBACK_STATUS', status: 'canceled' }, window.location.origin)
-                setTimeout(() => window.close(), 1000)
+                setTimeout(() => window.close(), 500)
             } else {
+                // Se por algum motivo estiver na tela principal (ex: refresh manual sem popup)
+                toast.error('Conexão cancelada ou recusada.')
                 router.replace(window.location.pathname)
             }
             return
@@ -77,27 +79,26 @@ export default function WhatsAppSettingsPage() {
                         throw new Error(data.error || 'Erro ao trocar token')
                     }
 
-                    toast.success('WhatsApp conectado com sucesso!')
-
                     // Notificar tela principal se for popup
                     if (window.opener && window.opener !== window) {
                         window.opener.postMessage({ type: 'WA_CALLBACK_STATUS', status: 'success', wabaId }, window.location.origin)
-                        setTimeout(() => window.close(), 1500)
+                        // Fechar rápido para o toast aparecer APENAS na tela principal
+                        setTimeout(() => window.close(), 500)
                         return
                     }
 
                     // Se for janela principal
+                    toast.success('WhatsApp conectado com sucesso!')
                     router.replace(window.location.pathname)
                     refetch()
                 } catch (err: any) {
                     console.error('[WhatsAppSettings] Erro no claim:', err)
-                    toast.error(`Falha na conexão: ${err.message}`)
 
                     if (window.opener && window.opener !== window) {
                         window.opener.postMessage({ type: 'WA_CALLBACK_STATUS', status: 'error', error: err.message }, window.location.origin)
-                        // No caso de erro, talvez manter aberto para o usuário ver? 
-                        // Mas o fluxo pede fechar. Vou fechar após 3s para dar tempo de ler.
-                        setTimeout(() => window.close(), 3000)
+                        setTimeout(() => window.close(), 1000)
+                    } else {
+                        toast.error(`Falha na conexão: ${err.message}`)
                     }
                 } finally {
                     setIsClaiming(false)

@@ -109,6 +109,7 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
 
                 if (callbackStatus === 'success') {
                     setStatus('success');
+                    toast.success('WhatsApp conectado com sucesso!');
                     onSuccess?.();
                 } else if (callbackStatus === 'canceled') {
                     setStatus('idle');
