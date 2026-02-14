@@ -123,6 +123,17 @@ export async function POST(request: Request) {
             }
         }
 
+        // 3. Process STATUS updates (sent, delivered, read, failed)
+        if (value?.statuses && instanceId) {
+            for (const status of value.statuses) {
+                try {
+                    await WhatsAppChatService.processStatusUpdate(instanceId, status)
+                } catch (err) {
+                    console.error('[meta-cloud/webhook] Error processing status update:', status.id, err)
+                }
+            }
+        }
+
         // Always return 200 to prevent Meta from retrying
         return NextResponse.json({
             received: true,

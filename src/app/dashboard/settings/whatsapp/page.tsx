@@ -39,11 +39,27 @@ export default function WhatsAppSettingsPage() {
 
     const { status: onboardingStatus, startOnboarding } = useWhatsAppOnboarding(handleRefresh)
 
-    // Process OAuth callback from Meta
+    // Process OAuth callback from Meta (Strict flow)
     React.useEffect(() => {
         const code = searchParams.get('code')
+        const errorParam = searchParams.get('error')
         const wabaId = searchParams.get('waba_id')
 
+        // CASO A: Usuário cancelou ou erro da Meta
+        if (errorParam) {
+            console.log('[WhatsAppSettings] Conexão cancelada ou erro:', errorParam)
+            toast.error('Conexão cancelada ou recusada.')
+
+            if (window.opener && window.opener !== window) {
+                window.opener.postMessage({ type: 'WA_CALLBACK_STATUS', status: 'canceled' }, window.location.origin)
+                setTimeout(() => window.close(), 1000)
+            } else {
+                router.replace(window.location.pathname)
+            }
+            return
+        }
+
+        // CASO B: Usuário concluiu (temos o code)
         if (code && !isClaiming) {
             const handleClaim = async () => {
                 setIsClaiming(true)
@@ -58,27 +74,31 @@ export default function WhatsAppSettingsPage() {
 
                     if (!response.ok) {
                         const data = await response.json()
-                        throw new Error(data.error || 'Erro ao vincular conta')
+                        throw new Error(data.error || 'Erro ao trocar token')
                     }
 
                     toast.success('WhatsApp conectado com sucesso!')
 
-                    // Se estivermos em um popup, avisar a janela pai e fechar
+                    // Notificar tela principal se for popup
                     if (window.opener && window.opener !== window) {
-                        window.opener.postMessage({ type: 'WA_CALLBACK_SUCCESS', wabaId }, window.location.origin)
-                        setTimeout(() => window.close(), 1000)
+                        window.opener.postMessage({ type: 'WA_CALLBACK_STATUS', status: 'success', wabaId }, window.location.origin)
+                        setTimeout(() => window.close(), 1500)
                         return
                     }
 
-                    // Se for a janela principal, apenas limpar a URL
-                    const newUrl = window.location.pathname
-                    router.replace(newUrl)
-
-                    // Atualizar a lista de instâncias
+                    // Se for janela principal
+                    router.replace(window.location.pathname)
                     refetch()
                 } catch (err: any) {
                     console.error('[WhatsAppSettings] Erro no claim:', err)
                     toast.error(`Falha na conexão: ${err.message}`)
+
+                    if (window.opener && window.opener !== window) {
+                        window.opener.postMessage({ type: 'WA_CALLBACK_STATUS', status: 'error', error: err.message }, window.location.origin)
+                        // No caso de erro, talvez manter aberto para o usuário ver? 
+                        // Mas o fluxo pede fechar. Vou fechar após 3s para dar tempo de ler.
+                        setTimeout(() => window.close(), 3000)
+                    }
                 } finally {
                     setIsClaiming(false)
                 }

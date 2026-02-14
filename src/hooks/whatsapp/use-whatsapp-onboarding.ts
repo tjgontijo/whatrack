@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { toast } from 'sonner';
 import { authClient } from '@/lib/auth/auth-client';
 
 export type OnboardingStatus = 'idle' | 'pending' | 'checking' | 'success';
@@ -102,10 +103,22 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
             // Ouvir apenas mensagens do mesmo domínio (vindas do nosso callback page)
             if (event.origin !== window.location.origin) return;
 
-            if (event.data?.type === 'WA_CALLBACK_SUCCESS') {
-                console.log('[Onboarding] Notificação de sucesso recebida do callback');
-                setStatus('success');
-                onSuccess?.();
+            if (event.data?.type === 'WA_CALLBACK_STATUS') {
+                const { status: callbackStatus, error: callbackError } = event.data;
+                console.log('[Onboarding] Callback status:', callbackStatus);
+
+                if (callbackStatus === 'success') {
+                    setStatus('success');
+                    onSuccess?.();
+                } else if (callbackStatus === 'canceled') {
+                    setStatus('idle');
+                    toast.error('Conexão cancelada pelo usuário.');
+                } else if (callbackStatus === 'error') {
+                    setStatus('idle');
+                    setError(callbackError || 'Erro na conexão com a Meta.');
+                }
+
+                pollingStartTime.current = null;
             }
         };
 
