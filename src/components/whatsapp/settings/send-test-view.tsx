@@ -3,14 +3,14 @@
 import React from 'react'
 import { Send, Smartphone, CheckCircle2, MessageSquare, Code } from 'lucide-react'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { whatsappApi } from '../../api/whatsapp'
+import { whatsappApi } from '@/lib/whatsapp/client'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
-import type { WhatsAppPhoneNumber, WhatsAppTemplate } from '../../types'
+import type { WhatsAppPhoneNumber, WhatsAppTemplate } from '@/types/whatsapp'
 
 interface SendTestViewProps {
     phone: WhatsAppPhoneNumber

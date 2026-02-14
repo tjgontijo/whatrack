@@ -3,7 +3,7 @@
 import React from 'react'
 import { ShieldCheck, Activity, Smartphone, AlertTriangle, Zap, Loader2, FileText, UserCircle, MessageSquare, Send } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { whatsappApi } from '../../api/whatsapp'
+import { whatsappApi } from '@/lib/whatsapp/client'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -12,7 +12,7 @@ import { toast } from 'sonner'
 import Link from 'next/link'
 import { parsePhoneNumberFromString } from 'libphonenumber-js'
 import * as Flags from 'country-flag-icons/react/3x2'
-import type { WhatsAppPhoneNumber } from '../../types'
+import type { WhatsAppPhoneNumber } from '@/types/whatsapp'
 
 interface OverviewViewProps {
     phone: WhatsAppPhoneNumber

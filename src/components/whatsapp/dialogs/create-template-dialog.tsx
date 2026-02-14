@@ -24,7 +24,7 @@ import {
     SelectTrigger,
     SelectValue
 } from '@/components/ui/select'
-import { whatsappApi } from '../../api/whatsapp'
+import { whatsappApi } from '@/lib/whatsapp/client'
 import { toast } from 'sonner'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Separator } from '@/components/ui/separator'

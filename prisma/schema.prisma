@@ -124,7 +124,7 @@ model Organization {
   productCategories ProductCategory[]
   profile           OrganizationProfile?
   company           OrganizationCompany?
-  whatsappConfig    WhatsAppConfig?
+  whatsappConfig    WhatsAppConfig[]
   webhookLogs       WhatsAppWebhookLog[]
 
   @@map("organization")
@@ -372,13 +372,17 @@ model OrganizationCompany {
 
 model WhatsAppConfig {
   id             String       @id @default(cuid())
-  organizationId String       @unique
+  organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   
-  wabaId         String?      // WhatsApp Business Account ID
-  phoneId        String?      // Phone Number ID
-  accessToken    String?      // Account-level access token
-  status         String       @default("pending") // connected, pending, disconnected
+  wabaId         String?               // WABA ID (pode repetir se tivermos múltiplos números na mesma linha ou linhas diferentes para mesma WABA)
+  phoneId        String?      @unique  // Phone Number ID (único no sistema)
+  accessToken    String?               // System User Access Token (Meta Graph API)
+  displayPhone   String?               // Número formatado para exibição (ex: +55 11 91234-5678)
+  verifiedName   String?               // Nome verificado do negócio na Meta
+  status         String       @default("pending") // pending, connected, disconnected
+  connectedAt    DateTime?             // Quando foi conectado
+  lastWebhookAt  DateTime?             // Último evento recebido (detecta integrações mortas)
 
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt

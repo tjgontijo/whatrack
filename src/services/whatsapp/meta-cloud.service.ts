@@ -8,17 +8,17 @@ interface SendTemplateParams {
     to: string
     templateName: string
     language?: string
-    accessToken: string
+    accessToken?: string
 }
 
 interface GetTemplatesParams {
     wabaId: string
-    accessToken: string
+    accessToken?: string
 }
 
 interface CreateTemplateParams {
     wabaId: string
-    accessToken: string
+    accessToken?: string
     template: {
         name: string
         category: 'MARKETING' | 'UTILITY' | 'AUTHENTICATION'
@@ -29,6 +29,15 @@ interface CreateTemplateParams {
 
 export class MetaCloudService {
     /**
+     * Fallback global (ENV) — usado quando não temos o contexto de organização.
+     */
+    static get accessToken() {
+        return process.env.META_ACCESS_TOKEN || ''
+    }
+
+
+
+    /**
      * Send a template message (e.g., hello_world)
      */
     static async sendTemplate({
@@ -38,6 +47,7 @@ export class MetaCloudService {
         language = 'en_US',
         accessToken
     }: SendTemplateParams) {
+        const token = accessToken || this.accessToken
         const url = `${GRAPH_API_URL}/${API_VERSION}/${phoneId}/messages`
 
         const payload = {
@@ -57,7 +67,7 @@ export class MetaCloudService {
         const response = await fetch(url, {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${accessToken}`,
+                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(payload),
@@ -77,6 +87,7 @@ export class MetaCloudService {
      * Fetch templates for a WABA
      */
     static async getTemplates({ wabaId, accessToken }: GetTemplatesParams) {
+        const token = accessToken || this.accessToken
         const url = `${GRAPH_API_URL}/${API_VERSION}/${wabaId}/message_templates?limit=50`
 
         console.log('[MetaCloudService] Fetching templates:', { url })
@@ -84,7 +95,7 @@ export class MetaCloudService {
         const response = await fetch(url, {
             method: 'GET',
             headers: {
-                'Authorization': `Bearer ${accessToken}`,
+                'Authorization': `Bearer ${token}`,
             },
         })
 
@@ -102,6 +113,7 @@ export class MetaCloudService {
      * Create a new message template
      */
     static async createTemplate({ wabaId, accessToken, template }: CreateTemplateParams) {
+        const token = accessToken || this.accessToken
         const url = `${GRAPH_API_URL}/${API_VERSION}/${wabaId}/message_templates`
 
         console.log('[MetaCloudService] INICIANDO CRIAÇÃO DE TEMPLATE:', {
@@ -114,7 +126,7 @@ export class MetaCloudService {
         const response = await fetch(url, {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${accessToken}`,
+                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(template),
@@ -142,7 +154,8 @@ export class MetaCloudService {
     /**
      * Delete a message template by name
      */
-    static async deleteTemplate({ wabaId, accessToken, name }: { wabaId: string, accessToken: string, name: string }) {
+    static async deleteTemplate({ wabaId, accessToken, name }: { wabaId: string, accessToken?: string, name: string }) {
+        const token = accessToken || this.accessToken
         const url = `${GRAPH_API_URL}/${API_VERSION}/${wabaId}/message_templates?name=${name}`
 
         console.log('[MetaCloudService] Deleting template:', { url, name })
@@ -150,7 +163,7 @@ export class MetaCloudService {
         const response = await fetch(url, {
             method: 'DELETE',
             headers: {
-                'Authorization': `Bearer ${accessToken}`,
+                'Authorization': `Bearer ${token}`,
             },
         })
 
@@ -167,17 +180,18 @@ export class MetaCloudService {
     /**
      * Fetch phone numbers for a WABA
      */
-    static async listPhoneNumbers({ wabaId, accessToken }: { wabaId: string, accessToken: string }) {
+    static async listPhoneNumbers({ wabaId, accessToken }: { wabaId: string, accessToken?: string }) {
+        const token = accessToken || this.accessToken
         const url = `${GRAPH_API_URL}/${API_VERSION}/${wabaId}/phone_numbers?fields=display_phone_number,verified_name,status,quality_rating,throughput`
 
         console.log('[MetaCloudService] DEBUG - AppID Enviado:', process.env.META_APP_ID)
-        console.log('[MetaCloudService] DEBUG - Token Usado (10 chars):', accessToken.substring(0, 10) + '...')
+        console.log('[MetaCloudService] DEBUG - Token Usado (10 chars):', token.substring(0, 10) + '...')
         console.log('[MetaCloudService] Fetching phone numbers:', { url })
 
         const response = await fetch(url, {
             method: 'GET',
             headers: {
-                'Authorization': `Bearer ${accessToken}`,
+                'Authorization': `Bearer ${token}`,
             },
         })
 
@@ -194,7 +208,8 @@ export class MetaCloudService {
     /**
      * Fetch business profile for a phone ID
      */
-    static async getBusinessProfile({ phoneId, accessToken }: { phoneId: string, accessToken: string }) {
+    static async getBusinessProfile({ phoneId, accessToken }: { phoneId: string, accessToken?: string }) {
+        const token = accessToken || this.accessToken
         const url = `${GRAPH_API_URL}/${API_VERSION}/${phoneId}/whatsapp_business_profile`
 
         console.log('[MetaCloudService] Fetching business profile:', { url })
@@ -202,7 +217,7 @@ export class MetaCloudService {
         const response = await fetch(url, {
             method: 'GET',
             headers: {
-                'Authorization': `Bearer ${accessToken}`,
+                'Authorization': `Bearer ${token}`,
             },
         })
 
@@ -219,7 +234,8 @@ export class MetaCloudService {
     /**
      * Fetch WABA account info
      */
-    static async getAccountInfo({ wabaId, accessToken }: { wabaId: string, accessToken: string }) {
+    static async getAccountInfo({ wabaId, accessToken }: { wabaId: string, accessToken?: string }) {
+        const token = accessToken || this.accessToken
         const url = `${GRAPH_API_URL}/${API_VERSION}/${wabaId}`
 
         console.log('[MetaCloudService] Fetching account info:', { url })
@@ -227,7 +243,7 @@ export class MetaCloudService {
         const response = await fetch(url, {
             method: 'GET',
             headers: {
-                'Authorization': `Bearer ${accessToken}`,
+                'Authorization': `Bearer ${token}`,
             },
         })
 
@@ -246,10 +262,19 @@ export class MetaCloudService {
      * Reads from the database only. Use the seed to populate development data.
      */
     static async getConfig(organizationId: string) {
-        const config = await prisma.whatsAppConfig.findUnique({
-            where: { organizationId }
+        // Retorna a config mais recente por padrão (compatibilidade)
+        const config = await prisma.whatsAppConfig.findFirst({
+            where: { organizationId },
+            orderBy: { updatedAt: 'desc' }
         })
 
         return config
+    }
+
+    static async getAllConfigs(organizationId: string) {
+        return prisma.whatsAppConfig.findMany({
+            where: { organizationId },
+            orderBy: { createdAt: 'desc' }
+        })
     }
 }

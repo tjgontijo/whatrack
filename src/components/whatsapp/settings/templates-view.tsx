@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { MessageSquare, Edit, Trash2, MoreVertical, CheckCircle2, XCircle, AlertCircle } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { whatsappApi } from '../../api/whatsapp'
+import { whatsappApi } from '@/lib/whatsapp/client'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -23,9 +23,9 @@ import {
     type RowActions,
 } from '@/components/dashboard/crud'
 import { CrudDataView } from './crud-data-view-wrapper'
-import type { WhatsAppPhoneNumber, WhatsAppTemplate } from '../../types'
+import type { WhatsAppPhoneNumber, WhatsAppTemplate } from '@/types/whatsapp'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { TemplateEditorForm } from '@/features/whatsapp/components/template-editor/template-editor-form'
+import { TemplateEditorForm } from '@/components/whatsapp/template-editor/template-editor-form'
 
 interface TemplatesViewProps {
     phone: WhatsAppPhoneNumber

@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { PrismaClient } from '../../prisma/generated/prisma/client';
+import { prisma } from '../lib/prisma';
 
 async function debugWhatsAppConfig() {
     console.log('=== DEPURAÇÃO COMPLETA ===\n');
@@ -11,33 +11,60 @@ async function debugWhatsAppConfig() {
     console.log('   META_PHONE_ID:', process.env.META_PHONE_ID);
     console.log('   META_APP_ID:', process.env.META_APP_ID);
 
-    // 2. Verificar banco de dados
-    console.log('\n2. BANCO DE DADOS (whatsapp_configs):');
-    const prisma = new PrismaClient();
-
+    // 3. Verificar Organizações e suas Configurações
+    console.log('\n3. ORGANIZAÇÕES E CONFIGS:');
     try {
-        const configs = await prisma.$queryRaw`SELECT id, "organizationId", "wabaId", "phoneId", LEFT("accessToken", 15) as token_prefix, status FROM "whatsapp_configs"`;
-
-        if (Array.isArray(configs) && configs.length > 0) {
-            console.log('   Registros encontrados:', configs.length);
-            configs.forEach((c: any, i: number) => {
-                console.log(`   [${i}] orgId: ${c.organizationId}`);
-                console.log(`       wabaId: ${c.wabaId}`);
-                console.log(`       phoneId: ${c.phoneId}`);
-                console.log(`       token (15 chars): ${c.token_prefix}...`);
-                console.log(`       status: ${c.status}`);
-            });
-        } else {
-            console.log('   Nenhum registro encontrado.');
-        }
+        const orgs = await prisma.organization.findMany({
+            include: {
+                whatsappConfig: true
+            }
+        });
+        orgs.forEach(o => {
+            console.log(`   - Org: ${o.name} (ID: ${o.id})`);
+            if (o.whatsappConfig && o.whatsappConfig.length > 0) {
+                o.whatsappConfig.forEach((conf, idx) => {
+                    console.log(`       [Config #${idx + 1}]`);
+                    console.log(`       - WhatsApp Config ID: ${conf.id}`);
+                    console.log(`       - WABA ID: ${conf.wabaId}`);
+                    console.log(`       - Phone ID: ${conf.phoneId}`);
+                    console.log(`       - Status: ${conf.status}`);
+                });
+            } else {
+                console.log('       - (Sem configuração de WhatsApp)');
+            }
+        });
     } catch (error: any) {
-        console.log('   Erro ao consultar:', error.message);
-    } finally {
-        await prisma.$disconnect();
+        console.log('   Erro ao consultar organizações:', error.message);
     }
 
-    // 3. Testar chamada real para Meta
-    console.log('\n3. TESTE DE CHAMADA PARA META API:');
+    // 4. Verificar Membros e Usuários
+    console.log('\n4. MEMBROS E USUÁRIOS:');
+    try {
+        const members = await prisma.member.findMany({
+            include: { user: true }
+        });
+        members.forEach(m => {
+            console.log(`   - Org ID: ${m.organizationId}, User: ${m.user.name} (Role: ${m.role})`);
+        });
+    } catch (error: any) {
+        console.log('   Erro ao consultar membros:', error.message);
+    }
+
+    // 5. Verificar Sessões
+    console.log('\n5. SESSÕES:');
+    try {
+        const sessions = await prisma.session.findMany();
+        sessions.forEach(s => {
+            console.log(`   - Session Token: ${s.token.substring(0, 10)}...`);
+            console.log(`     Active Org ID: ${s.activeOrganizationId}`);
+            console.log(`     Expires: ${s.expiresAt}`);
+        });
+    } catch (error: any) {
+        console.log('   Erro ao consultar sessões:', error.message);
+    }
+
+    // 5. Testar chamada real para Meta
+    console.log('\n5. TESTE DE CHAMADA PARA META API:');
     const token = process.env.META_ACCESS_TOKEN;
     const wabaId = process.env.META_WABA_ID;
 
@@ -46,7 +73,7 @@ async function debugWhatsAppConfig() {
         return;
     }
 
-    const url = `https://graph.facebook.com/v24.0/${wabaId}/phone_numbers`;
+    const url = `https://graph.facebook.com/v24.0/${wabaId}/phone_numbers?fields=display_phone_number,verified_name,status,quality_rating,throughput`;
     console.log('   URL:', url);
 
     try {

@@ -26,12 +26,13 @@ export async function POST(request: Request) {
 
         const config = await MetaCloudService.getConfig(session.session.activeOrganizationId)
 
-        if (!config || !config.phoneId || !config.wabaId || !config.accessToken) {
+        if (!config || !config.phoneId || !config.wabaId) {
             return NextResponse.json({
                 error: 'WhatsApp not configured for this organization'
             }, { status: 404 })
         }
 
+        const token = MetaCloudService.accessToken
         const results = {
             register: { success: false, data: null as any },
             subscribe: { success: false, data: null as any },
@@ -45,7 +46,7 @@ export async function POST(request: Request) {
             const registerResponse = await fetch(registerUrl, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${config.accessToken}`,
+                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
@@ -76,7 +77,7 @@ export async function POST(request: Request) {
             const subscribeResponse = await fetch(subscribeUrl, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${config.accessToken}`,
+                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
                 },
             })

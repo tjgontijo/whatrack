@@ -23,10 +23,7 @@ export async function GET(request: Request) {
             }, { status: 404 })
         }
 
-        // Don't leak the accessToken to the frontend
-        const { accessToken, ...safeConfig } = config as any;
-
-        return NextResponse.json(safeConfig)
+        return NextResponse.json(config)
     } catch (error: any) {
         console.error('[API] Get Config Error:', error)
         return NextResponse.json(

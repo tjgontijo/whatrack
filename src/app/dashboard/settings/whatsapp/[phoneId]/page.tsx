@@ -1,7 +1,7 @@
 'use client'
 
 import React, { Suspense } from 'react'
-import { InstanceDetail } from '@/features/whatsapp/components/instance-detail'
+import { InstanceDetail } from '@/components/whatsapp/instance-detail'
 import { SuspenseLoader } from '@/components/SuspenseLoader'
 
 interface PageProps {

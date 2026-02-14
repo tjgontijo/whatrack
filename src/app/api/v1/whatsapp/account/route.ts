@@ -17,15 +17,14 @@ export async function GET(request: Request) {
 
         const config = await MetaCloudService.getConfig(session.session.activeOrganizationId)
 
-        if (!config || !config.wabaId || !config.accessToken) {
+        if (!config || !config.wabaId) {
             return NextResponse.json({
                 error: 'WhatsApp not configured for this organization'
             }, { status: 404 })
         }
 
         const account = await MetaCloudService.getAccountInfo({
-            wabaId: config.wabaId,
-            accessToken: config.accessToken,
+            wabaId: config.wabaId
         })
 
         return NextResponse.json(account)

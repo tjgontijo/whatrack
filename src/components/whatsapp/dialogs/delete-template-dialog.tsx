@@ -11,7 +11,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { whatsappApi } from '../../api/whatsapp'
+import { whatsappApi } from '@/lib/whatsapp/client'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 

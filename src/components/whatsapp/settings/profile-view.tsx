@@ -3,14 +3,14 @@
 import React from 'react'
 import { Building2, Mail, Globe, MapPin, Store, Info, ExternalLink } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { whatsappApi } from '../../api/whatsapp'
+import { whatsappApi } from '@/lib/whatsapp/client'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
-import type { WhatsAppPhoneNumber } from '../../types'
+import type { WhatsAppPhoneNumber } from '@/types/whatsapp'
 
 interface ProfileViewProps {
     phone: WhatsAppPhoneNumber

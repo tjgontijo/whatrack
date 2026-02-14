@@ -26,7 +26,7 @@ export async function POST(request: Request) {
 
         const config = await MetaCloudService.getConfig(session.session.activeOrganizationId)
 
-        if (!config || !config.phoneId || !config.accessToken) {
+        if (!config || !config.phoneId) {
             return NextResponse.json({
                 error: 'WhatsApp not configured for this organization'
             }, { status: 404 })
@@ -36,7 +36,6 @@ export async function POST(request: Request) {
             phoneId: config.phoneId,
             to,
             templateName,
-            accessToken: config.accessToken,
         })
 
         return NextResponse.json({ success: true, result })

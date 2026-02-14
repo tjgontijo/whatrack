@@ -15,20 +15,36 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const config = await MetaCloudService.getConfig(session.session.activeOrganizationId)
+        const configs = await MetaCloudService.getAllConfigs(session.session.activeOrganizationId)
 
-        if (!config || !config.wabaId || !config.accessToken) {
+        console.log('[API] PhoneNumbers - activeOrg:', session.session.activeOrganizationId)
+        console.log('[API] PhoneNumbers - configs found:', configs.length)
+
+        if (configs.length === 0) {
             return NextResponse.json({
                 error: 'WhatsApp not configured for this organization'
             }, { status: 404 })
         }
 
-        const phoneNumbers = await MetaCloudService.listPhoneNumbers({
-            wabaId: config.wabaId,
-            accessToken: config.accessToken,
-        })
+        // Aggregate phone numbers from all unique WABAs
+        const wabaIds = Array.from(new Set(configs.map(c => c.wabaId).filter(Boolean))) as string[]
+        let allPhoneNumbers: any[] = []
 
-        return NextResponse.json({ phoneNumbers })
+        for (const wabaId of wabaIds) {
+            try {
+                const numbers = await MetaCloudService.listPhoneNumbers({ wabaId })
+                allPhoneNumbers = [...allPhoneNumbers, ...numbers]
+            } catch (err: any) {
+                console.error(`[API] Failed to fetch numbers for WABA ${wabaId}:`, err)
+            }
+        }
+
+        // Remover duplicatas caso existam
+        const uniquePhonesMap = new Map();
+        allPhoneNumbers.forEach(p => uniquePhonesMap.set(p.id, p));
+        const uniquePhones = Array.from(uniquePhonesMap.values());
+
+        return NextResponse.json({ phoneNumbers: uniquePhones })
     } catch (error: any) {
         console.error('[API] List Phone Numbers Error:', error)
         return NextResponse.json(

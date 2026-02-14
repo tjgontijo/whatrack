@@ -33,26 +33,40 @@ export async function seedWhatsAppConfig(prisma: PrismaClient) {
         return
     }
 
-    // Upsert da configuração WhatsApp
-    const config = await prisma.whatsAppConfig.upsert({
-        where: { organizationId: organization.id },
-        update: {
-            wabaId,
-            phoneId,
-            accessToken,
-            status: 'connected',
-        },
-        create: {
+    // Verificar se já existe uma config para essa org com esse phoneId
+    const existingConfig = await prisma.whatsAppConfig.findFirst({
+        where: {
             organizationId: organization.id,
-            wabaId,
             phoneId,
-            accessToken,
-            status: 'connected',
-        },
+        }
     })
+
+    let config
+    if (existingConfig) {
+        config = await prisma.whatsAppConfig.update({
+            where: { id: existingConfig.id },
+            data: {
+                wabaId,
+                phoneId,
+                accessToken,
+                status: 'connected',
+            },
+        })
+    } else {
+        config = await prisma.whatsAppConfig.create({
+            data: {
+                organizationId: organization.id,
+                wabaId,
+                phoneId,
+                accessToken,
+                status: 'connected',
+            },
+        })
+    }
 
     console.log(`✅ WhatsApp config criado/atualizado para organização: ${organization.name}`)
     console.log(`   - WABA ID: ${wabaId}`)
     console.log(`   - Phone ID: ${phoneId}`)
+    console.log(`   - Access Token: ${accessToken.substring(0, 12)}...`)
     console.log(`   - Status: ${config.status}`)
 }

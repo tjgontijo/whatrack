@@ -17,7 +17,7 @@ export async function GET(request: Request) {
 
         const config = await MetaCloudService.getConfig(session.session.activeOrganizationId)
 
-        if (!config || !config.wabaId || !config.accessToken) {
+        if (!config || !config.wabaId) {
             return NextResponse.json({
                 error: 'WhatsApp not configured for this organization'
             }, { status: 404 })
@@ -25,7 +25,6 @@ export async function GET(request: Request) {
 
         const templates = await MetaCloudService.getTemplates({
             wabaId: config.wabaId,
-            accessToken: config.accessToken,
         })
 
         return NextResponse.json({ templates })
@@ -53,7 +52,7 @@ export async function POST(request: Request) {
 
         console.log('[API] RECEBIDA REQUISIÇÃO PARA CRIAR TEMPLATE:', JSON.stringify(body, null, 2))
 
-        if (!config || !config.wabaId || !config.accessToken) {
+        if (!config || !config.wabaId) {
             return NextResponse.json({
                 error: 'WhatsApp not configured for this organization'
             }, { status: 404 })
@@ -61,7 +60,6 @@ export async function POST(request: Request) {
 
         const result = await MetaCloudService.createTemplate({
             wabaId: config.wabaId,
-            accessToken: config.accessToken,
             template: body,
         })
 
@@ -94,7 +92,7 @@ export async function DELETE(request: Request) {
 
         const config = await MetaCloudService.getConfig(session.session.activeOrganizationId)
 
-        if (!config || !config.wabaId || !config.accessToken) {
+        if (!config || !config.wabaId) {
             return NextResponse.json({
                 error: 'WhatsApp not configured for this organization'
             }, { status: 404 })
@@ -102,7 +100,6 @@ export async function DELETE(request: Request) {
 
         const result = await MetaCloudService.deleteTemplate({
             wabaId: config.wabaId,
-            accessToken: config.accessToken,
             name,
         })
 

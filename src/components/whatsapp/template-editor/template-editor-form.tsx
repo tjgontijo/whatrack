@@ -15,7 +15,7 @@ import {
     SelectTrigger,
     SelectValue
 } from '@/components/ui/select'
-import { whatsappApi } from '../../api/whatsapp'
+import { whatsappApi } from '@/lib/whatsapp/client'
 import { toast } from 'sonner'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Separator } from '@/components/ui/separator'
@@ -23,7 +23,7 @@ import { Badge } from '@/components/ui/badge'
 import { Info, HelpCircle, Layout } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { TemplatePreview } from './template-preview'
-import type { WhatsAppTemplate } from '../../types'
+import type { WhatsAppTemplate } from '@/types/whatsapp'
 
 const templateSchema = z.object({
     name: z.string()

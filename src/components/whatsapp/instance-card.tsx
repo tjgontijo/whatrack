@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { Phone, CheckCircle2, AlertCircle, TrendingUp, ArrowRight } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import type { WhatsAppPhoneNumber } from '../types'
+import type { WhatsAppPhoneNumber } from '@/types/whatsapp'
 
 interface InstanceCardProps {
     phone: WhatsAppPhoneNumber

@@ -2,8 +2,8 @@
 
 import React from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { whatsappApi } from '@/features/whatsapp/api/whatsapp'
-import { ProfileView } from '@/features/whatsapp/components/views/profile-view'
+import { whatsappApi } from '@/lib/whatsapp/client'
+import { ProfileView } from '@/components/whatsapp/settings/profile-view'
 import { SuspenseLoader } from '@/components/SuspenseLoader'
 import { Button } from '@/components/ui/button'
 import { ChevronLeft } from 'lucide-react'

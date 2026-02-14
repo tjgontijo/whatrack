@@ -21,7 +21,6 @@ async function fixWhatsAppConfig() {
     try {
         const result = await prisma.whatsAppConfig.updateMany({
             data: {
-                accessToken: newToken,
                 wabaId: wabaId,
                 phoneId: phoneId,
             }

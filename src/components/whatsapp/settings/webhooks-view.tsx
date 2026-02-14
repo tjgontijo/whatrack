@@ -3,13 +3,13 @@
 import React from 'react'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Webhook, Shield, Copy, CheckCircle2, Bell, Zap, Database, Clock, RefreshCw } from 'lucide-react'
+import { Webhook, Shield, Copy, Bell, Zap, Database, Clock, RefreshCw, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { TemplateMainShell, TemplateMainHeader } from '@/components/dashboard/leads'
 import { useQuery } from '@tanstack/react-query'
-import { whatsappApi } from '../../api/whatsapp'
+import { whatsappApi } from '@/lib/whatsapp/client'
 import { Badge } from '@/components/ui/badge'
 import { authClient } from '@/lib/auth/auth-client'
 import {
@@ -20,6 +20,7 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog'
 import { Eye, Smartphone, MessageSquare, Info, AlertTriangle } from 'lucide-react'
+import { useState } from 'react'
 
 import { parsePhoneNumber, parsePhoneNumberFromString } from 'libphonenumber-js'
 
@@ -161,9 +162,21 @@ function formatPayloadHumanly(log: any) {
 export function WebhooksView() {
     const { data: session } = authClient.useSession()
     const isSuperAdmin = session?.user?.role === 'owner'
+    const [showVerifyToken, setShowVerifyToken] = useState(false)
 
-    // URL sem o subdomínio 'app' conforme solicitado
     const webhookUrl = "https://whatrack.com/api/v1/whatsapp/webhook"
+
+    const { data: verifyTokenData } = useQuery({
+        queryKey: ['whatsapp', 'webhook', 'verify-token'],
+        queryFn: async () => {
+            const res = await fetch('/api/v1/system/webhook-verify-token')
+            if (!res.ok) throw new Error('Failed')
+            return res.json()
+        },
+        enabled: isSuperAdmin
+    })
+
+    const verifyToken = verifyTokenData?.verifyToken || ''
 
     const { data: logData, isLoading: isLoadingLogs, refetch: refetchLogs } = useQuery({
         queryKey: ['whatsapp', 'webhook', 'logs'],
@@ -235,7 +248,7 @@ export function WebhooksView() {
                                         </div>
                                         <div>
                                             <CardTitle className="text-lg font-bold">Endpoint de Conexão</CardTitle>
-                                            <CardDescription className="text-xs">Configure esta URL no seu App da Meta (WhatsApp {'>'} Configuração)</CardDescription>
+                                            <CardDescription className="text-xs">Configure esta URL e o Verify Token no seu App da Meta (WhatsApp {'>'} Configuração)</CardDescription>
                                         </div>
                                     </div>
                                 </CardHeader>
@@ -265,26 +278,48 @@ export function WebhooksView() {
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <div className="flex items-center gap-3 p-3 rounded-lg bg-background border border-border/50 shadow-sm">
-                                            <div className="h-8 w-8 rounded-full bg-green-500/10 flex items-center justify-center">
-                                                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">
+                                            Verify Token
+                                        </label>
+                                        <div className="p-3 bg-muted/30 rounded-lg border flex items-center justify-between gap-3">
+                                            <div className="flex items-center gap-2 flex-1 overflow-hidden">
+                                                <Shield className="h-4 w-4 text-blue-600 shrink-0" />
+                                                <code className="text-sm font-mono text-foreground/70 truncate">
+                                                    {verifyToken
+                                                        ? (showVerifyToken ? verifyToken : `${verifyToken.substring(0, 8)}${'•'.repeat(24)}`)
+                                                        : 'Carregando...'
+                                                    }
+                                                </code>
                                             </div>
-                                            <div>
-                                                <p className="text-xs font-bold">Status do Endpoint</p>
-                                                <p className="text-[10px] text-green-600">Ativo e operante</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-3 p-3 rounded-lg bg-background border border-border/50 shadow-sm">
-                                            <div className="h-8 w-8 rounded-full bg-blue-500/10 flex items-center justify-center">
-                                                <Shield className="h-4 w-4 text-blue-600" />
-                                            </div>
-                                            <div>
-                                                <p className="text-xs font-bold">Verify Token</p>
-                                                <p className="text-[10px] text-muted-foreground">Configurado via ENV</p>
+                                            <div className="flex items-center gap-1 shrink-0">
+                                                {verifyToken && (
+                                                    <>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-7 w-7 hover:bg-primary/10"
+                                                            onClick={() => setShowVerifyToken(!showVerifyToken)}
+                                                        >
+                                                            {showVerifyToken ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-7 w-7 hover:bg-primary/10"
+                                                            onClick={() => {
+                                                                navigator.clipboard.writeText(verifyToken)
+                                                                toast.success('Verify Token copiado!')
+                                                            }}
+                                                        >
+                                                            <Copy className="h-3.5 w-3.5" />
+                                                        </Button>
+                                                    </>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
+
                                 </CardContent>
                             </Card>
 
