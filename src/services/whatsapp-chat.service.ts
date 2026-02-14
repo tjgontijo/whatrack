@@ -160,6 +160,75 @@ export class WhatsAppChatService {
     }
 
     /**
+     * Process an outgoing message echo (sent from another device/app)
+     */
+    static async processMessageEcho(
+        instanceId: string,
+        messageData: MessagePayload,
+    ) {
+        try {
+            const { to, id: wamid, timestamp, type } = messageData
+            const customerPhone = to // In echoes, 'to' is the customer
+
+            // Check if message already exists
+            const existingMessage = await prisma.message.findUnique({
+                where: { wamid }
+            })
+
+            if (existingMessage) return existingMessage
+
+            // 0. Find Organization
+            const instance = await prisma.whatsAppConfig.findUnique({
+                where: { id: instanceId },
+                select: { organizationId: true }
+            })
+
+            if (!instance) throw new Error(`Instance ${instanceId} not found`)
+
+            // 1. Find or Create Lead (Recipient)
+            const lead = await prisma.lead.upsert({
+                where: {
+                    organizationId_phone: {
+                        organizationId: instance.organizationId,
+                        phone: customerPhone
+                    }
+                },
+                update: {
+                    lastMessageAt: new Date(parseInt(timestamp) * 1000),
+                },
+                create: {
+                    organizationId: instance.organizationId,
+                    phone: customerPhone,
+                    waId: customerPhone,
+                    lastMessageAt: new Date(parseInt(timestamp) * 1000),
+                }
+            })
+
+            // 2. Extract content (simplified call to shared logic or duplicate for now)
+            let body: string | null = null
+            if (type === 'text') body = messageData.text?.body || ''
+            else body = `Sent ${type} message`
+
+            // 3. Create Message (OUTBOUND)
+            return await prisma.message.create({
+                data: {
+                    wamid,
+                    leadId: lead.id,
+                    instanceId,
+                    direction: 'OUTBOUND',
+                    type,
+                    body: body || '',
+                    status: 'active',
+                    timestamp: new Date(parseInt(timestamp) * 1000),
+                }
+            })
+        } catch (error) {
+            console.error('[WhatsAppChatService] Error processing message echo:', error)
+            throw error
+        }
+    }
+
+    /**
      * Process message status update (sent, delivered, read)
      */
     static async processStatusUpdate(

@@ -5,8 +5,8 @@
  */
 
 import { NextResponse } from 'next/server'
-
 import { prisma } from '@/lib/prisma'
+import { WhatsAppChatService } from '@/services/whatsapp-chat.service'
 
 export const dynamic = 'force-dynamic'
 
@@ -50,19 +50,19 @@ export async function POST(request: Request) {
     try {
         const payload = await request.json()
 
-        console.log('[meta-cloud/webhook] POST received:', JSON.stringify(payload).slice(0, 500))
-
         // Extract basic info from the payload
         const entry = payload.entry?.[0]
         const wabaId = entry?.id
         const changes = entry?.changes?.[0]
         const value = changes?.value
-        const phoneId = value?.metadata?.phone_number_id
+        const metadata = value?.metadata
+        const phoneId = metadata?.phone_number_id
 
-        // Find the organization associated with this WhatsApp config
+        // Find the organization and instance associated with this WhatsApp config
         let organizationId: string | null = null
+        let instanceId: string | null = null
+
         if (phoneId || wabaId) {
-            console.log('[meta-cloud/webhook] Searching for config with:', { phoneId, wabaId })
             const config = await prisma.whatsAppConfig.findFirst({
                 where: {
                     OR: [
@@ -70,19 +70,18 @@ export async function POST(request: Request) {
                         wabaId ? { wabaId: wabaId } : null,
                     ].filter((cond): cond is { phoneId: string } | { wabaId: string } => cond !== null)
                 },
-                select: { organizationId: true }
+                select: { id: true, organizationId: true }
             })
-            console.log('[meta-cloud/webhook] Found config:', config)
             organizationId = config?.organizationId ?? null
+            instanceId = config?.id ?? null
         }
 
         // Determine event type for logging
         let eventType = 'unknown'
         if (value?.messages) eventType = 'messages'
+        else if (value?.message_echoes) eventType = 'smb_message_echoes'
         else if (value?.statuses) eventType = 'statuses'
-        else if (changes?.field) eventType = changes.field // e.g., "message_template_status_update"
-
-        console.log('[meta-cloud/webhook] Event type:', eventType, 'Org ID:', organizationId)
+        else if (changes?.field) eventType = changes.field
 
         // Persist the payload for auditing
         try {
@@ -95,37 +94,39 @@ export async function POST(request: Request) {
             })
         } catch (dbError) {
             console.error('[meta-cloud/webhook] Audit log error:', dbError)
-            // Continue even if logging fails
         }
 
-        // Log received data for debugging
-        if (value?.messages) {
-            console.log('[meta-cloud/webhook] Messages received:', value.messages.length)
+        // 1. Process INBOUND messages
+        if (value?.messages && instanceId) {
             for (const msg of value.messages) {
-                console.log('[meta-cloud/webhook] Message:', {
-                    from: msg.from,
-                    type: msg.type,
-                    timestamp: msg.timestamp,
-                    text: msg.text?.body?.slice(0, 100),
-                })
+                try {
+                    const contactProfile = value.contacts?.find((c: any) => c.wa_id === msg.from)
+                    await WhatsAppChatService.processIncomingMessage(
+                        instanceId,
+                        msg,
+                        contactProfile ? { name: contactProfile.profile.name } : undefined
+                    )
+                } catch (err) {
+                    console.error('[meta-cloud/webhook] Error processing message:', msg.id, err)
+                }
             }
         }
 
-        if (value?.statuses) {
-            console.log('[meta-cloud/webhook] Statuses received:', value.statuses.length)
-            for (const status of value.statuses) {
-                console.log('[meta-cloud/webhook] Status:', {
-                    id: status.id,
-                    status: status.status,
-                    recipientId: status.recipient_id,
-                })
+        // 2. Process OUTBOUND echoes (sent from mobile app or other devices)
+        if (value?.message_echoes && instanceId) {
+            for (const echo of value.message_echoes) {
+                try {
+                    await WhatsAppChatService.processMessageEcho(instanceId, echo)
+                } catch (err) {
+                    console.error('[meta-cloud/webhook] Error processing echo:', echo.id, err)
+                }
             }
         }
 
         // Always return 200 to prevent Meta from retrying
         return NextResponse.json({
             received: true,
-            messagesCount: value?.messages?.length ?? 0,
+            messagesCount: (value?.messages?.length ?? 0) + (value?.message_echoes?.length ?? 0),
             statusesCount: value?.statuses?.length ?? 0,
         })
     } catch (error) {

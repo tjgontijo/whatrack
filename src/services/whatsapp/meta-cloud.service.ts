@@ -313,6 +313,75 @@ export class MetaCloudService {
     }
 
     /**
+     * Fetch message history for a phone ID
+     * Meta API: GET /{PHONE_ID}/message_history
+     */
+    static async getMessageHistory({
+        phoneId,
+        accessToken,
+        limit = 50,
+        after
+    }: {
+        phoneId: string,
+        accessToken?: string,
+        limit?: number,
+        after?: string
+    }) {
+        const token = accessToken || this.accessToken
+        let url = `${GRAPH_API_URL}/${API_VERSION}/${phoneId}/message_history?limit=${limit}&fields=id,message_id,events{delivery_status,timestamp,application,webhook_uri,error_description}`
+
+        if (after) {
+            url += `&after=${after}`
+        }
+
+        console.log('[MetaCloudService] Fetching message history:', { url })
+
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+            console.error('[MetaCloudService] Fetch message history error:', data)
+            throw new Error(data.error?.message || 'Failed to fetch message history')
+        }
+
+        return data
+    }
+
+    /**
+     * Deregister a phone number from the Cloud API
+     * Meta API: POST /{PHONE_ID}/deregister
+     */
+    static async deregisterPhone({ phoneId, accessToken }: { phoneId: string, accessToken?: string }) {
+        const token = accessToken || this.accessToken
+        const url = `${GRAPH_API_URL}/${API_VERSION}/${phoneId}/deregister`
+
+        console.log('[MetaCloudService] Deregistering phone:', { url })
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+            console.error('[MetaCloudService] Deregister error:', data)
+            throw new Error(data.error?.message || 'Failed to deregister phone')
+        }
+
+        return data
+    }
+
+    /**
      * Helper to get config for an organization.
      * Reads from the database only. Use the seed to populate development data.
      */
