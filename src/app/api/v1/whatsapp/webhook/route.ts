@@ -96,6 +96,23 @@ export async function POST(request: Request) {
             console.error('[meta-cloud/webhook] Audit log error:', dbError)
         }
 
+        // 0. Handle Account Updates (Life-cycle events)
+        if (changes?.field === 'account_update') {
+            const event = value?.event
+            const targetWabaId = value?.waba_info?.waba_id
+
+            if ((event === 'PARTNER_APP_UNINSTALLED' || event === 'PARTNER_REMOVED') && targetWabaId) {
+                console.log(`[meta-cloud/webhook] Removing instances for WABA ${targetWabaId} due to ${event}`)
+                try {
+                    await prisma.whatsAppConfig.deleteMany({
+                        where: { wabaId: targetWabaId }
+                    })
+                } catch (delError) {
+                    console.error('[meta-cloud/webhook] Error deleting instances:', delError)
+                }
+            }
+        }
+
         // 1. Process INBOUND messages
         if (value?.messages && instanceId) {
             for (const msg of value.messages) {
