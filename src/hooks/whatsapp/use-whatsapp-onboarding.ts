@@ -103,20 +103,34 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
             // Ouvir apenas mensagens do mesmo domínio (vindas do nosso callback page)
             if (event.origin !== window.location.origin) return;
 
-            if (event.data?.type === 'WA_CALLBACK_STATUS') {
-                const { status: callbackStatus, error: callbackError } = event.data;
-                console.log('[Onboarding] Callback status:', callbackStatus);
+            if (event.data?.type === 'WA_CALLBACK_DATA') {
+                const { status: callbackStatus, code, wabaId, error: callbackError } = event.data;
+                console.log('[Onboarding] Dados recebidos do popup:', { callbackStatus, hasCode: !!code });
 
-                if (callbackStatus === 'success') {
-                    setStatus('success');
-                    toast.success('WhatsApp conectado com sucesso!');
-                    onSuccess?.();
-                } else if (callbackStatus === 'canceled') {
+                if (callbackStatus === 'success' && code) {
+                    setStatus('checking');
+                    try {
+                        const response = await fetch('/api/v1/whatsapp/claim-waba', {
+                            method: 'POST',
+                            body: JSON.stringify({ wabaId, code }),
+                            headers: { 'Content-Type': 'application/json' }
+                        });
+
+                        if (!response.ok) throw new Error('Falha na troca de token');
+
+                        setStatus('success');
+                        toast.success('WhatsApp conectado com sucesso!');
+                        onSuccess?.();
+                    } catch (err: any) {
+                        setStatus('idle');
+                        toast.error(`Erro ao vincular: ${err.message}`);
+                    }
+                } else if (callbackStatus === 'error' || callbackError) {
+                    setStatus('idle');
+                    toast.error('Conexão recusada ou erro na Meta.');
+                } else {
                     setStatus('idle');
                     toast.error('Conexão cancelada pelo usuário.');
-                } else if (callbackStatus === 'error') {
-                    setStatus('idle');
-                    setError(callbackError || 'Erro na conexão com a Meta.');
                 }
 
                 pollingStartTime.current = null;
