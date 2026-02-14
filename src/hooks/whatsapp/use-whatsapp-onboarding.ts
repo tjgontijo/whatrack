@@ -96,9 +96,37 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
         pollingStartTime.current = Date.now();
     };
 
-    // Polling Logic
+    // Polling e Message Listener Logic
     useEffect(() => {
         let intervalId: NodeJS.Timeout;
+
+        // Listener para capturar o WABA ID da janela da Meta
+        const handleMessage = async (event: MessageEvent) => {
+            // Verificar origem por segurança em prod
+            if (event.origin !== 'https://business.facebook.com') return;
+
+            try {
+                const data = JSON.parse(event.data);
+                if (data.type === 'facebookSharedObject' && data.payload?.waba_id) {
+                    const wabaId = data.payload.waba_id;
+                    console.log('[Onboarding] WABA ID capturado:', wabaId);
+
+                    // Notificar o backend para vincular este WABA à organização atual
+                    await fetch('/api/v1/whatsapp/claim-waba', {
+                        method: 'POST',
+                        body: JSON.stringify({ wabaId }),
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+
+                    // Forçar uma verificação imediata
+                    checkConnection(true);
+                }
+            } catch (e) {
+                // Não é um JSON válido ou não é o que esperamos, ignorar
+            }
+        };
+
+        window.addEventListener('message', handleMessage);
 
         if (status === 'pending' && pollingStartTime.current) {
             intervalId = setInterval(async () => {
@@ -121,6 +149,7 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
         }
 
         return () => {
+            window.removeEventListener('message', handleMessage);
             if (intervalId) clearInterval(intervalId);
         };
     }, [status, checkConnection]);
