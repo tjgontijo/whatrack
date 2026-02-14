@@ -13,9 +13,7 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
     const pollingStartTime = useRef<number | null>(null);
     const popupRef = useRef<Window | null>(null);
 
-    const REDIRECT_URI = typeof window !== 'undefined'
-        ? `${window.location.origin}/whatsapp/callback`
-        : '';
+    const REDIRECT_URI = 'https://whatrack.com/dashboard/settings/whatsapp/';
 
     const checkConnection = useCallback(async (isAuto = false) => {
         if (!isAuto) setStatus('checking');
@@ -65,7 +63,7 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
 
         const appId = process.env.NEXT_PUBLIC_META_APP_ID;
         const configId = process.env.NEXT_PUBLIC_META_CONFIG_ID;
-        const apiVersion = process.env.META_API_VERSION || 'v24.0';
+        const apiVersion = process.env.NEXT_PUBLIC_META_API_VERSION || 'v24.0';
 
         // Fluxo OAuth tradicional via Dialog
         const url = `https://www.facebook.com/${apiVersion}/dialog/oauth` +

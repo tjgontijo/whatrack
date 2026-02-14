@@ -1,8 +1,10 @@
 'use client'
 
 import React from 'react'
-import { RefreshCw, Plus, Phone } from 'lucide-react'
+import { RefreshCw, Plus, Phone, Loader2 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
+import { useSearchParams, useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -12,25 +14,79 @@ import {
 } from '@/components/dashboard/leads'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { whatsappApi } from '@/lib/whatsapp/client'
+import { useWhatsAppOnboarding } from '@/hooks/whatsapp/use-whatsapp-onboarding'
 import { InstanceCard } from '@/components/whatsapp/instance-card'
 import { EmbeddedSignupButton } from '@/components/whatsapp/embedded-signup-button'
-import { AddInstanceDialog } from '@/components/whatsapp/dialogs/add-instance-dialog'
 import type { WhatsAppPhoneNumber } from '@/types/whatsapp'
 
 export default function WhatsAppSettingsPage() {
     const isMobile = useIsMobile()
+    const searchParams = useSearchParams()
+    const router = useRouter()
+    const [isClaiming, setIsClaiming] = React.useState(false)
 
     // Fetch instances (phone numbers)
     const { data: phoneNumbers, isLoading, error, refetch, isRefetching } = useQuery<WhatsAppPhoneNumber[]>({
         queryKey: ['whatsapp', 'phone-numbers'],
         queryFn: () => whatsappApi.listPhoneNumbers(),
         staleTime: 30_000,
-        retry: false, // Don't retry for now to make debugging faster
+        retry: false,
     })
 
     const handleRefresh = () => {
         refetch()
     }
+
+    const { status: onboardingStatus, startOnboarding } = useWhatsAppOnboarding(handleRefresh)
+
+    // Process OAuth callback from Meta
+    React.useEffect(() => {
+        const code = searchParams.get('code')
+        const wabaId = searchParams.get('waba_id')
+
+        if (code && !isClaiming) {
+            const handleClaim = async () => {
+                setIsClaiming(true)
+                console.log('[WhatsAppSettings] Iniciando troca de token para code:', code)
+
+                try {
+                    const response = await fetch('/api/v1/whatsapp/claim-waba', {
+                        method: 'POST',
+                        body: JSON.stringify({ wabaId, code }),
+                        headers: { 'Content-Type': 'application/json' }
+                    })
+
+                    if (!response.ok) {
+                        const data = await response.json()
+                        throw new Error(data.error || 'Erro ao vincular conta')
+                    }
+
+                    toast.success('WhatsApp conectado com sucesso!')
+
+                    // Se estivermos em um popup, avisar a janela pai e fechar
+                    if (window.opener && window.opener !== window) {
+                        window.opener.postMessage({ type: 'WA_CALLBACK_SUCCESS', wabaId }, window.location.origin)
+                        setTimeout(() => window.close(), 1000)
+                        return
+                    }
+
+                    // Se for a janela principal, apenas limpar a URL
+                    const newUrl = window.location.pathname
+                    router.replace(newUrl)
+
+                    // Atualizar a lista de instâncias
+                    refetch()
+                } catch (err: any) {
+                    console.error('[WhatsAppSettings] Erro no claim:', err)
+                    toast.error(`Falha na conexão: ${err.message}`)
+                } finally {
+                    setIsClaiming(false)
+                }
+            }
+
+            handleClaim()
+        }
+    }, [searchParams, router, refetch, isClaiming])
 
     return (
         <TemplateMainShell className="flex flex-col h-[calc(100vh-2rem)]">
@@ -38,15 +94,20 @@ export default function WhatsAppSettingsPage() {
                 title="Instâncias WhatsApp"
                 subtitle="Gerencie seus números conectados e templates de mensagens"
                 actions={
-                    <AddInstanceDialog
-                        onSuccess={handleRefresh}
-                        trigger={
-                            <Button variant="default" size="sm" className="h-8 gap-2 font-bold shadow-sm">
-                                <Plus className="h-4 w-4" />
-                                {!isMobile && 'Nova Instância'}
-                            </Button>
-                        }
-                    />
+                    <Button
+                        variant="default"
+                        size="sm"
+                        className="h-8 gap-2 font-bold shadow-sm"
+                        onClick={startOnboarding}
+                        disabled={onboardingStatus === 'pending' || onboardingStatus === 'checking' || isClaiming}
+                    >
+                        {onboardingStatus === 'pending' || onboardingStatus === 'checking' || isClaiming ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                            <Plus className="h-4 w-4" />
+                        )}
+                        {!isMobile && 'Nova Instância'}
+                    </Button>
                 }
             />
 
@@ -74,10 +135,12 @@ export default function WhatsAppSettingsPage() {
                 ? "flex-1 overflow-y-scroll bg-muted/5 p-4 scrollbar-hide"
                 : "flex-1 overflow-y-auto bg-muted/5 p-8"
             }>
-                {isLoading ? (
+                {isLoading || isClaiming ? (
                     <div className="flex flex-col items-center justify-center h-64 gap-3">
                         <RefreshCw className="h-8 w-8 animate-spin text-primary/40" />
-                        <p className="text-sm font-medium text-muted-foreground">Carregando instâncias...</p>
+                        <p className="text-sm font-medium text-muted-foreground">
+                            {isClaiming ? 'Finalizando conexão...' : 'Carregando instâncias...'}
+                        </p>
                     </div>
                 ) : error ? (
                     <div className="flex flex-col items-center justify-center h-full max-w-2xl mx-auto py-12 gap-4">

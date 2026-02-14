@@ -47,7 +47,7 @@ export class MetaCloudService {
         const appId = process.env.NEXT_PUBLIC_META_APP_ID;
         // O redirect_uri deve ser EXATAMENTE o mesmo enviado pelo frontend
         // Como o app roda em whatrack.com, usamos este padrão.
-        const redirectUri = 'https://whatrack.com/whatsapp/callback';
+        const redirectUri = 'https://whatrack.com/dashboard/settings/whatsapp/';
 
         const payload: any = {
             client_id: appId,
