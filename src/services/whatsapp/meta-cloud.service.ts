@@ -45,13 +45,15 @@ export class MetaCloudService {
         // Para Embedded Signup v3 com Hosted ES, o redirect_uri precisa bater com o enviado no diálogo
         // Se o diálogo usou business.facebook.com, precisamos passar exatamente igual.
         const appId = process.env.NEXT_PUBLIC_META_APP_ID;
-        const configId = process.env.NEXT_PUBLIC_META_CONFIG_ID;
-        const redirectUri = `https://business.facebook.com/messaging/hosted_es/oauth_callback/`;
+        // O redirect_uri deve ser EXATAMENTE o mesmo enviado pelo frontend
+        // Como o app roda em whatrack.com, usamos este padrão.
+        const redirectUri = 'https://whatrack.com/whatsapp/callback';
 
         const payload: any = {
             client_id: appId,
             client_secret: process.env.META_APP_SECRET,
             grant_type: 'authorization_code',
+            redirect_uri: redirectUri,
             code
         }
 

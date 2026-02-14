@@ -13,12 +13,15 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
     const pollingStartTime = useRef<number | null>(null);
     const popupRef = useRef<Window | null>(null);
 
+    const REDIRECT_URI = typeof window !== 'undefined'
+        ? `${window.location.origin}/whatsapp/callback`
+        : '';
+
     const checkConnection = useCallback(async (isAuto = false) => {
         if (!isAuto) setStatus('checking');
         setError(null);
 
         try {
-            // Se for auto polling, passar o timestamp de início para filtrar configs antigas
             const queryParams = isAuto && pollingStartTime.current
                 ? `?after=${pollingStartTime.current}`
                 : '';
@@ -60,20 +63,23 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
             return;
         }
 
-        const extras = {
-            featureType: 'whatsapp_business_app_onboarding',
-            sessionInfoVersion: '3',
-            version: 'v3',
-            setup: {
-                organizationId: activeOrg.id,
-            },
-        };
+        const appId = process.env.NEXT_PUBLIC_META_APP_ID;
+        const configId = process.env.NEXT_PUBLIC_META_CONFIG_ID;
+        const apiVersion = process.env.META_API_VERSION || 'v24.0';
 
-        const url =
-            `https://business.facebook.com/messaging/whatsapp/onboard/` +
-            `?app_id=${process.env.NEXT_PUBLIC_META_APP_ID}` +
-            `&config_id=${process.env.NEXT_PUBLIC_META_CONFIG_ID}` +
-            `&extras=${encodeURIComponent(JSON.stringify(extras))}`;
+        // Fluxo OAuth tradicional via Dialog
+        const url = `https://www.facebook.com/${apiVersion}/dialog/oauth` +
+            `?client_id=${appId}` +
+            `&config_id=${configId}` +
+            `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
+            `&response_type=code` +
+            `&display=popup` +
+            `&override_default_response_type=true` +
+            `&extras=${encodeURIComponent(JSON.stringify({
+                setup: { organizationId: activeOrg.id }
+            }))}`;
+
+        console.log('[Meta Onboarding] Iniciando fluxo OAuth:', { url });
 
         const width = 800;
         const height = 700;
@@ -91,84 +97,32 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
         pollingStartTime.current = Date.now();
     };
 
-    // Polling e Message Listener Logic
     useEffect(() => {
         let intervalId: NodeJS.Timeout;
 
         const handleMessage = async (event: MessageEvent) => {
-            const allowedOrigins = [
-                'https://business.facebook.com',
-                'https://www.facebook.com',
-                'https://web.facebook.com'
-            ];
+            // Ouvir apenas mensagens do mesmo domínio (vindas do nosso callback page)
+            if (event.origin !== window.location.origin) return;
 
-            if (!allowedOrigins.includes(event.origin)) return;
-
-            console.log('[Meta Debug] Evento bruto recebido:', event.data);
-
-            try {
-                const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-
-                // 1. Procurar em múltiplas estruturas possíveis
-                const payload = data.type === 'facebookSharedObject' ? data.payload : (data.data || data);
-
-                // 2. Extrair WABA ID (vários nomes possíveis)
-                let wabaId = payload?.waba_id || payload?.wabaId || payload?.waba_business_account_id;
-
-                // 3. Extrair CODE (vários nomes possíveis)
-                let code = payload?.code || payload?.authorization_code || payload?.auth_code;
-
-                // 4. Fallback especial para v3 (session_info)
-                if (!wabaId && payload?.session_info) {
-                    const sessionInfo = Array.isArray(payload.session_info) ? payload.session_info[0] : payload.session_info;
-                    wabaId = sessionInfo?.waba_id;
-                }
-
-                console.log('[Meta Debug] Dados processados:', { wabaId, code: code ? 'OK' : 'MISSING' });
-
-                if (wabaId) {
-                    // Fechar o popup imediatamente se encontrarmos o WABA ID
-                    if (popupRef.current) {
-                        console.log('[Onboarding] Fechando janela...');
-                        popupRef.current.close();
-                        popupRef.current = null;
-                    }
-
-                    // Se não temos o code ainda mas temos o WABA ID, podemos estar em um flow antigo
-                    // mas para v3 com inbox, o CODE é obrigatório para o webhook funcionar.
-
-                    await fetch('/api/v1/whatsapp/claim-waba', {
-                        method: 'POST',
-                        body: JSON.stringify({ wabaId, code }),
-                        headers: { 'Content-Type': 'application/json' }
-                    });
-
-                    setStatus('success');
-                    onSuccess?.();
-                } else if (data.event === 'FINISH' || data.type === 'WA_EMBEDDED_SIGNUP_FINISH') {
-                    // Se recebemos um evento de finalização mas sem dados, fechar assim mesmo
-                    if (popupRef.current) {
-                        popupRef.current.close();
-                        popupRef.current = null;
-                    }
-                }
-            } catch (e) {
-                console.error('[Onboarding] Erro ao tratar mensagem da Meta:', e);
+            if (event.data?.type === 'WA_CALLBACK_SUCCESS') {
+                console.log('[Onboarding] Notificação de sucesso recebida do callback');
+                setStatus('success');
+                onSuccess?.();
             }
         };
 
         window.addEventListener('message', handleMessage);
 
+        // Polling de segurança (caso o usuário feche a janela ou o callback falhe)
         if (status === 'pending' && pollingStartTime.current) {
             intervalId = setInterval(async () => {
                 const now = Date.now();
                 const elapsed = now - (pollingStartTime.current || 0);
 
                 if (elapsed > MAX_POLLING_DURATION) {
-                    console.log('[Onboarding] Polling timeout reached');
                     setStatus('idle');
                     pollingStartTime.current = null;
-                    setError('O tempo limite de espera foi atingido. Se você concluiu o processo, tente verificar manualmente.');
+                    setError('O tempo limite de espera foi atingido. Tente verificar manualmente.');
                     return;
                 }
 
