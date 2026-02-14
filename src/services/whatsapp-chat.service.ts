@@ -45,21 +45,35 @@ export class WhatsAppChatService {
                 return existingMessage
             }
 
-            // 1. Find or Create Contact
-            // Using upsert with update allows updating lastMessageAt and profile info
-            const contact = await prisma.contact.upsert({
+            // 0. Find Organization ID from Instance
+            const instance = await prisma.whatsAppConfig.findUnique({
+                where: { id: instanceId },
+                select: { organizationId: true }
+            })
+
+            if (!instance) {
+                throw new Error(`Instance ${instanceId} not found`)
+            }
+
+            const organizationId = instance.organizationId
+
+            // 1. Find or Create Lead
+            // We search by phone OR waId within the organization
+            const lead = await prisma.lead.upsert({
                 where: {
-                    instanceId_waId: {
-                        instanceId,
-                        waId: from
+                    organizationId_phone: {
+                        organizationId,
+                        phone: from
                     }
                 },
                 update: {
+                    waId: from,
+                    pushName: contactProfile?.name || undefined,
                     lastMessageAt: new Date(parseInt(timestamp) * 1000),
-                    pushName: contactProfile?.name || undefined, // Update name if provided
                 },
                 create: {
-                    instanceId,
+                    organizationId,
+                    phone: from,
                     waId: from,
                     pushName: contactProfile?.name,
                     lastMessageAt: new Date(parseInt(timestamp) * 1000),
@@ -83,7 +97,7 @@ export class WhatsAppChatService {
                     mediaUrl = `meta_id:${messageData.video?.id}`
                     break
                 case 'audio':
-                case 'voice': // voice messages are usually type 'audio' with 'voice': true? or just type 'audio'. Meta documentation says type 'audio'. Some payloads say 'voice'.
+                case 'voice':
                     body = 'Audio Message'
                     mediaUrl = `meta_id:${messageData.audio?.id || messageData['voice']?.id}`
                     break
@@ -112,10 +126,6 @@ export class WhatsAppChatService {
                     }
                     break
                 case 'reaction':
-                    // Store reaction as a separate message type or just body description?
-                    // For simple chat history, maybe create a system message?
-                    // Or ideally update the reacted message. 
-                    // But we want a linear history for now. Let's store as a message.
                     body = `Reacted ${messageData.reaction?.emoji} to message ${messageData.reaction?.message_id}`
                     break
                 case 'unknown':
@@ -127,13 +137,13 @@ export class WhatsAppChatService {
             const message = await prisma.message.create({
                 data: {
                     wamid,
-                    contactId: contact.id,
+                    leadId: lead.id,
                     instanceId,
                     direction: 'INBOUND',
                     type,
                     body: body || '',
                     mediaUrl,
-                    status: 'active', // or 'delivered' to us
+                    status: 'active',
                     timestamp: new Date(parseInt(timestamp) * 1000),
                 }
             })

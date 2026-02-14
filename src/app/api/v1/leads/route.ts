@@ -12,7 +12,7 @@ const leadSchema = z.object({
   name: z.string().nullable(),
   phone: z.string().nullable(),
   mail: z.string().nullable(),
-  remoteJid: z.string().nullable(),
+  waId: z.string().nullable(),
   createdAt: z.date(),
 })
 
@@ -112,7 +112,7 @@ const createLeadSchema = z.object({
   name: z.string().optional(),
   phone: z.string().optional(),
   mail: z.string().email().optional().or(z.literal('')),
-  remoteJid: z.string().optional(),
+  waId: z.string().optional(),
 })
 
 export async function POST(req: Request) {
@@ -132,7 +132,7 @@ export async function POST(req: Request) {
         name: validated.name,
         phone: validated.phone,
         mail: validated.mail || null,
-        remoteJid: validated.remoteJid,
+        waId: validated.waId,
       },
     })
 
@@ -151,7 +151,7 @@ export async function POST(req: Request) {
           { status: 409 }
         )
       }
-      if (field === 'remoteJid' || field === 'remote_jid') {
+      if (field === 'waId' || field === 'remote_jid') {
         return NextResponse.json(
           { error: 'Já existe um lead com este ID do WhatsApp nesta organização' },
           { status: 409 }
@@ -195,7 +195,7 @@ export async function GET(req: Request) {
     ors.push({ name: { contains: q, mode: imode } })
     ors.push({ phone: { contains: q, mode: imode } })
     ors.push({ mail: { contains: q, mode: imode } })
-    ors.push({ remoteJid: { contains: q, mode: imode } })
+    ors.push({ waId: { contains: q, mode: imode } })
     const looksLikeUuid = /^[0-9a-fA-F-]{32,36}$/.test(q)
     if (looksLikeUuid) ors.push({ id: q })
   }
@@ -236,7 +236,7 @@ export async function GET(req: Request) {
           name: true,
           phone: true,
           mail: true,
-          remoteJid: true,
+          waId: true,
           createdAt: true,
         },
       })

@@ -164,16 +164,27 @@ model Lead {
   id             String       @id @default(cuid())
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  // Basic Info
   name           String?
-  phone          String?
-  remoteJid      String?      @map("remote_jid")
   mail           String?
+  phone          String?      // International format: +5511999998888
+  
+  // WhatsApp Specific
+  waId           String?      @map("remote_jid") // Meta technical ID
+  pushName       String?      // WhatsApp profile name
+  profilePicUrl  String?
+  
+  // Chat Control
+  lastMessageAt  DateTime?    @map("last_message_at")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
 
+  messages  Message[]
+
   @@unique([organizationId, phone])
-  @@unique([organizationId, remoteJid])
+  @@unique([organizationId, waId])
   @@index([organizationId])
   @@map("leads")
 }
@@ -384,7 +395,6 @@ model WhatsAppConfig {
   connectedAt   DateTime? // Quando foi conectado
   lastWebhookAt DateTime? // Último evento recebido (detecta integrações mortas)
 
-  contacts Contact[]
   messages Message[]
 
   createdAt DateTime @default(now())
@@ -406,34 +416,13 @@ model WhatsAppWebhookLog {
   @@map("whatsapp_webhook_logs")
 }
 
-model Contact {
-  id         String         @id @default(cuid())
-  instanceId String
-  instance   WhatsAppConfig @relation(fields: [instanceId], references: [id], onDelete: Cascade)
-
-  waId          String // WhatsApp ID (Phone Number), usually number only
-  pushName      String? // Display Name from WhatsApp
-  profilePicUrl String?
-
-  lastMessageAt DateTime? // For sorting conversations
-
-  messages Message[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([instanceId, waId]) // Unique contact per instance
-  @@index([instanceId])
-  @@map("whatsapp_contacts")
-}
-
 model Message {
   id String @id @default(cuid())
 
   wamid String @unique // WhatsApp Message ID
 
-  contactId String
-  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  leadId String
+  lead   Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
 
   instanceId String
   instance   WhatsAppConfig @relation(fields: [instanceId], references: [id], onDelete: Cascade)
@@ -450,7 +439,7 @@ model Message {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([contactId])
+  @@index([leadId])
   @@index([instanceId])
   @@map("whatsapp_messages")
 }

@@ -40,7 +40,7 @@ const updateLeadSchema = z.object({
   name: z.string().optional(),
   phone: z.string().optional(),
   mail: z.string().email().optional().or(z.literal('')).nullable(),
-  remoteJid: z.string().optional().nullable(),
+  waId: z.string().optional().nullable(),
 })
 
 export async function PUT(
@@ -76,7 +76,7 @@ export async function PUT(
         name: validated.name,
         phone: validated.phone,
         mail: validated.mail ?? undefined,
-        remoteJid: validated.remoteJid,
+        waId: validated.waId,
       },
     })
 
@@ -95,7 +95,7 @@ export async function PUT(
           { status: 409 }
         )
       }
-      if (field === 'remoteJid' || field === 'remote_jid') {
+      if (field === 'waId' || field === 'remote_jid') {
         return NextResponse.json(
           { error: 'Já existe um lead com este ID do WhatsApp nesta organização' },
           { status: 409 }
