@@ -22,47 +22,55 @@ export async function POST(request: Request) {
         }
 
         const orgId = session.session.activeOrganizationId
-        const { wabaId } = await request.json()
+        const { wabaId, code } = await request.json()
 
         if (!wabaId) {
             return NextResponse.json({ error: 'WABA ID is required' }, { status: 400 })
         }
 
-        console.log(`[ClaimWaba] Request for WABA: ${wabaId}, Org: ${orgId}`)
+        console.log(`[ClaimWaba] Request for WABA: ${wabaId}, Org: ${orgId}, HasCode: ${!!code}`)
 
-        // 1. Buscar detalhes do WABA na Meta para confirmar que temos acesso
-        // e pegar o primeiro número de telefone disponível
-        const token = MetaCloudService.accessToken
-        const phoneNumbersUrl = `https://graph.facebook.com/${process.env.META_API_VERSION || 'v24.0'}/${wabaId}/phone_numbers`
+        let clientAccessToken = ''
+        let tokenExpiresAt: Date | null = null
 
-        const response = await fetch(phoneNumbersUrl, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        })
-
-        if (!response.ok) {
-            const error = await response.json()
-            console.error('[ClaimWaba] Meta API error:', error)
-            return NextResponse.json({ error: 'Failed to verify WABA with Meta' }, { status: 502 })
+        // 1. If we have a code, exchange it for a token
+        if (code) {
+            try {
+                const tokenData = await MetaCloudService.exchangeCodeForToken(code)
+                clientAccessToken = tokenData.access_token
+                if (tokenData.expires_in) {
+                    tokenExpiresAt = new Date(Date.now() + tokenData.expires_in * 1000)
+                }
+                console.log('[ClaimWaba] Token exchange successful')
+            } catch (err: any) {
+                console.error('[ClaimWaba] Token exchange failed:', err.message)
+                return NextResponse.json({ error: `Failed to exchange token: ${err.message}` }, { status: 502 })
+            }
         }
 
-        const data = await response.json()
-        const phones = data.data || []
+        // 2. Use the client token if we have it, otherwise fallback to global (for existing own BM numbers)
+        const token = clientAccessToken || MetaCloudService.accessToken
+
+        // 3. Buscar detalhes do WABA na Meta para confirmar que temos acesso
+        // e pegar o primeiro número de telefone disponível
+        const phones = await MetaCloudService.listPhoneNumbers({ wabaId, accessToken: token })
 
         if (phones.length === 0) {
-            // Se ainda não tem número, salvamos apenas o WABA ID para o polling continuar
-            // mas o ideal é que já tenha.
             console.warn('[ClaimWaba] No phone numbers found yet for WABA:', wabaId)
         }
 
         const primaryPhone = phones[0]
 
-        // 2. Criar ou atualizar a configuração no banco
+        // 4. Criar ou atualizar a configuração no banco
         const config = await prisma.whatsAppConfig.upsert({
             where: {
                 phoneId: primaryPhone?.id || `pending_${wabaId}`
             },
             update: {
                 wabaId,
+                accessToken: clientAccessToken || undefined, // Only update if we got a new one
+                tokenExpiresAt,
+                authorizationCode: code,
                 status: 'connected',
                 verifiedName: primaryPhone?.verified_name,
                 displayPhone: primaryPhone?.display_phone_number,
@@ -72,19 +80,18 @@ export async function POST(request: Request) {
                 organizationId: orgId,
                 wabaId,
                 phoneId: primaryPhone?.id,
+                accessToken: clientAccessToken || null,
+                tokenExpiresAt,
+                authorizationCode: code,
                 status: 'connected',
                 verifiedName: primaryPhone?.verified_name,
                 displayPhone: primaryPhone?.display_phone_number,
             }
         })
 
-        // 3. Tentar ativar o webhook (assinatura) automaticamente
+        // 5. Tentar ativar o webhook (assinatura) automaticamente usando o token correto
         try {
-            const subscribeUrl = `https://graph.facebook.com/${process.env.META_API_VERSION || 'v24.0'}/${wabaId}/subscribed_apps`
-            await fetch(subscribeUrl, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` }
-            })
+            await MetaCloudService.subscribeToWaba(wabaId, token)
             console.log('[ClaimWaba] Auto-subscribed webhooks for WABA:', wabaId)
         } catch (subErr) {
             console.error('[ClaimWaba] Failed to auto-subscribe:', subErr)

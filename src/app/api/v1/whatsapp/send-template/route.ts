@@ -36,6 +36,7 @@ export async function POST(request: Request) {
             phoneId: config.phoneId,
             to,
             templateName,
+            accessToken: config.accessToken ?? undefined
         })
 
         return NextResponse.json({ success: true, result })

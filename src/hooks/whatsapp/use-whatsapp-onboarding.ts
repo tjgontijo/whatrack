@@ -109,12 +109,13 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
                 const data = JSON.parse(event.data);
                 if (data.type === 'facebookSharedObject' && data.payload?.waba_id) {
                     const wabaId = data.payload.waba_id;
-                    console.log('[Onboarding] WABA ID capturado:', wabaId);
+                    const code = data.payload.code; // Capture the auth code
+                    console.log('[Onboarding] WABA ID capturado:', wabaId, 'Code:', code ? 'present' : 'missing');
 
                     // Notificar o backend para vincular este WABA à organização atual
                     await fetch('/api/v1/whatsapp/claim-waba', {
                         method: 'POST',
-                        body: JSON.stringify({ wabaId }),
+                        body: JSON.stringify({ wabaId, code }),
                         headers: { 'Content-Type': 'application/json' }
                     });
 

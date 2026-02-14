@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma'
 
 const GRAPH_API_URL = 'https://graph.facebook.com'
-const API_VERSION = process.env.META_API_VERSION || 'v24.0'
+export const API_VERSION = process.env.META_API_VERSION || 'v24.0'
 
 interface SendTemplateParams {
     phoneId: string
@@ -33,6 +33,69 @@ export class MetaCloudService {
      */
     static get accessToken() {
         return process.env.META_ACCESS_TOKEN || ''
+    }
+
+    /**
+     * Exchange a temporary authorization code for a long-lived access token
+     * Meta API: POST /oauth/access_token
+     */
+    static async exchangeCodeForToken(code: string) {
+        const url = `${GRAPH_API_URL}/${API_VERSION}/oauth/access_token`
+        const payload = {
+            client_id: process.env.NEXT_PUBLIC_META_APP_ID,
+            client_secret: process.env.META_APP_SECRET,
+            grant_type: 'authorization_code',
+            // redirect_uri is optional for Embedded Signup code exchange usually, 
+            // but some versions require it to match the one sent in the dialog
+            code
+        }
+
+        console.log('[MetaCloudService] Exchanging code for token:', { url, appId: payload.client_id })
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+            console.error('[MetaCloudService] Token exchange error:', data)
+            throw new Error(data.error?.message || 'Failed to exchange authorization code')
+        }
+
+        return data as {
+            access_token: string
+            token_type: string
+            expires_in?: number
+        }
+    }
+
+    /**
+     * Subscribe your app to a WABA's webhooks
+     * Meta API: POST /{WABA_ID}/subscribed_apps
+     */
+    static async subscribeToWaba(wabaId: string, accessToken: string) {
+        const url = `${GRAPH_API_URL}/${API_VERSION}/${wabaId}/subscribed_apps`
+
+        console.log('[MetaCloudService] Subscribing to WABA webhooks:', { url })
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+            }
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+            console.error('[MetaCloudService] Subscription error:', data)
+            throw new Error(data.error?.message || 'Failed to subscribe to WABA webhooks')
+        }
+
+        return data
     }
 
 

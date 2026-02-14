@@ -32,7 +32,12 @@ export async function GET(request: Request) {
 
         for (const wabaId of wabaIds) {
             try {
-                const numbers = await MetaCloudService.listPhoneNumbers({ wabaId })
+                // Find any config for this WABA to get the token
+                const wabaConfig = configs.find(c => c.wabaId === wabaId)
+                const numbers = await MetaCloudService.listPhoneNumbers({
+                    wabaId,
+                    accessToken: wabaConfig?.accessToken ?? undefined
+                })
                 allPhoneNumbers = [...allPhoneNumbers, ...numbers]
             } catch (err: any) {
                 console.error(`[API] Failed to fetch numbers for WABA ${wabaId}:`, err)
