@@ -44,6 +44,7 @@ export default function WhatsAppSettingsPage() {
         const code = searchParams.get('code')
         const errorParam = searchParams.get('error')
         const wabaId = searchParams.get('waba_id')
+        const stateParam = searchParams.get('state') // Contains CSRF nonce:{orgId}
 
         // Se estivermos em um popup, apenas passamos os dados para a janela pai e fechamos IMEDIATAMENTE
         if (window.opener && window.opener !== window && (code || errorParam)) {
@@ -53,6 +54,7 @@ export default function WhatsAppSettingsPage() {
                 status: errorParam ? 'error' : 'success',
                 code,
                 wabaId,
+                stateParam, // Forward state for CSRF nonce validation
                 error: errorParam
             }, window.location.origin)
 

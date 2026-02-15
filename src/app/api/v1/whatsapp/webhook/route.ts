@@ -1,12 +1,15 @@
 /**
  * Meta Cloud WhatsApp Webhook
  * GET - Verification (hub.mode, hub.verify_token, hub.challenge)
- * POST - Receive events (messages, status updates) - placeholder for future implementation
+ * POST - Receive events (messages, status updates)
+ * 
+ * Security: POST requests are validated via X-Hub-Signature-256 (HMAC-SHA256)
  */
 
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { WhatsAppChatService } from '@/services/whatsapp-chat.service'
+import { verifyWebhookSignature } from '@/lib/whatsapp/webhook-signature'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,7 +17,7 @@ export const dynamic = 'force-dynamic'
 const VERIFY_TOKEN = process.env.META_WEBHOOK_VERIFY_TOKEN
 
 /**
- * GET /api/v1/whatsapp/meta-cloud/webhook
+ * GET /api/v1/whatsapp/webhook
  * Webhook verification endpoint for Meta
  */
 export async function GET(request: Request) {
@@ -24,11 +27,11 @@ export async function GET(request: Request) {
     const token = searchParams.get('hub.verify_token')
     const challenge = searchParams.get('hub.challenge')
 
-    console.log('[meta-cloud/webhook] GET verification:', { mode, token: token ? '***' : null })
+    console.log('[webhook] GET verification:', { mode, token: token ? '***' : null })
 
     // Verify the request
     if (mode === 'subscribe' && token === VERIFY_TOKEN) {
-        console.log('[meta-cloud/webhook] Verification successful')
+        console.log('[webhook] Verification successful')
         // Meta expects the challenge as plain text response
         return new Response(challenge ?? '', {
             status: 200,
@@ -36,19 +39,34 @@ export async function GET(request: Request) {
         })
     }
 
-    console.error('[meta-cloud/webhook] Verification failed: invalid token or mode')
+    console.error('[webhook] Verification failed: invalid token or mode')
     return NextResponse.json({ error: 'Verification failed' }, { status: 403 })
 }
 
 /**
- * POST /api/v1/whatsapp/meta-cloud/webhook
+ * POST /api/v1/whatsapp/webhook
  * Receive webhook events from Meta (messages, status updates)
  * 
- * TODO: Implement message processing after new WhatsApp infrastructure is set up
+ * All POST requests are validated via X-Hub-Signature-256 header.
+ * Meta signs every payload with HMAC-SHA256 using the App Secret as key.
  */
 export async function POST(request: Request) {
     try {
-        const payload = await request.json()
+        // 1. Read raw body for signature verification (must be done before .json())
+        const rawBody = await request.text()
+        const signatureHeader = request.headers.get('x-hub-signature-256')
+
+        // 2. Verify webhook signature
+        if (!verifyWebhookSignature(rawBody, signatureHeader)) {
+            console.error('[webhook] ❌ SIGNATURE VERIFICATION FAILED — rejecting payload')
+            return NextResponse.json(
+                { error: 'Invalid signature' },
+                { status: 401 }
+            )
+        }
+
+        // 3. Parse the verified payload
+        const payload = JSON.parse(rawBody)
 
         // Extract basic info from the payload
         const entry = payload.entry?.[0]
@@ -74,6 +92,14 @@ export async function POST(request: Request) {
             })
             organizationId = config?.organizationId ?? null
             instanceId = config?.id ?? null
+
+            // Update lastWebhookAt to track integration health
+            if (config?.id) {
+                await prisma.whatsAppConfig.update({
+                    where: { id: config.id },
+                    data: { lastWebhookAt: new Date() }
+                }).catch(err => console.error('[webhook] Failed to update lastWebhookAt:', err))
+            }
         }
 
         // Determine event type for logging
@@ -93,7 +119,7 @@ export async function POST(request: Request) {
                 }
             })
         } catch (dbError) {
-            console.error('[meta-cloud/webhook] Audit log error:', dbError)
+            console.error('[webhook] Audit log error:', dbError)
         }
 
         // 0. Handle Account Updates (Life-cycle events)
@@ -102,13 +128,17 @@ export async function POST(request: Request) {
             const targetWabaId = value?.waba_info?.waba_id
 
             if ((event === 'PARTNER_APP_UNINSTALLED' || event === 'PARTNER_REMOVED') && targetWabaId) {
-                console.log(`[meta-cloud/webhook] Removing instances for WABA ${targetWabaId} due to ${event}`)
+                console.log(`[webhook] Removing instances for WABA ${targetWabaId} due to ${event}`)
                 try {
-                    await prisma.whatsAppConfig.deleteMany({
-                        where: { wabaId: targetWabaId }
+                    await prisma.whatsAppConfig.updateMany({
+                        where: { wabaId: targetWabaId },
+                        data: {
+                            status: 'disconnected',
+                            disconnectedAt: new Date(),
+                        }
                     })
                 } catch (delError) {
-                    console.error('[meta-cloud/webhook] Error deleting instances:', delError)
+                    console.error('[webhook] Error disconnecting instances:', delError)
                 }
             }
         }
@@ -124,7 +154,7 @@ export async function POST(request: Request) {
                         contactProfile ? { name: contactProfile.profile.name } : undefined
                     )
                 } catch (err) {
-                    console.error('[meta-cloud/webhook] Error processing message:', msg.id, err)
+                    console.error('[webhook] Error processing message:', msg.id, err)
                 }
             }
         }
@@ -135,7 +165,7 @@ export async function POST(request: Request) {
                 try {
                     await WhatsAppChatService.processMessageEcho(instanceId, echo)
                 } catch (err) {
-                    console.error('[meta-cloud/webhook] Error processing echo:', echo.id, err)
+                    console.error('[webhook] Error processing echo:', echo.id, err)
                 }
             }
         }
@@ -146,7 +176,7 @@ export async function POST(request: Request) {
                 try {
                     await WhatsAppChatService.processStatusUpdate(instanceId, status)
                 } catch (err) {
-                    console.error('[meta-cloud/webhook] Error processing status update:', status.id, err)
+                    console.error('[webhook] Error processing status update:', status.id, err)
                 }
             }
         }
@@ -158,7 +188,7 @@ export async function POST(request: Request) {
             statusesCount: value?.statuses?.length ?? 0,
         })
     } catch (error) {
-        console.error('[meta-cloud/webhook] POST error:', error)
+        console.error('[webhook] POST error:', error)
         // Always return 200 to prevent Meta from retrying
         return NextResponse.json({ received: true, error: 'Internal error' })
     }

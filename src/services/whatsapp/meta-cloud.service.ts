@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { resolveAccessToken } from '@/lib/whatsapp/token-crypto'
 
 const GRAPH_API_URL = 'https://graph.facebook.com'
 export const API_VERSION = process.env.META_API_VERSION || 'v24.0'
@@ -477,5 +478,81 @@ export class MetaCloudService {
             where: { organizationId },
             orderBy: { createdAt: 'desc' }
         })
+    }
+
+    /**
+     * Resolves the access token for a config, handling decryption if needed.
+     * Use this instead of directly reading config.accessToken.
+     */
+    static getAccessTokenForConfig(config: { accessToken: string | null }): string {
+        return resolveAccessToken(config.accessToken)
+    }
+
+    /**
+     * Debug/verify an access token via Meta's debug_token endpoint.
+     * Returns token metadata including validity and expiration.
+     * 
+     * Meta API: GET /debug_token?input_token={token}
+     * Requires an app token (app_id|app_secret) or a valid user token.
+     */
+    static async debugToken(inputToken: string): Promise<{
+        is_valid: boolean
+        expires_at: number
+        scopes: string[]
+        app_id: string
+        error?: { message: string; code: number }
+    }> {
+        const appId = process.env.META_APP_ID || process.env.NEXT_PUBLIC_META_APP_ID
+        const appSecret = process.env.META_APP_SECRET
+        const appToken = `${appId}|${appSecret}`
+
+        const url = `${GRAPH_API_URL}/${API_VERSION}/debug_token?input_token=${encodeURIComponent(inputToken)}`
+
+        console.log('[MetaCloudService] Debugging token...')
+
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${appToken}`,
+            },
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+            console.error('[MetaCloudService] Debug token error:', data)
+            throw new Error(data.error?.message || 'Failed to debug token')
+        }
+
+        return data.data
+    }
+
+    /**
+     * Unsubscribe (remove) the app from a WABA's webhooks.
+     * Used when disconnecting a WABA.
+     * 
+     * Meta API: DELETE /{WABA_ID}/subscribed_apps
+     */
+    static async unsubscribeFromWaba(wabaId: string, accessToken: string) {
+        const url = `${GRAPH_API_URL}/${API_VERSION}/${wabaId}/subscribed_apps`
+
+        console.log('[MetaCloudService] Unsubscribing webhooks for WABA:', { wabaId })
+
+        const response = await fetch(url, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+            }
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+            console.error('[MetaCloudService] Unsubscribe error:', data)
+            throw new Error(data.error?.message || 'Failed to unsubscribe from WABA')
+        }
+
+        console.log('[MetaCloudService] Successfully unsubscribed from WABA:', wabaId)
+        return data
     }
 }

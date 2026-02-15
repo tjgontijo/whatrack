@@ -391,11 +391,16 @@ model WhatsAppConfig {
   accessToken   String? // System User Access Token (Meta Graph API)
   displayPhone  String? // Número formatado para exibição (ex: +55 11 91234-5678)
   verifiedName  String? // Nome verificado do negócio na Meta
-  status             String    @default("pending") // pending, connected, disconnected
-  authorizationCode  String? // OAuth authorization code from Embedded Signup
-  tokenExpiresAt     DateTime? // When the accessToken expires (if not permanent)
-  connectedAt        DateTime? // Quando foi conectado
-  lastWebhookAt      DateTime? // Último evento recebido (detecta integrações mortas)
+  status                String    @default("pending") // pending, connected, disconnected
+  authorizationCode     String? // OAuth authorization code from Embedded Signup
+  accessTokenEncrypted  Boolean   @default(false) // Whether the accessToken is encrypted (AES-256-GCM)
+  tokenExpiresAt        DateTime? // When the accessToken expires (if not permanent)
+  tokenLastCheckedAt    DateTime? // Last time token health was verified via debug_token
+  tokenStatus           String?   // valid, expiring_soon, expired, invalid
+  connectedAt           DateTime? // Quando foi conectado
+  disconnectedAt        DateTime? // Quando foi desconectado
+  disconnectedBy        String?   // User ID que desconectou
+  lastWebhookAt         DateTime? // Último evento recebido (detecta integrações mortas)
 
   messages Message[]
 

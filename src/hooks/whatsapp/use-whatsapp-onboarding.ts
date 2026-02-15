@@ -6,6 +6,33 @@ export type OnboardingStatus = 'idle' | 'pending' | 'checking' | 'success';
 
 const POLLING_INTERVAL = 3000; // 3 segundos
 const MAX_POLLING_DURATION = 180000; // 3 minutos
+const NONCE_KEY = 'wa_oauth_nonce';
+
+/**
+ * Generates a CSRF nonce and stores it in sessionStorage.
+ * Returns the nonce for inclusion in the OAuth state parameter.
+ */
+function generateNonce(): string {
+    const nonce = crypto.randomUUID();
+    sessionStorage.setItem(NONCE_KEY, nonce);
+    return nonce;
+}
+
+/**
+ * Validates and consumes a CSRF nonce from sessionStorage.
+ * Returns true if the nonce matches, false otherwise.
+ */
+function validateNonce(receivedNonce: string): boolean {
+    const storedNonce = sessionStorage.getItem(NONCE_KEY);
+    sessionStorage.removeItem(NONCE_KEY); // Always consume, even if invalid
+
+    if (!storedNonce || storedNonce !== receivedNonce) {
+        console.error('[CSRF] Nonce mismatch:', { received: receivedNonce, stored: storedNonce?.substring(0, 8) + '...' });
+        return false;
+    }
+
+    return true;
+}
 
 export function useWhatsAppOnboarding(onSuccess?: () => void) {
     const { data: activeOrg } = authClient.useActiveOrganization();
@@ -64,15 +91,19 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
 
         const appId = process.env.NEXT_PUBLIC_META_APP_ID;
         const configId = process.env.NEXT_PUBLIC_META_CONFIG_ID;
-        const apiVersion = process.env.NEXT_PUBLIC_META_API_VERSION || 'v24.0';
 
-        // Fluxo Embedded Signup V3 conforme link fornecido pelo usuário
+        // Generate CSRF nonce and build state parameter: {nonce}:{orgId}
+        const nonce = generateNonce();
+        const stateParam = `${nonce}:${activeOrg.id}`;
+
+        // Fluxo Embedded Signup V3 conforme documentação Meta
         const url = `https://business.facebook.com/messaging/whatsapp/onboard/` +
             `?app_id=${appId}` +
             `&config_id=${configId}` +
             `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
             `&response_type=code` +
             `&display=popup` +
+            `&state=${encodeURIComponent(stateParam)}` +
             `&extras=${encodeURIComponent(JSON.stringify({
                 featureType: 'whatsapp_business_app_onboarding',
                 sessionInfoVersion: '3',
@@ -80,7 +111,7 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
                 setup: { organizationId: activeOrg.id }
             }))}`;
 
-        console.log('[Meta Onboarding] Iniciando fluxo OAuth:', { url });
+        console.log('[Meta Onboarding] Iniciando fluxo OAuth:', { url: url.substring(0, 100) + '...' });
 
         const width = 800;
         const height = 700;
@@ -138,8 +169,20 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
             if (event.origin !== window.location.origin) return;
 
             if (event.data?.type === 'WA_CALLBACK_DATA') {
-                const { status: callbackStatus, code, wabaId, error: callbackError } = event.data;
+                const { status: callbackStatus, code, wabaId, stateParam: receivedState, error: callbackError } = event.data;
                 console.log('[Onboarding] Dados recebidos do popup:', { callbackStatus, hasCode: !!code });
+
+                // Validate CSRF nonce from state parameter
+                if (receivedState) {
+                    const [nonce] = receivedState.split(':');
+                    if (!validateNonce(nonce)) {
+                        setStatus('idle');
+                        toast.error('Erro de segurança: sessão inválida. Tente novamente.');
+                        console.error('[CSRF] OAuth state nonce validation FAILED');
+                        return;
+                    }
+                    console.log('[CSRF] Nonce validated successfully');
+                }
 
                 if (callbackStatus === 'success' && code) {
                     setStatus('checking');

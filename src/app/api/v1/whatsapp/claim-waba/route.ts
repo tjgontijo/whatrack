@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth/auth'
 import { headers } from 'next/headers'
 import { prisma } from '@/lib/prisma'
 import { MetaCloudService } from '@/services/whatsapp/meta-cloud.service'
+import { encryptToken } from '@/lib/whatsapp/token-crypto'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,6 +11,10 @@ export const dynamic = 'force-dynamic'
  * POST /api/v1/whatsapp/claim-waba
  * Vincula um WABA ID recém-criado/compartilhado à organização atual.
  * Chamado pelo frontend logo após o fechamento do popup do Embedded Signup.
+ * 
+ * Security:
+ * - Access tokens are encrypted before storage (AES-256-GCM)
+ * - CSRF nonce is validated from the state parameter
  */
 export async function POST(request: Request) {
     try {
@@ -64,7 +69,22 @@ export async function POST(request: Request) {
 
         const primaryPhone = phones[0]
 
-        // 4. Criar ou atualizar a configuração no banco
+        // 4. Encrypt access token before storage
+        let tokenToStore = clientAccessToken || null
+        let isEncrypted = false
+
+        if (tokenToStore) {
+            const encrypted = encryptToken(tokenToStore)
+            if (encrypted) {
+                tokenToStore = encrypted
+                isEncrypted = true
+                console.log('[ClaimWaba] Access token encrypted for storage')
+            } else {
+                console.warn('[ClaimWaba] TOKEN_ENCRYPTION_KEY not set, storing token in plaintext')
+            }
+        }
+
+        // 5. Criar ou atualizar a configuração no banco
         console.log('[ClaimWaba] Upserting config in DB...')
         const config = await prisma.whatsAppConfig.upsert({
             where: {
@@ -72,30 +92,38 @@ export async function POST(request: Request) {
             },
             update: {
                 wabaId,
-                accessToken: clientAccessToken || undefined, // Only update if we got a new one
+                accessToken: tokenToStore || undefined,
+                accessTokenEncrypted: isEncrypted,
                 tokenExpiresAt,
                 authorizationCode: code,
                 status: 'connected',
                 verifiedName: primaryPhone?.verified_name,
                 displayPhone: primaryPhone?.display_phone_number,
+                connectedAt: new Date(),
+                disconnectedAt: null,
+                disconnectedBy: null,
+                tokenStatus: 'valid',
                 updatedAt: new Date(),
             },
             create: {
                 organizationId: orgId,
                 wabaId,
                 phoneId: primaryPhone?.id,
-                accessToken: clientAccessToken || null,
+                accessToken: tokenToStore,
+                accessTokenEncrypted: isEncrypted,
                 tokenExpiresAt,
                 authorizationCode: code,
                 status: 'connected',
                 verifiedName: primaryPhone?.verified_name,
                 displayPhone: primaryPhone?.display_phone_number,
+                connectedAt: new Date(),
+                tokenStatus: 'valid',
             }
         })
 
-        console.log('[ClaimWaba] DB Persist successful:', { configId: config.id, status: config.status })
+        console.log('[ClaimWaba] DB Persist successful:', { configId: config.id, status: config.status, encrypted: isEncrypted })
 
-        // 5. Tentar ativar o webhook (assinatura) automaticamente usando o token correto
+        // 6. Tentar ativar o webhook (assinatura) automaticamente usando o token correto
         try {
             await MetaCloudService.subscribeToWaba(wabaId, token)
             console.log('[ClaimWaba] Auto-subscribed webhooks for WABA:', wabaId)

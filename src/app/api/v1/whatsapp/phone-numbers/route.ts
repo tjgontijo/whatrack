@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth/auth'
 import { headers } from 'next/headers'
 import { MetaCloudService } from '@/services/whatsapp/meta-cloud.service'
+import { resolveAccessToken } from '@/lib/whatsapp/token-crypto'
 
 export const dynamic = 'force-dynamic'
 
@@ -34,9 +35,10 @@ export async function GET(request: Request) {
             try {
                 // Find any config for this WABA to get the token
                 const wabaConfig = configs.find(c => c.wabaId === wabaId)
+                const token = wabaConfig ? resolveAccessToken(wabaConfig.accessToken) : undefined
                 const numbers = await MetaCloudService.listPhoneNumbers({
                     wabaId,
-                    accessToken: wabaConfig?.accessToken ?? undefined
+                    accessToken: token || undefined
                 })
                 allPhoneNumbers = [...allPhoneNumbers, ...numbers]
             } catch (err: any) {
