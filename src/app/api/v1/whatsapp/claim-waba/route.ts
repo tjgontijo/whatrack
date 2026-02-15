@@ -25,10 +25,11 @@ export async function POST(request: Request) {
         const { wabaId, code } = await request.json()
 
         if (!wabaId) {
+            console.error('[ClaimWaba] MISSING WABA ID in request')
             return NextResponse.json({ error: 'WABA ID is required' }, { status: 400 })
         }
 
-        console.log(`[ClaimWaba] Request for WABA: ${wabaId}, Org: ${orgId}, HasCode: ${!!code}`)
+        console.log(`[ClaimWaba] REQUEST RECEIVED:`, { wabaId, orgId, hasCode: !!code })
 
         let clientAccessToken = ''
         let tokenExpiresAt: Date | null = null
@@ -43,7 +44,7 @@ export async function POST(request: Request) {
                 }
                 console.log('[ClaimWaba] Token exchange successful')
             } catch (err: any) {
-                console.error('[ClaimWaba] Token exchange failed:', err.message)
+                console.error('[ClaimWaba] Token exchange FAILED:', err.message)
                 return NextResponse.json({ error: `Failed to exchange token: ${err.message}` }, { status: 502 })
             }
         }
@@ -53,7 +54,9 @@ export async function POST(request: Request) {
 
         // 3. Buscar detalhes do WABA na Meta para confirmar que temos acesso
         // e pegar o primeiro número de telefone disponível
+        console.log('[ClaimWaba] Buscando números de telefone para WABA:', wabaId)
         const phones = await MetaCloudService.listPhoneNumbers({ wabaId, accessToken: token })
+        console.log(`[ClaimWaba] Números encontrados (${phones.length}):`, phones.map((p: any) => p.display_phone_number))
 
         if (phones.length === 0) {
             console.warn('[ClaimWaba] No phone numbers found yet for WABA:', wabaId)
@@ -62,6 +65,7 @@ export async function POST(request: Request) {
         const primaryPhone = phones[0]
 
         // 4. Criar ou atualizar a configuração no banco
+        console.log('[ClaimWaba] Upserting config in DB...')
         const config = await prisma.whatsAppConfig.upsert({
             where: {
                 phoneId: primaryPhone?.id || `pending_${wabaId}`
@@ -88,6 +92,8 @@ export async function POST(request: Request) {
                 displayPhone: primaryPhone?.display_phone_number,
             }
         })
+
+        console.log('[ClaimWaba] DB Persist successful:', { configId: config.id, status: config.status })
 
         // 5. Tentar ativar o webhook (assinatura) automaticamente usando o token correto
         try {

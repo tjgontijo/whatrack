@@ -57,7 +57,12 @@ export class MetaCloudService {
             code
         }
 
-        console.log('[MetaCloudService] Exchanging code for token:', { url, appId })
+        console.log('[MetaCloudService] INICIANDO TROCA DE TOKEN:', {
+            url,
+            appId,
+            redirectUri,
+            code: code.substring(0, 10) + '...'
+        })
 
         const response = await fetch(url, {
             method: 'POST',
@@ -68,15 +73,16 @@ export class MetaCloudService {
         const data = await response.json()
 
         if (!response.ok) {
-            console.error('[MetaCloudService] Token exchange error:', data)
-            throw new Error(data.error?.message || 'Failed to exchange authorization code')
+            console.error('[MetaCloudService] ERRO NA TROCA DE TOKEN (Meta):', data)
+            throw new Error(data.error?.message || 'Falha na autenticação com Meta')
         }
 
-        return data as {
-            access_token: string
-            token_type: string
-            expires_in?: number
-        }
+        console.log('[MetaCloudService] SUCESSO NA TROCA DE TOKEN:', {
+            access_token: data.access_token ? 'RECEBIDO (masking)' : 'MISSING',
+            expires_in: data.expires_in
+        })
+
+        return data as { access_token: string, expires_in?: number }
     }
 
     /**
@@ -86,7 +92,7 @@ export class MetaCloudService {
     static async subscribeToWaba(wabaId: string, accessToken: string) {
         const url = `${GRAPH_API_URL}/${API_VERSION}/${wabaId}/subscribed_apps`
 
-        console.log('[MetaCloudService] Subscribing to WABA webhooks:', { url })
+        console.log('[MetaCloudService] ASSINANDO WEBHOOKS PARA WABA:', { wabaId, url })
 
         const response = await fetch(url, {
             method: 'POST',
@@ -98,10 +104,11 @@ export class MetaCloudService {
         const data = await response.json()
 
         if (!response.ok) {
-            console.error('[MetaCloudService] Subscription error:', data)
-            throw new Error(data.error?.message || 'Failed to subscribe to WABA webhooks')
+            console.error('[MetaCloudService] ERRO NA ASSINATURA DE WEBHOOK (Meta):', data)
+            throw new Error(data.error?.message || 'Falha ao assinar webhooks da WABA')
         }
 
+        console.log('[MetaCloudService] SUCESSO NA ASSINATURA DE WEBHOOK:', data)
         return data
     }
 
