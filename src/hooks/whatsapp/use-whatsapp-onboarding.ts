@@ -4,9 +4,6 @@ import { authClient } from '@/lib/auth/auth-client';
 
 export type OnboardingStatus = 'idle' | 'pending' | 'checking' | 'success';
 
-const POLLING_INTERVAL = 3000;
-const MAX_POLLING_DURATION = 180000;
-
 declare global {
     interface Window {
         FB: {
@@ -46,14 +43,13 @@ declare global {
  * - Criar novos números
  * - Conectar WABAs existentes
  *
- * O Facebook SDK é carregado para capturar eventos WA_EMBEDDED_SIGNUP via postMessage.
+ * Eventos são capturados via postMessage (WA_EMBEDDED_SIGNUP da Meta ou WA_CALLBACK_DATA do redirect).
  */
 export function useWhatsAppOnboarding(onSuccess?: () => void) {
     const { data: activeOrg } = authClient.useActiveOrganization();
     const [status, setStatus] = useState<OnboardingStatus>('idle');
     const [error, setError] = useState<string | null>(null);
     const [sdkReady, setSdkReady] = useState(false);
-    const pollingStartTime = useRef<number | null>(null);
     const claimInProgress = useRef(false);
     const popupRef = useRef<Window | null>(null);
 
@@ -92,7 +88,6 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
                 console.log('[Onboarding] Claim realizado com sucesso:', result);
                 setStatus('success');
                 toast.success('WhatsApp conectado com sucesso!');
-                pollingStartTime.current = null;
                 onSuccess?.();
             })
             .catch((err: Error) => {
@@ -194,7 +189,6 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
                         } else if (flowEvent === 'CANCEL') {
                             console.log('[Meta-Event] Flow cancelado:', metadata);
                             setStatus('idle');
-                            pollingStartTime.current = null;
 
                             if (metadata?.error_message) {
                                 toast.error(`Erro: ${metadata.error_message}`);
@@ -219,11 +213,9 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
                     claimWaba(wabaId, phoneNumberId, code);
                 } else if (callbackStatus === 'error' || callbackError) {
                     setStatus('idle');
-                    pollingStartTime.current = null;
                     toast.error('Conexão recusada ou erro na Meta.');
                 } else {
                     setStatus('idle');
-                    pollingStartTime.current = null;
                     toast.error('Conexão cancelada pelo usuário.');
                 }
             }
@@ -232,46 +224,6 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
         window.addEventListener('message', handleMessage);
         return () => window.removeEventListener('message', handleMessage);
     }, [claimWaba]);
-
-    // Polling de segurança
-    useEffect(() => {
-        let intervalId: NodeJS.Timeout;
-
-        if (status === 'pending' && pollingStartTime.current) {
-            intervalId = setInterval(async () => {
-                const now = Date.now();
-                const elapsed = now - (pollingStartTime.current || 0);
-
-                if (elapsed > MAX_POLLING_DURATION) {
-                    setStatus('idle');
-                    pollingStartTime.current = null;
-                    setError('O tempo limite de espera foi atingido. Tente verificar manualmente.');
-                    return;
-                }
-
-                // Verificar conexão silenciosamente
-                try {
-                    const response = await fetch('/api/v1/whatsapp/check-connection', {
-                        method: 'POST',
-                    });
-                    const data = await response.json();
-
-                    if (response.ok && data.connected) {
-                        setStatus('success');
-                        pollingStartTime.current = null;
-                        toast.success('WhatsApp conectado com sucesso!');
-                        onSuccess?.();
-                    }
-                } catch {
-                    // Ignorar erros de polling
-                }
-            }, POLLING_INTERVAL);
-        }
-
-        return () => {
-            if (intervalId) clearInterval(intervalId);
-        };
-    }, [status, onSuccess]);
 
     const checkConnection = useCallback(async (isAuto = false) => {
         if (!isAuto) setStatus('checking');
@@ -325,7 +277,6 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
 
         setStatus('pending');
         setError(null);
-        pollingStartTime.current = Date.now();
 
         // URL oficial que permite selecionar números existentes OU criar novos
         // Esta é a URL que funciona para o fluxo completo do Embedded Signup v3
@@ -359,7 +310,6 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
         // Verificar se o popup foi bloqueado
         if (!popupRef.current) {
             setStatus('idle');
-            pollingStartTime.current = null;
             setError('O popup foi bloqueado. Permita popups para este site e tente novamente.');
             return;
         }
@@ -369,22 +319,13 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
             if (popupRef.current && popupRef.current.closed) {
                 clearInterval(checkPopupClosed);
                 console.log('[Onboarding] Popup fechado');
-
-                // Se ainda está pending após popup fechar, aguardar um pouco mais pelo evento
-                // (o evento postMessage pode chegar com delay)
-                setTimeout(() => {
-                    if (status === 'pending' && !claimInProgress.current) {
-                        // O polling vai continuar verificando
-                        console.log('[Onboarding] Popup fechado, aguardando polling...');
-                    }
-                }, 1000);
             }
         }, 500);
 
         // Limpar o intervalo após 5 minutos
         setTimeout(() => clearInterval(checkPopupClosed), 300000);
 
-    }, [activeOrg?.id, REDIRECT_URI, status]);
+    }, [activeOrg?.id, REDIRECT_URI]);
 
     return {
         status,
@@ -395,7 +336,6 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
         reset: () => {
             setStatus('idle');
             setError(null);
-            pollingStartTime.current = null;
             claimInProgress.current = false;
             if (popupRef.current && !popupRef.current.closed) {
                 popupRef.current.close();
