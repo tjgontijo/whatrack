@@ -43,17 +43,24 @@ export default function WhatsAppSettingsPage() {
     React.useEffect(() => {
         const code = searchParams.get('code')
         const errorParam = searchParams.get('error')
-        const wabaId = searchParams.get('waba_id')
+        const wabaId = searchParams.get('waba_id') || searchParams.get('wabaid')
+        const phoneNumberId = searchParams.get('phone_number_id')
         const stateParam = searchParams.get('state') // Contains CSRF nonce:{orgId}
 
         // Se estivermos em um popup, apenas passamos os dados para a janela pai e fechamos IMEDIATAMENTE
-        if (window.opener && window.opener !== window && (code || errorParam)) {
-            console.log('[WhatsAppSettings] Detectado callback em popup, enviando dados para parent...')
+        if (window.opener && window.opener !== window && (code || errorParam || wabaId)) {
+            console.log('[WhatsAppSettings] Detectado callback em popup, enviando dados para parent...', {
+                hasCode: !!code,
+                wabaId,
+                phoneNumberId,
+                hasError: !!errorParam
+            })
             window.opener.postMessage({
                 type: 'WA_CALLBACK_DATA',
                 status: errorParam ? 'error' : 'success',
                 code,
                 wabaId,
+                phoneNumberId,
                 stateParam, // Forward state for CSRF nonce validation
                 error: errorParam
             }, window.location.origin)
