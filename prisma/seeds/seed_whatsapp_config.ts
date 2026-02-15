@@ -23,14 +23,48 @@ export async function seedWhatsAppConfig(prisma: PrismaClient) {
     }
 
     // Buscar a primeira organização existente
-    const organization = await prisma.organization.findFirst({
+    let organization = await prisma.organization.findFirst({
         orderBy: { createdAt: 'asc' }
     })
 
     if (!organization) {
-        console.log('⚠️  Nenhuma organização encontrada no banco de dados.')
-        console.log('   Crie uma organização primeiro (via sign-up) e rode o seed novamente.')
-        return
+        console.log('⚠️  Nenhuma organização encontrada. Criando organização padrão...')
+
+        // Se o OWNER_EMAIL estiver no env, usamos ele para o slug
+        const ownerEmail = process.env.OWNER_EMAIL || 'admin@whatrack.com'
+        const baseSlug = ownerEmail.split('@')[0]
+
+        organization = await prisma.organization.create({
+            data: {
+                name: 'Default Organization',
+                slug: baseSlug,
+            }
+        })
+
+        // Também criamos o Owner se não existir
+        let owner = await prisma.user.findFirst({ where: { email: ownerEmail } })
+        if (!owner) {
+            owner = await prisma.user.create({
+                data: {
+                    email: ownerEmail,
+                    name: 'Admin',
+                    role: 'owner',
+                    emailVerified: true,
+                }
+            })
+        }
+
+        // Criar o vínculo na tabela Member
+        await prisma.member.create({
+            data: {
+                organizationId: organization.id,
+                userId: owner.id,
+                role: 'owner',
+                createdAt: new Date(),
+            }
+        })
+
+        console.log(`✅ Organização, Usuário Admin e Vínculo de Membro criados!`)
     }
 
     // Verificar se já existe uma config para essa org com esse phoneId

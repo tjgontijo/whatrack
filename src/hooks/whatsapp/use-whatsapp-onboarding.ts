@@ -91,27 +91,35 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
 
         const appId = process.env.NEXT_PUBLIC_META_APP_ID;
         const configId = process.env.NEXT_PUBLIC_META_CONFIG_ID;
+        const apiVersion = process.env.NEXT_PUBLIC_META_API_VERSION || 'v24.0';
 
         // Generate CSRF nonce and build state parameter: {nonce}:{orgId}
         const nonce = generateNonce();
         const stateParam = `${nonce}:${activeOrg.id}`;
 
-        // Fluxo Embedded Signup V3 conforme documentação Meta
-        const url = `https://business.facebook.com/messaging/whatsapp/onboard/` +
-            `?app_id=${appId}` +
-            `&config_id=${configId}` +
-            `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
-            `&response_type=code` +
-            `&display=popup` +
-            `&state=${encodeURIComponent(stateParam)}` +
-            `&extras=${encodeURIComponent(JSON.stringify({
-                featureType: 'whatsapp_business_app_onboarding',
-                sessionInfoVersion: '3',
-                version: 'v3',
-                setup: { organizationId: activeOrg.id }
-            }))}`;
+        // URL REFINADA (Exatamente como o popup oficial da Meta v3 Hosted)
+        const extras = {
+            featureType: 'whatsapp_business_app_onboarding',
+            sessionInfoVersion: '3',
+            version: 'v3',
+            partner_data: 'null',
+            is_hosted_es: true,
+            setup: {
+                organizationId: activeOrg.id
+            }
+        };
 
-        console.log('[Meta Onboarding] Iniciando fluxo OAuth:', { url: url.substring(0, 100) + '...' });
+        const url = `https://www.facebook.com/${apiVersion}/dialog/oauth` +
+            `?client_id=${appId}` +
+            `&config_id=${configId}` +
+            `&display=popup` +
+            `&response_type=code` +
+            `&override_default_response_type=true` +
+            `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
+            `&state=${encodeURIComponent(stateParam)}` +
+            `&extras=${encodeURIComponent(JSON.stringify(extras))}`;
+
+        console.log('[Meta Onboarding] Iniciando fluxo OAuth v3 Hosted...');
 
         const width = 800;
         const height = 700;

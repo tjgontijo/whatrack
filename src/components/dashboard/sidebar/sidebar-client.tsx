@@ -110,7 +110,10 @@ export function SidebarClient({ navItems }: SidebarClientProps) {
         ['Users', 'ShoppingBag', 'Package'].includes(item.icon)
     )
 
-    const isSuperAdmin = session?.user?.role === 'owner'
+    const isSuperAdmin =
+        session?.user?.role === 'owner' ||
+        (userEmail && userEmail === process.env.NEXT_PUBLIC_OWNER_EMAIL)
+
     const whatsappSubItems = isSuperAdmin ? [
         { title: 'Webhooks', href: '/dashboard/settings/whatsapp/webhooks', icon: Webhook },
     ] : []
