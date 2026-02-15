@@ -66,15 +66,17 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
         const configId = process.env.NEXT_PUBLIC_META_CONFIG_ID;
         const apiVersion = process.env.NEXT_PUBLIC_META_API_VERSION || 'v24.0';
 
-        // Fluxo OAuth tradicional via Dialog
-        const url = `https://www.facebook.com/${apiVersion}/dialog/oauth` +
-            `?client_id=${appId}` +
+        // Fluxo Embedded Signup V3 conforme link fornecido pelo usuário
+        const url = `https://business.facebook.com/messaging/whatsapp/onboard/` +
+            `?app_id=${appId}` +
             `&config_id=${configId}` +
             `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
             `&response_type=code` +
             `&display=popup` +
-            `&override_default_response_type=true` +
             `&extras=${encodeURIComponent(JSON.stringify({
+                featureType: 'whatsapp_business_app_onboarding',
+                sessionInfoVersion: '3',
+                version: 'v3',
                 setup: { organizationId: activeOrg.id }
             }))}`;
 
