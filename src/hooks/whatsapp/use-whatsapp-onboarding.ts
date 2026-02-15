@@ -196,8 +196,9 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
         pendingWabaData.current = {};
 
         // Chamar FB.login com as opções corretas para Embedded Signup
+        // IMPORTANTE: O callback NÃO pode ser async, o SDK da Meta não aceita
         window.FB.login(
-            async (response) => {
+            (response) => {
                 console.log('[FB-SDK] Resposta do FB.login:', response);
 
                 if (response.authResponse?.code) {
@@ -214,29 +215,29 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
 
                     setStatus('checking');
 
-                    try {
-                        const claimResponse = await fetch('/api/v1/whatsapp/claim-waba', {
-                            method: 'POST',
-                            body: JSON.stringify({ wabaId, phoneNumberId, code }),
-                            headers: { 'Content-Type': 'application/json' }
+                    // Usar .then() ao invés de async/await
+                    fetch('/api/v1/whatsapp/claim-waba', {
+                        method: 'POST',
+                        body: JSON.stringify({ wabaId, phoneNumberId, code }),
+                        headers: { 'Content-Type': 'application/json' }
+                    })
+                        .then((claimResponse) => claimResponse.json().then((result) => ({ ok: claimResponse.ok, result })))
+                        .then(({ ok, result }) => {
+                            if (!ok) {
+                                throw new Error(result.error || 'Falha ao vincular WhatsApp');
+                            }
+
+                            console.log('[FB-SDK] Claim realizado com sucesso:', result);
+                            setStatus('success');
+                            toast.success('WhatsApp conectado com sucesso!');
+                            onSuccess?.();
+                        })
+                        .catch((err: Error) => {
+                            console.error('[FB-SDK] Erro no claim:', err);
+                            setStatus('idle');
+                            setError(err.message);
+                            toast.error(`Erro ao conectar: ${err.message}`);
                         });
-
-                        const result = await claimResponse.json();
-
-                        if (!claimResponse.ok) {
-                            throw new Error(result.error || 'Falha ao vincular WhatsApp');
-                        }
-
-                        console.log('[FB-SDK] Claim realizado com sucesso:', result);
-                        setStatus('success');
-                        toast.success('WhatsApp conectado com sucesso!');
-                        onSuccess?.();
-                    } catch (err: any) {
-                        console.error('[FB-SDK] Erro no claim:', err);
-                        setStatus('idle');
-                        setError(err.message);
-                        toast.error(`Erro ao conectar: ${err.message}`);
-                    }
                 } else {
                     console.log('[FB-SDK] Login cancelado ou sem code');
                     setStatus('idle');
