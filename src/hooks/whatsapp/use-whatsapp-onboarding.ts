@@ -4,6 +4,9 @@ import { authClient } from '@/lib/auth/auth-client';
 
 export type OnboardingStatus = 'idle' | 'pending' | 'checking' | 'success';
 
+const POLLING_INTERVAL = 3000;
+const MAX_POLLING_DURATION = 180000;
+
 declare global {
     interface Window {
         FB: {
@@ -37,7 +40,9 @@ declare global {
 
 /**
  * Hook para gerenciar o fluxo de Embedded Signup do WhatsApp Business.
- * Usa o Facebook SDK oficial para abrir o popup e capturar os eventos.
+ * Suporta dois métodos em coexistência:
+ * 1. Facebook SDK (FB.login) - método principal
+ * 2. Popup com redirect - fallback/compatibilidade
  */
 export function useWhatsAppOnboarding(onSuccess?: () => void) {
     const { data: activeOrg } = authClient.useActiveOrganization();
@@ -45,6 +50,46 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
     const [error, setError] = useState<string | null>(null);
     const [sdkReady, setSdkReady] = useState(false);
     const pendingWabaData = useRef<{ wabaId?: string; phoneNumberId?: string }>({});
+    const pollingStartTime = useRef<number | null>(null);
+    const claimInProgress = useRef(false);
+
+    // Função para fazer o claim (compartilhada entre os métodos)
+    const claimWaba = useCallback((wabaId?: string, phoneNumberId?: string, code?: string) => {
+        if (claimInProgress.current) {
+            console.log('[Onboarding] Claim já em progresso, ignorando...');
+            return;
+        }
+
+        claimInProgress.current = true;
+        setStatus('checking');
+
+        fetch('/api/v1/whatsapp/claim-waba', {
+            method: 'POST',
+            body: JSON.stringify({ wabaId, phoneNumberId, code }),
+            headers: { 'Content-Type': 'application/json' }
+        })
+            .then((response) => response.json().then((result) => ({ ok: response.ok, result })))
+            .then(({ ok, result }) => {
+                if (!ok) {
+                    throw new Error(result.error || 'Falha ao vincular WhatsApp');
+                }
+
+                console.log('[Onboarding] Claim realizado com sucesso:', result);
+                setStatus('success');
+                toast.success('WhatsApp conectado com sucesso!');
+                pollingStartTime.current = null;
+                onSuccess?.();
+            })
+            .catch((err: Error) => {
+                console.error('[Onboarding] Erro no claim:', err);
+                setStatus('idle');
+                setError(err.message);
+                toast.error(`Erro ao conectar: ${err.message}`);
+            })
+            .finally(() => {
+                claimInProgress.current = false;
+            });
+    }, [onSuccess]);
 
     // Inicializar Facebook SDK
     useEffect(() => {
@@ -63,7 +108,7 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
         }
 
         // Callback quando o SDK carregar
-        window.fbAsyncInit = function() {
+        window.fbAsyncInit = function () {
             console.log('[FB-SDK] Inicializando...');
             window.FB.init({
                 appId: appId,
@@ -88,53 +133,109 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
         }
     }, []);
 
-    // Listener para eventos WA_EMBEDDED_SIGNUP da Meta
+    // Listener unificado para eventos (SDK e redirect)
     useEffect(() => {
-        const handleMessage = async (event: MessageEvent) => {
-            // Apenas processar mensagens do Facebook
-            if (!event.origin.includes('facebook.com')) return;
+        const handleMessage = (event: MessageEvent) => {
+            // 1. Eventos do Facebook SDK (WA_EMBEDDED_SIGNUP)
+            if (event.origin.includes('facebook.com')) {
+                try {
+                    const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
 
-            try {
-                const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+                    if (data.type === 'WA_EMBEDDED_SIGNUP') {
+                        console.log('[FB-SDK] Evento recebido:', data);
 
-                if (data.type === 'WA_EMBEDDED_SIGNUP') {
-                    console.log('[FB-SDK] Evento recebido:', data);
+                        const flowEvent = data.event;
+                        const metadata = data.data;
 
-                    const flowEvent = data.event;
-                    const metadata = data.data;
+                        if (flowEvent === 'FINISH' || flowEvent?.startsWith('FINISH_')) {
+                            console.log('[FB-SDK] Flow FINISH:', metadata);
 
-                    if (flowEvent === 'FINISH' || flowEvent?.startsWith('FINISH_')) {
-                        console.log('[FB-SDK] Flow FINISH:', metadata);
+                            const wabaId = metadata?.waba_id || metadata?.wabaId;
+                            const phoneNumberId = metadata?.phone_number_id || metadata?.phoneNumberId;
 
-                        // Extrair dados do evento
-                        const wabaId = metadata?.waba_id || metadata?.wabaId;
-                        const phoneNumberId = metadata?.phone_number_id || metadata?.phoneNumberId;
+                            // Guardar para usar junto com o code do FB.login callback
+                            pendingWabaData.current = { wabaId, phoneNumberId };
+                            console.log('[FB-SDK] Dados do WABA salvos:', pendingWabaData.current);
+                        } else if (flowEvent === 'CANCEL') {
+                            console.log('[FB-SDK] Flow cancelado:', metadata);
+                            setStatus('idle');
 
-                        // Guardar para usar junto com o code do FB.login callback
-                        pendingWabaData.current = { wabaId, phoneNumberId };
-
-                        console.log('[FB-SDK] Dados do WABA salvos:', pendingWabaData.current);
-                    } else if (flowEvent === 'CANCEL') {
-                        console.log('[FB-SDK] Flow cancelado:', metadata);
-                        setStatus('idle');
-
-                        if (metadata?.error_message) {
-                            toast.error(`Erro: ${metadata.error_message}`);
-                        } else if (metadata?.current_step) {
-                            toast.error(`Conexão cancelada na etapa: ${metadata.current_step}`);
-                        } else {
-                            toast.error('Conexão cancelada.');
+                            if (metadata?.error_message) {
+                                toast.error(`Erro: ${metadata.error_message}`);
+                            } else if (metadata?.current_step) {
+                                toast.error(`Conexão cancelada na etapa: ${metadata.current_step}`);
+                            } else {
+                                toast.error('Conexão cancelada.');
+                            }
                         }
                     }
+                } catch {
+                    // Mensagem não é JSON, ignorar
                 }
-            } catch (e) {
-                // Mensagem não é JSON, ignorar
+            }
+
+            // 2. Eventos do nosso domínio (popup com redirect)
+            if (event.origin === window.location.origin && event.data?.type === 'WA_CALLBACK_DATA') {
+                const { status: callbackStatus, code, wabaId, error: callbackError } = event.data;
+                console.log('[Redirect] Dados recebidos do popup:', { callbackStatus, hasCode: !!code, wabaId });
+
+                if (callbackStatus === 'success' && (code || wabaId)) {
+                    claimWaba(wabaId, undefined, code);
+                } else if (callbackStatus === 'error' || callbackError) {
+                    setStatus('idle');
+                    toast.error('Conexão recusada ou erro na Meta.');
+                } else {
+                    setStatus('idle');
+                    toast.error('Conexão cancelada pelo usuário.');
+                }
+
+                pollingStartTime.current = null;
             }
         };
 
         window.addEventListener('message', handleMessage);
         return () => window.removeEventListener('message', handleMessage);
-    }, []);
+    }, [claimWaba]);
+
+    // Polling de segurança
+    useEffect(() => {
+        let intervalId: NodeJS.Timeout;
+
+        if (status === 'pending' && pollingStartTime.current) {
+            intervalId = setInterval(async () => {
+                const now = Date.now();
+                const elapsed = now - (pollingStartTime.current || 0);
+
+                if (elapsed > MAX_POLLING_DURATION) {
+                    setStatus('idle');
+                    pollingStartTime.current = null;
+                    setError('O tempo limite de espera foi atingido. Tente verificar manualmente.');
+                    return;
+                }
+
+                // Verificar conexão silenciosamente
+                try {
+                    const response = await fetch('/api/v1/whatsapp/check-connection', {
+                        method: 'POST',
+                    });
+                    const data = await response.json();
+
+                    if (response.ok && data.connected) {
+                        setStatus('success');
+                        pollingStartTime.current = null;
+                        toast.success('WhatsApp conectado com sucesso!');
+                        onSuccess?.();
+                    }
+                } catch {
+                    // Ignorar erros de polling
+                }
+            }, POLLING_INTERVAL);
+        }
+
+        return () => {
+            if (intervalId) clearInterval(intervalId);
+        };
+    }, [status, onSuccess]);
 
     const checkConnection = useCallback(async (isAuto = false) => {
         if (!isAuto) setStatus('checking');
@@ -178,11 +279,6 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
             return;
         }
 
-        if (!sdkReady || !window.FB) {
-            setError('Facebook SDK ainda não carregou. Aguarde um momento e tente novamente.');
-            return;
-        }
-
         const configId = process.env.NEXT_PUBLIC_META_CONFIG_ID;
 
         if (!configId) {
@@ -190,75 +286,83 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
             return;
         }
 
-        console.log('[FB-SDK] Iniciando FB.login...');
         setStatus('pending');
         setError(null);
         pendingWabaData.current = {};
+        pollingStartTime.current = Date.now();
 
-        // Chamar FB.login com as opções corretas para Embedded Signup
-        // IMPORTANTE: O callback NÃO pode ser async, o SDK da Meta não aceita
-        window.FB.login(
-            (response) => {
-                console.log('[FB-SDK] Resposta do FB.login:', response);
+        // Usar FB SDK se disponível
+        if (sdkReady && window.FB) {
+            console.log('[FB-SDK] Iniciando FB.login...');
 
-                if (response.authResponse?.code) {
-                    const code = response.authResponse.code;
-                    const { wabaId, phoneNumberId } = pendingWabaData.current;
+            window.FB.login(
+                (response) => {
+                    console.log('[FB-SDK] Resposta do FB.login:', response);
 
-                    console.log('[FB-SDK] Code obtido:', code.substring(0, 20) + '...');
-                    console.log('[FB-SDK] Dados pendentes:', { wabaId, phoneNumberId });
+                    if (response.authResponse?.code) {
+                        const code = response.authResponse.code;
+                        const { wabaId, phoneNumberId } = pendingWabaData.current;
 
-                    if (!wabaId) {
-                        console.warn('[FB-SDK] Code recebido mas sem waba_id do evento FINISH');
-                        // Continuar mesmo assim, o backend pode buscar os dados
+                        console.log('[FB-SDK] Code obtido:', code.substring(0, 20) + '...');
+                        console.log('[FB-SDK] Dados pendentes:', { wabaId, phoneNumberId });
+
+                        claimWaba(wabaId, phoneNumberId, code);
+                    } else {
+                        console.log('[FB-SDK] Login cancelado ou sem code');
+                        setStatus('idle');
+                        pollingStartTime.current = null;
+
+                        if (response.status === 'unknown') {
+                            toast.error('Conexão não autorizada.');
+                        }
                     }
-
-                    setStatus('checking');
-
-                    // Usar .then() ao invés de async/await
-                    fetch('/api/v1/whatsapp/claim-waba', {
-                        method: 'POST',
-                        body: JSON.stringify({ wabaId, phoneNumberId, code }),
-                        headers: { 'Content-Type': 'application/json' }
-                    })
-                        .then((claimResponse) => claimResponse.json().then((result) => ({ ok: claimResponse.ok, result })))
-                        .then(({ ok, result }) => {
-                            if (!ok) {
-                                throw new Error(result.error || 'Falha ao vincular WhatsApp');
-                            }
-
-                            console.log('[FB-SDK] Claim realizado com sucesso:', result);
-                            setStatus('success');
-                            toast.success('WhatsApp conectado com sucesso!');
-                            onSuccess?.();
-                        })
-                        .catch((err: Error) => {
-                            console.error('[FB-SDK] Erro no claim:', err);
-                            setStatus('idle');
-                            setError(err.message);
-                            toast.error(`Erro ao conectar: ${err.message}`);
-                        });
-                } else {
-                    console.log('[FB-SDK] Login cancelado ou sem code');
-                    setStatus('idle');
-                    // Não mostrar erro se o usuário apenas fechou o popup
-                    if (response.status === 'unknown') {
-                        toast.error('Conexão não autorizada.');
+                },
+                {
+                    config_id: configId,
+                    response_type: 'code',
+                    override_default_response_type: true,
+                    extras: {
+                        feature: 'whatsapp_embedded_signup',
+                        version: 2,
+                        sessionInfoVersion: 3,
                     }
                 }
-            },
-            {
-                config_id: configId,
-                response_type: 'code',
-                override_default_response_type: true,
-                extras: {
-                    feature: 'whatsapp_embedded_signup',
-                    version: 2,
-                    sessionInfoVersion: 3,
-                }
-            }
-        );
-    }, [activeOrg?.id, sdkReady, onSuccess]);
+            );
+        } else {
+            // Fallback: abrir popup com redirect
+            console.log('[Popup] FB SDK não disponível, usando método de popup...');
+
+            const appId = process.env.NEXT_PUBLIC_META_APP_ID;
+            const redirectUri = `${window.location.origin}/dashboard/settings/whatsapp/`;
+
+            const extras = {
+                featureType: 'whatsapp_business_app_onboarding',
+                sessionInfoVersion: '3',
+                version: 'v3'
+            };
+
+            const url = `https://business.facebook.com/messaging/whatsapp/onboard/` +
+                `?app_id=${appId}` +
+                `&config_id=${configId}` +
+                `&response_type=code` +
+                `&display=popup` +
+                `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+                `&extras=${encodeURIComponent(JSON.stringify(extras))}`;
+
+            console.log('[Popup] URL:', url);
+
+            const width = 800;
+            const height = 700;
+            const left = window.screen.width / 2 - width / 2;
+            const top = window.screen.height / 2 - height / 2;
+
+            window.open(
+                url,
+                'whatsapp_onboarding',
+                `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no`
+            );
+        }
+    }, [activeOrg?.id, sdkReady, claimWaba]);
 
     return {
         status,
@@ -270,6 +374,8 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
             setStatus('idle');
             setError(null);
             pendingWabaData.current = {};
+            pollingStartTime.current = null;
+            claimInProgress.current = false;
         },
         setError,
         setStatus
