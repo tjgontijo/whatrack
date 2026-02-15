@@ -97,29 +97,26 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
         const nonce = generateNonce();
         const stateParam = `${nonce}:${activeOrg.id}`;
 
-        // URL REFINADA (Exatamente como o popup oficial da Meta v3 Hosted)
+        // URL OFICIAL CONFORME DOCUMENTAÇÃO META V3 (business.facebook.com)
         const extras = {
             featureType: 'whatsapp_business_app_onboarding',
             sessionInfoVersion: '3',
             version: 'v3',
-            partner_data: 'null',
-            is_hosted_es: true,
             setup: {
                 organizationId: activeOrg.id
             }
         };
 
-        const url = `https://www.facebook.com/${apiVersion}/dialog/oauth` +
-            `?client_id=${appId}` +
+        const url = `https://business.facebook.com/messaging/whatsapp/onboard/` +
+            `?app_id=${appId}` +
             `&config_id=${configId}` +
-            `&display=popup` +
-            `&response_type=code` +
-            `&override_default_response_type=true` +
             `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
+            `&response_type=code` +
+            `&display=popup` +
             `&state=${encodeURIComponent(stateParam)}` +
             `&extras=${encodeURIComponent(JSON.stringify(extras))}`;
 
-        console.log('[Meta Onboarding] Iniciando fluxo OAuth v3 Hosted...');
+        console.log('[Meta Onboarding] Iniciando fluxo oficial Meta v3...');
 
         const width = 800;
         const height = 700;
