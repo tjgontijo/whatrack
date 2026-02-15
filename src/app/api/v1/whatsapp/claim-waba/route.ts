@@ -39,29 +39,29 @@ export async function POST(request: Request) {
         let clientAccessToken = ''
         let tokenExpiresAt: Date | null = null
 
-        // 1. If we have a code, exchange it for a token
-        if (code) {
-            try {
-                const tokenData = await MetaCloudService.exchangeCodeForToken(code)
-                clientAccessToken = tokenData.access_token
-                if (tokenData.expires_in) {
-                    tokenExpiresAt = new Date(Date.now() + tokenData.expires_in * 1000)
-                }
-                console.log('[ClaimWaba] Token exchange successful')
-            } catch (err: any) {
-                console.error('[ClaimWaba] Token exchange FAILED:', err.message)
-                return NextResponse.json({ error: `Failed to exchange token: ${err.message}` }, { status: 502 })
-            }
+        if (!code) {
+            console.error('[ClaimWaba] Missing authorization code')
+            return NextResponse.json({ error: 'Authorization code is required' }, { status: 400 })
         }
 
-        // 2. Use the client token if we have it, otherwise fallback to global (for existing own BM numbers)
-        const token = clientAccessToken || MetaCloudService.accessToken
+        // 1. Exchange code for token (Embedded Signup flow)
+        try {
+            const tokenData = await MetaCloudService.exchangeCodeForToken(code)
+            clientAccessToken = tokenData.access_token
+            if (tokenData.expires_in) {
+                tokenExpiresAt = new Date(Date.now() + tokenData.expires_in * 1000)
+            }
+            console.log('[ClaimWaba] Token exchange successful')
+        } catch (err: any) {
+            console.error('[ClaimWaba] Token exchange FAILED:', err.message)
+            return NextResponse.json({ error: `Failed to exchange token: ${err.message}` }, { status: 502 })
+        }
+
+        const token = clientAccessToken
 
         if (!token) {
-            console.error('[ClaimWaba] No access token available (neither from code exchange nor global)')
-            return NextResponse.json({
-                error: 'No access token available. Please ensure META_ACCESS_TOKEN is configured or provide an authorization code.'
-            }, { status: 500 })
+            console.error('[ClaimWaba] Token exchange returned empty access token')
+            return NextResponse.json({ error: 'Invalid access token from Meta' }, { status: 502 })
         }
 
         // 3. Se já temos phoneNumberId do evento, usar diretamente

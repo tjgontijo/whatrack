@@ -168,7 +168,11 @@ export class WhatsAppChatService {
     ) {
         try {
             const { to, id: wamid, timestamp, type } = messageData
-            const customerPhone = to // In echoes, 'to' is the customer
+            const customerPhone = to || messageData.recipient_id || messageData.from
+
+            if (!customerPhone) {
+                throw new Error('Missing recipient phone for message echo')
+            }
 
             // Check if message already exists
             const existingMessage = await prisma.message.findUnique({

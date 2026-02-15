@@ -211,6 +211,7 @@ export interface WebhookNotification {
                     wa_id: string;
                 }>;
                 messages?: WhatsAppMessage[];
+                message_echoes?: WhatsAppMessage[];
                 statuses?: Array<{
                     id: string;
                     status: 'sent' | 'delivered' | 'read' | 'failed';

@@ -1,10 +1,6 @@
 'use client'
-
-import React from 'react'
 import { RefreshCw, Plus, Phone, Loader2 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { useSearchParams, useRouter } from 'next/navigation'
-import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -21,9 +17,6 @@ import type { WhatsAppPhoneNumber } from '@/types/whatsapp'
 
 export default function WhatsAppSettingsPage() {
     const isMobile = useIsMobile()
-    const searchParams = useSearchParams()
-    const router = useRouter()
-    const [isClaiming, setIsClaiming] = React.useState(false)
 
     // Fetch instances (phone numbers)
     const { data: phoneNumbers, isLoading, error, refetch, isRefetching } = useQuery<WhatsAppPhoneNumber[]>({
@@ -38,66 +31,7 @@ export default function WhatsAppSettingsPage() {
     }
 
     const { status: onboardingStatus, sdkReady, startOnboarding } = useWhatsAppOnboarding(handleRefresh)
-
-    // Process OAuth callback from Meta (Optimized flow)
-    React.useEffect(() => {
-        const code = searchParams.get('code')
-        const errorParam = searchParams.get('error')
-        const wabaId = searchParams.get('waba_id') || searchParams.get('wabaid')
-        const phoneNumberId = searchParams.get('phone_number_id')
-        const stateParam = searchParams.get('state') // Contains CSRF nonce:{orgId}
-
-        // Se estivermos em um popup, apenas passamos os dados para a janela pai e fechamos IMEDIATAMENTE
-        if (window.opener && window.opener !== window && (code || errorParam || wabaId)) {
-            console.log('[WhatsAppSettings] Detectado callback em popup, enviando dados para parent...', {
-                hasCode: !!code,
-                wabaId,
-                phoneNumberId,
-                hasError: !!errorParam
-            })
-            window.opener.postMessage({
-                type: 'WA_CALLBACK_DATA',
-                status: errorParam ? 'error' : 'success',
-                code,
-                wabaId,
-                phoneNumberId,
-                stateParam, // Forward state for CSRF nonce validation
-                error: errorParam
-            }, window.location.origin)
-
-            // Fechar instantaneamente
-            window.close()
-            return
-        }
-
-        // CASO: Refresh manual ou acesso direto na janela principal
-        if (code && !isClaiming) {
-            const handleClaim = async () => {
-                setIsClaiming(true)
-                try {
-                    const response = await fetch('/api/v1/whatsapp/claim-waba', {
-                        method: 'POST',
-                        body: JSON.stringify({ wabaId, code }),
-                        headers: { 'Content-Type': 'application/json' }
-                    })
-
-                    if (!response.ok) throw new Error('Erro ao trocar token')
-
-                    toast.success('WhatsApp conectado com sucesso!')
-                    router.replace(window.location.pathname)
-                    refetch()
-                } catch (err: any) {
-                    toast.error(`Falha na conexão: ${err.message}`)
-                } finally {
-                    setIsClaiming(false)
-                }
-            }
-            handleClaim()
-        } else if (errorParam) {
-            toast.error('O processo de conexão foi interrompido.')
-            router.replace(window.location.pathname)
-        }
-    }, [searchParams, router, refetch, isClaiming])
+    const isOnboarding = onboardingStatus === 'pending' || onboardingStatus === 'checking'
 
     return (
         <TemplateMainShell className="flex flex-col h-[calc(100vh-2rem)]">
@@ -110,9 +44,9 @@ export default function WhatsAppSettingsPage() {
                         size="sm"
                         className="h-8 gap-2 font-bold shadow-sm"
                         onClick={startOnboarding}
-                        disabled={!sdkReady || onboardingStatus === 'pending' || onboardingStatus === 'checking' || isClaiming}
+                        disabled={!sdkReady || isOnboarding}
                     >
-                        {onboardingStatus === 'pending' || onboardingStatus === 'checking' || isClaiming ? (
+                        {isOnboarding ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
                             <Plus className="h-4 w-4" />
@@ -146,11 +80,11 @@ export default function WhatsAppSettingsPage() {
                 ? "flex-1 overflow-y-scroll bg-muted/5 p-4 scrollbar-hide"
                 : "flex-1 overflow-y-auto bg-muted/5 p-8"
             }>
-                {isLoading || isClaiming ? (
+                {isLoading || onboardingStatus === 'checking' ? (
                     <div className="flex flex-col items-center justify-center h-64 gap-3">
                         <RefreshCw className="h-8 w-8 animate-spin text-primary/40" />
                         <p className="text-sm font-medium text-muted-foreground">
-                            {isClaiming ? 'Finalizando conexão...' : 'Carregando instâncias...'}
+                            {onboardingStatus === 'checking' ? 'Finalizando conexão...' : 'Carregando instâncias...'}
                         </p>
                     </div>
                 ) : error ? (

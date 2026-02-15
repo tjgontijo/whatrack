@@ -103,11 +103,10 @@ export async function POST(request: Request) {
         }
 
         // Determine event type for logging
-        let eventType = 'unknown'
+        let eventType = changes?.field || 'unknown'
         if (value?.messages) eventType = 'messages'
-        else if (value?.message_echoes) eventType = 'smb_message_echoes'
         else if (value?.statuses) eventType = 'statuses'
-        else if (changes?.field) eventType = changes.field
+        else if (changes?.field === 'smb_message_echoes') eventType = 'smb_message_echoes'
 
         // Persist the payload for auditing
         try {
@@ -160,8 +159,13 @@ export async function POST(request: Request) {
         }
 
         // 2. Process OUTBOUND echoes (sent from mobile app or other devices)
-        if (value?.message_echoes && instanceId) {
-            for (const echo of value.message_echoes) {
+        const echoEvents =
+            changes?.field === 'smb_message_echoes'
+                ? (value?.message_echoes ?? [])
+                : []
+
+        if (echoEvents.length > 0 && instanceId) {
+            for (const echo of echoEvents) {
                 try {
                     await WhatsAppChatService.processMessageEcho(instanceId, echo)
                 } catch (err) {
@@ -184,7 +188,7 @@ export async function POST(request: Request) {
         // Always return 200 to prevent Meta from retrying
         return NextResponse.json({
             received: true,
-            messagesCount: (value?.messages?.length ?? 0) + (value?.message_echoes?.length ?? 0),
+            messagesCount: (value?.messages?.length ?? 0) + echoEvents.length,
             statusesCount: value?.statuses?.length ?? 0,
         })
     } catch (error) {
