@@ -27,14 +27,14 @@ export async function POST(request: Request) {
         }
 
         const orgId = session.session.activeOrganizationId
-        const { wabaId, code } = await request.json()
+        const { wabaId, code, phoneNumberId } = await request.json()
 
         if (!wabaId) {
             console.error('[ClaimWaba] MISSING WABA ID in request')
             return NextResponse.json({ error: 'WABA ID is required' }, { status: 400 })
         }
 
-        console.log(`[ClaimWaba] REQUEST RECEIVED:`, { wabaId, orgId, hasCode: !!code })
+        console.log(`[ClaimWaba] REQUEST RECEIVED:`, { wabaId, orgId, hasCode: !!code, phoneNumberId })
 
         let clientAccessToken = ''
         let tokenExpiresAt: Date | null = null
@@ -57,17 +57,43 @@ export async function POST(request: Request) {
         // 2. Use the client token if we have it, otherwise fallback to global (for existing own BM numbers)
         const token = clientAccessToken || MetaCloudService.accessToken
 
-        // 3. Buscar detalhes do WABA na Meta para confirmar que temos acesso
-        // e pegar o primeiro número de telefone disponível
-        console.log('[ClaimWaba] Buscando números de telefone para WABA:', wabaId)
-        const phones = await MetaCloudService.listPhoneNumbers({ wabaId, accessToken: token })
-        console.log(`[ClaimWaba] Números encontrados (${phones.length}):`, phones.map((p: any) => p.display_phone_number))
-
-        if (phones.length === 0) {
-            console.warn('[ClaimWaba] No phone numbers found yet for WABA:', wabaId)
+        if (!token) {
+            console.error('[ClaimWaba] No access token available (neither from code exchange nor global)')
+            return NextResponse.json({
+                error: 'No access token available. Please ensure META_ACCESS_TOKEN is configured or provide an authorization code.'
+            }, { status: 500 })
         }
 
-        const primaryPhone = phones[0]
+        // 3. Se já temos phoneNumberId do evento, usar diretamente
+        // Senão, buscar números da WABA via API
+        let primaryPhone: any = null
+
+        if (phoneNumberId) {
+            console.log('[ClaimWaba] Usando phoneNumberId do evento:', phoneNumberId)
+            // Buscar detalhes do número específico
+            try {
+                const phones = await MetaCloudService.listPhoneNumbers({ wabaId, accessToken: token })
+                primaryPhone = phones.find((p: any) => p.id === phoneNumberId) || phones[0]
+                console.log('[ClaimWaba] Phone encontrado:', primaryPhone?.display_phone_number)
+            } catch (err: any) {
+                console.warn('[ClaimWaba] Erro ao buscar detalhes do phone, usando ID diretamente:', err.message)
+                primaryPhone = { id: phoneNumberId }
+            }
+        } else {
+            // Buscar números de telefone da WABA
+            console.log('[ClaimWaba] Buscando números de telefone para WABA:', wabaId)
+            try {
+                const phones = await MetaCloudService.listPhoneNumbers({ wabaId, accessToken: token })
+                console.log(`[ClaimWaba] Números encontrados (${phones.length}):`, phones.map((p: any) => p.display_phone_number))
+                primaryPhone = phones[0]
+            } catch (err: any) {
+                console.warn('[ClaimWaba] Erro ao buscar phones:', err.message)
+            }
+        }
+
+        if (!primaryPhone) {
+            console.warn('[ClaimWaba] No phone numbers found yet for WABA:', wabaId)
+        }
 
         // 4. Encrypt access token before storage
         let tokenToStore = clientAccessToken || null

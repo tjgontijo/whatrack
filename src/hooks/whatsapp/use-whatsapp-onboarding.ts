@@ -91,32 +91,28 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
 
         const appId = process.env.NEXT_PUBLIC_META_APP_ID;
         const configId = process.env.NEXT_PUBLIC_META_CONFIG_ID;
-        const apiVersion = process.env.NEXT_PUBLIC_META_API_VERSION || 'v24.0';
 
         // Generate CSRF nonce and build state parameter: {nonce}:{orgId}
         const nonce = generateNonce();
         const stateParam = `${nonce}:${activeOrg.id}`;
 
-        // URL OFICIAL CONFORME DOCUMENTAÇÃO META V3 (business.facebook.com)
+        // URL LIMPA E ESTRITA (Baseada no seu exemplo funcional)
         const extras = {
             featureType: 'whatsapp_business_app_onboarding',
             sessionInfoVersion: '3',
-            version: 'v3',
-            setup: {
-                organizationId: activeOrg.id
-            }
+            version: 'v3'
         };
 
         const url = `https://business.facebook.com/messaging/whatsapp/onboard/` +
             `?app_id=${appId}` +
             `&config_id=${configId}` +
-            `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
             `&response_type=code` +
             `&display=popup` +
-            `&state=${encodeURIComponent(stateParam)}` +
+            `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
+            `&state=${encodeURIComponent(stateParam)}` + // Mantemos o state para segurança (nonce)
             `&extras=${encodeURIComponent(JSON.stringify(extras))}`;
 
-        console.log('[Meta Onboarding] Iniciando fluxo oficial Meta v3...');
+        console.log('[Meta Onboarding] URL Gerada:', url);
 
         const width = 800;
         const height = 700;
@@ -152,6 +148,45 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
 
                         if (flowEvent === 'FINISH' || flowEvent?.startsWith('FINISH_')) {
                             console.log('[Meta-SDK] Flow concluído com sucesso:', metadata);
+
+                            // EXTRAIR DADOS DO EVENTO
+                            const wabaId = metadata?.waba_id || metadata?.wabaId;
+                            const phoneNumberId = metadata?.phone_number_id || metadata?.phoneNumberId;
+
+                            console.log('[Meta-SDK] Dados extraídos:', { wabaId, phoneNumberId });
+
+                            if (wabaId) {
+                                // Chamar backend para salvar configuração
+                                // O code virá via redirect ou pode não ser necessário se usamos token de sistema
+                                setStatus('checking');
+
+                                try {
+                                    const response = await fetch('/api/v1/whatsapp/claim-waba', {
+                                        method: 'POST',
+                                        body: JSON.stringify({ wabaId, phoneNumberId }),
+                                        headers: { 'Content-Type': 'application/json' }
+                                    });
+
+                                    const result = await response.json();
+
+                                    if (!response.ok) {
+                                        throw new Error(result.error || 'Falha ao vincular WhatsApp');
+                                    }
+
+                                    console.log('[Meta-SDK] Claim realizado com sucesso:', result);
+                                    setStatus('success');
+                                    toast.success('WhatsApp conectado com sucesso!');
+                                    onSuccess?.();
+                                } catch (err: any) {
+                                    console.error('[Meta-SDK] Erro no claim:', err);
+                                    setStatus('idle');
+                                    setError(err.message);
+                                    toast.error(`Erro ao conectar: ${err.message}`);
+                                }
+                            } else {
+                                console.warn('[Meta-SDK] Evento FINISH sem waba_id - aguardando redirect...');
+                                // Continuar esperando o redirect com code/waba_id na URL
+                            }
                         } else if (flowEvent === 'CANCEL') {
                             setStatus('idle');
                             if (metadata?.current_step) {
