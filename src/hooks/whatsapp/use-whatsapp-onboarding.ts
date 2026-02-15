@@ -102,7 +102,39 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
         let intervalId: NodeJS.Timeout;
 
         const handleMessage = async (event: MessageEvent) => {
-            // Ouvir apenas mensagens do mesmo domínio (vindas do nosso callback page)
+            // 1. OUVINTE OFICIAL DA META (facebook.com)
+            // Conforme documentação V24: captura finalização, abandono e erros do flow
+            if (event.origin.endsWith('facebook.com')) {
+                try {
+                    const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+
+                    if (data.type === 'WA_EMBEDDED_SIGNUP') {
+                        console.log('[Meta-SDK] EVENTO OFICIAL RECEBIDO:', data);
+
+                        const flowEvent = data.event;
+                        const metadata = data.data;
+
+                        if (flowEvent === 'FINISH' || flowEvent?.startsWith('FINISH_')) {
+                            console.log('[Meta-SDK] Flow concluído com sucesso:', metadata);
+                        } else if (flowEvent === 'CANCEL') {
+                            setStatus('idle');
+                            if (metadata?.current_step) {
+                                console.warn('[Meta-SDK] Usuário abandonou na etapa:', metadata.current_step);
+                                toast.error('Conexão cancelada. Etapa: ' + metadata.current_step);
+                            } else if (metadata?.error_message) {
+                                console.error('[Meta-SDK] Erro reportado pela Meta:', metadata);
+                                toast.error(`Erro: ${metadata.error_message}`);
+                            } else {
+                                toast.error('Conexão cancelada.');
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.log('[Meta-SDK] Erro ao processar mensagem:', e);
+                }
+            }
+
+            // 2. OUVINTE DO NOSSO DOMÍNIO (para o redirect_uri)
             if (event.origin !== window.location.origin) return;
 
             if (event.data?.type === 'WA_CALLBACK_DATA') {
@@ -118,7 +150,10 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
                             headers: { 'Content-Type': 'application/json' }
                         });
 
-                        if (!response.ok) throw new Error('Falha na troca de token');
+                        if (!response.ok) {
+                            const errData = await response.json();
+                            throw new Error(errData.error || 'Falha na troca de token');
+                        }
 
                         setStatus('success');
                         toast.success('WhatsApp conectado com sucesso!');
