@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { ExternalLink, CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { authClient } from '@/lib/auth/auth-client';
 import { useWhatsAppOnboarding } from '@/hooks/whatsapp/use-whatsapp-onboarding';
 
 interface EmbeddedSignupButtonProps {
@@ -13,7 +12,7 @@ interface EmbeddedSignupButtonProps {
 }
 
 export function EmbeddedSignupButton({ onSuccess }: EmbeddedSignupButtonProps) {
-    const { status, error, startOnboarding, checkConnection } = useWhatsAppOnboarding(onSuccess);
+    const { status, error, sdkReady, startOnboarding, checkConnection } = useWhatsAppOnboarding(onSuccess);
 
     const handleConnect = () => {
         startOnboarding();
@@ -61,9 +60,19 @@ export function EmbeddedSignupButton({ onSuccess }: EmbeddedSignupButtonProps) {
                             onClick={handleConnect}
                             className="w-full gap-2"
                             size="lg"
+                            disabled={!sdkReady}
                         >
-                            <ExternalLink className="h-4 w-4" />
-                            Conectar com a Meta
+                            {!sdkReady ? (
+                                <>
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                    Carregando SDK...
+                                </>
+                            ) : (
+                                <>
+                                    <ExternalLink className="h-4 w-4" />
+                                    Conectar com a Meta
+                                </>
+                            )}
                         </Button>
                     </>
                 )}

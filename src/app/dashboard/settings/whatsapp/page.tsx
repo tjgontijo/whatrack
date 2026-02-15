@@ -37,7 +37,7 @@ export default function WhatsAppSettingsPage() {
         refetch()
     }
 
-    const { status: onboardingStatus, startOnboarding } = useWhatsAppOnboarding(handleRefresh)
+    const { status: onboardingStatus, sdkReady, startOnboarding } = useWhatsAppOnboarding(handleRefresh)
 
     // Process OAuth callback from Meta (Optimized flow)
     React.useEffect(() => {
@@ -103,7 +103,7 @@ export default function WhatsAppSettingsPage() {
                         size="sm"
                         className="h-8 gap-2 font-bold shadow-sm"
                         onClick={startOnboarding}
-                        disabled={onboardingStatus === 'pending' || onboardingStatus === 'checking' || isClaiming}
+                        disabled={!sdkReady || onboardingStatus === 'pending' || onboardingStatus === 'checking' || isClaiming}
                     >
                         {onboardingStatus === 'pending' || onboardingStatus === 'checking' || isClaiming ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
