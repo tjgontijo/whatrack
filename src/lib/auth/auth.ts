@@ -2,6 +2,7 @@ import { betterAuth } from 'better-auth'
 import { prismaAdapter } from 'better-auth/adapters/prisma'
 import { admin } from 'better-auth/plugins'
 import { organization } from 'better-auth/plugins'
+import { randomUUID } from 'crypto'
 
 import { prisma } from '../prisma'
 
@@ -31,6 +32,7 @@ export const auth = betterAuth({
     crossSubDomainCookies: {
       enabled: appBaseURL.includes('localhost') ? false : true,
     },
+    generateId: () => randomUUID(),
   },
 
   database: prismaAdapter(prisma, { provider: 'postgresql' }),
