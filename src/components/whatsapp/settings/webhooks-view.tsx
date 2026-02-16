@@ -1,9 +1,9 @@
 'use client'
 
-import React from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Webhook, Shield, Copy, Bell, Zap, Database, Clock, RefreshCw, EyeOff } from 'lucide-react'
+import { Webhook, Shield, Copy, Bell, Zap, Database, RefreshCw, EyeOff, Eye, MessageSquare, Info, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -19,10 +19,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog'
-import { Eye, Smartphone, MessageSquare, Info, AlertTriangle } from 'lucide-react'
-import { useState } from 'react'
-
-import { parsePhoneNumber, parsePhoneNumberFromString } from 'libphonenumber-js'
+import { parsePhoneNumberFromString } from 'libphonenumber-js'
 
 // Helper para traduzir o tipo de mensagem
 function translateMessageType(type: string) {
@@ -55,15 +52,31 @@ function formatPhoneNumber(number: string) {
     }
 }
 
+// Helper para traduzir status de mensagem
+function translateStatus(status: string) {
+    const statuses: Record<string, string> = {
+        'sent': 'Enviado',
+        'delivered': 'Entregue',
+        'read': 'Lido',
+        'failed': 'Falhou',
+        'deleted': 'Deletado',
+        'warning': 'Aviso'
+    }
+    return statuses[status] || status
+}
+
 // Helper para formatar o payload de forma humana e estruturada
 function formatPayloadHumanly(log: any) {
     const payload = log.payload
     const eventType = log.eventType
+    const field = payload.entry?.[0]?.changes?.[0]?.field
 
     try {
-        if (eventType === 'messages') {
-            const message = payload.entry?.[0]?.changes?.[0]?.value?.messages?.[0]
-            const contact = payload.entry?.[0]?.changes?.[0]?.value?.contacts?.[0]
+        // Mensagens recebidas
+        if (eventType === 'messages' || field === 'messages') {
+            const value = payload.entry?.[0]?.changes?.[0]?.value
+            const message = value?.messages?.[0]
+            const contact = value?.contacts?.[0]
             if (message) {
                 const name = contact?.profile?.name
                 const from = message.from
@@ -76,7 +89,7 @@ function formatPayloadHumanly(log: any) {
                             </span>
                         </div>
                         <div className="flex items-center gap-1">
-                            <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0">WhatsApp:</span>
+                            <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0">De:</span>
                             <span className="text-xs font-medium text-foreground">
                                 {formatPhoneNumber(from)}
                             </span>
@@ -100,7 +113,46 @@ function formatPayloadHumanly(log: any) {
             }
         }
 
-        if (eventType === 'statuses') {
+        // Mensagens enviadas (echo) - smb_message_echoes
+        if (field === 'smb_message_echoes') {
+            const value = payload.entry?.[0]?.changes?.[0]?.value
+            const echo = value?.message_echoes?.[0]
+            if (echo) {
+                return (
+                    <div className="flex flex-col gap-0.5 py-1">
+                        <div className="flex items-center gap-1">
+                            <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0">Direção:</span>
+                            <Badge variant="outline" className="text-[9px] h-3.5 px-1 font-black uppercase text-blue-600 bg-blue-50 border-blue-200">
+                                Enviado
+                            </Badge>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0">Para:</span>
+                            <span className="text-xs font-medium text-foreground">
+                                {formatPhoneNumber(echo.to)}
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0">Tipo:</span>
+                            <span className="text-xs font-medium text-primary">
+                                {translateMessageType(echo.type)}
+                            </span>
+                        </div>
+                        {echo.text?.body && (
+                            <div className="flex items-start gap-1 max-w-md">
+                                <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0 mt-0.5">Mensagem:</span>
+                                <span className="text-xs text-foreground/80 line-clamp-2">
+                                    {echo.text.body}
+                                </span>
+                            </div>
+                        )}
+                    </div>
+                )
+            }
+        }
+
+        // Status de mensagem
+        if (eventType === 'statuses' || field === 'statuses') {
             const status = payload.entry?.[0]?.changes?.[0]?.value?.statuses?.[0]
             if (status) {
                 return (
@@ -108,9 +160,11 @@ function formatPayloadHumanly(log: any) {
                         <div className="flex items-center gap-1">
                             <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0">Status:</span>
                             <Badge variant="outline" className={`text-[9px] h-3.5 px-1 font-black uppercase ${status.status === 'read' ? 'text-blue-600 bg-blue-50 border-blue-200' :
-                                status.status === 'delivered' ? 'text-green-600 bg-green-50 border-green-200' : ''
+                                status.status === 'delivered' ? 'text-green-600 bg-green-50 border-green-200' :
+                                status.status === 'sent' ? 'text-gray-600 bg-gray-50 border-gray-200' :
+                                status.status === 'failed' ? 'text-red-600 bg-red-50 border-red-200' : ''
                                 }`}>
-                                {status.status}
+                                {translateStatus(status.status)}
                             </Badge>
                         </div>
                         <div className="flex items-center gap-1">
@@ -122,7 +176,8 @@ function formatPayloadHumanly(log: any) {
             }
         }
 
-        if (eventType === 'account_update') {
+        // Atualização de conta
+        if (eventType === 'account_update' || field === 'account_update') {
             const value = payload.entry?.[0]?.changes?.[0]?.value
             return (
                 <div className="flex flex-col gap-0.5 py-1 text-xs">
@@ -135,16 +190,17 @@ function formatPayloadHumanly(log: any) {
             )
         }
 
-        if (eventType === 'message_template_status_update') {
+        // Atualização de status de template
+        if (eventType === 'message_template_status_update' || field === 'message_template_status_update') {
             const value = payload.entry?.[0]?.changes?.[0]?.value
             return (
                 <div className="flex flex-col gap-0.5 py-1">
                     <div className="flex items-center gap-1">
-                        <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0">Template ID:</span>
-                        <span className="text-xs font-bold">{value?.message_template_id}</span>
+                        <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0">Template:</span>
+                        <span className="text-xs font-bold">{value?.message_template_name || value?.message_template_id}</span>
                     </div>
                     <div className="flex items-center gap-1">
-                        <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0">Novo Status:</span>
+                        <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0">Status:</span>
                         <Badge variant="outline" className="text-[9px] h-3.5 px-1 font-black uppercase text-primary border-primary/20 bg-primary/5">
                             {value?.event}
                         </Badge>
@@ -153,7 +209,32 @@ function formatPayloadHumanly(log: any) {
             )
         }
 
-        return <span className="text-xs italic text-muted-foreground">Evento {eventType || 'genérico'} recebido</span>
+        // Qualidade do número de telefone
+        if (field === 'phone_number_quality_update') {
+            const value = payload.entry?.[0]?.changes?.[0]?.value
+            return (
+                <div className="flex flex-col gap-0.5 py-1">
+                    <div className="flex items-center gap-1">
+                        <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0">Qualidade:</span>
+                        <Badge variant="outline" className={`text-[9px] h-3.5 px-1 font-black uppercase ${
+                            value?.current_limit === 'TIER_1K' ? 'text-amber-600 bg-amber-50 border-amber-200' :
+                            value?.current_limit === 'TIER_10K' ? 'text-green-600 bg-green-50 border-green-200' :
+                            value?.current_limit === 'TIER_100K' ? 'text-blue-600 bg-blue-50 border-blue-200' : ''
+                        }`}>
+                            {value?.current_limit || 'N/A'}
+                        </Badge>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0">Número:</span>
+                        <span className="text-xs font-medium text-foreground">{formatPhoneNumber(value?.display_phone_number)}</span>
+                    </div>
+                </div>
+            )
+        }
+
+        // Fallback genérico - mostra o field se disponível
+        const displayField = field || eventType || 'desconhecido'
+        return <span className="text-xs italic text-muted-foreground">Evento <code className="bg-muted px-1 rounded">{displayField}</code> recebido</span>
     } catch (e) {
         return <span className="text-xs text-destructive">Erro na formatação dos dados</span>
     }
