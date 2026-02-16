@@ -511,7 +511,7 @@ model WhatsAppConnection {
   connectedAt      DateTime?
   disconnectedAt   DateTime?
 
-  // Health & Monitoring
+  // Health and Monitoring
   lastWebhookAt    DateTime?
   lastHealthCheckAt DateTime?
   healthStatus     WhatsAppHealthStatus @default(unknown)
