@@ -560,6 +560,8 @@ CREATE TABLE "whatsapp_messages" (
     "status" TEXT NOT NULL,
     "timestamp" TIMESTAMP(3) NOT NULL,
     "conversationId" TEXT,
+    "source" TEXT NOT NULL DEFAULT 'live',
+    "rawMeta" JSONB,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -811,6 +813,12 @@ CREATE INDEX "whatsapp_messages_conversation_uuid_idx" ON "whatsapp_messages"("c
 
 -- CreateIndex
 CREATE INDEX "whatsapp_messages_ticketId_idx" ON "whatsapp_messages"("ticketId");
+
+-- CreateIndex
+CREATE INDEX "whatsapp_messages_source_idx" ON "whatsapp_messages"("source");
+
+-- CreateIndex
+CREATE INDEX "whatsapp_messages_timestamp_idx" ON "whatsapp_messages"("timestamp");
 
 -- AddForeignKey
 ALTER TABLE "user" ADD CONSTRAINT "user_role_fkey" FOREIGN KEY ("role") REFERENCES "user_roles"("name") ON DELETE RESTRICT ON UPDATE CASCADE;

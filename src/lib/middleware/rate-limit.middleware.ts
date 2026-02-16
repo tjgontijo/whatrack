@@ -97,14 +97,14 @@ export function getClientIp(request: NextRequest): string {
 /**
  * Extract organization ID from request (if available)
  * Can be from:
- * - Query parameter: ?orgId=...
+ * - Query parameter: ?orgId=... or ?organizationId=...
  * - Header: X-Org-Id: ...
  * - Session (if authenticated)
  */
 export async function getOrganizationId(request: NextRequest): Promise<string | null> {
-  // Try query parameter first
+  // Try query parameter first (support both orgId and organizationId)
   const url = new URL(request.url);
-  const orgIdParam = url.searchParams.get('orgId');
+  const orgIdParam = url.searchParams.get('orgId') || url.searchParams.get('organizationId');
   if (orgIdParam) return orgIdParam;
 
   // Try header
