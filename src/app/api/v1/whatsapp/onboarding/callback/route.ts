@@ -84,7 +84,7 @@ export async function GET(request: Request) {
 
     // Exchange code for access token
     console.log(`[Onboarding Callback] Exchanging code for token...`);
-    const tokenResponse = await fetch('https://graph.instagram.com/v24.0/oauth/access_token', {
+    const tokenResponse = await fetch('https://graph.facebook.com/v24.0/oauth/access_token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
