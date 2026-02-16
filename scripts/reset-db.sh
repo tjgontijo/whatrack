@@ -34,9 +34,11 @@ npm install
 
 # 4. Reset do Banco de Dados e Migrations
 print_box "🗑️ Resetando Banco de Dados..."
+npx prisma migrate reset --force
 
-# Usar prisma db push para aplicar schema atual
-npx prisma db push --force-reset
+# Criar migration initial (init) a partir do schema
+print_box "📝 Criando migration inicial (init)..."
+npx prisma migrate dev --name init || true
 
 # Gerar Prisma Client (necessário antes do seed)
 print_box "🔄 Gerando Prisma Client..."
