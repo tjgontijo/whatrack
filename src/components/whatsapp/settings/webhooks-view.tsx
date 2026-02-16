@@ -65,127 +65,150 @@ function translateStatus(status: string) {
     return statuses[status] || status
 }
 
+// Helper para traduzir eventos de conta
+function translateAccountEvent(event: string) {
+    const events: Record<string, string> = {
+        'PARTNER_ADDED': 'Parceiro adicionado',
+        'PARTNER_REMOVED': 'Parceiro removido',
+        'MM_LITE_TERMS_SIGNED': 'Termos do WhatsApp assinados',
+        'VERIFIED_ACCOUNT': 'Conta verificada',
+        'PHONE_NUMBER_NAME_UPDATE': 'Nome do número atualizado',
+        'PHONE_NUMBER_QUALITY_UPDATE': 'Qualidade do número atualizada'
+    }
+    return events[event] || event
+}
+
 // Helper para formatar o payload de forma humana e estruturada
 function formatPayloadHumanly(log: any) {
     const payload = log.payload
     const eventType = log.eventType
     const field = payload.entry?.[0]?.changes?.[0]?.field
+    const value = payload.entry?.[0]?.changes?.[0]?.value
 
     try {
-        // Mensagens recebidas
-        if (eventType === 'messages' || field === 'messages') {
-            const value = payload.entry?.[0]?.changes?.[0]?.value
-            const message = value?.messages?.[0]
-            const contact = value?.contacts?.[0]
-            if (message) {
-                const name = contact?.profile?.name
-                const from = message.from
-                return (
-                    <div className="flex flex-col gap-0.5 py-1">
-                        <div className="flex items-center gap-1">
-                            <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0">Nome:</span>
-                            <span className="text-xs font-semibold text-foreground truncate">
-                                {name || 'N/A'}
-                            </span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                            <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0">De:</span>
-                            <span className="text-xs font-medium text-foreground">
-                                {formatPhoneNumber(from)}
-                            </span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                            <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0">Tipo:</span>
-                            <span className="text-xs font-medium text-primary">
-                                {translateMessageType(message.type)}
-                            </span>
-                        </div>
-                        {message.text?.body && (
-                            <div className="flex items-start gap-1 max-w-md">
-                                <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0 mt-0.5">Mensagem:</span>
-                                <span className="text-xs text-foreground/80 line-clamp-2">
-                                    {message.text.body}
-                                </span>
-                            </div>
-                        )}
+        // Status de mensagem - pode vir em field=messages ou field=statuses
+        const status = value?.statuses?.[0]
+        if (status) {
+            return (
+                <div className="flex flex-col gap-0.5 py-1">
+                    <div className="flex items-center gap-1">
+                        <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0">Status:</span>
+                        <Badge variant="outline" className={`text-[9px] h-3.5 px-1 font-black uppercase ${status.status === 'read' ? 'text-blue-600 bg-blue-50 border-blue-200' :
+                            status.status === 'delivered' ? 'text-green-600 bg-green-50 border-green-200' :
+                            status.status === 'sent' ? 'text-gray-600 bg-gray-50 border-gray-200' :
+                            status.status === 'failed' ? 'text-red-600 bg-red-50 border-red-200' : ''
+                            }`}>
+                            {translateStatus(status.status)}
+                        </Badge>
                     </div>
-                )
-            }
+                    <div className="flex items-center gap-1">
+                        <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0">Para:</span>
+                        <span className="text-xs font-medium text-foreground">{formatPhoneNumber(status.recipient_id)}</span>
+                    </div>
+                </div>
+            )
+        }
+
+        // Mensagens recebidas
+        const message = value?.messages?.[0]
+        const contact = value?.contacts?.[0]
+        if (message) {
+            const name = contact?.profile?.name
+            const from = message.from
+            return (
+                <div className="flex flex-col gap-0.5 py-1">
+                    <div className="flex items-center gap-1">
+                        <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0">Nome:</span>
+                        <span className="text-xs font-semibold text-foreground truncate">
+                            {name || 'N/A'}
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0">De:</span>
+                        <span className="text-xs font-medium text-foreground">
+                            {formatPhoneNumber(from)}
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0">Tipo:</span>
+                        <span className="text-xs font-medium text-primary">
+                            {translateMessageType(message.type)}
+                        </span>
+                    </div>
+                    {message.text?.body && (
+                        <div className="flex items-start gap-1 max-w-md">
+                            <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0 mt-0.5">Mensagem:</span>
+                            <span className="text-xs text-foreground/80 line-clamp-2">
+                                {message.text.body}
+                            </span>
+                        </div>
+                    )}
+                </div>
+            )
         }
 
         // Mensagens enviadas (echo) - smb_message_echoes
-        if (field === 'smb_message_echoes') {
-            const value = payload.entry?.[0]?.changes?.[0]?.value
-            const echo = value?.message_echoes?.[0]
-            if (echo) {
-                return (
-                    <div className="flex flex-col gap-0.5 py-1">
-                        <div className="flex items-center gap-1">
-                            <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0">Direção:</span>
-                            <Badge variant="outline" className="text-[9px] h-3.5 px-1 font-black uppercase text-blue-600 bg-blue-50 border-blue-200">
-                                Enviado
-                            </Badge>
-                        </div>
-                        <div className="flex items-center gap-1">
-                            <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0">Para:</span>
-                            <span className="text-xs font-medium text-foreground">
-                                {formatPhoneNumber(echo.to)}
+        const echo = value?.message_echoes?.[0]
+        if (echo) {
+            return (
+                <div className="flex flex-col gap-0.5 py-1">
+                    <div className="flex items-center gap-1">
+                        <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0">Direção:</span>
+                        <Badge variant="outline" className="text-[9px] h-3.5 px-1 font-black uppercase text-blue-600 bg-blue-50 border-blue-200">
+                            Enviado
+                        </Badge>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0">Para:</span>
+                        <span className="text-xs font-medium text-foreground">
+                            {formatPhoneNumber(echo.to)}
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0">Tipo:</span>
+                        <span className="text-xs font-medium text-primary">
+                            {translateMessageType(echo.type)}
+                        </span>
+                    </div>
+                    {echo.text?.body && (
+                        <div className="flex items-start gap-1 max-w-md">
+                            <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0 mt-0.5">Mensagem:</span>
+                            <span className="text-xs text-foreground/80 line-clamp-2">
+                                {echo.text.body}
                             </span>
                         </div>
-                        <div className="flex items-center gap-1">
-                            <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0">Tipo:</span>
-                            <span className="text-xs font-medium text-primary">
-                                {translateMessageType(echo.type)}
-                            </span>
-                        </div>
-                        {echo.text?.body && (
-                            <div className="flex items-start gap-1 max-w-md">
-                                <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0 mt-0.5">Mensagem:</span>
-                                <span className="text-xs text-foreground/80 line-clamp-2">
-                                    {echo.text.body}
-                                </span>
-                            </div>
-                        )}
-                    </div>
-                )
-            }
-        }
-
-        // Status de mensagem
-        if (eventType === 'statuses' || field === 'statuses') {
-            const status = payload.entry?.[0]?.changes?.[0]?.value?.statuses?.[0]
-            if (status) {
-                return (
-                    <div className="flex flex-col gap-0.5 py-1">
-                        <div className="flex items-center gap-1">
-                            <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0">Status:</span>
-                            <Badge variant="outline" className={`text-[9px] h-3.5 px-1 font-black uppercase ${status.status === 'read' ? 'text-blue-600 bg-blue-50 border-blue-200' :
-                                status.status === 'delivered' ? 'text-green-600 bg-green-50 border-green-200' :
-                                status.status === 'sent' ? 'text-gray-600 bg-gray-50 border-gray-200' :
-                                status.status === 'failed' ? 'text-red-600 bg-red-50 border-red-200' : ''
-                                }`}>
-                                {translateStatus(status.status)}
-                            </Badge>
-                        </div>
-                        <div className="flex items-center gap-1">
-                            <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0">Para:</span>
-                            <span className="text-xs font-medium text-foreground">{formatPhoneNumber(status.recipient_id)}</span>
-                        </div>
-                    </div>
-                )
-            }
+                    )}
+                </div>
+            )
         }
 
         // Atualização de conta
         if (eventType === 'account_update' || field === 'account_update') {
-            const value = payload.entry?.[0]?.changes?.[0]?.value
+            const wabaInfo = value?.waba_info
+            const eventName = value?.event
+            const isPositive = ['MM_LITE_TERMS_SIGNED', 'PARTNER_ADDED', 'VERIFIED_ACCOUNT'].includes(eventName)
             return (
-                <div className="flex flex-col gap-0.5 py-1 text-xs">
-                    <span className="font-bold text-amber-600 flex items-center gap-1">
-                        <AlertTriangle className="h-3 w-3" />
-                        {value?.event}
-                    </span>
-                    <span className="text-[10px] text-muted-foreground">Número: {formatPhoneNumber(value?.phone_number)}</span>
+                <div className="flex flex-col gap-0.5 py-1">
+                    <div className="flex items-center gap-1">
+                        <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0">Evento:</span>
+                        <Badge variant="outline" className={`text-[9px] h-3.5 px-1 font-black uppercase ${
+                            isPositive ? 'text-green-600 bg-green-50 border-green-200' : 'text-amber-600 bg-amber-50 border-amber-200'
+                        }`}>
+                            {translateAccountEvent(eventName)}
+                        </Badge>
+                    </div>
+                    {wabaInfo?.waba_id && (
+                        <div className="flex items-center gap-1">
+                            <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0">WABA ID:</span>
+                            <span className="text-xs font-mono text-foreground">{wabaInfo.waba_id}</span>
+                        </div>
+                    )}
+                    {value?.phone_number && (
+                        <div className="flex items-center gap-1">
+                            <span className="text-[10px] font-bold text-muted-foreground w-20 text-left shrink-0">Número:</span>
+                            <span className="text-xs font-medium text-foreground">{formatPhoneNumber(value.phone_number)}</span>
+                        </div>
+                    )}
                 </div>
             )
         }
