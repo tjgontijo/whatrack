@@ -7,6 +7,18 @@ export async function GET() {
   try {
     const redis = getRedis();
     const isConnected = isRedisConnected();
+    const redisUrl = process.env.REDIS_URL;
+
+    // Parse URL for display (hide password)
+    let safeUrl = 'Not configured';
+    if (redisUrl) {
+      try {
+        const urlObj = new URL(redisUrl);
+        safeUrl = `${urlObj.protocol}//${urlObj.hostname}:${urlObj.port}${urlObj.pathname}`;
+      } catch {
+        safeUrl = 'Invalid URL format';
+      }
+    }
 
     // Try to set and get a test key
     const testKey = 'redis-health-check';
@@ -21,9 +33,13 @@ export async function GET() {
       redis: {
         connected: isConnected,
         testPassed: success,
+        configUrl: safeUrl,
         testKey,
         testValue,
         retrieved,
+        note: isConnected
+          ? '✓ Redis is connected and working'
+          : '⚠️ Using fallback (no-op) mode - Redis not connected. Check REDIS_URL and network connectivity.',
       },
       timestamp: new Date().toISOString(),
     });
