@@ -6,7 +6,7 @@
     },
     {
       "path": "/api/v1/jobs/webhook-retry",
-      "schedule": "*/5 * * * *"
+      "schedule": "0 3 * * *"
     }
   ]
 }
