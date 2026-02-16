@@ -133,7 +133,7 @@ export async function POST(
     }
 
     // Revalidate cache
-    revalidateTag(`org-${organizationId}`)
+    await revalidateTag(`org-${organizationId}`, 'max')
 
     return NextResponse.json(response)
   } catch (error) {

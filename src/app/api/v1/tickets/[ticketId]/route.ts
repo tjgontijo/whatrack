@@ -288,7 +288,7 @@ export async function PATCH(
     }
 
     // Revalidate cache
-    revalidateTag(`org-${organizationId}`)
+    await revalidateTag(`org-${organizationId}`, 'max')
 
     return NextResponse.json(response)
   } catch (error) {

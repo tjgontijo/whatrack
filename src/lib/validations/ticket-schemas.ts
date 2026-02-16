@@ -54,9 +54,7 @@ export const updateTicketSchema = z.object({
 
 // POST /api/v1/tickets/:id/close - Close ticket
 export const closeTicketSchema = z.object({
-  reason: z.enum(['won', 'lost'], {
-    errorMap: () => ({ message: 'Motivo deve ser "won" ou "lost"' }),
-  }),
+  reason: z.enum(['won', 'lost'] as const),
   closedReason: z
     .string()
     .max(500, 'Motivo de fechamento muito longo')

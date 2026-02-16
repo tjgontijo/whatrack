@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { Prisma } from '@prisma/client'
 import { revalidateTag } from 'next/cache'
+import { z } from 'zod'
 
 import { prisma } from '@/lib/prisma'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
@@ -509,7 +510,7 @@ export async function POST(req: Request) {
     }
 
     // Revalidate cache
-    revalidateTag(`org-${organizationId}`)
+    await revalidateTag(`org-${organizationId}`, 'max')
 
     return NextResponse.json(response, { status: 201 })
   } catch (error) {
