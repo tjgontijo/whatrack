@@ -9,14 +9,33 @@ export const dynamic = 'force-dynamic'
 
 /**
  * POST /api/v1/whatsapp/claim-waba
- * Vincula um WABA ID recém-criado/compartilhado à organização atual.
- * Chamado pelo frontend logo após o fechamento do popup do Embedded Signup.
- * 
- * Security:
- * - Access tokens are encrypted before storage (AES-256-GCM)
- * - CSRF nonce is validated from the state parameter
+ *
+ * ❌ DEPRECATED (v2.1)
+ *
+ * This endpoint is no longer used. The new v2 onboarding flow uses:
+ * 1. GET /api/v1/whatsapp/onboarding - to generate tracking code
+ * 2. POST /api/v1/whatsapp/webhook - receives PARTNER_ADDED event with tracking code
+ *
+ * The webhook handler automatically creates WhatsAppConnection and claims the WABA.
+ *
+ * This endpoint will be removed in v3.0.
+ *
+ * For migration from v1 to v2:
+ * - Update frontend to use polling-based flow (see use-whatsapp-onboarding.ts)
+ * - Webhook receiver handles all token exchange and storage
+ * - No manual claim endpoint needed
+ *
+ * Old behavior (for reference):
+ * - Linked a newly created WABA to the current organization
+ * - Called by frontend after Embedded Signup popup closed
+ * - Exchanged authorization code for access token
+ * - Stored token encrypted
+ *
+ * See: docs/whatsapp-onboarding-prd-v2.md
  */
 export async function POST(request: Request) {
+    console.warn('[DEPRECATED] POST /api/v1/whatsapp/claim-waba is deprecated as of v2.1. Use webhook-based onboarding instead.');
+
     try {
         const session = await auth.api.getSession({
             headers: await headers()
@@ -159,11 +178,19 @@ export async function POST(request: Request) {
 
         return NextResponse.json({
             success: true,
+            deprecated: true,
+            warning: 'This endpoint is deprecated as of v2.1. Use webhook-based onboarding instead. See docs/whatsapp-onboarding-prd-v2.md',
             config: {
                 id: config.id,
                 wabaId: config.wabaId,
                 phoneId: config.phoneId,
                 status: config.status
+            }
+        }, {
+            status: 200,
+            headers: {
+                'Deprecation': 'true',
+                'Sunset': 'Sun, 31 Dec 2024 23:59:59 GMT'
             }
         })
 
