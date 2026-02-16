@@ -1,4 +1,4 @@
-# WhatsApp History Sync - Implementation Guide
+1# WhatsApp History Sync - Implementation Guide
 
 ## 1. Fluxo Visual Completo
 

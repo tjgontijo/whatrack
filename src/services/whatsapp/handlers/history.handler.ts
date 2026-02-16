@@ -65,6 +65,7 @@ export async function historyHandler(payload: any): Promise<void> {
   // Create sync log entry
   const syncLog = await prisma.whatsAppHistorySync.create({
     data: {
+      id: `${config.id}-${phase}-${chunkOrder}`,
       connectionId: config.id,
       status: 'processing',
       phase,
