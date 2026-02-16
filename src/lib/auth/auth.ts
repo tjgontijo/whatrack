@@ -46,17 +46,6 @@ export const auth = betterAuth({
     organization()
   ],
 
-  user: {
-    additionalFields: {
-      role: {
-        type: 'string',
-        required: false,
-        defaultValue: 'user',
-        input: false,
-      },
-    },
-  },
-
   databaseHooks: {
     user: {
       create: {
