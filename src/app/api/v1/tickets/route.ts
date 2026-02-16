@@ -1,9 +1,15 @@
 import { NextResponse } from 'next/server'
 import type { Prisma } from '@prisma/client'
-import { z } from 'zod'
+import { revalidateTag } from 'next/cache'
 
 import { prisma } from '@/lib/prisma'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import { hasPermission } from '@/lib/auth/rbac/roles'
+import { getDefaultTicketStage } from '@/services/tickets/ensure-ticket-stages'
+import {
+  ticketsQuerySchema,
+  createTicketSchema,
+} from '@/lib/validations/ticket-schemas'
 
 const DATE_RANGE_PRESETS = ['today', '7d', '30d', 'thisMonth'] as const
 type DateRangePreset = (typeof DATE_RANGE_PRESETS)[number]
@@ -96,37 +102,58 @@ const ticketsResponseSchema = z.object({
   }),
 })
 
-const cache = new Map<string, { ts: number; data: unknown }>()
-const CACHE_TTL_MS = 3000
-
 export async function GET(req: Request) {
   const access = await validateFullAccess(req)
   if (!access.hasAccess || !access.organizationId) {
     return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
   }
 
+  if (!hasPermission(access.role, 'view:tickets')) {
+    return NextResponse.json(
+      { error: 'Sem permissão para visualizar tickets' },
+      { status: 403 },
+    )
+  }
+
   const organizationId = access.organizationId
   const { searchParams } = new URL(req.url)
 
-  const q = (searchParams.get('q') || '').trim()
-  const statusFilter = (searchParams.get('status') || '').trim() || undefined
-  const stageId = (searchParams.get('stageId') || '').trim() || undefined
-  const assigneeId = (searchParams.get('assigneeId') || '').trim() || undefined
-  const sourceType = (searchParams.get('sourceType') || '').trim() || undefined
-  const utmSource = (searchParams.get('utmSource') || '').trim() || undefined
-  const windowStatus = isWindowStatus(searchParams.get('windowStatus'))
-    ? (searchParams.get('windowStatus') as WindowStatus)
-    : undefined
-  const dateRangeValue = searchParams.get('dateRange')
-  const dateRangePreset = isDateRangePreset(dateRangeValue)
-    ? (dateRangeValue as DateRangePreset)
-    : undefined
+  // Validate query parameters
+  const parsed = ticketsQuerySchema.safeParse({
+    q: searchParams.get('q') ?? undefined,
+    status: searchParams.get('status') ?? undefined,
+    stageId: searchParams.get('stageId') ?? undefined,
+    assigneeId: searchParams.get('assigneeId') ?? undefined,
+    sourceType: searchParams.get('sourceType') ?? undefined,
+    utmSource: searchParams.get('utmSource') ?? undefined,
+    windowStatus: searchParams.get('windowStatus') ?? undefined,
+    dateRange: searchParams.get('dateRange') ?? undefined,
+    page: searchParams.get('page') ?? undefined,
+    pageSize: searchParams.get('pageSize') ?? undefined,
+  })
 
-  const page = Math.max(1, Number.parseInt(searchParams.get('page') || '1', 10) || 1)
-  const pageSize = Math.max(
-    1,
-    Math.min(100, Number.parseInt(searchParams.get('pageSize') || '20', 10) || 20),
-  )
+  if (!parsed.success) {
+    return NextResponse.json(
+      {
+        error: 'Parâmetros inválidos',
+        details: parsed.error.flatten(),
+      },
+      { status: 400 },
+    )
+  }
+
+  const {
+    q,
+    status: statusFilter,
+    stageId,
+    assigneeId,
+    sourceType,
+    utmSource,
+    windowStatus,
+    dateRange: dateRangePreset,
+    page,
+    pageSize,
+  } = parsed.data
 
   const filters: Prisma.TicketWhereInput[] = []
 
@@ -200,26 +227,6 @@ export async function GET(req: Request) {
   const statsWhere = buildWhere(filters)
 
   try {
-    const cacheKey = JSON.stringify({
-      organizationId,
-      q,
-      statusFilter,
-      stageId,
-      assigneeId,
-      sourceType,
-      utmSource,
-      windowStatus,
-      dateRangePreset,
-      page,
-      pageSize,
-      where,
-    })
-
-    const cached = cache.get(cacheKey)
-    if (cached && Date.now() - cached.ts < CACHE_TTL_MS) {
-      return NextResponse.json(cached.data)
-    }
-
     const [tickets, total, openCount, closedWonCount, closedLostCount, totalDealValue] =
       await prisma.$transaction([
         prisma.ticket.findMany({
@@ -331,13 +338,184 @@ export async function GET(req: Request) {
       },
     })
 
-    cache.set(cacheKey, { ts: Date.now(), data: payload })
-
     return NextResponse.json(payload)
   } catch (error) {
     console.error('[api/tickets] GET error:', error)
     return NextResponse.json(
       { error: 'Failed to fetch tickets', details: String(error) },
+      { status: 500 },
+    )
+  }
+}
+
+export async function POST(req: Request) {
+  const access = await validateFullAccess(req)
+  if (!access.hasAccess || !access.organizationId) {
+    return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
+  }
+
+  if (!hasPermission(access.role, 'manage:tickets')) {
+    return NextResponse.json(
+      { error: 'Sem permissão para criar tickets' },
+      { status: 403 },
+    )
+  }
+
+  const organizationId = access.organizationId
+  const userId = access.userId
+
+  try {
+    const body = await req.json()
+    const parsed = createTicketSchema.safeParse(body)
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        {
+          error: 'Dados inválidos',
+          details: parsed.error.flatten(),
+        },
+        { status: 400 },
+      )
+    }
+
+    const { conversationId, stageId, assigneeId, dealValue } = parsed.data
+
+    // Verify conversation exists and belongs to organization
+    const conversation = await prisma.conversation.findFirst({
+      where: {
+        id: conversationId,
+        organizationId,
+      },
+      include: {
+        lead: true,
+      },
+    })
+
+    if (!conversation) {
+      return NextResponse.json(
+        { error: 'Conversa não encontrada' },
+        { status: 404 },
+      )
+    }
+
+    // Check if conversation already has an open ticket
+    const existingTicket = await prisma.ticket.findFirst({
+      where: {
+        conversationId,
+        status: 'open',
+      },
+    })
+
+    if (existingTicket) {
+      return NextResponse.json(
+        {
+          error: 'Conversa já possui um ticket aberto',
+          ticketId: existingTicket.id,
+        },
+        { status: 409 },
+      )
+    }
+
+    // Get stage (use provided or default)
+    let targetStageId = stageId
+    if (!targetStageId) {
+      const defaultStage = await getDefaultTicketStage(prisma, organizationId)
+      targetStageId = defaultStage.id
+    } else {
+      // Verify stage belongs to organization
+      const stage = await prisma.ticketStage.findFirst({
+        where: { id: targetStageId, organizationId },
+      })
+      if (!stage) {
+        return NextResponse.json(
+          { error: 'Estágio não encontrado' },
+          { status: 404 },
+        )
+      }
+    }
+
+    // Verify assignee if provided
+    if (assigneeId) {
+      const assignee = await prisma.member.findFirst({
+        where: {
+          userId: assigneeId,
+          organizationId,
+        },
+      })
+      if (!assignee) {
+        return NextResponse.json(
+          { error: 'Atribuído não encontrado' },
+          { status: 404 },
+        )
+      }
+    }
+
+    // Create ticket
+    const ticket = await prisma.ticket.create({
+      data: {
+        organizationId,
+        conversationId,
+        stageId: targetStageId,
+        assigneeId: assigneeId || null,
+        dealValue,
+        status: 'open',
+        windowOpen: true,
+        windowExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        createdBy: userId || 'SYSTEM',
+      },
+      include: {
+        conversation: {
+          include: {
+            lead: {
+              select: {
+                id: true,
+                name: true,
+                phone: true,
+                pushName: true,
+              },
+            },
+          },
+        },
+        stage: {
+          select: {
+            id: true,
+            name: true,
+            color: true,
+          },
+        },
+        assignee: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        tracking: true,
+      },
+    })
+
+    // Format response
+    const response = {
+      id: ticket.id,
+      lead: ticket.conversation.lead,
+      stage: ticket.stage,
+      assignee: ticket.assignee,
+      tracking: ticket.tracking,
+      status: ticket.status,
+      windowOpen: ticket.windowOpen,
+      windowExpiresAt: ticket.windowExpiresAt?.toISOString() || null,
+      dealValue: ticket.dealValue ? Number(ticket.dealValue) : null,
+      messagesCount: ticket.messagesCount,
+      createdAt: ticket.createdAt.toISOString(),
+    }
+
+    // Revalidate cache
+    revalidateTag(`org-${organizationId}`)
+
+    return NextResponse.json(response, { status: 201 })
+  } catch (error) {
+    console.error('[api/tickets] POST error:', error)
+    return NextResponse.json(
+      { error: 'Falha ao criar ticket', details: String(error) },
       { status: 500 },
     )
   }

@@ -490,14 +490,63 @@ Lead: João Silva (+55 11 99999-8888)
 
 ---
 
-## Próximos Passos
+---
 
-### Fase 1: Core (Esta implementação)
-- [ ] Migration do schema (Conversation, Ticket, TicketStage, TicketTracking)
-- [ ] Ajustar webhook handler para criar Ticket automaticamente
-- [ ] Ajustar Message para vincular a Conversation e Ticket
-- [ ] API de listagem de Tickets
-- [ ] Seed de estágios padrão
+## Decisões Técnicas Implementadas (Fase 1)
+
+### Validação e Segurança
+
+- **Zod Schemas**: Todas as entradas validadas com `zod.safeParse()`
+  - Query params para GET `/api/v1/tickets`
+  - Request bodies para POST/PATCH/close
+  - Mensagens de erro em português
+
+- **Autorização RBAC**:
+  - `view:tickets`: Usuários com role user/admin/owner podem **listar e visualizar**
+  - `manage:tickets`: Apenas admin/owner podem **criar, atualizar e fechar**
+
+- **Validação de Relacionamentos**:
+  - Toda foreign key é validada contra organizationId
+  - Conversas, estágios e assignees verificados antes de operação
+
+### Constantes e Enums
+
+- Criado `src/lib/constants/ticket-statuses.ts`:
+  - `TICKET_STATUSES = ['open', 'closed_won', 'closed_lost']`
+  - Tipos TypeScript para `TicketStatus`
+  - Helper `isClosedStatus()` para validações
+
+### Cache Removido
+
+- **Problema**: Map em memória não compartilhado entre instâncias
+- **Solução**: Removido cache simples (linha 99-100, 203-221, 334 do route.ts)
+- **Revalidação**: Usando `revalidateTag()` do Next.js quando dados mudam
+
+### Tratamento de Erros
+
+| HTTP | Quando | Exemplo |
+|------|--------|---------|
+| 400 | Validação falhou | UUID inválido, dealValue negativo |
+| 403 | Sem permissão | Usuário sem permission `manage:tickets` |
+| 404 | Recurso não existe | Ticket/stage/assignee não encontrado |
+| 409 | Conflito de negócio | Ticket aberto duplicado, atualizar closed ticket |
+| 500 | Erro servidor | Falha DB, exceção inesperada |
+
+### Transações Atômicas
+
+- **PATCH**: Usa `prisma.$transaction()` para garantir atomicidade
+- **Close**: Usa transação para status + closedAt + dealValue
+- **POST**: Single create (não necessita transação)
+
+### Response Formatting
+
+- Datas sempre convertidas para ISO strings: `toISOString()`
+- Decimals convertidas para Number: `Number(ticket.dealValue)`
+- Nullables explícitos: `value || null` (não undefined)
+
+---
+
+## Próximos Passos
 
 ### Fase 2: UI
 - [ ] Melhorar Inbox existente com dados de Ticket
@@ -515,7 +564,9 @@ Lead: João Silva (+55 11 99999-8888)
 
 ## Observações Técnicas
 
-1. **Apenas um Ticket aberto por Conversation**: Quando fecha um ticket, próxima mensagem cria novo
-2. **Tracking só na criação**: `TicketTracking` é criado junto com o Ticket, não atualiza depois
-3. **Janela 24h é do Ticket**: Cada ticket controla sua própria janela
+1. **Apenas um Ticket aberto por Conversation**: Quando fecha um ticket, próxima mensagem cria novo. POST retorna 409 se tentar criar duplicado.
+2. **Tracking só na criação**: `TicketTracking` é criado junto com o Ticket, não atualiza depois (imutável)
+3. **Janela 24h é do Ticket**: Cada ticket controla sua própria janela. Tickets manuais recebem 24h por padrão.
 4. **Messages sempre vinculadas**: Toda mensagem nova precisa ter `conversationId` e `ticketId`
+5. **Permissões**: Sistema RBAC garante que apenas admins possam modificar tickets
+6. **Atomicidade**: Atualizações usam transações para evitar estados inconsistentes
