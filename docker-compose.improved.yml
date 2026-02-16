@@ -1,0 +1,116 @@
+version: "3.8"
+
+services:
+  ## ==================== REDIS ==================== ##
+  redis:
+    image: redis:7-alpine
+    container_name: whatrack-redis
+
+    command: >
+      redis-server
+      --appendonly yes
+      --requirepass 4f9c2a8d7b1e6c3f
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+
+    volumes:
+      - redis_data:/data
+
+    networks:
+      - redeinterna
+
+    ports:
+      # Redis is TCP, not HTTP - expose directly, not via Traefik
+      - "6379:6379"
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "4f9c2a8d7b1e6c3f", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+
+    restart: unless-stopped
+
+    # NOTE: Redis doesn't support HTTP routing via Traefik
+    # If you need to access Redis from outside Docker network:
+    # 1. Use direct port 6379 with firewall rules
+    # 2. Or set up a tunnel/VPN
+    # 3. Or use Redis Sentinel/Cluster with proper networking
+
+  ## ==================== CENTRIFUGO ==================== ##
+  centrifugo:
+    image: centrifugo/centrifugo:v5
+    container_name: whatrack-centrifugo
+
+    networks:
+      - redeinterna
+
+    environment:
+      # Redis engine configuration
+      - CENTRIFUGO_ENGINE=redis
+      - CENTRIFUGO_REDIS_ADDRESS=redis:6379
+      - CENTRIFUGO_REDIS_PASSWORD=4f9c2a8d7b1e6c3f
+
+      # HTTP server
+      - CENTRIFUGO_HTTP_PORT=8000
+      - CENTRIFUGO_HTTP_ADDRESS=0.0.0.0
+
+      # API & Auth
+      - CENTRIFUGO_API_KEY=7f5a2d9c4e8b1a6f3d0c9e7b2a4f6c1d
+      - CENTRIFUGO_TOKEN_HMAC_SECRET_KEY=1a9e5c7b3d4f8a2c6e0b7d9f4a1c3e5b
+
+      # Admin panel
+      - CENTRIFUGO_ADMIN=true
+      - CENTRIFUGO_ADMIN_PASSWORD=3c8a1f6d9b2e7a4c
+      - CENTRIFUGO_ADMIN_SECRET=9d2f7a1c5e8b3f6a
+
+      # CORS
+      - CENTRIFUGO_ALLOWED_ORIGINS=*
+
+      # Logging
+      - CENTRIFUGO_LOG_LEVEL=info
+
+    ports:
+      - "8000:8000"
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+
+    restart: unless-stopped
+
+    labels:
+      - traefik.enable=1
+      - traefik.http.routers.centrifugo.rule=Host(`centrifugo.whatrack.com`)
+      - traefik.http.routers.centrifugo.entrypoints=websecure
+      - traefik.http.routers.centrifugo.priority=1
+      - traefik.http.routers.centrifugo.tls.certresolver=letsencryptresolver
+      - traefik.http.routers.centrifugo.service=centrifugo
+      - traefik.http.services.centrifugo.loadbalancer.server.port=8000
+
+volumes:
+  redis_data:
+    external: true
+    name: redis_data
+
+networks:
+  redeinterna:
+    external: true
+    name: redeinterna
