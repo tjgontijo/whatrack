@@ -12,6 +12,18 @@ export interface Message {
     createdAt: string | Date
 }
 
+export interface TicketStage {
+    id: string
+    name: string
+    color: string
+}
+
+export interface TicketInfo {
+    id: string
+    status: 'open' | 'closed_won' | 'closed_lost'
+    stage: TicketStage
+}
+
 export interface ChatItem {
     id: string
     name: string
@@ -19,6 +31,8 @@ export interface ChatItem {
     profilePicUrl: string | null
     lastMessageAt: string | Date
     lastMessage: Message | null
+    unreadCount?: number
+    currentTicket?: TicketInfo
 }
 
 export interface ChatListResponse {

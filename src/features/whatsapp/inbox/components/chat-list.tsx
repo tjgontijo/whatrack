@@ -5,13 +5,17 @@ import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { ChatItem } from '../types'
+import { InstanceSelector } from './instance-selector'
 
 interface ChatListProps {
     chats: ChatItem[]
     selectedChatId?: string
     onSelectChat: (chat: ChatItem) => void
+    selectedInstanceId?: string | null
+    onInstanceChange?: (instanceId: string) => void
     isLoading?: boolean
     onSearch: (query: string) => void
 }
@@ -20,6 +24,8 @@ export function ChatList({
     chats,
     selectedChatId,
     onSelectChat,
+    selectedInstanceId,
+    onInstanceChange,
     isLoading,
     onSearch
 }: ChatListProps) {
@@ -35,6 +41,12 @@ export function ChatList({
         <div className="flex flex-col h-full border-r border-border/60 bg-card/30 backdrop-blur-sm">
             <div className="p-4 border-b border-border/60 space-y-4">
                 <h1 className="text-xl font-bold tracking-tight">Mensagens</h1>
+                {onInstanceChange && (
+                    <InstanceSelector
+                        selectedInstanceId={selectedInstanceId || null}
+                        onInstanceChange={onInstanceChange}
+                    />
+                )}
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
@@ -57,37 +69,69 @@ export function ChatList({
                             Nenhuma conversa encontrada.
                         </div>
                     ) : (
-                        chats.map((chat) => (
-                            <button
-                                key={chat.id}
-                                onClick={() => onSelectChat(chat)}
-                                className={cn(
-                                    "flex items-center gap-3 p-4 text-left transition-all hover:bg-muted/50 border-b border-border/40",
-                                    selectedChatId === chat.id && "bg-muted shadow-inner border-l-4 border-l-primary"
-                                )}
-                            >
-                                <Avatar className="h-12 w-12 border border-border/50">
-                                    <AvatarImage src={chat.profilePicUrl || undefined} />
-                                    <AvatarFallback className="bg-primary/10 text-primary uppercase font-bold">
-                                        {chat.name.substring(0, 2)}
-                                    </AvatarFallback>
-                                </Avatar>
+                        chats.map((chat) => {
+                            const statusBadgeMap: Record<string, { bg: string; text: string; label: string }> = {
+                                open: { bg: 'bg-amber-500/10', text: 'text-amber-700', label: 'Aberto' },
+                                closed_won: { bg: 'bg-green-500/10', text: 'text-green-700', label: 'Ganho' },
+                                closed_lost: { bg: 'bg-red-500/10', text: 'text-red-700', label: 'Perdido' },
+                            }
 
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex items-center justify-between mb-1">
-                                        <span className="font-bold truncate text-sm">
-                                            {chat.name}
-                                        </span>
-                                        <span className="text-[10px] text-muted-foreground whitespace-nowrap">
-                                            {new Date(chat.lastMessageAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                                        </span>
+                            const statusBadge = chat.currentTicket && statusBadgeMap[chat.currentTicket.status]
+
+                            return (
+                                <button
+                                    key={chat.id}
+                                    onClick={() => onSelectChat(chat)}
+                                    className={cn(
+                                        "flex items-center gap-3 p-4 text-left transition-all hover:bg-muted/50 border-b border-border/40",
+                                        selectedChatId === chat.id && "bg-muted shadow-inner border-l-4 border-l-primary"
+                                    )}
+                                >
+                                    <div className="relative">
+                                        <Avatar className="h-12 w-12 border border-border/50">
+                                            <AvatarImage src={chat.profilePicUrl || undefined} />
+                                            <AvatarFallback className="bg-primary/10 text-primary uppercase font-bold">
+                                                {chat.name.substring(0, 2)}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                        {chat.unreadCount && chat.unreadCount > 0 && (
+                                            <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center rounded-full text-[10px] bg-red-500">
+                                                {chat.unreadCount > 9 ? '9+' : chat.unreadCount}
+                                            </Badge>
+                                        )}
                                     </div>
-                                    <p className="text-xs text-muted-foreground truncate leading-relaxed">
-                                        {chat.lastMessage?.body || 'Arquivo ou mídia'}
-                                    </p>
-                                </div>
-                            </button>
-                        ))
+
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center justify-between mb-1">
+                                            <span className="font-bold truncate text-sm">
+                                                {chat.name}
+                                            </span>
+                                            <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                                                {new Date(chat.lastMessageAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-2 mb-1">
+                                            {statusBadge && (
+                                                <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${statusBadge.bg} ${statusBadge.text} border-0`}>
+                                                    {statusBadge.label}
+                                                </Badge>
+                                            )}
+                                            {chat.currentTicket?.stage && (
+                                                <div
+                                                    className="text-[10px] px-1.5 py-0.5 rounded text-white"
+                                                    style={{ backgroundColor: chat.currentTicket.stage.color }}
+                                                >
+                                                    {chat.currentTicket.stage.name}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <p className="text-xs text-muted-foreground truncate leading-relaxed">
+                                            {chat.lastMessage?.body || 'Arquivo ou mídia'}
+                                        </p>
+                                    </div>
+                                </button>
+                            )
+                        })
                     )}
                 </div>
             </ScrollArea>
