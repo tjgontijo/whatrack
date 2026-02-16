@@ -23,10 +23,6 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
     const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
     const pollingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    const REDIRECT_URI = typeof window !== 'undefined'
-        ? `${window.location.origin}/dashboard/settings/whatsapp/`
-        : 'https://whatrack.com/dashboard/settings/whatsapp/';
-
     useEffect(() => {
         const appId = process.env.NEXT_PUBLIC_META_APP_ID;
         const configId = process.env.NEXT_PUBLIC_META_CONFIG_ID;
@@ -213,7 +209,7 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
             setError(error instanceof Error ? error.message : 'Erro ao iniciar onboarding');
             clearState();
         }
-    }, [activeOrg?.id, REDIRECT_URI, onSuccess, checkConnection, clearState, status]);
+    }, [activeOrg?.id, onSuccess, checkConnection, clearState, status]);
 
     return {
         status,
