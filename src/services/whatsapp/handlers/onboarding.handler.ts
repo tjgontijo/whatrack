@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { whatsappCache } from '@/services/whatsapp/cache.service';
+import { whatsappAuditService } from '@/services/whatsapp/audit.service';
 
 /**
  * Onboarding Handler
@@ -102,6 +103,18 @@ export async function onboardingHandler(payload: any, eventType: string): Promis
       // Cache updated onboarding
       await whatsappCache.cacheOnboarding(trackingCode, updatedOnboarding);
 
+      // Audit log
+      await whatsappAuditService.logOnboardingCompleted(
+        onboarding.organizationId,
+        trackingCode,
+        wabaId,
+        connection.id,
+        {
+          phoneNumberId: value.waba_info?.phone_number_id,
+          ownerBusinessId,
+        }
+      );
+
       console.log(`[OnboardingHandler] PARTNER_ADDED: Connection created for org ${onboarding.organizationId}`);
     }
 
@@ -115,6 +128,10 @@ export async function onboardingHandler(payload: any, eventType: string): Promis
       });
 
       if (connection) {
+        const connectedDuration = connection.connectedAt
+          ? new Date().getTime() - connection.connectedAt.getTime()
+          : undefined;
+
         const updatedConnection = await prisma.whatsAppConnection.update({
           where: { id: connection.id },
           data: {
@@ -127,6 +144,14 @@ export async function onboardingHandler(payload: any, eventType: string): Promis
         await whatsappCache.invalidateConnection(
           onboarding.organizationId,
           wabaId
+        );
+
+        // Audit log
+        await whatsappAuditService.logConnectionRemoved(
+          onboarding.organizationId,
+          connection.id,
+          wabaId,
+          connectedDuration
         );
       }
 
@@ -155,6 +180,13 @@ export async function onboardingHandler(payload: any, eventType: string): Promis
           onboarding.organizationId,
           wabaId,
           updatedConnection
+        );
+
+        // Audit log
+        await whatsappAuditService.logConnectionReinstated(
+          onboarding.organizationId,
+          connection.id,
+          wabaId
         );
       }
 
@@ -197,10 +229,23 @@ export async function onboardingHandler(payload: any, eventType: string): Promis
           updatedConnection
         );
 
+        // Audit log
+        await whatsappAuditService.log({
+          organizationId: connection.organizationId,
+          action: 'CONNECTION_ADDED',
+          description: `WhatsApp connection added in coexistence mode for WABA ${wabaId}`,
+          connectionId: connection.id,
+          metadata: { wabaId, ownerBusinessId },
+        });
+
         console.log(`[OnboardingHandler] Coexistence PARTNER_ADDED: Updated existing connection`);
       }
 
       if (eventType === 'PARTNER_REMOVED') {
+        const connectedDuration = connection.connectedAt
+          ? new Date().getTime() - connection.connectedAt.getTime()
+          : undefined;
+
         await prisma.whatsAppConnection.update({
           where: { id: connection.id },
           data: {
@@ -213,6 +258,14 @@ export async function onboardingHandler(payload: any, eventType: string): Promis
         await whatsappCache.invalidateConnection(
           connection.organizationId,
           wabaId
+        );
+
+        // Audit log
+        await whatsappAuditService.logConnectionRemoved(
+          connection.organizationId,
+          connection.id,
+          wabaId,
+          connectedDuration
         );
 
         console.log(`[OnboardingHandler] Coexistence PARTNER_REMOVED`);

@@ -130,6 +130,7 @@ model Organization {
   whatsappConnections WhatsAppConnection[] @relation("WhatsAppConnections")
   whatsappHealthChecks WhatsAppHealth[] @relation("WhatsAppHealthChecks")
   webhookLogs       WhatsAppWebhookLog[] @relation("WhatsAppWebhookLogs")
+  whatsappAuditLogs WhatsAppAuditLog[] @relation("WhatsAppAuditLogs")
 
   @@map("organization")
 }
@@ -446,6 +447,20 @@ enum WhatsAppHealthStatus {
   error
 }
 
+enum WhatsAppAuditAction {
+  ONBOARDING_STARTED
+  ONBOARDING_COMPLETED
+  ONBOARDING_FAILED
+  ONBOARDING_EXPIRED
+  CONNECTION_ADDED
+  CONNECTION_REMOVED
+  CONNECTION_REINSTATED
+  CONNECTION_DISCONNECTED
+  HEALTH_CHECK
+  TOKEN_EXPIRED
+  TOKEN_RENEWED
+}
+
 model WhatsAppOnboarding {
   id             String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   organizationId String @db.Uuid
@@ -503,6 +518,7 @@ model WhatsAppConnection {
 
   configs WhatsAppConfig[]
   healthChecks WhatsAppHealth[]
+  auditLogs WhatsAppAuditLog[] @relation("AuditLogs")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -565,6 +581,37 @@ model WhatsAppWebhookLog {
   @@index([createdAt])
   @@index([processed, createdAt])
   @@map("whatsapp_webhook_logs")
+}
+
+model WhatsAppAuditLog {
+  id             String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String                   @db.Uuid
+  organization   Organization             @relation("WhatsAppAuditLogs", fields: [organizationId], references: [id], onDelete: Cascade)
+
+  // Action Details
+  action     WhatsAppAuditAction
+  description String? // Human-readable description
+  metadata   Json? // Additional context (wabaId, phoneId, error details, etc)
+
+  // Related Resources
+  trackingCode    String? // From WhatsAppOnboarding
+  connectionId    String? @db.Uuid
+  connection      WhatsAppConnection? @relation("AuditLogs", fields: [connectionId], references: [id], onDelete: SetNull)
+
+  // IP & User Info
+  ipAddress       String? // For security auditing
+  userAgent       String? // For security auditing
+
+  // Timestamps
+  createdAt DateTime @default(now())
+
+  @@index([organizationId])
+  @@index([action])
+  @@index([createdAt])
+  @@index([organizationId, createdAt])
+  @@index([trackingCode])
+  @@index([connectionId])
+  @@map("whatsapp_audit_logs")
 }
 
 model Message {
