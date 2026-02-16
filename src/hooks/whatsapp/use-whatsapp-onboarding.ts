@@ -1,56 +1,72 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { authClient } from '@/lib/auth/auth-client';
 
 export type OnboardingStatus = 'idle' | 'pending' | 'checking' | 'success';
 
-declare global {
-    interface Window {
-        FB: {
-            init: (params: {
-                appId: string;
-                cookie?: boolean;
-                xfbml?: boolean;
-                version: string;
-            }) => void;
-            login: (
-                callback: (response: {
-                    authResponse?: {
-                        code?: string;
-                        accessToken?: string;
-                        userID?: string;
-                        expiresIn?: number;
-                    };
-                    status?: string;
-                }) => void,
-                options: {
-                    config_id: string;
-                    response_type: string;
-                    override_default_response_type: boolean;
-                    extras?: Record<string, unknown>;
-                }
-            ) => void;
-        };
-        fbAsyncInit: () => void;
-    }
-}
-
 /**
  * Hook para gerenciar o fluxo de Embedded Signup do WhatsApp Business.
  *
- * Usa o Embedded Signup via Facebook JS SDK.
- * Eventos são capturados via postMessage (WA_EMBEDDED_SIGNUP da Meta).
+ * Usa o Hosted Embedded Signup (business.facebook.com/messaging/whatsapp/onboard).
+ * Eventos são capturados via postMessage (WA_EMBEDDED_SIGNUP da Meta) e
+ * o code é recebido via redirect na janela popup.
  */
 export function useWhatsAppOnboarding(onSuccess?: () => void) {
     const { data: activeOrg } = authClient.useActiveOrganization();
+    const searchParams = useSearchParams();
     const [status, setStatus] = useState<OnboardingStatus>('idle');
     const [error, setError] = useState<string | null>(null);
     const [sdkReady, setSdkReady] = useState(false);
     const claimInProgress = useRef(false);
     const authCodeRef = useRef<string | null>(null);
     const onboardingDataRef = useRef<{ wabaId?: string; phoneNumberId?: string } | null>(null);
+    const popupRef = useRef<Window | null>(null);
+    const stateRef = useRef<string | null>(null);
 
-    // Função para fazer o claim (compartilhada entre os métodos)
+    const STATE_STORAGE_KEY = 'wa_onboarding_state';
+
+    const REDIRECT_URI = typeof window !== 'undefined'
+        ? `${window.location.origin}/dashboard/settings/whatsapp/`
+        : 'https://whatrack.com/dashboard/settings/whatsapp/';
+
+    useEffect(() => {
+        const appId = process.env.NEXT_PUBLIC_META_APP_ID;
+        const configId = process.env.NEXT_PUBLIC_META_CONFIG_ID;
+        setSdkReady(Boolean(appId && configId));
+    }, []);
+
+    const persistState = useCallback((state: string) => {
+        try {
+            sessionStorage.setItem(STATE_STORAGE_KEY, JSON.stringify({
+                state,
+                organizationId: activeOrg?.id ?? null,
+                createdAt: Date.now()
+            }));
+        } catch {
+            // ignore storage errors
+        }
+    }, [activeOrg?.id]);
+
+    const loadState = useCallback(() => {
+        try {
+            const raw = sessionStorage.getItem(STATE_STORAGE_KEY);
+            if (!raw) return null;
+            const parsed = JSON.parse(raw) as { state?: string };
+            return parsed?.state ?? null;
+        } catch {
+            return null;
+        }
+    }, []);
+
+    const clearState = useCallback(() => {
+        try {
+            sessionStorage.removeItem(STATE_STORAGE_KEY);
+        } catch {
+            // ignore
+        }
+    }, []);
+
     const claimWaba = useCallback((wabaId?: string, phoneNumberId?: string, code?: string) => {
         if (claimInProgress.current) {
             console.log('[Onboarding] Claim já em progresso, ignorando...');
@@ -87,17 +103,19 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
                 setStatus('success');
                 toast.success('WhatsApp conectado com sucesso!');
                 onSuccess?.();
+                clearState();
             })
             .catch((err: Error) => {
                 console.error('[Onboarding] Erro no claim:', err);
                 setStatus('idle');
                 setError(err.message);
                 toast.error(`Erro ao conectar: ${err.message}`);
+                clearState();
             })
             .finally(() => {
                 claimInProgress.current = false;
             });
-    }, [onSuccess]);
+    }, [onSuccess, clearState]);
 
     const tryClaim = useCallback(() => {
         const wabaId = onboardingDataRef.current?.wabaId;
@@ -108,61 +126,61 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
         claimWaba(wabaId, phoneNumberId, code);
     }, [claimWaba]);
 
-    // Inicializar Facebook SDK (para capturar eventos postMessage)
     useEffect(() => {
-        const appId = process.env.NEXT_PUBLIC_META_APP_ID;
+        if (typeof window === 'undefined') return;
 
-        if (!appId) {
-            console.error('[FB-SDK] NEXT_PUBLIC_META_APP_ID não configurado');
-            setError('Configuração da Meta ausente. Verifique NEXT_PUBLIC_META_APP_ID.');
+        const code = searchParams.get('code');
+        const errorParam = searchParams.get('error');
+        const wabaId = searchParams.get('waba_id') || searchParams.get('wabaid');
+        const phoneNumberId = searchParams.get('phone_number_id') || undefined;
+        const state = searchParams.get('state');
+
+        if (state) {
+            stateRef.current = state;
+        }
+
+        if (window.opener && window.opener !== window && (code || errorParam || wabaId)) {
+            window.opener.postMessage({
+                type: 'WA_CALLBACK_DATA',
+                status: errorParam ? 'error' : 'success',
+                code,
+                wabaId,
+                phoneNumberId,
+                state,
+                error: errorParam
+            }, window.location.origin);
+
+            window.close();
             return;
         }
 
-        // Se o SDK já foi carregado
-        if (window.FB) {
-            console.log('[FB-SDK] SDK já carregado');
-            setSdkReady(true);
-            return;
-        }
-
-        // Callback quando o SDK carregar
-        window.fbAsyncInit = function () {
-            console.log('[FB-SDK] Inicializando...');
-            window.FB.init({
-                appId: appId,
-                cookie: true,
-                xfbml: true,
-                version: 'v24.0'
-            });
-            console.log('[FB-SDK] Inicializado com sucesso');
-            setSdkReady(true);
-        };
-
-        // Carregar o script se não existir
-        if (!document.getElementById('facebook-jssdk')) {
-            console.log('[FB-SDK] Carregando script...');
-            const script = document.createElement('script');
-            script.id = 'facebook-jssdk';
-            script.src = 'https://connect.facebook.net/en_US/sdk.js';
-            script.async = true;
-            script.defer = true;
-            script.crossOrigin = 'anonymous';
-            document.head.appendChild(script);
-        }
-
-        const timeout = setTimeout(() => {
-            if (!window.FB) {
-                console.error('[FB-SDK] Timeout ao carregar SDK');
+        if (code) {
+            const storedState = loadState();
+            if (state && storedState && state !== storedState) {
+                setStatus('idle');
+                setError('State inválido. Tente novamente.');
+                clearState();
+                return;
             }
-        }, 8000);
+            authCodeRef.current = code;
+            if (wabaId) {
+                onboardingDataRef.current = { wabaId, phoneNumberId: phoneNumberId || undefined };
+            }
+            tryClaim();
 
-        return () => clearTimeout(timeout);
-    }, []);
+            const cleanedUrl = new URL(window.location.href);
+            cleanedUrl.searchParams.delete('code');
+            cleanedUrl.searchParams.delete('waba_id');
+            cleanedUrl.searchParams.delete('wabaid');
+            cleanedUrl.searchParams.delete('phone_number_id');
+            cleanedUrl.searchParams.delete('error');
+            cleanedUrl.searchParams.delete('state');
+            window.history.replaceState({}, '', cleanedUrl.toString());
+        }
+    }, [searchParams, tryClaim, loadState, clearState]);
 
-    // Listener unificado para eventos (Meta postMessage e redirect callback)
     useEffect(() => {
         const handleMessage = (event: MessageEvent) => {
-            // 1. Eventos do Facebook/Meta (WA_EMBEDDED_SIGNUP)
             if (event.origin.includes('facebook.com')) {
                 try {
                     const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
@@ -173,8 +191,6 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
                         const flowEvent = data.event;
                         const metadata = data.data;
 
-                        // FINISH = flow completo com número
-                        // FINISH_ONLY_WABA = apenas WABA criado, sem número ainda
                         if (flowEvent === 'FINISH' || flowEvent === 'FINISH_ONLY_WABA' || flowEvent?.startsWith('FINISH')) {
                             console.log('[Meta-Event] Flow FINISH:', metadata);
 
@@ -204,6 +220,32 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
                     }
                 } catch {
                     // Mensagem não é JSON, ignorar
+                }
+            }
+
+            if (event.origin === window.location.origin && event.data?.type === 'WA_CALLBACK_DATA') {
+                const { status: callbackStatus, code, wabaId, phoneNumberId, state, error: callbackError } = event.data;
+                console.log('[Redirect] Dados recebidos do popup:', { callbackStatus, hasCode: !!code, wabaId, phoneNumberId });
+
+                if (callbackStatus === 'success') {
+                    const storedState = loadState();
+                    if (state && storedState && state !== storedState) {
+                        setStatus('idle');
+                        setError('State inválido. Tente novamente.');
+                        clearState();
+                        return;
+                    }
+                    if (code) authCodeRef.current = code;
+                    if (wabaId) onboardingDataRef.current = { wabaId, phoneNumberId: phoneNumberId || undefined };
+                    tryClaim();
+                } else if (callbackStatus === 'error' || callbackError) {
+                    setStatus('idle');
+                    toast.error('Conexão recusada ou erro na Meta.');
+                    clearState();
+                } else {
+                    setStatus('idle');
+                    toast.error('Conexão cancelada pelo usuário.');
+                    clearState();
                 }
             }
         };
@@ -254,15 +296,11 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
             return;
         }
 
+        const appId = process.env.NEXT_PUBLIC_META_APP_ID;
         const configId = process.env.NEXT_PUBLIC_META_CONFIG_ID;
 
-        if (!configId) {
+        if (!appId || !configId) {
             setError('Configuração da Meta não encontrada.');
-            return;
-        }
-
-        if (!window.FB) {
-            setError('SDK da Meta não carregado. Recarregue a página e tente novamente.');
             return;
         }
 
@@ -270,37 +308,56 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
         setError(null);
         authCodeRef.current = null;
         onboardingDataRef.current = null;
+        stateRef.current = null;
 
         const extras = {
-            setup: {}
+            featureType: 'whatsapp_business_app_onboarding',
+            sessionInfoVersion: '3',
+            version: 'v3'
         };
 
-        console.log('[Onboarding] Iniciando Embedded Signup via FB.login');
+        const state = `${Date.now().toString(36)}.${Math.random().toString(36).slice(2)}`;
+        stateRef.current = state;
+        persistState(state);
 
-        window.FB.login((response) => {
-            const code = response.authResponse?.code;
+        const url = `https://business.facebook.com/messaging/whatsapp/onboard/` +
+            `?app_id=${appId}` +
+            `&config_id=${configId}` +
+            `&response_type=code` +
+            `&display=popup` +
+            `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
+            `&state=${encodeURIComponent(state)}` +
+            `&extras=${encodeURIComponent(JSON.stringify(extras))}`;
 
-            if (!code) {
-                setStatus('idle');
-                authCodeRef.current = null;
-                onboardingDataRef.current = null;
-                if (response.status === 'not_authorized' || response.status === 'unknown') {
-                    toast.error('Conexão cancelada pelo usuário.');
-                } else {
-                    toast.error('Meta não retornou o código de autorização.');
-                }
-                return;
+        console.log('[Onboarding] Abrindo popup com URL:', url);
+
+        const width = 800;
+        const height = 700;
+        const left = window.screen.width / 2 - width / 2;
+        const top = window.screen.height / 2 - height / 2;
+
+        popupRef.current = window.open(
+            url,
+            'whatsapp_onboarding',
+            `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no`
+        );
+
+        if (!popupRef.current) {
+            setStatus('idle');
+            setError('O popup foi bloqueado. Permita popups para este site e tente novamente.');
+            clearState();
+            return;
+        }
+
+        const checkPopupClosed = setInterval(() => {
+            if (popupRef.current && popupRef.current.closed) {
+                clearInterval(checkPopupClosed);
+                console.log('[Onboarding] Popup fechado');
             }
+        }, 500);
 
-            authCodeRef.current = code;
-            tryClaim();
-        }, {
-            config_id: configId,
-            response_type: 'code',
-            override_default_response_type: true,
-            extras
-        });
-    }, [activeOrg?.id, tryClaim]);
+        setTimeout(() => clearInterval(checkPopupClosed), 300000);
+    }, [activeOrg?.id, REDIRECT_URI]);
 
     return {
         status,
@@ -314,6 +371,12 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
             claimInProgress.current = false;
             authCodeRef.current = null;
             onboardingDataRef.current = null;
+            stateRef.current = null;
+            clearState();
+            if (popupRef.current && !popupRef.current.closed) {
+                popupRef.current.close();
+            }
+            popupRef.current = null;
         },
         setError,
         setStatus
