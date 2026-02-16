@@ -82,18 +82,67 @@ export class MetaCloudService {
 
     /**
      * List WABAs shared with the app via Embedded Signup
-     * Meta API: GET /me/businesses?fields=client_whatsapp_business_accounts
+     * Uses debug_token to extract WABA IDs from granular_scopes
      */
     static async listWabas(accessToken: string): Promise<Array<{ wabaId: string; wabaName: string; businessId: string }>> {
+        // First, try debug_token to get WABA IDs from granular scopes
+        console.log('[MetaCloudService] Fetching WABAs via debug_token...')
+
+        try {
+            const debugData = await this.debugToken(accessToken)
+            console.log('[MetaCloudService] Debug token response:', JSON.stringify(debugData, null, 2))
+
+            const granularScopes = debugData.granular_scopes || []
+            const wabaIds: string[] = []
+
+            for (const scope of granularScopes) {
+                if (scope.scope === 'whatsapp_business_management' && scope.target_ids) {
+                    wabaIds.push(...scope.target_ids)
+                }
+            }
+
+            console.log(`[MetaCloudService] Found ${wabaIds.length} WABA IDs from granular_scopes:`, wabaIds)
+
+            if (wabaIds.length > 0) {
+                // Fetch WABA details for each ID
+                const allWabas: Array<{ wabaId: string; wabaName: string; businessId: string }> = []
+
+                for (const wabaId of wabaIds) {
+                    try {
+                        const wabaInfo = await this.getAccountInfo({ wabaId, accessToken })
+                        allWabas.push({
+                            wabaId,
+                            wabaName: wabaInfo.name || 'WhatsApp Business',
+                            businessId: wabaInfo.owner_business_info?.id || 'unknown',
+                        })
+                    } catch (err) {
+                        console.warn(`[MetaCloudService] Failed to get info for WABA ${wabaId}:`, err)
+                        // Still add it with minimal info
+                        allWabas.push({
+                            wabaId,
+                            wabaName: 'WhatsApp Business',
+                            businessId: 'unknown',
+                        })
+                    }
+                }
+
+                return allWabas
+            }
+        } catch (err) {
+            console.warn('[MetaCloudService] debug_token failed, trying /me/businesses:', err)
+        }
+
+        // Fallback: try /me/businesses
         const url = `${GRAPH_API_URL}/${API_VERSION}/me/businesses?fields=id,name,client_whatsapp_business_accounts{id,name,currency,timezone_id}`
 
-        console.log('[MetaCloudService] Fetching shared WABAs...')
+        console.log('[MetaCloudService] Fallback: Fetching shared WABAs via /me/businesses...')
 
         const response = await fetch(url, {
             headers: { 'Authorization': `Bearer ${accessToken}` },
         })
 
         const data = await response.json()
+        console.log('[MetaCloudService] /me/businesses response:', JSON.stringify(data, null, 2))
 
         if (!response.ok) {
             console.error('[MetaCloudService] List WABAs error:', data)
@@ -523,8 +572,8 @@ export class MetaCloudService {
 
     /**
      * Debug/verify an access token via Meta's debug_token endpoint.
-     * Returns token metadata including validity and expiration.
-     * 
+     * Returns token metadata including validity, expiration, and granular_scopes.
+     *
      * Meta API: GET /debug_token?input_token={token}
      * Requires an app token (app_id|app_secret) or a valid user token.
      */
@@ -532,6 +581,7 @@ export class MetaCloudService {
         is_valid: boolean
         expires_at: number
         scopes: string[]
+        granular_scopes?: Array<{ scope: string; target_ids?: string[] }>
         app_id: string
         error?: { message: string; code: number }
     }> {
