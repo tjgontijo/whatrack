@@ -7,7 +7,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getOrSyncUser } from "@/server/auth/server";
-import { createId } from "@paralleldrive/cuid2";
+
 import { calculateMetrics } from "@/services/onboarding-metrics/metrics-calculator";
 
 /**
@@ -132,7 +132,7 @@ export async function PATCH(
     } else {
       await prisma.organizationProfile.create({
         data: {
-          id: createId(),
+
           organizationId,
           cpf: body.cpf || null,
           avgTicket: body.avgTicket || null,
@@ -189,7 +189,7 @@ export async function PATCH(
       } else {
         await prisma.organizationCompany.create({
           data: {
-            id: createId(),
+
             organizationId,
             ...companyData,
             authorizedByUserId: user.id,

@@ -1,15 +1,21 @@
 /**
  * Meta Cloud WhatsApp Webhook
  * GET - Verification (hub.mode, hub.verify_token, hub.challenge)
- * POST - Receive events (messages, status updates)
- * 
+ * POST - Receive events (messages, status updates, account updates)
+ *
  * Security: POST requests are validated via X-Hub-Signature-256 (HMAC-SHA256)
+ *
+ * Dead Letter Queue (DLQ):
+ * - All webhooks are logged with processed=false
+ * - If processing succeeds, processed=true
+ * - Failed webhooks are retried every 5 minutes (max 3 attempts)
  */
 
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { WhatsAppChatService } from '@/services/whatsapp-chat.service'
 import { verifyWebhookSignature } from '@/lib/whatsapp/webhook-signature'
+import { WebhookProcessor } from '@/services/whatsapp/webhook-processor'
 
 export const dynamic = 'force-dynamic'
 
@@ -45,41 +51,97 @@ export async function GET(request: Request) {
 
 /**
  * POST /api/v1/whatsapp/webhook
- * Receive webhook events from Meta (messages, status updates)
- * 
+ * Receive webhook events from Meta
+ *
  * All POST requests are validated via X-Hub-Signature-256 header.
  * Meta signs every payload with HMAC-SHA256 using the App Secret as key.
+ *
+ * DLQ Flow:
+ * 1. Create webhook log with processed=false
+ * 2. Verify signature
+ * 3. Process with WebhookProcessor
+ * 4. Mark processed=true only if successful
+ * 5. If error, DLQ retry job picks it up every 5 minutes
  */
 export async function POST(request: Request) {
+    let webhookLogId: string | null = null
+
     try {
-        // 1. Read raw body for signature verification (must be done before .json())
+        // 1. Read raw body for signature verification
         const rawBody = await request.text()
         const signatureHeader = request.headers.get('x-hub-signature-256')
-
-        // 2. Verify webhook signature
-        if (!verifyWebhookSignature(rawBody, signatureHeader)) {
-            console.error('[webhook] ❌ SIGNATURE VERIFICATION FAILED — rejecting payload')
-            return NextResponse.json(
-                { error: 'Invalid signature' },
-                { status: 401 }
-            )
-        }
-
-        // 3. Parse the verified payload
         const payload = JSON.parse(rawBody)
 
-        // Extract basic info from the payload
-        const entry = payload.entry?.[0]
-        const wabaId = entry?.id
-        const changes = entry?.changes?.[0]
+        // Extract event type for logging
+        let eventType: string | null = null
+        const changes = payload.entry?.[0]?.changes?.[0]
+        if (changes?.field === 'account_update') {
+            eventType = payload.entry?.[0]?.changes?.[0]?.value?.event || 'account_update'
+        } else if (changes?.field) {
+            eventType = changes.field
+        }
+
+        // 2. Log webhook BEFORE processing (for DLQ)
+        try {
+            const log = await prisma.whatsAppWebhookLog.create({
+                data: {
+                    payload: payload,
+                    eventType,
+                    processed: false,
+                    signatureValid: false, // Will update after verification
+                }
+            })
+            webhookLogId = log.id
+        } catch (logError) {
+            console.error('[webhook] Failed to create log entry:', logError)
+        }
+
+        // 3. Verify webhook signature
+        const isValidSignature = verifyWebhookSignature(rawBody, signatureHeader)
+
+        if (webhookLogId) {
+            await prisma.whatsAppWebhookLog.update({
+                where: { id: webhookLogId },
+                data: { signatureValid: isValidSignature }
+            }).catch(err => console.error('[webhook] Failed to update signature status:', err))
+        }
+
+        if (!isValidSignature) {
+            console.error('[webhook] ❌ SIGNATURE VERIFICATION FAILED')
+            if (webhookLogId) {
+                await prisma.whatsAppWebhookLog.update({
+                    where: { id: webhookLogId },
+                    data: { processingError: 'Invalid signature' }
+                }).catch(() => {})
+            }
+            return NextResponse.json({ received: true })
+        }
+
+        // 4. Process with WebhookProcessor (handles both new v2 and legacy v1 events)
+        const processor = new WebhookProcessor()
+        try {
+            await processor.process(payload)
+        } catch (processorError) {
+            console.error('[webhook] Processor error:', processorError)
+            if (webhookLogId) {
+                await prisma.whatsAppWebhookLog.update({
+                    where: { id: webhookLogId },
+                    data: {
+                        processingError: processorError instanceof Error ? processorError.message : 'Unknown error'
+                    }
+                }).catch(() => {})
+            }
+            // Don't throw - let DLQ retry it
+        }
+
+        // 5. Process legacy chat messages (v1 compatibility)
+        const changes_field = changes?.field
         const value = changes?.value
         const metadata = value?.metadata
         const phoneId = metadata?.phone_number_id
+        const wabaId = payload.entry?.[0]?.id
 
-        // Find the organization and instance associated with this WhatsApp config
-        let organizationId: string | null = null
         let instanceId: string | null = null
-
         if (phoneId || wabaId) {
             const config = await prisma.whatsAppConfig.findFirst({
                 where: {
@@ -88,12 +150,10 @@ export async function POST(request: Request) {
                         wabaId ? { wabaId: wabaId } : null,
                     ].filter((cond): cond is { phoneId: string } | { wabaId: string } => cond !== null)
                 },
-                select: { id: true, organizationId: true }
+                select: { id: true }
             })
-            organizationId = config?.organizationId ?? null
             instanceId = config?.id ?? null
 
-            // Update lastWebhookAt to track integration health
             if (config?.id) {
                 await prisma.whatsAppConfig.update({
                     where: { id: config.id },
@@ -102,47 +162,7 @@ export async function POST(request: Request) {
             }
         }
 
-        // Determine event type for logging
-        let eventType = changes?.field || 'unknown'
-        if (value?.messages) eventType = 'messages'
-        else if (value?.statuses) eventType = 'statuses'
-        else if (changes?.field === 'smb_message_echoes') eventType = 'smb_message_echoes'
-
-        // Persist the payload for auditing
-        try {
-            await prisma.whatsAppWebhookLog.create({
-                data: {
-                    payload: payload as any,
-                    eventType,
-                    organizationId,
-                }
-            })
-        } catch (dbError) {
-            console.error('[webhook] Audit log error:', dbError)
-        }
-
-        // 0. Handle Account Updates (Life-cycle events)
-        if (changes?.field === 'account_update') {
-            const event = value?.event
-            const targetWabaId = value?.waba_info?.waba_id
-
-            if ((event === 'PARTNER_APP_UNINSTALLED' || event === 'PARTNER_REMOVED') && targetWabaId) {
-                console.log(`[webhook] Removing instances for WABA ${targetWabaId} due to ${event}`)
-                try {
-                    await prisma.whatsAppConfig.updateMany({
-                        where: { wabaId: targetWabaId },
-                        data: {
-                            status: 'disconnected',
-                            disconnectedAt: new Date(),
-                        }
-                    })
-                } catch (delError) {
-                    console.error('[webhook] Error disconnecting instances:', delError)
-                }
-            }
-        }
-
-        // 1. Process INBOUND messages
+        // Handle legacy message processing
         if (value?.messages && instanceId) {
             for (const msg of value.messages) {
                 try {
@@ -158,12 +178,8 @@ export async function POST(request: Request) {
             }
         }
 
-        // 2. Process OUTBOUND echoes (sent from mobile app or other devices)
-        const echoEvents =
-            changes?.field === 'smb_message_echoes'
-                ? (value?.message_echoes ?? [])
-                : []
-
+        // Handle echo events
+        const echoEvents = changes_field === 'smb_message_echoes' ? (value?.message_echoes ?? []) : []
         if (echoEvents.length > 0 && instanceId) {
             for (const echo of echoEvents) {
                 try {
@@ -174,7 +190,7 @@ export async function POST(request: Request) {
             }
         }
 
-        // 3. Process STATUS updates (sent, delivered, read, failed)
+        // Handle status updates
         if (value?.statuses && instanceId) {
             for (const status of value.statuses) {
                 try {
@@ -185,15 +201,25 @@ export async function POST(request: Request) {
             }
         }
 
-        // Always return 200 to prevent Meta from retrying
+        // 6. Mark as processed ONLY if everything succeeded
+        if (webhookLogId) {
+            await prisma.whatsAppWebhookLog.update({
+                where: { id: webhookLogId },
+                data: {
+                    processed: true,
+                    processedAt: new Date()
+                }
+            }).catch(err => console.error('[webhook] Failed to mark processed:', err))
+        }
+
+        // Always return 200 to Meta
         return NextResponse.json({
             received: true,
-            messagesCount: (value?.messages?.length ?? 0) + echoEvents.length,
-            statusesCount: value?.statuses?.length ?? 0,
+            logId: webhookLogId,
         })
     } catch (error) {
         console.error('[webhook] POST error:', error)
         // Always return 200 to prevent Meta from retrying
-        return NextResponse.json({ received: true, error: 'Internal error' })
+        return NextResponse.json({ received: true })
     }
 }

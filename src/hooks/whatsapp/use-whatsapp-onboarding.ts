@@ -290,7 +290,7 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
         }
     }, [onSuccess]);
 
-    const startOnboarding = useCallback(() => {
+    const startOnboarding = useCallback(async () => {
         if (!activeOrg?.id) {
             setError('Organização não identificada. Faça login novamente.');
             return;
@@ -310,54 +310,76 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
         onboardingDataRef.current = null;
         stateRef.current = null;
 
-        const extras = {
-            featureType: 'whatsapp_business_app_onboarding',
-            sessionInfoVersion: '3',
-            version: 'v3'
-        };
+        try {
+            // 1️⃣ Chamar nosso endpoint para gerar tracking code
+            console.log('[Onboarding] Gerando tracking code...');
+            const response = await fetch(`/api/v1/whatsapp/onboarding?organizationId=${activeOrg.id}`);
 
-        const state = `${Date.now().toString(36)}.${Math.random().toString(36).slice(2)}`;
-        stateRef.current = state;
-        persistState(state);
-
-        const url = `https://business.facebook.com/messaging/whatsapp/onboard/` +
-            `?app_id=${appId}` +
-            `&config_id=${configId}` +
-            `&response_type=code` +
-            `&display=popup` +
-            `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
-            `&state=${encodeURIComponent(state)}` +
-            `&extras=${encodeURIComponent(JSON.stringify(extras))}`;
-
-        console.log('[Onboarding] Abrindo popup com URL:', url);
-
-        const width = 800;
-        const height = 700;
-        const left = window.screen.width / 2 - width / 2;
-        const top = window.screen.height / 2 - height / 2;
-
-        popupRef.current = window.open(
-            url,
-            'whatsapp_onboarding',
-            `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no`
-        );
-
-        if (!popupRef.current) {
-            setStatus('idle');
-            setError('O popup foi bloqueado. Permita popups para este site e tente novamente.');
-            clearState();
-            return;
-        }
-
-        const checkPopupClosed = setInterval(() => {
-            if (popupRef.current && popupRef.current.closed) {
-                clearInterval(checkPopupClosed);
-                console.log('[Onboarding] Popup fechado');
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Falha ao gerar URL de onboarding');
             }
-        }, 500);
 
-        setTimeout(() => clearInterval(checkPopupClosed), 300000);
-    }, [activeOrg?.id, REDIRECT_URI]);
+            const { onboardingUrl, trackingCode } = await response.json();
+
+            console.log('[Onboarding] Tracking code gerado:', trackingCode);
+            stateRef.current = trackingCode;
+            persistState(trackingCode);
+
+            // 2️⃣ Preparar URL com sessionInfo
+            const extras = {
+                featureType: 'whatsapp_business_app_onboarding',
+                sessionInfoVersion: '3',
+                version: 'v3',
+                sessionInfo: {
+                    trackingCode, // ✅ Meta vai devolver isso no webhook
+                },
+            };
+
+            const url = `https://business.facebook.com/messaging/whatsapp/onboard/` +
+                `?app_id=${appId}` +
+                `&config_id=${configId}` +
+                `&response_type=code` +
+                `&display=popup` +
+                `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
+                `&state=${encodeURIComponent(trackingCode)}` +
+                `&extras=${encodeURIComponent(JSON.stringify(extras))}`;
+
+            console.log('[Onboarding] Abrindo popup...');
+
+            const width = 800;
+            const height = 700;
+            const left = window.screen.width / 2 - width / 2;
+            const top = window.screen.height / 2 - height / 2;
+
+            popupRef.current = window.open(
+                url,
+                'whatsapp_onboarding',
+                `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no`
+            );
+
+            if (!popupRef.current) {
+                setStatus('idle');
+                setError('O popup foi bloqueado. Permita popups para este site e tente novamente.');
+                clearState();
+                return;
+            }
+
+            const checkPopupClosed = setInterval(() => {
+                if (popupRef.current && popupRef.current.closed) {
+                    clearInterval(checkPopupClosed);
+                    console.log('[Onboarding] Popup fechado');
+                }
+            }, 500);
+
+            setTimeout(() => clearInterval(checkPopupClosed), 300000);
+        } catch (error) {
+            console.error('[Onboarding] Erro ao iniciar:', error);
+            setStatus('idle');
+            setError(error instanceof Error ? error.message : 'Erro ao iniciar onboarding');
+            clearState();
+        }
+    }, [activeOrg?.id, REDIRECT_URI, persistState, clearState]);
 
     return {
         status,

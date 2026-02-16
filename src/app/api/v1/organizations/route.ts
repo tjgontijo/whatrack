@@ -7,14 +7,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getOrSyncUser } from "@/server/auth/server";
-import { createId } from "@paralleldrive/cuid2";
+
 import { calculateMetrics } from "@/services/onboarding-metrics/metrics-calculator";
 
 export async function POST(request: Request) {
   try {
     // Check authentication
     const user = await getOrSyncUser(request);
-    
+
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
 
     if (existingOrg) {
       // Append random suffix to make it unique
-      slug = `${slug}-${createId().slice(0, 6)}`;
+      slug = `${slug}-${Math.random().toString(36).substring(2, 8)}`;
     }
 
     // Calculate business metrics if we have the required data
@@ -65,7 +65,7 @@ export async function POST(request: Request) {
     // Create organization
     const organization = await prisma.organization.create({
       data: {
-        id: createId(),
+
         name: body.name,
         slug,
         createdAt: new Date(),
@@ -75,7 +75,7 @@ export async function POST(request: Request) {
     // Create OrganizationProfile
     await prisma.organizationProfile.create({
       data: {
-        id: createId(),
+
         organizationId: organization.id,
         onboardingStatus: 'pending',
       },
@@ -85,7 +85,7 @@ export async function POST(request: Request) {
     if (body.cnpj && body.razaoSocial) {
       await prisma.organizationCompany.create({
         data: {
-          id: createId(),
+
           organizationId: organization.id,
           cnpj: body.cnpj,
           razaoSocial: body.razaoSocial,
@@ -103,7 +103,7 @@ export async function POST(request: Request) {
     // Create member association (user as owner)
     await prisma.member.create({
       data: {
-        id: createId(),
+
         organizationId: organization.id,
         userId: user.id,
         role: "owner",
