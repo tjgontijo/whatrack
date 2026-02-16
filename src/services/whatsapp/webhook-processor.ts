@@ -1,6 +1,8 @@
 // Note: db not directly used in processor, handlers manage database access
 import { onboardingHandler } from './handlers/onboarding.handler';
 import { messageHandler } from './handlers/message.handler';
+import { historyHandler } from './handlers/history.handler';
+import { stateSyncHandler } from './handlers/state-sync.handler';
 
 /**
  * WhatsApp Webhook Processor
@@ -35,6 +37,16 @@ export class WebhookProcessor {
           await messageHandler(payload);
           break;
 
+        case 'history':
+          // ✅ PRD: WhatsApp History Sync - Import historical messages
+          await historyHandler(payload);
+          break;
+
+        case 'smb_app_state_sync':
+          // ✅ PRD: WhatsApp History Sync - Sync contacts from Business App
+          await stateSyncHandler(payload);
+          break;
+
         case 'statuses':
           // TODO: Handle message status updates (delivered, read, etc)
           console.log('[WebhookProcessor] Status updates not yet implemented');
@@ -56,7 +68,13 @@ export class WebhookProcessor {
 
   /**
    * Extract event type from webhook payload
-   * Supports both account_update (onboarding) and messages events
+   * Supports:
+   * - account_update (onboarding: PARTNER_ADDED, PARTNER_REMOVED, PARTNER_REINSTATED)
+   * - messages (incoming messages)
+   * - statuses (delivery/read updates)
+   * - message_template_status_update (template approvals)
+   * - history (PRD: WhatsApp History Sync - coexistence mode)
+   * - smb_app_state_sync (PRD: WhatsApp History Sync - contact sync)
    */
   private extractEventType(payload: any): string | null {
     if (!payload?.entry?.[0]?.changes?.[0]) {
@@ -73,7 +91,13 @@ export class WebhookProcessor {
     }
 
     // Message and status events
-    if (field === 'messages' || field === 'statuses' || field === 'message_template_status_update') {
+    if (
+      field === 'messages' ||
+      field === 'statuses' ||
+      field === 'message_template_status_update' ||
+      field === 'history' || // ✅ History sync webhook
+      field === 'smb_app_state_sync' // ✅ Contact sync webhook
+    ) {
       return field;
     }
 
