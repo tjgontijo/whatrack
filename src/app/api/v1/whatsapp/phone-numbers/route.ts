@@ -23,8 +23,10 @@ export async function GET(request: Request) {
 
         if (configs.length === 0) {
             return NextResponse.json({
-                error: 'WhatsApp not configured for this organization'
-            }, { status: 404 })
+                phoneNumbers: [],
+                configured: false,
+                message: 'Nenhuma instância WhatsApp configurada. Conecte sua conta para começar.'
+            })
         }
 
         // Aggregate phone numbers from all unique WABAs
