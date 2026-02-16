@@ -1,8 +1,7 @@
 'use client'
 
-import React from 'react'
 import Link from 'next/link'
-import { Phone, CheckCircle2, AlertCircle, TrendingUp, ArrowRight } from 'lucide-react'
+import { Phone, CheckCircle2, ArrowRight } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import type { WhatsAppPhoneNumber } from '@/types/whatsapp'
