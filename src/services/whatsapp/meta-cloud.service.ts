@@ -40,50 +40,83 @@ export class MetaCloudService {
      * Exchange a temporary authorization code for a long-lived access token
      * Meta API: POST /oauth/access_token
      */
-    static async exchangeCodeForToken(code: string) {
+    static async exchangeCodeForToken(code: string, redirectUri?: string) {
         const url = `${GRAPH_API_URL}/${API_VERSION}/oauth/access_token`
 
-        // Para Embedded Signup v3 com Hosted ES, o redirect_uri precisa bater com o enviado no diálogo
-        // Se o diálogo usou business.facebook.com, precisamos passar exatamente igual.
-        const appId = process.env.NEXT_PUBLIC_META_APP_ID;
-        // O redirect_uri deve ser EXATAMENTE o mesmo enviado pelo frontend
-        // Como o app roda em whatrack.com, usamos este padrão.
-        const redirectUri = 'https://whatrack.com/dashboard/settings/whatsapp/';
+        const appId = process.env.NEXT_PUBLIC_META_APP_ID
+        // Use provided redirectUri or default to callback endpoint
+        const finalRedirectUri = redirectUri || `${process.env.APP_URL}/api/v1/whatsapp/onboarding/callback`
 
-        const payload: any = {
-            client_id: appId,
-            client_secret: process.env.META_APP_SECRET,
-            grant_type: 'authorization_code',
-            redirect_uri: redirectUri,
-            code
-        }
-
-        console.log('[MetaCloudService] INICIANDO TROCA DE TOKEN:', {
+        console.log('[MetaCloudService] Exchanging code for token:', {
             url,
             appId,
-            redirectUri,
+            redirectUri: finalRedirectUri,
             code: code.substring(0, 10) + '...'
         })
 
         const response = await fetch(url, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+                client_id: appId || '',
+                client_secret: process.env.META_APP_SECRET || '',
+                redirect_uri: finalRedirectUri,
+                code,
+            }).toString(),
         })
 
         const data = await response.json()
 
         if (!response.ok) {
-            console.error('[MetaCloudService] ERRO NA TROCA DE TOKEN (Meta):', data)
-            throw new Error(data.error?.message || 'Falha na autenticação com Meta')
+            console.error('[MetaCloudService] Token exchange error:', data)
+            throw new Error(data.error?.message || 'Failed to exchange code for token')
         }
 
-        console.log('[MetaCloudService] SUCESSO NA TROCA DE TOKEN:', {
-            access_token: data.access_token ? 'RECEBIDO (masking)' : 'MISSING',
+        console.log('[MetaCloudService] Token received:', {
+            access_token: data.access_token ? 'OK' : 'MISSING',
             expires_in: data.expires_in
         })
 
         return data as { access_token: string, expires_in?: number }
+    }
+
+    /**
+     * List WABAs shared with the app via Embedded Signup
+     * Meta API: GET /me/businesses?fields=client_whatsapp_business_accounts
+     */
+    static async listWabas(accessToken: string): Promise<Array<{ wabaId: string; wabaName: string; businessId: string }>> {
+        const url = `${GRAPH_API_URL}/${API_VERSION}/me/businesses?fields=id,name,client_whatsapp_business_accounts{id,name,currency,timezone_id}`
+
+        console.log('[MetaCloudService] Fetching shared WABAs...')
+
+        const response = await fetch(url, {
+            headers: { 'Authorization': `Bearer ${accessToken}` },
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+            console.error('[MetaCloudService] List WABAs error:', data)
+            throw new Error(data.error?.message || 'Failed to list WABAs')
+        }
+
+        // Extract WABAs from all businesses
+        const businesses = data.data || []
+        const allWabas: Array<{ wabaId: string; wabaName: string; businessId: string }> = []
+
+        for (const business of businesses) {
+            const clientWabas = business.client_whatsapp_business_accounts?.data || []
+            for (const waba of clientWabas) {
+                allWabas.push({
+                    wabaId: waba.id,
+                    wabaName: waba.name || 'WhatsApp Business',
+                    businessId: business.id,
+                })
+            }
+        }
+
+        console.log(`[MetaCloudService] Found ${allWabas.length} WABAs from ${businesses.length} businesses`)
+        return allWabas
     }
 
     /**
