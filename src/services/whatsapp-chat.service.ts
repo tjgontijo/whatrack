@@ -110,6 +110,7 @@ export class WhatsAppChatService {
                 ticket = await prisma.ticket.create({
                     data: {
                         organizationId,
+                        leadId: lead.id, // ✅ Add leadId
                         conversationId: conversation.id,
                         stageId: defaultStage.id,
                         windowExpiresAt: new Date(messageTimestamp.getTime() + WINDOW_MS),
@@ -117,6 +118,9 @@ export class WhatsAppChatService {
                         status: 'open',
                         createdBy: 'SYSTEM',
                         messagesCount: 0,
+                        // ✅ Source tracking
+                        source: 'incoming_message',
+                        originatedFrom: 'existing',
                     },
                 })
             } else {
@@ -294,12 +298,16 @@ export class WhatsAppChatService {
                 ticket = await prisma.ticket.create({
                     data: {
                         organizationId: instance.organizationId,
+                        leadId: lead.id, // ✅ Add leadId
                         conversationId: conversation.id,
                         stageId: defaultStage.id,
                         windowOpen: false,
                         status: 'open',
                         createdBy: 'SYSTEM',
                         messagesCount: 0,
+                        // ✅ Source tracking
+                        source: 'incoming_message',
+                        originatedFrom: 'existing',
                     },
                 })
             }

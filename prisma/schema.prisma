@@ -251,29 +251,38 @@ model Lead {
   id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   organizationId String @db.Uuid
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  
+
   // Basic Info
   name           String?
   mail           String?
   phone          String?      // International format: +5511999998888
-  
+
   // WhatsApp Specific
   waId           String?      @map("remote_jid") // Meta technical ID
   pushName       String?      // WhatsApp profile name
   profilePicUrl  String?
-  
+
   // Chat Control
   lastMessageAt  DateTime?    @map("last_message_at")
+
+  // Source Tracking - PRD: History Sync
+  source         String       @default("direct_creation") // 'direct_creation' | 'live_message' | 'history_sync' | 'state_sync'
+  lastSyncedAt   DateTime?    // Last time synced from history/state_sync
+  isActive       Boolean      @default(true)
+  deletedAt      DateTime?
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
 
   conversations Conversation[]
   messages  Message[]
+  tickets   Ticket[]
 
   @@unique([organizationId, phone])
   @@unique([organizationId, waId])
   @@index([organizationId])
+  @@index([source])
+  @@index([isActive])
   @@map("leads")
 }
 
@@ -312,6 +321,9 @@ model Ticket {
   organizationId String   @db.Uuid
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
+  leadId         String   @db.Uuid
+  lead           Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
   conversationId String   @db.Uuid
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
@@ -333,6 +345,10 @@ model Ticket {
   createdBy      String   @default("SYSTEM")
   messagesCount  Int      @default(0)
 
+  // Source Tracking - PRD: History Sync
+  source         String   @default("incoming_message") // 'incoming_message' | 'api' | 'manual'
+  originatedFrom String?  // 'new_contact' | 'history_lead' | 'existing'
+
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -344,6 +360,9 @@ model Ticket {
   @@index([conversationId])
   @@index([status])
   @@index([stageId])
+  @@index([source])
+  @@index([originatedFrom])
+  @@index([windowExpiresAt])
   @@map("tickets")
 }
 
@@ -619,14 +638,25 @@ model WhatsAppConfig {
   processingError String?
   retryCount      Int      @default(0)
 
+  // History Sync - PRD: WhatsApp History Sync
+  historySyncStatus      String?  // 'not_supported' | 'pending_consent' | 'pending_history' | 'syncing' | 'completed' | 'declined' | 'failed'
+  historySyncStartedAt   DateTime?
+  historySyncCompletedAt DateTime?
+  historySyncProgress    Int      @default(0) // 0-100
+  historySyncPhase       Int?
+  historySyncChunkOrder  Int?
+  historySyncError       String?
+
   messages Message[]
   conversations Conversation[]
+  historySyncs WhatsAppHistorySync[] @relation("HistorySyncs")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([connectionId])
   @@index([processed])
+  @@index([historySyncStatus])
   @@map("whatsapp_configs")
 }
 
@@ -788,6 +818,36 @@ model WhatsAppAuditLog {
   @@map("whatsapp_audit_logs")
 }
 
+// ============================================
+// SEÇÃO 8: WHATSAPP - HISTORY SYNC (PRD)
+// ============================================
+
+model WhatsAppHistorySync {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  connectionId   String   @db.Uuid
+  connection     WhatsAppConfig @relation("HistorySyncs", fields: [connectionId], references: [id], onDelete: Cascade)
+
+  // Sync Status
+  status         String   // 'processing' | 'completed' | 'failed'
+  phase          Int?
+  chunkOrder     Int?
+  progress       Int      @default(0) // 0-100
+
+  // Error Tracking
+  errorCode      String?
+  errorMessage   String?
+
+  // Timestamps
+  lastPayloadAt  DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([connectionId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("whatsapp_history_syncs")
+}
+
 model Message {
   id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
 
@@ -814,6 +874,10 @@ model Message {
   timestamp      DateTime // When the message was created/received
   metaConversationId String? @map("conversationId") // Meta conversation ID for billing
 
+  // Source Tracking - PRD: History Sync
+  source    String  @default("live") // 'live' | 'history' | 'app_echo'
+  rawMeta   Json?   // Raw payload from Meta webhook
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -821,5 +885,7 @@ model Message {
   @@index([instanceId])
   @@index([conversationId])
   @@index([ticketId])
+  @@index([source])
+  @@index([timestamp])
   @@map("whatsapp_messages")
 }

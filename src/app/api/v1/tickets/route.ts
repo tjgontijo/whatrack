@@ -455,6 +455,7 @@ export async function POST(req: Request) {
     const ticket = await prisma.ticket.create({
       data: {
         organizationId,
+        leadId: conversation.leadId, // ✅ Add leadId
         conversationId,
         stageId: targetStageId,
         assigneeId: assigneeId || null,
@@ -463,6 +464,9 @@ export async function POST(req: Request) {
         windowOpen: true,
         windowExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
         createdBy: userId || 'SYSTEM',
+        // ✅ Source tracking
+        source: 'api',
+        originatedFrom: 'existing',
       },
       include: {
         conversation: {

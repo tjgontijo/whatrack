@@ -140,6 +140,8 @@ export async function messageHandler(payload: any): Promise<void> {
           },
         });
 
+        const wasHistoryLead = lead?.source === 'history_sync'; // ✅ Track if lead from history
+
         if (!lead) {
           lead = await tx.lead.create({
             data: {
@@ -148,6 +150,7 @@ export async function messageHandler(payload: any): Promise<void> {
               waId: fromPhone,
               pushName: pushName || undefined,
               lastMessageAt: messageTimestamp,
+              source: 'live_message', // ✅ Mark as live message source
             },
           });
           console.log(`[MessageHandler] Created new lead: ${lead.id}`);
@@ -159,6 +162,7 @@ export async function messageHandler(payload: any): Promise<void> {
               waId: lead.waId ?? fromPhone,
               pushName: pushName ?? lead.pushName ?? undefined,
               lastMessageAt: messageTimestamp,
+              // Don't override source if already set
             },
           });
         }
@@ -186,13 +190,18 @@ export async function messageHandler(payload: any): Promise<void> {
           orderBy: { createdAt: 'desc' },
         });
 
-        const windowExpiresAt = new Date(messageTimestamp.getTime() + WINDOW_MS);
         const isFirstMessage = !ticket || ticket.messagesCount === 0;
+
+        // ⭐ CRITICAL: Conditional message window based on history origin
+        const windowExpiresAt = wasHistoryLead
+          ? null // ✅ No window for history leads
+          : new Date(messageTimestamp.getTime() + WINDOW_MS); // ⏰ 24h for new contacts
 
         if (!ticket) {
           ticket = await tx.ticket.create({
             data: {
               organizationId: config.organizationId,
+              leadId: lead.id, // ✅ Add leadId (required by schema)
               conversationId: conversation.id,
               stageId: defaultStage.id,
               windowExpiresAt,
@@ -200,8 +209,15 @@ export async function messageHandler(payload: any): Promise<void> {
               status: 'open',
               createdBy: 'SYSTEM',
               messagesCount: 0,
+              // ✅ Source tracking
+              source: 'incoming_message',
+              originatedFrom: wasHistoryLead ? 'history_lead' : 'new_contact',
             },
           });
+          console.log(
+            `[MessageHandler] Created ticket: ${ticket.id} ` +
+            `(windowExpiresAt: ${windowExpiresAt ?? 'null'}, originatedFrom: ${wasHistoryLead ? 'history' : 'new'})`
+          );
         } else {
           await tx.ticket.update({
             where: { id: ticket.id },
@@ -237,6 +253,9 @@ export async function messageHandler(payload: any): Promise<void> {
             status: 'delivered',
             timestamp: messageTimestamp,
             metaConversationId: value.conversation_id || null,
+            // ✅ Source tracking
+            source: 'live', // Live message (not history)
+            rawMeta: message, // Store raw webhook payload
           },
         });
 
