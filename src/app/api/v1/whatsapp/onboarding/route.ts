@@ -1,10 +1,17 @@
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createId } from '@paralleldrive/cuid2';
+import { rateLimitMiddleware } from '@/lib/middleware/rate-limit.middleware';
 
 /**
  * GET /api/v1/whatsapp/onboarding
  *
  * Generate onboarding URL for Embedded Signup flow
+ *
+ * Rate Limiting:
+ * - IP: 100 requests/hour
+ * - Organization: 500 requests/hour
+ * - Burst: 10 requests/minute
  *
  * Query params:
  * - organizationId: UUID (optional, defaults to active org in session)
@@ -16,14 +23,17 @@ import { createId } from '@paralleldrive/cuid2';
  *   "expiresIn": 86400
  * }
  */
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
+  // Check rate limits first
+  const rateLimitResponse = await rateLimitMiddleware(request, '/api/v1/whatsapp/onboarding');
+  if (rateLimitResponse) return rateLimitResponse;
   try {
     // Get organization from query
     const url = new URL(request.url);
     const orgId = url.searchParams.get('organizationId');
 
     if (!orgId) {
-      return Response.json({ error: 'organizationId required' }, { status: 400 });
+      return NextResponse.json({ error: 'organizationId required' }, { status: 400 });
     }
 
     // Generate tracking code
@@ -52,13 +62,13 @@ export async function GET(request: Request) {
 
     console.log(`[Onboarding] Generated URL for org ${orgId}, tracking: ${trackingCode}`);
 
-    return Response.json({
+    return NextResponse.json({
       onboardingUrl: onboardingUrl.toString(),
       trackingCode,
       expiresIn: 86400,
     });
   } catch (error) {
     console.error('[Onboarding] Error generating URL', error);
-    return Response.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

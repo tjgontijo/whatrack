@@ -5,17 +5,23 @@
  *
  * Security: POST requests are validated via X-Hub-Signature-256 (HMAC-SHA256)
  *
+ * Rate Limiting:
+ * - IP-based: 1000 requests per hour
+ * - Organization-based: 5000 requests per hour
+ * - Burst: 50 requests per minute
+ *
  * Dead Letter Queue (DLQ):
  * - All webhooks are logged with processed=false
  * - If processing succeeds, processed=true
  * - Failed webhooks are retried every 5 minutes (max 3 attempts)
  */
 
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { WhatsAppChatService } from '@/services/whatsapp-chat.service'
 import { verifyWebhookSignature } from '@/lib/whatsapp/webhook-signature'
 import { WebhookProcessor } from '@/services/whatsapp/webhook-processor'
+import { rateLimitMiddleware } from '@/lib/middleware/rate-limit.middleware'
 
 export const dynamic = 'force-dynamic'
 
@@ -63,7 +69,10 @@ export async function GET(request: Request) {
  * 4. Mark processed=true only if successful
  * 5. If error, DLQ retry job picks it up every 5 minutes
  */
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+    // Check rate limits first
+    const rateLimitResponse = await rateLimitMiddleware(request, '/api/v1/whatsapp/webhook');
+    if (rateLimitResponse) return rateLimitResponse;
     let webhookLogId: string | null = null
 
     try {

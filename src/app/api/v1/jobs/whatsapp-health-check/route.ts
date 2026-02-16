@@ -10,17 +10,26 @@
  *
  * Auth: Requires CRON_SECRET header for security
  * Locking: Redis-based distributed lock prevents duplicate runs
+ * Rate Limiting:
+ * - IP: 60 requests/hour
+ * - Organization: 100 requests/hour
+ * - Burst: 2 requests/minute
  */
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getJobTracker } from '@/lib/queue';
 import { whatsappHealthCheckJob } from '@/jobs/whatsapp-health-check.job';
+import { rateLimitMiddleware } from '@/lib/middleware/rate-limit.middleware';
 
 const CRON_SECRET = process.env.CRON_SECRET || 'development-secret';
 
 export const maxDuration = 300; // 5 minutes timeout for health check
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  // Check rate limits first
+  const rateLimitResponse = await rateLimitMiddleware(request, '/api/v1/jobs/whatsapp-health-check');
+  if (rateLimitResponse) return rateLimitResponse;
+
   const jobTracker = getJobTracker();
 
   try {
@@ -79,8 +88,17 @@ export async function POST(request: Request) {
  * GET /api/v1/jobs/whatsapp-health-check
  *
  * Check if health check is currently running
+ *
+ * Rate Limiting:
+ * - IP: 60 requests/hour
+ * - Organization: 100 requests/hour
+ * - Burst: 2 requests/minute
  */
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
+  // Check rate limits first
+  const rateLimitResponse = await rateLimitMiddleware(request, '/api/v1/jobs/whatsapp-health-check');
+  if (rateLimitResponse) return rateLimitResponse;
+
   const jobTracker = getJobTracker();
 
   try {
