@@ -32,7 +32,9 @@ export const auth = betterAuth({
     crossSubDomainCookies: {
       enabled: appBaseURL.includes('localhost') ? false : true,
     },
-    generateId: () => randomUUID(),
+    database: {
+      generateId: () => randomUUID(),
+    },
   },
 
   database: prismaAdapter(prisma, { provider: 'postgresql' }),
