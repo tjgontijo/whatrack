@@ -53,8 +53,13 @@ class RateLimiter {
     const now = Date.now();
 
     try {
-      // Get current count
-      const current = await this.redis.incr(key);
+      // Get current count with timeout protection
+      const current = await Promise.race([
+        this.redis.incr(key),
+        new Promise<number>((_, reject) =>
+          setTimeout(() => reject(new Error('Redis timeout')), 5000)
+        )
+      ]);
 
       // Set expiration on first request (when count === 1)
       if (current === 1) {
@@ -63,11 +68,12 @@ class RateLimiter {
 
       // Calculate reset time
       const ttl = await this.redis.ttl(key);
-      const resetAt = new Date(now + ttl * 1000);
+      const safeWindowSeconds = ttl > 0 ? ttl : windowSeconds;
+      const resetAt = new Date(now + safeWindowSeconds * 1000);
 
       // Check if exceeded
       const allowed = current <= limit;
-      const retryAfter = allowed ? 0 : ttl;
+      const retryAfter = allowed ? 0 : safeWindowSeconds;
 
       return {
         allowed,

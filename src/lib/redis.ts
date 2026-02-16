@@ -57,7 +57,7 @@ export function isRedisConnected(): boolean {
 
 /**
  * Create a no-op Redis instance for fallback
- * All operations will silently fail
+ * All operations will silently fail (allowing graceful degradation)
  */
 function createNoOpRedis(): Redis {
   return {
@@ -70,5 +70,8 @@ function createNoOpRedis(): Redis {
     flushall: async () => 'OK',
     quit: async () => 'OK',
     disconnect: async () => 'OK',
+    incr: async () => 1,
+    expire: async () => 1,
+    ttl: async () => 3600,
   } as any;
 }
