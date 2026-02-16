@@ -41,30 +41,11 @@ export async function seedWhatsAppConfig(prisma: PrismaClient) {
             }
         })
 
-        // Também criamos o Owner se não existir
-        let owner = await prisma.user.findFirst({ where: { email: ownerEmail } })
-        if (!owner) {
-            owner = await prisma.user.create({
-                data: {
-                    email: ownerEmail,
-                    name: 'Admin',
-                    role: 'owner',
-                    emailVerified: true,
-                }
-            })
-        }
-
-        // Criar o vínculo na tabela Member
-        await prisma.member.create({
-            data: {
-                organizationId: organization.id,
-                userId: owner.id,
-                role: 'owner',
-                createdAt: new Date(),
-            }
-        })
-
-        console.log(`✅ Organização, Usuário Admin e Vínculo de Membro criados!`)
+        console.log(`✅ Organização criada!`)
+        console.log(`   - Nome: ${organization.name}`)
+        console.log(`   - Slug: ${organization.slug}`)
+        console.log(`   - Admin email: ${ownerEmail}`)
+        console.log(`   - Usuário será criado automaticamente no primeiro login (via auth.ts)`)
     }
 
     // Verificar se já existe uma config para essa org com esse phoneId
