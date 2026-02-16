@@ -1,7 +1,9 @@
 import 'dotenv/config'
 import { PrismaClient } from '../generated/prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
+import { seedLookupTables } from './seed_lookup_tables'
 import { seedWhatsAppConfig } from './seed_whatsapp_config'
+import { seedTicketStages } from './seed_ticket_stages'
 
 interface PgTableRow {
   tablename: string
@@ -86,7 +88,9 @@ export async function runSeed() {
       await truncateAllTables()
     }
 
+    await seedLookupTables(prisma)
     await seedWhatsAppConfig(prisma)
+    await seedTicketStages(prisma)
 
     console.log('✅ Seed concluído com sucesso!')
   } catch (error) {

@@ -1,5 +1,17 @@
 import { prisma } from '@/lib/prisma';
-import { WhatsAppAuditAction } from '@prisma/client';
+
+export type WhatsAppAuditAction =
+  | 'ONBOARDING_STARTED'
+  | 'ONBOARDING_COMPLETED'
+  | 'ONBOARDING_FAILED'
+  | 'ONBOARDING_EXPIRED'
+  | 'CONNECTION_ADDED'
+  | 'CONNECTION_REMOVED'
+  | 'CONNECTION_REINSTATED'
+  | 'CONNECTION_DISCONNECTED'
+  | 'HEALTH_CHECK'
+  | 'TOKEN_EXPIRED'
+  | 'TOKEN_RENEWED';
 
 export interface AuditLogInput {
   organizationId: string;

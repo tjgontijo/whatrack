@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from './auth'
-import { AuthGuards, Permission, hasGlobalPermission, hasRequiredRole } from './roles'
-import { UserRole } from '@prisma/client'
+import { AuthGuards, Permission, UserRole, hasGlobalPermission, hasRequiredRole } from './roles'
 
 export interface AuthenticatedUser {
     id: string

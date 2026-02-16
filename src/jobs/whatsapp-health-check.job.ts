@@ -3,7 +3,8 @@ import { TokenEncryption } from '@/lib/encryption';
 import { whatsappCache } from '@/services/whatsapp/cache.service';
 import { CACHE_KEYS, CACHE_TTL } from '@/lib/cache-keys';
 import { getRedis } from '@/lib/redis';
-import { WhatsAppHealthStatus } from '@prisma/client';
+
+type WhatsAppHealthStatus = 'unknown' | 'healthy' | 'warning' | 'error';
 
 /**
  * WhatsApp Token Health Check Job

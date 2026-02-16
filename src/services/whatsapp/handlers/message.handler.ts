@@ -1,4 +1,70 @@
 import { prisma } from '@/lib/prisma';
+import { getDefaultTicketStage } from '@/services/tickets/ensure-ticket-stages';
+
+const WINDOW_MS = 24 * 60 * 60 * 1000;
+
+function resolveMessageTimestamp(rawTimestamp: string | number | undefined): Date {
+  const parsed = Number.parseInt(String(rawTimestamp ?? ''), 10);
+  if (Number.isFinite(parsed)) {
+    return new Date(parsed * 1000);
+  }
+  return new Date();
+}
+
+function extractTrackingFromMessage(message: any) {
+  const referral = message?.referral;
+  if (!referral) return null;
+
+  const tracking: Record<string, string> = {};
+
+  if (referral.ctwa_clid) {
+    tracking.ctwaclid = referral.ctwa_clid;
+  }
+
+  if (referral.source_url) {
+    tracking.referrerUrl = referral.source_url;
+    tracking.landingPage = referral.source_url;
+
+    try {
+      const url = new URL(referral.source_url);
+      const params = url.searchParams;
+      const utmSource = params.get('utm_source');
+      const utmMedium = params.get('utm_medium');
+      const utmCampaign = params.get('utm_campaign');
+      const utmTerm = params.get('utm_term');
+      const utmContent = params.get('utm_content');
+      const gclid = params.get('gclid');
+      const fbclid = params.get('fbclid');
+      const ttclid = params.get('ttclid');
+      const ctwaclid = params.get('ctwaclid') || params.get('ctwa_clid');
+
+      if (utmSource) tracking.utmSource = utmSource;
+      if (utmMedium) tracking.utmMedium = utmMedium;
+      if (utmCampaign) tracking.utmCampaign = utmCampaign;
+      if (utmTerm) tracking.utmTerm = utmTerm;
+      if (utmContent) tracking.utmContent = utmContent;
+      if (gclid) tracking.gclid = gclid;
+      if (fbclid) tracking.fbclid = fbclid;
+      if (ttclid) tracking.ttclid = ttclid;
+      if (ctwaclid) tracking.ctwaclid = ctwaclid;
+    } catch {
+      // ignore invalid URLs
+    }
+  }
+
+  if (Object.keys(tracking).length === 0) return null;
+
+  const sourceType =
+    referral.source_type === 'ad' ||
+    tracking.ctwaclid ||
+    tracking.gclid ||
+    tracking.fbclid ||
+    tracking.ttclid
+      ? 'paid'
+      : 'organic';
+
+  return { ...tracking, sourceType };
+}
 
 /**
  * Message Handler
@@ -40,65 +106,170 @@ export async function messageHandler(payload: any): Promise<void> {
 
   console.log(`[MessageHandler] Processing messages for phoneId: ${phoneNumberId}`);
 
+  const defaultStage = await getDefaultTicketStage(prisma, config.organizationId);
+
   // Process each message
   for (const message of value.messages) {
     try {
       const fromPhone = message.from;
       const messageId = message.id;
-      const timestamp = message.timestamp;
+      const messageTimestamp = resolveMessageTimestamp(message.timestamp);
 
       if (!fromPhone) {
         console.warn('[MessageHandler] Message missing "from" field');
         continue;
       }
 
-      // Find or create Lead
-      let lead = await prisma.lead.findFirst({
-        where: {
-          organizationId: config.organizationId,
-          phone: fromPhone,
-        },
+      const existingMessage = await prisma.message.findUnique({
+        where: { wamid: messageId },
       });
 
-      if (!lead) {
-        lead = await prisma.lead.create({
-          data: {
+      if (existingMessage) {
+        continue;
+      }
+
+      const contactProfile = value.contacts?.find((contact: any) => contact.wa_id === fromPhone);
+      const pushName = contactProfile?.profile?.name;
+
+      await prisma.$transaction(async (tx) => {
+        // Find or create Lead
+        let lead = await tx.lead.findFirst({
+          where: {
             organizationId: config.organizationId,
-            phone: fromPhone,
-            waId: message.from, // Meta's WAId format
+            OR: [{ waId: fromPhone }, { phone: fromPhone }],
           },
         });
-        console.log(`[MessageHandler] Created new lead: ${lead.id}`);
-      }
 
-      // Extract message content
-      let messageBody = '';
-      let messageType = message.type || 'text';
+        if (!lead) {
+          lead = await tx.lead.create({
+            data: {
+              organizationId: config.organizationId,
+              phone: fromPhone,
+              waId: fromPhone,
+              pushName: pushName || undefined,
+              lastMessageAt: messageTimestamp,
+            },
+          });
+          console.log(`[MessageHandler] Created new lead: ${lead.id}`);
+        } else {
+          lead = await tx.lead.update({
+            where: { id: lead.id },
+            data: {
+              phone: lead.phone ?? fromPhone,
+              waId: lead.waId ?? fromPhone,
+              pushName: pushName ?? lead.pushName ?? undefined,
+              lastMessageAt: messageTimestamp,
+            },
+          });
+        }
 
-      if (message.text?.body) {
-        messageBody = message.text.body;
-      } else if (message.image?.caption) {
-        messageBody = message.image.caption;
-      } else if (message.document?.caption) {
-        messageBody = message.document.caption;
-      }
+        const conversation = await tx.conversation.upsert({
+          where: {
+            leadId_instanceId: {
+              leadId: lead.id,
+              instanceId: config.id,
+            },
+          },
+          update: {
+            metaConversationId: value.conversation_id ?? undefined,
+          },
+          create: {
+            organizationId: config.organizationId,
+            leadId: lead.id,
+            instanceId: config.id,
+            metaConversationId: value.conversation_id || null,
+          },
+        });
 
-      // Create Message record
-      const createdMessage = await prisma.message.create({
-        data: {
-          wamid: messageId,
-          leadId: lead.id,
-          instanceId: config.id,
-          direction: 'INBOUND',
-          type: messageType,
-          body: messageBody || null,
-          status: 'delivered',
-          timestamp: new Date(parseInt(timestamp) * 1000),
-          conversationId: value.conversation_id || null,
-        },
+        let ticket = await tx.ticket.findFirst({
+          where: { conversationId: conversation.id, status: 'open' },
+          orderBy: { createdAt: 'desc' },
+        });
+
+        const windowExpiresAt = new Date(messageTimestamp.getTime() + WINDOW_MS);
+        const isFirstMessage = !ticket || ticket.messagesCount === 0;
+
+        if (!ticket) {
+          ticket = await tx.ticket.create({
+            data: {
+              organizationId: config.organizationId,
+              conversationId: conversation.id,
+              stageId: defaultStage.id,
+              windowExpiresAt,
+              windowOpen: true,
+              status: 'open',
+              createdBy: 'SYSTEM',
+              messagesCount: 0,
+            },
+          });
+        } else {
+          await tx.ticket.update({
+            where: { id: ticket.id },
+            data: {
+              windowExpiresAt,
+              windowOpen: true,
+            },
+          });
+        }
+
+        // Extract message content
+        let messageBody = '';
+        let messageType = message.type || 'text';
+
+        if (message.text?.body) {
+          messageBody = message.text.body;
+        } else if (message.image?.caption) {
+          messageBody = message.image.caption;
+        } else if (message.document?.caption) {
+          messageBody = message.document.caption;
+        }
+
+        const createdMessage = await tx.message.create({
+          data: {
+            wamid: messageId,
+            leadId: lead.id,
+            instanceId: config.id,
+            conversationId: conversation.id,
+            ticketId: ticket.id,
+            direction: 'INBOUND',
+            type: messageType,
+            body: messageBody || null,
+            status: 'delivered',
+            timestamp: messageTimestamp,
+            metaConversationId: value.conversation_id || null,
+          },
+        });
+
+        await tx.conversation.update({
+          where: { id: conversation.id },
+          data: { messagesCount: { increment: 1 } },
+        });
+
+        await tx.ticket.update({
+          where: { id: ticket.id },
+          data: { messagesCount: { increment: 1 } },
+        });
+
+        if (isFirstMessage) {
+          const trackingData = extractTrackingFromMessage(message);
+          if (trackingData) {
+            const existingTracking = await tx.ticketTracking.findUnique({
+              where: { ticketId: ticket.id },
+            });
+
+            if (!existingTracking) {
+              await tx.ticketTracking.create({
+                data: {
+                  ticketId: ticket.id,
+                  ...trackingData,
+                },
+              });
+            }
+          }
+        }
+
+        console.log(`[MessageHandler] Message saved: ${createdMessage.id}`);
       });
-
-      console.log(`[MessageHandler] Message saved: ${createdMessage.id}`);
     } catch (error) {
       console.error('[MessageHandler] Error processing message', error);
       throw error;

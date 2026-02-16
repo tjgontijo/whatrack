@@ -1,4 +1,10 @@
-import { UserRole } from '@prisma/client'
+export const USER_ROLE = {
+    owner: 'owner',
+    admin: 'admin',
+    user: 'user',
+} as const
+
+export type UserRole = typeof USER_ROLE[keyof typeof USER_ROLE]
 
 export type Permission =
     | 'system:manage'         // Super Admin only
@@ -10,7 +16,7 @@ export type Permission =
     | 'org:members:manage'    // Manage organization members
 
 export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
-    [UserRole.owner]: [
+    [USER_ROLE.owner]: [
         'system:manage',
         'system:read_logs',
         'org:manage',
@@ -19,7 +25,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
         'org:sales:manage',
         'org:members:manage',
     ],
-    [UserRole.admin]: [
+    [USER_ROLE.admin]: [
         'system:read_logs',
         'org:manage',
         'org:whatsapp:manage',
@@ -27,7 +33,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
         'org:sales:manage',
         'org:members:manage',
     ],
-    [UserRole.user]: [
+    [USER_ROLE.user]: [
         'org:leads:manage',
         'org:sales:manage',
     ],
@@ -35,9 +41,9 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
 
 // Hierarquia de pesos para comparação (maior = mais poder)
 export const ROLE_WEIGHTS: Record<UserRole, number> = {
-    [UserRole.user]: 0,
-    [UserRole.admin]: 5,
-    [UserRole.owner]: 10,
+    [USER_ROLE.user]: 0,
+    [USER_ROLE.admin]: 5,
+    [USER_ROLE.owner]: 10,
 }
 
 /**
@@ -72,7 +78,7 @@ export function hasGlobalPermission(userRole: UserRole | string | null | undefin
  * Helpers específicos para o negócio
  */
 export const AuthGuards = {
-    isSuperAdmin: (role: string | null | undefined) => hasRequiredRole(role, UserRole.owner),
-    isSystemAdmin: (role: string | null | undefined) => hasRequiredRole(role, UserRole.admin),
+    isSuperAdmin: (role: string | null | undefined) => hasRequiredRole(role, USER_ROLE.owner),
+    isSystemAdmin: (role: string | null | undefined) => hasRequiredRole(role, USER_ROLE.admin),
     canViewSystemLogs: (role: string | null | undefined) => hasGlobalPermission(role, 'system:read_logs'),
 }

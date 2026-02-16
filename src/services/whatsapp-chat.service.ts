@@ -1,4 +1,7 @@
 import { prisma } from '@/lib/prisma'
+import { getDefaultTicketStage } from '@/services/tickets/ensure-ticket-stages'
+
+const WINDOW_MS = 24 * 60 * 60 * 1000
 
 interface MessagePayload {
     from: string
@@ -80,6 +83,52 @@ export class WhatsAppChatService {
                 }
             })
 
+            const conversation = await prisma.conversation.upsert({
+                where: {
+                    leadId_instanceId: {
+                        leadId: lead.id,
+                        instanceId,
+                    },
+                },
+                update: {},
+                create: {
+                    organizationId,
+                    leadId: lead.id,
+                    instanceId,
+                },
+            })
+
+            let ticket = await prisma.ticket.findFirst({
+                where: { conversationId: conversation.id, status: 'open' },
+                orderBy: { createdAt: 'desc' },
+            })
+
+            const defaultStage = await getDefaultTicketStage(prisma, organizationId)
+
+            const messageTimestamp = new Date(parseInt(timestamp) * 1000)
+            if (!ticket) {
+                ticket = await prisma.ticket.create({
+                    data: {
+                        organizationId,
+                        conversationId: conversation.id,
+                        stageId: defaultStage.id,
+                        windowExpiresAt: new Date(messageTimestamp.getTime() + WINDOW_MS),
+                        windowOpen: true,
+                        status: 'open',
+                        createdBy: 'SYSTEM',
+                        messagesCount: 0,
+                    },
+                })
+            } else {
+                await prisma.ticket.update({
+                    where: { id: ticket.id },
+                    data: {
+                        windowExpiresAt: new Date(messageTimestamp.getTime() + WINDOW_MS),
+                        windowOpen: true,
+                    },
+                })
+            }
+
             // 2. Extract content based on type
             let body: string | null = null
             let mediaUrl: string | null = null
@@ -139,13 +188,25 @@ export class WhatsAppChatService {
                     wamid,
                     leadId: lead.id,
                     instanceId,
+                    conversationId: conversation.id,
+                    ticketId: ticket.id,
                     direction: 'INBOUND',
                     type,
                     body: body || '',
                     mediaUrl,
                     status: 'active',
-                    timestamp: new Date(parseInt(timestamp) * 1000),
+                    timestamp: messageTimestamp,
                 }
+            })
+
+            await prisma.conversation.update({
+                where: { id: conversation.id },
+                data: { messagesCount: { increment: 1 } },
+            })
+
+            await prisma.ticket.update({
+                where: { id: ticket.id },
+                data: { messagesCount: { increment: 1 } },
             })
 
             return message
@@ -208,17 +269,54 @@ export class WhatsAppChatService {
                 }
             })
 
+            const conversation = await prisma.conversation.upsert({
+                where: {
+                    leadId_instanceId: {
+                        leadId: lead.id,
+                        instanceId,
+                    },
+                },
+                update: {},
+                create: {
+                    organizationId: instance.organizationId,
+                    leadId: lead.id,
+                    instanceId,
+                },
+            })
+
+            let ticket = await prisma.ticket.findFirst({
+                where: { conversationId: conversation.id, status: 'open' },
+                orderBy: { createdAt: 'desc' },
+            })
+
+            const defaultStage = await getDefaultTicketStage(prisma, instance.organizationId)
+            if (!ticket) {
+                ticket = await prisma.ticket.create({
+                    data: {
+                        organizationId: instance.organizationId,
+                        conversationId: conversation.id,
+                        stageId: defaultStage.id,
+                        windowOpen: false,
+                        status: 'open',
+                        createdBy: 'SYSTEM',
+                        messagesCount: 0,
+                    },
+                })
+            }
+
             // 2. Extract content (simplified call to shared logic or duplicate for now)
             let body: string | null = null
             if (type === 'text') body = messageData.text?.body || ''
             else body = `Sent ${type} message`
 
             // 3. Create Message (OUTBOUND)
-            return await prisma.message.create({
+            const created = await prisma.message.create({
                 data: {
                     wamid,
                     leadId: lead.id,
                     instanceId,
+                    conversationId: conversation.id,
+                    ticketId: ticket.id,
                     direction: 'OUTBOUND',
                     type,
                     body: body || '',
@@ -226,6 +324,18 @@ export class WhatsAppChatService {
                     timestamp: new Date(parseInt(timestamp) * 1000),
                 }
             })
+
+            await prisma.conversation.update({
+                where: { id: conversation.id },
+                data: { messagesCount: { increment: 1 } },
+            })
+
+            await prisma.ticket.update({
+                where: { id: ticket.id },
+                data: { messagesCount: { increment: 1 } },
+            })
+
+            return created
         } catch (error) {
             console.error('[WhatsAppChatService] Error processing message echo:', error)
             throw error
