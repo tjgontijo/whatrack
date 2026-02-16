@@ -1,7 +1,6 @@
 'use client';
 
-import React from 'react';
-import { ExternalLink, CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
+import { ExternalLink, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -12,15 +11,9 @@ interface EmbeddedSignupButtonProps {
 }
 
 export function EmbeddedSignupButton({ onSuccess }: EmbeddedSignupButtonProps) {
-    const { status, error, sdkReady, startOnboarding, checkConnection } = useWhatsAppOnboarding(onSuccess);
+    const { status, error, sdkReady, startOnboarding } = useWhatsAppOnboarding(onSuccess);
 
-    const handleConnect = () => {
-        startOnboarding();
-    };
-
-    const handleCheckConnection = async () => {
-        await checkConnection();
-    };
+    const isConnecting = status === 'pending';
 
     return (
         <Card className="max-w-2xl mx-auto">
@@ -34,7 +27,7 @@ export function EmbeddedSignupButton({ onSuccess }: EmbeddedSignupButtonProps) {
                     Conectar WhatsApp Business
                 </CardTitle>
                 <CardDescription>
-                    Configure sua conta WhatsApp Business em menos de 2 minutos
+                    Integre sua conta WhatsApp Business ao WhaTrack
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -45,66 +38,39 @@ export function EmbeddedSignupButton({ onSuccess }: EmbeddedSignupButtonProps) {
                     </Alert>
                 )}
 
-                {status === 'idle' && (
-                    <>
-                        <div className="space-y-2 text-sm text-muted-foreground">
-                            <p>Ao clicar no botão abaixo, você será redirecionado para a Meta onde poderá:</p>
-                            <ul className="list-disc list-inside space-y-1 ml-2">
-                                <li>Fazer login com sua conta Facebook/Meta</li>
-                                <li>Criar ou selecionar uma conta WhatsApp Business</li>
-                                <li>Registrar um número de telefone</li>
-                                <li>Conceder permissões ao WhaTrack</li>
-                            </ul>
-                        </div>
-                        <Button
-                            onClick={handleConnect}
-                            className="w-full gap-2"
-                            size="lg"
-                            disabled={!sdkReady}
-                        >
-                            {!sdkReady ? (
-                                <>
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                    Carregando SDK...
-                                </>
-                            ) : (
-                                <>
-                                    <ExternalLink className="h-4 w-4" />
-                                    Conectar com a Meta
-                                </>
-                            )}
-                        </Button>
-                    </>
-                )}
+                <div className="space-y-2 text-sm text-muted-foreground">
+                    <p>Ao clicar no botão abaixo, você será redirecionado para a Meta onde poderá:</p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                        <li>Fazer login com sua conta Facebook/Meta</li>
+                        <li>Criar ou selecionar uma conta WhatsApp Business</li>
+                        <li>Registrar um número de telefone</li>
+                        <li>Conceder permissões ao WhaTrack</li>
+                    </ul>
+                </div>
 
-                {(status === 'pending' || status === 'checking') && (
-                    <div className="space-y-4">
-                        <Alert>
-                            <CheckCircle2 className="h-4 w-4" />
-                            <AlertDescription>
-                                Complete o processo na janela da Meta. Quando terminar, clique em "Verificar Conexão" abaixo.
-                            </AlertDescription>
-                        </Alert>
-                        <Button
-                            onClick={handleCheckConnection}
-                            variant="outline"
-                            className="w-full gap-2"
-                            disabled={status === 'checking'}
-                        >
-                            {status === 'checking' ? (
-                                <>
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                    Verificando...
-                                </>
-                            ) : (
-                                <>
-                                    <CheckCircle2 className="h-4 w-4" />
-                                    Verificar Conexão
-                                </>
-                            )}
-                        </Button>
-                    </div>
-                )}
+                <Button
+                    onClick={startOnboarding}
+                    className="w-full gap-2"
+                    size="lg"
+                    disabled={!sdkReady || isConnecting}
+                >
+                    {!sdkReady ? (
+                        <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Carregando...
+                        </>
+                    ) : isConnecting ? (
+                        <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Aguardando conexão...
+                        </>
+                    ) : (
+                        <>
+                            <ExternalLink className="h-4 w-4" />
+                            Conectar com a Meta
+                        </>
+                    )}
+                </Button>
             </CardContent>
         </Card>
     );

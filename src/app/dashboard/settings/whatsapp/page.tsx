@@ -31,7 +31,7 @@ export default function WhatsAppSettingsPage() {
     }
 
     const { status: onboardingStatus, sdkReady, startOnboarding } = useWhatsAppOnboarding(handleRefresh)
-    const isOnboarding = onboardingStatus === 'pending' || onboardingStatus === 'checking'
+    const isOnboarding = onboardingStatus === 'pending'
 
     return (
         <TemplateMainShell className="flex flex-col h-[calc(100vh-2rem)]">
@@ -80,11 +80,11 @@ export default function WhatsAppSettingsPage() {
                 ? "flex-1 overflow-y-scroll bg-muted/5 p-4 scrollbar-hide"
                 : "flex-1 overflow-y-auto bg-muted/5 p-8"
             }>
-                {isLoading || onboardingStatus === 'checking' ? (
+                {isLoading ? (
                     <div className="flex flex-col items-center justify-center h-64 gap-3">
                         <RefreshCw className="h-8 w-8 animate-spin text-primary/40" />
                         <p className="text-sm font-medium text-muted-foreground">
-                            {onboardingStatus === 'checking' ? 'Finalizando conexão...' : 'Carregando instâncias...'}
+                            Carregando instâncias...
                         </p>
                     </div>
                 ) : error ? (

@@ -63,3 +63,4 @@ node_modules/
 # tasks/ 
 # Prisma
 /prisma/generated/
+.env*.local

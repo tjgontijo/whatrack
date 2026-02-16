@@ -20,7 +20,7 @@ interface AddInstanceDialogProps {
 }
 
 export function AddInstanceDialog({ onSuccess, trigger }: AddInstanceDialogProps) {
-    const { status, error, startOnboarding, checkConnection, reset } = useWhatsAppOnboarding(() => {
+    const { status, error, startOnboarding, reset } = useWhatsAppOnboarding(() => {
         onSuccess?.();
     });
 
@@ -79,32 +79,22 @@ export function AddInstanceDialog({ onSuccess, trigger }: AddInstanceDialogProps
                         </div>
                     )}
 
-                    {(status === 'pending' || status === 'checking') && (
+                    {status === 'pending' && (
                         <div className="space-y-4">
                             <Alert className="bg-blue-50 border-blue-200">
-                                <CheckCircle2 className="h-4 w-4 text-blue-600" />
+                                <Loader2 className="h-4 w-4 text-blue-600 animate-spin" />
                                 <AlertDescription className="text-blue-800">
-                                    Quase lá! Após concluir o registro na janela da Meta, o sistema ativará sua conexão automaticamente.
+                                    Complete o processo na janela da Meta. A conexão será ativada automaticamente.
                                 </AlertDescription>
                             </Alert>
                             <Button
-                                onClick={checkConnection}
-                                variant="default"
+                                variant="outline"
                                 className="w-full gap-2"
                                 size="lg"
-                                disabled={status === 'checking'}
+                                disabled
                             >
-                                {status === 'checking' ? (
-                                    <>
-                                        <Loader2 className="h-5 w-5 animate-spin" />
-                                        Verificando...
-                                    </>
-                                ) : (
-                                    <>
-                                        <CheckCircle2 className="h-5 w-5" />
-                                        Verificar Manualmente
-                                    </>
-                                )}
+                                <Loader2 className="h-5 w-5 animate-spin" />
+                                Aguardando conexão...
                             </Button>
                         </div>
                     )}
