@@ -6,7 +6,7 @@ export async function publishToCentrifugo(channel: string, data: any) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-API-Key': process.env.CENTRIFUGO_API_KEY!,
+        'Authorization': `apikey ${process.env.CENTRIFUGO_API_KEY}`,
       },
       body: JSON.stringify({
         channel,

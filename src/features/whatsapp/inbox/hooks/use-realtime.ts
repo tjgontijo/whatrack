@@ -80,8 +80,12 @@ export function useRealtime(organizationId: string | undefined) {
         `org:${organizationId}:messages`,
         (data) => {
           console.log('[Centrifugo] Message event:', data)
-          // Invalidate chat-related queries to refetch updates
-          queryClient.invalidateQueries({ queryKey: ['chat-messages'] })
+          // Invalidate specific chat if conversationId is provided, otherwise all
+          if (data.conversationId) {
+            queryClient.invalidateQueries({ queryKey: ['chat-messages', data.conversationId] })
+          } else {
+            queryClient.invalidateQueries({ queryKey: ['chat-messages'] })
+          }
           queryClient.invalidateQueries({ queryKey: ['whatsapp-chats'] })
         }
       )

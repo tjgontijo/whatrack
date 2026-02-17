@@ -171,21 +171,8 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        // Handle legacy message processing
-        if (value?.messages && instanceId) {
-            for (const msg of value.messages) {
-                try {
-                    const contactProfile = value.contacts?.find((c: any) => c.wa_id === msg.from)
-                    await WhatsAppChatService.processIncomingMessage(
-                        instanceId,
-                        msg,
-                        contactProfile ? { name: contactProfile.profile.name } : undefined
-                    )
-                } catch (err) {
-                    console.error('[webhook] Error processing message:', msg.id, err)
-                }
-            }
-        }
+        // NOTE: Legacy message processing removed - messageHandler in WebhookProcessor handles this
+        // See PRD-REALTIME-FIX.md for details
 
         // Handle echo events
         const echoEvents = changes_field === 'smb_message_echoes' ? (value?.message_echoes ?? []) : []
