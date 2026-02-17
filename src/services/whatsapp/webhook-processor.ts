@@ -77,7 +77,10 @@ export class WebhookProcessor {
    * - smb_app_state_sync (PRD: WhatsApp History Sync - contact sync)
    */
   private extractEventType(payload: any): string | null {
+    console.log('[WebhookProcessor.extractEventType] Payload:', JSON.stringify(payload, null, 2));
+
     if (!payload?.entry?.[0]?.changes?.[0]) {
+      console.warn('[WebhookProcessor.extractEventType] Missing entry/changes structure');
       return null;
     }
 
@@ -85,8 +88,11 @@ export class WebhookProcessor {
     const field = change.field;
     const value = change.value;
 
+    console.log('[WebhookProcessor.extractEventType] Field:', field, 'Has value:', !!value);
+
     // Account update events (PARTNER_ADDED, PARTNER_REMOVED, etc)
     if (field === 'account_update') {
+      console.log('[WebhookProcessor.extractEventType] Account update event:', value?.event);
       return value?.event || null;
     }
 
@@ -98,9 +104,11 @@ export class WebhookProcessor {
       field === 'history' || // ✅ History sync webhook
       field === 'smb_app_state_sync' // ✅ Contact sync webhook
     ) {
+      console.log('[WebhookProcessor.extractEventType] Found matching field:', field);
       return field;
     }
 
+    console.warn('[WebhookProcessor.extractEventType] No matching field type');
     return null;
   }
 }

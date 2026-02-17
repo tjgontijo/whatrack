@@ -84,11 +84,23 @@ export async function POST(request: NextRequest) {
         // Extract event type for logging
         let eventType: string | null = null
         const changes = payload.entry?.[0]?.changes?.[0]
+
+        console.log('[webhook] Payload structure:', {
+            hasEntry: !!payload.entry,
+            entryLength: payload.entry?.length,
+            hasChanges: !!changes,
+            changesField: changes?.field,
+            hasValue: !!changes?.value,
+            messages: changes?.value?.messages?.length,
+        })
+
         if (changes?.field === 'account_update') {
             eventType = payload.entry?.[0]?.changes?.[0]?.value?.event || 'account_update'
         } else if (changes?.field) {
             eventType = changes.field
         }
+
+        console.log('[webhook] Event type detected:', eventType)
 
         // 2. Log webhook BEFORE processing (for DLQ)
         try {
