@@ -186,6 +186,18 @@
 
                 const { token } = await tokenResponse.json();
                 log('✅ Token obtido', 'success');
+                log(`Token (primeiros 50 chars): ${token.substring(0, 50)}...`, 'data');
+
+                // Verificar estrutura do token
+                try {
+                    const parts = token.split('.');
+                    if (parts.length === 3) {
+                        const payload = JSON.parse(atob(parts[1]));
+                        log(`Payload: ${JSON.stringify(payload)}`, 'data');
+                    }
+                } catch (e) {
+                    log(`Erro ao decodificar token: ${e.message}`, 'error');
+                }
 
                 // Criar cliente Centrifugo
                 log('Criando cliente Centrifugo...', 'info');
@@ -224,6 +236,8 @@
                 });
 
                 // Conectar
+                log(`URL do WebSocket: ${wsUrl}`, 'data');
+                log('Iniciando conexão WebSocket...', 'info');
                 client.connect();
 
             } catch (error) {
