@@ -22,6 +22,7 @@ export function ChatWindow({ chat, organizationId }: ChatWindowProps) {
     const { data, isLoading, isFetching, refetch } = useQuery<MessageListResponse>({
         queryKey: ['chat-messages', chat.id, organizationId],
         queryFn: async () => {
+            console.log('[ChatWindow] Fetching messages for chat:', chat.id, 'org:', organizationId)
             const response = await fetch(`/api/v1/whatsapp/chats/${chat.id}/messages`, {
                 headers: {
                     [ORGANIZATION_HEADER]: organizationId
@@ -33,6 +34,11 @@ export function ChatWindow({ chat, organizationId }: ChatWindowProps) {
         // Real-time updates via Centrifugo - no polling needed
         staleTime: Infinity, // Don't mark as stale automatically
     })
+
+    // Log when data changes (for debugging real-time updates)
+    React.useEffect(() => {
+        console.log('[ChatWindow] Messages data updated for chat', chat.id, ':', data?.items?.length, 'messages')
+    }, [data, chat.id])
 
     // Scroll to bottom when messages load or change
     React.useEffect(() => {

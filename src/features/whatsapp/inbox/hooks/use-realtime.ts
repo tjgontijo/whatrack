@@ -80,13 +80,16 @@ export function useRealtime(organizationId: string | undefined) {
         `org:${organizationId}:messages`,
         (data) => {
           console.log('[Centrifugo] Message event:', data)
+          console.log('[Centrifugo] Invalidating with conversationId:', data.conversationId, 'orgId:', organizationId)
           // Invalidate specific chat if conversationId is provided
           if (data.conversationId) {
+            console.log('[Centrifugo] Invalidating chat-messages query key:', ['chat-messages', data.conversationId, organizationId])
             queryClient.invalidateQueries({
-              queryKey: ['chat-messages', data.conversationId]
+              queryKey: ['chat-messages', data.conversationId, organizationId]
             })
           } else {
             // Fallback: invalidate all chat-messages queries
+            console.log('[Centrifugo] No conversationId, invalidating all chat-messages')
             queryClient.invalidateQueries({
               queryKey: ['chat-messages']
             })
