@@ -73,6 +73,9 @@ services:
       # Namespace "org" para canais org:xxx:messages e org:xxx:tickets
       - 'CENTRIFUGO_NAMESPACES=[{"name":"org","anonymous":false,"publish":false,"subscribe":true,"presence":false}]'
 
+      # Nota: "publish":false está correto - apenas backend publica via HTTP API
+      # Clientes se inscrevem apenas (subscribe:true)
+
     deploy:
       mode: replicated
       replicas: 1
