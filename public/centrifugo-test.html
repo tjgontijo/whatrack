@@ -213,8 +213,13 @@
                 });
 
                 client.on('error', function(ctx) {
-                    log(`❌ Erro de conexão: ${ctx.error}`, 'error');
-                    updateStatus(`❌ Erro: ${ctx.error}`, 'error');
+                    const errorMsg = ctx.error ? (typeof ctx.error === 'object' ? JSON.stringify(ctx.error) : String(ctx.error)) : 'Erro desconhecido';
+                    log(`❌ Erro de conexão: ${errorMsg}`, 'error');
+                    log(`Tipo: ${ctx.type || 'desconhecido'}`, 'error');
+                    if (ctx.error && ctx.error.message) {
+                        log(`Mensagem: ${ctx.error.message}`, 'error');
+                    }
+                    updateStatus(`❌ Erro: ${errorMsg}`, 'error');
                     setButtonState(false, false, true);
                 });
 
@@ -251,7 +256,8 @@
                 });
 
                 subscription.on('error', function(ctx) {
-                    log(`❌ Erro na subscrição: ${ctx.error}`, 'error');
+                    const errorMsg = ctx.error ? (typeof ctx.error === 'object' ? JSON.stringify(ctx.error) : String(ctx.error)) : 'Erro desconhecido';
+                    log(`❌ Erro na subscrição: ${errorMsg}`, 'error');
                 });
 
                 subscription.on('unsubscribe', function(ctx) {
