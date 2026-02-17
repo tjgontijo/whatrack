@@ -1,253 +1,285 @@
-# Centrifugo Real-time Messaging - Troubleshooting Guide
+# Centrifugo - Guia de Resolução de Problemas
 
-## Overview
+## Visão Geral
 
-Centrifugo is the real-time messaging service for the WhaTrack inbox. It uses WebSocket to push live updates to clients without polling.
+Centrifugo é o serviço de mensagens em tempo real do WhaTrack. Usa WebSocket para enviar atualizações ao vivo sem necessidade de polling.
 
-**WebSocket URL:** `wss://centrifugo.whatrack.com/connection/websocket`
+**URL WebSocket:** `wss://centrifugo.whatrack.com/connection/websocket`
+**URL HTTP API:** `https://centrifugo.whatrack.com`
 
-## Architecture
+## Arquitetura
 
 ```
-Browser (Client)
+Navegador (Cliente)
     ↓ (WebSocket)
-Centrifugo Server (wss://centrifugo.whatrack.com)
+Servidor Centrifugo (wss://centrifugo.whatrack.com)
     ↓ (Redis pub/sub)
-Redis (redis:6379 in Docker Swarm)
+Redis (remoto, acessado internamente)
     ↑ (HTTP API)
-Next.js App (Backend)
+Aplicação Next.js (Backend via Vercel)
 ```
 
-## Quick Diagnostics
+## Diagnóstico Rápido
 
-### 1. Check if Centrifugo Server is Running
+### 1. Verificar se o Servidor Centrifugo está Rodando
 
 ```bash
-# Test HTTP API endpoint
-curl -H "Host: centrifugo.whatrack.com" http://localhost:8000/api/ping
+# Testar endpoint HTTP API via HTTPS
+curl https://centrifugo.whatrack.com/api/ping
 
-# Expected response: {"result":{}}
+# Resposta esperada: {"result":{}}
 ```
 
-### 2. Check Token Generation
+### 2. Verificar Geração de Token
 
 ```bash
-# Get a connection token
-curl -H "Cookie: your_auth_cookie" http://localhost:3000/api/v1/centrifugo/token
+# Obter um token de conexão
+# Primeiro faça login para obter cookies, depois:
+curl -b "cookies.txt" https://whatrack.com/api/v1/centrifugo/token
 
-# Should return: {"token":"eyJhbGciOiJIUzI1NiIs..."}
+# Ou se tiver uma sessão válida:
+curl -H "Authorization: Bearer SEU_TOKEN" \
+  https://whatrack.com/api/v1/centrifugo/token
+
+# Deve retornar: {"token":"eyJhbGciOiJIUzI1NiIs..."}
 ```
 
-### 3. Check WebSocket Connection in Browser
+### 3. Verificar Conexão WebSocket no Navegador
 
-Open browser DevTools (F12) and paste in Console:
+Abra DevTools (F12) → Aba Console e cole:
 
 ```javascript
-// Test WebSocket connection
+// Testar conexão WebSocket
 const ws = new WebSocket('wss://centrifugo.whatrack.com/connection/websocket');
-ws.onopen = () => console.log('✓ WebSocket connected');
-ws.onerror = (e) => console.error('✗ WebSocket error:', e);
-ws.onclose = () => console.log('WebSocket closed');
-ws.onmessage = (e) => console.log('Message:', e.data);
-
-// Try to connect with token
-setTimeout(() => {
-  ws.send(JSON.stringify({
-    type: 1,
-    subscribe: {
-      channel: "test"
-    }
-  }));
-}, 1000);
+ws.onopen = () => {
+  console.log('✓ WebSocket conectado');
+  console.log('Pronto para receber atualizações em tempo real');
+};
+ws.onerror = (e) => console.error('✗ Erro WebSocket:', e);
+ws.onclose = () => console.log('✗ WebSocket fechado');
+ws.onmessage = (e) => console.log('Mensagem recebida:', e.data);
 ```
 
-## Common Issues & Solutions
+## Problemas Comuns & Soluções
 
-### Issue 1: "Failed to fetch Centrifugo token"
+### Problema 1: "Falha ao obter token do Centrifugo"
 
-**Symptoms:**
-- Console error: `[Centrifugo] Token fetch failed: 401`
-- No WebSocket connection
+**Sintomas:**
+- Erro no console: `[Centrifugo] Token fetch failed: 401`
+- Nenhuma conexão WebSocket
 
-**Causes:**
-1. User not authenticated
-2. No organization access
-3. `CENTRIFUGO_TOKEN_HMAC_SECRET_KEY` not configured on backend
+**Causas:**
+1. Usuário não autenticado
+2. Sem acesso à organização
+3. `CENTRIFUGO_TOKEN_HMAC_SECRET_KEY` não configurada no backend
 
-**Solutions:**
+**Soluções:**
 ```bash
-# Check if user is logged in
-# Check if organization is accessible
-# Verify .env has CENTRIFUGO_TOKEN_HMAC_SECRET_KEY
-grep CENTRIFUGO_TOKEN_HMAC_SECRET_KEY /path/to/.env
+# Verificar se o usuário está logado
+# Verificar se a organização é acessível
+# Verificar se .env tem CENTRIFUGO_TOKEN_HMAC_SECRET_KEY
+grep CENTRIFUGO_TOKEN_HMAC_SECRET_KEY /caminho/para/.env
 ```
 
-### Issue 2: "WebSocket connection failed"
+### Problema 2: "Conexão WebSocket falhou"
 
-**Symptoms:**
-- Token fetches successfully
-- Browser console shows WebSocket connection error
-- Network tab shows WebSocket request fails with 403/502/503
+**Sintomas:**
+- Token obtido com sucesso
+- Console mostra erro na conexão WebSocket
+- Aba Network mostra falha na requisição WebSocket com 403/502/503
 
-**Causes:**
-1. Centrifugo server not running
-2. CORS issues (unlikely with WSS)
-3. SSL/TLS certificate problem
-4. Traefik not routing to Centrifugo correctly
-5. Redis connection issue in Centrifugo
+**Causas:**
+1. Servidor Centrifugo não está rodando
+2. Problema de SSL/TLS certificado
+3. Traefik não está roteando corretamente para Centrifugo
+4. Problema de conexão Redis no Centrifugo
 
-**Solutions:**
+**Soluções:**
 ```bash
-# 1. Check if Centrifugo container is running
-docker service ls | grep centrifugo
-docker service logs whatrack_centrifugo --tail 100
+# 1. Verificar endpoint HTTPS
+curl -v https://centrifugo.whatrack.com/api/ping
 
-# 2. Check Centrifugo admin panel
+# 2. Verificar painel admin
 curl https://centrifugo.whatrack.com/admin
 
-# 3. Check Redis connection from Centrifugo logs
-# Look for: "redis connected" or "redis error"
-
-# 4. Verify Traefik routing
-docker service logs whatrack_traefik --tail 50 | grep centrifugo
-
-# 5. Test direct connection (if Docker host accessible)
-telnet localhost 8000
-```
-
-### Issue 3: "Connected but no real-time updates"
-
-**Symptoms:**
-- WebSocket connects successfully
-- No subscription errors
-- But messages don't arrive in real-time
-
-**Causes:**
-1. Messages not being published to correct channel
-2. Redis pub/sub not working
-3. Channel subscription not working
-
-**Solutions:**
-```bash
-# 1. Check if messages are being published
-# Monitor Centrifugo logs for "publish" events
-docker service logs whatrack_centrifugo --tail 100 | grep -i publish
-
-# 2. Test Redis connection from Centrifugo
-# Check Centrifugo logs for Redis errors
-docker service logs whatrack_centrifugo --tail 100 | grep -i redis
-
-# 3. Manually publish to test channel
-curl -X POST https://centrifugo.whatrack.com/api/publish \
-  -H "Content-Type: application/json" \
-  -H "Authorization: apikey YOUR_CENTRIFUGO_API_KEY" \
-  -d '{
-    "channel": "test",
-    "data": {"message": "hello"}
-  }'
-
-# 4. Check subscription in browser
-# Should see [Centrifugo] Subscribed to org:ORG_ID:messages
-# Check browser console for subscription events
-```
-
-### Issue 4: "CORS or Certificate Error"
-
-**Symptoms:**
-- Browser console shows CORS errors
-- WebSocket shows "Mixed content" or certificate warnings
-
-**Solutions:**
-```bash
-# 1. Verify HTTPS is working
-curl -v https://centrifugo.whatrack.com/admin
-
-# 2. Check certificate validity
+# 3. Verificar certificado
 openssl s_client -connect centrifugo.whatrack.com:443
 
-# 3. Verify Traefik TLS configuration
-docker service ls | grep traefik
-docker service inspect whatrack_traefik | grep -i tls
+# 4. Verificar logs de Centrifugo (se tiver acesso SSH)
+docker service logs whatrack_centrifugo --tail 100 | grep -i error
 ```
 
-## Debugging Steps (In Order)
+### Problema 3: "Conectado mas sem atualizações em tempo real"
 
-1. **Check Authentication**
-   ```bash
-   curl -H "Cookie: your_auth_cookie" \
-     http://localhost:3000/api/v1/centrifugo/token
-   ```
-   Should return a valid JWT token
+**Sintomas:**
+- WebSocket conecta com sucesso
+- Sem erros de subscrição
+- Mas as mensagens não chegam em tempo real
 
-2. **Check Server Connectivity**
-   ```bash
-   curl -H "Host: centrifugo.whatrack.com" \
-     http://localhost:8000/api/ping
-   ```
-   Should return `{"result":{}}`
+**Causas:**
+1. Mensagens não sendo publicadas no canal correto
+2. Redis pub/sub não funcionando
+3. Subscrição ao canal não funcionando
 
-3. **Check WebSocket in Browser**
-   - Open DevTools Console
-   - Check for `[Centrifugo]` messages
-   - Look for "Connected" or error messages
+**Soluções:**
+```bash
+# 1. Verificar logs para "publish" events
+docker service logs whatrack_centrifugo --tail 100 | grep -i publish
 
-4. **Check Centrifugo Logs**
-   ```bash
-   docker service logs whatrack_centrifugo --tail 200 --follow
-   ```
-   Look for:
-   - "redis" connection status
-   - WebSocket connection attempts
-   - Subscribe events
+# 2. Verificar conexão Redis
+docker service logs whatrack_centrifugo --tail 100 | grep -i redis
 
-5. **Check Redis Connection**
-   ```bash
-   docker exec whatrack_redis redis-cli -a PASSWORD ping
-   # Should return: PONG
-   ```
+# 3. Verificar subscrição no navegador
+# Deve aparecer: [Centrifugo] Subscribed to org:ORG_ID:messages
+# Verificar console para eventos de subscrição
+```
 
-## Configuration Checklist
+### Problema 4: "Erro de Certificado ou CORS"
+
+**Sintomas:**
+- Console mostra erros de CORS
+- WebSocket mostra avisos de certificado ou "Mixed content"
+
+**Soluções:**
+```bash
+# 1. Verificar HTTPS
+curl -v https://centrifugo.whatrack.com/admin
+
+# 2. Verificar validade do certificado
+openssl s_client -connect centrifugo.whatrack.com:443
+
+# 3. No navegador, verificar:
+# - URL é HTTPS (não HTTP)
+# - URL é WSS (não WS)
+```
+
+## Passos de Debug (Em Ordem)
+
+### Passo 1: Verificar Autenticação
+
+Acesse https://whatrack.com e faça login. Abra DevTools (F12) e execute:
+
+```javascript
+// Obter um token fresco
+fetch('/api/v1/centrifugo/token')
+  .then(r => r.json())
+  .then(d => {
+    console.log('✓ Token obtido:', d.token.substring(0, 20) + '...');
+    return d.token;
+  })
+  .catch(e => console.error('✗ Falha ao obter token:', e));
+```
+
+Deve aparecer um token começando com `eyJ`
+
+### Passo 2: Verificar Acessibilidade do Servidor
+
+```bash
+# Verificar se endpoint HTTPS é acessível
+curl https://centrifugo.whatrack.com/api/ping
+
+# Resposta esperada: {"result":{}}
+```
+
+### Passo 3: Verificar WebSocket no Navegador
+
+No DevTools Console (F12):
+
+```javascript
+// Testar conexão WebSocket bruta (sem auth obrigatória)
+const ws = new WebSocket('wss://centrifugo.whatrack.com/connection/websocket');
+
+ws.onopen = () => {
+  console.log('✓ WebSocket conectado ao Centrifugo');
+
+  // Enviar mensagem de conexão com token
+  fetch('/api/v1/centrifugo/token')
+    .then(r => r.json())
+    .then(d => {
+      ws.send(JSON.stringify({
+        type: 1,
+        token: d.token
+      }));
+      console.log('✓ Token de autenticação enviado');
+    });
+};
+
+ws.onerror = (e) => {
+  console.error('✗ Erro WebSocket:', e);
+};
+
+ws.onclose = () => {
+  console.log('✗ WebSocket fechado');
+};
+
+ws.onmessage = (e) => {
+  console.log('Mensagem do Centrifugo:', JSON.parse(e.data));
+};
+```
+
+### Passo 4: Monitorar Logs (Se Tiver Acesso SSH)
+
+```bash
+# Se tiver acesso SSH ao host Docker:
+docker service logs whatrack_centrifugo --tail 200 --follow
+```
+
+Procure por:
+- Status de conexão com Redis
+- Tentativas de conexão WebSocket
+- Mensagens "client connected"
+- Qualquer mensagem de erro
+
+### Passo 5: Verificar Logs da Aplicação
+
+No DevTools Console, procure por logs começando com `[Centrifugo]`:
+- `[Centrifugo] Token fetched successfully` ✓
+- `[Centrifugo] Connected` ✓
+- `[Centrifugo] Connection error:` ✗
+- `[Centrifugo] Disconnected` ✗
+
+## Checklist de Configuração
 
 Backend (`.env`):
 - [ ] `CENTRIFUGO_URL=https://centrifugo.whatrack.com`
-- [ ] `CENTRIFUGO_API_KEY=<secret>`
-- [ ] `CENTRIFUGO_TOKEN_HMAC_SECRET_KEY=<secret>`
-- [ ] `CENTRIFUGO_ADMIN_PASSWORD=<secret>`
-- [ ] `CENTRIFUGO_ADMIN_SECRET=<secret>`
+- [ ] `CENTRIFUGO_API_KEY=<segredo>`
+- [ ] `CENTRIFUGO_TOKEN_HMAC_SECRET_KEY=<segredo>`
+- [ ] `CENTRIFUGO_ADMIN_PASSWORD=<segredo>`
+- [ ] `CENTRIFUGO_ADMIN_SECRET=<segredo>`
 
 Frontend (`.env`):
 - [ ] `NEXT_PUBLIC_CENTRIFUGO_URL=wss://centrifugo.whatrack.com/connection/websocket`
 
 Docker Stack:
-- [ ] Redis container running on `redis:6379`
-- [ ] Centrifugo container running on `0.0.0.0:8000`
-- [ ] Traefik routing `centrifugo.whatrack.com` to Centrifugo:8000
-- [ ] TLS certificates valid and configured
+- [ ] Container Redis rodando
+- [ ] Container Centrifugo rodando na porta 8000
+- [ ] Traefik roteando `centrifugo.whatrack.com` para Centrifugo:8000
+- [ ] Certificados TLS válidos e configurados
 
-## Useful Commands
+## Comandos Úteis
 
 ```bash
-# Monitor Centrifugo in real-time
+# Monitorar Centrifugo em tempo real
 docker service logs whatrack_centrifugo -f
 
-# Check Centrifugo stats via HTTP API
+# Verificar stats via HTTP API
 curl -H "Authorization: apikey <API_KEY>" \
   https://centrifugo.whatrack.com/api/stats
 
-# Check available channels (requires admin token)
+# Verificar canais disponíveis (requer admin token)
 curl -H "Authorization: apikey <API_KEY>" \
   https://centrifugo.whatrack.com/api/channels
 
-# Publish test message
+# Publicar mensagem de teste
 curl -X POST https://centrifugo.whatrack.com/api/publish \
   -H "Content-Type: application/json" \
   -H "Authorization: apikey <API_KEY>" \
-  -d '{"channel":"test","data":{"hello":"world"}}'
+  -d '{"channel":"test","data":{"ola":"mundo"}}'
 ```
 
-## Log Examples
+## Exemplos de Log
 
-### Successful Connection
+### Conexão Bem-Sucedida
 ```
 [Centrifugo] Token fetched successfully
 [Centrifugo] Connected
@@ -255,38 +287,48 @@ curl -X POST https://centrifugo.whatrack.com/api/publish \
 [Centrifugo] Subscribed to org:123:tickets
 ```
 
-### Redis Connection Error
+### Erro de Conexão Redis
 ```
 error creating engine: dial tcp redis:6379: connect: connection refused
 ```
 
-### Missing Configuration
+### Configuração Faltando
 ```
 [Centrifugo] CENTRIFUGO_TOKEN_HMAC_SECRET_KEY not configured
 ```
 
-### WebSocket Connection Failed
+### Falha de Conexão WebSocket
 ```
 [Centrifugo] Connection error: WebSocket closed with code 1002
 ```
 
-## Testing Channels
+## Canais de Teste
 
-The application subscribes to these channels (replace `ORG_ID` with your organization ID):
+A aplicação se inscreve nestes canais (substitua `ORG_ID` pelo ID da sua organização):
 
-1. **Message Channel:** `org:ORG_ID:messages`
-   - Triggered when new messages arrive
-   - Updates: chat-messages, whatsapp-chats queries
+1. **Canal de Mensagens:** `org:ORG_ID:messages`
+   - Acionado quando novas mensagens chegam
+   - Atualiza: chat-messages, whatsapp-chats queries
 
-2. **Ticket Channel:** `org:ORG_ID:tickets`
-   - Triggered when ticket status changes
-   - Updates: conversation-ticket, whatsapp-chats queries
+2. **Canal de Tickets:** `org:ORG_ID:tickets`
+   - Acionado quando status de ticket muda
+   - Atualiza: conversation-ticket, whatsapp-chats queries
 
-## Next Steps
+## Próximos Passos
 
-If the troubleshooting steps don't resolve the issue:
+Se os passos de troubleshooting não resolverem:
 
-1. Check `/Users/thiago/www/whatrack/REDIS_SETUP.md` for Redis configuration
-2. Check `/Users/thiago/www/whatrack/docs/INBOX-REALTIME-PRD.md` for architecture details
-3. Check Centrifugo official docs: https://centrifugo.dev
-4. Review Centrifugo logs for specific error messages
+1. Verifique `/Users/thiago/www/whatrack/REDIS_SETUP.md` para configuração de Redis
+2. Verifique `/Users/thiago/www/whatrack/docs/INBOX-REALTIME-PRD.md` para detalhes de arquitetura
+3. Consulte documentação oficial: https://centrifugo.dev
+4. Revise logs do Centrifugo para mensagens de erro específicas
+
+## Resumo Rápido
+
+| O que fazer | Comando |
+|------------|---------|
+| Testar servidor | `curl https://centrifugo.whatrack.com/api/ping` |
+| Obter token | No console: `fetch('/api/v1/centrifugo/token').then(r => r.json())` |
+| Testar WebSocket | Cole o código JavaScript acima no console |
+| Ver logs | `docker service logs whatrack_centrifugo -f` |
+| Verificar certificado | `openssl s_client -connect centrifugo.whatrack.com:443` |
