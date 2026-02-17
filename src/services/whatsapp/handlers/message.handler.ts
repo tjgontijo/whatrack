@@ -236,13 +236,17 @@ export async function messageHandler(payload: any, options: MessageHandlerOption
             `(windowExpiresAt: ${windowExpiresAt ?? 'null'}, originatedFrom: ${wasHistoryLead ? 'history' : 'new'})`
           );
         } else {
-          await tx.ticket.update({
-            where: { id: ticket.id },
-            data: {
-              windowExpiresAt,
-              windowOpen: true,
-            },
-          });
+          // Only renew window if this is an INBOUND message (from lead)
+          // OUTBOUND messages (agent responses) should NOT reset the window
+          if (!isEcho) {
+            await tx.ticket.update({
+              where: { id: ticket.id },
+              data: {
+                windowExpiresAt,
+                windowOpen: true,
+              },
+            });
+          }
         }
 
         // Extract message content

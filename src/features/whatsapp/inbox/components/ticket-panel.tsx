@@ -1,10 +1,10 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { formatDistanceToNow } from 'date-fns'
+import { formatDistanceToNow, format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { AlertCircle, Clock, User, DollarSign, Link as LinkIcon } from 'lucide-react'
+import { AlertCircle, Clock, User, DollarSign, Link as LinkIcon, AlertTriangle } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -155,28 +155,47 @@ export function TicketPanel({
     }).format(value)
   }
 
+  // Helper function to calculate remaining time
+  const calculateTimeRemaining = (expiresAt: Date) => {
+    const now = new Date()
+    const diffMs = expiresAt.getTime() - now.getTime()
+
+    if (diffMs <= 0) return null
+
+    const hours = Math.floor(diffMs / (1000 * 60 * 60))
+    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
+
+    return { hours, minutes, totalMinutes: Math.floor(diffMs / (1000 * 60)) }
+  }
+
   // Helper function to get window status
   const getWindowStatus = () => {
     if (!ticket?.windowExpiresAt) return null
 
     const expiresAt = new Date(ticket.windowExpiresAt)
     const now = new Date()
+    const timeRemaining = calculateTimeRemaining(expiresAt)
 
-    if (expiresAt < now) {
+    if (!timeRemaining) {
       return {
         status: 'expired',
-        label: 'Janela fechada',
+        expiresAt,
+        timeRemaining: null,
         color: 'text-red-600',
+        bgColor: 'bg-red-50 border-red-200',
       }
     }
 
+    // Warn if less than 2 hours remaining
+    const isWarning = timeRemaining.totalMinutes < 120
+
     return {
       status: 'open',
-      label: formatDistanceToNow(expiresAt, {
-        addSuffix: true,
-        locale: ptBR,
-      }),
-      color: 'text-green-600',
+      expiresAt,
+      timeRemaining,
+      color: isWarning ? 'text-amber-600' : 'text-green-600',
+      bgColor: isWarning ? 'bg-amber-50 border-amber-200' : 'bg-green-50 border-green-200',
+      isWarning,
     }
   }
 
@@ -313,14 +332,53 @@ export function TicketPanel({
         {windowStatus && (
           <div className="space-y-2">
             <Label className="text-xs font-semibold text-muted-foreground">
-              Janela de resposta
+              Janela de resposta (24h)
             </Label>
-            <div className="flex items-center gap-2 px-3 py-2 rounded-md border">
-              <Clock className={`h-4 w-4 ${windowStatus.color}`} />
-              <span className={`text-sm font-medium ${windowStatus.color}`}>
-                {windowStatus.label}
-              </span>
-            </div>
+            {windowStatus.status === 'expired' ? (
+              <div className={`flex items-center gap-2 px-3 py-3 rounded-md border ${windowStatus.bgColor}`}>
+                <AlertTriangle className={`h-4 w-4 ${windowStatus.color} flex-shrink-0`} />
+                <div className="flex-1 min-w-0">
+                  <p className={`text-sm font-semibold ${windowStatus.color}`}>
+                    Janela fechada
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Fechada em {format(windowStatus.expiresAt, "dd/MM HH:mm", { locale: ptBR })}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className={`space-y-2 px-3 py-3 rounded-md border ${windowStatus.bgColor}`}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Clock className={`h-4 w-4 ${windowStatus.color}`} />
+                    <span className={`text-sm font-semibold ${windowStatus.color}`}>
+                      {windowStatus.timeRemaining?.hours}h {windowStatus.timeRemaining?.minutes}min
+                    </span>
+                  </div>
+                  {windowStatus.isWarning && (
+                    <span className="text-xs font-medium px-2 py-1 rounded bg-amber-100 text-amber-700">
+                      Atenção
+                    </span>
+                  )}
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-1.5">
+                  <div
+                    className={`h-1.5 rounded-full transition-all ${
+                      windowStatus.isWarning ? 'bg-amber-500' : 'bg-green-500'
+                    }`}
+                    style={{
+                      width: `${Math.min(100, (windowStatus.timeRemaining!.totalMinutes / 1440) * 100)}%`,
+                    }}
+                  />
+                </div>
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>Encerra em</span>
+                  <span className="font-semibold">
+                    {format(windowStatus.expiresAt, "dd/MM HH:mm", { locale: ptBR })}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
