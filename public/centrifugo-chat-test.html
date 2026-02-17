@@ -209,6 +209,46 @@
             min-width: 150px;
         }
 
+        .logs-container {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .logs-container h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .logs-box {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            height: 200px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        .log-line {
+            margin: 3px 0;
+        }
+
+        .log-line.info { color: #4ec9b0; }
+        .log-line.success { color: #6a9955; }
+        .log-line.error { color: #f48771; }
+        .log-line.warning { color: #dcdcaa; }
+
+        .copy-btn {
+            background: #667eea !important;
+            width: 100%;
+        }
+
         @media (max-width: 1024px) {
             .chat-container {
                 grid-template-columns: 1fr;
@@ -286,6 +326,12 @@
             <button onclick="clearMessages()">Limpar Mensagens</button>
             <button onclick="disconnectAll()" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">Desconectar Todos</button>
         </div>
+
+        <div class="logs-container">
+            <h3>📋 Logs do Sistema</h3>
+            <div class="logs-box" id="logsBox"></div>
+            <button class="copy-btn" onclick="copyLogs()">📋 Copiar Logs</button>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/centrifuge@5.5.3/dist/centrifuge.min.js"></script>
@@ -294,6 +340,36 @@
         const clients = {};
         const subscriptions = {};
         let chatId = Math.random().toString(36).substring(7);
+        const systemLogs = [];
+
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            systemLogs.push({ message: logEntry, type });
+
+            const logsBox = document.getElementById('logsBox');
+            const logLine = document.createElement('div');
+            logLine.className = `log-line ${type}`;
+            logLine.textContent = logEntry;
+            logsBox.appendChild(logLine);
+            logsBox.scrollTop = logsBox.scrollHeight;
+        }
+
+        function copyLogs() {
+            const logsText = systemLogs.map(log => log.message).join('\n');
+            navigator.clipboard.writeText(logsText).then(() => {
+                alert('✅ Logs copiados para a área de transferência!');
+            }).catch(() => {
+                // Fallback
+                const textarea = document.createElement('textarea');
+                textarea.value = logsText;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                alert('✅ Logs copiados para a área de transferência!');
+            });
+        }
 
         function log(chatNum, message, type = 'received') {
             const messagesDiv = document.getElementById(`messages${chatNum}`);
@@ -302,6 +378,9 @@
 
             if (type === 'system' || type === 'error') {
                 messageEl.textContent = message;
+                // Also log to system logs
+                const logType = type === 'error' ? 'error' : 'info';
+                addLog(`[Chat ${chatNum}] ${message}`, logType);
             } else {
                 const [sender, text] = message.includes(':')
                     ? message.split(':').map(s => s.trim())
@@ -311,6 +390,7 @@
                     ${text}
                     <div class="timestamp">${new Date().toLocaleTimeString()}</div>
                 `;
+                addLog(`[Chat ${chatNum}] ${sender}: ${text}`, 'info');
             }
 
             messagesDiv.appendChild(messageEl);
@@ -449,20 +529,56 @@
                 return;
             }
 
-            // Show message locally
+            // Show message locally first
             log(chatNum, `Você: ${text}`, 'sent');
+            input.value = '';
 
-            // Publish to Centrifugo
-            const message = {
+            // Prepare message
+            const messageData = {
                 sender: chatId,
                 senderName: `Chat ${chatNum}`,
                 text: text,
                 timestamp: new Date().toISOString()
             };
 
-            subscription.sub.publish(message).then(() => {
-                input.value = '';
-            }).catch((error) => {
+            // Try to publish via subscription first
+            if (subscription.sub.isReady()) {
+                subscription.sub.publish(messageData).then(() => {
+                    addLog(`[Chat ${chatNum}] Mensagem publicada via subscription`, 'success');
+                }).catch((error) => {
+                    addLog(`[Chat ${chatNum}] Erro na subscription: ${error.message}`, 'error');
+                    // Try HTTP API as fallback
+                    publishViaHTTP(chatNum, subscription.channel, messageData);
+                });
+            } else {
+                addLog(`[Chat ${chatNum}] Subscription não está pronta, usando HTTP API`, 'warning');
+                publishViaHTTP(chatNum, subscription.channel, messageData);
+            }
+        }
+
+        function publishViaHTTP(chatNum, channel, messageData) {
+            addLog(`[Chat ${chatNum}] Publicando via HTTP API em ${channel}...`, 'info');
+
+            fetch('https://centrifugo.whatrack.com/api/publish', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'apikey 7f5a2d9c4e8b1a6f3d0c9e7b2a4f6c1d',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    channel: channel,
+                    data: messageData
+                })
+            }).then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error(`HTTP ${response.status}: ${text}`);
+                    });
+                }
+                addLog(`[Chat ${chatNum}] ✅ Mensagem publicada com sucesso via HTTP API`, 'success');
+                return response.json();
+            }).catch(error => {
+                addLog(`[Chat ${chatNum}] ❌ Erro ao publicar: ${error.message}`, 'error');
                 log(chatNum, `Erro ao enviar: ${error.message}`, 'error');
             });
         }
