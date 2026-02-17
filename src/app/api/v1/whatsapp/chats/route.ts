@@ -106,7 +106,7 @@ export async function GET(request: Request) {
             const currentTicket = conversation?.tickets[0]
 
             return {
-                id: lead.id,
+                id: conversation?.id || lead.id,
                 name: lead.name || lead.pushName || lead.phone,
                 phone: lead.phone,
                 profilePicUrl: lead.profilePicUrl,

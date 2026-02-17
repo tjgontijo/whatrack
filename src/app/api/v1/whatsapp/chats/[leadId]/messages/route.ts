@@ -5,9 +5,10 @@ import { validateFullAccess } from '@/server/auth/validate-organization-access'
 export const dynamic = 'force-dynamic'
 
 /**
- * GET /api/v1/whatsapp/chats/[leadId]/messages
- * 
- * Returns paginated message history for a specific lead
+ * GET /api/v1/whatsapp/chats/[conversationId]/messages
+ *
+ * Returns paginated message history for a specific conversation.
+ * Accepts either conversationId or leadId (for backwards compatibility).
  */
 export async function GET(
     request: NextRequest,
@@ -15,7 +16,7 @@ export async function GET(
 ) {
     try {
         const params = await props.params
-        const leadId = params.leadId
+        const conversationIdOrLeadId = params.leadId
 
         const access = await validateFullAccess(request)
         if (!access.hasAccess || !access.organizationId) {
@@ -28,18 +29,38 @@ export async function GET(
         const pageSize = Math.min(parseInt(searchParams.get('pageSize') || '50'), 100)
         const skip = (page - 1) * pageSize
 
-        // Verify lead ownership
-        const lead = await prisma.lead.findFirst({
+        // Try to find by conversationId first, then by leadId for backwards compatibility
+        let conversation = await prisma.conversation.findFirst({
             where: {
-                id: leadId,
-                organizationId
+                id: conversationIdOrLeadId,
+                lead: {
+                    organizationId
+                }
             },
-            select: { id: true }
+            select: { id: true, leadId: true }
         })
 
-        if (!lead) {
-            return NextResponse.json({ error: 'Lead não encontrado' }, { status: 404 })
+        // Fallback: if not found as conversation, try as leadId
+        if (!conversation) {
+            const lead = await prisma.lead.findFirst({
+                where: {
+                    id: conversationIdOrLeadId,
+                    organizationId
+                },
+                select: { id: true, conversations: { select: { id: true, leadId: true }, take: 1 } }
+            })
+
+            if (!lead) {
+                return NextResponse.json({ error: 'Conversa não encontrada' }, { status: 404 })
+            }
+
+            conversation = lead.conversations[0]
+            if (!conversation) {
+                return NextResponse.json({ error: 'Conversa não encontrada' }, { status: 404 })
+            }
         }
+
+        const leadId = conversation.leadId
 
         // Fetch messages
         const [items, total] = await Promise.all([
