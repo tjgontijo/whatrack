@@ -106,11 +106,13 @@ export async function messageHandler(payload: any): Promise<void> {
   }
 
   console.log(`[MessageHandler] Processing messages for phoneId: ${phoneNumberId}`);
+  console.log(`[MessageHandler] Organization: ${config.organizationId}`);
 
   const defaultStage = await getDefaultTicketStage(prisma, config.organizationId);
 
   // Collect events to publish after transaction commits
   const eventsToPublish: any[] = [];
+  let successCount = 0;
 
   // Process each message
   for (const message of value.messages) {
@@ -306,6 +308,12 @@ export async function messageHandler(payload: any): Promise<void> {
             direction: 'INBOUND',
           }
         });
+
+        successCount++;
+        console.log(
+          `[MessageHandler] ✓ Transaction complete for message ${createdMessage.id} ` +
+          `(lead: ${lead.id}, conversation: ${conversation.id}, ticket: ${ticket.id})`
+        );
       });
     } catch (error) {
       console.error('[MessageHandler] Error processing message', error);
@@ -319,15 +327,23 @@ export async function messageHandler(payload: any): Promise<void> {
     data: { lastWebhookAt: new Date() },
   });
 
-  console.log(`[MessageHandler] Processed ${value.messages.length} messages`);
+  console.log(
+    `[MessageHandler] Processed ${value.messages.length} messages ` +
+    `(${successCount} successful, ${value.messages.length - successCount} skipped)`
+  );
 
   // Publish all collected events to Centrifugo (after transaction commits)
+  console.log(`[MessageHandler] Publishing ${eventsToPublish.length} events to Centrifugo`);
   for (const event of eventsToPublish) {
     try {
-      await publishToCentrifugo(event.channel, event.data);
-      console.log(`[MessageHandler] Published to Centrifugo: ${event.channel}`);
+      const success = await publishToCentrifugo(event.channel, event.data);
+      if (success) {
+        console.log(`[MessageHandler] ✓ Published to Centrifugo: ${event.channel}`);
+      } else {
+        console.warn(`[MessageHandler] ⚠ Failed to publish to Centrifugo: ${event.channel}`);
+      }
     } catch (error) {
-      console.error('[MessageHandler] Failed to publish to Centrifugo', error);
+      console.error('[MessageHandler] ✗ Error publishing to Centrifugo', error);
       // Don't throw - continue even if Centrifugo fails
     }
   }
