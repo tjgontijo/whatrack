@@ -44,6 +44,7 @@ import {
 import { WhatsAppIcon, MetaIcon } from '@/components/icons'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { authClient, useSession } from '@/lib/auth/auth-client'
+import { AuthGuards } from '@/lib/auth/roles'
 import { Button } from '@/components/ui/button'
 import { UserDropdownMenu } from './user-dropdown-menu'
 
@@ -110,9 +111,7 @@ export function SidebarClient({ navItems }: SidebarClientProps) {
         ['Users', 'ShoppingBag', 'Package'].includes(item.icon)
     )
 
-    const isSuperAdmin =
-        session?.user?.role === 'owner' ||
-        (userEmail && userEmail === process.env.NEXT_PUBLIC_OWNER_EMAIL)
+    const isSuperAdmin = AuthGuards.isSuperAdmin(session?.user?.role)
 
     const whatsappSubItems = isSuperAdmin ? [
         { title: 'Webhooks', href: '/dashboard/settings/whatsapp/webhooks', icon: Webhook },
