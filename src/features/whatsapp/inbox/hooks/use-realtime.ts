@@ -80,13 +80,21 @@ export function useRealtime(organizationId: string | undefined) {
         `org:${organizationId}:messages`,
         (data) => {
           console.log('[Centrifugo] Message event:', data)
-          // Invalidate specific chat if conversationId is provided, otherwise all
+          // Invalidate specific chat if conversationId is provided
           if (data.conversationId) {
-            queryClient.invalidateQueries({ queryKey: ['chat-messages', data.conversationId] })
+            queryClient.invalidateQueries({
+              queryKey: ['chat-messages', data.conversationId]
+            })
           } else {
-            queryClient.invalidateQueries({ queryKey: ['chat-messages'] })
+            // Fallback: invalidate all chat-messages queries
+            queryClient.invalidateQueries({
+              queryKey: ['chat-messages']
+            })
           }
-          queryClient.invalidateQueries({ queryKey: ['whatsapp-chats'] })
+          // Invalidate chat list only for this organization
+          queryClient.invalidateQueries({
+            queryKey: ['whatsapp-chats', organizationId]
+          })
         }
       )
 
@@ -96,9 +104,21 @@ export function useRealtime(organizationId: string | undefined) {
         `org:${organizationId}:tickets`,
         (data) => {
           console.log('[Centrifugo] Ticket event:', data)
-          // Invalidate ticket-related queries
-          queryClient.invalidateQueries({ queryKey: ['conversation-ticket'] })
-          queryClient.invalidateQueries({ queryKey: ['whatsapp-chats'] })
+          // Invalidate specific ticket if conversationId is provided
+          if (data.conversationId) {
+            queryClient.invalidateQueries({
+              queryKey: ['conversation-ticket', data.conversationId]
+            })
+          } else {
+            // Fallback: invalidate all tickets
+            queryClient.invalidateQueries({
+              queryKey: ['conversation-ticket']
+            })
+          }
+          // Invalidate chat list for this organization
+          queryClient.invalidateQueries({
+            queryKey: ['whatsapp-chats', organizationId]
+          })
         }
       )
 

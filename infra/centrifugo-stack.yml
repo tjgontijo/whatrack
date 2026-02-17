@@ -1,0 +1,103 @@
+version: "3.7"
+
+services:
+  redis_whatrack:
+    image: redis:7-alpine
+
+    command: >
+      redis-server
+      --appendonly yes
+      --requirepass 4f9c2a8d7b1e6c3f
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+
+    volumes:
+      - redis_data:/data
+
+    networks:
+      - redeinterna
+
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+
+  centrifugo_whatrack:
+    image: centrifugo/centrifugo:v6
+
+    networks:
+      - redeinterna
+
+    environment:
+      # ===========================================
+      # SERVER
+      # ===========================================
+      - CENTRIFUGO_HTTP_SERVER_PORT=8000
+      - CENTRIFUGO_LOG_LEVEL=info
+
+      # ===========================================
+      # ENGINE - Redis para persistência e pub/sub
+      # ===========================================
+      - CENTRIFUGO_ENGINE_TYPE=redis
+      - CENTRIFUGO_ENGINE_REDIS_ADDRESS=redis://redis_whatrack:6379
+      - CENTRIFUGO_ENGINE_REDIS_PASSWORD=4f9c2a8d7b1e6c3f
+
+      # ===========================================
+      # HTTP API - Para publicar eventos do backend
+      # ===========================================
+      - CENTRIFUGO_HTTP_API_KEY=7f5a2d9c4e8b1a6f3d0c9e7b2a4f6c1d
+
+      # ===========================================
+      # CLIENT TOKEN - JWT para autenticação WebSocket
+      # ===========================================
+      - CENTRIFUGO_CLIENT_TOKEN_HMAC_SECRET_KEY=1a9e5c7b3d4f8a2c6e0b7d9f4a1c3e5b
+
+      # ===========================================
+      # ADMIN UI
+      # ===========================================
+      - CENTRIFUGO_ADMIN_ENABLED=true
+      - CENTRIFUGO_ADMIN_PASSWORD=3c8a1f6d9b2e7a4c
+      - CENTRIFUGO_ADMIN_SECRET=9d2f7a1c5e8b3f6a
+
+      # ===========================================
+      # CORS / Origins
+      # ===========================================
+      - CENTRIFUGO_CLIENT_ALLOWED_ORIGINS=https://whatrack.com,https://www.whatrack.com
+
+      # ===========================================
+      # ✅ PERMISSÕES DE CLIENTE (CRÍTICO!)
+      # Sem isso, clientes não conseguem se inscrever
+      # ===========================================
+      # Namespace "org" para canais org:xxx:messages e org:xxx:tickets
+      - CENTRIFUGO_CHANNEL_NAMESPACES=[{"name":"org","allow_subscribe_for_client":true,"allow_publish_for_client":false,"allow_presence_for_client":false,"allow_history_for_client":false}]
+
+      # Permitir publicação via API HTTP (backend publica)
+      - CENTRIFUGO_CHANNEL_WITHOUT_NAMESPACE_ALLOW_SUBSCRIBE_FOR_CLIENT=true
+
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - traefik.enable=1
+        - traefik.http.routers.centrifugo.rule=Host(`centrifugo.whatrack.com`)
+        - traefik.http.routers.centrifugo.entrypoints=websecure
+        - traefik.http.routers.centrifugo.priority=1
+        - traefik.http.routers.centrifugo.tls.certresolver=letsencryptresolver
+        - traefik.http.routers.centrifugo.service=centrifugo
+        - traefik.http.services.centrifugo.loadbalancer.server.port=8000
+
+volumes:
+  redis_data:
+    external: true
+    name: redis_data
+
+networks:
+  redeinterna:
+    external: true
+    name: redeinterna
