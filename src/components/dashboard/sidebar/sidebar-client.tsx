@@ -239,6 +239,29 @@ export function SidebarClient({ navItems }: SidebarClientProps) {
                         </SidebarMenu>
                     </SidebarGroupContent>
                 </SidebarGroup>
+
+                {/* Admin section - Design System (Only for Super Admin) */}
+                {isSuperAdmin && (
+                    <SidebarGroup>
+                        <SidebarGroupLabel>Admin</SidebarGroupLabel>
+                        <SidebarGroupContent>
+                            <SidebarMenu>
+                                <SidebarMenuItem>
+                                    <SidebarMenuButton
+                                        asChild
+                                        tooltip="Design System"
+                                        isActive={pathname === '/dashboard/design-system'}
+                                    >
+                                        <Link href="/dashboard/design-system" onClick={handleNavClick}>
+                                            <FileText className="h-4 w-4" />
+                                            <span>Design System</span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                            </SidebarMenu>
+                        </SidebarGroupContent>
+                    </SidebarGroup>
+                )}
             </SidebarContent>
 
             {/* Footer with User Menu */}
