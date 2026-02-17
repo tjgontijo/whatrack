@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { MoreVertical, Phone, Video, Search, RotateCw } from 'lucide-react'
+import { MoreVertical, Search, RotateCw } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 
 import { Button } from '@/components/ui/button'
@@ -10,7 +10,6 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { ChatItem, MessageListResponse } from '../types'
 import { MessageBubble } from './message-bubble'
 import { ORGANIZATION_HEADER } from '@/lib/constants'
-import { authClient } from '@/lib/auth/auth-client'
 
 interface ChatWindowProps {
     chat: ChatItem
@@ -31,7 +30,8 @@ export function ChatWindow({ chat, organizationId }: ChatWindowProps) {
             if (!response.ok) throw new Error('Falha ao carregar mensagens')
             return response.json()
         },
-        refetchInterval: 5000, // Poll every 5 seconds for simulation of real-time
+        // Real-time updates via Centrifugo - no polling needed
+        staleTime: Infinity, // Don't mark as stale automatically
     })
 
     // Scroll to bottom when messages load or change
