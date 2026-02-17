@@ -254,9 +254,23 @@
             }
 
             try {
-                log('Se inscrevendo em org:teste:messages...', 'info');
-
-                subscription = client.newSubscription('org:teste:messages');
+                // Extract org ID from token payload
+                try {
+                    const parts = client._token.split('.');
+                    if (parts.length === 3) {
+                        const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+                        const orgId = payload.info?.organizationId || 'teste';
+                        const channel = `org:${orgId}:messages`;
+                        log(`Se inscrevendo em ${channel}...`, 'info');
+                        subscription = client.newSubscription(channel);
+                    } else {
+                        throw new Error('Invalid token format');
+                    }
+                } catch (e) {
+                    log(`Erro ao extrair org ID do token: ${e.message}`, 'error');
+                    log('Usando canal padrão: org:teste:messages', 'info');
+                    subscription = client.newSubscription('org:teste:messages');
+                }
 
                 subscription.on('subscribe', function(ctx) {
                     log('✅ Inscrito no canal!', 'success');
