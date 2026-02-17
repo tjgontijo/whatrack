@@ -15,17 +15,18 @@ export function subscribeTo(
 ) {
   const sub = client.newSubscription(channel)
 
+  // Centrifuge v5 events: https://centrifugal.dev/docs/client/javascript/api
+  sub.on('subscribed', () => {
+    console.log(`[Centrifugo.subscribeTo] ✅ Successfully subscribed to ${channel}`)
+  })
+
   sub.on('publication', (ctx: any) => {
-    console.log(`[Centrifugo.subscribeTo] Publication received on ${channel}:`, ctx.data)
+    console.log(`[Centrifugo.subscribeTo] 📨 Publication received on ${channel}:`, ctx.data)
     onMessage(ctx.data)
   })
 
-  sub.on('subscribed', () => {
-    console.log(`[Centrifugo.subscribeTo] Successfully subscribed to ${channel}`)
-  })
-
   sub.on('error', (ctx: any) => {
-    console.error(`[Centrifugo.subscribeTo] Error on ${channel}:`, ctx)
+    console.error(`[Centrifugo.subscribeTo] ❌ Error on ${channel}:`, ctx)
   })
 
   console.log(`[Centrifugo.subscribeTo] Subscribing to channel: ${channel}`)
