@@ -64,14 +64,14 @@ services:
       # ===========================================
       # CORS / Origins - DEVE SER ARRAY JSON!
       # ===========================================
-      - CENTRIFUGO_ALLOWED_ORIGINS=["https://whatrack.com","https://www.whatrack.com"]
+      - 'CENTRIFUGO_ALLOWED_ORIGINS=https://whatrack.com https://www.whatrack.com'
 
       # ===========================================
       # ✅ PERMISSÕES DE CLIENTE (v5)
       # Sem isso, clientes não conseguem se inscrever
       # ===========================================
       # Namespace "org" para canais org:xxx:messages e org:xxx:tickets
-      - CENTRIFUGO_NAMESPACES=[{"name":"org"}]
+      - 'CENTRIFUGO_NAMESPACES=[{"name":"org","anonymous":false,"publish":false,"subscribe":true,"presence":false}]'
 
     deploy:
       mode: replicated
