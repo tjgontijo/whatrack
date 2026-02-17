@@ -1,6 +1,7 @@
 // Note: db not directly used in processor, handlers manage database access
 import { onboardingHandler } from './handlers/onboarding.handler';
 import { messageHandler } from './handlers/message.handler';
+import { statusHandler } from './handlers/status.handler';
 import { historyHandler } from './handlers/history.handler';
 import { stateSyncHandler } from './handlers/state-sync.handler';
 
@@ -37,6 +38,11 @@ export class WebhookProcessor {
           await messageHandler(payload);
           break;
 
+        case 'smb_message_echoes':
+          // ✅ Messages sent from WhatsApp mobile app (outbound)
+          await messageHandler(payload, { isEcho: true });
+          break;
+
         case 'history':
           // ✅ PRD: WhatsApp History Sync - Import historical messages
           await historyHandler(payload);
@@ -48,8 +54,7 @@ export class WebhookProcessor {
           break;
 
         case 'statuses':
-          // TODO: Handle message status updates (delivered, read, etc)
-          console.log('[WebhookProcessor] Status updates not yet implemented');
+          await statusHandler(payload);
           break;
 
         case 'message_template_status_update':
@@ -97,12 +102,23 @@ export class WebhookProcessor {
     }
 
     // Message and status events
+    // Note: Meta sends status updates with field="messages" but value contains "statuses"
+    if (field === 'messages') {
+      // Check if it's actually a status update
+      if (value?.statuses && !value?.messages) {
+        console.log('[WebhookProcessor.extractEventType] Detected status update in messages field');
+        return 'statuses';
+      }
+      console.log('[WebhookProcessor.extractEventType] Found matching field:', field);
+      return field;
+    }
+
     if (
-      field === 'messages' ||
       field === 'statuses' ||
       field === 'message_template_status_update' ||
       field === 'history' || // ✅ History sync webhook
-      field === 'smb_app_state_sync' // ✅ Contact sync webhook
+      field === 'smb_app_state_sync' || // ✅ Contact sync webhook
+      field === 'smb_message_echoes' // ✅ Messages sent from mobile app
     ) {
       console.log('[WebhookProcessor.extractEventType] Found matching field:', field);
       return field;

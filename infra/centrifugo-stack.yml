@@ -68,13 +68,9 @@ services:
 
       # ===========================================
       # ✅ PERMISSÕES DE CLIENTE (v5)
-      # Sem isso, clientes não conseguem se inscrever
+      # allow_subscribe_for_client: permite que clientes autenticados subscrevam
       # ===========================================
-      # Namespace "org" para canais org:xxx:messages e org:xxx:tickets
-      - 'CENTRIFUGO_NAMESPACES=[{"name":"org","anonymous":false,"publish":false,"subscribe":true,"presence":false}]'
-
-      # Nota: "publish":false está correto - apenas backend publica via HTTP API
-      # Clientes se inscrevem apenas (subscribe:true)
+      - 'CENTRIFUGO_NAMESPACES=[{"name":"org","allow_subscribe_for_client":true,"publish":false,"presence":false}]'
 
     deploy:
       mode: replicated

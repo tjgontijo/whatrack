@@ -67,9 +67,13 @@ function extractTrackingFromMessage(message: any) {
   return { ...tracking, sourceType };
 }
 
+interface MessageHandlerOptions {
+  isEcho?: boolean; // True for smb_message_echoes (outbound from mobile)
+}
+
 /**
  * Message Handler
- * Handles incoming messages from WhatsApp
+ * Handles incoming messages from WhatsApp and outbound echoes from mobile app
  *
  * Flow:
  * 1. Extract message data from webhook
@@ -78,15 +82,21 @@ function extractTrackingFromMessage(message: any) {
  * 4. Update lastWebhookAt on config
  */
 
-export async function messageHandler(payload: any): Promise<void> {
+export async function messageHandler(payload: any, options: MessageHandlerOptions = {}): Promise<void> {
+  const { isEcho = false } = options;
   const entry = payload.entry?.[0];
   const change = entry?.changes?.[0];
   const value = change?.value;
 
-  if (!value?.messages || !Array.isArray(value.messages)) {
-    console.warn('[MessageHandler] No messages found in payload');
+  // For echo messages, the array is called "message_echoes" not "messages"
+  const messagesArray = isEcho ? value?.message_echoes : value?.messages;
+
+  if (!messagesArray || !Array.isArray(messagesArray)) {
+    console.warn(`[MessageHandler] No ${isEcho ? 'message_echoes' : 'messages'} found in payload`);
     return;
   }
+
+  console.log(`[MessageHandler] Processing ${messagesArray.length} ${isEcho ? 'echo' : 'inbound'} messages`);
 
   const metadata = value.metadata;
   const phoneNumberId = metadata?.phone_number_id;
@@ -115,14 +125,16 @@ export async function messageHandler(payload: any): Promise<void> {
   let successCount = 0;
 
   // Process each message
-  for (const message of value.messages) {
+  for (const message of messagesArray) {
     try {
-      const fromPhone = message.from;
+      // For echoes: "from" is our number, "to" is the contact
+      // For inbound: "from" is the contact
+      const contactPhone = isEcho ? message.to : message.from;
       const messageId = message.id;
       const messageTimestamp = resolveMessageTimestamp(message.timestamp);
 
-      if (!fromPhone) {
-        console.warn('[MessageHandler] Message missing "from" field');
+      if (!contactPhone) {
+        console.warn(`[MessageHandler] Message missing "${isEcho ? 'to' : 'from'}" field`);
         continue;
       }
 
@@ -134,7 +146,7 @@ export async function messageHandler(payload: any): Promise<void> {
         continue;
       }
 
-      const contactProfile = value.contacts?.find((contact: any) => contact.wa_id === fromPhone);
+      const contactProfile = value.contacts?.find((contact: any) => contact.wa_id === contactPhone);
       const pushName = contactProfile?.profile?.name;
 
       await prisma.$transaction(async (tx) => {
@@ -142,7 +154,7 @@ export async function messageHandler(payload: any): Promise<void> {
         let lead = await tx.lead.findFirst({
           where: {
             organizationId: config.organizationId,
-            OR: [{ waId: fromPhone }, { phone: fromPhone }],
+            OR: [{ waId: contactPhone }, { phone: contactPhone }],
           },
         });
 
@@ -152,11 +164,11 @@ export async function messageHandler(payload: any): Promise<void> {
           lead = await tx.lead.create({
             data: {
               organizationId: config.organizationId,
-              phone: fromPhone,
-              waId: fromPhone,
+              phone: contactPhone,
+              waId: contactPhone,
               pushName: pushName || undefined,
               lastMessageAt: messageTimestamp,
-              source: 'live_message', // ✅ Mark as live message source
+              source: isEcho ? 'outbound_message' : 'live_message',
             },
           });
           console.log(`[MessageHandler] Created new lead: ${lead.id}`);
@@ -164,11 +176,10 @@ export async function messageHandler(payload: any): Promise<void> {
           lead = await tx.lead.update({
             where: { id: lead.id },
             data: {
-              phone: lead.phone ?? fromPhone,
-              waId: lead.waId ?? fromPhone,
+              phone: lead.phone ?? contactPhone,
+              waId: lead.waId ?? contactPhone,
               pushName: pushName ?? lead.pushName ?? undefined,
               lastMessageAt: messageTimestamp,
-              // Don't override source if already set
             },
           });
         }
@@ -246,6 +257,8 @@ export async function messageHandler(payload: any): Promise<void> {
           messageBody = message.document.caption;
         }
 
+        const direction = isEcho ? 'OUTBOUND' : 'INBOUND';
+
         const createdMessage = await tx.message.create({
           data: {
             wamid: messageId,
@@ -253,15 +266,14 @@ export async function messageHandler(payload: any): Promise<void> {
             instanceId: config.id,
             conversationId: conversation.id,
             ticketId: ticket.id,
-            direction: 'INBOUND',
+            direction,
             type: messageType,
             body: messageBody || null,
-            status: 'delivered',
+            status: isEcho ? 'sent' : 'delivered',
             timestamp: messageTimestamp,
             metaConversationId: value.conversation_id || null,
-            // ✅ Source tracking
-            source: 'live', // Live message (not history)
-            rawMeta: message, // Store raw webhook payload
+            source: 'live',
+            rawMeta: message,
           },
         });
 
@@ -305,7 +317,7 @@ export async function messageHandler(payload: any): Promise<void> {
             leadId: lead.id,
             body: messageBody,
             timestamp: messageTimestamp,
-            direction: 'INBOUND',
+            direction,
           }
         });
 
@@ -328,8 +340,8 @@ export async function messageHandler(payload: any): Promise<void> {
   });
 
   console.log(
-    `[MessageHandler] Processed ${value.messages.length} messages ` +
-    `(${successCount} successful, ${value.messages.length - successCount} skipped)`
+    `[MessageHandler] Processed ${messagesArray.length} ${isEcho ? 'echo' : 'inbound'} messages ` +
+    `(${successCount} successful, ${messagesArray.length - successCount} skipped)`
   );
 
   // Publish all collected events to Centrifugo (after transaction commits)
