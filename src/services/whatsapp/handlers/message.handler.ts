@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { getDefaultTicketStage } from '@/services/tickets/ensure-ticket-stages';
+import { publishToCentrifugo } from '@/lib/centrifugo/server';
 
 const WINDOW_MS = 24 * 60 * 60 * 1000;
 
@@ -288,6 +289,26 @@ export async function messageHandler(payload: any): Promise<void> {
         }
 
         console.log(`[MessageHandler] Message saved: ${createdMessage.id}`);
+
+        // Publish message to Centrifugo for real-time updates
+        try {
+          await publishToCentrifugo(
+            `org:${config.organizationId}:messages`,
+            {
+              type: 'message_created',
+              conversationId: conversation.id,
+              messageId: createdMessage.id,
+              leadId: lead.id,
+              body: messageBody,
+              timestamp: messageTimestamp,
+              direction: 'INBOUND',
+            }
+          );
+          console.log(`[MessageHandler] Published to Centrifugo: org:${config.organizationId}:messages`);
+        } catch (error) {
+          console.error('[MessageHandler] Failed to publish to Centrifugo', error);
+          // Don't throw - continue even if Centrifugo fails
+        }
       });
     } catch (error) {
       console.error('[MessageHandler] Error processing message', error);
