@@ -27,9 +27,20 @@ export function useRealtime(organizationId: string | undefined) {
   const { data: tokenData, refetch: refetchToken } = useQuery({
     queryKey: ['centrifugo-token'],
     queryFn: async () => {
-      const res = await fetch('/api/v1/centrifugo/token')
-      if (!res.ok) throw new Error('Failed to fetch Centrifugo token')
-      return res.json()
+      try {
+        const res = await fetch('/api/v1/centrifugo/token')
+        if (!res.ok) {
+          const error = await res.text()
+          console.error('[Centrifugo] Token fetch failed:', res.status, error)
+          throw new Error(`Failed to fetch Centrifugo token: ${res.status}`)
+        }
+        const data = await res.json()
+        console.log('[Centrifugo] Token fetched successfully')
+        return data
+      } catch (error) {
+        console.error('[Centrifugo] Token fetch error:', error)
+        throw error
+      }
     },
     staleTime: 50 * 60 * 1000, // Token valid for 1 hour, stale after 50 minutes
     retry: 3,
