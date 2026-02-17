@@ -6,7 +6,7 @@ export async function publishToCentrifugo(channel: string, data: any) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `apikey ${process.env.CENTRIFUGO_API_KEY}`,
+        'X-API-Key': process.env.CENTRIFUGO_API_KEY!,
       },
       body: JSON.stringify({
         channel,
@@ -15,11 +15,16 @@ export async function publishToCentrifugo(channel: string, data: any) {
     })
 
     if (!response.ok) {
+      const responseText = await response.text()
       console.error(
-        `[Centrifugo] Publish failed: ${response.status} ${response.statusText}`,
+        `[Centrifugo] Publish failed: ${response.status} ${response.statusText} - ${responseText}`,
       )
+      return false
     }
+    console.log(`[Centrifugo] Published to channel: ${channel}`)
+    return true
   } catch (error) {
     console.error('[Centrifugo] Publish error:', error)
+    return false
   }
 }

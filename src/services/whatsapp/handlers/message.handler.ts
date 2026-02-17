@@ -109,6 +109,9 @@ export async function messageHandler(payload: any): Promise<void> {
 
   const defaultStage = await getDefaultTicketStage(prisma, config.organizationId);
 
+  // Collect events to publish after transaction commits
+  const eventsToPublish: any[] = [];
+
   // Process each message
   for (const message of value.messages) {
     try {
@@ -290,25 +293,19 @@ export async function messageHandler(payload: any): Promise<void> {
 
         console.log(`[MessageHandler] Message saved: ${createdMessage.id}`);
 
-        // Publish message to Centrifugo for real-time updates
-        try {
-          await publishToCentrifugo(
-            `org:${config.organizationId}:messages`,
-            {
-              type: 'message_created',
-              conversationId: conversation.id,
-              messageId: createdMessage.id,
-              leadId: lead.id,
-              body: messageBody,
-              timestamp: messageTimestamp,
-              direction: 'INBOUND',
-            }
-          );
-          console.log(`[MessageHandler] Published to Centrifugo: org:${config.organizationId}:messages`);
-        } catch (error) {
-          console.error('[MessageHandler] Failed to publish to Centrifugo', error);
-          // Don't throw - continue even if Centrifugo fails
-        }
+        // Collect event to publish after transaction commits
+        eventsToPublish.push({
+          channel: `org:${config.organizationId}:messages`,
+          data: {
+            type: 'message_created',
+            conversationId: conversation.id,
+            messageId: createdMessage.id,
+            leadId: lead.id,
+            body: messageBody,
+            timestamp: messageTimestamp,
+            direction: 'INBOUND',
+          }
+        });
       });
     } catch (error) {
       console.error('[MessageHandler] Error processing message', error);
@@ -323,4 +320,15 @@ export async function messageHandler(payload: any): Promise<void> {
   });
 
   console.log(`[MessageHandler] Processed ${value.messages.length} messages`);
+
+  // Publish all collected events to Centrifugo (after transaction commits)
+  for (const event of eventsToPublish) {
+    try {
+      await publishToCentrifugo(event.channel, event.data);
+      console.log(`[MessageHandler] Published to Centrifugo: ${event.channel}`);
+    } catch (error) {
+      console.error('[MessageHandler] Failed to publish to Centrifugo', error);
+      // Don't throw - continue even if Centrifugo fails
+    }
+  }
 }
