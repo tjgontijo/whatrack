@@ -493,7 +493,7 @@
                 return;
             }
 
-            addLog(`📤 Publicando mensagem via HTTP API...`, 'info');
+            addLog(`📤 Enviando para backend...`, 'info');
 
             const messageData = {
                 sender: phone || 'teste',
@@ -504,10 +504,10 @@
             };
 
             try {
-                const response = await fetch('https://centrifugo.whatrack.com/api/publish', {
+                // Call backend endpoint (which will publish to Centrifugo)
+                const response = await fetch('/api/v1/test/publish-message', {
                     method: 'POST',
                     headers: {
-                        'Authorization': 'apikey 7f5a2d9c4e8b1a6f3d0c9e7b2a4f6c1d',
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
@@ -521,7 +521,8 @@
                     throw new Error(`HTTP ${response.status}: ${error}`);
                 }
 
-                addLog(`✅ Mensagem publicada com sucesso!`, 'success');
+                const result = await response.json();
+                addLog(`✅ Backend publicou no Centrifugo!`, 'success');
                 document.getElementById('messageInput').value = '';
 
                 // Show in inbox as well
