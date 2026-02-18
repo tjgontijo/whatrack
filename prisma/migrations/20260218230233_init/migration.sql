@@ -144,6 +144,42 @@ CREATE TABLE "verification" (
 );
 
 -- CreateTable
+CREATE TABLE "ticket_tracking" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "ticketId" UUID NOT NULL,
+    "utmSource" TEXT,
+    "utmMedium" TEXT,
+    "utmCampaign" TEXT,
+    "utmTerm" TEXT,
+    "utmContent" TEXT,
+    "gclid" TEXT,
+    "fbclid" TEXT,
+    "ctwaclid" TEXT,
+    "ttclid" TEXT,
+    "metaAdId" TEXT,
+    "metaAdSetId" TEXT,
+    "metaCampaignId" TEXT,
+    "metaAccountId" TEXT,
+    "metaAdName" TEXT,
+    "metaAdSetName" TEXT,
+    "metaCampaignName" TEXT,
+    "metaPlacement" TEXT,
+    "metaSourceType" TEXT,
+    "metaEnrichmentStatus" TEXT NOT NULL DEFAULT 'PENDING',
+    "metaEnrichmentError" TEXT,
+    "lastEnrichmentAt" TIMESTAMP(3),
+    "metaAdIdAtEnrichment" TEXT,
+    "sourceType" TEXT NOT NULL DEFAULT 'organic',
+    "referrerUrl" TEXT,
+    "landingPage" TEXT,
+    "userAgent" TEXT,
+    "ipAddress" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "ticket_tracking_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "organization" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "name" TEXT NOT NULL,
@@ -153,6 +189,33 @@ CREATE TABLE "organization" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "organization_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "organization_profiles" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "organizationId" UUID NOT NULL,
+    "cpf" TEXT,
+    "onboardingStatus" TEXT NOT NULL DEFAULT 'pending',
+    "onboardingCompletedAt" TIMESTAMP(3),
+    "avgTicket" TEXT,
+    "attendantsCount" TEXT,
+    "mainChannel" TEXT,
+    "leadsPerDay" TEXT,
+    "monthlyRevenue" TEXT,
+    "monthlyAdSpend" TEXT,
+    "estimatedConversionRate" DOUBLE PRECISION,
+    "estimatedCPL" DOUBLE PRECISION,
+    "estimatedCAC" DOUBLE PRECISION,
+    "estimatedROAS" DOUBLE PRECISION,
+    "estimatedLeadValue" DOUBLE PRECISION,
+    "leadsPerAttendant" DOUBLE PRECISION,
+    "revenuePerAttendant" DOUBLE PRECISION,
+    "ticketExpirationDays" INTEGER DEFAULT 30,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "organization_profiles_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -254,29 +317,6 @@ CREATE TABLE "ticket_stages" (
 );
 
 -- CreateTable
-CREATE TABLE "ticket_tracking" (
-    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "ticketId" UUID NOT NULL,
-    "utmSource" TEXT,
-    "utmMedium" TEXT,
-    "utmCampaign" TEXT,
-    "utmTerm" TEXT,
-    "utmContent" TEXT,
-    "gclid" TEXT,
-    "fbclid" TEXT,
-    "ctwaclid" TEXT,
-    "ttclid" TEXT,
-    "sourceType" TEXT NOT NULL DEFAULT 'organic',
-    "referrerUrl" TEXT,
-    "landingPage" TEXT,
-    "userAgent" TEXT,
-    "ipAddress" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "ticket_tracking_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "sales" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "organizationId" UUID NOT NULL,
@@ -336,32 +376,6 @@ CREATE TABLE "product_categories" (
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "product_categories_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "organization_profiles" (
-    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "organizationId" UUID NOT NULL,
-    "cpf" TEXT,
-    "onboardingStatus" TEXT NOT NULL DEFAULT 'pending',
-    "onboardingCompletedAt" TIMESTAMP(3),
-    "avgTicket" TEXT,
-    "attendantsCount" TEXT,
-    "mainChannel" TEXT,
-    "leadsPerDay" TEXT,
-    "monthlyRevenue" TEXT,
-    "monthlyAdSpend" TEXT,
-    "estimatedConversionRate" DOUBLE PRECISION,
-    "estimatedCPL" DOUBLE PRECISION,
-    "estimatedCAC" DOUBLE PRECISION,
-    "estimatedROAS" DOUBLE PRECISION,
-    "estimatedLeadValue" DOUBLE PRECISION,
-    "leadsPerAttendant" DOUBLE PRECISION,
-    "revenuePerAttendant" DOUBLE PRECISION,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "organization_profiles_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -568,6 +582,68 @@ CREATE TABLE "whatsapp_messages" (
     CONSTRAINT "whatsapp_messages_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "meta_connections" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "organizationId" UUID NOT NULL,
+    "fbUserId" TEXT NOT NULL,
+    "fbUserName" TEXT NOT NULL,
+    "accessToken" TEXT NOT NULL,
+    "tokenExpiresAt" TIMESTAMP(3) NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'ACTIVE',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "meta_connections_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "meta_ad_accounts" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "organizationId" UUID NOT NULL,
+    "connectionId" UUID NOT NULL,
+    "adAccountId" TEXT NOT NULL,
+    "adAccountName" TEXT NOT NULL,
+    "pixelId" TEXT,
+    "isActive" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "meta_ad_accounts_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "meta_conversion_events" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "organizationId" UUID NOT NULL,
+    "ticketId" UUID NOT NULL,
+    "eventName" TEXT NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'PENDING',
+    "eventId" TEXT NOT NULL,
+    "ctwaclid" TEXT,
+    "metaAdId" TEXT,
+    "fbtraceId" TEXT,
+    "success" BOOLEAN NOT NULL DEFAULT false,
+    "errorCode" TEXT,
+    "errorMessage" TEXT,
+    "value" DECIMAL(12,2),
+    "currency" TEXT NOT NULL DEFAULT 'BRL',
+    "sentAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "meta_conversion_events_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "meta_attribution_history" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "ticketId" UUID NOT NULL,
+    "oldAdId" TEXT,
+    "newAdId" TEXT,
+    "changedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "meta_attribution_history_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "user_roles_name_key" ON "user_roles"("name");
 
@@ -608,7 +684,28 @@ CREATE INDEX "account_userId_idx" ON "account"("userId");
 CREATE UNIQUE INDEX "account_providerId_accountId_key" ON "account"("providerId", "accountId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "ticket_tracking_ticketId_key" ON "ticket_tracking"("ticketId");
+
+-- CreateIndex
+CREATE INDEX "ticket_tracking_utmSource_idx" ON "ticket_tracking"("utmSource");
+
+-- CreateIndex
+CREATE INDEX "ticket_tracking_sourceType_idx" ON "ticket_tracking"("sourceType");
+
+-- CreateIndex
+CREATE INDEX "ticket_tracking_ctwaclid_idx" ON "ticket_tracking"("ctwaclid");
+
+-- CreateIndex
+CREATE INDEX "ticket_tracking_metaAdId_idx" ON "ticket_tracking"("metaAdId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "organization_slug_key" ON "organization"("slug");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "organization_profiles_organizationId_key" ON "organization_profiles"("organizationId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "organization_profiles_cpf_key" ON "organization_profiles"("cpf");
 
 -- CreateIndex
 CREATE INDEX "leads_organizationId_idx" ON "leads"("organizationId");
@@ -650,18 +747,6 @@ CREATE INDEX "ticket_stages_organizationId_order_idx" ON "ticket_stages"("organi
 CREATE UNIQUE INDEX "ticket_stages_organizationId_name_key" ON "ticket_stages"("organizationId", "name");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ticket_tracking_ticketId_key" ON "ticket_tracking"("ticketId");
-
--- CreateIndex
-CREATE INDEX "ticket_tracking_utmSource_idx" ON "ticket_tracking"("utmSource");
-
--- CreateIndex
-CREATE INDEX "ticket_tracking_sourceType_idx" ON "ticket_tracking"("sourceType");
-
--- CreateIndex
-CREATE INDEX "ticket_tracking_ctwaclid_idx" ON "ticket_tracking"("ctwaclid");
-
--- CreateIndex
 CREATE INDEX "sales_organizationId_idx" ON "sales"("organizationId");
 
 -- CreateIndex
@@ -696,12 +781,6 @@ CREATE INDEX "product_categories_active_idx" ON "product_categories"("active");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "product_categories_organizationId_name_key" ON "product_categories"("organizationId", "name");
-
--- CreateIndex
-CREATE UNIQUE INDEX "organization_profiles_organizationId_key" ON "organization_profiles"("organizationId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "organization_profiles_cpf_key" ON "organization_profiles"("cpf");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "organization_companies_organizationId_key" ON "organization_companies"("organizationId");
@@ -820,6 +899,24 @@ CREATE INDEX "whatsapp_messages_source_idx" ON "whatsapp_messages"("source");
 -- CreateIndex
 CREATE INDEX "whatsapp_messages_timestamp_idx" ON "whatsapp_messages"("timestamp");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "meta_connections_organizationId_fbUserId_key" ON "meta_connections"("organizationId", "fbUserId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "meta_ad_accounts_organizationId_adAccountId_key" ON "meta_ad_accounts"("organizationId", "adAccountId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "meta_conversion_events_eventId_key" ON "meta_conversion_events"("eventId");
+
+-- CreateIndex
+CREATE INDEX "meta_conversion_events_organizationId_idx" ON "meta_conversion_events"("organizationId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "meta_conversion_events_ticketId_eventName_key" ON "meta_conversion_events"("ticketId", "eventName");
+
+-- CreateIndex
+CREATE INDEX "meta_attribution_history_ticketId_idx" ON "meta_attribution_history"("ticketId");
+
 -- AddForeignKey
 ALTER TABLE "user" ADD CONSTRAINT "user_role_fkey" FOREIGN KEY ("role") REFERENCES "user_roles"("name") ON DELETE RESTRICT ON UPDATE CASCADE;
 
@@ -828,6 +925,15 @@ ALTER TABLE "session" ADD CONSTRAINT "session_userId_fkey" FOREIGN KEY ("userId"
 
 -- AddForeignKey
 ALTER TABLE "account" ADD CONSTRAINT "account_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ticket_tracking" ADD CONSTRAINT "ticket_tracking_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "tickets"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "organization_profiles" ADD CONSTRAINT "organization_profiles_onboardingStatus_fkey" FOREIGN KEY ("onboardingStatus") REFERENCES "onboarding_statuses"("name") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "organization_profiles" ADD CONSTRAINT "organization_profiles_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "member" ADD CONSTRAINT "member_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -869,9 +975,6 @@ ALTER TABLE "tickets" ADD CONSTRAINT "tickets_stageId_fkey" FOREIGN KEY ("stageI
 ALTER TABLE "ticket_stages" ADD CONSTRAINT "ticket_stages_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ticket_tracking" ADD CONSTRAINT "ticket_tracking_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "tickets"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "sales" ADD CONSTRAINT "sales_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -897,12 +1000,6 @@ ALTER TABLE "products" ADD CONSTRAINT "products_organizationId_fkey" FOREIGN KEY
 
 -- AddForeignKey
 ALTER TABLE "product_categories" ADD CONSTRAINT "product_categories_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "organization_profiles" ADD CONSTRAINT "organization_profiles_onboardingStatus_fkey" FOREIGN KEY ("onboardingStatus") REFERENCES "onboarding_statuses"("name") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "organization_profiles" ADD CONSTRAINT "organization_profiles_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "organization_companies" ADD CONSTRAINT "organization_companies_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -960,3 +1057,18 @@ ALTER TABLE "whatsapp_messages" ADD CONSTRAINT "whatsapp_messages_leadId_fkey" F
 
 -- AddForeignKey
 ALTER TABLE "whatsapp_messages" ADD CONSTRAINT "whatsapp_messages_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "tickets"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "meta_connections" ADD CONSTRAINT "meta_connections_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "meta_ad_accounts" ADD CONSTRAINT "meta_ad_accounts_connectionId_fkey" FOREIGN KEY ("connectionId") REFERENCES "meta_connections"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "meta_ad_accounts" ADD CONSTRAINT "meta_ad_accounts_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "meta_conversion_events" ADD CONSTRAINT "meta_conversion_events_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "meta_attribution_history" ADD CONSTRAINT "meta_attribution_history_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "tickets"("id") ON DELETE CASCADE ON UPDATE CASCADE;

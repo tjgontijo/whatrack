@@ -21,11 +21,11 @@ export async function GET(req: NextRequest) {
         // 3. Initial sync of ad accounts
         await metaAdAccountService.syncAdAccounts(connection.id);
 
-        // 4. Redirect back to settings page with success
-        return NextResponse.redirect(new URL(`/dashboard/settings/whatsapp?success=meta_connected`, req.url));
+        // 4. Redirect to success page (which closes the popup)
+        return NextResponse.redirect(new URL(`/auth/meta-ads/success`, req.url));
 
     } catch (error: any) {
         console.error('[MetaCallback] Error:', error?.response?.data || error.message);
-        return NextResponse.redirect(new URL('/dashboard/settings/whatsapp?error=meta_callback_error', req.url));
+        return NextResponse.redirect(new URL('/dashboard/settings/meta-ads?error=meta_callback_error', req.url));
     }
 }

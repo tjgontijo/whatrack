@@ -32,11 +32,17 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { authClient } from '@/lib/auth/auth-client'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useMetaAdsOnboarding } from '@/hooks/meta-ads/use-meta-ads-onboarding'
 
 export default function MetaAdsSettingsPage() {
     const queryClient = useQueryClient()
     const { data: organization } = authClient.useActiveOrganization()
     const organizationId = organization?.id
+
+    const handleRefreshAll = () => {
+        refetchConnections()
+        refetchAccounts()
+    }
 
     // 1. Fetch Connections
     const { data: connections, isLoading: loadingConnections, refetch: refetchConnections } = useQuery({
@@ -57,6 +63,8 @@ export default function MetaAdsSettingsPage() {
         },
         enabled: !!organizationId
     })
+
+    const { startOnboarding, isPending: isConnecting } = useMetaAdsOnboarding(organizationId, handleRefreshAll)
 
     // 3. Mutations
     const toggleMutation = useMutation({
@@ -100,11 +108,6 @@ export default function MetaAdsSettingsPage() {
         }
     })
 
-    const handleConnect = () => {
-        if (!organizationId) return
-        window.location.href = `/api/v1/meta-ads/connect?organizationId=${organizationId}`
-    }
-
     return (
         <TemplateMainShell className="flex flex-col h-screen overflow-hidden">
             <TemplateMainHeader
@@ -121,8 +124,17 @@ export default function MetaAdsSettingsPage() {
                             <ShieldCheck className="h-5 w-5 text-blue-500" />
                             Perfis Conectados
                         </h2>
-                        <Button onClick={handleConnect} size="sm" className="gap-2">
-                            <Plus className="h-4 w-4" />
+                        <Button
+                            onClick={() => startOnboarding()}
+                            disabled={isConnecting}
+                            size="sm"
+                            className="gap-2"
+                        >
+                            {isConnecting ? (
+                                <RefreshCw className="h-4 w-4 animate-spin" />
+                            ) : (
+                                <Plus className="h-4 w-4" />
+                            )}
                             Conectar Novo Perfil
                         </Button>
                     </div>
@@ -168,8 +180,13 @@ export default function MetaAdsSettingsPage() {
                                 <p className="text-sm text-muted-foreground mt-1 mb-4 max-w-xs">
                                     Conecte um perfil do Facebook para importar suas contas de anúncios e ativar o rastreamento.
                                 </p>
-                                <Button onClick={handleConnect} variant="outline" size="sm">
-                                    Conectar agora
+                                <Button
+                                    onClick={() => startOnboarding()}
+                                    disabled={isConnecting}
+                                    variant="outline"
+                                    size="sm"
+                                >
+                                    {isConnecting ? 'Conectando...' : 'Conectar agora'}
                                 </Button>
                             </Card>
                         )}
