@@ -1,0 +1,1922 @@
+{
+  "name": "WhatsApp AD -> Supabase -> Make",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "57d7297f-e9ed-461f-b4c7-e8f15a0defd9",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1232,
+        848
+      ],
+      "id": "42cbc63c-138d-4cbb-8a6d-331454e88b9f",
+      "name": "input",
+      "webhookId": "57d7297f-e9ed-461f-b4c7-e8f15a0defd9"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hook.us2.make.com/cvm7ro77pzehaid7nfcxw9rbla32a23q",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "text/json",
+        "body": "={{ $('payload').item.json.toJsonString() }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2768,
+        432
+      ],
+      "id": "d228808b-612d-4ba2-bdbc-b694bc744816",
+      "name": "send_make"
+    },
+    {
+      "parameters": {
+        "tableId": "leads",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "name",
+              "fieldValue": "={{ $('set').item.json.body.data.evo.pushName }}"
+            },
+            {
+              "fieldId": "phone",
+              "fieldValue": "={{ $('set').item.json.body.data.evo.phone }}"
+            },
+            {
+              "fieldId": "remote_jid",
+              "fieldValue": "={{ $('set').item.json.body.data.evo.remoteJid }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        816,
+        768
+      ],
+      "id": "3035e4cb-297c-469f-ab85-4421614b8043",
+      "name": "create_lead",
+      "credentials": {
+        "supabaseApi": {
+          "id": "AtzEnZaxNGl03jRe",
+          "name": "HomenZ"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "45c807ae-df2b-45a3-8cd7-443993494b50",
+              "name": "body.data.evo.pushName",
+              "value": "={{ $('input').item.json.body.data.pushName }}",
+              "type": "string"
+            },
+            {
+              "id": "03c723e9-aa2f-4e58-b0a8-3bef9cff074b",
+              "name": "body.data.evo.phone",
+              "value": "={{ $('input').item.json.body.data.key.remoteJid.replace(/@.*$/, '') }}",
+              "type": "string"
+            },
+            {
+              "id": "2bca17cf-9435-44f4-a22e-6c4755cff8bb",
+              "name": "body.data.evo.remoteJid",
+              "value": "={{ $('input').item.json.body.data.key.remoteJid }}",
+              "type": "string"
+            },
+            {
+              "id": "03f6ba00-6b9b-44e6-9712-16fb4119f525",
+              "name": "body.data.evo.messageId",
+              "value": "={{ $('input').item.json.body.data.key.id }}",
+              "type": "string"
+            },
+            {
+              "id": "402b7f10-ddcd-4017-9a55-4b848aee192b",
+              "name": "body.data.evo.instance",
+              "value": "={{ $('input').item.json.body.instance }}",
+              "type": "string"
+            },
+            {
+              "id": "77918a95-a94b-4b11-86b0-988d3fa880a8",
+              "name": "body.data.evo.fromMe",
+              "value": "={{ $('input').item.json.body.data.key.fromMe }}",
+              "type": "boolean"
+            },
+            {
+              "id": "cb7d0dd3-ac37-4b73-b895-b1857819e753",
+              "name": "body.data.evo.instanceId",
+              "value": "={{ $('input').item.json.body.data.instanceId }}",
+              "type": "string"
+            },
+            {
+              "id": "1ef112d7-dde6-4cbc-b86b-b70b6252f47c",
+              "name": "body.data.evo.message",
+              "value": "={{ $('input').item.json.body.data.message.conversation }}",
+              "type": "string"
+            },
+            {
+              "id": "00633467-2587-495a-8df0-732534d48675",
+              "name": "body.data.evo.device",
+              "value": "={{ $('input').item.json.body.data.source }}",
+              "type": "string"
+            },
+            {
+              "id": "c6ff461c-1d85-4447-b777-8ad289e2dac3",
+              "name": "body.data.evo.messageType",
+              "value": "={{ $('input').item.json.body.data.messageType }}",
+              "type": "string"
+            },
+            {
+              "id": "21d6cbfc-bff1-4a80-b266-ac0d5947b603",
+              "name": "body.data.meta.ctwaClid",
+              "value": "={{ $('input').item.json.body.data.contextInfo.externalAdReply.ctwaClid }}",
+              "type": "string"
+            },
+            {
+              "id": "c13274d2-2a65-43c2-8457-51f145e8f5eb",
+              "name": "body.data.meta.sourceId",
+              "value": "={{ $('input').item.json.body.data.contextInfo.externalAdReply.sourceId }}",
+              "type": "string"
+            },
+            {
+              "id": "017bd920-3626-4ff7-8cb2-54ddb179b5ad",
+              "name": "body.data.meta.sourceUrl",
+              "value": "={{ $('input').item.json.body.data.contextInfo.externalAdReply.sourceUrl }}",
+              "type": "string"
+            },
+            {
+              "id": "e1fbd218-c5f2-4408-b425-33c5de8d7c53",
+              "name": "body.data.meta.sourceApp",
+              "value": "={{ $json.body.data.contextInfo.externalAdReply.sourceApp }}",
+              "type": "string"
+            },
+            {
+              "id": "1c81ac11-4d31-4c3d-98f2-1e0b32729ac5",
+              "name": "body.data.meta.publisher_platform",
+              "value": "={{ $('input').item.json.body.data.contextInfo.entryPointConversionApp }}",
+              "type": "string"
+            },
+            {
+              "id": "9c09841d-e30b-43ee-98f0-11f43aa41920",
+              "name": "body.data.meta.token",
+              "value": "EAATM2aWw3w8BPsfHDl0lxGfAHDNOiADRCjlTHlVxgYjZANRf8L3ZCzQZBXA742ABASIrbpaV0gwPpIhKyaFpGVQy4ZBFDzqcuZCkIzIwzzFZCZBwKq9ksOnH6gFQZBwjfQ1I3axStPvHpHnHcLZCGjBndSwVJN8j15ZAqHrulwXjHKnLDD2AY2S9BAk1Celk0XcBwF",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -176,
+        704
+      ],
+      "id": "d83558ba-8cab-4845-aff6-3717ca4ebfe3",
+      "name": "set"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "leads",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "remote_jid",
+              "keyValue": "={{ $('set').item.json.body.data.evo.remoteJid }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        352,
+        704
+      ],
+      "id": "c4941160-1f1e-46aa-8d7f-9bbe54ba11e5",
+      "name": "get_lead",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "AtzEnZaxNGl03jRe",
+          "name": "HomenZ"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "9729bc15-81ad-46b8-8c6b-9c0d7f487414",
+              "leftValue": "={{ $('get_lead').item.json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        560,
+        704
+      ],
+      "id": "71f78705-a62f-4133-9428-8653602b0e5b",
+      "name": "exist_lead"
+    },
+    {
+      "parameters": {
+        "tableId": "inbounds",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "lead_id",
+              "fieldValue": "={{ $('get_lead').item.json.id }}"
+            },
+            {
+              "fieldId": "ctwaclid",
+              "fieldValue": "={{ $('set').item.json.body.data.meta.ctwaClid }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1792,
+        768
+      ],
+      "id": "04381a3e-b937-42e9-ad2e-822a3e942934",
+      "name": "create_inbound",
+      "credentials": {
+        "supabaseApi": {
+          "id": "AtzEnZaxNGl03jRe",
+          "name": "HomenZ"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6d383552-e058-4b65-bbb9-5165bc1bf4ad",
+              "leftValue": "={{ $('get_inbound').item.json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1488,
+        688
+      ],
+      "id": "c22dd17d-5a18-450b-a7dd-569e6c177db0",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "inbounds",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "ctwaclid",
+              "keyValue": "={{ $('set').item.json.body.data.meta.ctwaClid }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1248,
+        688
+      ],
+      "id": "8dde4f0f-052d-40fe-ac08-ef426c7f7dc8",
+      "name": "get_inbound",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "AtzEnZaxNGl03jRe",
+          "name": "HomenZ"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://graph.facebook.com/v24.0/{{ $('set').item.json.body.data.meta.sourceId }}",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "fields",
+              "value": "id,name,adset{id,name,campaign{id,name,account_id}}"
+            },
+            {
+              "name": "access_token",
+              "value": "={{ $('set').item.json.body.data.meta.token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1792,
+        592
+      ],
+      "id": "23500120-11c2-4554-b2dc-ee6000ffd511",
+      "name": "get_ad_names"
+    },
+    {
+      "parameters": {
+        "url": "=https://graph.facebook.com/v24.0/act_{{ $('get_ad_names').item.json.adset.campaign.account_id }}/adspixels",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "fields",
+              "value": "id,name,creation_time"
+            },
+            {
+              "name": "access_token",
+              "value": "={{ $('set').item.json.body.data.meta.token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2016,
+        592
+      ],
+      "id": "1090cfa8-8a37-4ae5-9e9e-98d19d00e55a",
+      "name": "get_pixel"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "inbounds",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('payload').item.json.inbound_id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "utm_source",
+              "fieldValue": "={{ $('set').item.json.body.data.meta.publisher_platform }}"
+            },
+            {
+              "fieldId": "utm_campaign",
+              "fieldValue": "={{ $('payload').item.json.utm_campaign }}"
+            },
+            {
+              "fieldId": "utm_term",
+              "fieldValue": "={{ $('payload').item.json.utm_term }}"
+            },
+            {
+              "fieldId": "utm_content",
+              "fieldValue": "={{ $('payload').item.json.utm_content }}"
+            },
+            {
+              "fieldId": "pipefy_id",
+              "fieldValue": "={{ $('send_make').item.json.card_id }}"
+            },
+            {
+              "fieldId": "utm_medium",
+              "fieldValue": "={{ $('payload').item.json.utm_medium }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        3008,
+        432
+      ],
+      "id": "5c833c03-fd20-4a91-b772-40ecc33ef904",
+      "name": "update_inbound",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "AtzEnZaxNGl03jRe",
+          "name": "HomenZ"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 10
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2016,
+        768
+      ],
+      "id": "81080685-0c10-43fd-a515-783bfff359da",
+      "name": "wait2",
+      "webhookId": "b10199e0-b0c4-4893-9694-8862fefbee34"
+    },
+    {
+      "parameters": {
+        "amount": 10
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1024,
+        768
+      ],
+      "id": "d6f8f14f-53ac-4ff9-a53c-11d181f354c4",
+      "name": "wait1",
+      "webhookId": "b10199e0-b0c4-4893-9694-8862fefbee34"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "f89a0910-4bc0-498a-a52b-9bbc374df229",
+              "leftValue": "={{ $('payload').item.json.pipefy_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2448,
+        592
+      ],
+      "id": "c0c14b33-887e-4449-8f6d-36cd61922d65",
+      "name": "card_id"
+    },
+    {
+      "parameters": {
+        "dataToSave": {
+          "values": [
+            {
+              "key": "completed",
+              "value": "true"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executionData",
+      "typeVersion": 1.1,
+      "position": [
+        3440,
+        432
+      ],
+      "id": "33ebf7ca-88ad-416c-b727-2bf1a67b0fd5",
+      "name": "set_filter_exe"
+    },
+    {
+      "parameters": {
+        "jsCode": "const lead = $('get_lead').item.json\nconst inbound = $('get_inbound').item.json\nconst ad = $('get_ad_names').item.json\nconst pixel = $('get_pixel').item.json\nconst set = $('set').item.json.body.data\n\nconst date = new Date(lead.created_at)\n\nconst days = [\n  'Domingo',\n  'Segunda-feira',\n  'Terça-feira',\n  'Quarta-feira',\n  'Quinta-feira',\n  'Sexta-feira',\n  'Sábado'\n]\n\nconst dayWeek = days[date.getDay()]\n\n// Nome bruto do anuncio\nconst rawAdName = ad.name || ''\n\n// placement vem do sufixo depois do til\n// exemplo: \"[IMG] - AD002 - Combo 02~instagram_reels\"\nlet placement = null\nlet adNameClean = rawAdName\n\nif (rawAdName.includes('~')) {\n  const parts = rawAdName.split('~')\n  placement = parts[parts.length - 1] || null\n  adNameClean = parts.slice(0, -1).join('~')\n} else {\n  // fallback se algum anuncio nao tiver til\n  placement = set.meta.publisher_platform || null\n}\n\nconst adId = ad.id || null\nconst adsetName = ad.adset?.name || null\nconst adsetId = ad.adset?.id || null\nconst campaignName = ad.adset?.campaign?.name || null\nconst campaignId = ad.adset?.campaign?.id || null\n\n// UTMs\nconst utm_source = placement\n\nconst utm_campaign = `${campaignName}`\nconst utm_campaign_id = campaignId\n\nconst utm_medium = `${adsetName}`\nconst utm_medium_id = adsetId\n\nconst utm_content = `${adNameClean}`\nconst utm_content_id = adId\n\n\nreturn [{\n  json: {\n    // lead\n    lead_id: lead.id,\n    name: lead.name,\n    phone: lead.phone,\n    remote_jid: lead.remote_jid,\n    crm: lead.crm,\n    created_at: date,\n    day_week: dayWeek,\n\n    // inbound\n    inbound_id: inbound.id,\n    session_id: inbound.session_id,\n    source_url: inbound.source_url,\n    pipefy_id: inbound.pipefy_id,\n\n    gclid: inbound.gclid,\n    fbclid: inbound.fbclid,\n    ctwaclid: inbound.ctwaclid,\n\n    // UTMs\n    utm_source,\n\n    utm_medium,\n    utm_medium_id,\n\n    utm_campaign,\n    utm_campaign_id,\n\n    utm_content,\n    utm_content_id,\n\n    account_id: ad.adset?.campaign?.account_id || null,\n    source_id: set.meta.sourceId || null,\n\n    origim: set.meta.publisher_platform,\n\n    pixel: pixel.data?.[0]?.id || null,\n    pixel_name: pixel.data?.[0]?.name || null\n  }\n}]\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2240,
+        592
+      ],
+      "id": "dd31978e-a50c-419d-b8a7-745ec2d3ad1c",
+      "name": "payload"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v24.0/{{ $('payload').item.json.pixel }}/events",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"data\": [\n      {\n        \"event_name\": \"LeadSubmitted\",\n        \"event_time\": {{ Math.floor($now/1000) }},\n        \"action_source\": \"business_messaging\",\n        \"event_source_url\": \"{{ $('payload').item.json.source_url }}\",\n        \"event_id\": \"lead-{{ $('payload').item.json.session_id }}\",\n        \"user_data\": {\n          \"ctwa_clid\": \"{{$json.ctwaclid}}\",\n          \"ph\": \"{{ $('sha256_ph').item.json.ph }}\"\n        },\n        \"custom_data\": {\n          \"message_channel\": \"whatsapp\"\n        }\n      }\n    ]\n  }",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2160,
+        96
+      ],
+      "id": "a5685185-3440-4b4c-9d1d-8f477d1a9ecf",
+      "name": "send_event_lead",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "type": "SHA256",
+        "value": "={{ $json.phone }}",
+        "dataPropertyName": "ph"
+      },
+      "type": "n8n-nodes-base.crypto",
+      "typeVersion": 1,
+      "position": [
+        1952,
+        96
+      ],
+      "id": "df056399-fea0-4e53-8037-c8a7aa9544e1",
+      "name": "sha256_ph",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "61 3142-4384",
+        "remoteJid": "556182482100",
+        "messageText": "=*Novo Lead*\n\n*Nome:* {{ $('set').item.json.body.data.evo.pushName }}\n*Telefone:* {{ $('set').item.json.body.data.evo.phone }}\n*Mensagem:* {{ $('set').item.json.body.data.evo.message }}",
+        "options_message": {}
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        80,
+        704
+      ],
+      "id": "1a7dc7bb-32dc-4ecb-9ed7-f88b53e5f284",
+      "name": "send_thiago",
+      "credentials": {
+        "evolutionApi": {
+          "id": "eHAwwU8YWtUUoTZk",
+          "name": "HomenZ"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "list",
+          "cachedResultName": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "leads",
+          "mode": "list",
+          "cachedResultName": "leads"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "remote_jid",
+              "value": "={{ $('set').item.json.body.data.evo.remoteJid }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        256,
+        16
+      ],
+      "id": "5216470a-e078-4241-b262-1ecde441cf87",
+      "name": "Select rows from a table",
+      "credentials": {
+        "postgres": {
+          "id": "WWXCMJ8HSpVKB4pk",
+          "name": "NeonDB - HomenZ"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "5ff17646-09db-4f89-b392-f87fa6350b8e",
+              "leftValue": "={{ $('audit_json').item.json.hasCtwaClid }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "b9a7a8da-cde3-4bf3-94c2-1aca03c69fb5",
+              "leftValue": "={{ $('audit_json').item.json.hasSourceId }}",
+              "rightValue": "null",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -736,
+        848
+      ],
+      "id": "afb95d76-4292-45ca-bcac-3d1b7e3cb671",
+      "name": "hasAds"
+    },
+    {
+      "parameters": {
+        "tableId": "leads",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "phone",
+              "fieldValue": "={{ $('set_other').item.json.body.data.instance.phone }}"
+            },
+            {
+              "fieldId": "remote_jid",
+              "fieldValue": "={{ $('set_other').item.json.body.data.instance.remoteJid }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        896,
+        1136
+      ],
+      "id": "8c0f4c8a-7054-48f4-826a-96fecb343a18",
+      "name": "create_lead1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "AtzEnZaxNGl03jRe",
+          "name": "HomenZ"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "leads",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "remote_jid",
+              "keyValue": "={{ $('set_other').item.json.body.data.instance.remoteJid }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        432,
+        1072
+      ],
+      "id": "614244fa-6f58-48b2-83e8-78468595a0b2",
+      "name": "get_lead1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "AtzEnZaxNGl03jRe",
+          "name": "HomenZ"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "9729bc15-81ad-46b8-8c6b-9c0d7f487414",
+              "leftValue": "={{ $('get_lead1').item.json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        672,
+        1072
+      ],
+      "id": "3b0469b7-cb72-4b3a-a6b8-a71de96aef09",
+      "name": "exist_lead1"
+    },
+    {
+      "parameters": {
+        "amount": 10
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1104,
+        1136
+      ],
+      "id": "211516ca-de47-445f-9429-92045d4697a1",
+      "name": "wait",
+      "webhookId": "b10199e0-b0c4-4893-9694-8862fefbee34"
+    },
+    {
+      "parameters": {
+        "tableId": "inbounds",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "lead_id",
+              "fieldValue": "={{ $('get_lead1').item.json.id }}"
+            },
+            {
+              "fieldId": "utm_source",
+              "fieldValue": "whatsapp"
+            },
+            {
+              "fieldId": "utm_medium",
+              "fieldValue": "orgânico"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2000,
+        1136
+      ],
+      "id": "99635ba5-5b73-47fc-ab21-ee8d2848da34",
+      "name": "create_inbound1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "AtzEnZaxNGl03jRe",
+          "name": "HomenZ"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6d383552-e058-4b65-bbb9-5165bc1bf4ad",
+              "leftValue": "={{ $('get_inbound1').item.json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1696,
+        1056
+      ],
+      "id": "1c296b4b-2900-46c4-acac-cce7a4490614",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "inbounds",
+        "limit": 1,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "lead_id",
+              "condition": "eq",
+              "keyValue": "={{ $('get_lead1').item.json.id }}"
+            },
+            {
+              "keyName": "created_at",
+              "condition": "gte",
+              "keyValue": "={{ $now.minus(7, 'days') }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1456,
+        1056
+      ],
+      "id": "fbbae8f8-6979-4394-bfdf-888fa8f01cd6",
+      "name": "get_inbound1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "AtzEnZaxNGl03jRe",
+          "name": "HomenZ"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 10
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2224,
+        1136
+      ],
+      "id": "067c4471-a09f-42dc-bd82-0a7b055804e2",
+      "name": "wait3",
+      "webhookId": "b10199e0-b0c4-4893-9694-8862fefbee34"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst adReply = item?.body?.data?.contextInfo?.externalAdReply || {};\n\nreturn [\n  {\n    json: {\n      hasSourceId: adReply.sourceId != null,\n      hasCtwaClid: adReply.ctwaClid != null,\n      sourceId: adReply.sourceId ?? null,\n      ctwaClid: adReply.ctwaClid ?? null\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -976,
+        848
+      ],
+      "id": "ea3bed48-1264-4f6e-8f21-7dc11b91ff96",
+      "name": "audit_json"
+    },
+    {
+      "parameters": {
+        "tableId": "conversation",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "lead_id",
+              "fieldValue": "={{ $('get_lead1').item.json.id }}"
+            },
+            {
+              "fieldId": "inbound_id",
+              "fieldValue": "={{ $('get_inbound1').item.json.id }}"
+            },
+            {
+              "fieldId": "message_type",
+              "fieldValue": "={{ $('set_other').item.json.body.data.message.type }}"
+            },
+            {
+              "fieldId": "message",
+              "fieldValue": "={{ $('set_other').item.json.body.data.message.conversation }}"
+            },
+            {
+              "fieldId": "from_me",
+              "fieldValue": "={{ $('set_other').item.json.body.data.message.fromMe }}"
+            },
+            {
+              "fieldId": "message_id",
+              "fieldValue": "={{ $('set_other').item.json.body.data.message.id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2512,
+        1040
+      ],
+      "id": "27b463a7-c51f-4ef4-9d16-2c45c2947a54",
+      "name": "create_conversation1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "AtzEnZaxNGl03jRe",
+          "name": "HomenZ"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "conversation",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "lead_id",
+              "fieldValue": "={{ $('get_lead').item.json.id }}"
+            },
+            {
+              "fieldId": "inbound_id",
+              "fieldValue": "={{ $('get_inbound').item.json.id }}"
+            },
+            {
+              "fieldId": "message_type",
+              "fieldValue": "={{ $('set').item.json.body.data.evo.messageType }}"
+            },
+            {
+              "fieldId": "message",
+              "fieldValue": "={{ $('set').item.json.body.data.evo.message }}"
+            },
+            {
+              "fieldId": "message_id",
+              "fieldValue": "={{ $('set').item.json.body.data.evo.sessionId }}"
+            },
+            {
+              "fieldId": "from_me",
+              "fieldValue": "={{ $('set').item.json.body.data.evo.fromMe }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        3232,
+        432
+      ],
+      "id": "b849fcc5-d5ed-4d4a-994a-ba3b43f8619f",
+      "name": "create_conversation",
+      "credentials": {
+        "supabaseApi": {
+          "id": "AtzEnZaxNGl03jRe",
+          "name": "HomenZ"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "65e44b22-92ce-4c5c-a177-cefbe3eda4a2",
+              "leftValue": "={{ $json.body.data.message.fromMe }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        48,
+        1072
+      ],
+      "id": "860b52d8-6073-4aae-970a-444d065856eb",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Captura o item recebido pelo webhook\nconst raw = $('input').first().json;\nconst data = raw.body?.data || {};\n\n// Função para capitalizar nome completo\nfunction formatFullName(name) {\n  if (!name) return '';\n  const lowerWords = ['de','da','do','das','dos','di','du','e','em','no','na','nos','nas'];\n  return name\n    .toLowerCase()\n    .split(' ')\n    .map((word, index) => {\n      if (index > 0 && lowerWords.includes(word)) {\n        return word;\n      }\n      return word.charAt(0).toUpperCase() + word.slice(1);\n    })\n    .join(' ');\n}\n\n// Função para extrair primeiro nome com capitalização\nfunction formatFirstName(name) {\n  if (!name) return '';\n  const first = name.trim().split(' ')[0];\n  return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();\n}\n\n// Função para normalizar o número do WhatsApp\nfunction normalizePhone(remoteJid) {\n  if (!remoteJid) return '';\n  let cleaned = remoteJid.toString().replace(/\\D/g, '');\n  if (cleaned.startsWith('55') && cleaned.length > 11) {\n    cleaned = cleaned.slice(2);\n  }\n  if (cleaned.length === 11 && cleaned[2] === '9') {\n    cleaned = cleaned.slice(0, 2) + cleaned.slice(3);\n  }\n  return '55' + cleaned;\n}\n\n// Segurança: só pegar nome do usuário final quando fromMe for false\nlet safePushName = '';\nif (data.key?.fromMe === false) {\n  safePushName = data.pushName || '';\n}\n\n// Montagem do resultado final\nreturn [\n  {\n    json: {\n      body: {\n        data: {\n          user: {\n            first_name: formatFirstName(safePushName),\n            name: formatFullName(safePushName)\n          },\n          instance: {\n            phone: normalizePhone(data.key?.remoteJid),\n            remoteJidAlt: data.key?.remoteJidAlt || null,\n            id: data.instanceId || null,\n            remoteJid: data.key?.remoteJid || null\n          },\n          message: {\n            id: data.key?.id || null,\n            fromMe: data.key?.fromMe || false,\n            type: data.messageType || null,\n            timestamp: data.messageTimestamp || null,\n            conversation: data.message?.conversation || null\n          }\n        }\n      }\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        1072
+      ],
+      "id": "2e3676db-49bb-44c6-9391-91b5fcb0dedc",
+      "name": "set_other"
+    },
+    {
+      "parameters": {
+        "tableId": "leads",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "name",
+              "fieldValue": "={{ $('set_other').item.json.body.data.user.name }}"
+            },
+            {
+              "fieldId": "phone",
+              "fieldValue": "={{ $('set_other').item.json.body.data.instance.phone }}"
+            },
+            {
+              "fieldId": "remote_jid",
+              "fieldValue": "={{ $('set_other').item.json.body.data.instance.remoteJid }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        896,
+        1472
+      ],
+      "id": "52cab907-7f28-4637-b90b-c27897b739e6",
+      "name": "create_lead2",
+      "credentials": {
+        "supabaseApi": {
+          "id": "AtzEnZaxNGl03jRe",
+          "name": "HomenZ"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "leads",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "remote_jid",
+              "keyValue": "={{ $('set_other').item.json.body.data.instance.remoteJid }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        432,
+        1408
+      ],
+      "id": "d5ba774e-1358-454c-a403-dac8ee3ef0d1",
+      "name": "get_lead2",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "AtzEnZaxNGl03jRe",
+          "name": "HomenZ"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "9729bc15-81ad-46b8-8c6b-9c0d7f487414",
+              "leftValue": "={{ $('get_lead2').item.json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        672,
+        1408
+      ],
+      "id": "a90a6901-84a0-4d29-b3cc-103313490f33",
+      "name": "exist_lead2"
+    },
+    {
+      "parameters": {
+        "amount": 10
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1104,
+        1472
+      ],
+      "id": "6789f328-aa0a-4407-91b0-5d19ddf4af67",
+      "name": "wait4",
+      "webhookId": "b10199e0-b0c4-4893-9694-8862fefbee34"
+    },
+    {
+      "parameters": {
+        "tableId": "inbounds",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "lead_id",
+              "fieldValue": "={{ $('get_lead2').item.json.id }}"
+            },
+            {
+              "fieldId": "utm_source",
+              "fieldValue": "whatsapp"
+            },
+            {
+              "fieldId": "utm_medium",
+              "fieldValue": "orgânico"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2000,
+        1472
+      ],
+      "id": "d9e77c5c-627b-4808-b13c-b7c42e3f7aa4",
+      "name": "create_inbound2",
+      "credentials": {
+        "supabaseApi": {
+          "id": "AtzEnZaxNGl03jRe",
+          "name": "HomenZ"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6d383552-e058-4b65-bbb9-5165bc1bf4ad",
+              "leftValue": "={{ $('get_inbound2').item.json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1696,
+        1392
+      ],
+      "id": "fc679a4b-354f-4f16-baca-6af14bee6ad5",
+      "name": "If3"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "inbounds",
+        "limit": 1,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "lead_id",
+              "condition": "eq",
+              "keyValue": "={{ $('get_lead2').item.json.id }}"
+            },
+            {
+              "keyName": "created_at",
+              "condition": "gte",
+              "keyValue": "={{ $now.minus(7, 'days') }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1456,
+        1392
+      ],
+      "id": "6fb15b90-fb14-41b6-b3a1-db5cc3d4cd79",
+      "name": "get_inbound2",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "AtzEnZaxNGl03jRe",
+          "name": "HomenZ"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 10
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2224,
+        1472
+      ],
+      "id": "33672ea9-da9e-430a-b51f-019b76cd145b",
+      "name": "wait5",
+      "webhookId": "b10199e0-b0c4-4893-9694-8862fefbee34"
+    },
+    {
+      "parameters": {
+        "tableId": "conversation",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "lead_id",
+              "fieldValue": "={{ $('get_lead2').item.json.id }}"
+            },
+            {
+              "fieldId": "inbound_id",
+              "fieldValue": "={{ $('get_inbound2').item.json.id }}"
+            },
+            {
+              "fieldId": "message_type",
+              "fieldValue": "={{ $('set_other').item.json.body.data.message.type }}"
+            },
+            {
+              "fieldId": "message",
+              "fieldValue": "={{ $('set_other').item.json.body.data.message.conversation }}"
+            },
+            {
+              "fieldId": "from_me",
+              "fieldValue": "={{ $('set_other').item.json.body.data.message.fromMe }}"
+            },
+            {
+              "fieldId": "message_id",
+              "fieldValue": "={{ $('set_other').item.json.body.data.message.id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2528,
+        1376
+      ],
+      "id": "b3b66843-2332-45c9-843c-4cd09869363a",
+      "name": "create_conversation2",
+      "credentials": {
+        "supabaseApi": {
+          "id": "AtzEnZaxNGl03jRe",
+          "name": "HomenZ"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "input": [
+      {
+        "json": {
+          "headers": {
+            "host": "webhook.elev8.com.br",
+            "user-agent": "axios/1.12.2",
+            "content-length": "690",
+            "accept": "application/json, text/plain, */*",
+            "accept-encoding": "gzip, compress, deflate, br",
+            "content-type": "application/json",
+            "x-forwarded-for": "82.197.64.191",
+            "x-forwarded-host": "webhook.elev8.com.br",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "da72d89a88c6",
+            "x-real-ip": "82.197.64.191"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "event": "messages.upsert",
+            "instance": "61 3142-4384",
+            "data": {
+              "key": {
+                "remoteJid": "556183478646@s.whatsapp.net",
+                "remoteJidAlt": "56745141518409:94@lid",
+                "fromMe": true,
+                "id": "3EB0B99948E7A8CA2E800E"
+              },
+              "pushName": "Homenz Asa Norte",
+              "status": "SERVER_ACK",
+              "message": {
+                "conversation": "Olá, como você está?"
+              },
+              "messageType": "conversation",
+              "messageTimestamp": 1763755245,
+              "instanceId": "ad32eb06-991b-44cb-bafc-9a0d3bfbe56e",
+              "source": "web"
+            },
+            "destination": "https://webhook.elev8.com.br/webhook/57d7297f-e9ed-461f-b4c7-e8f15a0defd9",
+            "date_time": "2025-11-21T17:00:46.198Z",
+            "sender": "556131424384@s.whatsapp.net",
+            "server_url": "https://evo.homenzbrasilia.com.br",
+            "apikey": "6C5B592A61A9-4F93-90C1-AB7B39CC1B4E"
+          },
+          "webhookUrl": "https://webhook.elev8.com.br/webhook/57d7297f-e9ed-461f-b4c7-e8f15a0defd9",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "input": {
+      "main": [
+        [
+          {
+            "node": "audit_json",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "send_make": {
+      "main": [
+        [
+          {
+            "node": "update_inbound",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "create_lead": {
+      "main": [
+        [
+          {
+            "node": "wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "set": {
+      "main": [
+        [
+          {
+            "node": "send_thiago",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_lead": {
+      "main": [
+        [
+          {
+            "node": "exist_lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "exist_lead": {
+      "main": [
+        [
+          {
+            "node": "get_inbound",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "create_lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "create_inbound": {
+      "main": [
+        [
+          {
+            "node": "wait2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "get_ad_names",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "create_inbound",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_inbound": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_ad_names": {
+      "main": [
+        [
+          {
+            "node": "get_pixel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_pixel": {
+      "main": [
+        [
+          {
+            "node": "payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "update_inbound": {
+      "main": [
+        [
+          {
+            "node": "create_conversation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "wait2": {
+      "main": [
+        [
+          {
+            "node": "get_inbound",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "wait1": {
+      "main": [
+        [
+          {
+            "node": "get_lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "card_id": {
+      "main": [
+        [
+          {
+            "node": "send_make",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "set_filter_exe": {
+      "main": [
+        []
+      ]
+    },
+    "payload": {
+      "main": [
+        [
+          {
+            "node": "card_id",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "sha256_ph": {
+      "main": [
+        [
+          {
+            "node": "send_event_lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "send_thiago": {
+      "main": [
+        [
+          {
+            "node": "get_lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select rows from a table": {
+      "main": [
+        []
+      ]
+    },
+    "hasAds": {
+      "main": [
+        [
+          {
+            "node": "set",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "set_other",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "create_lead1": {
+      "main": [
+        [
+          {
+            "node": "wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_lead1": {
+      "main": [
+        [
+          {
+            "node": "exist_lead1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "exist_lead1": {
+      "main": [
+        [
+          {
+            "node": "get_inbound1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "create_lead1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "wait": {
+      "main": [
+        [
+          {
+            "node": "get_lead1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "create_inbound1": {
+      "main": [
+        [
+          {
+            "node": "wait3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "create_conversation1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "create_inbound1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_inbound1": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "wait3": {
+      "main": [
+        [
+          {
+            "node": "get_inbound1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "audit_json": {
+      "main": [
+        [
+          {
+            "node": "hasAds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "create_conversation": {
+      "main": [
+        [
+          {
+            "node": "set_filter_exe",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "get_lead1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "get_lead2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "set_other": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "create_lead2": {
+      "main": [
+        [
+          {
+            "node": "wait4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_lead2": {
+      "main": [
+        [
+          {
+            "node": "exist_lead2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "exist_lead2": {
+      "main": [
+        [
+          {
+            "node": "get_inbound2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "create_lead2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "wait4": {
+      "main": [
+        [
+          {
+            "node": "get_lead2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "create_inbound2": {
+      "main": [
+        [
+          {
+            "node": "wait5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If3": {
+      "main": [
+        [
+          {
+            "node": "create_conversation2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "create_inbound2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_inbound2": {
+      "main": [
+        [
+          {
+            "node": "If3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "wait5": {
+      "main": [
+        [
+          {
+            "node": "get_inbound2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "12da6b9d-2b59-44e0-a5eb-62f8e125a6ee",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "26dee99232d63bf398509f5d9d830e1c8d6d8aa9b5391ccbcbd998cc470c2820"
+  },
+  "id": "hZ4XxEovv4ttLWf8",
+  "tags": [
+    {
+      "updatedAt": "2025-10-07T12:30:56.333Z",
+      "createdAt": "2025-10-07T12:30:56.333Z",
+      "id": "fVNuflHxEcbHhso0",
+      "name": "HomenZ"
+    }
+  ]
+}

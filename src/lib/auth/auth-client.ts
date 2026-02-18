@@ -8,7 +8,8 @@ import {
 } from "better-auth/client/plugins"
 
 export const authClient = createAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_APP_URL,
+  // baseURL is intentionally omitted to use current origin in the browser,
+  // preventing "Failed to fetch" errors if NEXT_PUBLIC_APP_URL is misconfigured.
 
   basePath: "/api/v1/auth",
 

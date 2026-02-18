@@ -1,0 +1,52 @@
+{
+  "entry": [
+    {
+      "id": "26205485689057417",
+      "changes": [
+        {
+          "field": "messages",
+          "value": {
+            "contacts": [
+              {
+                "wa_id": "557998093883",
+                "profile": {
+                  "name": "Cleonaldo Gonçalves"
+                }
+              }
+            ],
+            "messages": [
+              {
+                "id": "wamid.HBgMNTU3OTk4MDkzODgzFQIAEhggQUNCNDg4N0IyOTZCNzAyNEQxMkVGRTcyNDg0QTg1N0YA",
+                "from": "557998093883",
+                "text": {
+                  "body": "Olá! Tenho interesse e queria mais informações, por favor."
+                },
+                "type": "text",
+                "referral": {
+                  "headline": "Prof Didática",
+                  "ctwa_clid": "AfeDIj2Ewr2X4NDskwyhTe3JaV_ShFp4P-b86kO1jgGnSqjIA8DmAeBbCjWRkgoTzpeeG4nYPBc8VVM8MBLl2jxZknxzwqOFxBVJQWZhlRJoQnSqvx7ktm6LwpWXTsf3SvgnZXR6",
+                  "source_id": "120237888636060701",
+                  "video_url": "https://www.facebook.com/reel/1259661309357823/",
+                  "media_type": "video",
+                  "source_url": "https://fb.me/5zYQ4QhhX",
+                  "source_type": "ad",
+                  "thumbnail_url": "https://scontent.xx.fbcdn.net/v/t15.5256-10/513879884_1253726029661156_7577295682468460549_n.jpg?stp=dst-jpg_p180x540_tt6&_nc_cat=106&ccb=1-7&_nc_sid=40cf1a&_nc_ohc=7OtWVgZYo-kQ7kNvwFlopHj&_nc_oc=Adm9u5MXlvoQkzXSpKWxOtWxjtoSVtbPr0jhMpeAAUq5Ra2OteA8jAcFWRHvW-2Xp6TRyNpVNWR8cPnQe2L98fBP&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=scontent.xx&_nc_gid=5iqIfZyh3wMrxWaKHFvxzg&oh=00_AfuTcih3r7EsfTnObzXEjRolnXr1gq7HYHctE2TdM8ueZw&oe=699B5C2F",
+                  "welcome_message": {
+                    "text": "Oi! Como podemos ajudar?"
+                  }
+                },
+                "timestamp": "1771407964"
+              }
+            ],
+            "metadata": {
+              "phone_number_id": "1036641616191983",
+              "display_phone_number": "551148635262"
+            },
+            "messaging_product": "whatsapp"
+          }
+        }
+      ]
+    }
+  ],
+  "object": "whatsapp_business_account"
+}

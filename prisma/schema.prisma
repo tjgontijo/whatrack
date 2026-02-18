@@ -159,6 +159,51 @@ model Verification {
   @@map("verification")
 }
 
+model TicketTracking {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ticketId    String   @unique @db.Uuid
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  utmTerm     String?
+  utmContent  String?
+  gclid       String?
+  fbclid      String?
+  ctwaclid    String?
+  ttclid      String?
+  
+  // Meta Ads Data
+  metaAdId         String?
+  metaAdSetId      String?
+  metaCampaignId   String?
+  metaAccountId    String?
+  metaAdName       String?
+  metaAdSetName    String?
+  metaCampaignName String?
+  metaPlacement    String?
+  metaSourceType   String?
+
+  // Enrichment Control
+  metaEnrichmentStatus   String   @default("PENDING")
+  metaEnrichmentError    String?
+  lastEnrichmentAt       DateTime?
+  metaAdIdAtEnrichment   String?
+
+  sourceType  String   @default("organic")
+  referrerUrl String?
+  landingPage String?
+  userAgent   String?
+  ipAddress   String?
+  createdAt   DateTime @default(now())
+  ticket      Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([utmSource])
+  @@index([sourceType])
+  @@index([ctwaclid])
+  @@index([metaAdId])
+  @@map("ticket_tracking")
+}
+
 model Organization {
   id                   String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name                 String
@@ -184,10 +229,42 @@ model Organization {
   whatsappHealthChecks WhatsAppHealth[]     @relation("WhatsAppHealthChecks")
   whatsappOnboardings  WhatsAppOnboarding[] @relation("WhatsAppOnboardings")
   webhookLogs          WhatsAppWebhookLog[] @relation("WhatsAppWebhookLogs")
+  
+  // Meta Ads Relations
+  metaConnections      MetaConnection[]
+  metaAdAccounts       MetaAdAccount[]
+  metaConversionEvents MetaConversionEvent[]
 
   @@map("organization")
 }
 
+model OrganizationProfile {
+  id                      String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId          String           @unique @db.Uuid
+  cpf                     String?          @unique
+  onboardingStatus        String           @default("pending")
+  onboardingCompletedAt   DateTime?
+  avgTicket               String?
+  attendantsCount         String?
+  mainChannel             String?
+  leadsPerDay             String?
+  monthlyRevenue          String?
+  monthlyAdSpend          String?
+  estimatedConversionRate Float?
+  estimatedCPL            Float?
+  estimatedCAC            Float?
+  estimatedROAS           Float?
+  estimatedLeadValue      Float?
+  leadsPerAttendant       Float?
+  revenuePerAttendant     Float?
+  ticketExpirationDays    Int?             @default(30)
+  createdAt               DateTime         @default(now())
+  updatedAt               DateTime         @updatedAt
+  onboardingStatusRef     OnboardingStatus @relation(fields: [onboardingStatus], references: [name])
+  organization            Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("organization_profiles")
+}
 model Member {
   id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   organizationId String       @db.Uuid
@@ -288,6 +365,7 @@ model Ticket {
   organization    Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   stage           TicketStage     @relation(fields: [stageId], references: [id])
   messages        Message[]
+  metaAttributionHistory MetaAttributionHistory[]
 
   @@index([organizationId])
   @@index([conversationId])
@@ -314,31 +392,7 @@ model TicketStage {
   @@map("ticket_stages")
 }
 
-model TicketTracking {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  ticketId    String   @unique @db.Uuid
-  utmSource   String?
-  utmMedium   String?
-  utmCampaign String?
-  utmTerm     String?
-  utmContent  String?
-  gclid       String?
-  fbclid      String?
-  ctwaclid    String?
-  ttclid      String?
-  sourceType  String   @default("organic")
-  referrerUrl String?
-  landingPage String?
-  userAgent   String?
-  ipAddress   String?
-  createdAt   DateTime @default(now())
-  ticket      Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
 
-  @@index([utmSource])
-  @@index([sourceType])
-  @@index([ctwaclid])
-  @@map("ticket_tracking")
-}
 
 model Sale {
   id              String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -422,32 +476,7 @@ model ProductCategory {
   @@map("product_categories")
 }
 
-model OrganizationProfile {
-  id                      String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId          String           @unique @db.Uuid
-  cpf                     String?          @unique
-  onboardingStatus        String           @default("pending")
-  onboardingCompletedAt   DateTime?
-  avgTicket               String?
-  attendantsCount         String?
-  mainChannel             String?
-  leadsPerDay             String?
-  monthlyRevenue          String?
-  monthlyAdSpend          String?
-  estimatedConversionRate Float?
-  estimatedCPL            Float?
-  estimatedCAC            Float?
-  estimatedROAS           Float?
-  estimatedLeadValue      Float?
-  leadsPerAttendant       Float?
-  revenuePerAttendant     Float?
-  createdAt               DateTime         @default(now())
-  updatedAt               DateTime         @updatedAt
-  onboardingStatusRef     OnboardingStatus @relation(fields: [onboardingStatus], references: [name])
-  organization            Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  @@map("organization_profiles")
-}
 
 model OrganizationCompany {
   id                    String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -700,4 +729,82 @@ model Message {
   @@index([source])
   @@index([timestamp])
   @@map("whatsapp_messages")
+}
+
+model MetaConnection {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String   @db.Uuid
+  
+  fbUserId       String   // ID do usuário no Facebook
+  fbUserName     String   // Nome exibido (ex: "Thiago Gontijo")
+  accessToken    String   // Token Long-Lived (Criptografado)
+  tokenExpiresAt DateTime
+  
+  status         String   @default("ACTIVE") // ACTIVE | EXPIRED | INVALID_SCOPES
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  adAccounts     MetaAdAccount[] // Contas importadas/vinculadas a este token
+
+  @@unique([organizationId, fbUserId]) // Um usuário FB só conecta 1x por org
+  @@map("meta_connections")
+}
+
+model MetaAdAccount {
+  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId        String   @db.Uuid
+  connectionId          String   @db.Uuid // Qual token usar para acessar essa conta?
+
+  adAccountId           String   // "act_123456"
+  adAccountName         String
+  
+  pixelId               String?  // Dataset/Pixel ID para envio CAPI
+  isActive              Boolean  @default(false) // Switch da UI
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  connection            MetaConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  organization          Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, adAccountId])
+  @@map("meta_ad_accounts")
+}
+
+model MetaConversionEvent {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String   @db.Uuid
+  ticketId       String   @db.Uuid
+  eventName      String   // LeadSubmitted | Purchase
+  status         String   @default("PENDING") // PENDING | SENT | FAILED | SKIPPED_NO_CTWA | SKIPPED_DUPLICATE_LEAD
+  eventId        String   @unique // Determinístico: "lead-{ticketId}" ou "purchase-{ticketId}"
+  ctwaclid       String?
+  metaAdId       String?
+  fbtraceId      String?
+  success        Boolean  @default(false)
+  errorCode      String?
+  errorMessage   String?
+  value          Decimal? @db.Decimal(12, 2)
+  currency       String   @default("BRL")
+  sentAt         DateTime @default(now())
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([ticketId, eventName])
+  @@index([organizationId])
+  @@map("meta_conversion_events")
+}
+
+model MetaAttributionHistory {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ticketId       String   @db.Uuid
+  oldAdId        String?
+  newAdId        String?
+  changedAt      DateTime @default(now())
+  
+  ticket         Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@map("meta_attribution_history")
 }

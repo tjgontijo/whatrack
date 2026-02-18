@@ -1,0 +1,874 @@
+{
+  "name": "Pipefy Sale Gain -> Meta Ads -> Supabase",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "sales",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "inbound_id",
+              "keyValue": "={{ $('set').item.json.inbound_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        16,
+        128
+      ],
+      "id": "cc0e0260-d0e2-4f89-a0c2-21606ca5b0a3",
+      "name": "get_sale",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "AtzEnZaxNGl03jRe",
+          "name": "HomenZ"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "fc515a19-80b7-4835-9e9d-bf4e99f24293",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -656,
+        128
+      ],
+      "id": "7c99cd23-f0dd-4bc2-a98b-7dd72fb537f1",
+      "name": "input",
+      "webhookId": "fc515a19-80b7-4835-9e9d-bf4e99f24293"
+    },
+    {
+      "parameters": {
+        "tableId": "sales",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "inbound_id",
+              "fieldValue": "={{ $('set').item.json.inbound_id }}"
+            },
+            {
+              "fieldId": "description",
+              "fieldValue": "={{ $('set').item.json.services }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        464,
+        144
+      ],
+      "id": "e652c0d4-08d2-48e3-af3b-f4d3236da66c",
+      "name": "create_sale",
+      "credentials": {
+        "supabaseApi": {
+          "id": "AtzEnZaxNGl03jRe",
+          "name": "HomenZ"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 3
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        688,
+        144
+      ],
+      "id": "40a43b11-1a11-4f06-af9a-05d95665938e",
+      "name": "wait2",
+      "webhookId": "b10199e0-b0c4-4893-9694-8862fefbee34"
+    },
+    {
+      "parameters": {
+        "type": "SHA256",
+        "value": "={{ $('get_lead').item.json.phone }}",
+        "dataPropertyName": "ph"
+      },
+      "type": "n8n-nodes-base.crypto",
+      "typeVersion": 1,
+      "position": [
+        912,
+        -48
+      ],
+      "id": "6c879b2b-e214-42ac-bd76-f2b320109791",
+      "name": "sha256_ph"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v24.0/{{ $('set').item.json.pixel }}/events",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "access_token",
+              "value": "={{ $('set').item.json.access_token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $('payload_meta_purchase').item.json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2688,
+        -160
+      ],
+      "id": "4c8f8c8f-e023-4804-b532-16e4e41d1a51",
+      "name": "send_event_purchase"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "inbounds",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "keyValue": "={{ $('set').item.json.inbound_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        464,
+        -48
+      ],
+      "id": "08de1daa-c301-46c9-a24f-f9fd5b187687",
+      "name": "get_inbound",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "AtzEnZaxNGl03jRe",
+          "name": "HomenZ"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "leads",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "keyValue": "={{ $('set').item.json.lead_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        688,
+        -48
+      ],
+      "id": "1b801f21-36be-43cf-994d-12778b445ca0",
+      "name": "get_lead",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "AtzEnZaxNGl03jRe",
+          "name": "HomenZ"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "824f9c87-0ef2-46d7-833e-e2863efa3d83",
+              "name": "pixel",
+              "value": "1144207700215599",
+              "type": "string"
+            },
+            {
+              "id": "5918d391-2a7b-449e-88b2-7e845a4571b0",
+              "name": "access_token",
+              "value": "EAATM2aWw3w8BPsfHDl0lxGfAHDNOiADRCjlTHlVxgYjZANRf8L3ZCzQZBXA742ABASIrbpaV0gwPpIhKyaFpGVQy4ZBFDzqcuZCkIzIwzzFZCZBwKq9ksOnH6gFQZBwjfQ1I3axStPvHpHnHcLZCGjBndSwVJN8j15ZAqHrulwXjHKnLDD2AY2S9BAk1Celk0XcBwF",
+              "type": "string"
+            },
+            {
+              "id": "54812781-817f-48dd-8bb8-83974e7098f2",
+              "name": "page_id",
+              "value": "102057056907685",
+              "type": "string"
+            },
+            {
+              "id": "4c408a81-d212-45d3-b081-72d1542fcfdb",
+              "name": "card_id",
+              "value": "={{ $('organize').item.json.card_id }}",
+              "type": "string"
+            },
+            {
+              "id": "6d6fb8f1-1a26-4389-a366-f26858a035cf",
+              "name": "lead_id",
+              "value": "={{ $json.lead_id }}",
+              "type": "string"
+            },
+            {
+              "id": "21367f8b-7f80-40bb-b378-682eaa635419",
+              "name": "inbound_id",
+              "value": "={{ $('organize').item.json.inbound_id }}",
+              "type": "string"
+            },
+            {
+              "id": "ce58cf8f-12da-473d-8b11-64a3fe9fdb66",
+              "name": "services",
+              "value": "={{ $('organize').item.json.services }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -208,
+        128
+      ],
+      "id": "787df182-4f71-48e4-a522-8f93ff6b9d64",
+      "name": "set"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Lê o campo value vindo do webhook\nlet raw = $json.body?.value || \"\";\n\n// 2. Corrige o formato para ser um JSON válido\n// Transforma: {...}, {...}  =>  [{...}, {...}]\nraw = \"[\" + raw.replace(/}\\s*,\\s*{/g, \"},{\") + \"]\";\n\n// 3. Tenta converter para objeto JavaScript\nlet data;\ntry {\n  data = JSON.parse(raw);\n} catch (error) {\n  return [{ json: { error: \"Falha ao converter o campo value em JSON\", raw } }];\n}\n\n// 4. Extrai os campos e monta o objeto consolidado\nconst records = data.map(d => d.record_fields);\n\nreturn [\n  {\n    json: {\n      card_id: records[0]?.card_id || null,\n      lead_id: records[0]?.lead_id || null,\n      inbound_id: records[0]?.inbound_id || null,\n      services: records.map(r => ({\n        Servico: r[\"Serviço\"],\n        Valor: r[\"Valor\"]\n      }))\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -432,
+        128
+      ],
+      "id": "0b117122-84e8-41ec-b9ca-b876bb07e3a8",
+      "name": "organize"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pega os dados dos nós anteriores\nconst set = $('set').item.json;\nconst inbound = $('get_inbound').first().json;\nconst ph = $('sha256_ph').first().json.ph;\nconst fn = $('sha256_fn').first().json.fn;\nconst ln = $('sha256_ln').first().json.ln;\nconst em = $('sha256_em').first().json.em;\nconst services = set.services || [];\n\n// Ajuste da data para UTC-3 e formato ISO (Meta exige UTC no formato ISO 8601)\nconst date = new Date();\ndate.setHours(date.getHours() - 3);\nconst purchase_time = date.toISOString();\n\n// Soma dos valores dos serviços\nconst amount = services.reduce((total, item) => {\n  const raw = item.Valor || \"0\";\n  const normalized = raw.replace(/\\./g, \"\").replace(\",\", \".\");\n  const num = parseFloat(normalized) || 0;\n  return total + num;\n}, 0);\n\n// Arredonda para 2 casas decimais\nconst formattedAmount = parseFloat(amount.toFixed(2));\n\nreturn [{\n  json: {\n    ph,\n    fn,\n    ln,\n    em,   \n    pixel: set.pixel || null,\n    inbound_id: inbound.id,\n    order_id: set.card_id,\n    purchase_time,\n    amount: formattedAmount,\n    ctwaclid: inbound.ctwaclid,\n    services\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2000,
+        -48
+      ],
+      "id": "3d1547ba-a0b9-43d3-8f44-826d6e27684a",
+      "name": "payload"
+    },
+    {
+      "parameters": {
+        "type": "SHA256",
+        "value": "={{ $('get_lead').item.json.name.split(' ')[0] }}",
+        "dataPropertyName": "fn"
+      },
+      "type": "n8n-nodes-base.crypto",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        -48
+      ],
+      "id": "2ddbd4d7-e0a5-4135-8811-619d25ee39ad",
+      "name": "sha256_fn"
+    },
+    {
+      "parameters": {
+        "type": "SHA256",
+        "value": "={{ $('get_lead').item.json.name.split(' ').slice(1).join(' ') }}",
+        "dataPropertyName": "ln"
+      },
+      "type": "n8n-nodes-base.crypto",
+      "typeVersion": 1,
+      "position": [
+        1536,
+        -48
+      ],
+      "id": "27395d1f-351c-4cbe-a7a5-1be2792affe9",
+      "name": "sha256_ln"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6d383552-e058-4b65-bbb9-5165bc1bf4ad",
+              "leftValue": "={{ $('get_sale').item.json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        240,
+        48
+      ],
+      "id": "f7d0b5db-2fb2-4f28-8361-42878f9b658a",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "type": "SHA256",
+        "value": "={{ $('get_lead').item.json.mail }}",
+        "dataPropertyName": "em"
+      },
+      "type": "n8n-nodes-base.crypto",
+      "typeVersion": 1,
+      "position": [
+        1328,
+        -48
+      ],
+      "id": "ee830721-d784-4647-b0aa-9caa2223bf22",
+      "name": "sha256_em",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Obter dados do payload atual\nconst input = items[0].json;\n\n// Obter o page_id do nó \"Set\"\nconst set = $('set').item.json;\nconst pageId = set.page_id;\n\n// Montar user_data de forma condicional\nconst userData = {\n  page_id: pageId,\n};\n\n// Adiciona o ctwa_clid se existir\nif (input.ctwaclid && input.ctwaclid.trim() !== \"\") {\n  userData.ctwa_clid = input.ctwaclid;\n}\n\n// Adicionar apenas os campos existentes e não vazios\nconst possibleFields = [\"fn\", \"ln\", \"ph\", \"em\"];\n\nfor (const field of possibleFields) {\n  if (input[field] && input[field].toString().trim() !== \"\") {\n    userData[field] = input[field];\n  }\n}\n\n// Montar o payload final\nconst payload = {\n  data: [\n    {\n      event_name: \"Purchase\",\n      event_time: Math.floor(new Date(input.purchase_time).getTime() / 1000),\n      action_source: \"business_messaging\",\n      messaging_channel: \"whatsapp\",\n      event_id: `purchase-${input.inbound_id}`,\n      user_data: userData,\n      custom_data: {\n        order_id: input.order_id,\n        currency: \"BRL\",\n        value: input.amount,\n      },\n    },\n  ],\n  partner_agent: \"HomenZ\",\n};\n\n// Retornar o payload final\nreturn [{ json: payload }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2208,
+        -48
+      ],
+      "id": "ad98821f-97d9-48e5-999e-ffa9b749e5af",
+      "name": "payload_meta_purchase"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "bf064158-d047-4da6-a64a-6e37b50a7a8d",
+              "leftValue": "={{ $('get_sale').item.json.fbtrace_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "5c539638-2986-4b31-b1f8-789130bd8c91",
+              "leftValue": "={{ $('audit_json').item.json.hasSourceId }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2416,
+        -48
+      ],
+      "id": "8667493e-3ab1-4999-8402-9e1cbd32e46f",
+      "name": "sent_conversion"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "sales",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('get_sale').item.json.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "fbtrace_id",
+              "fieldValue": "={{ $('send_event_purchase').item.json.fbtrace_id }}"
+            },
+            {
+              "fieldId": "amount",
+              "fieldValue": "={{ $('payload').item.json.amount }}"
+            },
+            {
+              "fieldId": "service_count",
+              "fieldValue": "={{ $('payload').item.json.services.length }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2912,
+        -160
+      ],
+      "id": "051b0a63-2101-4137-8447-8ea729331622",
+      "name": "update_sale_meta",
+      "credentials": {
+        "supabaseApi": {
+          "id": "AtzEnZaxNGl03jRe",
+          "name": "HomenZ"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "inbounds",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('get_inbound').item.json.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "status",
+              "fieldValue": "completed"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        3120,
+        -160
+      ],
+      "id": "f1156494-3a98-4cb3-9875-717d2529addd",
+      "name": "update_inbound_meta",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "AtzEnZaxNGl03jRe",
+          "name": "HomenZ"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "inbounds",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('get_inbound').item.json.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "status",
+              "fieldValue": "completed"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2896,
+        32
+      ],
+      "id": "88adb0e6-896f-4312-8e2d-544fe9ca24b4",
+      "name": "update_inbound",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "AtzEnZaxNGl03jRe",
+          "name": "HomenZ"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "sales",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('get_sale').item.json.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "amount",
+              "fieldValue": "={{ $('payload').item.json.amount }}"
+            },
+            {
+              "fieldId": "service_count",
+              "fieldValue": "={{ $('payload').item.json.services.length }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2688,
+        32
+      ],
+      "id": "49cf1a14-023b-4fe0-81e7-f414a8d450b6",
+      "name": "update_sale",
+      "credentials": {
+        "supabaseApi": {
+          "id": "AtzEnZaxNGl03jRe",
+          "name": "HomenZ"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Obtém o item de entrada\nconst item = $input.item;\n\n// Caminho completo até os campos desejados\nconst adReply = item.body?.data?.contextInfo?.externalAdReply || {};\n\n// Verifica existência e valor\nreturn [\n  {\n    json: {\n      hasSourceId: adReply.sourceId !== undefined && adReply.sourceId !== null,\n      hasCtwaClid: adReply.ctwaClid !== undefined && adReply.ctwaClid !== null,\n      sourceId: adReply.sourceId ?? null,\n      ctwaClid: adReply.ctwaClid ?? null\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1792,
+        -48
+      ],
+      "id": "b2166806-18f6-49e6-b905-63795d0f1233",
+      "name": "audit_json"
+    }
+  ],
+  "pinData": {
+    "input": [
+      {
+        "json": {
+          "headers": {
+            "host": "webhook.elev8.com.br",
+            "user-agent": "Make/production",
+            "content-length": "684",
+            "accept-encoding": "gzip, br, deflate",
+            "content-type": "application/x-www-form-urlencoded",
+            "traceparent": "00-690f3c4f000000001988c1ac03768d6c-1988c1ac03768d6c-00",
+            "tracestate": "dd=t.tid:690f3c4f00000000;t.dm:-1;s:0;p:1988c1ac03768d6c",
+            "x-datadog-parent-id": "1839933392317484396",
+            "x-datadog-sampling-priority": "0",
+            "x-datadog-tags": "_dd.p.tid=690f3c4f00000000",
+            "x-datadog-trace-id": "1839933392317484396",
+            "x-forwarded-for": "44.209.150.16",
+            "x-forwarded-host": "webhook.elev8.com.br",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "da72d89a88c6",
+            "x-real-ip": "44.209.150.16"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "card_id": "1251316503",
+            "value": "{\"record_fields\":{\"card_id\":\"1251316503\",\"inbound_id\":\"aa353e95-21f7-4282-8b86-e1bf282623fa\",\"lead_id\":\"e18ac1a8-d9b9-40db-9dfb-a224c26d4161\",\"Serviço\":\"Depilação a Led - Tórax e Abdômen\",\"Valor\":\"1.201,00\"}}, {\"record_fields\":{\"card_id\":\"1251316503\",\"inbound_id\":\"aa353e95-21f7-4282-8b86-e1bf282623fa\",\"lead_id\":\"e18ac1a8-d9b9-40db-9dfb-a224c26d4161\",\"Serviço\":\"Depilação a Led - Virilha + Perianal + Glúteo\",\"Valor\":\"1.201,00\"}}"
+          },
+          "webhookUrl": "https://webhook.elev8.com.br/webhook/fc515a19-80b7-4835-9e9d-bf4e99f24293",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "get_sale": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "input": {
+      "main": [
+        [
+          {
+            "node": "organize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "create_sale": {
+      "main": [
+        [
+          {
+            "node": "wait2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "wait2": {
+      "main": [
+        [
+          {
+            "node": "get_sale",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "sha256_ph": {
+      "main": [
+        [
+          {
+            "node": "sha256_fn",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_inbound": {
+      "main": [
+        [
+          {
+            "node": "get_lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "set": {
+      "main": [
+        [
+          {
+            "node": "get_sale",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "organize": {
+      "main": [
+        [
+          {
+            "node": "set",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_lead": {
+      "main": [
+        [
+          {
+            "node": "sha256_ph",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "sha256_fn": {
+      "main": [
+        [
+          {
+            "node": "sha256_em",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "sha256_ln": {
+      "main": [
+        [
+          {
+            "node": "audit_json",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "payload": {
+      "main": [
+        [
+          {
+            "node": "payload_meta_purchase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "send_event_purchase": {
+      "main": [
+        [
+          {
+            "node": "update_sale_meta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "get_inbound",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "create_sale",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "sha256_em": {
+      "main": [
+        [
+          {
+            "node": "sha256_ln",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "payload_meta_purchase": {
+      "main": [
+        [
+          {
+            "node": "sent_conversion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "sent_conversion": {
+      "main": [
+        [
+          {
+            "node": "send_event_purchase",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "update_sale",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "update_sale_meta": {
+      "main": [
+        [
+          {
+            "node": "update_inbound_meta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "update_sale": {
+      "main": [
+        [
+          {
+            "node": "update_inbound",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "audit_json": {
+      "main": [
+        [
+          {
+            "node": "payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "210ef5a4-4ec0-4487-8304-da4970506e98",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "26dee99232d63bf398509f5d9d830e1c8d6d8aa9b5391ccbcbd998cc470c2820"
+  },
+  "id": "fq0YYfOWxvhGxhV8",
+  "tags": []
+}
