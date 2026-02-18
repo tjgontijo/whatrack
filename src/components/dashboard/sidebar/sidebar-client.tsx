@@ -222,6 +222,20 @@ export function SidebarClient({ navItems }: SidebarClientProps) {
                                 </SidebarMenuButton>
                             </SidebarMenuItem>
 
+                            {/* Meta Ads Item */}
+                            <SidebarMenuItem>
+                                <SidebarMenuButton
+                                    asChild
+                                    tooltip="Meta Ads"
+                                    isActive={pathname.startsWith('/dashboard/settings/meta-ads')}
+                                >
+                                    <Link href="/dashboard/settings/meta-ads" onClick={handleNavClick}>
+                                        <ICON_MAP.Meta className="h-4 w-4" />
+                                        <span>Meta Ads</span>
+                                    </Link>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+
                             {/* Pipeline Item */}
                             <SidebarMenuItem>
                                 <SidebarMenuButton
