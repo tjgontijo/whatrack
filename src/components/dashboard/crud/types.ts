@@ -3,15 +3,12 @@ import React from 'react'
 // View types
 export type ViewType = 'list' | 'cards' | 'kanban'
 
-// Pagination configuration
-export interface PaginationConfig {
-  page: number
-  limit: number
-  totalItems: number
-  totalPages: number
-  hasMore: boolean
-  onPageChange: (page: number) => void
-  onLimitChange: (limit: number) => void
+// Kanban column
+export interface KanbanColumn {
+  id: string
+  name: string
+  color: string
+  order: number
 }
 
 // Search configuration

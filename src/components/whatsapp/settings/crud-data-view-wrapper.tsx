@@ -1,6 +1,5 @@
 'use client'
 
-import React from 'react'
 import { FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ViewType, ColumnDef, CardConfig, RowActions } from '@/components/dashboard/crud/types'
@@ -30,7 +29,6 @@ export function CrudDataView<T>({
     columns,
     cardConfig,
     rowActions,
-    getRowKey,
     emptyState
 }: CrudDataViewProps<T>) {
     // Empty state
@@ -65,14 +63,12 @@ export function CrudDataView<T>({
                     columns={columns}
                     rowActions={rowActions}
                     onRowClick={cardConfig.onClick}
-                    getRowKey={getRowKey}
                 />
             ) : (
                 <CrudCardView
                     data={data}
                     config={cardConfig}
                     rowActions={rowActions}
-                    getRowKey={getRowKey}
                 />
             )}
         </div>

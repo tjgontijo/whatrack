@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { MessageSquare, Edit, Trash2, MoreVertical, CheckCircle2, XCircle, AlertCircle } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { whatsappApi } from '@/lib/whatsapp/client'
@@ -31,14 +31,14 @@ interface TemplatesViewProps {
     phone: WhatsAppPhoneNumber
 }
 
-export function TemplatesView({ phone }: TemplatesViewProps) {
+export function TemplatesView({ phone: _phone }: TemplatesViewProps) {
     // View & Search state
     const [view, setView] = useState<ViewType>('cards')
     const [searchInput, setSearchInput] = useState('')
 
     // Pagination state
     const [page, setPage] = useState(1)
-    const [limit, setLimit] = useState(20)
+    const [limit] = useState(20)
 
     // Editor drawer state
     const [editorOpen, setEditorOpen] = useState(false)
@@ -70,7 +70,6 @@ export function TemplatesView({ phone }: TemplatesViewProps) {
     // Paginated data
     const paginatedTemplates = filteredTemplates.slice((page - 1) * limit, page * limit)
     const totalItems = filteredTemplates.length
-    const totalPages = Math.ceil(totalItems / limit)
 
     // Reset page when search changes
     useEffect(() => {
@@ -271,15 +270,8 @@ export function TemplatesView({ phone }: TemplatesViewProps) {
                 searchInput={searchInput}
                 onSearchChange={setSearchInput}
                 searchPlaceholder="Buscar por nome, categoria ou conteúdo..."
-                page={page}
-                limit={limit}
-                onPageChange={setPage}
-                onLimitChange={setLimit}
                 totalItems={totalItems}
-                totalPages={totalPages}
-                hasMore={page * limit < totalItems}
                 onAdd={handleCreate}
-                addLabel="Novo Template"
                 isLoading={isLoading}
             >
                 <CrudDataView

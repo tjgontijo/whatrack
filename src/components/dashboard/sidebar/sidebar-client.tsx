@@ -17,6 +17,7 @@ import {
     FileText,
     Smartphone,
     Webhook,
+    Kanban,
 } from 'lucide-react'
 
 import {
@@ -65,6 +66,7 @@ const ICON_MAP = {
     Smartphone,
     Webhook,
     ChevronRight,
+    Kanban,
 } as const
 
 type NavItem = {
@@ -108,7 +110,7 @@ export function SidebarClient({ navItems }: SidebarClientProps) {
     )
 
     const dataItems = navItems.filter(item =>
-        ['Users', 'ShoppingBag', 'Package'].includes(item.icon)
+        ['Users', 'Kanban', 'ShoppingBag', 'Package'].includes(item.icon)
     )
 
     const isSuperAdmin = AuthGuards.isSuperAdmin(session?.user?.role)
@@ -216,6 +218,20 @@ export function SidebarClient({ navItems }: SidebarClientProps) {
                                     <Link href="/dashboard/settings/whatsapp" onClick={handleNavClick}>
                                         <ICON_MAP.WhatsApp className="h-4 w-4" />
                                         <span>WhatsApp</span>
+                                    </Link>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+
+                            {/* Pipeline Item */}
+                            <SidebarMenuItem>
+                                <SidebarMenuButton
+                                    asChild
+                                    tooltip="Pipeline"
+                                    isActive={pathname === '/dashboard/settings/pipeline'}
+                                >
+                                    <Link href="/dashboard/settings/pipeline" onClick={handleNavClick}>
+                                        <Kanban className="h-4 w-4" />
+                                        <span>Pipeline</span>
                                     </Link>
                                 </SidebarMenuButton>
                             </SidebarMenuItem>

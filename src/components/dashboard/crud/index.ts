@@ -7,12 +7,13 @@ export { DeleteConfirmDialog } from './delete-confirm-dialog'
 // View components
 export { CrudListView } from './crud-list-view'
 export { CrudCardView } from './crud-card-view'
+export { CrudKanbanView } from './crud-kanban-view'
 export { ViewSwitcher } from './view-switcher'
 
 // Types
 export type {
   ViewType,
-  PaginationConfig,
+  KanbanColumn,
   SearchConfig,
   ColumnDef,
   CardConfig,

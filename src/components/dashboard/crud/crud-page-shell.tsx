@@ -1,22 +1,12 @@
 'use client'
 
 import React from 'react'
-import { Plus, Search, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Plus, Search, Filter, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select'
 import { useIsMobile } from '@/hooks/use-mobile'
-import { cn } from '@/lib/utils'
 import { ViewSwitcher } from './view-switcher'
-import { CrudDataView } from './crud-data-view'
 import { ViewType } from './types'
-import { Filter } from 'lucide-react'
 import {
     Drawer,
     DrawerContent,
@@ -32,7 +22,6 @@ interface CrudPageShellProps {
     subtitle: string
     icon: React.ElementType
     onAdd?: () => void
-    addLabel?: string
 
     // Search & View
     view: ViewType
@@ -42,14 +31,11 @@ interface CrudPageShellProps {
     onSearchChange: (value: string) => void
     searchPlaceholder?: string
 
-    // Pagination
-    page: number
-    limit: number
-    onPageChange: (page: number) => void
-    onLimitChange: (limit: number) => void
+    // Data info
     totalItems: number
-    totalPages: number
-    hasMore: boolean
+
+    // Infinite scroll
+    isFetchingMore?: boolean
 
     // Filters & Actions
     filters?: React.ReactNode
@@ -64,30 +50,24 @@ export function CrudPageShell({
     subtitle,
     icon: Icon,
     onAdd,
-    addLabel = 'Novo',
     view,
     setView,
     enabledViews,
     searchInput,
     onSearchChange,
     searchPlaceholder = 'Buscar...',
-    page,
-    limit,
-    onPageChange,
-    onLimitChange,
     totalItems,
-    totalPages,
-    hasMore,
+    isFetchingMore = false,
     filters,
     actions,
     children,
-    isLoading
+    isLoading,
 }: CrudPageShellProps) {
     const isMobile = useIsMobile()
 
-    // Auto-switch to cards view on mobile/tablet
+    // Auto-switch to cards on mobile — list and kanban require desktop
     React.useEffect(() => {
-        if (isMobile && view === 'list') {
+        if (isMobile && (view === 'list' || view === 'kanban')) {
             setView('cards')
         }
     }, [isMobile, view, setView])
@@ -96,7 +76,7 @@ export function CrudPageShell({
         <section className="flex flex-col h-full overflow-hidden bg-background">
             {!isMobile && (
                 <>
-                    {/* Synchronized Header */}
+                    {/* Page Header */}
                     <div className="flex flex-col border-b border-border bg-background mt-6">
                         <div className="flex flex-col gap-2 px-6 py-3 md:flex-row md:items-center md:justify-between">
                             <div className="flex items-center gap-3">
@@ -114,14 +94,13 @@ export function CrudPageShell({
                                 {actions}
                             </div>
                         </div>
-                        {/* View Switcher integrated in header container */}
                         <div className="px-6 pb-2">
                             <ViewSwitcher view={view} setView={setView} enabledViews={enabledViews} className="-ml-3" />
                         </div>
                     </div>
 
-                    {/* Synchronized Toolbar */}
-                    <div className="flex flex-col gap-4 py-3 md:flex-row md:items-center md:justify-between px-6 border-b border-border/50 bg-muted/5">
+                    {/* Toolbar */}
+                    <div className="flex items-center gap-4 py-3 px-6 border-b border-border/50 bg-muted/5">
                         <div className="flex flex-1 items-center gap-2 overflow-x-auto">
                             <div className="relative w-full max-w-[320px]">
                                 <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
@@ -134,11 +113,16 @@ export function CrudPageShell({
                             </div>
                             {filters && (
                                 <>
-                                    <div className="h-4 w-[1px] bg-border mx-2" />
+                                    <div className="h-4 w-[1px] bg-border mx-2 shrink-0" />
                                     {filters}
                                 </>
                             )}
                         </div>
+                        {!isLoading && (
+                            <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-widest whitespace-nowrap shrink-0">
+                                <span className="text-foreground font-bold">{totalItems}</span> itens
+                            </div>
+                        )}
                     </div>
                 </>
             )}
@@ -147,6 +131,11 @@ export function CrudPageShell({
                 <div className="flex flex-col gap-3 p-4 border-b bg-background">
                     <div className="flex items-center justify-between">
                         <h1 className="text-xl font-bold">{title}</h1>
+                        {!isLoading && (
+                            <span className="text-[11px] font-medium text-muted-foreground">
+                                {totalItems} itens
+                            </span>
+                        )}
                     </div>
                     <div className="flex items-center gap-2">
                         <div className="relative flex-1">
@@ -186,9 +175,8 @@ export function CrudPageShell({
                 </div>
             )}
 
-            <div className={cn(
-                "flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-border"
-            )}>
+            {/* Content area */}
+            <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-border">
                 {isLoading ? (
                     <div className="flex items-center justify-center h-full">
                         <div className="flex flex-col items-center gap-3">
@@ -197,94 +185,19 @@ export function CrudPageShell({
                         </div>
                     </div>
                 ) : (
-                    React.Children.map(children, child => {
-                        if (React.isValidElement(child) && child.type === CrudDataView) {
-                            return React.cloneElement(child, { view } as any)
-                        }
-                        return child
-                    })
+                    <>
+                        {children}
+                        {isFetchingMore && (
+                            <div className="flex items-center justify-center py-6 gap-2 text-muted-foreground">
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                <span className="text-xs font-medium">Carregando mais...</span>
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
 
-            <div className="border-t border-border bg-background py-2 shrink-0 px-6 h-14 flex items-center">
-                <div className="flex items-center justify-between w-full gap-4">
-                    <div className="flex items-center gap-4">
-                        <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-widest whitespace-nowrap">
-                            <span className="text-foreground font-bold">{totalItems}</span> itens
-                        </div>
-
-                        {!isMobile && (
-                            <div className="flex items-center gap-2">
-                                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Por página:</span>
-                                <Select
-                                    value={limit.toString()}
-                                    onValueChange={(v) => onLimitChange(Number(v))}
-                                >
-                                    <SelectTrigger size="sm" className="h-7 w-[65px] text-[10px] font-bold bg-muted/30 border-none ring-0 focus:ring-0">
-                                        <SelectValue placeholder={limit.toString()} />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {[10, 15, 20, 50, 100].map((v) => (
-                                            <SelectItem key={v} value={v.toString()} className="text-[10px]">
-                                                {v}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0 rounded-full hover:bg-primary/10 hover:text-primary transition-colors"
-                            onClick={() => onPageChange(Math.max(1, page - 1))}
-                            disabled={page === 1 || isLoading}
-                        >
-                            <ChevronLeft className="h-4 w-4" />
-                        </Button>
-
-                        {!isMobile && (
-                            <div className="flex items-center gap-1 mx-1">
-                                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                                    const pageNum = i + 1;
-                                    return (
-                                        <Button
-                                            key={pageNum}
-                                            variant={page === pageNum ? "secondary" : "ghost"}
-                                            size="sm"
-                                            className={cn(
-                                                "h-7 w-7 text-[10px] font-bold p-0 rounded-full transition-all",
-                                                page === pageNum ? "bg-primary/10 text-primary shadow-none" : "hover:bg-muted"
-                                            )}
-                                            onClick={() => onPageChange(pageNum)}
-                                        >
-                                            {pageNum}
-                                        </Button>
-                                    )
-                                })}
-                                {totalPages > 5 && (
-                                    <span className="text-[10px] text-muted-foreground px-1 font-bold">...</span>
-                                )}
-                            </div>
-                        )}
-
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0 rounded-full hover:bg-primary/10 hover:text-primary transition-colors"
-                            onClick={() => onPageChange(page + 1)}
-                            disabled={!hasMore || isLoading}
-                        >
-                            <ChevronRight className="h-4 w-4" />
-                        </Button>
-                    </div>
-                </div>
-            </div>
-
-            {/* FAB Button */}
+            {/* FAB */}
             {onAdd && (
                 <Button
                     onClick={onAdd}

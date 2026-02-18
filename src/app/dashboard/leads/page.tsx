@@ -1,36 +1,18 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Plus, SlidersHorizontal, Calendar, Search, Filter } from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { Users, Calendar, Edit, Trash2, MessageSquare, Phone, Mail, MapPin, ShoppingCart, TrendingUp } from 'lucide-react'
 
+import { CrudPageShell } from '@/components/dashboard/crud/crud-page-shell'
+import { CrudDataView } from '@/components/dashboard/crud/crud-data-view'
+import { CrudListView } from '@/components/dashboard/crud/crud-list-view'
+import { CrudCardView } from '@/components/dashboard/crud/crud-card-view'
+import { useCrudInfiniteQuery } from '@/hooks/use-crud-infinite-query'
+import { type ColumnDef, type CardConfig, type RowActions, type ViewType } from '@/components/dashboard/crud/types'
+
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-  DrawerFooter,
-  DrawerClose,
-} from '@/components/ui/drawer'
-import {
-  TemplateMainShell,
-  TemplateMainHeader,
-  DataToolbar,
-  ViewSwitcher,
-  type ViewType,
-  LeadsCardView,
-  LeadsTableView,
-  NewLeadDialog,
-  EditLeadDialog,
-  DeleteLeadDialog,
-} from '@/components/dashboard/leads'
-import { useIsMobile } from '@/hooks/use-mobile'
-
-import { cn } from '@/lib/utils'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -39,6 +21,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { SlidersHorizontal } from 'lucide-react'
+
+import { NewLeadDialog, EditLeadDialog, DeleteLeadDialog } from '@/components/dashboard/leads'
+import { applyWhatsAppMask, denormalizeWhatsApp } from '@/lib/mask/phone-mask'
 
 type Lead = {
   id: string
@@ -46,17 +32,16 @@ type Lead = {
   phone: string | null
   mail: string | null
   remoteJid: string | null
-  createdAt: Date
-}
-
-type ApiResponse = {
-  items: Lead[]
-  total: number
-  page: number
-  pageSize: number
+  createdAt: string
+  ticketsCount?: number
+  salesCount?: number
+  ltv?: number
+  firstOrigin?: string | null
+  firstSource?: string | null
 }
 
 const PERIOD_OPTIONS = [
+  { value: 'all', label: 'Todos os períodos' },
   { value: 'today', label: 'Hoje' },
   { value: 'yesterday', label: 'Ontem' },
   { value: '3d', label: '3 dias' },
@@ -69,333 +54,269 @@ const PERIOD_OPTIONS = [
   { value: 'lastMonth', label: 'Mês anterior' },
 ]
 
+const formatCurrency = (value: number) =>
+  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(value || 0)
+
+const formatDate = (date: string) =>
+  new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+
+const getInitials = (name: string | null) => (name ? name.slice(0, 2).toUpperCase() : '??')
+
+const getSourceLabel = (source: string | null | undefined) => {
+  if (!source) return null
+  if (source === 'paid') return 'Pago'
+  if (source === 'organic') return 'Orgânico'
+  return source
+}
+
 export default function LeadsPage() {
-  const searchParams = useSearchParams()
-  const router = useRouter()
   const [view, setView] = useState<ViewType>('list')
-  const isMobile = useIsMobile()
-  const [visibleColumns, setVisibleColumns] = useState<string[]>(['phone', 'email', 'createdAt'])
-
-  // Filters from URL
-  const q = (searchParams.get('q') || '').trim()
-  const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1)
-  const pageSize = Math.max(1, Math.min(100, parseInt(searchParams.get('pageSize') || '20', 10) || 20))
-  const dateRange = searchParams.get('dateRange') || '7d'
-
-  // Search input state with debounce
-  const [searchInput, setSearchInput] = useState(q)
-
-  React.useEffect(() => {
-    setSearchInput(q)
-  }, [q])
-
-  React.useEffect(() => {
-    const trimmed = searchInput.trim()
-
-    if (trimmed.length === 0) {
-      if (q) {
-        updateQueryParams((params) => {
-          params.delete('q')
-        })
-      }
-      return undefined
-    }
-
-    if (trimmed.length < 3) {
-      if (q) {
-        updateQueryParams((params) => {
-          params.delete('q')
-        })
-      }
-      return undefined
-    }
-
-    if (trimmed === q) {
-      return undefined
-    }
-
-    const handle = window.setTimeout(() => {
-      updateQueryParams((params) => {
-        params.set('q', trimmed)
-      })
-    }, 400)
-
-    return () => {
-      window.clearTimeout(handle)
-    }
-  }, [searchInput, q])
-
-  // Update query params helper
-  const updateQueryParams = React.useCallback(
-    (mutator: (params: URLSearchParams) => void) => {
-      const params = new URLSearchParams(Array.from(searchParams.entries()))
-      mutator(params)
-      params.set('page', '1')
-      router.push(`/dashboard/leads?${params.toString()}`)
-    },
-    [router, searchParams]
-  )
-
-  // Period filter handler
-  const handlePeriodChange = (newPeriod: string) => {
-    updateQueryParams((params) => {
-      params.set('dateRange', newPeriod)
-    })
-  }
-
-  // Dialog states
+  const [searchInput, setSearchInput] = useState('')
+  const [dateRange, setDateRange] = useState<string>('7d')
+  const [visibleColumns, setVisibleColumns] = useState<string[]>(['phone', 'createdAt'])
+  const [isNewLeadOpen, setIsNewLeadOpen] = useState(false)
   const [editingLeadId, setEditingLeadId] = useState<string | null>(null)
   const [deletingLeadId, setDeletingLeadId] = useState<string | null>(null)
 
-  const toggleColumn = (columnId: string) => {
-    setVisibleColumns(prev =>
-      prev.includes(columnId)
-        ? prev.filter(id => id !== columnId)
-        : [...prev, columnId]
-    )
-  }
+  // Debounced search
+  const [debouncedSearch, setDebouncedSearch] = React.useState('')
+  React.useEffect(() => {
+    const handle = setTimeout(() => {
+      setDebouncedSearch(searchInput.length >= 3 ? searchInput.trim() : '')
+    }, 400)
+    return () => clearTimeout(handle)
+  }, [searchInput])
 
-  // Fetch leads from API
-  const { data, isLoading, isError, refetch } = useQuery<ApiResponse>({
-    queryKey: ['leads', q, page, pageSize, dateRange] as const,
-    queryFn: async (): Promise<ApiResponse> => {
-      const u = new URL('/api/v1/leads', window.location.origin)
-      if (q) u.searchParams.set('q', q)
-      u.searchParams.set('page', String(page))
-      u.searchParams.set('pageSize', String(pageSize))
-      if (dateRange) u.searchParams.set('dateRange', dateRange)
+  const filters = React.useMemo(() => ({
+    ...(debouncedSearch ? { q: debouncedSearch } : {}),
+    ...(dateRange && dateRange !== 'all' ? { dateRange } : {}),
+  }), [debouncedSearch, dateRange])
 
-      const res = await fetch(u.toString(), { cache: 'no-store' })
-      if (!res.ok) throw new Error('Failed to fetch leads')
-      return (await res.json()) as ApiResponse
-    },
-    placeholderData: (prev) => prev as ApiResponse | undefined,
-    staleTime: 10_000,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    retry: 0,
+  const {
+    data: leads,
+    total,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+  } = useCrudInfiniteQuery<Lead>({
+    queryKey: ['leads'],
+    endpoint: '/api/v1/leads',
+    pageSize: 30,
+    filters,
   })
 
-  const leads = data?.items ?? []
-  const total = data?.total ?? 0
+  const toggleColumn = (col: string) =>
+    setVisibleColumns((prev) =>
+      prev.includes(col) ? prev.filter((c) => c !== col) : [...prev, col]
+    )
 
-  // Handlers
-  const handleEdit = (leadId: string) => {
-    setEditingLeadId(leadId)
+  const columns: ColumnDef<Lead>[] = [
+    {
+      key: 'name',
+      label: 'Lead',
+      render: (lead) => (
+        <div className="flex items-center gap-2.5">
+          <Avatar className="h-7 w-7 border border-border/50 shrink-0">
+            <AvatarFallback className="text-[9px] bg-primary/5 text-primary font-semibold">
+              {getInitials(lead.name)}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex flex-col min-w-0">
+            <span className="font-medium text-[13px] truncate leading-tight">{lead.name || 'Sem nome'}</span>
+            {(lead.firstOrigin || lead.firstSource) && (
+              <span className="text-[10px] text-muted-foreground truncate">
+                <MapPin className="inline h-2.5 w-2.5 mr-0.5 opacity-60" />
+                {[lead.firstOrigin, getSourceLabel(lead.firstSource)].filter(Boolean).join(' • ')}
+              </span>
+            )}
+          </div>
+        </div>
+      ),
+    },
+    ...(visibleColumns.includes('phone') ? [{
+      key: 'phone',
+      label: 'Contato',
+      width: 160,
+      render: (lead: Lead) => (
+        <div className="flex flex-col">
+          <span className="text-[12px] font-mono text-muted-foreground">
+            {lead.phone ? applyWhatsAppMask(denormalizeWhatsApp(lead.phone)) : '—'}
+          </span>
+          {lead.mail && (
+            <span className="text-[10px] text-muted-foreground/70 truncate max-w-[140px]">{lead.mail}</span>
+          )}
+        </div>
+      ),
+    }] : []),
+    ...(visibleColumns.includes('createdAt') ? [{
+      key: 'createdAt',
+      label: 'Criado em',
+      width: 110,
+      headerClassName: 'text-right',
+      className: 'text-right',
+      render: (lead: Lead) => (
+        <span className="text-[11px] text-muted-foreground">{formatDate(lead.createdAt)}</span>
+      ),
+    }] : []),
+  ]
+
+  const cardConfig: CardConfig<Lead> = {
+    icon: (lead) => (
+      <Avatar className="h-9 w-9 border border-border">
+        <AvatarFallback className="bg-primary/5 text-primary text-xs font-bold">
+          {getInitials(lead.name)}
+        </AvatarFallback>
+      </Avatar>
+    ),
+    title: (lead) => lead.name || 'Sem nome',
+    subtitle: (lead) => (
+      <div className="flex flex-col gap-1 text-[11px] text-muted-foreground">
+        {lead.phone && (
+          <span className="flex items-center gap-1 font-mono">
+            <Phone className="h-3 w-3 opacity-60" />
+            {applyWhatsAppMask(denormalizeWhatsApp(lead.phone))}
+          </span>
+        )}
+        {lead.mail && (
+          <span className="flex items-center gap-1 truncate">
+            <Mail className="h-3 w-3 opacity-60 shrink-0" />
+            <span className="truncate">{lead.mail}</span>
+          </span>
+        )}
+        <span className="flex items-center gap-1">
+          <Calendar className="h-3 w-3 opacity-60" />
+          {formatDate(lead.createdAt)}
+        </span>
+      </div>
+    ),
+    footer: (lead) => (
+      <div className="flex items-center justify-between w-full">
+        <span className="flex items-center gap-1 text-muted-foreground">
+          <MessageSquare className="h-3.5 w-3.5" />
+          <span className="text-xs font-medium">{lead.ticketsCount || 0}</span>
+        </span>
+        <span className="flex items-center gap-1">
+          <ShoppingCart className="h-3.5 w-3.5 text-emerald-500" />
+          <span className="text-xs font-semibold text-emerald-600">{lead.salesCount || 0}</span>
+        </span>
+        <span className="flex items-center gap-1">
+          <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
+          <span className="text-xs font-semibold text-emerald-600">{formatCurrency(lead.ltv || 0)}</span>
+        </span>
+      </div>
+    ),
   }
 
-  const handleDelete = (leadId: string) => {
-    setDeletingLeadId(leadId)
+  const rowActions: RowActions<Lead> = {
+    customActions: (lead) => (
+      <>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7"
+          onClick={() => setEditingLeadId(lead.id)}
+          title="Editar"
+        >
+          <Edit className="h-3.5 w-3.5" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7 text-destructive hover:text-destructive"
+          onClick={() => setDeletingLeadId(lead.id)}
+          title="Deletar"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </Button>
+      </>
+    ),
   }
 
-  const handleView = (_leadId: string) => {
-    // Lead detail page removed - noop for now
-  }
+  const filtersNode = (
+    <>
+      <Select value={dateRange} onValueChange={setDateRange}>
+        <SelectTrigger className="h-7 w-36 text-xs border-border">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {PERIOD_OPTIONS.map((opt) => (
+            <SelectItem key={opt.value} value={opt.value} className="text-xs">
+              {opt.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </>
+  )
 
-  const handleOpenChat = (_leadId: string) => {
-    // Chat page removed - noop for now
-  }
-
-  const getPeriodLabel = () => {
-    const option = PERIOD_OPTIONS.find(o => o.value === dateRange)
-    return option?.label || '7 dias'
-  }
+  const actionsNode = view === 'list' ? (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="sm" className="h-7 gap-2 text-xs">
+          <SlidersHorizontal className="h-3.5 w-3.5" />
+          Exibir
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-48">
+        <DropdownMenuLabel>Colunas Visíveis</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuCheckboxItem
+          checked={visibleColumns.includes('phone')}
+          onCheckedChange={() => toggleColumn('phone')}
+        >
+          Telefone
+        </DropdownMenuCheckboxItem>
+        <DropdownMenuCheckboxItem
+          checked={visibleColumns.includes('createdAt')}
+          onCheckedChange={() => toggleColumn('createdAt')}
+        >
+          Criado em
+        </DropdownMenuCheckboxItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  ) : null
 
   return (
-    <TemplateMainShell className="flex flex-col h-[calc(100vh-2rem)]">
-
-      {/* MOBILE HEADER - Apenas Search + Filter Icon */}
-      {isMobile && (
-        <div className="flex items-center gap-3 border-b border-border bg-background px-3 pb-3 pt-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Buscar leads..."
-              className="h-10 rounded-full border-border bg-muted/50 pl-10 pr-4"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
+    <>
+      <CrudPageShell
+        title="Leads"
+        subtitle="Gerencie seus leads e contatos."
+        icon={Users}
+        view={view}
+        setView={setView}
+        enabledViews={['list', 'cards']}
+        searchInput={searchInput}
+        onSearchChange={setSearchInput}
+        searchPlaceholder="Buscar por nome, telefone, email..."
+        totalItems={total}
+        isFetchingMore={isFetchingNextPage}
+        filters={filtersNode}
+        actions={actionsNode}
+        isLoading={isLoading}
+        onAdd={() => setIsNewLeadOpen(true)}
+      >
+        <CrudDataView
+          data={leads}
+          view={view}
+          tableView={
+            <CrudListView
+              data={leads}
+              columns={columns}
+              rowActions={rowActions}
+              onEndReached={hasNextPage ? fetchNextPage : undefined}
             />
-          </div>
-
-          <Drawer>
-            <DrawerTrigger asChild>
-              <Button variant="outline" size="icon" className="h-10 w-10 shrink-0 rounded-full border-border">
-                <Filter className="h-4 w-4" />
-              </Button>
-            </DrawerTrigger>
-            <DrawerContent>
-              <div className="mx-auto w-full max-w-sm">
-                <DrawerHeader className="text-left px-6 pt-6">
-                  <DrawerTitle className="text-lg">Filtros</DrawerTitle>
-                </DrawerHeader>
-
-                <div className="px-6 py-4 space-y-6">
-                  <div className="space-y-3">
-                    <label className="text-sm font-semibold text-foreground">Período</label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {PERIOD_OPTIONS.map((option) => (
-                        <label
-                          key={option.value}
-                          className={cn(
-                            "flex items-center justify-center gap-2 h-9 px-3 rounded-md border text-xs font-medium transition-colors cursor-pointer",
-                            dateRange === option.value
-                              ? "bg-primary/10 border-primary text-primary"
-                              : "bg-muted/30 border-border text-muted-foreground hover:bg-muted/50"
-                          )}
-                        >
-                          <input
-                            type="radio"
-                            name="period"
-                            value={option.value}
-                            checked={dateRange === option.value}
-                            onChange={(e) => handlePeriodChange(e.target.value)}
-                            className="sr-only"
-                          />
-                          <span>{option.label}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <DrawerFooter className="px-6 pb-8">
-                  <DrawerClose asChild>
-                    <Button className="w-full h-11 bg-primary text-primary-foreground hover:bg-primary/90">
-                      Aplicar Filtros
-                    </Button>
-                  </DrawerClose>
-                </DrawerFooter>
-              </div>
-            </DrawerContent>
-          </Drawer>
-        </div>
-      )}
-
-      {/* DESKTOP HEADER + TOOLBAR */}
-      {!isMobile && (
-        <>
-          <TemplateMainHeader>
-            <ViewSwitcher view={view} setView={setView} className="-ml-4 mt-2" />
-          </TemplateMainHeader>
-
-
-          <div className="border-b border-border bg-background/50 px-6 backdrop-blur supports-[backdrop-filter]:bg-background/50">
-            <DataToolbar
-              searchValue={searchInput}
-              onSearchChange={setSearchInput}
-              searchPlaceholder="Buscar por nome, telefone, email..."
-              filters={
-                <div className="flex items-center gap-2">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/20">
-                        <Calendar className="h-3 w-3" />
-                        <span>Período: {getPeriodLabel()}</span>
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-48">
-                      <DropdownMenuLabel>Selecionar Período</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      {PERIOD_OPTIONS.map((option) => (
-                        <DropdownMenuCheckboxItem
-                          key={option.value}
-                          checked={dateRange === option.value}
-                          onCheckedChange={() => handlePeriodChange(option.value)}
-                        >
-                          {option.label}
-                        </DropdownMenuCheckboxItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              }
-              actions={
-                view === 'list' ? (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm" className="h-7 gap-2 text-xs">
-                        <SlidersHorizontal className="h-3.5 w-3.5" />
-                        <span>Exibir</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuLabel>Colunas Visíveis</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuCheckboxItem
-                        checked={visibleColumns.includes('phone')}
-                        onCheckedChange={() => toggleColumn('phone')}
-                      >
-                        Telefone
-                      </DropdownMenuCheckboxItem>
-                      <DropdownMenuCheckboxItem
-                        checked={visibleColumns.includes('email')}
-                        onCheckedChange={() => toggleColumn('email')}
-                      >
-                        Email
-                      </DropdownMenuCheckboxItem>
-                      <DropdownMenuCheckboxItem
-                        checked={visibleColumns.includes('createdAt')}
-                        onCheckedChange={() => toggleColumn('createdAt')}
-                      >
-                        Criado em
-                      </DropdownMenuCheckboxItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                ) : null
-              }
+          }
+          cardView={
+            <CrudCardView
+              data={leads}
+              config={cardConfig}
+              rowActions={rowActions}
+              onEndReached={hasNextPage ? fetchNextPage : undefined}
             />
-          </div>
-        </>
-      )}
-
-      {/* CONTENT AREA */}
-      <div className={isMobile
-        ? "flex-1 overflow-y-scroll bg-muted/5 p-3 scrollbar-hide"
-        : "flex-1 overflow-y-auto bg-muted/5 p-6"
-      }>
-        {isLoading ? (
-          <div className="flex items-center justify-center h-full">
-            <p className="text-muted-foreground">Carregando leads...</p>
-          </div>
-        ) : isError ? (
-          <div className="flex items-center justify-center h-full">
-            <p className="text-destructive">Erro ao carregar leads</p>
-          </div>
-        ) : isMobile ? (
-          <LeadsCardView
-            leads={leads}
-            onView={handleView}
-            onChat={handleOpenChat}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-          />
-        ) : (
-          <>
-            {view === 'list' && (
-              <LeadsTableView
-                leads={leads}
-                visibleColumns={visibleColumns}
-                onView={handleView}
-                onChat={handleOpenChat}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-              />
-            )}
-            {view === 'cards' && (
-              <LeadsCardView
-                leads={leads}
-                onView={handleView}
-                onChat={handleOpenChat}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-              />
-            )}
-          </>
-        )}
-      </div>
-
-
-
+          }
+        />
+      </CrudPageShell>
 
       {editingLeadId && (
         <EditLeadDialog
@@ -412,6 +333,8 @@ export default function LeadsPage() {
           onOpenChange={(open) => !open && setDeletingLeadId(null)}
         />
       )}
-    </TemplateMainShell>
+
+      <NewLeadDialog open={isNewLeadOpen} onOpenChange={setIsNewLeadOpen} />
+    </>
   )
 }
