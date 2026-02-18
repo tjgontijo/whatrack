@@ -5,6 +5,16 @@ import { prisma } from '@/lib/prisma'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { hasPermission } from '@/lib/auth/rbac/roles'
 import { updateTicketSchema } from '@/lib/validations/ticket-schemas'
+import { metaCapiService } from '@/services/meta-ads/capi.service'
+
+function getCapiEventForStage(stageName: string): 'LeadSubmitted' | 'Purchase' | null {
+  const name = stageName.toLowerCase();
+  // Qualified stages
+  if (name.includes('qualificado') || name.includes('qualified')) return 'LeadSubmitted';
+  // Winning stages
+  if (name.includes('venda') || name.includes('pago') || name.includes('ganho') || name.includes('won')) return 'Purchase';
+  return null;
+}
 
 // GET /api/v1/tickets/:id - Get ticket details
 export async function GET(
@@ -285,6 +295,17 @@ export async function PATCH(
       messagesCount: updated.messagesCount,
       createdAt: updated.createdAt.toISOString(),
       updatedAt: updated.updatedAt.toISOString(),
+    }
+
+    // 🟢 CAPI Trigger: If stage changed, check if we should send a conversion
+    if (stageId && stageId !== existing.stageId) {
+      const eventName = getCapiEventForStage(updated.stage.name);
+      if (eventName) {
+        metaCapiService.sendEvent(ticketId, eventName, {
+          eventId: `${eventName.toLowerCase()}-${ticketId}`,
+          value: updated.dealValue ? Number(updated.dealValue) : undefined,
+        }).catch(err => console.error(`[CAPI] Fire-and-forget failed for ticket ${ticketId}`, err));
+      }
     }
 
     // Revalidate cache

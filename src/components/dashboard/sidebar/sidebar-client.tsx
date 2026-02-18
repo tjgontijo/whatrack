@@ -176,6 +176,20 @@ export function SidebarClient({ navItems }: SidebarClientProps) {
                                     </SidebarMenuItem>
                                 )
                             })}
+
+                            {/* ROI Meta Ads Item */}
+                            <SidebarMenuItem>
+                                <SidebarMenuButton
+                                    asChild
+                                    tooltip="ROI Meta Ads"
+                                    isActive={pathname === '/dashboard/meta-ads'}
+                                >
+                                    <Link href="/dashboard/meta-ads" onClick={handleNavClick}>
+                                        <BarChart3 className="h-4 w-4" />
+                                        <span>ROI Meta Ads</span>
+                                    </Link>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
                         </SidebarMenu>
                     </SidebarGroupContent>
                 </SidebarGroup>

@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { getDefaultTicketStage } from '@/services/tickets/ensure-ticket-stages';
 import { publishToCentrifugo } from '@/lib/centrifugo/server';
+import { metaAdEnrichmentService } from '@/services/meta-ads/ad-enrichment.service';
 
 const WINDOW_MS = 24 * 60 * 60 * 1000;
 const DEFAULT_EXPIRATION_DAYS = 30;
@@ -293,7 +294,11 @@ export async function messageHandler(payload: any, options: MessageHandlerOption
               });
 
               // Trigger Enrichment (Queue)
-              // if (trackingData.metaAdId) addToEnrichmentQueue(ticket.id);
+              if (trackingData.metaAdId) {
+                metaAdEnrichmentService.enrichTicket(ticket.id).catch(err =>
+                  console.error(`[Enrichment] Fire-and-forget failed for ticket ${ticket.id}`, err)
+                );
+              }
 
             } else {
               // Update Existing Tracking (Last-Touch)
@@ -320,6 +325,12 @@ export async function messageHandler(payload: any, options: MessageHandlerOption
                   metaEnrichmentError: hasNewAd ? null : existingTracking.metaEnrichmentError
                 }
               });
+
+              if (hasNewAd) {
+                metaAdEnrichmentService.enrichTicket(ticket.id).catch(err =>
+                  console.error(`[Enrichment] Update enrichment failed for ticket ${ticket.id}`, err)
+                );
+              }
             }
           }
         }
