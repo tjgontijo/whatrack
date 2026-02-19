@@ -6,11 +6,11 @@ import { MessageSquareOff } from 'lucide-react'
 
 import { authClient } from '@/lib/auth/auth-client'
 import { ORGANIZATION_HEADER } from '@/lib/constants'
-import { useRealtime } from '@/features/whatsapp/inbox/hooks/use-realtime'
-import { ChatList } from '@/features/whatsapp/inbox/components/chat-list'
-import { ChatWindow } from '@/features/whatsapp/inbox/components/chat-window'
-import { TicketPanel } from '@/features/whatsapp/inbox/components/ticket-panel'
-import { ChatItem, ChatListResponse } from '@/features/whatsapp/inbox/types'
+import { useRealtime } from '@/hooks/whatsapp/use-realtime'
+import { ChatList } from '@/components/dashboard/whatsapp/inbox/chat-list'
+import { ChatWindow } from '@/components/dashboard/whatsapp/inbox/chat-window'
+import { TicketPanel } from '@/components/dashboard/whatsapp/inbox/ticket-panel'
+import { ChatItem, ChatListResponse } from '@/components/dashboard/whatsapp/inbox/types'
 import {
     ResizablePanelGroup,
     ResizablePanel,

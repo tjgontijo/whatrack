@@ -7,7 +7,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { ChatItem, MessageListResponse } from '../types'
+import { ChatItem, MessageListResponse } from './types'
 import { MessageBubble } from './message-bubble'
 import { ORGANIZATION_HEADER } from '@/lib/constants'
 

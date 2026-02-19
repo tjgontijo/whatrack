@@ -7,7 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
-import { ChatItem } from '../types'
+import { ChatItem } from './types'
 import { InstanceSelector } from './instance-selector'
 
 interface ChatListProps {
