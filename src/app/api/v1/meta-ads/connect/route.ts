@@ -33,10 +33,16 @@ export async function GET(req: NextRequest) {
         'public_profile'
     ].join(',');
 
+    const configId = process.env.META_ADS_APP_CONFIG_ID;
+
     // Using state to store organizationId for the callback
     const state = organizationId;
 
-    const authUrl = `https://www.facebook.com/v25.0/dialog/oauth?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scopes}&state=${state}&response_type=code`;
+    let authUrl = `https://www.facebook.com/v25.0/dialog/oauth?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scopes}&state=${state}&response_type=code`;
+
+    if (configId) {
+        authUrl += `&config_id=${configId}`;
+    }
 
     return NextResponse.redirect(authUrl);
 }
