@@ -24,18 +24,18 @@ import {
 import { TemplateMainShell, TemplateMainHeader } from '@/components/dashboard/leads'
 
 interface MetaROIContentProps {
-    roiData: any[] | undefined
+    roiData: { accountSummary: any[], campaigns: any[] } | undefined
     isLoading: boolean
     isRefetching: boolean
     onRefresh: () => void
 }
 
 export function MetaROIContent({ roiData, isLoading, isRefetching, onRefresh }: MetaROIContentProps) {
-    const totalSpend = roiData?.reduce((acc: number, curr: any) => acc + curr.spend, 0) || 0
-    const totalRevenue = roiData?.reduce((acc: number, curr: any) => acc + curr.revenue, 0) || 0
+    const totalSpend = roiData?.accountSummary?.reduce((acc: number, curr: any) => acc + curr.spend, 0) || 0
+    const totalRevenue = roiData?.accountSummary?.reduce((acc: number, curr: any) => acc + curr.revenue, 0) || 0
     const globalROAS = totalSpend > 0 ? (totalRevenue / totalSpend).toFixed(2) : '0.00'
 
-    const chartData = roiData?.map((acc: any) => ({
+    const chartData = roiData?.accountSummary?.map((acc: any) => ({
         name: acc.accountName.substring(0, 15) + '...',
         Investimento: acc.spend,
         Retorno: acc.revenue
@@ -142,7 +142,8 @@ export function MetaROIContent({ roiData, isLoading, isRefetching, onRefresh }: 
                             <table className="w-full text-sm text-left">
                                 <thead className="bg-muted/50 text-xs uppercase font-medium">
                                     <tr>
-                                        <th className="px-6 py-3">Conta de Anúncios</th>
+                                        <th className="px-6 py-3">Campanha</th>
+                                        <th className="px-6 py-3">Conta Relacionada</th>
                                         <th className="px-6 py-3 text-right">Investimento (Spend)</th>
                                         <th className="px-6 py-3 text-right">Faturamento (Sale)</th>
                                         <th className="px-6 py-3 text-center">ROAS</th>
@@ -150,22 +151,29 @@ export function MetaROIContent({ roiData, isLoading, isRefetching, onRefresh }: 
                                 </thead>
                                 <tbody className="divide-y">
                                     {isLoading ? (
-                                        [1, 2].map(i => <tr key={i}><td colSpan={4} className="px-6 py-4"><Skeleton className="h-6 w-full" /></td></tr>)
-                                    ) : (roiData?.length ?? 0) > 0 ? (
-                                        roiData?.map((acc: any) => (
-                                            <tr key={acc.accountId} className="hover:bg-muted/10 transition-colors">
-                                                <td className="px-6 py-4 font-medium">{acc.accountName}</td>
-                                                <td className="px-6 py-4 text-right font-mono text-blue-600">R$ {acc.spend.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                                                <td className="px-6 py-4 text-right font-mono text-emerald-600">R$ {acc.revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                                        [1, 2, 3].map(i => <tr key={i}><td colSpan={5} className="px-6 py-4"><Skeleton className="h-6 w-full" /></td></tr>)
+                                    ) : (roiData?.campaigns?.length ?? 0) > 0 ? (
+                                        roiData?.campaigns?.map((camp: any) => (
+                                            <tr key={camp.campaignId} className="hover:bg-muted/10 transition-colors">
+                                                <td className="px-6 py-4 font-medium max-w-[200px] truncate" title={camp.campaignName}>
+                                                    {camp.campaignName}
+                                                </td>
+                                                <td className="px-6 py-4 text-muted-foreground text-xs">{camp.accountName}</td>
+                                                <td className="px-6 py-4 text-right font-mono text-blue-600">
+                                                    R$ {camp.spend.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                                </td>
+                                                <td className="px-6 py-4 text-right font-mono text-emerald-600">
+                                                    R$ {camp.revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                                </td>
                                                 <td className="px-6 py-4 text-center">
-                                                    <Badge variant={Number(acc.roas) >= 2 ? 'default' : 'outline'} className={Number(acc.roas) >= 2 ? 'bg-emerald-500 hover:bg-emerald-600' : ''}>
-                                                        {acc.roas}x
+                                                    <Badge variant={Number(camp.roas) >= 2 ? 'default' : 'outline'} className={Number(camp.roas) >= 2 ? 'bg-emerald-500 hover:bg-emerald-600' : ''}>
+                                                        {camp.roas}x
                                                     </Badge>
                                                 </td>
                                             </tr>
                                         ))
                                     ) : (
-                                        <tr><td colSpan={4} className="px-6 py-12 text-center text-muted-foreground">Vincule contas de anúncios para ver o ROI.</td></tr>
+                                        <tr><td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">Nenhuma campanha encontrada com gastos no período.</td></tr>
                                     )}
                                 </tbody>
                             </table>
@@ -173,7 +181,7 @@ export function MetaROIContent({ roiData, isLoading, isRefetching, onRefresh }: 
                     </CardContent>
                 </Card>
 
-                {!roiData?.length && !isLoading && (
+                {!roiData?.accountSummary?.length && !isLoading && (
                     <div className="p-4 bg-blue-50 border border-blue-100 rounded-lg flex gap-3 items-center">
                         <AlertCircle className="h-5 w-5 text-blue-500 shrink-0" />
                         <p className="text-xs text-blue-800">

@@ -20,7 +20,10 @@ export class MetaAdInsightsService {
         const dateStartStr = dateStart.toISOString().split('T')[0];
         const dateEndStr = new Date().toISOString().split('T')[0];
 
-        const results = [];
+        const results = {
+            accountSummary: [] as any[],
+            campaigns: [] as any[],
+        };
 
         for (const conn of connections) {
             const token = await metaAccessTokenService.getDecryptedToken(conn.id);
@@ -32,8 +35,8 @@ export class MetaAdInsightsService {
 
             for (const acc of activeAccounts) {
                 try {
-                    // 1. Get Spend from Meta
-                    const insightsResponse = await axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${acc.adAccountId}/insights`, {
+                    // 1. Get Spend from Meta (Account Level)
+                    const accountInsightsResponse = await axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${acc.adAccountId}/insights`, {
                         params: {
                             access_token: token,
                             level: 'account',
@@ -42,10 +45,23 @@ export class MetaAdInsightsService {
                         },
                     });
 
-                    const metaData = insightsResponse.data.data?.[0] || { spend: '0', impressions: '0', clicks: '0' };
+                    const metaData = accountInsightsResponse.data.data?.[0] || { spend: '0', impressions: '0', clicks: '0' };
 
-                    // 2. Get Revenue from Local DB
-                    const sales = await prisma.sale.aggregate({
+                    // 1.b Get Spend from Meta (Campaign Level)
+                    const campaignInsightsResponse = await axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${acc.adAccountId}/insights`, {
+                        params: {
+                            access_token: token,
+                            level: 'campaign',
+                            time_range: JSON.stringify({ since: dateStartStr, until: dateEndStr }),
+                            fields: 'campaign_id,campaign_name,spend,impressions,clicks',
+                            limit: 100
+                        },
+                    });
+
+                    const metaCampaigns = campaignInsightsResponse.data.data || [];
+
+                    // 2. Get Revenue from Local DB (Account Level)
+                    const accountSales = await prisma.sale.aggregate({
                         where: {
                             organizationId,
                             status: 'paid', // Only count paid sales
@@ -61,10 +77,10 @@ export class MetaAdInsightsService {
                         }
                     });
 
-                    const revenue = Number(sales._sum.totalAmount || 0);
+                    const revenue = Number(accountSales._sum.totalAmount || 0);
                     const spend = Number(metaData.spend || 0);
 
-                    results.push({
+                    results.accountSummary.push({
                         accountId: acc.adAccountId,
                         accountName: acc.adAccountName,
                         spend,
@@ -73,6 +89,40 @@ export class MetaAdInsightsService {
                         impressions: Number(metaData.impressions),
                         clicks: Number(metaData.clicks),
                     });
+
+                    // 3. Process each campaign
+                    for (const camp of metaCampaigns) {
+                        // Get revenue for this specific campaign
+                        const campSales = await prisma.sale.aggregate({
+                            where: {
+                                organizationId,
+                                status: 'paid',
+                                createdAt: { gte: dateStart },
+                                ticket: {
+                                    tracking: {
+                                        metaCampaignId: camp.campaign_id
+                                    }
+                                }
+                            },
+                            _sum: {
+                                totalAmount: true
+                            }
+                        });
+
+                        const campRevenue = Number(campSales._sum.totalAmount || 0);
+                        const campSpend = Number(camp.spend || 0);
+
+                        results.campaigns.push({
+                            campaignId: camp.campaign_id,
+                            campaignName: camp.campaign_name,
+                            accountName: acc.adAccountName,
+                            spend: campSpend,
+                            revenue: campRevenue,
+                            roas: campSpend > 0 ? (campRevenue / campSpend).toFixed(2) : '0.00',
+                            impressions: Number(camp.impressions),
+                            clicks: Number(camp.clicks),
+                        });
+                    }
 
                 } catch (error: any) {
                     console.error(`[Insights] Error fetching for account ${acc.adAccountId}:`, error?.response?.data || error.message);
