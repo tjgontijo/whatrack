@@ -769,6 +769,7 @@ model MetaAdAccount {
   adAccountName         String
   
   pixelId               String?  // Dataset/Pixel ID para envio CAPI
+  capiToken             String?  // Conversions API Access Token
   isActive              Boolean  @default(false) // Switch da UI
 
   createdAt             DateTime @default(now())

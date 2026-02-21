@@ -83,6 +83,45 @@ export class MetaAdAccountService {
     }
 
     /**
+     * Update CAPI Token for an Ad Account
+     */
+    async updateCapiToken(accountId: string, capiToken: string | null) {
+        return await prisma.metaAdAccount.update({
+            where: { id: accountId },
+            data: { capiToken },
+        });
+    }
+
+    /**
+     * Fetch Pixels / Datasets for an Ad Account
+     */
+    async getAdAccountPixels(id: string) {
+        const adAccount = await prisma.metaAdAccount.findUnique({
+            where: { id },
+            include: { connection: true }
+        });
+
+        if (!adAccount || !adAccount.connection) throw new Error('Ad Account or Connection not found');
+
+        const token = await metaAccessTokenService.getDecryptedToken(adAccount.connectionId);
+
+        try {
+            const response = await axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${adAccount.adAccountId}/adspixels`, {
+                params: {
+                    access_token: token,
+                    fields: 'id,name',
+                    limit: 100,
+                }
+            });
+
+            return response.data.data || [];
+        } catch (error: any) {
+            console.error('[MetaAdAccountService] Error fetching pixels:', error?.response?.data || error.message);
+            return [];
+        }
+    }
+
+    /**
      * Get active accounts for an organization
      */
     async getActiveAccounts(organizationId: string) {

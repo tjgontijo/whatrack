@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from 'next/headers';
 import { auth } from "@/lib/auth/auth";
-import { prisma } from "@/lib/prisma";
+import { metaAdAccountService } from "@/services/meta-ads/ad-account.service";
 
 async function getSessionFromRequest(req: NextRequest) {
     const headers = new Headers(req.headers);
@@ -16,7 +16,7 @@ async function getSessionFromRequest(req: NextRequest) {
     return auth.api.getSession({ headers });
 }
 
-export async function PATCH(
+export async function GET(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
@@ -27,18 +27,10 @@ export async function PATCH(
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await req.json();
-    const { isActive, pixelId, capiToken } = body;
-
-    const data: any = {};
-    if (typeof isActive === 'boolean') data.isActive = isActive;
-    if (typeof pixelId !== 'undefined') data.pixelId = pixelId;
-    if (typeof capiToken !== 'undefined') data.capiToken = capiToken;
-
-    const updated = await prisma.metaAdAccount.update({
-        where: { id },
-        data,
-    });
-
-    return NextResponse.json(updated);
+    try {
+        const pixels = await metaAdAccountService.getAdAccountPixels(id);
+        return NextResponse.json(pixels);
+    } catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
 }
