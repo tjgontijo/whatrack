@@ -73,62 +73,6 @@ export class MetaAdAccountService {
     }
 
     /**
-     * Save Pixels and CAPI Tokens for an Ad Account
-     */
-    async saveAdAccountPixels(accountId: string, pixels: { pixelId: string; capiToken: string }[]) {
-        // Delete existing and recreate
-        return await prisma.$transaction(async (tx) => {
-            await tx.metaAdAccountPixel.deleteMany({
-                where: { adAccountId: accountId }
-            });
-
-            if (pixels.length > 0) {
-                await tx.metaAdAccountPixel.createMany({
-                    data: pixels.map(p => ({
-                        adAccountId: accountId,
-                        pixelId: p.pixelId,
-                        capiToken: p.capiToken
-                    }))
-                });
-            }
-
-            return tx.metaAdAccount.findUnique({
-                where: { id: accountId },
-                include: { pixels: true }
-            });
-        });
-    }
-
-    /**
-     * Fetch Pixels / Datasets for an Ad Account
-     */
-    async getAdAccountPixels(id: string) {
-        const adAccount = await prisma.metaAdAccount.findUnique({
-            where: { id },
-            include: { connection: true }
-        });
-
-        if (!adAccount || !adAccount.connection) throw new Error('Ad Account or Connection not found');
-
-        const token = await metaAccessTokenService.getDecryptedToken(adAccount.connectionId);
-
-        try {
-            const response = await axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${adAccount.adAccountId}/adspixels`, {
-                params: {
-                    access_token: token,
-                    fields: 'id,name',
-                    limit: 100,
-                }
-            });
-
-            return response.data.data || [];
-        } catch (error: any) {
-            console.error('[MetaAdAccountService] Error fetching pixels:', error?.response?.data || error.message);
-            return [];
-        }
-    }
-
-    /**
      * Get active accounts for an organization
      */
     async getActiveAccounts(organizationId: string) {
@@ -139,7 +83,6 @@ export class MetaAdAccountService {
             },
             include: {
                 connection: true,
-                pixels: true,
             },
         });
     }

@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from 'next/headers';
 import { auth } from "@/lib/auth/auth";
 import { prisma } from "@/lib/prisma";
-import { metaAdAccountService } from "@/services/meta-ads/ad-account.service";
 
 async function getSessionFromRequest(req: NextRequest) {
     const headers = new Headers(req.headers);
@@ -21,25 +20,45 @@ export async function GET(req: NextRequest) {
     const session = await getSessionFromRequest(req);
     const { searchParams } = new URL(req.url);
     const organizationId = searchParams.get('organizationId');
-    const sync = searchParams.get('sync') === 'true';
 
     if (!session || !organizationId) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (sync) {
-        const connections = await prisma.metaConnection.findMany({
-            where: { organizationId, status: 'ACTIVE' }
-        });
-        for (const conn of connections) {
-            await metaAdAccountService.syncAdAccounts(conn.id);
-        }
-    }
-
-    const accounts = await prisma.metaAdAccount.findMany({
+    const pixels = await prisma.metaPixel.findMany({
         where: { organizationId },
-        orderBy: { adAccountName: 'asc' }
+        orderBy: { createdAt: 'desc' },
     });
 
-    return NextResponse.json(accounts);
+    return NextResponse.json(pixels);
+}
+
+export async function POST(req: NextRequest) {
+    const session = await getSessionFromRequest(req);
+
+    if (!session) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    try {
+        const body = await req.json();
+        const { organizationId, pixelId, capiToken, name } = body;
+
+        if (!organizationId || !pixelId || !capiToken) {
+            return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+        }
+
+        const pixel = await prisma.metaPixel.create({
+            data: {
+                organizationId,
+                pixelId,
+                capiToken,
+                name,
+            },
+        });
+
+        return NextResponse.json(pixel);
+    } catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
 }

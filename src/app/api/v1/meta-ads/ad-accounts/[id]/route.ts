@@ -29,20 +29,15 @@ export async function PATCH(
     }
 
     const body = await req.json();
-    const { isActive, pixels } = body;
+    const { isActive } = body;
 
     let updated: any;
 
     if (typeof isActive === 'boolean') {
         updated = await prisma.metaAdAccount.update({
             where: { id },
-            data: { isActive },
-            include: { pixels: true }
+            data: { isActive }
         });
-    }
-
-    if (Array.isArray(pixels)) {
-        updated = await metaAdAccountService.saveAdAccountPixels(id, pixels);
     }
 
     return NextResponse.json(updated || {});

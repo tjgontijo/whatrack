@@ -26,9 +26,8 @@ export class MetaCapiService {
                 organization: {
                     include: {
                         metaConnections: { where: { status: 'ACTIVE' }, take: 1 },
-                        metaAdAccounts: {
-                            where: { isActive: true },
-                            include: { pixels: true }
+                        metaPixels: {
+                            where: { isActive: true }
                         }
                     }
                 },
@@ -42,16 +41,8 @@ export class MetaCapiService {
             return;
         }
 
-        // 1. Find the Pixels/Datasets
-        // We try to find the pixels configured for the ad account of this ticket
-        // If not found, we use the first active ad account with pixels for the organization
-        let targetPixels = ticket.organization.metaAdAccounts.find(
-            acc => acc.adAccountId === ticket.tracking?.metaAccountId
-        )?.pixels;
-
-        if (!targetPixels || targetPixels.length === 0) {
-            targetPixels = ticket.organization.metaAdAccounts.find(acc => acc.pixels.length > 0)?.pixels;
-        }
+        // 1. Find the active Pixels for the organization
+        let targetPixels = ticket.organization.metaPixels;
 
         if (!targetPixels || targetPixels.length === 0) {
             console.warn(`[CAPI] No Pixels found for organization ${ticket.organizationId}.`);

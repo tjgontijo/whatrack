@@ -233,6 +233,7 @@ model Organization {
   // Meta Ads Relations
   metaConnections      MetaConnection[]
   metaAdAccounts       MetaAdAccount[]
+  metaPixels           MetaPixel[]
   metaConversionEvents MetaConversionEvent[]
   aiConversionApprovals AiConversionApproval[]
   
@@ -775,26 +776,27 @@ model MetaAdAccount {
 
   connection            MetaConnection       @relation(fields: [connectionId], references: [id], onDelete: Cascade)
   organization          Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  pixels                MetaAdAccountPixel[]
 
   @@unique([organizationId, adAccountId])
   @@map("meta_ad_accounts")
 }
 
-model MetaAdAccountPixel {
+model MetaPixel {
   id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  adAccountId           String   @db.Uuid
+  organizationId        String   @db.Uuid
   
+  name                  String?  // Nome opcional
   pixelId               String   // Dataset/Pixel ID para envio CAPI
   capiToken             String   // Conversions API Access Token
+  isActive              Boolean  @default(true)
   
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 
-  adAccount             MetaAdAccount @relation(fields: [adAccountId], references: [id], onDelete: Cascade)
+  organization          Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  @@unique([adAccountId, pixelId])
-  @@map("meta_ad_account_pixels")
+  @@unique([organizationId, pixelId])
+  @@map("meta_pixels")
 }
 
 model MetaConversionEvent {

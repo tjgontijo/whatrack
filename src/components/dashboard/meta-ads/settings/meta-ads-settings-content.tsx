@@ -24,7 +24,7 @@ import { MetaIcon } from '@/components/icons'
 import Link from 'next/link'
 import { TemplateMainShell, TemplateMainHeader } from '@/components/dashboard/leads'
 import { useMetaAdsOnboarding } from '@/hooks/meta-ads/use-meta-ads-onboarding'
-import { AdAccountConfigRow } from './ad-account-config-row'
+import { MetaPixelsConfigArea } from './meta-pixels-config-area'
 
 interface MetaAdsSettingsContentProps {
     organizationId: string | undefined
@@ -61,6 +61,16 @@ export function MetaAdsSettingsContent({ organizationId }: MetaAdsSettingsConten
     const { startOnboarding, isPending: isConnecting } = useMetaAdsOnboarding(organizationId, handleRefreshAll)
 
     // 3. Mutations
+    const toggleMutation = useMutation({
+        mutationFn: async ({ id, isActive }: { id: string, isActive: boolean }) => {
+            return axios.patch(`/api/v1/meta-ads/ad-accounts/${id}`, { isActive })
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['meta-ads', 'ad-accounts'] })
+            toast.success('Rastreamento de conta atualizado')
+        }
+    })
+
     const syncMutation = useMutation({
         mutationFn: async () => {
             return axios.get(`/api/v1/meta-ads/ad-accounts?organizationId=${organizationId}&sync=true`)
@@ -173,7 +183,7 @@ export function MetaAdsSettingsContent({ organizationId }: MetaAdsSettingsConten
                         <div className="flex items-center justify-between">
                             <h2 className="text-lg font-semibold flex items-center gap-2">
                                 <Settings2 className="h-5 w-5 text-primary" />
-                                Configurar Contas de Anúncios
+                                Contas de Anúncios Importadas
                             </h2>
                             <Button
                                 variant="outline"
@@ -193,9 +203,9 @@ export function MetaAdsSettingsContent({ organizationId }: MetaAdsSettingsConten
                                     <table className="w-full text-sm text-left">
                                         <thead className="text-xs uppercase bg-muted/50 border-b">
                                             <tr>
-                                                <th className="px-6 py-4 font-semibold">Conta / Status</th>
-                                                <th className="px-6 py-4 font-semibold">Dataset ID (Pixel)</th>
-                                                <th className="px-6 py-4 font-semibold text-center w-32">Rastrear?</th>
+                                                <th className="px-6 py-4 font-semibold">Conta</th>
+                                                <th className="px-6 py-4 font-semibold text-center w-32">Status da Conta</th>
+                                                <th className="px-6 py-4 font-semibold text-center w-32">Extrair Dados?</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y">
@@ -205,7 +215,23 @@ export function MetaAdsSettingsContent({ organizationId }: MetaAdsSettingsConten
                                                 ))
                                             ) : (adAccounts?.length ?? 0) > 0 ? (
                                                 adAccounts?.map((acc: any) => (
-                                                    <AdAccountConfigRow key={acc.id} acc={acc} />
+                                                    <tr key={acc.id} className="hover:bg-muted/20 transition-colors">
+                                                        <td className="px-6 py-4">
+                                                            <div className="font-medium text-foreground">{acc.adAccountName}</div>
+                                                            <div className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
+                                                                {acc.adAccountId}
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-4 text-center">
+                                                            <Badge variant="outline" className="font-normal text-[10px] h-5">Conectada</Badge>
+                                                        </td>
+                                                        <td className="px-6 py-4 text-center">
+                                                            <Switch
+                                                                checked={acc.isActive}
+                                                                onCheckedChange={(val) => toggleMutation.mutate({ id: acc.id, isActive: val })}
+                                                            />
+                                                        </td>
+                                                    </tr>
                                                 ))
                                             ) : (
                                                 <tr>
@@ -219,18 +245,12 @@ export function MetaAdsSettingsContent({ organizationId }: MetaAdsSettingsConten
                                 </div>
                             </CardContent>
                         </Card>
-
-                        <div className="flex items-start gap-3 p-4 bg-amber-50 rounded-lg border border-amber-100">
-                            <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5" />
-                            <div className="text-xs text-amber-800 space-y-1">
-                                <p className="font-semibold">Requisito para Rastreamento:</p>
-                                <p>O <b>Dataset (Pixel)</b> e o <b>Token da API</b> são obrigatórios para enviarmos os eventos de conversão via <b>Meta Conversions API (CAPI)</b>.</p>
-                                <Link href="#" className="underline flex items-center gap-1 mt-1">
-                                    Onde encontro o Token de Acesso da API de Conversões? <ExternalLink className="h-3 w-3" />
-                                </Link>
-                            </div>
-                        </div>
                     </section>
+                )}
+
+                {/* Step 3: Meta Pixels Config (CAPI) */}
+                {(connections?.length ?? 0) > 0 && (
+                    <MetaPixelsConfigArea organizationId={organizationId} />
                 )}
 
             </div>
