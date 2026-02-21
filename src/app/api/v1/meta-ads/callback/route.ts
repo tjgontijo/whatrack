@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
     const organizationId = searchParams.get('state'); // We passed organizationId as state
 
     if (!code || !organizationId) {
-        return NextResponse.redirect(new URL('/dashboard/settings/whatsapp?error=meta_auth_failed', req.url));
+        return NextResponse.redirect(new URL('/dashboard/settings/meta-ads?error=meta_auth_failed', req.url));
     }
 
     try {

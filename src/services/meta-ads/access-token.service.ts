@@ -5,7 +5,7 @@ import axios from 'axios';
 const GRAPH_API_VERSION = process.env.META_GRAPH_API_VERSION || 'v25.0';
 const APP_ID = process.env.META_ADS_APP_ID;
 const APP_SECRET = process.env.META_ADS_APP_SECRET;
-const REDIRECT_URI = process.env.META_OAUTH_REDIRECT_URI;
+const REDIRECT_URI = process.env.META_OAUTH_REDIRECT_URI || `${process.env.APP_URL}/api/v1/meta-ads/callback`;
 
 interface MetaTokenDebug {
     data: {

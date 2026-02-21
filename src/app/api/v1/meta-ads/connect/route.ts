@@ -25,24 +25,16 @@ export async function GET(req: NextRequest) {
     }
 
     const clientId = process.env.META_ADS_APP_ID;
-    const redirectUri = process.env.META_OAUTH_REDIRECT_URI;
+    const redirectUri = process.env.META_OAUTH_REDIRECT_URI || `${process.env.APP_URL}/api/v1/meta-ads/callback`;
     const scopes = [
         'ads_read',
-        'ads_management',
-        'business_management',
         'public_profile'
     ].join(',');
-
-    const configId = process.env.META_ADS_APP_CONFIG_ID;
 
     // Using state to store organizationId for the callback
     const state = organizationId;
 
     let authUrl = `https://www.facebook.com/v25.0/dialog/oauth?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scopes}&state=${state}&response_type=code`;
-
-    if (configId) {
-        authUrl += `&config_id=${configId}`;
-    }
 
     return NextResponse.redirect(authUrl);
 }
