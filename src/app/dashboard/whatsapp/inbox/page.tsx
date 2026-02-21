@@ -57,7 +57,7 @@ export default function WhatsAppInboxPage() {
     }
 
     return (
-        <div className="flex bg-card rounded-2xl border border-border/60 shadow-xl overflow-hidden h-[calc(100vh-140px)]">
+        <div className="flex bg-background overflow-hidden h-[calc(100vh-65px)] -mx-4 -my-2 border-t border-border/40">
             <ResizablePanelGroup direction="horizontal">
                 {/* Left Panel: Conversations */}
                 <ResizablePanel defaultSize={25} minSize={15} maxSize={40}>
@@ -102,6 +102,7 @@ export default function WhatsAppInboxPage() {
                         <TicketPanel
                             conversationId={selectedChat.id}
                             organizationId={organizationId}
+                            chat={selectedChat}
                         />
                     ) : (
                         <div className="flex flex-col items-center justify-center h-full p-4 text-center text-sm text-muted-foreground">

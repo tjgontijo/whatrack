@@ -18,10 +18,17 @@ export interface TicketStage {
     color: string
 }
 
+export interface TicketTracking {
+    sourceType: string
+    utmSource?: string | null
+    ctwaclid?: string | null
+}
+
 export interface TicketInfo {
     id: string
     status: 'open' | 'closed_won' | 'closed_lost'
     stage: TicketStage
+    tracking?: TicketTracking | null
 }
 
 export interface ChatItem {

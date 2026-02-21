@@ -82,6 +82,13 @@ export async function GET(request: Request) {
                                         color: true,
                                     },
                                 },
+                                tracking: {
+                                    select: {
+                                        sourceType: true,
+                                        utmSource: true,
+                                        ctwaclid: true,
+                                    },
+                                },
                             },
                             orderBy: {
                                 createdAt: 'desc',
@@ -118,6 +125,7 @@ export async function GET(request: Request) {
                         id: currentTicket.id,
                         status: currentTicket.status,
                         stage: currentTicket.stage,
+                        tracking: currentTicket.tracking,
                     }
                     : undefined,
             }

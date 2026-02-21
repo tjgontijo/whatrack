@@ -18,6 +18,7 @@ import {
     Smartphone,
     Webhook,
     Kanban,
+    Sparkles,
 } from 'lucide-react'
 
 import {
@@ -67,6 +68,7 @@ const ICON_MAP = {
     Webhook,
     ChevronRight,
     Kanban,
+    Sparkles,
 } as const
 
 type NavItem = {
@@ -106,7 +108,7 @@ export function SidebarClient({ navItems }: SidebarClientProps) {
 
     // Separate nav items into groups
     const platformItems = navItems.filter(item =>
-        ['LayoutDashboard', 'MessageSquare'].includes(item.icon)
+        ['LayoutDashboard', 'MessageSquare', 'Sparkles'].includes(item.icon)
     )
 
     const dataItems = navItems.filter(item =>
@@ -260,6 +262,20 @@ export function SidebarClient({ navItems }: SidebarClientProps) {
                                     <Link href="/dashboard/settings/pipeline" onClick={handleNavClick}>
                                         <Kanban className="h-4 w-4" />
                                         <span>Pipeline</span>
+                                    </Link>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+
+                            {/* IA Copilot Settings */}
+                            <SidebarMenuItem>
+                                <SidebarMenuButton
+                                    asChild
+                                    tooltip="Configurações de IA"
+                                    isActive={pathname === '/dashboard/settings/ai'}
+                                >
+                                    <Link href="/dashboard/settings/ai" onClick={handleNavClick}>
+                                        <Sparkles className="h-4 w-4" />
+                                        <span>IA Copilot</span>
                                     </Link>
                                 </SidebarMenuButton>
                             </SidebarMenuItem>

@@ -234,6 +234,7 @@ model Organization {
   metaConnections      MetaConnection[]
   metaAdAccounts       MetaAdAccount[]
   metaConversionEvents MetaConversionEvent[]
+  aiConversionApprovals AiConversionApproval[]
 
   @@map("organization")
 }
@@ -258,6 +259,10 @@ model OrganizationProfile {
   leadsPerAttendant       Float?
   revenuePerAttendant     Float?
   ticketExpirationDays    Int?             @default(30)
+  
+  aiCopilotInstructions   String?
+  aiCopilotActive         Boolean          @default(true)
+  
   createdAt               DateTime         @default(now())
   updatedAt               DateTime         @updatedAt
   onboardingStatusRef     OnboardingStatus @relation(fields: [onboardingStatus], references: [name])
@@ -366,6 +371,7 @@ model Ticket {
   stage           TicketStage     @relation(fields: [stageId], references: [id])
   messages        Message[]
   metaAttributionHistory MetaAttributionHistory[]
+  aiConversionApprovals  AiConversionApproval[]
 
   @@index([organizationId])
   @@index([conversationId])
@@ -391,8 +397,6 @@ model TicketStage {
   @@index([organizationId, order])
   @@map("ticket_stages")
 }
-
-
 
 model Sale {
   id              String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -807,4 +811,32 @@ model MetaAttributionHistory {
 
   @@index([ticketId])
   @@map("meta_attribution_history")
+}
+
+model AiConversionApproval {
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String       @db.Uuid
+  ticketId       String       @db.Uuid
+  
+  eventName      String       // "LeadSubmitted" | "Purchase"
+  productName    String?      
+  dealValue      Decimal?     @db.Decimal(12, 2)
+  confidence     Float        @default(1.0)
+  reasoning      String?      
+  
+  status         String       @default("PENDING") // PENDING, APPROVED, REJECTED
+  
+  reviewedBy     String?      @db.Uuid
+  reviewedAt     DateTime?
+  
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  ticket         Ticket       @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([ticketId])
+  @@index([status])
+  @@map("ai_conversion_approvals")
 }

@@ -38,9 +38,9 @@ export function ChatList({
     }
 
     return (
-        <div className="flex flex-col h-full border-r border-border/60 bg-card/30 backdrop-blur-sm">
-            <div className="p-4 border-b border-border/60 space-y-4">
-                <h1 className="text-xl font-bold tracking-tight">Mensagens</h1>
+        <div className="flex flex-col h-full border-r border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="p-4 border-b border-border/40 space-y-4">
+                <h1 className="text-lg font-bold tracking-tight">Mensagens</h1>
                 {onInstanceChange && (
                     <InstanceSelector
                         selectedInstanceId={selectedInstanceId || null}
@@ -51,7 +51,7 @@ export function ChatList({
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                         placeholder="Buscar conversa..."
-                        className="pl-9 bg-muted/40 border-none rounded-xl"
+                        className="pl-9 h-9 bg-muted/40 border-none rounded-xl text-sm"
                         value={search}
                         onChange={handleSearchChange}
                     />
@@ -61,11 +61,11 @@ export function ChatList({
             <ScrollArea className="flex-1">
                 <div className="flex flex-col">
                     {isLoading ? (
-                        <div className="p-8 text-center text-muted-foreground animate-pulse">
+                        <div className="p-8 text-center text-sm text-muted-foreground animate-pulse">
                             Carregando conversas...
                         </div>
                     ) : chats.length === 0 ? (
-                        <div className="p-8 text-center text-muted-foreground">
+                        <div className="p-8 text-center text-sm text-muted-foreground">
                             Nenhuma conversa encontrada.
                         </div>
                     ) : (
@@ -83,49 +83,54 @@ export function ChatList({
                                     key={chat.id}
                                     onClick={() => onSelectChat(chat)}
                                     className={cn(
-                                        "flex items-center gap-3 p-4 text-left transition-all hover:bg-muted/50 border-b border-border/40",
-                                        selectedChatId === chat.id && "bg-muted shadow-inner border-l-4 border-l-primary"
+                                        "group flex items-center gap-3 p-3 text-left transition-all hover:bg-muted/50 border-b border-border/40",
+                                        selectedChatId === chat.id ? "bg-muted shadow-inner border-l-4 border-l-primary" : "border-l-4 border-l-transparent"
                                     )}
                                 >
                                     <div className="relative">
-                                        <Avatar className="h-12 w-12 border border-border/50">
+                                        <Avatar className="h-11 w-11 border border-border/50">
                                             <AvatarImage src={chat.profilePicUrl || undefined} />
-                                            <AvatarFallback className="bg-primary/10 text-primary uppercase font-bold">
+                                            <AvatarFallback className="bg-primary/5 text-primary uppercase font-medium text-xs">
                                                 {chat.name.substring(0, 2)}
                                             </AvatarFallback>
                                         </Avatar>
-                                        {chat.unreadCount && chat.unreadCount > 0 && (
-                                            <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center rounded-full text-[10px] bg-red-500">
+                                        {chat.unreadCount && chat.unreadCount > 0 ? (
+                                            <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center rounded-full text-[10px] bg-green-500 hover:bg-green-600">
                                                 {chat.unreadCount > 9 ? '9+' : chat.unreadCount}
                                             </Badge>
-                                        )}
+                                        ) : null}
                                     </div>
 
                                     <div className="flex-1 min-w-0">
-                                        <div className="flex items-center justify-between mb-1">
-                                            <span className="font-bold truncate text-sm">
+                                        <div className="flex items-center justify-between mb-0.5">
+                                            <span className="font-semibold truncate text-sm">
                                                 {chat.name}
                                             </span>
                                             <span className="text-[10px] text-muted-foreground whitespace-nowrap">
                                                 {new Date(chat.lastMessageAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                                             </span>
                                         </div>
-                                        <div className="flex items-center gap-2 mb-1">
+                                        <div className="flex flex-wrap items-center gap-1.5 mb-1">
                                             {statusBadge && (
-                                                <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${statusBadge.bg} ${statusBadge.text} border-0`}>
+                                                <Badge variant="outline" className={`text-[9px] px-1.5 py-0 ${statusBadge.bg} ${statusBadge.text} border-0 font-medium tracking-wide`}>
                                                     {statusBadge.label}
                                                 </Badge>
                                             )}
                                             {chat.currentTicket?.stage && (
                                                 <div
-                                                    className="text-[10px] px-1.5 py-0.5 rounded text-white"
+                                                    className="text-[9px] px-1.5 py-0.5 rounded text-white font-medium/90 tracking-wide"
                                                     style={{ backgroundColor: chat.currentTicket.stage.color }}
                                                 >
                                                     {chat.currentTicket.stage.name}
                                                 </div>
                                             )}
+                                            {chat.currentTicket?.tracking && chat.currentTicket.tracking.sourceType === 'paid' && (
+                                                <Badge variant="outline" className="text-[9px] px-1.5 py-0 bg-[#c13584]/10 text-[#c13584] border-0 flex items-center gap-1 font-medium tracking-wide">
+                                                    🔥 Ads
+                                                </Badge>
+                                            )}
                                         </div>
-                                        <p className="text-xs text-muted-foreground truncate leading-relaxed">
+                                        <p className="text-xs text-muted-foreground truncate leading-relaxed group-hover:text-foreground/80 transition-colors">
                                             {chat.lastMessage?.body || 'Arquivo ou mídia'}
                                         </p>
                                     </div>
