@@ -235,6 +235,10 @@ model Organization {
   metaAdAccounts       MetaAdAccount[]
   metaConversionEvents MetaConversionEvent[]
   aiConversionApprovals AiConversionApproval[]
+  
+  // AI Platform Relations
+  aiAgents             AiAgent[]
+  aiInsights           AiInsight[]
 
   @@map("organization")
 }
@@ -372,6 +376,7 @@ model Ticket {
   messages        Message[]
   metaAttributionHistory MetaAttributionHistory[]
   aiConversionApprovals  AiConversionApproval[]
+  aiInsights             AiInsight[]
 
   @@index([organizationId])
   @@index([conversationId])
@@ -840,3 +845,117 @@ model AiConversionApproval {
   @@index([status])
   @@map("ai_conversion_approvals")
 }
+
+// ============================================
+// Multi-Agent Platform (Copilot 2.0)
+// ============================================
+
+model AiTriggerEventType {
+  id          String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String      @unique
+  description String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  triggers    AiTrigger[]
+
+  @@map("ai_trigger_event_types")
+}
+
+model AiSchemaFieldType {
+  id          String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String          @unique
+  description String
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  fields      AiSchemaField[]
+
+  @@map("ai_schema_field_types")
+}
+
+model AiInsightActionStatus {
+  id          String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String      @unique
+  description String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  insights    AiInsight[]
+
+  @@map("ai_insight_action_statuses")
+}
+
+model AiAgent {
+  id               String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId   String          @db.Uuid
+  name             String
+  icon             String?
+  systemPrompt     String          @db.Text
+  model            String          @default("llama-3.3-70b-versatile")
+  isActive         Boolean         @default(true)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  organization     Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  triggers         AiTrigger[]
+  schemaFields     AiSchemaField[]
+  insights         AiInsight[]
+
+  @@index([organizationId])
+  @@map("ai_agents")
+}
+
+model AiTrigger {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  agentId     String   @db.Uuid
+  eventType   String   @default("TICKET_CLOSED") // Points to AiTriggerEventType.name
+  conditions  Json     @default("{}") // Used to evaluate if trigger should fire
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  agent       AiAgent             @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  typeRef     AiTriggerEventType  @relation(fields: [eventType], references: [name])
+
+  @@index([agentId])
+  @@map("ai_triggers")
+}
+
+model AiSchemaField {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  agentId     String   @db.Uuid
+  fieldName   String
+  fieldType   String   @default("STRING") // Points to AiSchemaFieldType.name
+  description String   @db.Text
+  isRequired  Boolean  @default(true)
+  options     Json?    // Array of possible values if fieldType is ENUM
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  agent       AiAgent             @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  typeRef     AiSchemaFieldType   @relation(fields: [fieldType], references: [name])
+
+  @@index([agentId])
+  @@map("ai_schema_fields")
+}
+
+model AiInsight {
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String       @db.Uuid
+  ticketId       String       @db.Uuid
+  agentId        String       @db.Uuid
+  
+  payload        Json         // The raw JSON result from Mastra (Zod output)
+  status         String       @default("SUGGESTION") // Points to AiInsightActionStatus.name
+  
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organization   Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  ticket         Ticket                 @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  agent          AiAgent                @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  statusRef      AiInsightActionStatus  @relation(fields: [status], references: [name])
+
+  @@index([organizationId])
+  @@index([ticketId])
+  @@index([agentId])
+  @@map("ai_insights")
+}
+

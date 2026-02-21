@@ -54,6 +54,30 @@ const whatsappAuditActions = [
   { name: 'TOKEN_RENEWED', description: 'Token renovado.' },
 ]
 
+const aiTriggerEventTypes = [
+  { name: 'TICKET_WON', description: 'Quando o ticket é movido para Ganho.' },
+  { name: 'TICKET_LOST', description: 'Quando o ticket é movido para Perdido.' },
+  { name: 'TICKET_CLOSED', description: 'Quando o ticket é fechado (qualquer motivo).' },
+  { name: 'NEW_MESSAGE_RECEIVED', description: 'Sempre que uma nova mensagem inbound chega.' },
+  { name: 'CONVERSATION_IDLE_3M', description: 'Quando a conversa esfria por 3 minutos.' },
+  { name: 'CONVERSATION_IDLE_2H', description: 'Quando a conversa esfria por 2 horas.' },
+  { name: 'MANUAL_TRIGGER', description: 'Acionado manualmente no front-end por botão.' },
+]
+
+const aiSchemaFieldTypes = [
+  { name: 'STRING', description: 'Texto livre.' },
+  { name: 'NUMBER', description: 'Número inteiro ou decimal.' },
+  { name: 'BOOLEAN', description: 'Verdadeiro ou falso.' },
+  { name: 'ENUM', description: 'Lista de opções pré-definidas.' },
+  { name: 'ARRAY', description: 'Lista de múltiplos valores.' }
+]
+
+const aiInsightActionStatuses = [
+  { name: 'SUGGESTION', description: 'Sugestão pendente de aprovação.' },
+  { name: 'APPLIED', description: 'Ação executada com sucesso.' },
+  { name: 'DISMISSED', description: 'Ação ignorada ou rejeitada.' },
+]
+
 async function upsertByName(
   model: { upsert: (args: { where: { name: string }; update: { description: string }; create: { name: string; description: string } }) => Promise<unknown> },
   items: { name: string; description: string }[]
@@ -77,6 +101,11 @@ export async function seedLookupTables(prisma: PrismaClient) {
   await upsertByName(prisma.whatsAppConnectionStatus, whatsappConnectionStatuses)
   await upsertByName(prisma.whatsAppHealthStatus, whatsappHealthStatuses)
   await upsertByName(prisma.whatsAppAuditAction, whatsappAuditActions)
+
+  // AI Platform Lookups
+  await upsertByName(prisma.aiTriggerEventType as any, aiTriggerEventTypes)
+  await upsertByName(prisma.aiSchemaFieldType as any, aiSchemaFieldTypes)
+  await upsertByName(prisma.aiInsightActionStatus as any, aiInsightActionStatuses)
 
   console.log('Lookup tables seeded.')
 }
