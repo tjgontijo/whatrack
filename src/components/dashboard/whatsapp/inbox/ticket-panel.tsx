@@ -97,17 +97,17 @@ export function TicketPanel({
   const ticket = data
 
   // Use the same tickets data, or fetch the ai_approval directly
-  const { data: approvalsData } = useQuery({
-    queryKey: ['ai-approvals', ticket?.id],
+  const { data: insightsData } = useQuery({
+    queryKey: ['ai-insights', ticket?.id],
     queryFn: async () => {
-      const res = await fetch(`/api/v1/ai-approvals?status=PENDING`)
+      const res = await fetch(`/api/v1/ai-insights?status=SUGGESTION`)
       if (!res.ok) return { items: [] }
       return res.json()
     },
     enabled: !!ticket?.id
   })
 
-  const currentApproval = approvalsData?.items?.find((a: any) => a.ticketId === ticket?.id)
+  const currentInsight = insightsData?.items?.find((a: any) => a.ticketId === ticket?.id)
 
   const formatDealValue = (value: number | string | null | undefined): string => {
     if (!value) return 'Sem valor'
@@ -244,24 +244,30 @@ export function TicketPanel({
           )}
 
           {/* Destaque: Copilot IA (Mastra) */}
-          {ticket.status === 'open' && currentApproval && showAiApproval && (
-            <div className="relative rounded-xl border-2 border-primary/20 bg-primary/5 p-4 shadow-sm">
+          {/* AI Copilot Suggestion Box */}
+          {currentInsight && showAiApproval && (
+            <div className="mb-4 bg-primary/10 border border-primary/20 rounded-lg p-3 shadow-sm relative overflow-hidden group">
+              {/* Agent Header */}
               <div className="flex items-center gap-2 mb-3">
                 <div className="p-1.5 bg-primary/20 rounded-full">
                   <Sparkles className="h-4 w-4 text-primary animate-pulse" />
                 </div>
                 <span className="text-sm font-bold text-primary">IA Detectou Fechamento!</span>
                 <Badge className="ml-auto bg-green-100 text-green-800 text-[10px] hover:bg-green-100 uppercase">
-                  {(currentApproval.confidence * 100).toFixed(0)}% de Precisão
+                  {currentInsight?.agent?.name || 'Copilot 2.0'}
                 </Badge>
               </div>
               <div className="bg-background/80 rounded border border-border/50 p-3 mb-3 text-sm">
                 <p className="text-muted-foreground break-words leading-relaxed text-xs mb-2">
-                  "{currentApproval.reasoning}"
+                  "{(currentInsight?.payload as any)?.reasoning || 'Insight gerado baseado na conversa.'}"
                 </p>
                 <div className="flex justify-between items-center bg-card p-2 rounded border">
-                  <span className="font-medium text-xs truncate mr-2" title={currentApproval.productName}>{currentApproval.productName || 'Não especificado'}</span>
-                  <span className="font-bold text-green-600 text-sm whitespace-nowrap">{formatDealValue(currentApproval.dealValue)}</span>
+                  <span className="font-medium text-xs truncate mr-2" title={(currentInsight?.payload as any)?.productName}>
+                    {(currentInsight?.payload as any)?.productName || 'Não especificado'}
+                  </span>
+                  <span className="font-bold text-green-600 text-sm whitespace-nowrap">
+                    {formatDealValue((currentInsight?.payload as any)?.dealValue)}
+                  </span>
                 </div>
               </div>
               <div className="flex gap-2">
@@ -269,20 +275,20 @@ export function TicketPanel({
                   size="sm"
                   className="w-full bg-primary hover:bg-primary/90 text-xs"
                   onClick={async () => {
-                    const loadingToast = toast.loading('Aprovando venda...')
+                    const loadingToast = toast.loading('Aplicando sugestão...')
                     try {
-                      const res = await fetch(`/api/v1/ai-approvals/${currentApproval.id}/approve`, { method: 'PATCH' })
+                      const res = await fetch(`/api/v1/ai-insights/${currentInsight.id}/approve`, { method: 'PATCH' })
                       if (!res.ok) throw new Error()
-                      toast.success('Venda concluída com IA no CAPI!', { id: loadingToast })
+                      toast.success('Ticket atualizado com sucesso e CAPI acionado.', { id: loadingToast })
                       setShowAiApproval(false)
                       queryClient.invalidateQueries({ queryKey: ['conversation-ticket', conversationId] })
-                      queryClient.invalidateQueries({ queryKey: ['ai-approvals'] })
+                      queryClient.invalidateQueries({ queryKey: ['ai-insights'] })
                     } catch {
                       toast.error('Erro ao aprovar.', { id: loadingToast })
                     }
                   }}
                 >
-                  <Check className="h-3.5 w-3.5 mr-1.5" /> Aprovar Venda (CAPI)
+                  <Check className="h-3.5 w-3.5 mr-1.5" /> Aplicar e Fechar Venda
                 </Button>
                 <Button
                   size="sm"
@@ -290,10 +296,10 @@ export function TicketPanel({
                   className="px-3"
                   onClick={async () => {
                     try {
-                      await fetch(`/api/v1/ai-approvals/${currentApproval.id}/reject`, { method: 'PATCH' })
+                      await fetch(`/api/v1/ai-insights/${currentInsight.id}/reject`, { method: 'PATCH' })
                       toast.info('Sugestão rejeitada.')
                       setShowAiApproval(false)
-                      queryClient.invalidateQueries({ queryKey: ['ai-approvals'] })
+                      queryClient.invalidateQueries({ queryKey: ['ai-insights'] })
                     } catch { }
                   }}
                 >

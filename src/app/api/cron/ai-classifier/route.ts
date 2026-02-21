@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { analyzeTicket } from '@/services/ai/ai-classifier.service';
+import { dispatchAiEvent } from '@/services/ai/ai-execution.service';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -36,30 +36,29 @@ export async function GET(request: Request) {
                         }
                     }
                 },
-                // Ensure no recent approval classification exists (We only analyze once per 2h max)
+                // Ensure no recent insight classification exists
                 NOT: {
-                    aiConversionApprovals: {
+                    aiInsights: {
                         some: {
                             createdAt: { gte: twoHoursAgo }
                         }
                     }
                 }
             },
-            select: { id: true },
+            // Fetch the organizationId along with ticketId
+            select: { id: true, organizationId: true },
             take: 20 // Process in chunks to respect API limits
         });
 
-        console.log(`[Cron AI Copilot] Found ${eligibleTickets.length} eligible tickets for AI analysis.`);
+        console.log(`[Cron AI Copilot] Found ${eligibleTickets.length} eligible tickets for IDLE analysis.`);
 
         let analyzed = 0;
 
-        // Process them concurrently
+        // Process them concurrently triggering the CONVERSATION_IDLE_3M event
         await Promise.allSettled(
             eligibleTickets.map(async (ticket) => {
-                const success = await analyzeTicket(ticket.id);
-                if (success) {
-                    analyzed++;
-                }
+                const generatedInsights = await dispatchAiEvent('CONVERSATION_IDLE_3M', ticket.id, ticket.organizationId);
+                analyzed += generatedInsights;
             })
         );
 

@@ -10,9 +10,9 @@ export async function GET(request: NextRequest) {
         }
 
         const { searchParams } = new URL(request.url);
-        const status = searchParams.get('status') || 'PENDING';
+        const status = searchParams.get('status') || 'SUGGESTION';
 
-        const approvals = await prisma.aiConversionApproval.findMany({
+        const insights = await prisma.aiInsight.findMany({
             where: {
                 organizationId: access.organizationId,
                 status,
@@ -21,6 +21,9 @@ export async function GET(request: NextRequest) {
                 }
             },
             include: {
+                agent: {
+                    select: { name: true, icon: true }
+                },
                 ticket: {
                     include: {
                         conversation: {
@@ -36,9 +39,9 @@ export async function GET(request: NextRequest) {
             orderBy: { createdAt: 'desc' }
         });
 
-        return NextResponse.json({ items: approvals });
+        return NextResponse.json({ items: insights });
     } catch (error) {
-        console.error('[GET ai-approvals] Error:', error);
+        console.error('[GET ai-insights] Error:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

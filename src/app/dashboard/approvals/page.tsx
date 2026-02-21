@@ -2,13 +2,13 @@
 
 import React from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Check, X, Sparkles, MessageSquare, Megaphone } from 'lucide-react'
+import { Check, X, Sparkles, MessageSquare, Megaphone, Inbox } from 'lucide-react'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -16,24 +16,25 @@ import { Skeleton } from '@/components/ui/skeleton'
 export default function ApprovalsPage() {
     const queryClient = useQueryClient()
 
-    const { data: approvalsData, isLoading } = useQuery({
-        queryKey: ['ai-approvals', 'PENDING'],
+    const { data: insights, isLoading } = useQuery({
+        queryKey: ['ai-insights', 'SUGGESTION'],
         queryFn: async () => {
-            const res = await fetch('/api/v1/ai-approvals?status=PENDING')
-            if (!res.ok) throw new Error('Falha ao carregar as aprovações pendentes.')
-            return res.json()
+            const res = await fetch('/api/v1/ai-insights?status=SUGGESTION')
+            if (!res.ok) throw new Error('Falha ao carregar as sugestões da IA.')
+            const data = await res.json()
+            return data.items || []
         }
     })
 
     const approveMutation = useMutation({
         mutationFn: async (id: string) => {
-            const res = await fetch(`/api/v1/ai-approvals/${id}/approve`, { method: 'PATCH' })
+            const res = await fetch(`/api/v1/ai-insights/${id}/approve`, { method: 'PATCH' })
             if (!res.ok) throw new Error('Falha ao aprovar a venda.')
             return res.json()
         },
         onSuccess: () => {
             toast.success('Venda Aprovada! O Meta Ads foi notificado via CAPI.')
-            queryClient.invalidateQueries({ queryKey: ['ai-approvals'] })
+            queryClient.invalidateQueries({ queryKey: ['ai-insights'] })
         },
         onError: () => {
             toast.error('Erro ao aprovar a venda.')
@@ -42,20 +43,18 @@ export default function ApprovalsPage() {
 
     const rejectMutation = useMutation({
         mutationFn: async (id: string) => {
-            const res = await fetch(`/api/v1/ai-approvals/${id}/reject`, { method: 'PATCH' })
+            const res = await fetch(`/api/v1/ai-insights/${id}/reject`, { method: 'PATCH' })
             if (!res.ok) throw new Error('Falha ao descartar a sugestão.')
             return res.json()
         },
         onSuccess: () => {
             toast.info('Sugestão da IA descartada.')
-            queryClient.invalidateQueries({ queryKey: ['ai-approvals'] })
+            queryClient.invalidateQueries({ queryKey: ['ai-insights'] })
         },
         onError: () => {
             toast.error('Erro ao descartar a sugestão.')
         }
     })
-
-    const approvals = approvalsData?.items || []
 
     const formatDealValue = (value: any): string => {
         if (!value) return 'Sem valor'
@@ -91,19 +90,17 @@ export default function ApprovalsPage() {
                 </p>
             </div>
 
-            {approvals.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20 bg-muted/20 border border-dashed rounded-xl">
-                    <div className="bg-primary/5 p-4 rounded-full mb-4">
-                        <Sparkles className="h-10 w-10 text-primary opacity-60" />
-                    </div>
-                    <h2 className="text-xl font-semibold mb-2">Caixa de Aprovação Limpa</h2>
-                    <p className="text-muted-foreground max-w-md text-center">
-                        Sua inteligência artificial está escutando. Novas vendas concluídas pelos vendedores no WhatsApp aparecerão aqui para sua revisão de Gestor.
+            {insights?.length === 0 ? (
+                <div className="text-center py-20 border border-dashed rounded-lg bg-muted/20">
+                    <Inbox className="h-10 w-10 text-muted-foreground mx-auto mb-4 opacity-50" />
+                    <h3 className="text-lg font-medium text-foreground">Nenhuma sugestão por enquanto</h3>
+                    <p className="text-muted-foreground mt-2 max-w-sm mx-auto">
+                        Sua IA está analisando conversas novas. Sugestões de aprovação vão aparecer aqui.
                     </p>
                 </div>
             ) : (
-                <div className="grid gap-4 md:grid-cols-2">
-                    {approvals.map((approval: any) => {
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {insights?.map((approval: any) => {
                         const lead = approval.ticket?.conversation?.lead
                         const confidencePercent = (approval.confidence * 100).toFixed(0)
 
@@ -144,28 +141,31 @@ export default function ApprovalsPage() {
                                         </div>
 
                                         <div className="bg-background/50 rounded-lg p-3 border border-border/50 text-xs text-muted-foreground leading-relaxed">
-                                            <span className="font-bold text-foreground">Justificativa da IA:</span> "{approval.reasoning}"
+                                            <p className="text-sm italic text-muted-foreground mt-2 bg-muted/30 p-2 rounded line-clamp-2">
+                                                "{(approval.payload as any)?.reasoning || 'Insight gerado...'}"
+                                            </p>
                                         </div>
                                     </div>
-
-                                    <div className="flex flex-col sm:flex-row gap-2 mt-auto">
-                                        <Button
-                                            className="w-full bg-primary hover:bg-primary/90 text-white font-semibold"
-                                            disabled={approveMutation.isPending || rejectMutation.isPending}
-                                            onClick={() => approveMutation.mutate(approval.id)}
-                                        >
-                                            {approveMutation.isPending ? 'Aprovando...' : <><Check className="h-4 w-4 mr-2" /> Aprovar Venda (CAPI)</>}
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            className="w-full sm:w-auto px-4"
-                                            disabled={approveMutation.isPending || rejectMutation.isPending}
-                                            onClick={() => rejectMutation.mutate(approval.id)}
-                                        >
-                                            {rejectMutation.isPending ? '...' : <><X className="h-4 w-4 mr-1 text-muted-foreground" /> Falso</>}
-                                        </Button>
-                                    </div>
                                 </CardContent>
+                                <CardFooter className="pt-4 border-t flex items-center justify-between gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="flex-1 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                        onClick={() => rejectMutation.mutate(approval.id)}
+                                        disabled={approveMutation.isPending || rejectMutation.isPending}
+                                    >
+                                        <X className="w-4 h-4 mr-2" /> Descartar
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        className="flex-1"
+                                        onClick={() => approveMutation.mutate(approval.id)}
+                                        disabled={approveMutation.isPending || rejectMutation.isPending}
+                                    >
+                                        <Check className="w-4 h-4 mr-2" /> Aplicar
+                                    </Button>
+                                </CardFooter>
                             </Card>
                         )
                     })}

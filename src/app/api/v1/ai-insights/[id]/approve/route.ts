@@ -15,37 +15,36 @@ export async function PATCH(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const approvalId = (await params).id;
-        const approval = await prisma.aiConversionApproval.findUnique({
-            where: { id: approvalId },
+        const insightId = (await params).id;
+        const insight = await prisma.aiInsight.findUnique({
+            where: { id: insightId },
             include: { ticket: true }
         });
 
-        if (!approval || approval.organizationId !== access.organizationId) {
-            return NextResponse.json({ error: 'Aprovação não encontrada' }, { status: 404 });
+        if (!insight || insight.organizationId !== access.organizationId) {
+            return NextResponse.json({ error: 'Insight não encontrado' }, { status: 404 });
         }
 
-        if (approval.status !== 'PENDING') {
-            return NextResponse.json({ error: 'Esta aprovação já foi resolvida' }, { status: 400 });
+        if (insight.status !== 'SUGGESTION') {
+            return NextResponse.json({ error: 'Insight já foi processado' }, { status: 400 });
         }
 
-        // Process the approval (Mark as won, create sale, trigger CAPI)
-        const dealValue = approval.dealValue;
+        // Process the insight
+        const payload = insight.payload as any;
+        const dealValue = payload?.dealValue || null;
+        const eventName = payload?.intent === 'SALE' ? 'Purchase' : 'LeadSubmitted';
+        const productName = payload?.productName || 'Procedimento IA';
 
         await prisma.$transaction(async (tx) => {
-            // 1. Update approval status
-            await tx.aiConversionApproval.update({
-                where: { id: approval.id },
-                data: {
-                    status: 'APPROVED',
-                    reviewedBy: access.userId,
-                    reviewedAt: new Date(),
-                }
+            // 1. Update status
+            await tx.aiInsight.update({
+                where: { id: insight.id },
+                data: { status: 'APPLIED' }
             });
 
             // 2. Update Ticket to closed_won
             await tx.ticket.update({
-                where: { id: approval.ticketId },
+                where: { id: insight.ticketId },
                 data: {
                     status: 'closed_won',
                     closedAt: new Date(),
@@ -55,17 +54,17 @@ export async function PATCH(
             });
 
             // 3. Create Sale Record if it was a purchase
-            if (approval.eventName === 'Purchase' && dealValue) {
+            if (eventName === 'Purchase' && dealValue) {
                 await tx.sale.create({
                     data: {
                         organizationId: access.organizationId as string,
-                        ticketId: approval.ticketId,
+                        ticketId: insight.ticketId,
                         totalAmount: dealValue,
                         status: 'completed',
                         items: {
                             create: {
                                 organizationId: access.organizationId as string,
-                                name: approval.productName || 'Procedimento IA',
+                                name: productName,
                                 unitPrice: dealValue,
                                 quantity: 1,
                                 total: dealValue,
@@ -77,17 +76,17 @@ export async function PATCH(
         });
 
         // Fire CAPI event in background (fire and forget)
-        metaCapiService.sendEvent(approval.ticketId, approval.eventName as any, {
+        metaCapiService.sendEvent(insight.ticketId, eventName, {
             value: dealValue ? Number(dealValue) : undefined,
-            eventId: `AI_COPILOT_${approval.id}_${Date.now()}`
+            eventId: `AI_COPILOT_${insight.id}_${Date.now()}`
         }).catch(err => {
-            console.error(`[CAPI] Error from AI Approval for ticket ${approval.ticketId}:`, err);
+            console.error(`[CAPI] Error from AI Insight for ticket ${insight.ticketId}:`, err);
         });
 
         // Notify Centrifugo to refresh ticket lists
         await publishToCentrifugo(`org:${access.organizationId}:tickets`, {
             type: 'ticket_updated',
-            ticketId: approval.ticketId,
+            ticketId: insight.ticketId,
             updates: { status: 'closed_won', dealValue }
         });
 
