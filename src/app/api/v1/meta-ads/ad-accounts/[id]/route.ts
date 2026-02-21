@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from 'next/headers';
 import { auth } from "@/lib/auth/auth";
 import { prisma } from "@/lib/prisma";
+import { metaAdAccountService } from "@/services/meta-ads/ad-account.service";
 
 async function getSessionFromRequest(req: NextRequest) {
     const headers = new Headers(req.headers);
@@ -28,17 +29,21 @@ export async function PATCH(
     }
 
     const body = await req.json();
-    const { isActive, pixelId, capiToken } = body;
+    const { isActive, pixels } = body;
 
-    const data: any = {};
-    if (typeof isActive === 'boolean') data.isActive = isActive;
-    if (typeof pixelId !== 'undefined') data.pixelId = pixelId;
-    if (typeof capiToken !== 'undefined') data.capiToken = capiToken;
+    let updated: any;
 
-    const updated = await prisma.metaAdAccount.update({
-        where: { id },
-        data,
-    });
+    if (typeof isActive === 'boolean') {
+        updated = await prisma.metaAdAccount.update({
+            where: { id },
+            data: { isActive },
+            include: { pixels: true }
+        });
+    }
 
-    return NextResponse.json(updated);
+    if (Array.isArray(pixels)) {
+        updated = await metaAdAccountService.saveAdAccountPixels(id, pixels);
+    }
+
+    return NextResponse.json(updated || {});
 }

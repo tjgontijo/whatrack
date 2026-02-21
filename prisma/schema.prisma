@@ -768,18 +768,33 @@ model MetaAdAccount {
   adAccountId           String   // "act_123456"
   adAccountName         String
   
-  pixelId               String?  // Dataset/Pixel ID para envio CAPI
-  capiToken             String?  // Conversions API Access Token
   isActive              Boolean  @default(false) // Switch da UI
 
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 
-  connection            MetaConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
-  organization          Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  connection            MetaConnection       @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  organization          Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  pixels                MetaAdAccountPixel[]
 
   @@unique([organizationId, adAccountId])
   @@map("meta_ad_accounts")
+}
+
+model MetaAdAccountPixel {
+  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  adAccountId           String   @db.Uuid
+  
+  pixelId               String   // Dataset/Pixel ID para envio CAPI
+  capiToken             String   // Conversions API Access Token
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  adAccount             MetaAdAccount @relation(fields: [adAccountId], references: [id], onDelete: Cascade)
+
+  @@unique([adAccountId, pixelId])
+  @@map("meta_ad_account_pixels")
 }
 
 model MetaConversionEvent {

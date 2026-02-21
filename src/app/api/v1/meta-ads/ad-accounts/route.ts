@@ -38,6 +38,7 @@ export async function GET(req: NextRequest) {
 
     const accounts = await prisma.metaAdAccount.findMany({
         where: { organizationId },
+        include: { pixels: true },
         orderBy: { adAccountName: 'asc' }
     });
 

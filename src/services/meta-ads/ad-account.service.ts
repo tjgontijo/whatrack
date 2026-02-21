@@ -73,22 +73,29 @@ export class MetaAdAccountService {
     }
 
     /**
-     * Update Pixel ID for an Ad Account
+     * Save Pixels and CAPI Tokens for an Ad Account
      */
-    async updatePixelId(accountId: string, pixelId: string | null) {
-        return await prisma.metaAdAccount.update({
-            where: { id: accountId },
-            data: { pixelId },
-        });
-    }
+    async saveAdAccountPixels(accountId: string, pixels: { pixelId: string; capiToken: string }[]) {
+        // Delete existing and recreate
+        return await prisma.$transaction(async (tx) => {
+            await tx.metaAdAccountPixel.deleteMany({
+                where: { adAccountId: accountId }
+            });
 
-    /**
-     * Update CAPI Token for an Ad Account
-     */
-    async updateCapiToken(accountId: string, capiToken: string | null) {
-        return await prisma.metaAdAccount.update({
-            where: { id: accountId },
-            data: { capiToken },
+            if (pixels.length > 0) {
+                await tx.metaAdAccountPixel.createMany({
+                    data: pixels.map(p => ({
+                        adAccountId: accountId,
+                        pixelId: p.pixelId,
+                        capiToken: p.capiToken
+                    }))
+                });
+            }
+
+            return tx.metaAdAccount.findUnique({
+                where: { id: accountId },
+                include: { pixels: true }
+            });
         });
     }
 
@@ -132,6 +139,7 @@ export class MetaAdAccountService {
             },
             include: {
                 connection: true,
+                pixels: true,
             },
         });
     }
