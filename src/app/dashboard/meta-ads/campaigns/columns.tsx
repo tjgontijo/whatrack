@@ -9,7 +9,6 @@ const formatPercent = (val: number) => {
 
 const formatCurrency = formatCurrencyBRL
 
-
 export type MetaCampaign = {
     id: string
     name: string
@@ -32,6 +31,7 @@ export type MetaCampaign = {
     // Meta Actions
     metaPurchases: number
     metaRevenue: number
+    metaProfit: number
     metaCpa: number
     metaRoas: number
 
@@ -90,7 +90,6 @@ export const campaignsColumns: ColumnDef<MetaCampaign>[] = [
                 </div>
             )
         },
-        // Campanha is rarely hidden, but we can allow it
     },
     {
         accessorKey: 'budget',
@@ -103,28 +102,28 @@ export const campaignsColumns: ColumnDef<MetaCampaign>[] = [
         },
     },
     {
-        accessorKey: 'localRoi',
-        header: 'ROI (O/W)',
+        accessorKey: 'metaRoas',
+        header: 'ROI',
         cell: ({ row }) => {
-            const val = row.original.localRoi
+            const val = row.original.metaRoas
             return <div className="font-medium text-primary">{val ? val.toFixed(2) : '—'}</div>
         },
     },
     {
-        accessorKey: 'localCpa',
-        header: 'CPA (O)',
-        cell: ({ row }) => formatCurrency(row.original.localCpa),
+        accessorKey: 'metaCpa',
+        header: 'CPA',
+        cell: ({ row }) => formatCurrency(row.original.metaCpa),
     },
     {
-        accessorKey: 'localPurchases',
-        header: 'Vendas (O)',
-        cell: ({ row }) => <div className="font-semibold text-center">{row.original.localPurchases}</div>,
+        accessorKey: 'metaPurchases',
+        header: 'Vendas',
+        cell: ({ row }) => <div className="font-semibold text-center">{row.original.metaPurchases}</div>,
     },
     {
-        accessorKey: 'localProfit',
-        header: 'Lucro (O)',
+        accessorKey: 'metaProfit',
+        header: 'Lucro',
         cell: ({ row }) => {
-            const val = row.original.localProfit
+            const val = row.original.metaProfit || 0
             const isNegative = val < 0
             return (
                 <div className={`font-medium ${isNegative ? 'text-red-500' : 'text-green-600 dark:text-green-500'}`}>
@@ -139,9 +138,9 @@ export const campaignsColumns: ColumnDef<MetaCampaign>[] = [
         cell: ({ row }) => formatCurrency(row.original.spend),
     },
     {
-        accessorKey: 'localRevenue',
-        header: 'Faturamento (O)',
-        cell: ({ row }) => formatCurrency(row.original.localRevenue),
+        accessorKey: 'metaRevenue',
+        header: 'Faturamento',
+        cell: ({ row }) => formatCurrency(row.original.metaRevenue),
     },
     {
         accessorKey: 'ctr',
@@ -160,7 +159,7 @@ export const campaignsColumns: ColumnDef<MetaCampaign>[] = [
     },
     {
         accessorKey: 'landingPageViews',
-        header: 'Vis. Pág. (LPV)',
+        header: 'Vis. de Pág.',
         cell: ({ row }) => row.original.landingPageViews,
     },
     {
@@ -178,17 +177,53 @@ export const campaignsColumns: ColumnDef<MetaCampaign>[] = [
         header: 'CTI',
         cell: ({ row }) => formatCurrency(row.original.metaCti),
     },
+    {
+        id: 'conversion',
+        header: 'Conversão',
+        cell: ({ row }) => {
+            const lpv = row.original.landingPageViews;
+            const sales = row.original.metaPurchases;
+            const cvr = lpv > 0 ? (sales / lpv) * 100 : 0;
+            return formatPercent(cvr);
+        },
+    },
 
     // Extras / Ocultas por padrão
     {
-        accessorKey: 'metaCpa',
-        header: 'CPA (Meta)',
-        cell: ({ row }) => formatCurrency(row.original.metaCpa),
+        accessorKey: 'localRoi',
+        header: 'ROI (Whatrack)',
+        cell: ({ row }) => {
+            const val = row.original.localRoi
+            return <div className="font-medium text-primary">{val ? val.toFixed(2) : '—'}</div>
+        },
     },
     {
-        accessorKey: 'metaPurchases',
-        header: 'Vendas (Meta) / Resultados',
-        cell: ({ row }) => row.original.metaPurchases,
+        accessorKey: 'localCpa',
+        header: 'CPA (Whatrack)',
+        cell: ({ row }) => formatCurrency(row.original.localCpa),
+    },
+    {
+        accessorKey: 'localPurchases',
+        header: 'Vendas (Whatrack)',
+        cell: ({ row }) => <div className="font-semibold text-center">{row.original.localPurchases}</div>,
+    },
+    {
+        accessorKey: 'localProfit',
+        header: 'Lucro (Whatrack)',
+        cell: ({ row }) => {
+            const val = row.original.localProfit
+            const isNegative = val < 0
+            return (
+                <div className={`font-medium ${isNegative ? 'text-red-500' : 'text-green-600 dark:text-green-500'}`}>
+                    {formatCurrency(val)}
+                </div>
+            )
+        },
+    },
+    {
+        accessorKey: 'localRevenue',
+        header: 'Faturamento (Whatrack)',
+        cell: ({ row }) => formatCurrency(row.original.localRevenue),
     },
     {
         accessorKey: 'impressions',
@@ -211,13 +246,8 @@ export const campaignsColumns: ColumnDef<MetaCampaign>[] = [
         cell: ({ row }) => row.original.frequency.toFixed(2),
     },
     {
-        accessorKey: 'metaRoas',
-        header: 'ROAS (Meta)',
-        cell: ({ row }) => row.original.metaRoas.toFixed(2),
-    },
-    {
         accessorKey: 'addsToCart',
-        header: 'Adições (ATC)',
+        header: 'ATC (Carrinho)',
         cell: ({ row }) => row.original.addsToCart,
     },
     {
