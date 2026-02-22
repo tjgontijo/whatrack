@@ -87,40 +87,43 @@ export const campaignsColumns: ColumnDef<MetaCampaign>[] = [
     },
     {
         accessorKey: 'budget',
-        header: 'Orçamento',
+        header: () => <div className="text-center">Orçamento</div>,
         cell: ({ row }) => {
             const req = row.original
-            if (req.dailyBudget) return formatCurrency(req.dailyBudget) + '/dia'
-            if (req.lifetimeBudget) return formatCurrency(req.lifetimeBudget) + ' (V)'
-            return '—'
+            const val = req.dailyBudget
+                ? formatCurrency(req.dailyBudget) + '/dia'
+                : req.lifetimeBudget
+                    ? formatCurrency(req.lifetimeBudget) + ' (V)'
+                    : '—'
+            return <div className="text-center font-medium">{val}</div>
         },
     },
     {
         accessorKey: 'metaRoas',
-        header: 'ROI',
+        header: () => <div className="text-center">ROI</div>,
         cell: ({ row }) => {
             const val = row.original.metaRoas
-            return <div className="font-medium text-primary">{val ? val.toFixed(2) : '—'}</div>
+            return <div className="font-medium text-primary text-center">{val ? val.toFixed(2) : '—'}</div>
         },
     },
     {
         accessorKey: 'metaCpa',
-        header: 'CPA',
-        cell: ({ row }) => formatCurrency(row.original.metaCpa),
+        header: () => <div className="text-center">CPA</div>,
+        cell: ({ row }) => <div className="text-center">{formatCurrency(row.original.metaCpa)}</div>,
     },
     {
         accessorKey: 'metaPurchases',
-        header: 'Vendas',
+        header: () => <div className="text-center">Vendas</div>,
         cell: ({ row }) => <div className="font-semibold text-center">{row.original.metaPurchases}</div>,
     },
     {
         accessorKey: 'metaProfit',
-        header: 'Lucro',
+        header: () => <div className="text-center">Lucro</div>,
         cell: ({ row }) => {
             const val = row.original.metaProfit || 0
             const isNegative = val < 0
             return (
-                <div className={`font-medium ${isNegative ? 'text-red-500' : 'text-green-600 dark:text-green-500'}`}>
+                <div className={`font-medium text-center ${isNegative ? 'text-red-500' : 'text-green-600 dark:text-green-500'}`}>
                     {formatCurrency(val)}
                 </div>
             )
@@ -128,88 +131,88 @@ export const campaignsColumns: ColumnDef<MetaCampaign>[] = [
     },
     {
         accessorKey: 'spend',
-        header: 'Gastos',
-        cell: ({ row }) => formatCurrency(row.original.spend),
+        header: () => <div className="text-center">Gastos</div>,
+        cell: ({ row }) => <div className="text-center">{formatCurrency(row.original.spend)}</div>,
     },
     {
         accessorKey: 'metaRevenue',
-        header: 'Faturamento',
-        cell: ({ row }) => formatCurrency(row.original.metaRevenue),
+        header: () => <div className="text-center">Faturamento</div>,
+        cell: ({ row }) => <div className="text-center">{formatCurrency(row.original.metaRevenue)}</div>,
     },
     {
         accessorKey: 'ctr',
-        header: 'CTR',
-        cell: ({ row }) => formatPercent(row.original.ctr),
+        header: () => <div className="text-center">CTR</div>,
+        cell: ({ row }) => <div className="text-center">{formatPercent(row.original.ctr)}</div>,
     },
     {
         accessorKey: 'clicks',
-        header: 'Cliques',
-        cell: ({ row }) => row.original.clicks,
+        header: () => <div className="text-center">Cliques</div>,
+        cell: ({ row }) => <div className="text-center">{row.original.clicks}</div>,
     },
     {
         accessorKey: 'cpc',
-        header: 'CPC',
-        cell: ({ row }) => formatCurrency(row.original.cpc),
+        header: () => <div className="text-center">CPC</div>,
+        cell: ({ row }) => <div className="text-center">{formatCurrency(row.original.cpc)}</div>,
     },
     {
         accessorKey: 'landingPageViews',
-        header: 'Vis. de Pág.',
-        cell: ({ row }) => row.original.landingPageViews,
+        header: () => <div className="text-center">Vis. de Pág.</div>,
+        cell: ({ row }) => <div className="text-center">{row.original.landingPageViews}</div>,
     },
     {
         accessorKey: 'metaCpv',
-        header: 'CPV',
-        cell: ({ row }) => formatCurrency(row.original.metaCpv),
+        header: () => <div className="text-center">CPV</div>,
+        cell: ({ row }) => <div className="text-center">{formatCurrency(row.original.metaCpv)}</div>,
     },
     {
         accessorKey: 'initiateCheckout',
-        header: 'IC',
-        cell: ({ row }) => row.original.initiateCheckout,
+        header: () => <div className="text-center">IC</div>,
+        cell: ({ row }) => <div className="text-center">{row.original.initiateCheckout}</div>,
     },
     {
         accessorKey: 'metaCti',
-        header: 'CTI',
-        cell: ({ row }) => formatCurrency(row.original.metaCti),
+        header: () => <div className="text-center">CTI</div>,
+        cell: ({ row }) => <div className="text-center">{formatCurrency(row.original.metaCti)}</div>,
     },
     {
         id: 'conversion',
-        header: 'Conversão',
+        header: () => <div className="text-center">Conversão</div>,
         cell: ({ row }) => {
             const lpv = row.original.landingPageViews;
             const sales = row.original.metaPurchases;
             const cvr = lpv > 0 ? (sales / lpv) * 100 : 0;
-            return formatPercent(cvr);
+            return <div className="text-center">{formatPercent(cvr)}</div>
         },
     },
 
     {
         accessorKey: 'impressions',
-        header: 'Impressões',
-        cell: ({ row }) => row.original.impressions.toLocaleString(),
+        header: () => <div className="text-center">Impressões</div>,
+        cell: ({ row }) => <div className="text-center">{row.original.impressions.toLocaleString()}</div>,
     },
     {
         accessorKey: 'cpm',
-        header: 'CPM',
-        cell: ({ row }) => formatCurrency(row.original.cpm),
+        header: () => <div className="text-center">CPM</div>,
+        cell: ({ row }) => <div className="text-center">{formatCurrency(row.original.cpm)}</div>,
     },
     {
         accessorKey: 'reach',
-        header: 'Alcance',
-        cell: ({ row }) => row.original.reach.toLocaleString(),
+        header: () => <div className="text-center">Alcance</div>,
+        cell: ({ row }) => <div className="text-center">{row.original.reach.toLocaleString()}</div>,
     },
     {
         accessorKey: 'frequency',
-        header: 'Frequência',
-        cell: ({ row }) => row.original.frequency.toFixed(2),
+        header: () => <div className="text-center">Frequência</div>,
+        cell: ({ row }) => <div className="text-center">{row.original.frequency.toFixed(2)}</div>,
     },
     {
         accessorKey: 'addsToCart',
-        header: 'ATC (Carrinho)',
-        cell: ({ row }) => row.original.addsToCart,
+        header: () => <div className="text-center">ATC (Carrinho)</div>,
+        cell: ({ row }) => <div className="text-center">{row.original.addsToCart}</div>,
     },
     {
         accessorKey: 'metaCpatc',
-        header: 'Custo por ATC',
-        cell: ({ row }) => formatCurrency(row.original.metaCpatc),
+        header: () => <div className="text-center">Custo por ATC</div>,
+        cell: ({ row }) => <div className="text-center">{formatCurrency(row.original.metaCpatc)}</div>,
     },
 ]
