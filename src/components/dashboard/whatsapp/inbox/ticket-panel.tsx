@@ -198,8 +198,8 @@ export function TicketPanel({
   const windowStatus = getWindowStatus()
 
   return (
-    <div className="flex flex-col h-full bg-background border-l border-border/40">
-      <ScrollArea className="flex-1">
+    <div className="flex flex-col h-full bg-background border-l border-border/40 min-h-0">
+      <div className="flex-1 overflow-y-auto custom-scrollbar">
         <div className="flex flex-col p-6 space-y-6">
 
           {/* Header do Lead */}
@@ -322,111 +322,39 @@ export function TicketPanel({
 
           {/* CRM Interno */}
           <div className="space-y-4 pt-2">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Gestão do CRM</h3>
-
             <div className="grid gap-3">
               <div className="flex flex-col gap-1.5">
-                <Label className="text-xs text-muted-foreground">Estágio do Funil</Label>
-                <Select defaultValue={ticket.stage.id}>
-                  <SelectTrigger className="h-9 w-full bg-card shadow-sm border-border/50">
-                    <SelectValue>
-                      <div className="flex items-center gap-2">
-                        <div className="h-2 w-2 rounded-full" style={{ backgroundColor: ticket.stage.color }} />
-                        <span className="text-sm font-medium">{ticket.stage.name}</span>
-                      </div>
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={ticket.stage.id}>{ticket.stage.name}</SelectItem>
-                    {/* Map real stages here later */}
-                  </SelectContent>
-                </Select>
+                <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Responsável</Label>
+                <div className="flex items-center justify-between px-3 py-2.5 rounded-md border border-border/50 bg-muted/20">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-primary/70" />
+                    <span className="text-sm font-semibold text-foreground/90">
+                      Alocação Otimizada
+                    </span>
+                  </div>
+                  <Badge variant="outline" className="text-[10px] bg-primary/5 border-primary/20 text-primary uppercase font-bold tracking-wider">
+                    I.A. (Automático)
+                  </Badge>
+                </div>
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <Label className="text-xs text-muted-foreground">Proprietário (Responsável)</Label>
-                <Select defaultValue={ticket.assignee?.id || 'unassigned'}>
-                  <SelectTrigger className="h-9 w-full bg-card shadow-sm border-border/50">
-                    <SelectValue>
-                      <div className="flex items-center gap-2">
-                        {ticket.assignee ? (
-                          <>
-                            <Avatar className="h-5 w-5">
-                              <AvatarImage src={ticket.assignee.image || undefined} />
-                              <AvatarFallback className="text-[10px]">{ticket.assignee.name?.[0]}</AvatarFallback>
-                            </Avatar>
-                            <span className="text-sm">{ticket.assignee.name}</span>
-                          </>
-                        ) : (
-                          <>
-                            <UserMinus className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm">Não Atribuído</span>
-                          </>
-                        )}
-                      </div>
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ticket.assignee && (
-                      <SelectItem value={ticket.assignee.id}>{ticket.assignee.name}</SelectItem>
-                    )}
-                    <SelectItem value="unassigned">Não Atribuído</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex flex-col gap-1.5 border-t border-border/40 pt-3">
-                <Label className="text-xs text-muted-foreground">Valor Estimado</Label>
-                <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-border/50 bg-muted/20">
-                  <DollarSign className="h-4 w-4 text-green-600/70" />
-                  <span className="text-sm font-semibold text-foreground/90">
-                    {formatDealValue(ticket.dealValue)}
-                  </span>
+                <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Valor Estimado</Label>
+                <div className="flex items-center justify-between px-3 py-2.5 rounded-md border border-border/50 bg-muted/20">
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="h-4 w-4 text-green-600/70" />
+                    <span className="text-sm font-semibold text-foreground/90">
+                      {formatDealValue(ticket.dealValue)}
+                    </span>
+                  </div>
+                  <Badge variant="outline" className="text-[10px] bg-primary/5 border-primary/20 text-primary uppercase font-bold tracking-wider">
+                    I.A. (Automático)
+                  </Badge>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Window Tracker */}
-          {windowStatus && (
-            <div className="pt-2">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">SLA & WhatsApp</h3>
-              {windowStatus.status === 'expired' ? (
-                <div className={`flex items-center gap-3 px-3 py-3 rounded-lg border ${windowStatus.bgColor}`}>
-                  <AlertTriangle className={`h-5 w-5 ${windowStatus.color} flex-shrink-0`} />
-                  <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-semibold ${windowStatus.color}`}>Janela Encerrada</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">Envie um template.</p>
-                  </div>
-                </div>
-              ) : (
-                <div className={`space-y-2 px-3 py-3 rounded-lg border ${windowStatus.bgColor}`}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Clock className={`h-4 w-4 ${windowStatus.color}`} />
-                      <span className={`text-sm font-bold tracking-tight ${windowStatus.color}`}>
-                        {windowStatus.timeRemaining?.hours}h {windowStatus.timeRemaining?.minutes}m
-                      </span>
-                    </div>
-                    {windowStatus.isWarning && (
-                      <Badge className="bg-amber-500/20 text-amber-700 hover:bg-amber-500/30 border-0 text-[10px] px-1.5">
-                        ALERTA
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="w-full bg-background/50 rounded-full h-1.5 overflow-hidden border border-border/20">
-                    <div
-                      className={`h-full rounded-full transition-all ${windowStatus.isWarning ? 'bg-amber-500' : 'bg-green-500'
-                        }`}
-                      style={{
-                        width: `${Math.min(100, (windowStatus.timeRemaining!.totalMinutes / 1440) * 100)}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
 
           {/* Dossiê & KPIs do Atendimento */}
           {ticket.kpis && (
@@ -502,7 +430,7 @@ export function TicketPanel({
           )}
 
         </div>
-      </ScrollArea>
+      </div>
 
       {/* Footer Fixo: CTAs Principais */}
       {ticket.status === 'open' && (
