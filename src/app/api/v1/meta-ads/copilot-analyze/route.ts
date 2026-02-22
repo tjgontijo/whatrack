@@ -30,7 +30,7 @@ const analysisMapZodSchema = z.object({
         type: z.string().describe("Ex: 'Fadiga de Criativo', 'Fuga LPV→IC'"),
         severity: z.enum(["high", "medium", "low"]),
         description: z.string().describe("Diagnóstico detalhado em 1-2 frases"),
-        metric: z.string().optional().describe("Métrica específica que evidencia o problema, ex: 'CTR: 0.8% → 0.3%'"),
+        metric: z.coerce.string().optional().describe("Métrica específica que evidencia o problema, ex: 'CTR: 0.8% → 0.3%'"),
     })),
     actionPlan: z.array(z.object({
         priority: z.number().int().min(1),
