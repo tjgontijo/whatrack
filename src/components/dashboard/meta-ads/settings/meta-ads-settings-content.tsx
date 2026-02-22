@@ -106,176 +106,179 @@ export function MetaAdsSettingsContent({ organizationId }: MetaAdsSettingsConten
 
             <div className="flex-1 overflow-y-auto p-6 lg:p-8 space-y-8 bg-muted/5">
 
-                {/* Step 1: Meta Connections */}
-                <section className="max-w-5xl mx-auto space-y-4">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-lg font-semibold flex items-center gap-2">
-                            <ShieldCheck className="h-5 w-5 text-blue-500" />
-                            Perfis Conectados
-                        </h2>
-                        <Button
-                            onClick={() => startOnboarding()}
-                            disabled={isConnecting}
-                            size="sm"
-                            className="gap-2"
-                        >
-                            {isConnecting ? (
-                                <RefreshCw className="h-4 w-4 animate-spin" />
-                            ) : (
-                                <Plus className="h-4 w-4" />
-                            )}
-                            Conectar Novo Perfil
-                        </Button>
-                    </div>
+                {/* Step 2: Tabs for Ad Accounts & Pixels */}
+                <Tabs defaultValue="ad-accounts" className="max-w-5xl mx-auto">
+                    <TabsList className="grid w-full grid-cols-2 mb-6 max-w-md">
+                        <TabsTrigger value="ad-accounts" className="flex items-center gap-2">
+                            <Settings2 className="h-4 w-4" />
+                            Contas de Anúncios
+                        </TabsTrigger>
+                        <TabsTrigger value="pixels" className="flex items-center gap-2">
+                            <Database className="h-4 w-4" />
+                            Pixels (CAPI)
+                        </TabsTrigger>
+                    </TabsList>
 
-                    <div className="grid gap-4">
-                        {loadingConnections ? (
-                            <Skeleton className="h-24 w-full" />
-                        ) : (connections?.length ?? 0) > 0 ? (
-                            connections?.map((conn: any) => (
-                                <Card key={conn.id} className="overflow-hidden border-blue-100 bg-blue-50/20">
-                                    <CardHeader className="flex flex-row items-center justify-between py-4">
-                                        <div className="flex items-center gap-4">
-                                            <div className="h-10 w-10 rounded-full bg-blue-500/10 flex items-center justify-center">
-                                                <MetaIcon className="h-6 w-6 text-blue-600" />
-                                            </div>
-                                            <div>
-                                                <CardTitle className="text-base">{conn.fbUserName}</CardTitle>
-                                                <CardDescription className="text-xs">ID: {conn.fbUserId}</CardDescription>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                            <Badge variant={conn.status === 'ACTIVE' ? 'default' : 'destructive'} className="h-5">
-                                                {conn.status === 'ACTIVE' ? 'Ativo' : 'Erro'}
-                                            </Badge>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="text-muted-foreground hover:text-destructive"
-                                                onClick={() => disconnectMutation.mutate(conn.id)}
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
-                                        </div>
-                                    </CardHeader>
-                                </Card>
-                            ))
-                        ) : (
-                            <Card className="border-dashed flex flex-col items-center justify-center p-8 text-center bg-transparent">
-                                <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-4">
-                                    <MetaIcon className="h-6 w-6 text-muted-foreground" />
-                                </div>
-                                <h3 className="font-medium">Nenhum perfil conectado</h3>
-                                <p className="text-sm text-muted-foreground mt-1 mb-4 max-w-xs">
-                                    Conecte um perfil do Facebook para importar suas contas de anúncios e ativar o rastreamento.
-                                </p>
+                    <TabsContent value="ad-accounts" className="space-y-8">
+                        {/* Step 1: Meta Connections (Now inside Ad Accounts tab) */}
+                        <section className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <h2 className="text-lg font-semibold flex items-center gap-2">
+                                    <ShieldCheck className="h-5 w-5 text-blue-500" />
+                                    Perfis Conectados
+                                </h2>
                                 <Button
                                     onClick={() => startOnboarding()}
                                     disabled={isConnecting}
-                                    variant="outline"
-                                    size="sm"
-                                >
-                                    {isConnecting ? 'Conectando...' : 'Conectar agora'}
-                                </Button>
-                            </Card>
-                        )}
-                    </div>
-                </section>
-
-                {/* Step 2: Tabs for Ad Accounts & Pixels */}
-                {(connections?.length ?? 0) > 0 && (
-                    <Tabs defaultValue="ad-accounts" className="max-w-5xl mx-auto">
-                        <TabsList className="grid w-full grid-cols-2 mb-6 max-w-md">
-                            <TabsTrigger value="ad-accounts" className="flex items-center gap-2">
-                                <Settings2 className="h-4 w-4" />
-                                Contas de Anúncios
-                            </TabsTrigger>
-                            <TabsTrigger value="pixels" className="flex items-center gap-2">
-                                <Database className="h-4 w-4" />
-                                Pixels (CAPI)
-                            </TabsTrigger>
-                        </TabsList>
-
-                        <TabsContent value="ad-accounts" className="space-y-4">
-                            <div className="flex items-center justify-between">
-                                <h2 className="text-lg font-semibold flex items-center gap-2">
-                                    Contas de Anúncios Importadas
-                                </h2>
-                                <Button
-                                    variant="outline"
                                     size="sm"
                                     className="gap-2"
-                                    onClick={() => syncMutation.mutate()}
-                                    disabled={syncMutation.isPending}
                                 >
-                                    <RefreshCw className={`h-4 w-4 ${syncMutation.isPending ? 'animate-spin' : ''}`} />
-                                    Sincronizar Contas
+                                    {isConnecting ? (
+                                        <RefreshCw className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                        <Plus className="h-4 w-4" />
+                                    )}
+                                    Conectar Novo Perfil
                                 </Button>
                             </div>
 
-                            <Card>
-                                <CardContent className="p-0">
-                                    <div className="relative overflow-x-auto">
-                                        <table className="w-full text-sm text-left">
-                                            <thead className="text-xs uppercase bg-muted/50 border-b">
-                                                <tr>
-                                                    <th className="px-6 py-4 font-semibold">Conta</th>
-                                                    <th className="px-6 py-4 font-semibold text-right w-48">Extrair Dados (ROI)?</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y">
-                                                {loadingAccounts ? (
-                                                    [1, 2, 3].map(i => (
-                                                        <tr key={i}><td colSpan={2} className="px-6 py-4"><Skeleton className="h-8 w-full" /></td></tr>
-                                                    ))
-                                                ) : (adAccounts?.length ?? 0) > 0 ? (
-                                                    adAccounts?.map((acc: any) => (
-                                                        <tr key={acc.id} className={`hover:bg-muted/30 transition-colors ${acc.isActive ? 'bg-emerald-50/10' : ''}`}>
-                                                            <td className="px-6 py-4">
-                                                                <div className="font-medium text-foreground">{acc.adAccountName}</div>
-                                                                <div className="text-[10px] text-muted-foreground flex items-center gap-2 mt-0.5">
-                                                                    <span>{acc.adAccountId}</span>
-                                                                    <Badge
-                                                                        variant={acc.isActive ? "default" : "outline"}
-                                                                        className={`font-normal text-[9px] h-4 px-1.5 ${acc.isActive ? 'bg-emerald-500 hover:bg-emerald-600' : ''}`}
-                                                                    >
-                                                                        {acc.isActive ? 'Ativa' : 'Inativa'}
-                                                                    </Badge>
-                                                                </div>
-                                                            </td>
-                                                            <td className="px-6 py-4 text-right">
-                                                                <div className="flex items-center justify-end gap-3">
-                                                                    <span className={`text-xs font-medium ${acc.isActive ? 'text-emerald-600' : 'text-muted-foreground'}`}>
-                                                                        {acc.isActive ? 'ON' : 'OFF'}
-                                                                    </span>
-                                                                    <Switch
-                                                                        checked={acc.isActive}
-                                                                        onCheckedChange={(val) => toggleMutation.mutate({ id: acc.id, isActive: val })}
-                                                                        className={acc.isActive ? "data-[state=checked]:bg-emerald-500" : ""}
-                                                                    />
-                                                                </div>
+                            <div className="grid gap-4">
+                                {loadingConnections ? (
+                                    <Skeleton className="h-24 w-full" />
+                                ) : (connections?.length ?? 0) > 0 ? (
+                                    connections?.map((conn: any) => (
+                                        <Card key={conn.id} className="overflow-hidden border-blue-100 bg-blue-50/20">
+                                            <CardHeader className="flex flex-row items-center justify-between py-4">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="h-10 w-10 rounded-full bg-blue-500/10 flex items-center justify-center">
+                                                        <MetaIcon className="h-6 w-6 text-blue-600" />
+                                                    </div>
+                                                    <div>
+                                                        <CardTitle className="text-base">{conn.fbUserName}</CardTitle>
+                                                        <CardDescription className="text-xs">ID: {conn.fbUserId}</CardDescription>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                    <Badge variant={conn.status === 'ACTIVE' ? 'default' : 'destructive'} className="h-5">
+                                                        {conn.status === 'ACTIVE' ? 'Ativo' : 'Erro'}
+                                                    </Badge>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="text-muted-foreground hover:text-destructive"
+                                                        onClick={() => disconnectMutation.mutate(conn.id)}
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                            </CardHeader>
+                                        </Card>
+                                    ))
+                                ) : (
+                                    <Card className="border-dashed flex flex-col items-center justify-center p-8 text-center bg-transparent">
+                                        <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-4">
+                                            <MetaIcon className="h-6 w-6 text-muted-foreground" />
+                                        </div>
+                                        <h3 className="font-medium">Nenhum perfil conectado</h3>
+                                        <p className="text-sm text-muted-foreground mt-1 mb-4 max-w-xs">
+                                            Conecte um perfil do Facebook para importar suas contas de anúncios e ativar o rastreamento.
+                                        </p>
+                                        <Button
+                                            onClick={() => startOnboarding()}
+                                            disabled={isConnecting}
+                                            variant="outline"
+                                            size="sm"
+                                        >
+                                            {isConnecting ? 'Conectando...' : 'Conectar agora'}
+                                        </Button>
+                                    </Card>
+                                )}
+                            </div>
+                        </section>
+
+                        {/* Imported Ad Accounts List */}
+                        {(connections?.length ?? 0) > 0 && (
+                            <section className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <h2 className="text-lg font-semibold flex items-center gap-2">
+                                        Contas de Anúncios Importadas
+                                    </h2>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="gap-2"
+                                        onClick={() => syncMutation.mutate()}
+                                        disabled={syncMutation.isPending}
+                                    >
+                                        <RefreshCw className={`h-4 w-4 ${syncMutation.isPending ? 'animate-spin' : ''}`} />
+                                        Sincronizar Contas
+                                    </Button>
+                                </div>
+
+                                <Card>
+                                    <CardContent className="p-0">
+                                        <div className="relative overflow-x-auto">
+                                            <table className="w-full text-sm text-left">
+                                                <thead className="text-xs uppercase bg-muted/50 border-b">
+                                                    <tr>
+                                                        <th className="px-6 py-4 font-semibold">Conta</th>
+                                                        <th className="px-6 py-4 font-semibold text-right w-48">Extrair Dados (ROI)?</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y">
+                                                    {loadingAccounts ? (
+                                                        [1, 2, 3].map(i => (
+                                                            <tr key={i}><td colSpan={2} className="px-6 py-4"><Skeleton className="h-8 w-full" /></td></tr>
+                                                        ))
+                                                    ) : (adAccounts?.length ?? 0) > 0 ? (
+                                                        adAccounts?.map((acc: any) => (
+                                                            <tr key={acc.id} className={`hover:bg-muted/30 transition-colors ${acc.isActive ? 'bg-emerald-50/10' : ''}`}>
+                                                                <td className="px-6 py-4">
+                                                                    <div className="font-medium text-foreground">{acc.adAccountName}</div>
+                                                                    <div className="text-[10px] text-muted-foreground flex items-center gap-2 mt-0.5">
+                                                                        <span>{acc.adAccountId}</span>
+                                                                        <Badge
+                                                                            variant={acc.isActive ? "default" : "outline"}
+                                                                            className={`font-normal text-[9px] h-4 px-1.5 ${acc.isActive ? 'bg-emerald-500 hover:bg-emerald-600' : ''}`}
+                                                                        >
+                                                                            {acc.isActive ? 'Ativa' : 'Inativa'}
+                                                                        </Badge>
+                                                                    </div>
+                                                                </td>
+                                                                <td className="px-6 py-4 text-right">
+                                                                    <div className="flex items-center justify-end gap-3">
+                                                                        <span className={`text-xs font-medium ${acc.isActive ? 'text-emerald-600' : 'text-muted-foreground'}`}>
+                                                                            {acc.isActive ? 'ON' : 'OFF'}
+                                                                        </span>
+                                                                        <Switch
+                                                                            checked={acc.isActive}
+                                                                            onCheckedChange={(val) => toggleMutation.mutate({ id: acc.id, isActive: val })}
+                                                                            className={acc.isActive ? "data-[state=checked]:bg-emerald-500" : ""}
+                                                                        />
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        ))
+                                                    ) : (
+                                                        <tr>
+                                                            <td colSpan={2} className="px-6 py-12 text-center text-muted-foreground italic">
+                                                                Nenhuma conta encontrada. Clique em Sincronizar.
                                                             </td>
                                                         </tr>
-                                                    ))
-                                                ) : (
-                                                    <tr>
-                                                        <td colSpan={2} className="px-6 py-12 text-center text-muted-foreground italic">
-                                                            Nenhuma conta encontrada. Clique em Sincronizar.
-                                                        </td>
-                                                    </tr>
-                                                )}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </TabsContent>
+                                                    )}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </section>
+                        )}
+                    </TabsContent>
 
-                        <TabsContent value="pixels">
-                            <MetaPixelsConfigArea organizationId={organizationId} />
-                        </TabsContent>
-                    </Tabs>
-                )}
+                    <TabsContent value="pixels">
+                        <MetaPixelsConfigArea organizationId={organizationId} />
+                    </TabsContent>
+                </Tabs>
 
             </div>
         </TemplateMainShell>

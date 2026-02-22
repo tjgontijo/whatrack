@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import { toast } from 'sonner'
 import { useState } from 'react'
-import { Plus, Trash2, Key, Database } from 'lucide-react'
+import { Plus, Trash2, Key, Database, Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -20,7 +20,8 @@ interface MetaPixelsConfigAreaProps {
 export function MetaPixelsConfigArea({ organizationId }: MetaPixelsConfigAreaProps) {
     const queryClient = useQueryClient()
     const [isDialogOpen, setIsDialogOpen] = useState(false)
-    const [newData, setNewData] = useState({ name: '', pixelId: '', capiToken: '' })
+    const [editingPixel, setEditingPixel] = useState<any>(null)
+    const [formData, setFormData] = useState({ name: '', pixelId: '', capiToken: '' })
 
     const { data: pixels, isLoading } = useQuery({
         queryKey: ['meta-ads', 'pixels', organizationId],
@@ -33,26 +34,48 @@ export function MetaPixelsConfigArea({ organizationId }: MetaPixelsConfigAreaPro
 
     const createMutation = useMutation({
         mutationFn: async () => {
-            if (!newData.name || !newData.pixelId || !newData.capiToken) {
+            if (!formData.name || !formData.pixelId || !formData.capiToken) {
                 throw new Error("Preencha todos os campos")
             }
             return axios.post(`/api/v1/meta-ads/pixels`, {
                 organizationId,
-                name: newData.name,
-                pixelId: newData.pixelId,
-                capiToken: newData.capiToken
+                ...formData
             })
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['meta-ads', 'pixels'] })
             toast.success('Pixel adicionado com sucesso!')
             setIsDialogOpen(false)
-            setNewData({ name: '', pixelId: '', capiToken: '' })
+            setFormData({ name: '', pixelId: '', capiToken: '' })
         },
         onError: (err: any) => {
             toast.error(err?.response?.data?.error || err.message || 'Erro ao adicionar Pixel')
         }
     })
+
+    const handleOpenCreate = () => {
+        setEditingPixel(null)
+        setFormData({ name: '', pixelId: '', capiToken: '' })
+        setIsDialogOpen(true)
+    }
+
+    const handleOpenEdit = (pixel: any) => {
+        setEditingPixel(pixel)
+        setFormData({
+            name: pixel.name || '',
+            pixelId: pixel.pixelId || '',
+            capiToken: pixel.capiToken || ''
+        })
+        setIsDialogOpen(true)
+    }
+
+    const handleSave = () => {
+        if (editingPixel) {
+            updateMutation.mutate({ id: editingPixel.id, data: formData })
+        } else {
+            createMutation.mutate()
+        }
+    }
 
     const updateMutation = useMutation({
         mutationFn: async ({ id, data }: { id: string, data: any }) => {
@@ -61,6 +84,7 @@ export function MetaPixelsConfigArea({ organizationId }: MetaPixelsConfigAreaPro
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['meta-ads', 'pixels'] })
             toast.success('Configurações salvas')
+            setIsDialogOpen(false)
         },
         onError: (err: any) => {
             toast.error(err?.response?.data?.error || 'Erro ao salvar configurações')
@@ -89,40 +113,39 @@ export function MetaPixelsConfigArea({ organizationId }: MetaPixelsConfigAreaPro
                     <Database className="h-5 w-5 text-indigo-500" />
                     Meta Datasets (Pixels) para Conversions API
                 </h2>
+                <Button size="sm" className="gap-2" onClick={handleOpenCreate}>
+                    <Plus className="h-4 w-4" />
+                    Adicionar Dataset
+                </Button>
+
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                    <DialogTrigger asChild>
-                        <Button size="sm" className="gap-2">
-                            <Plus className="h-4 w-4" />
-                            Adicionar Dataset
-                        </Button>
-                    </DialogTrigger>
                     <DialogContent>
                         <DialogHeader>
-                            <DialogTitle>Adicionar Novo Dataset (Pixel)</DialogTitle>
+                            <DialogTitle>{editingPixel ? 'Editar Dataset (Pixel)' : 'Adicionar Novo Dataset (Pixel)'}</DialogTitle>
                         </DialogHeader>
                         <div className="space-y-4 py-4">
                             <div className="space-y-2">
                                 <Label>Nome de Identificação</Label>
                                 <Input
                                     placeholder="Ex: Pixel Principal"
-                                    value={newData.name}
-                                    onChange={e => setNewData({ ...newData, name: e.target.value })}
+                                    value={formData.name}
+                                    onChange={e => setFormData({ ...formData, name: e.target.value })}
                                 />
                             </div>
                             <div className="space-y-2">
                                 <Label>ID do Dataset (Meta Pixel)</Label>
                                 <Input
                                     placeholder="Ex: 123456789012345"
-                                    value={newData.pixelId}
-                                    onChange={e => setNewData({ ...newData, pixelId: e.target.value })}
+                                    value={formData.pixelId}
+                                    onChange={e => setFormData({ ...formData, pixelId: e.target.value })}
                                 />
                             </div>
                             <div className="space-y-2">
                                 <Label>Token de Acesso (CAPI)</Label>
                                 <Input
                                     placeholder="CAPI Access Token..."
-                                    value={newData.capiToken}
-                                    onChange={e => setNewData({ ...newData, capiToken: e.target.value })}
+                                    value={formData.capiToken}
+                                    onChange={e => setFormData({ ...formData, capiToken: e.target.value })}
                                     type="password"
                                 />
                             </div>
@@ -130,10 +153,10 @@ export function MetaPixelsConfigArea({ organizationId }: MetaPixelsConfigAreaPro
                         <DialogFooter>
                             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
                             <Button
-                                onClick={() => createMutation.mutate()}
-                                disabled={createMutation.isPending || !newData.name || !newData.pixelId || !newData.capiToken}
+                                onClick={handleSave}
+                                disabled={createMutation.isPending || updateMutation.isPending || !formData.name || !formData.pixelId || !formData.capiToken}
                             >
-                                {createMutation.isPending ? 'Salvando...' : 'Salvar Dataset'}
+                                {createMutation.isPending || updateMutation.isPending ? 'Salvando...' : 'Salvar Dataset'}
                             </Button>
                         </DialogFooter>
                     </DialogContent>
@@ -172,24 +195,40 @@ export function MetaPixelsConfigArea({ organizationId }: MetaPixelsConfigAreaPro
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 text-center">
-                                                <Switch
-                                                    checked={pixel.isActive}
-                                                    onCheckedChange={(val) => updateMutation.mutate({ id: pixel.id, data: { isActive: val } })}
-                                                />
+                                                <div className="flex items-center justify-center gap-3">
+                                                    <span className={`text-[10px] font-medium ${pixel.isActive ? 'text-emerald-600' : 'text-muted-foreground'}`}>
+                                                        {pixel.isActive ? 'ON' : 'OFF'}
+                                                    </span>
+                                                    <Switch
+                                                        checked={pixel.isActive}
+                                                        onCheckedChange={(val) => updateMutation.mutate({ id: pixel.id, data: { isActive: val } })}
+                                                        className={pixel.isActive ? "data-[state=checked]:bg-emerald-500" : ""}
+                                                    />
+                                                </div>
                                             </td>
                                             <td className="px-6 py-4 text-right">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="text-muted-foreground hover:text-destructive"
-                                                    onClick={() => {
-                                                        if (confirm("Deseja deletar este Pixel do WhaTrack? O rastreamento de CAPI será interrompido para ele.")) {
-                                                            deleteMutation.mutate(pixel.id)
-                                                        }
-                                                    }}
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
+                                                <div className="flex items-center justify-end gap-1">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8 text-muted-foreground hover:text-primary"
+                                                        onClick={() => handleOpenEdit(pixel)}
+                                                    >
+                                                        <Pencil className="h-4 w-4" />
+                                                    </Button>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                                        onClick={() => {
+                                                            if (confirm("Deseja deletar este Pixel?")) {
+                                                                deleteMutation.mutate(pixel.id)
+                                                            }
+                                                        }}
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))
