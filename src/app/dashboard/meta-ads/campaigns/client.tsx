@@ -76,6 +76,7 @@ export function MetaAdsCampaignsClient() {
     const [days, setDays] = useState('30')
     const [globalFilter, setGlobalFilter] = useState('')
     const [statusFilter, setStatusFilter] = useState('ALL')
+    const [accountFilter, setAccountFilter] = useState('ALL')
     const [onlyWithSpend, setOnlyWithSpend] = useState(true)
 
     const [sorting, setSorting] = useState<SortingState>([])
@@ -93,6 +94,17 @@ export function MetaAdsCampaignsClient() {
         refetchOnWindowFocus: false,
     })
 
+    const uniqueAccounts = React.useMemo(() => {
+        if (!campaigns) return []
+        const accMap = new Map<string, string>()
+        campaigns.forEach(c => {
+            if (!accMap.has(c.accountId)) {
+                accMap.set(c.accountId, c.accountName)
+            }
+        })
+        return Array.from(accMap.entries()).map(([id, name]) => ({ id, name }))
+    }, [campaigns])
+
     const filteredData = React.useMemo(() => {
         let currentData = campaigns || []
 
@@ -100,12 +112,16 @@ export function MetaAdsCampaignsClient() {
             currentData = currentData.filter(c => c.status === statusFilter)
         }
 
+        if (accountFilter !== 'ALL') {
+            currentData = currentData.filter(c => c.accountId === accountFilter)
+        }
+
         if (onlyWithSpend) {
             currentData = currentData.filter(c => c.spend > 0)
         }
 
         return currentData
-    }, [campaigns, statusFilter, onlyWithSpend])
+    }, [campaigns, statusFilter, accountFilter, onlyWithSpend])
 
     const table = useReactTable({
         data: filteredData,
@@ -129,9 +145,9 @@ export function MetaAdsCampaignsClient() {
         <div className="space-y-4">
             {/* Toolbar */}
             <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center bg-white p-4 rounded-xl border border-border shadow-sm">
-                <div className="flex flex-col md:flex-row gap-4 flex-1 w-full">
+                <div className="flex flex-col md:flex-row gap-4 flex-1 w-full flex-wrap">
                     {/* Search Component */}
-                    <div className="relative max-w-sm w-full">
+                    <div className="relative max-w-sm w-full md:w-auto flex-1">
                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input
                             placeholder="Buscar campanha..."
@@ -140,6 +156,19 @@ export function MetaAdsCampaignsClient() {
                             onChange={e => setGlobalFilter(e.target.value)}
                         />
                     </div>
+
+                    {/* Account Filter */}
+                    <Select value={accountFilter} onValueChange={setAccountFilter}>
+                        <SelectTrigger className="w-full md:w-[220px]">
+                            <SelectValue placeholder="Conta de Anúncio" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="ALL">Todas as contas</SelectItem>
+                            {uniqueAccounts.map(acc => (
+                                <SelectItem key={acc.id} value={acc.id}>{acc.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
 
                     {/* Status Filter */}
                     <Select value={statusFilter} onValueChange={setStatusFilter}>
