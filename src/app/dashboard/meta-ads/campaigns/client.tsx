@@ -13,9 +13,10 @@ import {
     VisibilityState,
 } from '@tanstack/react-table'
 import { campaignsColumns, MetaCampaign } from './columns'
-import { RefreshCw, Search, SlidersHorizontal, Settings2 } from 'lucide-react'
-import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { CampaignAnalysisDrawer } from '@/components/dashboard/meta-ads/campaign-analysis-drawer'
+import { Sparkles, RefreshCw, Search, Settings2 } from 'lucide-react'
+import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import {
@@ -79,6 +80,9 @@ export function MetaAdsCampaignsClient() {
     const [accountFilter, setAccountFilter] = useState('ALL')
     const [onlyWithSpend, setOnlyWithSpend] = useState(true)
 
+    const [analysisDrawerOpen, setAnalysisDrawerOpen] = useState(false)
+    const [selectedCampaignForAnalysis, setSelectedCampaignForAnalysis] = useState<{ id: string, name: string, accountId: string } | null>(null)
+
     const [sorting, setSorting] = useState<SortingState>([])
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(DEFAULT_HIDDEN_COLUMNS)
 
@@ -125,7 +129,36 @@ export function MetaAdsCampaignsClient() {
 
     const table = useReactTable({
         data: filteredData,
-        columns: campaignsColumns,
+        // INJECTION: Temporary workaround - we map the columns and append the actions column here
+        columns: [
+            ...campaignsColumns,
+            {
+                id: 'actions',
+                cell: ({ row }) => {
+                    const campaign = row.original;
+                    return (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 group hover:bg-indigo-50 hover:text-indigo-600 font-medium text-xs whitespace-nowrap"
+                            onClick={() => {
+                                setSelectedCampaignForAnalysis({
+                                    id: campaign.id,
+                                    name: campaign.name,
+                                    accountId: campaign.accountId
+                                });
+                                setAnalysisDrawerOpen(true);
+                            }}
+                        >
+                            <Sparkles className="w-3.5 h-3.5 mr-1.5 text-indigo-400 group-hover:text-indigo-600" />
+                            Analisar (Copilot IA)
+                        </Button>
+                    );
+                },
+                enableSorting: false,
+                enableHiding: false,
+            }
+        ],
         getCoreRowModel: getCoreRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
         getSortedRowModel: getSortedRowModel(),
@@ -307,6 +340,19 @@ export function MetaAdsCampaignsClient() {
                     </Table>
                 )}
             </div>
+
+            {/* AI Copilot Drawer */}
+            <CampaignAnalysisDrawer
+                isOpen={analysisDrawerOpen}
+                onClose={() => {
+                    setAnalysisDrawerOpen(false)
+                    // Resetting campaign selection optionally, but we can keep it for faster re-opning
+                }}
+                campaignName={selectedCampaignForAnalysis?.name || ''}
+                campaignId={selectedCampaignForAnalysis?.id || ''}
+                accountId={selectedCampaignForAnalysis?.accountId || ''}
+                organizationId={organizationId}
+            />
         </div>
     )
 }
