@@ -112,7 +112,7 @@ export function SidebarClient({ navItems }: SidebarClientProps) {
     )
 
     const dataItems = navItems.filter(item =>
-        ['Users', 'Kanban', 'ShoppingBag', 'Package'].includes(item.icon)
+        ['Users', 'Kanban', 'ShoppingBag', 'Package', 'Meta'].includes(item.icon)
     )
 
     const isSuperAdmin = AuthGuards.isSuperAdmin(session?.user?.role)
