@@ -42,12 +42,6 @@ export type MetaCampaign = {
     addsToCart: number
     metaCpatc: number
 
-    // Local Actions
-    localPurchases: number
-    localRevenue: number
-    localRoi: number
-    localCpa: number
-    localProfit: number
 }
 
 // Map Meta API Status to readable labels/colors
@@ -188,43 +182,6 @@ export const campaignsColumns: ColumnDef<MetaCampaign>[] = [
         },
     },
 
-    // Extras / Ocultas por padrão
-    {
-        accessorKey: 'localRoi',
-        header: 'ROI (Whatrack)',
-        cell: ({ row }) => {
-            const val = row.original.localRoi
-            return <div className="font-medium text-primary">{val ? val.toFixed(2) : '—'}</div>
-        },
-    },
-    {
-        accessorKey: 'localCpa',
-        header: 'CPA (Whatrack)',
-        cell: ({ row }) => formatCurrency(row.original.localCpa),
-    },
-    {
-        accessorKey: 'localPurchases',
-        header: 'Vendas (Whatrack)',
-        cell: ({ row }) => <div className="font-semibold text-center">{row.original.localPurchases}</div>,
-    },
-    {
-        accessorKey: 'localProfit',
-        header: 'Lucro (Whatrack)',
-        cell: ({ row }) => {
-            const val = row.original.localProfit
-            const isNegative = val < 0
-            return (
-                <div className={`font-medium ${isNegative ? 'text-red-500' : 'text-green-600 dark:text-green-500'}`}>
-                    {formatCurrency(val)}
-                </div>
-            )
-        },
-    },
-    {
-        accessorKey: 'localRevenue',
-        header: 'Faturamento (Whatrack)',
-        cell: ({ row }) => formatCurrency(row.original.localRevenue),
-    },
     {
         accessorKey: 'impressions',
         header: 'Impressões',

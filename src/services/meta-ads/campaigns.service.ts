@@ -110,25 +110,6 @@ export class MetaCampaignsService {
                         let ctrMeta = Number(insights.inline_link_click_ctr || 0);
                         if (ctrMeta === 0 && impressions > 0) ctrMeta = (finalClicks / impressions) * 100;
 
-                        // Local System Tracking Metrics (Whatrack)
-                        const localSales = await prisma.sale.aggregate({
-                            where: {
-                                organizationId,
-                                status: 'paid',
-                                createdAt: { gte: dateStart },
-                                ticket: {
-                                    tracking: { metaCampaignId: camp.id }
-                                }
-                            },
-                            _sum: { totalAmount: true },
-                            _count: { id: true }
-                        });
-
-                        const localRevenue = Number(localSales._sum.totalAmount || 0);
-                        const localPurchases = Number(localSales._count.id || 0);
-                        const localRoi = spend > 0 ? (localRevenue / spend) : 0;
-                        const localCpa = localPurchases > 0 ? (spend / localPurchases) : spend;
-                        const localProfit = localRevenue - spend; // Simplification without product cost
                         const metaProfit = purchaseValue - spend;
 
                         allCampaigns.push({
@@ -163,13 +144,6 @@ export class MetaCampaignsService {
                             metaCpv: cpvMeta,
                             addsToCart,
                             metaCpatc: cpatcMeta,
-
-                            // Local Actions
-                            localPurchases,
-                            localRevenue,
-                            localRoi,
-                            localCpa,
-                            localProfit
                         });
                     }
                 } catch (error: any) {
