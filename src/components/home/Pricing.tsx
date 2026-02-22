@@ -12,10 +12,10 @@ const plans = [
     priceValue: "197",
     pricePeriod: "/mês",
     features: [
-      "CRM Básico",
+      "Copilot IA Analítico",
       "1 Conexão de WhatsApp",
-      "Rastreamento básico de Meta Ads",
-      "Suporte por email",
+      "Sincronização de Meta Ads",
+      "Envio de Eventos (CAPI)",
     ],
     cta: "Começar Teste Grátis",
     highlighted: false,
@@ -77,8 +77,8 @@ export function Pricing() {
             <div
               key={plan.name}
               className={`relative flex flex-col rounded-2xl border p-8 transition ${plan.highlighted
-                  ? "border-primary bg-gradient-to-br from-primary/10 to-card shadow-xl ring-1 ring-primary/20"
-                  : "border-border bg-card shadow-sm hover:shadow-md"
+                ? "border-primary bg-gradient-to-br from-primary/10 to-card shadow-xl ring-1 ring-primary/20"
+                : "border-border bg-card shadow-sm hover:shadow-md"
                 }`}
             >
               {plan.highlighted && (

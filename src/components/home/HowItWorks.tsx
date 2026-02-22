@@ -1,84 +1,73 @@
 import { Plug, Database, TrendingUp } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 const steps = [
   {
-    number: 1,
+    number: "01",
     icon: Plug,
-    title: "Conecte seus canais",
-    description:
-      "Integre WhatsApp, Instagram, Google, site e outras fontes. Sem código, sem complicação. Tudo funciona junto.",
+    title: "Conecte seu Meta Ads e WhatsApp",
+    description: "Integração feita em 2 minutos via QR Code e Login Seguro. Sem códigos complexos, sem suporte técnico demorado.",
   },
   {
-    number: 2,
+    number: "02",
     icon: Database,
-    title: "Organize o funil",
-    description:
-      "Cada lead recebe um histórico completo: de onde veio, quem atendeu, se agendou, se compareceu e se comprou.",
+    title: "Copilot Monitora o Funil",
+    description: "Nossos Agentes Copilot de IA leem as conversas do WhatsApp em tempo real, sempre cruzando as conversões com o Meta Ads originais.",
   },
   {
-    number: 3,
+    number: "03",
     icon: TrendingUp,
-    title: "Meça e otimize",
-    description:
-      "Veja faturamento por campanha, por atendente, por canal. Corte o que não funciona, escale o que vende.",
+    title: "Retroalimente a Meta (CAPI)",
+    description: "O Whatrack devolve marcações perfeitas do comprador para a API de Conversões. O Meta Ads aprende e reduz o seu custo por venda diariamente.",
   },
 ];
 
 export function HowItWorks() {
   return (
-    <section id="how" className="bg-background py-24 sm:py-32">
+    <section id="how" className="bg-[#f8f9fa] dark:bg-muted/10 border-y border-border/50 py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-0">
         <div className="mb-16 space-y-4 text-center">
-          <h2 className="text-4xl font-bold text-foreground sm:text-5xl">
-            Três passos para ter visibilidade total
+          <Badge variant="secondary" className="mx-auto bg-primary/10 text-primary border-transparent px-4 py-1.5 uppercase tracking-widest text-xs font-bold">
+            Como Funciona
+          </Badge>
+          <h2 className="text-4xl font-extrabold text-foreground sm:text-5xl tracking-tight max-w-2xl mx-auto">
+            Visibilidade total em <span className="text-primary">3 passos simples</span>
           </h2>
-          <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
-            Implementação rápida, sem bagunçar sua operação. Em poucos dias você já está vendo dados reais.
+          <p className="mx-auto max-w-2xl text-lg text-muted-foreground font-medium mt-4">
+            Em menos de 10 minutos você implementa o Whatrack sem depender da equipe de TI e já enxerga os dados reais.
           </p>
         </div>
 
-        <div className="grid gap-8 sm:grid-cols-3">
+        <div className="grid gap-8 sm:grid-cols-3 mt-16">
           {steps.map((step, index) => {
             const Icon = step.icon;
             return (
-              <div key={step.number} className="relative">
-                {/* Connector line */}
+              <div key={step.number} className="relative group">
+                {/* Connector line on desktop */}
                 {index < steps.length - 1 && (
-                  <div className="absolute -right-4 top-12 hidden h-0.5 w-8 bg-gradient-to-r from-primary to-transparent sm:block" />
+                  <div className="absolute right-0 top-12 hidden w-full translate-x-1/2 items-center lg:flex pointer-events-none">
+                    <div className="h-px w-full bg-gradient-to-r from-border to-transparent" />
+                  </div>
                 )}
 
-                <div className="rounded-2xl border border-border bg-gradient-to-br from-muted/50 to-card p-8">
-                  <div className="mb-4 flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold">
-                      {step.number}
+                <div className="flex flex-col items-start bg-white dark:bg-card p-8 rounded-2xl border border-border/60 shadow-sm transition-all hover:shadow-lg relative z-10 h-full">
+                  <div className="mb-6 flex items-center justify-between w-full">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-md transition-transform group-hover:scale-105">
+                      <Icon className="h-6 w-6" />
                     </div>
-                    <Icon className="h-6 w-6 text-primary" />
+                    <span className="text-5xl font-black text-muted/30 select-none">
+                      {step.number}
+                    </span>
                   </div>
 
-                  <h3 className="mb-3 text-lg font-semibold text-foreground">{step.title}</h3>
-                  <p className="text-muted-foreground">{step.description}</p>
+                  <h3 className="mb-3 text-xl font-bold text-foreground leading-tight">{step.title}</h3>
+                  <p className="text-muted-foreground font-medium leading-relaxed">
+                    {step.description}
+                  </p>
                 </div>
               </div>
             );
           })}
-        </div>
-
-        {/* Timeline visual for mobile */}
-        <div className="mt-12 space-y-4 sm:hidden">
-          {steps.map((step, index) => (
-            <div key={step.number} className="flex gap-4">
-              <div className="flex flex-col items-center">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold">
-                  {step.number}
-                </div>
-                {index < steps.length - 1 && <div className="h-8 w-0.5 bg-primary/20" />}
-              </div>
-              <div className="pb-4">
-                <h4 className="font-semibold text-foreground">{step.title}</h4>
-                <p className="text-sm text-muted-foreground">{step.description}</p>
-              </div>
-            </div>
-          ))}
         </div>
       </div>
     </section>

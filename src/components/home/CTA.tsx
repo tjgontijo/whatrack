@@ -4,46 +4,44 @@ import { Button } from "@/components/ui/button";
 
 export function CTA() {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-r from-background to-card py-24 sm:py-32">
+    <section className="relative overflow-hidden bg-primary text-primary-foreground py-24 sm:py-32">
       {/* Background elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -left-40 top-1/2 h-80 w-80 rounded-full bg-primary/10 blur-3xl" />
-        <div className="absolute -right-40 top-1/2 h-80 w-80 rounded-full bg-chart-3/10 blur-3xl" />
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute left-1/2 -top-20 -translate-x-1/2 h-96 w-[1000px] rounded-[100%] bg-white/10 blur-[80px]" />
       </div>
 
-      <div className="relative mx-auto max-w-4xl px-6 text-center sm:px-8 lg:px-0">
-        <h2 className="text-4xl font-bold text-foreground sm:text-5xl">
-          Pronto para ver quanto seu WhatsApp realmente vende?
+      <div className="relative mx-auto max-w-4xl px-6 text-center sm:px-8 lg:px-0 z-10">
+        <h2 className="text-4xl font-extrabold sm:text-5xl tracking-tight text-white mb-6">
+          Pronto para dobrar o ROI das suas campanhas?
         </h2>
 
-        <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
-          Agende uma demonstração rápida e veja na prática como o WhatRack conecta leads, conversas,
-          agendamentos e vendas em um painel que você entende.
+        <p className="mx-auto mt-6 max-w-2xl text-xl text-primary-foreground/90 font-medium leading-relaxed">
+          Crie sua conta agora e libere <span className="text-white font-bold border-b border-white">7 dias grátis</span>. Nenhuma cobrança será feita. Se as suas vendas não ficarem mais organizadas na primeira semana, você cancela com um clique.
         </p>
 
-        <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-center">
+        <div className="mt-12 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-center">
           <Button
             size="lg"
-            className="h-12 font-semibold"
+            variant="secondary"
+            className="h-14 px-8 text-lg font-bold bg-white text-primary hover:bg-white/90 shadow-xl shadow-black/10 transition-transform hover:-translate-y-1"
             asChild
           >
-            <Link href="https://wa.me/5561982482100" target="_blank" rel="noreferrer">
-              Agendar demonstração
-              <ArrowRight className="h-4 w-4" />
+            <Link href="/auth/sign-up">
+              Começar meus 7 Dias Grátis
+              <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
           </Button>
           <Button
             size="lg"
-            variant="outline"
-            className="h-12 border-2 border-primary bg-transparent font-semibold hover:bg-primary/20"
+            className="h-14 px-8 text-lg font-bold border-2 border-white/20 bg-transparent text-white hover:bg-white/10 transition-colors"
             asChild
           >
             <Link href="#pricing">Ver planos</Link>
           </Button>
         </div>
 
-        <p className="mt-6 text-sm text-muted-foreground">
-          Demonstração guiada, sem compromisso.
+        <p className="mt-8 text-sm text-primary-foreground/80 font-medium">
+          Rápido. Fácil de usar. Cancelamento sem burocracia.
         </p>
       </div>
     </section>

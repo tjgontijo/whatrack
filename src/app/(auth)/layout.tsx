@@ -24,7 +24,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
               Venda mais no orgânico e escale no pago.
             </h1>
             <p className="mt-6 text-lg text-muted-foreground w-11/12 leading-relaxed font-medium">
-              O CRM definitivo que une seus canais de <span className="text-foreground">WhatsApp</span> e integrações com o <span className="text-foreground">Meta Ads</span>. Descubra de onde vem cada real que entra.
+              A plataforma definitiva que une <span className="text-foreground">Inteligência Artificial</span> no WhatsApp às campanhas do <span className="text-foreground">Meta Ads</span>. Envie as marcações perfeitas e treine seu pixel com compradores reais.
             </p>
           </div>
 
