@@ -121,6 +121,34 @@ export function TicketPanel({
 
   const currentInsight = insightsData?.items?.find((a: any) => a.ticketId === ticket?.id)
 
+  const { data: stagesData } = useQuery({
+    queryKey: ['ticket-stages', organizationId],
+    queryFn: async () => {
+      const res = await fetch(`/api/v1/ticket-stages`)
+      if (!res.ok) return { items: [] }
+      return res.json()
+    },
+    enabled: !!organizationId,
+  })
+  const stages = stagesData?.items || []
+
+  const handleUpdateStage = async (newStageId: string) => {
+    try {
+      if (!ticket) return
+      const toastId = toast.loading('Movendo ticket...')
+      const res = await fetch(`/api/v1/tickets/${ticket.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stageId: newStageId })
+      })
+      if (!res.ok) throw new Error()
+      toast.success('Etapa atualizada!', { id: toastId })
+      queryClient.invalidateQueries({ queryKey: ['conversation-ticket', conversationId] })
+    } catch {
+      toast.error('Erro ao mover ticket')
+    }
+  }
+
   const formatDealValue = (value: number | string | null | undefined): string => {
     if (!value) return 'Sem valor'
     return new Intl.NumberFormat('pt-BR', {
@@ -199,7 +227,7 @@ export function TicketPanel({
 
   return (
     <div className="flex flex-col h-full bg-background border-l border-border/40 min-h-0">
-      <div className="flex-1 overflow-y-auto custom-scrollbar">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
         <div className="flex flex-col p-6 space-y-6">
 
           {/* Header do Lead */}
@@ -220,229 +248,239 @@ export function TicketPanel({
                 </button>
               </div>
             </div>
-            {statusBadge && (
-              <Badge variant="outline" className={`${statusBadge.bg} ${statusBadge.text} px-3 py-1 text-xs border-0 font-medium`}>
-                Oportunidade {statusBadge.label} (ID: #{ticket.id.slice(0, 6)})
-              </Badge>
-            )}
           </div>
+        </div>
 
-          {/* Destaque: Tráfego Pago (Aha! Moment UX) */}
-          {ticket.tracking?.sourceType === 'paid' && (
-            <div className="relative overflow-hidden rounded-xl border border-[#c13584]/20 bg-gradient-to-br from-[#c13584]/10 to-[#833ab4]/5 p-4">
-              <div className="absolute top-0 right-0 p-3 opacity-20">
-                <Megaphone className="h-12 w-12 text-[#c13584]" />
-              </div>
-              <div className="relative z-10">
-                <div className="flex items-center gap-2 mb-2">
-                  <Badge className="bg-[#c13584] text-white hover:bg-[#c13584]/90 border-0 text-[10px] uppercase font-bold tracking-wider">
-                    ✨ Meta Ads
-                  </Badge>
-                  <span className="text-xs font-medium text-[#c13584]">Lead pago via clique</span>
-                </div>
-                {ticket.tracking.utmCampaign && (
-                  <p className="text-sm font-semibold text-foreground mb-1">
-                    Campanha: {ticket.tracking.utmCampaign}
-                  </p>
-                )}
-                {ticket.tracking.ctwaclid && (
-                  <p className="text-[10px] text-muted-foreground/80 font-mono truncate max-w-[200px]" title={ticket.tracking.ctwaclid}>
-                    ID: {ticket.tracking.ctwaclid}
-                  </p>
-                )}
-              </div>
+        {/* Destaque: Tráfego Pago (Aha! Moment UX) */}
+        {ticket.tracking?.sourceType === 'paid' && (
+          <div className="relative overflow-hidden rounded-xl border border-[#c13584]/20 bg-gradient-to-br from-[#c13584]/10 to-[#833ab4]/5 p-4">
+            <div className="absolute top-0 right-0 p-3 opacity-20">
+              <Megaphone className="h-12 w-12 text-[#c13584]" />
             </div>
-          )}
-
-          {/* Destaque: Copilot IA (Mastra) */}
-          {/* AI Copilot Suggestion Box */}
-          {currentInsight && showAiApproval && (
-            <div className="mb-4 bg-primary/10 border border-primary/20 rounded-lg p-3 shadow-sm relative overflow-hidden group">
-              {/* Agent Header */}
-              <div className="flex items-center gap-2 mb-3">
-                <div className="p-1.5 bg-primary/20 rounded-full">
-                  <Sparkles className="h-4 w-4 text-primary animate-pulse" />
-                </div>
-                <span className="text-sm font-bold text-primary">IA Detectou Fechamento!</span>
-                <Badge className="ml-auto bg-green-100 text-green-800 text-[10px] hover:bg-green-100 uppercase">
-                  {currentInsight?.agent?.name || 'Copilot 2.0'}
+            <div className="relative z-10">
+              <div className="flex items-center gap-2 mb-2">
+                <Badge className="bg-[#c13584] text-white hover:bg-[#c13584]/90 border-0 text-[10px] uppercase font-bold tracking-wider">
+                  ✨ Meta Ads
                 </Badge>
+                <span className="text-xs font-medium text-[#c13584]">Lead pago via clique</span>
               </div>
-              <div className="bg-background/80 rounded border border-border/50 p-3 mb-3 text-sm">
-                <p className="text-muted-foreground break-words leading-relaxed text-xs mb-2">
-                  "{(currentInsight?.payload as any)?.reasoning || 'Insight gerado baseado na conversa.'}"
+              {ticket.tracking.utmCampaign && (
+                <p className="text-sm font-semibold text-foreground mb-1">
+                  Campanha: {ticket.tracking.utmCampaign}
                 </p>
-                <div className="flex justify-between items-center bg-card p-2 rounded border">
-                  <span className="font-medium text-xs truncate mr-2" title={(currentInsight?.payload as any)?.productName}>
-                    {(currentInsight?.payload as any)?.productName || 'Não especificado'}
-                  </span>
-                  <span className="font-bold text-green-600 text-sm whitespace-nowrap">
-                    {formatDealValue((currentInsight?.payload as any)?.dealValue)}
-                  </span>
-                </div>
+              )}
+              {ticket.tracking.ctwaclid && (
+                <p className="text-[10px] text-muted-foreground/80 font-mono truncate max-w-[200px]" title={ticket.tracking.ctwaclid}>
+                  ID: {ticket.tracking.ctwaclid}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Destaque: Copilot IA (Mastra) */}
+        {/* AI Copilot Suggestion Box */}
+        {currentInsight && showAiApproval && (
+          <div className="mb-4 bg-primary/10 border border-primary/20 rounded-lg p-3 shadow-sm relative overflow-hidden group">
+            {/* Agent Header */}
+            <div className="flex items-center gap-2 mb-3">
+              <div className="p-1.5 bg-primary/20 rounded-full">
+                <Sparkles className="h-4 w-4 text-primary animate-pulse" />
               </div>
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  className="w-full bg-primary hover:bg-primary/90 text-xs"
-                  onClick={async () => {
-                    const loadingToast = toast.loading('Aplicando sugestão...')
-                    try {
-                      const res = await fetch(`/api/v1/ai-insights/${currentInsight.id}/approve`, { method: 'PATCH' })
-                      if (!res.ok) throw new Error()
-                      toast.success('Ticket atualizado com sucesso e CAPI acionado.', { id: loadingToast })
-                      setShowAiApproval(false)
-                      queryClient.invalidateQueries({ queryKey: ['conversation-ticket', conversationId] })
-                      queryClient.invalidateQueries({ queryKey: ['ai-insights'] })
-                    } catch {
-                      toast.error('Erro ao aprovar.', { id: loadingToast })
-                    }
-                  }}
-                >
-                  <Check className="h-3.5 w-3.5 mr-1.5" /> Aplicar e Fechar Venda
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="px-3"
-                  onClick={async () => {
-                    try {
-                      await fetch(`/api/v1/ai-insights/${currentInsight.id}/reject`, { method: 'PATCH' })
-                      toast.info('Sugestão rejeitada.')
-                      setShowAiApproval(false)
-                      queryClient.invalidateQueries({ queryKey: ['ai-insights'] })
-                    } catch { }
-                  }}
-                >
-                  <X className="h-3.5 w-3.5 text-muted-foreground" />
-                </Button>
+              <span className="text-sm font-bold text-primary">IA Detectou Fechamento!</span>
+              <Badge className="ml-auto bg-green-100 text-green-800 text-[10px] hover:bg-green-100 uppercase">
+                {currentInsight?.agent?.name || 'Copilot 2.0'}
+              </Badge>
+            </div>
+            <div className="bg-background/80 rounded border border-border/50 p-3 mb-3 text-sm">
+              <p className="text-muted-foreground break-words leading-relaxed text-xs mb-2">
+                "{(currentInsight?.payload as any)?.reasoning || 'Insight gerado baseado na conversa.'}"
+              </p>
+              <div className="flex justify-between items-center bg-card p-2 rounded border">
+                <span className="font-medium text-xs truncate mr-2" title={(currentInsight?.payload as any)?.productName}>
+                  {(currentInsight?.payload as any)?.productName || 'Não especificado'}
+                </span>
+                <span className="font-bold text-green-600 text-sm whitespace-nowrap">
+                  {formatDealValue((currentInsight?.payload as any)?.dealValue)}
+                </span>
               </div>
             </div>
-          )}
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                className="w-full bg-primary hover:bg-primary/90 text-xs"
+                onClick={async () => {
+                  const loadingToast = toast.loading('Aplicando sugestão...')
+                  try {
+                    const res = await fetch(`/api/v1/ai-insights/${currentInsight.id}/approve`, { method: 'PATCH' })
+                    if (!res.ok) throw new Error()
+                    toast.success('Ticket atualizado com sucesso e CAPI acionado.', { id: loadingToast })
+                    setShowAiApproval(false)
+                    queryClient.invalidateQueries({ queryKey: ['conversation-ticket', conversationId] })
+                    queryClient.invalidateQueries({ queryKey: ['ai-insights'] })
+                  } catch {
+                    toast.error('Erro ao aprovar.', { id: loadingToast })
+                  }
+                }}
+              >
+                <Check className="h-3.5 w-3.5 mr-1.5" /> Aplicar e Fechar Venda
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="px-3"
+                onClick={async () => {
+                  try {
+                    await fetch(`/api/v1/ai-insights/${currentInsight.id}/reject`, { method: 'PATCH' })
+                    toast.info('Sugestão rejeitada.')
+                    setShowAiApproval(false)
+                    queryClient.invalidateQueries({ queryKey: ['ai-insights'] })
+                  } catch { }
+                }}
+              >
+                <X className="h-3.5 w-3.5 text-muted-foreground" />
+              </Button>
+            </div>
+          </div>
+        )}
 
-          {/* CRM Interno */}
-          <div className="space-y-4 pt-2">
-            <div className="grid gap-3">
-              <div className="flex flex-col gap-1.5">
-                <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Responsável</Label>
-                <div className="flex items-center justify-between px-3 py-2.5 rounded-md border border-border/50 bg-muted/20">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-primary/70" />
-                    <span className="text-sm font-semibold text-foreground/90">
-                      Alocação Otimizada
-                    </span>
-                  </div>
-                  <Badge variant="outline" className="text-[10px] bg-primary/5 border-primary/20 text-primary uppercase font-bold tracking-wider">
-                    I.A. (Automático)
-                  </Badge>
+        {/* CRM Interno */}
+        <div className="space-y-4 pt-2">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Oportunidade</h3>
+          <div className="grid gap-3">
+
+            {/* Seletor de Etapas (Stages) */}
+            <div className="flex flex-col gap-1.5">
+              <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Etapa do Funil</Label>
+              <Select
+                value={ticket.stage?.id || ''}
+                onValueChange={handleUpdateStage}
+              >
+                <SelectTrigger className="h-9 w-full bg-card shadow-sm border-border/50">
+                  <SelectValue>
+                    {ticket.stage ? (
+                      <div className="flex items-center gap-2">
+                        <div className="h-2 w-2 rounded-full" style={{ backgroundColor: ticket.stage.color }} />
+                        <span className="text-sm font-medium">{ticket.stage.name}</span>
+                      </div>
+                    ) : (
+                      'Selecione...'
+                    )}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {stages.map((stage: any) => (
+                    <SelectItem key={stage.id} value={stage.id}>
+                      <div className="flex items-center gap-2">
+                        <div className="h-2 w-2 rounded-full" style={{ backgroundColor: stage.color }} />
+                        <span className="text-sm font-medium">{stage.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Responsável */}
+            <div className="flex flex-col gap-1.5 border-t border-border/40 pt-3">
+              <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Responsável</Label>
+              <div className="flex items-center px-3 py-2 rounded-md border border-border/50 bg-muted/20">
+                <User className="h-4 w-4 text-muted-foreground mr-2" />
+                <span className="text-sm text-foreground/90">
+                  {ticket.assignee?.name || 'Não atribuído'}
+                </span>
+              </div>
+            </div>
+
+            {/* Valor Estimado */}
+            <div className="flex flex-col gap-1.5">
+              <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Valor Estimado</Label>
+              <div className="flex items-center px-3 py-2 rounded-md border border-border/50 bg-muted/20">
+                <DollarSign className="h-4 w-4 text-green-600/70 mr-2" />
+                <span className="text-sm font-semibold text-foreground/90">
+                  {formatDealValue(ticket.dealValue)}
+                </span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+
+        {/* Dossiê & KPIs do Atendimento */}
+        {ticket.kpis && (
+          <div className="pt-2">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Dossiê do Atendimento</h3>
+            <div className="grid grid-cols-2 gap-2">
+
+              {/* Contagem de Mensagens (Vendedor x Lead) */}
+              <div className="col-span-2 flex items-center justify-between p-3 rounded-lg border border-border/50 bg-card">
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4 text-primary/70" />
+                  <span className="text-xs font-medium text-muted-foreground">Volume da Conversa</span>
+                </div>
+                <div className="flex items-center gap-3 text-xs font-bold">
+                  <span className="flex items-center gap-1 text-green-600" title="Mensagens da Clínica">
+                    <ArrowUpRight className="h-3 w-3" /> {ticket.kpis.outboundMessagesCount}
+                  </span>
+                  <span className="text-border">|</span>
+                  <span className="flex items-center gap-1 text-blue-600" title="Mensagens do Cliente">
+                    <ArrowDownRight className="h-3 w-3" /> {ticket.kpis.inboundMessagesCount}
+                  </span>
                 </div>
               </div>
 
-              <div className="flex flex-col gap-1.5">
-                <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Valor Estimado</Label>
-                <div className="flex items-center justify-between px-3 py-2.5 rounded-md border border-border/50 bg-muted/20">
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="h-4 w-4 text-green-600/70" />
-                    <span className="text-sm font-semibold text-foreground/90">
-                      {formatDealValue(ticket.dealValue)}
-                    </span>
-                  </div>
-                  <Badge variant="outline" className="text-[10px] bg-primary/5 border-primary/20 text-primary uppercase font-bold tracking-wider">
-                    I.A. (Automático)
-                  </Badge>
+              {/* Tempo 1a Resposta */}
+              <div className="col-span-1 flex flex-col gap-1 p-3 rounded-lg border border-border/40 bg-muted/10">
+                <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
+                  <Timer className="h-3.5 w-3.5" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider">1ª Resposta</span>
                 </div>
+                <span className="text-sm font-bold text-foreground">
+                  {formatTimer(ticket.kpis.firstResponseTimeSec)}
+                </span>
+              </div>
+
+              {/* Tempo de Resolução */}
+              <div className="col-span-1 flex flex-col gap-1 p-3 rounded-lg border border-border/40 bg-muted/10">
+                <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
+                  <Activity className="h-3.5 w-3.5" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider">Resolução</span>
+                </div>
+                <span className="text-sm font-bold text-foreground">
+                  {formatTimer(ticket.kpis.resolutionTimeSec)}
+                </span>
               </div>
             </div>
           </div>
+        )}
 
-
-          {/* Dossiê & KPIs do Atendimento */}
-          {ticket.kpis && (
-            <div className="pt-2">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Dossiê do Atendimento</h3>
-              <div className="grid grid-cols-2 gap-2">
-
-                {/* Contagem de Mensagens (Vendedor x Lead) */}
-                <div className="col-span-2 flex items-center justify-between p-3 rounded-lg border border-border/50 bg-card">
-                  <div className="flex items-center gap-2">
-                    <MessageSquare className="h-4 w-4 text-primary/70" />
-                    <span className="text-xs font-medium text-muted-foreground">Volume da Conversa</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-xs font-bold">
-                    <span className="flex items-center gap-1 text-green-600" title="Mensagens da Clínica">
-                      <ArrowUpRight className="h-3 w-3" /> {ticket.kpis.outboundMessagesCount}
-                    </span>
-                    <span className="text-border">|</span>
-                    <span className="flex items-center gap-1 text-blue-600" title="Mensagens do Cliente">
-                      <ArrowDownRight className="h-3 w-3" /> {ticket.kpis.inboundMessagesCount}
-                    </span>
-                  </div>
+        {/* Histórico do Lead / LTV */}
+        {ticket.leadInsights && (
+          <div className="pt-2">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Histórico do Cliente</h3>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between p-3 rounded-lg border border-border/50 bg-card">
+                <div className="flex items-center gap-2">
+                  <User className="h-4 w-4 text-primary/70" />
+                  <span className="text-xs font-medium text-muted-foreground">Oportunidades Iniciais</span>
                 </div>
-
-                {/* Tempo 1a Resposta */}
-                <div className="col-span-1 flex flex-col gap-1 p-3 rounded-lg border border-border/40 bg-muted/10">
-                  <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
-                    <Timer className="h-3.5 w-3.5" />
-                    <span className="text-[10px] font-bold uppercase tracking-wider">1ª Resposta</span>
-                  </div>
-                  <span className="text-sm font-bold text-foreground">
-                    {formatTimer(ticket.kpis.firstResponseTimeSec)}
-                  </span>
+                <span className="text-xs font-bold">{ticket.leadInsights.totalTickets} tickets</span>
+              </div>
+              <div className="flex items-center justify-between p-3 rounded-lg border border-emerald-500/20 bg-gradient-to-r from-emerald-500/5 to-transparent">
+                <div className="flex items-center gap-2">
+                  <DollarSign className="h-4 w-4 text-emerald-600" />
+                  <span className="text-xs font-medium text-muted-foreground">Valor Gerado (LTV)</span>
                 </div>
-
-                {/* Tempo de Resolução */}
-                <div className="col-span-1 flex flex-col gap-1 p-3 rounded-lg border border-border/40 bg-muted/10">
-                  <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
-                    <Activity className="h-3.5 w-3.5" />
-                    <span className="text-[10px] font-bold uppercase tracking-wider">Resolução</span>
-                  </div>
-                  <span className="text-sm font-bold text-foreground">
-                    {formatTimer(ticket.kpis.resolutionTimeSec)}
-                  </span>
-                </div>
+                <span className="text-sm font-bold text-emerald-600">
+                  {formatDealValue(ticket.leadInsights.lifetimeValue)}
+                </span>
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Histórico do Lead / LTV */}
-          {ticket.leadInsights && (
-            <div className="pt-2">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Histórico do Cliente</h3>
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between p-3 rounded-lg border border-border/50 bg-card">
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-primary/70" />
-                    <span className="text-xs font-medium text-muted-foreground">Oportunidades Iniciais</span>
-                  </div>
-                  <span className="text-xs font-bold">{ticket.leadInsights.totalTickets} tickets</span>
-                </div>
-                <div className="flex items-center justify-between p-3 rounded-lg border border-emerald-500/20 bg-gradient-to-r from-emerald-500/5 to-transparent">
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="h-4 w-4 text-emerald-600" />
-                    <span className="text-xs font-medium text-muted-foreground">Valor Gerado (LTV)</span>
-                  </div>
-                  <span className="text-sm font-bold text-emerald-600">
-                    {formatDealValue(ticket.leadInsights.lifetimeValue)}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-
-        </div>
       </div>
-
-      {/* Footer Fixo: CTAs Principais */}
-      {ticket.status === 'open' && (
-        <div className="p-4 bg-card border-t border-border/60 shadow-[0_-10px_40px_rgba(0,0,0,0.03)] z-10 space-y-2 relative">
-          <Button className="w-full font-bold bg-green-600 hover:bg-green-700 text-white shadow-sm h-10">
-            ✅ Concluir Negócio (CAPI)
-          </Button>
-          <Button variant="ghost" className="w-full text-xs text-muted-foreground hover:text-red-600 h-8">
-            Descartar Oportunidade
-          </Button>
-        </div>
-      )}
     </div>
   )
 }
