@@ -86,9 +86,9 @@ function KanbanColumnComponent<T>({
   const isOver = activeId !== null
 
   return (
-    <div className="flex flex-col w-[300px] shrink-0 h-full">
+    <div className="flex flex-col w-[320px] shrink-0 h-full bg-muted/20 dark:bg-muted/10 rounded-2xl border border-border/40 p-2 shadow-sm">
       {/* Column Header */}
-      <div className="flex items-center justify-between px-3 py-2.5 mb-2 shrink-0">
+      <div className="flex items-center justify-between px-3 py-3 mb-3 shrink-0 bg-transparent">
         <div className="flex items-center gap-2">
           <span
             className="h-2.5 w-2.5 rounded-full shrink-0"
@@ -116,8 +116,8 @@ function KanbanColumnComponent<T>({
       <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
         <div
           className={cn(
-            'flex-1 flex flex-col gap-2 px-1 pb-4 overflow-y-auto scrollbar-thin min-h-[80px] rounded-xl transition-colors',
-            isOver && activeId && !itemIds.includes(activeId) && 'bg-muted/30 ring-1 ring-border ring-inset'
+            'flex-1 flex flex-col gap-3 px-1 pb-4 overflow-y-auto scrollbar-thin min-h-[80px] rounded-xl transition-all duration-200',
+            isOver && activeId && !itemIds.includes(activeId) && 'bg-primary/5 ring-1 ring-primary/20 ring-inset'
           )}
         >
           {items.map((item) => (
@@ -253,7 +253,7 @@ export function CrudKanbanView<T>({
 
       <DragOverlay dropAnimation={{ duration: 200, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }}>
         {activeItem ? (
-          <div className="opacity-95 rotate-1 shadow-2xl">
+          <div className="opacity-90 rotate-2 shadow-2xl scale-105 transition-transform cursor-grabbing ring-2 ring-primary ring-offset-1 rounded-xl">
             {renderCard(activeItem, true)}
           </div>
         ) : null}
