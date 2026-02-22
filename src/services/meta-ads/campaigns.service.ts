@@ -46,7 +46,7 @@ export class MetaCampaignsService {
                         'status',
                         'daily_budget',
                         'lifetime_budget',
-                        `insights.time_range(${timeRangeStr}){spend,impressions,clicks,inline_link_clicks,inline_link_click_ctr,cpc,cpm,reach,frequency,actions,action_values,cost_per_action_type}`
+                        `insights.time_range(${timeRangeStr}){spend,impressions,clicks,inline_link_clicks,reach,actions,action_values}`
                     ].join(',');
 
                     const response = await axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${acc.adAccountId}/campaigns`, {
@@ -65,7 +65,6 @@ export class MetaCampaignsService {
                         // Parse actions
                         const actions = insights.actions || [];
                         const actionValues = insights.action_values || [];
-                        const costPerAction = insights.cost_per_action_type || [];
 
                         const getActionVal = (list: any[], actionType: string) => {
                             let item = list.find((a: any) => a.action_type === actionType);
@@ -75,40 +74,33 @@ export class MetaCampaignsService {
                             return item ? Number(item.value) : 0;
                         };
 
-                        // Meta Metrics
+                        // Meta Raw Metrics
                         const spend = Number(insights.spend || 0);
                         const impressions = Number(insights.impressions || 0);
+                        const reach = Number(insights.reach || 0);
 
                         // Clicks strategy: Use inline_link_clicks/link_click first, else clicks
                         const fbClicks = Number(insights.clicks || 0);
                         const linkClicks = getActionVal(actions, 'link_click');
                         const finalClicks = linkClicks > 0 ? linkClicks : fbClicks;
 
+                        // Conversions / Goals
                         const purchases = getActionVal(actions, 'purchase');
                         const purchaseValue = getActionVal(actionValues, 'purchase');
                         const initiateCheckout = getActionVal(actions, 'initiate_checkout');
                         const landingPageViews = getActionVal(actions, 'landing_page_view');
                         const addsToCart = getActionVal(actions, 'add_to_cart');
 
-                        // CPA / CPL fallbacks
-                        let cpaMeta = getActionVal(costPerAction, 'purchase');
-                        if (cpaMeta === 0 && purchases > 0) cpaMeta = spend / purchases;
+                        // Computed Performance Metrics (to save API payload weight)
+                        const cpaMeta = purchases > 0 ? (spend / purchases) : 0;
+                        const ctiMeta = initiateCheckout > 0 ? (spend / initiateCheckout) : 0;
+                        const cpvMeta = landingPageViews > 0 ? (spend / landingPageViews) : 0;
+                        const cpatcMeta = addsToCart > 0 ? (spend / addsToCart) : 0;
 
-                        let ctiMeta = getActionVal(costPerAction, 'initiate_checkout');
-                        if (ctiMeta === 0 && initiateCheckout > 0) ctiMeta = spend / initiateCheckout;
-
-                        let cpvMeta = getActionVal(costPerAction, 'landing_page_view');
-                        if (cpvMeta === 0 && landingPageViews > 0) cpvMeta = spend / landingPageViews;
-
-                        let cpatcMeta = getActionVal(costPerAction, 'add_to_cart');
-                        if (cpatcMeta === 0 && addsToCart > 0) cpatcMeta = spend / addsToCart;
-
-                        let cpcMeta = getActionVal(costPerAction, 'link_click');
-                        if (cpcMeta === 0 && finalClicks > 0) cpcMeta = spend / finalClicks;
-                        if (cpcMeta === 0) cpcMeta = Number(insights.cpc || 0); // last resort
-
-                        let ctrMeta = Number(insights.inline_link_click_ctr || 0);
-                        if (ctrMeta === 0 && impressions > 0) ctrMeta = (finalClicks / impressions) * 100;
+                        const cpcMeta = finalClicks > 0 ? (spend / finalClicks) : 0;
+                        const ctrMeta = impressions > 0 ? (finalClicks / impressions) * 100 : 0;
+                        const cpmMeta = impressions > 0 ? (spend / impressions) * 1000 : 0;
+                        const frequencyMeta = reach > 0 ? (impressions / reach) : 0;
 
                         const metaProfit = purchaseValue - spend;
 
@@ -127,9 +119,9 @@ export class MetaCampaignsService {
                             clicks: finalClicks,
                             cpc: cpcMeta,
                             ctr: ctrMeta,
-                            cpm: Number(insights.cpm || 0),
-                            reach: Number(insights.reach || 0),
-                            frequency: Number(insights.frequency || 0),
+                            cpm: cpmMeta,
+                            reach: reach,
+                            frequency: frequencyMeta,
 
                             // Meta Actions
                             metaPurchases: purchases,
