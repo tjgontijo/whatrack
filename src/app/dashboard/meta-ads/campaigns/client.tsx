@@ -26,7 +26,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table'
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { Switch } from '@/components/ui/switch'
 
 const COLUMN_NAMES: Record<string, string> = {
@@ -142,7 +142,7 @@ export function MetaAdsCampaignsClient() {
     if (!organizationId) return null
 
     return (
-        <div className="space-y-4 min-w-0 w-full overflow-hidden">
+        <div className="space-y-4 flex flex-col min-w-0 w-full">
             {/* Toolbar */}
             <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center bg-white p-4 rounded-xl border border-border shadow-sm">
                 <div className="flex flex-col md:flex-row gap-4 flex-1 w-full flex-wrap">
@@ -252,7 +252,7 @@ export function MetaAdsCampaignsClient() {
             </div>
 
             {/* Table Area */}
-            <div className="rounded-xl border bg-card text-card-foreground shadow-sm bg-white overflow-hidden relative">
+            <div className="rounded-xl border bg-card text-card-foreground shadow-sm bg-white w-full relative overflow-hidden">
                 {isLoading ? (
                     <div className="flex flex-col items-center justify-center h-64 bg-muted/5">
                         <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground/30 mb-4" />
@@ -264,52 +264,47 @@ export function MetaAdsCampaignsClient() {
                         <p className="text-sm">Verifique suas conexões do Meta Ads.</p>
                     </div>
                 ) : (
-                    <ScrollArea className="max-w-full">
-                        <div className="w-full">
-                            <Table className="w-full text-sm">
-                                <TableHeader>
-                                    {table.getHeaderGroups().map((headerGroup) => (
-                                        <TableRow key={headerGroup.id} className="hover:bg-transparent">
-                                            {headerGroup.headers.map((header) => (
-                                                <TableHead key={header.id} className="whitespace-nowrap px-4 py-3 bg-muted/40 font-semibold text-muted-foreground h-11 border-b">
-                                                    {header.isPlaceholder
-                                                        ? null
-                                                        : flexRender(
-                                                            header.column.columnDef.header,
-                                                            header.getContext()
-                                                        )}
-                                                </TableHead>
-                                            ))}
-                                        </TableRow>
+                    <Table className="w-full text-sm">
+                        <TableHeader>
+                            {table.getHeaderGroups().map((headerGroup) => (
+                                <TableRow key={headerGroup.id} className="hover:bg-transparent">
+                                    {headerGroup.headers.map((header) => (
+                                        <TableHead key={header.id} className="whitespace-nowrap px-4 py-3 bg-muted/40 font-semibold text-muted-foreground h-11 border-b">
+                                            {header.isPlaceholder
+                                                ? null
+                                                : flexRender(
+                                                    header.column.columnDef.header,
+                                                    header.getContext()
+                                                )}
+                                        </TableHead>
                                     ))}
-                                </TableHeader>
-                                <TableBody>
-                                    {table.getRowModel().rows?.length ? (
-                                        table.getRowModel().rows.map((row) => (
-                                            <TableRow
-                                                key={row.id}
-                                                data-state={row.getIsSelected() && "selected"}
-                                                className="border-b transition-colors hover:bg-muted/30"
-                                            >
-                                                {row.getVisibleCells().map((cell) => (
-                                                    <TableCell key={cell.id} className="px-4 py-3 align-middle bg-white">
-                                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                                    </TableCell>
-                                                ))}
-                                            </TableRow>
-                                        ))
-                                    ) : (
-                                        <TableRow>
-                                            <TableCell colSpan={campaignsColumns.length} className="h-24 text-center">
-                                                Nenhuma campanha encontrada com os filtros atuais.
+                                </TableRow>
+                            ))}
+                        </TableHeader>
+                        <TableBody>
+                            {table.getRowModel().rows?.length ? (
+                                table.getRowModel().rows.map((row) => (
+                                    <TableRow
+                                        key={row.id}
+                                        data-state={row.getIsSelected() && "selected"}
+                                        className="border-b transition-colors hover:bg-muted/30"
+                                    >
+                                        {row.getVisibleCells().map((cell) => (
+                                            <TableCell key={cell.id} className="px-4 py-3 align-middle bg-white">
+                                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                             </TableCell>
-                                        </TableRow>
-                                    )}
-                                </TableBody>
-                            </Table>
-                        </div>
-                        <ScrollBar orientation="horizontal" />
-                    </ScrollArea>
+                                        ))}
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={campaignsColumns.length} className="h-24 text-center">
+                                        Nenhuma campanha encontrada com os filtros atuais.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
                 )}
             </div>
         </div>
