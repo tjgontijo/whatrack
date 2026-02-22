@@ -5,54 +5,53 @@ import { Button } from "@/components/ui/button";
 
 const plans = [
   {
-    name: "Insights",
-    subtitle: "Para gestores de tráfego",
-    description: "Rastreie campanhas e prove ROI de cada real gasto em mídia.",
-    price: "A partir de",
-    priceValue: "R$ 990",
+    name: "Starter",
+    subtitle: "Para quem está começando",
+    description: "Ideal para pequenas operações e lançamentos iniciais.",
+    price: "R$",
+    priceValue: "197",
     pricePeriod: "/mês",
     features: [
-      "Dashboard de funil completo",
-      "Rastreamento de campanhas e UTMs",
-      "Alertas de leads quentes",
-      "Relatórios de ROI por campanha",
-      "Integração com Meta Ads",
+      "CRM Básico",
+      "1 Conexão de WhatsApp",
+      "Rastreamento básico de Meta Ads",
+      "Suporte por email",
     ],
-    cta: "Começar agora",
+    cta: "Começar Teste Grátis",
     highlighted: false,
   },
   {
-    name: "Operação",
-    subtitle: "Para clínicas, academias e franquias",
-    description: "Controle total de agendamentos, comparecimentos e vendas.",
-    price: "Sob",
-    priceValue: "consulta",
-    pricePeriod: "",
+    name: "Growth",
+    subtitle: "Para agências e lançadores",
+    description: "Automação completa para times em crescimento.",
+    price: "R$",
+    priceValue: "297",
+    pricePeriod: "/mês",
     features: [
-      "Tudo do plano Insights",
-      "Controle de atendentes e unidades",
-      "Gestão de agendamentos",
-      "Relatórios de performance do time",
-      "Suporte dedicado para onboarding",
+      "Tudo do Starter",
+      "Até 3 Conexões de WhatsApp",
+      "Sincronização completa de Meta Ads",
+      "Automações e Respostas Rápidas",
+      "Relatórios de ROI em tempo real",
     ],
-    cta: "Falar com vendas",
+    cta: "Testar por 7 Dias",
     highlighted: true,
   },
   {
-    name: "Enterprise",
-    subtitle: "Para squads e operações complexas",
-    description: "Personalizações, integrações avançadas e governança multi-equipe.",
-    price: "Fale com",
-    priceValue: "o time",
-    pricePeriod: "",
+    name: "Pro Scale",
+    subtitle: "Para grandes operações",
+    description: "Volume intensivo, dezenas de contas e integrações.",
+    price: "R$",
+    priceValue: "497",
+    pricePeriod: "/mês",
     features: [
-      "Tudo do plano Operação",
-      "Integrações avançadas e webhooks",
-      "Workspaces e permissões customizadas",
-      "Roadmap compartilhado",
-      "SLA garantido",
+      "Tudo do Growth",
+      "Conexões ilimitadas de WhatsApp",
+      "Sync focado em Conversão Offline (CAPI)",
+      "Webhooks e integrações avançadas",
+      "Suporte prioritário via WhatsApp",
     ],
-    cta: "Conversar",
+    cta: "Experimentar Agora",
     highlighted: false,
   },
 ];
@@ -62,14 +61,14 @@ export function Pricing() {
     <section id="pricing" className="relative bg-gradient-to-b from-background to-card py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-0">
         <div className="mb-16 space-y-4 text-center">
-          <Badge variant="secondary" className="mx-auto bg-primary/10 text-primary">
-            Planos
+          <Badge variant="secondary" className="mx-auto bg-primary/10 text-primary uppercase tracking-wider font-bold text-xs py-1 px-3">
+            Planos & Preços
           </Badge>
-          <h2 className="text-4xl font-bold text-foreground sm:text-5xl">
-            Planos para cada fase do seu crescimento
+          <h2 className="text-4xl font-extrabold text-foreground sm:text-5xl tracking-tight">
+            Escale sua operação com clareza
           </h2>
-          <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
-            Escolha o plano que faz sentido para você agora. Sempre é possível evoluir depois.
+          <p className="mx-auto max-w-2xl text-lg text-muted-foreground mt-4">
+            Escolha o plano ideal e teste a ferramenta por <strong className="text-foreground">7 dias grátis</strong> sem compromisso. Cancele quando quiser.
           </p>
         </div>
 
@@ -77,11 +76,10 @@ export function Pricing() {
           {plans.map((plan) => (
             <div
               key={plan.name}
-              className={`relative flex flex-col rounded-2xl border p-8 transition ${
-                plan.highlighted
+              className={`relative flex flex-col rounded-2xl border p-8 transition ${plan.highlighted
                   ? "border-primary bg-gradient-to-br from-primary/10 to-card shadow-xl ring-1 ring-primary/20"
                   : "border-border bg-card shadow-sm hover:shadow-md"
-              }`}
+                }`}
             >
               {plan.highlighted && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2">
@@ -113,11 +111,11 @@ export function Pricing() {
               </div>
 
               <Button
-                className="w-full"
+                className={`w-full h-12 text-sm font-semibold tracking-wide ${plan.highlighted ? 'shadow-lg shadow-primary/30 transition-transform hover:-translate-y-0.5' : ''}`}
                 variant={plan.highlighted ? "default" : "outline"}
                 asChild
               >
-                <Link href="https://wa.me/5561999999999" target="_blank" rel="noreferrer">
+                <Link href="/auth/sign-up">
                   {plan.cta}
                 </Link>
               </Button>

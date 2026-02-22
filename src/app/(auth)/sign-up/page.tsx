@@ -105,75 +105,77 @@ export default function SignUpPage() {
   const isSubmitting = form.formState.isSubmitting
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12" data-testid="sign-up-page">
-      <div className="w-full max-w-md space-y-8">
-        <div className="text-center">
-          <img src="/images/logo_transparent.png" alt="WhaTrack" className="h-10 w-auto mx-auto mb-6" />
-          <h1 className="text-2xl font-semibold tracking-tight">Crie sua conta</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Comece a rastrear seus leads em minutos
-          </p>
-        </div>
+    <div className="w-full space-y-6 lg:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500" data-testid="sign-up-page">
+      <div className="text-left">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">Crie sua conta</h1>
+        <p className="mt-2 text-sm text-muted-foreground font-medium">
+          Comece a rastrear seus leads em minutos
+        </p>
+      </div>
 
-        <Form {...form}>
-          <form className="space-y-4" onSubmit={form.handleSubmit(handleSubmit)}>
-            <Controller
-              control={form.control}
-              name="name"
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={field.name}>Nome completo</FieldLabel>
-                  <Input
-                    id={field.name}
-                    placeholder="Seu nome"
-                    autoComplete="name"
-                    disabled={isSubmitting}
-                    {...field}
-                  />
-                  <FieldError errors={[fieldState.error]} />
-                </Field>
-              )}
-            />
+      <Form {...form}>
+        <form className="space-y-4 lg:space-y-5 flex flex-col pt-2" onSubmit={form.handleSubmit(handleSubmit)}>
+          <Controller
+            control={form.control}
+            name="name"
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>Nome completo</FieldLabel>
+                <Input
+                  id={field.name}
+                  placeholder="Seu nome"
+                  autoComplete="name"
+                  className="h-11 lg:h-12 px-4 shadow-sm transition-shadow focus-visible:ring-primary focus-visible:border-primary"
+                  disabled={isSubmitting}
+                  {...field}
+                />
+                <FieldError errors={[fieldState.error]} />
+              </Field>
+            )}
+          />
 
-            <Controller
-              control={form.control}
-              name="email"
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={field.name}>Email</FieldLabel>
-                  <Input
-                    id={field.name}
-                    type="email"
-                    placeholder="seu@email.com"
-                    autoComplete="email"
-                    disabled={isSubmitting}
-                    {...field}
-                  />
-                  <FieldError errors={[fieldState.error]} />
-                </Field>
-              )}
-            />
+          <Controller
+            control={form.control}
+            name="email"
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>Email</FieldLabel>
+                <Input
+                  id={field.name}
+                  type="email"
+                  placeholder="seu@empresa.com"
+                  autoComplete="email"
+                  className="h-11 lg:h-12 px-4 shadow-sm transition-shadow focus-visible:ring-primary focus-visible:border-primary"
+                  disabled={isSubmitting}
+                  {...field}
+                />
+                <FieldError errors={[fieldState.error]} />
+              </Field>
+            )}
+          />
 
-            <Controller
-              control={form.control}
-              name="phone"
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={field.name}>WhatsApp Pessoal</FieldLabel>
-                  <Input
-                    id={field.name}
-                    type="tel"
-                    placeholder="(11) 99999-9999"
-                    autoComplete="tel"
-                    disabled={isSubmitting}
-                    {...field}
-                    onChange={(e) => field.onChange(applyPhoneMask(e.target.value))}
-                  />
-                  <FieldError errors={[fieldState.error]} />
-                </Field>
-              )}
-            />
+          <Controller
+            control={form.control}
+            name="phone"
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>WhatsApp Pessoal</FieldLabel>
+                <Input
+                  id={field.name}
+                  type="tel"
+                  placeholder="(11) 99999-9999"
+                  autoComplete="tel"
+                  className="h-11 lg:h-12 px-4 shadow-sm transition-shadow focus-visible:ring-primary focus-visible:border-primary"
+                  disabled={isSubmitting}
+                  {...field}
+                  onChange={(e) => field.onChange(applyPhoneMask(e.target.value))}
+                />
+                <FieldError errors={[fieldState.error]} />
+              </Field>
+            )}
+          />
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-5">
             <Controller
               control={form.control}
               name="password"
@@ -183,8 +185,9 @@ export default function SignUpPage() {
                   <Input
                     id={field.name}
                     type="password"
-                    placeholder="Mínimo 8 caracteres"
+                    placeholder="Mín. 8 caracteres"
                     autoComplete="new-password"
+                    className="h-11 lg:h-12 px-4 shadow-sm transition-shadow focus-visible:ring-primary focus-visible:border-primary"
                     disabled={isSubmitting}
                     {...field}
                   />
@@ -204,6 +207,7 @@ export default function SignUpPage() {
                     type="password"
                     placeholder="Repita a senha"
                     autoComplete="new-password"
+                    className="h-11 lg:h-12 px-4 shadow-sm transition-shadow focus-visible:ring-primary focus-visible:border-primary"
                     disabled={isSubmitting}
                     {...field}
                   />
@@ -211,19 +215,19 @@ export default function SignUpPage() {
                 </Field>
               )}
             />
+          </div>
 
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? 'Criando conta...' : 'Criar conta'}
-            </Button>
-          </form>
-        </Form>
+          <Button type="submit" className="w-full h-12 mt-6 lg:mt-8 font-semibold text-sm shadow-md shadow-primary/20 transition-all hover:-translate-y-0.5" disabled={isSubmitting}>
+            {isSubmitting ? 'Criando conta...' : 'Criar conta gratuitamente'}
+          </Button>
+        </form>
+      </Form>
 
-        <div className="text-center text-sm text-muted-foreground">
-          Já tem uma conta?{' '}
-          <Link href="/sign-in" className="font-medium text-primary hover:underline">
-            Fazer login
-          </Link>
-        </div>
+      <div className="text-center text-sm text-muted-foreground pt-2 lg:pt-4 border-t border-border/50">
+        Já tem uma conta?{' '}
+        <Link href="/sign-in" className="font-bold tracking-wide text-foreground hover:text-primary transition-colors hover:underline">
+          Fazer login
+        </Link>
       </div>
     </div>
   )

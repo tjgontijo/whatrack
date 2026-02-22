@@ -68,78 +68,76 @@ export default function LoginPage() {
   const isSubmitting = form.formState.isSubmitting
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12" data-testid="sign-in-page">
-      <div className="w-full max-w-md space-y-8" data-testid="sign-in-form">
-        <div className="text-center">
-          <h1 className="text-2xl font-semibold tracking-tight">Acesse sua conta</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Entre com seu email e senha para continuar
-          </p>
-        </div>
+    <div className="w-full space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500" data-testid="sign-in-page">
+      <div className="text-left">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">Acesse sua conta</h1>
+        <p className="mt-2 text-sm text-muted-foreground font-medium">
+          Entre com seu email e senha para continuar
+        </p>
+      </div>
 
-        <Form {...form}>
-          <form className="space-y-6" onSubmit={form.handleSubmit(handleSubmit)}>
-            <Controller
-              control={form.control}
-              name="email"
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={field.name}>Email</FieldLabel>
-                  <Input
-                    id={field.name}
-                    type="email"
-                    inputMode="email"
-                    autoComplete="email"
-                    placeholder="voce@empresa.com"
-                    disabled={isSubmitting}
-                    {...field}
-                  />
-                  <FieldError errors={[fieldState.error]} />
-                </Field>
-              )}
-            />
+      <Form {...form}>
+        <form className="space-y-5 flex flex-col pt-4" onSubmit={form.handleSubmit(handleSubmit)}>
+          <Controller
+            control={form.control}
+            name="email"
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>Email corporativo</FieldLabel>
+                <Input
+                  id={field.name}
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  placeholder="voce@empresa.com"
+                  className="h-12 px-4 shadow-sm transition-shadow focus-visible:ring-primary focus-visible:border-primary"
+                  disabled={isSubmitting}
+                  {...field}
+                />
+                <FieldError errors={[fieldState.error]} />
+              </Field>
+            )}
+          />
 
-            <Controller
-              control={form.control}
-              name="password"
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <div className="flex items-center justify-between">
-                    <FieldLabel htmlFor={field.name}>Senha</FieldLabel>
-                  </div>
-                  <Input
-                    id={field.name}
-                    type="password"
-                    autoComplete="current-password"
-                    placeholder="Sua senha"
-                    disabled={isSubmitting}
-                    {...field}
-                  />
-                  <div className="flex items-center justify-end pt-1">
-                    <Link
-                      href="/forgot-password"
-                      className="text-sm font-medium text-primary hover:underline"
-                    >
-                      Esqueceu a senha?
-                    </Link>
-                  </div>
-                  <FieldError errors={[fieldState.error]} />
-                </Field>
-              )}
-            />
+          <Controller
+            control={form.control}
+            name="password"
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <div className="flex items-center justify-between">
+                  <FieldLabel htmlFor={field.name}>Senha</FieldLabel>
+                  <Link
+                    href="/forgot-password"
+                    className="text-sm font-medium text-primary hover:text-primary/80 hover:underline transition-colors"
+                  >
+                    Esqueceu?
+                  </Link>
+                </div>
+                <Input
+                  id={field.name}
+                  type="password"
+                  autoComplete="current-password"
+                  placeholder="Sua senha secreta"
+                  className="h-12 px-4 shadow-sm transition-shadow focus-visible:ring-primary focus-visible:border-primary"
+                  disabled={isSubmitting}
+                  {...field}
+                />
+                <FieldError errors={[fieldState.error]} />
+              </Field>
+            )}
+          />
 
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? "Entrando…" : "Entrar"}
-            </Button>
-          </form>
-        </Form>
+          <Button type="submit" className="w-full h-12 mt-4 font-semibold text-sm shadow-md shadow-primary/20 transition-all hover:-translate-y-0.5" disabled={isSubmitting}>
+            {isSubmitting ? "Autenticando..." : "Entrar na plataforma"}
+          </Button>
+        </form>
+      </Form>
 
-        <div className="text-center text-sm text-muted-foreground">
-          Não tem uma conta?{" "}
-          <Link href="/sign-up" className="font-medium text-primary hover:underline">
-            Criar conta gratuita
-          </Link>
-        </div>
+      <div className="text-center text-sm text-muted-foreground pt-4">
+        Não tem uma conta?{" "}
+        <Link href="/sign-up" className="font-bold tracking-wide text-foreground hover:text-primary transition-colors hover:underline">
+          Criar conta gratuita
+        </Link>
       </div>
     </div>
   )
