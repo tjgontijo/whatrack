@@ -264,15 +264,87 @@ export async function messageHandler(payload: any, options: MessageHandlerOption
           },
         });
 
-        // Update counts
-        await tx.conversation.update({
-          where: { id: conversation.id },
-          data: { messagesCount: { increment: 1 } },
-        });
-        await tx.ticket.update({
-          where: { id: ticket.id },
-          data: { messagesCount: { increment: 1 } },
-        });
+        // 5. Update counts and KPIs
+        if (!isEcho) {
+          // Inbound Message (Client -> Clinic)
+          await tx.ticket.update({
+            where: { id: ticket.id },
+            data: {
+              messagesCount: { increment: 1 },
+              inboundMessagesCount: { increment: 1 },
+              lastInboundAt: messageTimestamp,
+            },
+          });
+
+          await tx.conversation.update({
+            where: { id: conversation.id },
+            data: {
+              messagesCount: { increment: 1 },
+              inboundMessagesCount: { increment: 1 },
+              lastInboundAt: messageTimestamp,
+              unreadCount: { increment: 1 },
+            },
+          });
+
+          if (!lead.firstMessageAt) {
+            await tx.lead.update({
+              where: { id: lead.id },
+              data: { firstMessageAt: messageTimestamp },
+            });
+          }
+        } else {
+          // Outbound Message (Clinic -> Client)
+          const ticketUpdateData: any = {
+            messagesCount: { increment: 1 },
+            outboundMessagesCount: { increment: 1 },
+            lastOutboundAt: messageTimestamp,
+          };
+
+          if (ticket.firstResponseTimeSec === null) {
+            const responseTime = Math.floor(
+              (messageTimestamp.getTime() - ticket.createdAt.getTime()) / 1000
+            );
+            ticketUpdateData.firstResponseTimeSec = responseTime;
+          }
+
+          await tx.ticket.update({
+            where: { id: ticket.id },
+            data: ticketUpdateData,
+          });
+
+          const convUpdateData: any = {
+            messagesCount: { increment: 1 },
+            outboundMessagesCount: { increment: 1 },
+            lastOutboundAt: messageTimestamp,
+            unreadCount: 0, // Reset unread count since clinic replied
+          };
+
+          if (conversation.lastInboundAt) {
+            const thisResponseTime = Math.floor(
+              (messageTimestamp.getTime() - conversation.lastInboundAt.getTime()) / 1000
+            );
+
+            if (conversation.avgResponseTimeSec === null) {
+              convUpdateData.avgResponseTimeSec = thisResponseTime;
+            } else {
+              convUpdateData.avgResponseTimeSec = Math.floor(
+                conversation.avgResponseTimeSec * 0.7 + thisResponseTime * 0.3
+              );
+            }
+          }
+
+          if (conversation.firstResponseTimeSec === null) {
+            const firstResp = Math.floor(
+              (messageTimestamp.getTime() - conversation.createdAt.getTime()) / 1000
+            );
+            convUpdateData.firstResponseTimeSec = firstResp;
+          }
+
+          await tx.conversation.update({
+            where: { id: conversation.id },
+            data: convUpdateData,
+          });
+        }
 
         // 5. Attribution Logic (Last-Touch)
         if (!isEcho) {

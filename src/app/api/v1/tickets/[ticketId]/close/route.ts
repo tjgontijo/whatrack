@@ -69,12 +69,18 @@ export async function POST(
 
     // Close ticket using transaction
     const closed = await prisma.$transaction(async (tx) => {
-      return tx.ticket.update({
+      const now = new Date();
+      const resolutionTimeSec = Math.floor(
+        (now.getTime() - existing.createdAt.getTime()) / 1000
+      );
+
+      const updatedTicket = await tx.ticket.update({
         where: { id: ticketId },
         data: {
           status: newStatus,
-          closedAt: new Date(),
+          closedAt: now,
           closedReason,
+          resolutionTimeSec,
           ...(dealValue !== undefined && { dealValue }),
         },
         include: {
@@ -110,7 +116,27 @@ export async function POST(
             },
           },
         },
-      })
+      });
+
+      // Update Lead lifetime value and tickets count
+      if (newStatus === 'closed_won' && typeof dealValue === 'number' && dealValue > 0) {
+        await tx.lead.update({
+          where: { id: existing.leadId },
+          data: {
+            lifetimeValue: { increment: dealValue },
+            totalTickets: { increment: 1 },
+          },
+        });
+      } else {
+        await tx.lead.update({
+          where: { id: existing.leadId },
+          data: {
+            totalTickets: { increment: 1 },
+          },
+        });
+      }
+
+      return updatedTicket;
     })
 
     // Format response
