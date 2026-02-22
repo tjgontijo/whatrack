@@ -3,7 +3,7 @@ import { auth } from '@/lib/auth/auth';
 import { headers } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { Agent } from '@mastra/core/agent';
-import { groq } from '@ai-sdk/groq';
+import { openai } from '@ai-sdk/openai';
 import { z } from 'zod';
 import { metaAccessTokenService } from '@/services/meta-ads/access-token.service';
 import axios from 'axios';
@@ -123,7 +123,7 @@ export async function POST(req: Request) {
             name: 'Meta Ads Copilot',
             id: 'meta-ads-copilot',
             instructions: SYSTEM_PROMPT,
-            model: groq('llama-3.3-70b-versatile'), // High intelligence
+            model: openai('gpt-4o'), // High intelligence
         });
 
         const prompt = `Analise a campanha "${campaignName}" com base no seguinte histórico dos últimos ${days} dias (ordenados do mais antigo para o mais recente):
