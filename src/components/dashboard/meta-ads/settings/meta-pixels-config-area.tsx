@@ -153,7 +153,7 @@ export function MetaPixelsConfigArea({ organizationId }: MetaPixelsConfigAreaPro
                                     placeholder="Cole o longo Token de Acesso da Conversions API gerado no Facebook..."
                                     value={formData.capiToken}
                                     onChange={e => setFormData({ ...formData, capiToken: e.target.value })}
-                                    className="min-h-[120px] font-mono text-xs"
+                                    className="min-h-[120px] font-mono text-xs break-all"
                                 />
                             </div>
                         </div>
