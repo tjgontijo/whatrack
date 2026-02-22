@@ -108,7 +108,7 @@ export function CampaignAnalysisDrawer({
                 })
             })
             const data = await resp.json()
-            if (!resp.ok) throw new Error(data.error || 'Erro ao analisar campanha')
+            if (!resp.ok) throw new Error(data.error + (data.detail ? `: ${JSON.stringify(data.detail)}` : ''))
             setResult(data)
         } catch (err: any) {
             setError(err.message)
@@ -129,7 +129,8 @@ export function CampaignAnalysisDrawer({
     return (
         <Sheet open={isOpen} onOpenChange={onClose}>
             <SheetContent
-                className="w-full sm:max-w-2xl md:max-w-3xl lg:max-w-4xl overflow-y-auto flex flex-col"
+                className="overflow-y-auto flex flex-col"
+                style={{ width: '45vw', maxWidth: '45vw', minWidth: '360px' }}
                 side="right"
             >
                 {/* Header */}

@@ -147,7 +147,12 @@ Produza a análise solicitada.`;
         });
 
     } catch (error: any) {
-        console.error('Meta Ads Copilot Analysis Error:', error?.response?.data || error.message);
-        return NextResponse.json({ error: 'Internal server error analyzing campaign' }, { status: 500 });
+        const detail = error?.response?.data || error?.message || String(error)
+        console.error('[Copilot] ❌ Analysis Error:', JSON.stringify(detail, null, 2))
+        console.error('[Copilot] Stack:', error?.stack)
+        return NextResponse.json({
+            error: 'Internal server error analyzing campaign',
+            detail: process.env.NODE_ENV === 'development' ? detail : undefined
+        }, { status: 500 });
     }
 }
