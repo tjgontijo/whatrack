@@ -3,6 +3,7 @@ import { PrismaClient } from '../generated/prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { seedLookupTables } from './seed_lookup_tables'
 import { seedTicketStages } from './seed_ticket_stages'
+import { seedAiAgents } from './seed_ai_agents'
 
 interface PgTableRow {
   tablename: string
