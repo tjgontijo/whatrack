@@ -17,7 +17,16 @@ import { prisma } from '@/lib/prisma';
  */
 
 export async function stateSyncHandler(payload: any): Promise<void> {
-  const metadata = payload.metadata;
+  // Extract value from webhook structure (same pattern as messageHandler)
+  const entry = payload.entry?.[0];
+  const change = entry?.changes?.[0];
+  const value = change?.value;
+
+  if (!value) {
+    throw new Error('Invalid payload: missing entry/changes/value structure');
+  }
+
+  const metadata = value.metadata;
   const phoneNumberId = metadata?.phone_number_id;
 
   if (!phoneNumberId) {
@@ -36,7 +45,7 @@ export async function stateSyncHandler(payload: any): Promise<void> {
 
   console.log('[StateSyncHandler] Processing state sync webhook');
 
-  const stateSync = payload.state_sync || [];
+  const stateSync = value.state_sync || [];
   if (!Array.isArray(stateSync) || stateSync.length === 0) {
     console.warn('[StateSyncHandler] No state_sync data found in payload');
     return;
