@@ -239,6 +239,7 @@ export function MetaAdsCampaignsClient() {
                                                 className="capitalize cursor-pointer"
                                                 checked={column.getIsVisible()}
                                                 onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                                                onSelect={(e) => e.preventDefault()}
                                             >
                                                 {COLUMN_NAMES[column.id] || column.id}
                                             </DropdownMenuCheckboxItem>
