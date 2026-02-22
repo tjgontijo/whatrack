@@ -89,6 +89,7 @@ export async function runSeed() {
 
     await seedLookupTables(prisma)
     await seedTicketStages(prisma)
+    await seedAiAgents(prisma)
 
     console.log('✅ Seed concluído com sucesso!')
   } catch (error) {
