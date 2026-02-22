@@ -75,7 +75,7 @@ export function MetaAdsCampaignsClient() {
 
     const [days, setDays] = useState('1')
     const [globalFilter, setGlobalFilter] = useState('')
-    const [statusFilter, setStatusFilter] = useState('ALL')
+    const [statusFilter, setStatusFilter] = useState('ACTIVE')
     const [accountFilter, setAccountFilter] = useState('ALL')
     const [onlyWithSpend, setOnlyWithSpend] = useState(true)
 
