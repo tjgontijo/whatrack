@@ -38,6 +38,9 @@ export function MetaPixelsConfigArea({ organizationId }: MetaPixelsConfigAreaPro
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['meta-ads', 'pixels'] })
             toast.success('Pixel adicionado, preencha as informações.')
+        },
+        onError: (err: any) => {
+            toast.error(err?.response?.data?.error || 'Erro ao adicionar Pixel')
         }
     })
 
@@ -48,6 +51,9 @@ export function MetaPixelsConfigArea({ organizationId }: MetaPixelsConfigAreaPro
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['meta-ads', 'pixels'] })
             toast.success('Configurações salvas')
+        },
+        onError: (err: any) => {
+            toast.error(err?.response?.data?.error || 'Erro ao salvar configurações')
         }
     })
 
@@ -58,6 +64,9 @@ export function MetaPixelsConfigArea({ organizationId }: MetaPixelsConfigAreaPro
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['meta-ads', 'pixels'] })
             toast.success('Pixel removido')
+        },
+        onError: (err: any) => {
+            toast.error(err?.response?.data?.error || 'Erro ao remover Pixel')
         }
     })
 
@@ -114,11 +123,12 @@ export function MetaPixelsConfigArea({ organizationId }: MetaPixelsConfigAreaPro
                                                 />
                                                 <Input
                                                     placeholder="ID do Dataset (Ex: 123456789...)"
-                                                    defaultValue={pixel.pixelId}
+                                                    defaultValue={pixel.pixelId.startsWith('temp_') ? '' : pixel.pixelId}
                                                     className="h-8 text-xs font-mono bg-muted/50"
                                                     onBlur={(e) => {
-                                                        if (e.target.value !== pixel.pixelId) {
-                                                            updateMutation.mutate({ id: pixel.id, data: { pixelId: e.target.value } })
+                                                        const newVal = e.target.value;
+                                                        if (newVal !== pixel.pixelId && newVal !== '') {
+                                                            updateMutation.mutate({ id: pixel.id, data: { pixelId: newVal } })
                                                         }
                                                     }}
                                                 />

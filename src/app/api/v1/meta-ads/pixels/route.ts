@@ -44,15 +44,17 @@ export async function POST(req: NextRequest) {
         const body = await req.json();
         const { organizationId, pixelId, capiToken, name } = body;
 
-        if (!organizationId || !pixelId || !capiToken) {
+        if (!organizationId) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
         }
+
+        const fallbackPixelId = pixelId || `temp_${Date.now()}`;
 
         const pixel = await prisma.metaPixel.create({
             data: {
                 organizationId,
-                pixelId,
-                capiToken,
+                pixelId: fallbackPixelId,
+                capiToken: capiToken || "",
                 name,
             },
         });

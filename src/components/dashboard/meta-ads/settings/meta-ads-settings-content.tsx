@@ -68,6 +68,9 @@ export function MetaAdsSettingsContent({ organizationId }: MetaAdsSettingsConten
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['meta-ads', 'ad-accounts'] })
             toast.success('Rastreamento de conta atualizado')
+        },
+        onError: (err: any) => {
+            toast.error(err?.response?.data?.error || 'Erro ao atualizar rastreamento')
         }
     })
 
@@ -223,7 +226,12 @@ export function MetaAdsSettingsContent({ organizationId }: MetaAdsSettingsConten
                                                             </div>
                                                         </td>
                                                         <td className="px-6 py-4 text-center">
-                                                            <Badge variant="outline" className="font-normal text-[10px] h-5">Conectada</Badge>
+                                                            <Badge
+                                                                variant={acc.isActive ? "default" : "outline"}
+                                                                className={`font-normal text-[10px] h-5 ${acc.isActive ? 'bg-emerald-500 hover:bg-emerald-600' : ''}`}
+                                                            >
+                                                                {acc.isActive ? 'Rastreando' : 'Inativa'}
+                                                            </Badge>
                                                         </td>
                                                         <td className="px-6 py-4 text-center">
                                                             <Switch
