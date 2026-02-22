@@ -40,7 +40,6 @@ export function ChatList({
     return (
         <div className="flex flex-col h-full border-r border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="p-4 border-b border-border/40 space-y-4">
-                <h1 className="text-lg font-bold tracking-tight">Mensagens</h1>
                 {onInstanceChange && (
                     <InstanceSelector
                         selectedInstanceId={selectedInstanceId || null}
@@ -110,12 +109,7 @@ export function ChatList({
                                                 {new Date(chat.lastMessageAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                                             </span>
                                         </div>
-                                        <div className="flex flex-wrap items-center gap-1.5 mb-1">
-                                            {statusBadge && (
-                                                <Badge variant="outline" className={`text-[9px] px-1.5 py-0 ${statusBadge.bg} ${statusBadge.text} border-0 font-medium tracking-wide`}>
-                                                    {statusBadge.label}
-                                                </Badge>
-                                            )}
+                                        <div className="flex flex-wrap items-center gap-1.5 mb-1 overflow-hidden h-4">
                                             {chat.currentTicket?.stage && (
                                                 <div
                                                     className="text-[9px] px-1.5 py-0.5 rounded text-white font-medium/90 tracking-wide"
@@ -143,3 +137,4 @@ export function ChatList({
         </div>
     )
 }
+
