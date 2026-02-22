@@ -126,24 +126,30 @@ export function MetaPixelsConfigArea({ organizationId }: MetaPixelsConfigAreaPro
                         </DialogHeader>
                         <div className="space-y-4 py-4">
                             <div className="space-y-2">
-                                <Label>Nome de Identificação</Label>
+                                <Label htmlFor="meta_dataset_name">Nome de Identificação</Label>
                                 <Input
+                                    id="meta_dataset_name"
+                                    name="meta_dataset_name"
                                     placeholder="Ex: Pixel Principal"
                                     value={formData.name}
                                     onChange={e => setFormData({ ...formData, name: e.target.value })}
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label>ID do Dataset (Meta Pixel)</Label>
+                                <Label htmlFor="meta_pixel_id_val">ID do Dataset (Meta Pixel)</Label>
                                 <Input
+                                    id="meta_pixel_id_val"
+                                    name="meta_pixel_id_val"
                                     placeholder="Ex: 123456789012345"
                                     value={formData.pixelId}
                                     onChange={e => setFormData({ ...formData, pixelId: e.target.value })}
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label>Token de Acesso (CAPI)</Label>
+                                <Label htmlFor="meta_capi_token_area">Token de Acesso (CAPI)</Label>
                                 <Textarea
+                                    id="meta_capi_token_area"
+                                    name="meta_capi_token_area"
                                     placeholder="Cole o longo Token de Acesso da Conversions API gerado no Facebook..."
                                     value={formData.capiToken}
                                     onChange={e => setFormData({ ...formData, capiToken: e.target.value })}
@@ -191,8 +197,8 @@ export function MetaPixelsConfigArea({ organizationId }: MetaPixelsConfigAreaPro
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <div className="text-xs font-mono text-muted-foreground truncate max-w-[200px]" title={pixel.capiToken}>
-                                                    {pixel.capiToken ? '••••••••••••••••••••' : 'Sem token'}
+                                                <div className="text-[10px] font-mono text-muted-foreground truncate max-w-[250px] bg-muted/30 px-2 py-1 rounded" title={pixel.capiToken}>
+                                                    {pixel.capiToken ? `${pixel.capiToken.substring(0, 30)}...` : 'Sem token'}
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 text-center">
