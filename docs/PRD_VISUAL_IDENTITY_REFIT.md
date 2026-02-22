@@ -15,10 +15,11 @@ The goal is to move away from overly generic "shell" layouts and generic data vi
 
 ## 3. Scope of Migration (Phased Plan)
 
-### Phase 1: Core System & Layout Foundation
-**Goal:** Adjust the structural foundation and overarching styles without breaking page functionalities.
+### Phase 1: Core System, Layout Foundation & Auth Pages
+**Goal:** Adjust the structural foundation, overarching styles, and access points without breaking page functionalities.
 - Ensure the main content layout (Sidebar, Header, Main Wrapper) has the correct background colors (`bg-muted/10` or `bg-[#f8f9fa]`) so that `bg-white` inner panels pop properly.
 - Deprecate or refine generic layout components (like `CrudPageShell`) to support the new "Card-based" internal layout rather than full-width bleed styles.
+- **Auth & Onboarding:** Redesign the login, signup, and onboarding flow to match the platform's high-end, premium "clean" aesthetics (e.g., split screens, blurred elements, large typography, micro-animations on input focuses).
 
 ### Phase 2: CRM & Core Entity Pages
 **Goal:** Refit the heavy data pages that users interact with daily.
