@@ -28,7 +28,16 @@ function resolveMessageTimestamp(rawTimestamp: string | number | undefined): Dat
 }
 
 export async function historyHandler(payload: any): Promise<void> {
-  const metadata = payload.metadata;
+  // Extract value from webhook structure (same pattern as messageHandler)
+  const entry = payload.entry?.[0];
+  const change = entry?.changes?.[0];
+  const value = change?.value;
+
+  if (!value) {
+    throw new Error('Invalid payload: missing entry/changes/value structure');
+  }
+
+  const metadata = value.metadata;
   const phoneNumberId = metadata?.phone_number_id;
 
   if (!phoneNumberId) {
@@ -47,7 +56,7 @@ export async function historyHandler(payload: any): Promise<void> {
 
   console.log('[HistoryHandler] Processing history webhook');
 
-  const historyData = payload.history || [];
+  const historyData = value.history || [];
   if (!Array.isArray(historyData) || historyData.length === 0) {
     console.warn('[HistoryHandler] No history data found in payload');
     return;
@@ -83,13 +92,16 @@ export async function historyHandler(payload: any): Promise<void> {
 
   for (const thread of threads) {
     try {
-      const waId = thread.context?.wa_id;
+      // wa_id can be in context.wa_id or thread.id (fallback)
+      const waId = thread.context?.wa_id || thread.id;
       const username = thread.context?.username;
 
       if (!waId) {
-        console.warn('[HistoryHandler] Thread missing wa_id');
+        console.warn('[HistoryHandler] Thread missing wa_id, skipping:', JSON.stringify(thread).substring(0, 200));
         continue;
       }
+
+      console.log(`[HistoryHandler] Processing thread for waId: ${waId}, messages: ${thread.messages?.length || 0}`);
 
       // Normalize phone number
       const normalizedPhone = waId.startsWith('+') ? waId : `+${waId}`;
