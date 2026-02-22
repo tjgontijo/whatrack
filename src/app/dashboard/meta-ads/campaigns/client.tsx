@@ -73,7 +73,7 @@ export function MetaAdsCampaignsClient() {
     const { data: activeOrg } = authClient.useActiveOrganization()
     const organizationId = activeOrg?.id
 
-    const [days, setDays] = useState('30')
+    const [days, setDays] = useState('1')
     const [globalFilter, setGlobalFilter] = useState('')
     const [statusFilter, setStatusFilter] = useState('ALL')
     const [accountFilter, setAccountFilter] = useState('ALL')
