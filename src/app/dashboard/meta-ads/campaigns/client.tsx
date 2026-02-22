@@ -142,7 +142,7 @@ export function MetaAdsCampaignsClient() {
     if (!organizationId) return null
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-4 min-w-0 w-full overflow-hidden">
             {/* Toolbar */}
             <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center bg-white p-4 rounded-xl border border-border shadow-sm">
                 <div className="flex flex-col md:flex-row gap-4 flex-1 w-full flex-wrap">

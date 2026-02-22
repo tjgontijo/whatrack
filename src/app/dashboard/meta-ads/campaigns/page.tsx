@@ -26,7 +26,7 @@ export default async function MetaAdsCampaignsPage() {
                 title="Campanhas do Meta"
                 subtitle="Acompanhamento e dados detalhados das suas campanhas ativas"
             />
-            <div className="flex-1 overflow-y-auto p-4 md:p-8">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden min-w-0 p-4 md:p-8">
                 <MetaAdsCampaignsClient />
             </div>
         </TemplateMainShell>
