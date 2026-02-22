@@ -89,102 +89,116 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Informações Pessoais</CardTitle>
-          <CardDescription>
-            Atualize seu nome e email
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...profileForm}>
-            <form onSubmit={profileForm.handleSubmit(onSubmitProfile)} className="space-y-4">
-              <Controller
-                control={profileForm.control}
-                name="name"
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor={field.name}>Nome completo</FieldLabel>
-                    <Input id={field.name} placeholder="João Silva" {...field} />
-                    <FieldError errors={[fieldState.error]} />
-                  </Field>
-                )}
-              />
+    <div className="space-y-8 divide-y divide-border">
+      {/* Profile Section */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3 pt-8 first:pt-0">
+        <div className="md:col-span-1">
+          <h3 className="text-lg font-medium leading-none">Informações Pessoais</h3>
+          <p className="text-sm text-muted-foreground mt-2">
+            Atualize seu nome e email para a conta logada.
+          </p>
+        </div>
+        <div className="md:col-span-2">
+          <Card className="shadow-sm">
+            <CardContent className="p-6">
+              <Form {...profileForm}>
+                <form onSubmit={profileForm.handleSubmit(onSubmitProfile)} className="space-y-4">
+                  <Controller
+                    control={profileForm.control}
+                    name="name"
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel htmlFor={field.name}>Nome completo</FieldLabel>
+                        <Input id={field.name} placeholder="João Silva" className="max-w-md" {...field} />
+                        <FieldError errors={[fieldState.error]} />
+                      </Field>
+                    )}
+                  />
 
-              <Controller
-                control={profileForm.control}
-                name="email"
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor={field.name}>Email</FieldLabel>
-                    <Input id={field.name} type="email" placeholder="joao@empresa.com" {...field} />
-                    <FieldError errors={[fieldState.error]} />
-                  </Field>
-                )}
-              />
+                  <Controller
+                    control={profileForm.control}
+                    name="email"
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel htmlFor={field.name}>Email</FieldLabel>
+                        <Input id={field.name} type="email" placeholder="joao@empresa.com" className="max-w-md" {...field} />
+                        <FieldError errors={[fieldState.error]} />
+                      </Field>
+                    )}
+                  />
 
-              <Button type="submit" disabled={isLoadingProfile}>
-                {isLoadingProfile ? "Salvando..." : "Salvar alterações"}
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+                  <div className="pt-2">
+                    <Button type="submit" disabled={isLoadingProfile}>
+                      {isLoadingProfile ? "Salvando..." : "Salvar alterações"}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Alterar Senha</CardTitle>
-          <CardDescription>
-            Mantenha sua conta segura com uma senha forte
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...passwordForm}>
-            <form onSubmit={passwordForm.handleSubmit(onSubmitPassword)} className="space-y-4">
-              <Controller
-                control={passwordForm.control}
-                name="currentPassword"
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor={field.name}>Senha atual</FieldLabel>
-                    <Input id={field.name} type="password" {...field} />
-                    <FieldError errors={[fieldState.error]} />
-                  </Field>
-                )}
-              />
+      {/* Password Section */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3 pt-8">
+        <div className="md:col-span-1">
+          <h3 className="text-lg font-medium leading-none">Alterar Senha</h3>
+          <p className="text-sm text-muted-foreground mt-2">
+            Mantenha sua conta segura com uma senha forte. Recomendamos números e símbolos.
+          </p>
+        </div>
+        <div className="md:col-span-2">
+          <Card className="shadow-sm">
+            <CardContent className="p-6">
+              <Form {...passwordForm}>
+                <form onSubmit={passwordForm.handleSubmit(onSubmitPassword)} className="space-y-4">
+                  <Controller
+                    control={passwordForm.control}
+                    name="currentPassword"
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel htmlFor={field.name}>Senha atual</FieldLabel>
+                        <Input id={field.name} type="password" className="max-w-md" {...field} />
+                        <FieldError errors={[fieldState.error]} />
+                      </Field>
+                    )}
+                  />
 
-              <Controller
-                control={passwordForm.control}
-                name="newPassword"
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor={field.name}>Nova senha</FieldLabel>
-                    <Input id={field.name} type="password" placeholder="Mínimo 8 caracteres" {...field} />
-                    <FieldError errors={[fieldState.error]} />
-                  </Field>
-                )}
-              />
+                  <Controller
+                    control={passwordForm.control}
+                    name="newPassword"
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel htmlFor={field.name}>Nova senha</FieldLabel>
+                        <Input id={field.name} type="password" placeholder="Mínimo 8 caracteres" className="max-w-md" {...field} />
+                        <FieldError errors={[fieldState.error]} />
+                      </Field>
+                    )}
+                  />
 
-              <Controller
-                control={passwordForm.control}
-                name="confirmPassword"
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor={field.name}>Confirmar nova senha</FieldLabel>
-                    <Input id={field.name} type="password" {...field} />
-                    <FieldError errors={[fieldState.error]} />
-                  </Field>
-                )}
-              />
+                  <Controller
+                    control={passwordForm.control}
+                    name="confirmPassword"
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel htmlFor={field.name}>Confirmar nova senha</FieldLabel>
+                        <Input id={field.name} type="password" className="max-w-md" {...field} />
+                        <FieldError errors={[fieldState.error]} />
+                      </Field>
+                    )}
+                  />
 
-              <Button type="submit" disabled={isLoadingPassword}>
-                {isLoadingPassword ? "Alterando..." : "Alterar senha"}
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+                  <div className="pt-2">
+                    <Button type="submit" disabled={isLoadingPassword}>
+                      {isLoadingPassword ? "Alterando..." : "Alterar senha"}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   )
 }

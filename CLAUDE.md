@@ -67,7 +67,7 @@ src/app/
 - **Provider:** Better Auth v1 (`src/lib/auth/auth.ts`)
 - **Base path:** `/api/v1/auth`
 - **Client hooks:** `src/lib/auth/auth-client.ts` — exports `useSession`, `signOut`, `changePassword`
-- **Roles:** `owner > admin > user` (weight-based hierarchy in `src/lib/auth/roles.ts`)
+- **Roles:** `owner > admin > user` (weight-based hierarchy in `src/lib/auth/rbac/roles.ts`)
 - **Permissions:** `system:manage`, `system:read_logs`, `org:manage`, `org:whatsapp:manage`, `org:leads:manage`, `org:sales:manage`, `org:members:manage`
 
 **API route pattern** — always compose guards from `src/lib/auth/guards.ts`:

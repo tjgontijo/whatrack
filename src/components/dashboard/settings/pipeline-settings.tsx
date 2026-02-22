@@ -42,6 +42,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { DeleteConfirmDialog } from '@/components/dashboard/crud/delete-confirm-dialog'
+import { TemplateMainShell, TemplateMainHeader } from '@/components/dashboard/leads'
 
 const PRESET_COLORS = [
   '#6366f1', '#8b5cf6', '#ec4899', '#f43f5e',
@@ -384,19 +385,11 @@ export function PipelineSettings() {
   const isSaving = createMutation.isPending || updateMutation.isPending
 
   return (
-    <div className="flex flex-col h-full overflow-hidden bg-background">
-      {/* Header */}
-      <div className="border-b border-border bg-background px-6 py-5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <Kanban className="h-5 w-5" />
-            </div>
-            <div>
-              <h1 className="text-lg font-bold tracking-tight">Pipeline</h1>
-              <p className="text-sm text-muted-foreground">Gerencie as fases do seu funil de tickets</p>
-            </div>
-          </div>
+    <TemplateMainShell className="flex flex-col h-full overflow-hidden">
+      <TemplateMainHeader
+        title="Pipeline"
+        subtitle="Gerencie as fases do seu funil de tickets"
+        actions={
           <Button
             onClick={() => {
               setEditingStage(null)
@@ -408,11 +401,11 @@ export function PipelineSettings() {
             <Plus className="h-4 w-4" />
             Adicionar Fase
           </Button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex-1 overflow-y-auto p-6 bg-muted/5">
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -466,6 +459,6 @@ export function PipelineSettings() {
         onSave={handleSave}
         isSaving={isSaving}
       />
-    </div>
+    </TemplateMainShell>
   )
 }

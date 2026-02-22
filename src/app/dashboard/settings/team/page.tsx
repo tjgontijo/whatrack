@@ -108,125 +108,137 @@ export default function TeamSettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+    <div className="space-y-8 divide-y divide-border">
+      {/* Invite Member Section */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3 pt-8 first:pt-0">
+        <div className="md:col-span-1">
+          <h3 className="text-lg font-medium flex items-center gap-2 leading-none">
             <UserPlus className="h-5 w-5" />
             Convidar membro
-          </CardTitle>
-          <CardDescription>
-            Envie um convite por email para adicionar um novo membro
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmitInvite)} className="flex gap-4">
-              <Controller
-                control={form.control}
-                name="email"
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid} className="flex-1">
-                    <Input id={field.name} placeholder="email@empresa.com" type="email" {...field} />
-                    <FieldError errors={[fieldState.error]} />
-                  </Field>
-                )}
-              />
+          </h3>
+          <p className="text-sm text-muted-foreground mt-2">
+            Envie um convite por email para adicionar um novo membro à organização.
+          </p>
+        </div>
+        <div className="md:col-span-2">
+          <Card className="shadow-sm">
+            <CardContent className="p-6">
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmitInvite)} className="flex flex-col sm:flex-row gap-4">
+                  <Controller
+                    control={form.control}
+                    name="email"
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid} className="flex-1">
+                        <Input id={field.name} placeholder="email@empresa.com" type="email" {...field} />
+                        <FieldError errors={[fieldState.error]} />
+                      </Field>
+                    )}
+                  />
 
-              <Controller
-                control={form.control}
-                name="role"
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid} className="w-48">
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <SelectTrigger id={field.name}>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="user">Usuário</SelectItem>
-                        <SelectItem value="admin">Administrador</SelectItem>
-                        <SelectItem value="owner">Proprietário</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FieldError errors={[fieldState.error]} />
-                  </Field>
-                )}
-              />
+                  <Controller
+                    control={form.control}
+                    name="role"
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid} className="sm:w-48">
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <SelectTrigger id={field.name}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="user">Usuário</SelectItem>
+                            <SelectItem value="admin">Administrador</SelectItem>
+                            <SelectItem value="owner">Proprietário</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FieldError errors={[fieldState.error]} />
+                      </Field>
+                    )}
+                  />
 
-              <Button type="submit" disabled={isInviting}>
-                {isInviting ? "Enviando..." : "Enviar convite"}
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+                  <Button type="submit" disabled={isInviting}>
+                    {isInviting ? "Enviando..." : "Enviar convite"}
+                  </Button>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Membros ativos</CardTitle>
-          <CardDescription>
+      {/* Active Members Section */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3 pt-8">
+        <div className="md:col-span-1">
+          <h3 className="text-lg font-medium leading-none">
+            Membros ativos
+          </h3>
+          <p className="text-sm text-muted-foreground mt-2">
             {members.length} membro(s) na organização
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Função</TableHead>
-                <TableHead className="w-24">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {members.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center text-muted-foreground">
-                    Nenhum membro encontrado
-                  </TableCell>
-                </TableRow>
-              ) : (
-                members.map((member) => (
-                  <TableRow key={member.id}>
-                    <TableCell>{member.name}</TableCell>
-                    <TableCell>{member.email}</TableCell>
-                    <TableCell>
-                      <Badge variant={getRoleBadgeVariant(member.role)}>
-                        {getRoleLabel(member.role)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {member.role !== "owner" && (
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Remover membro?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                {member.name} será removido da organização e perderá acesso ao sistema.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => removeMember(member.id)}>
-                                Remover
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      )}
-                    </TableCell>
+          </p>
+        </div>
+        <div className="md:col-span-2">
+          <Card className="shadow-sm">
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="pl-6">Nome</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Função</TableHead>
+                    <TableHead className="w-24 pr-6">Ações</TableHead>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+                </TableHeader>
+                <TableBody>
+                  {members.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                        Nenhum membro encontrado
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    members.map((member) => (
+                      <TableRow key={member.id}>
+                        <TableCell className="pl-6">{member.name}</TableCell>
+                        <TableCell>{member.email}</TableCell>
+                        <TableCell>
+                          <Badge variant={getRoleBadgeVariant(member.role)}>
+                            {getRoleLabel(member.role)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="pr-6">
+                          {member.role !== "owner" && (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="sm">
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Remover membro?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    {member.name} será removido da organização e perderá acesso ao sistema.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => removeMember(member.id)}>
+                                    Remover
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   )
 }
