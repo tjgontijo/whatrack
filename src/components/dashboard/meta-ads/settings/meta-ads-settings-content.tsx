@@ -30,9 +30,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 interface MetaAdsSettingsContentProps {
     organizationId: string | undefined
+    initialConnections?: any[]
+    initialAdAccounts?: any[]
+    initialPixels?: any[]
 }
 
-export function MetaAdsSettingsContent({ organizationId }: MetaAdsSettingsContentProps) {
+export function MetaAdsSettingsContent({ organizationId, initialConnections, initialAdAccounts, initialPixels }: MetaAdsSettingsContentProps) {
     const queryClient = useQueryClient()
 
     const handleRefreshAll = () => {
@@ -47,7 +50,8 @@ export function MetaAdsSettingsContent({ organizationId }: MetaAdsSettingsConten
             const res = await axios.get(`/api/v1/meta-ads/connections?organizationId=${organizationId}`)
             return res.data
         },
-        enabled: !!organizationId
+        enabled: !!organizationId,
+        initialData: initialConnections,
     })
 
     // 2. Fetch Ad Accounts
@@ -57,7 +61,8 @@ export function MetaAdsSettingsContent({ organizationId }: MetaAdsSettingsConten
             const res = await axios.get(`/api/v1/meta-ads/ad-accounts?organizationId=${organizationId}`)
             return res.data
         },
-        enabled: !!organizationId
+        enabled: !!organizationId,
+        initialData: initialAdAccounts,
     })
 
     const { startOnboarding, isPending: isConnecting } = useMetaAdsOnboarding(organizationId, handleRefreshAll)
@@ -276,7 +281,7 @@ export function MetaAdsSettingsContent({ organizationId }: MetaAdsSettingsConten
                     </TabsContent>
 
                     <TabsContent value="pixels">
-                        <MetaPixelsConfigArea organizationId={organizationId} />
+                        <MetaPixelsConfigArea organizationId={organizationId} initialPixels={initialPixels} />
                     </TabsContent>
                 </Tabs>
 

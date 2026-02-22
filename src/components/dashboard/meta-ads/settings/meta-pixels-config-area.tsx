@@ -16,9 +16,10 @@ import { Label } from '@/components/ui/label'
 
 interface MetaPixelsConfigAreaProps {
     organizationId: string | undefined
+    initialPixels?: any[]
 }
 
-export function MetaPixelsConfigArea({ organizationId }: MetaPixelsConfigAreaProps) {
+export function MetaPixelsConfigArea({ organizationId, initialPixels }: MetaPixelsConfigAreaProps) {
     const queryClient = useQueryClient()
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [editingPixel, setEditingPixel] = useState<any>(null)
@@ -30,7 +31,8 @@ export function MetaPixelsConfigArea({ organizationId }: MetaPixelsConfigAreaPro
             const res = await axios.get(`/api/v1/meta-ads/pixels?organizationId=${organizationId}`)
             return res.data
         },
-        enabled: !!organizationId
+        enabled: !!organizationId,
+        initialData: initialPixels,
     })
 
     const createMutation = useMutation({
