@@ -40,7 +40,6 @@ interface Bottleneck {
     type: string
     severity: 'high' | 'medium' | 'low'
     description: string
-    metric?: string
 }
 
 interface ActionItem {
@@ -289,11 +288,6 @@ export function CampaignAnalysisDrawer({
                                                         </span>
                                                     </div>
                                                     <p className="text-slate-700 text-sm leading-snug ml-4">{b.description}</p>
-                                                    {b.metric && (
-                                                        <span className="ml-4 text-[11px] text-slate-500 font-mono bg-white px-2 py-0.5 rounded border border-orange-100 w-fit">
-                                                            {b.metric}
-                                                        </span>
-                                                    )}
                                                 </li>
                                             ))}
                                         </ul>

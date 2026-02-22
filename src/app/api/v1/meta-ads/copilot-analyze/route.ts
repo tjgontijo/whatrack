@@ -29,8 +29,7 @@ const analysisMapZodSchema = z.object({
     bottlenecks: z.array(z.object({
         type: z.string().describe("Ex: 'Fadiga de Criativo', 'Fuga LPV→IC'"),
         severity: z.enum(["high", "medium", "low"]),
-        description: z.string().describe("Diagnóstico detalhado em 1-2 frases"),
-        metric: z.coerce.string().optional().describe("Métrica específica que evidencia o problema, ex: 'CTR: 0.8% → 0.3%'"),
+        description: z.string().describe("Diagnóstico detalhado em 1-2 frases. Inclua a métrica evidenciadora inline, ex: 'CTR caiu de 1.2% para 0.4% nos últimos 3 dias'"),
     })),
     actionPlan: z.array(z.object({
         priority: z.number().int().min(1),
