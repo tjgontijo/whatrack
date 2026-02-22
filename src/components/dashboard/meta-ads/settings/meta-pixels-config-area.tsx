@@ -8,6 +8,7 @@ import { Plus, Trash2, Key, Database, Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
@@ -142,11 +143,11 @@ export function MetaPixelsConfigArea({ organizationId }: MetaPixelsConfigAreaPro
                             </div>
                             <div className="space-y-2">
                                 <Label>Token de Acesso (CAPI)</Label>
-                                <Input
-                                    placeholder="CAPI Access Token..."
+                                <Textarea
+                                    placeholder="Cole o longo Token de Acesso da Conversions API gerado no Facebook..."
                                     value={formData.capiToken}
                                     onChange={e => setFormData({ ...formData, capiToken: e.target.value })}
-                                    type="password"
+                                    className="min-h-[120px] font-mono text-xs"
                                 />
                             </div>
                         </div>
