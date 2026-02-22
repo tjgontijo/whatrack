@@ -27,6 +27,7 @@ import {
     TableRow,
 } from '@/components/ui/table'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
+import { Switch } from '@/components/ui/switch'
 
 const COLUMN_NAMES: Record<string, string> = {
     status: 'Status',
@@ -75,6 +76,7 @@ export function MetaAdsCampaignsClient() {
     const [days, setDays] = useState('30')
     const [globalFilter, setGlobalFilter] = useState('')
     const [statusFilter, setStatusFilter] = useState('ALL')
+    const [onlyWithSpend, setOnlyWithSpend] = useState(true)
 
     const [sorting, setSorting] = useState<SortingState>([])
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(DEFAULT_HIDDEN_COLUMNS)
@@ -93,11 +95,17 @@ export function MetaAdsCampaignsClient() {
 
     const filteredData = React.useMemo(() => {
         let currentData = campaigns || []
+
         if (statusFilter !== 'ALL') {
             currentData = currentData.filter(c => c.status === statusFilter)
         }
+
+        if (onlyWithSpend) {
+            currentData = currentData.filter(c => c.spend > 0)
+        }
+
         return currentData
-    }, [campaigns, statusFilter])
+    }, [campaigns, statusFilter, onlyWithSpend])
 
     const table = useReactTable({
         data: filteredData,
@@ -161,7 +169,20 @@ export function MetaAdsCampaignsClient() {
                     </Select>
                 </div>
 
-                <div className="flex items-center gap-2 self-end md:self-auto">
+                <div className="flex items-center gap-4 self-end md:self-auto flex-wrap">
+                    <div className="flex items-center space-x-2">
+                        <label
+                            htmlFor="spend-filter"
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-muted-foreground whitespace-nowrap"
+                        >
+                            Com gastos
+                        </label>
+                        <Switch
+                            id="spend-filter"
+                            checked={onlyWithSpend}
+                            onCheckedChange={setOnlyWithSpend}
+                        />
+                    </div>
                     <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isRefetching || isLoading} className="h-10">
                         <RefreshCw className={`h-4 w-4 mr-2 ${isRefetching ? 'animate-spin' : ''}`} />
                         Atualizar
