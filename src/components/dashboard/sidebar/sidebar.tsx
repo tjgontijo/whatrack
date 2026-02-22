@@ -9,6 +9,7 @@ type NavItem = {
 export function DashboardSidebar() {
     const navItems: NavItem[] = [
         { title: 'Visão Geral', href: '/dashboard', icon: 'LayoutDashboard' },
+        { title: 'Analytics', href: '/dashboard/analytics', icon: 'BarChart3' },
         { title: 'Mensagens', href: '/dashboard/whatsapp/inbox', icon: 'MessageSquare' },
         { title: 'Leads', href: '/dashboard/leads', icon: 'Users' },
         { title: 'IA Copilot', href: '/dashboard/approvals', icon: 'Sparkles' },

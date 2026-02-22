@@ -1,5 +1,6 @@
 export type Permission =
   | 'view:dashboard'
+  | 'view:analytics'
   | 'view:leads'
   | 'manage:leads'
   | 'view:tickets'
@@ -31,6 +32,7 @@ const ROLE_DEFINITIONS: RoleDefinition[] = [
     description: 'Acesso total ao tenant e configurações críticas.',
     permissions: [
       'view:dashboard',
+      'view:analytics',
       'view:leads',
       'manage:leads',
       'view:tickets',
@@ -52,6 +54,7 @@ const ROLE_DEFINITIONS: RoleDefinition[] = [
     description: 'Gerencia usuários e operações diárias.',
     permissions: [
       'view:dashboard',
+      'view:analytics',
       'view:leads',
       'manage:leads',
       'view:tickets',
@@ -70,11 +73,11 @@ const ROLE_DEFINITIONS: RoleDefinition[] = [
     label: 'Usuário',
     description: 'Acesso operacional básico.',
     permissions: [
-      'view:dashboard', 
-      'view:leads', 
-      'view:tickets', 
-      'view:sales', 
-      'view:products', 
+      'view:dashboard',
+      'view:leads',
+      'view:tickets',
+      'view:sales',
+      'view:products',
       'view:meta'],
   },
 ]
