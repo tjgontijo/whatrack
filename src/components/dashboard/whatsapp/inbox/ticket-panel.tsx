@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { AlertCircle, Clock, User, DollarSign, Link as LinkIcon, AlertTriangle, Copy, Sparkles, Check, X, Megaphone, Smartphone, UserMinus, ShieldAlert, RefreshCw } from 'lucide-react'
+import { AlertCircle, Clock, User, DollarSign, Link as LinkIcon, AlertTriangle, Copy, Sparkles, Check, X, Megaphone, Smartphone, UserMinus, ShieldAlert, RefreshCw, Activity, MessageSquare, Timer, ArrowDownRight, ArrowUpRight } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Badge } from '@/components/ui/badge'
@@ -57,6 +57,19 @@ interface TicketResponse {
   } | null
   closedReason?: string | null
   closedAt?: string | null
+  kpis: {
+    messagesCount: number
+    inboundMessagesCount: number
+    outboundMessagesCount: number
+    firstResponseTimeSec: number | null
+    resolutionTimeSec: number | null
+    createdAt: string
+  }
+  leadInsights: {
+    totalTickets: number
+    lifetimeValue: string
+    firstMessageAt: string | null
+  }
 }
 
 const STATUS_BADGE_MAP: Record<string, { bg: string; text: string; label: string }> = {
@@ -149,6 +162,13 @@ export function TicketPanel({
       bgColor: isWarning ? 'bg-amber-50 border-amber-200' : 'bg-green-50 border-green-200',
       isWarning,
     }
+  }
+
+  const formatTimer = (seconds: number | null | undefined) => {
+    if (seconds === null || seconds === undefined) return '--'
+    if (seconds < 60) return `${Math.floor(seconds)}s`
+    if (seconds < 3600) return `${Math.floor(seconds / 60)}m`
+    return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`
   }
 
   if (isLoading) {
@@ -405,6 +425,79 @@ export function TicketPanel({
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Dossiê & KPIs do Atendimento */}
+          {ticket.kpis && (
+            <div className="pt-2">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Dossiê do Atendimento</h3>
+              <div className="grid grid-cols-2 gap-2">
+
+                {/* Contagem de Mensagens (Vendedor x Lead) */}
+                <div className="col-span-2 flex items-center justify-between p-3 rounded-lg border border-border/50 bg-card">
+                  <div className="flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4 text-primary/70" />
+                    <span className="text-xs font-medium text-muted-foreground">Volume da Conversa</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-xs font-bold">
+                    <span className="flex items-center gap-1 text-green-600" title="Mensagens da Clínica">
+                      <ArrowUpRight className="h-3 w-3" /> {ticket.kpis.outboundMessagesCount}
+                    </span>
+                    <span className="text-border">|</span>
+                    <span className="flex items-center gap-1 text-blue-600" title="Mensagens do Cliente">
+                      <ArrowDownRight className="h-3 w-3" /> {ticket.kpis.inboundMessagesCount}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Tempo 1a Resposta */}
+                <div className="col-span-1 flex flex-col gap-1 p-3 rounded-lg border border-border/40 bg-muted/10">
+                  <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
+                    <Timer className="h-3.5 w-3.5" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider">1ª Resposta</span>
+                  </div>
+                  <span className="text-sm font-bold text-foreground">
+                    {formatTimer(ticket.kpis.firstResponseTimeSec)}
+                  </span>
+                </div>
+
+                {/* Tempo de Resolução */}
+                <div className="col-span-1 flex flex-col gap-1 p-3 rounded-lg border border-border/40 bg-muted/10">
+                  <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
+                    <Activity className="h-3.5 w-3.5" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider">Resolução</span>
+                  </div>
+                  <span className="text-sm font-bold text-foreground">
+                    {formatTimer(ticket.kpis.resolutionTimeSec)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Histórico do Lead / LTV */}
+          {ticket.leadInsights && (
+            <div className="pt-2">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Histórico do Cliente</h3>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between p-3 rounded-lg border border-border/50 bg-card">
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-primary/70" />
+                    <span className="text-xs font-medium text-muted-foreground">Oportunidades Iniciais</span>
+                  </div>
+                  <span className="text-xs font-bold">{ticket.leadInsights.totalTickets} tickets</span>
+                </div>
+                <div className="flex items-center justify-between p-3 rounded-lg border border-emerald-500/20 bg-gradient-to-r from-emerald-500/5 to-transparent">
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="h-4 w-4 text-emerald-600" />
+                    <span className="text-xs font-medium text-muted-foreground">Valor Gerado (LTV)</span>
+                  </div>
+                  <span className="text-sm font-bold text-emerald-600">
+                    {formatDealValue(ticket.leadInsights.lifetimeValue)}
+                  </span>
+                </div>
+              </div>
             </div>
           )}
 

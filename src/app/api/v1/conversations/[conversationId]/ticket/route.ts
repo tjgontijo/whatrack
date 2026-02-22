@@ -92,6 +92,23 @@ export async function GET(
         },
         closedReason: true,
         closedAt: true,
+        messagesCount: true,
+        inboundMessagesCount: true,
+        outboundMessagesCount: true,
+        firstResponseTimeSec: true,
+        resolutionTimeSec: true,
+        createdAt: true,
+        conversation: {
+          select: {
+            lead: {
+              select: {
+                totalTickets: true,
+                lifetimeValue: true,
+                firstMessageAt: true,
+              }
+            }
+          }
+        },
       },
     })
 
@@ -112,6 +129,19 @@ export async function GET(
         tracking: ticket.tracking,
         closedReason: ticket.closedReason,
         closedAt: ticket.closedAt?.toISOString() || null,
+        kpis: {
+          messagesCount: ticket.messagesCount,
+          inboundMessagesCount: ticket.inboundMessagesCount,
+          outboundMessagesCount: ticket.outboundMessagesCount,
+          firstResponseTimeSec: ticket.firstResponseTimeSec,
+          resolutionTimeSec: ticket.resolutionTimeSec,
+          createdAt: ticket.createdAt.toISOString(),
+        },
+        leadInsights: {
+          totalTickets: ticket.conversation.lead.totalTickets,
+          lifetimeValue: ticket.conversation.lead.lifetimeValue ? ticket.conversation.lead.lifetimeValue.toString() : '0',
+          firstMessageAt: ticket.conversation.lead.firstMessageAt?.toISOString() || null,
+        }
       },
       { status: 200 }
     )

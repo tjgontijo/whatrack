@@ -303,24 +303,30 @@ model Invitation {
 }
 
 model Lead {
-  id             String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId String         @db.Uuid
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String    @db.Uuid
   name           String?
   mail           String?
   phone          String?
-  waId           String?        @map("remote_jid")
+  waId           String?   @map("remote_jid")
   pushName       String?
   profilePicUrl  String?
-  lastMessageAt  DateTime?      @map("last_message_at")
-  createdAt      DateTime       @default(now()) @map("created_at")
-  updatedAt      DateTime       @default(now()) @updatedAt @map("updated_at")
-  source         String         @default("direct_creation")
+  lastMessageAt  DateTime? @map("last_message_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @default(now()) @updatedAt @map("updated_at")
+  source         String    @default("direct_creation")
   lastSyncedAt   DateTime?
-  isActive       Boolean        @default(true)
+  isActive       Boolean   @default(true)
   deletedAt      DateTime?
-  conversations  Conversation[]
-  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  messages       Message[]
+
+  // KPIs
+  firstMessageAt DateTime?
+  totalTickets   Int       @default(0)
+  lifetimeValue  Decimal   @default(0) @db.Decimal(12, 2)
+
+  conversations Conversation[]
+  organization  Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  messages      Message[]
 
   @@unique([organizationId, phone])
   @@unique([organizationId, waId])
@@ -331,19 +337,29 @@ model Lead {
 }
 
 model Conversation {
-  id                 String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId     String         @db.Uuid
-  leadId             String         @db.Uuid
-  instanceId         String         @db.Uuid
+  id                 String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId     String  @db.Uuid
+  leadId             String  @db.Uuid
+  instanceId         String  @db.Uuid
   metaConversationId String?
-  messagesCount      Int            @default(0)
-  createdAt          DateTime       @default(now())
-  updatedAt          DateTime       @updatedAt
-  instance           WhatsAppConfig @relation(fields: [instanceId], references: [id], onDelete: Cascade)
-  lead               Lead           @relation(fields: [leadId], references: [id], onDelete: Cascade)
-  organization       Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  tickets            Ticket[]
-  messages           Message[]
+  messagesCount      Int     @default(0)
+
+  // KPIs
+  unreadCount           Int       @default(0)
+  inboundMessagesCount  Int       @default(0)
+  outboundMessagesCount Int       @default(0)
+  lastInboundAt         DateTime?
+  lastOutboundAt        DateTime?
+  avgResponseTimeSec    Int?
+  firstResponseTimeSec  Int?
+
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  instance     WhatsAppConfig @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  lead         Lead           @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tickets      Ticket[]
+  messages     Message[]
 
   @@unique([leadId, instanceId])
   @@index([organizationId])
@@ -351,19 +367,28 @@ model Conversation {
 }
 
 model Ticket {
-  id                     String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId         String                   @db.Uuid
-  conversationId         String                   @db.Uuid
-  stageId                String                   @db.Uuid
-  windowExpiresAt        DateTime?
-  windowOpen             Boolean                  @default(true)
-  assigneeId             String?                  @db.Uuid
-  dealValue              Decimal?                 @db.Decimal(12, 2)
-  status                 String                   @default("open")
-  closedAt               DateTime?
-  closedReason           String?
-  createdBy              String                   @default("SYSTEM")
-  messagesCount          Int                      @default(0)
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId  String    @db.Uuid
+  conversationId  String    @db.Uuid
+  stageId         String    @db.Uuid
+  windowExpiresAt DateTime?
+  windowOpen      Boolean   @default(true)
+  assigneeId      String?   @db.Uuid
+  dealValue       Decimal?  @db.Decimal(12, 2)
+  status          String    @default("open")
+  closedAt        DateTime?
+  closedReason    String?
+  createdBy       String    @default("SYSTEM")
+  messagesCount   Int       @default(0)
+
+  // KPIs
+  inboundMessagesCount  Int       @default(0)
+  outboundMessagesCount Int       @default(0)
+  lastInboundAt         DateTime?
+  lastOutboundAt        DateTime?
+  firstResponseTimeSec  Int? // Segundos até a primeira resposta no escopo do ticket
+  resolutionTimeSec     Int? // Segundos desde a criação até o fechamento
+
   createdAt              DateTime                 @default(now())
   updatedAt              DateTime                 @updatedAt
   leadId                 String
