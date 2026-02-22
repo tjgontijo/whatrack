@@ -12,7 +12,8 @@ import {
     AlertCircle,
     ExternalLink,
     CheckCircle2,
-    XCircle
+    XCircle,
+    Database
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -25,6 +26,7 @@ import Link from 'next/link'
 import { TemplateMainShell, TemplateMainHeader } from '@/components/dashboard/leads'
 import { useMetaAdsOnboarding } from '@/hooks/meta-ads/use-meta-ads-onboarding'
 import { MetaPixelsConfigArea } from './meta-pixels-config-area'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 interface MetaAdsSettingsContentProps {
     organizationId: string | undefined
@@ -180,85 +182,99 @@ export function MetaAdsSettingsContent({ organizationId }: MetaAdsSettingsConten
                     </div>
                 </section>
 
-                {/* Step 2: Ad Accounts Config */}
+                {/* Step 2: Tabs for Ad Accounts & Pixels */}
                 {(connections?.length ?? 0) > 0 && (
-                    <section className="max-w-5xl mx-auto space-y-4">
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-lg font-semibold flex items-center gap-2">
-                                <Settings2 className="h-5 w-5 text-primary" />
-                                Contas de Anúncios Importadas
-                            </h2>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="gap-2"
-                                onClick={() => syncMutation.mutate()}
-                                disabled={syncMutation.isPending}
-                            >
-                                <RefreshCw className={`h-4 w-4 ${syncMutation.isPending ? 'animate-spin' : ''}`} />
-                                Sincronizar Contas
-                            </Button>
-                        </div>
+                    <Tabs defaultValue="ad-accounts" className="max-w-5xl mx-auto">
+                        <TabsList className="grid w-full grid-cols-2 mb-6 max-w-md">
+                            <TabsTrigger value="ad-accounts" className="flex items-center gap-2">
+                                <Settings2 className="h-4 w-4" />
+                                Contas de Anúncios
+                            </TabsTrigger>
+                            <TabsTrigger value="pixels" className="flex items-center gap-2">
+                                <Database className="h-4 w-4" />
+                                Pixels (CAPI)
+                            </TabsTrigger>
+                        </TabsList>
 
-                        <Card>
-                            <CardContent className="p-0">
-                                <div className="relative overflow-x-auto">
-                                    <table className="w-full text-sm text-left">
-                                        <thead className="text-xs uppercase bg-muted/50 border-b">
-                                            <tr>
-                                                <th className="px-6 py-4 font-semibold">Conta</th>
-                                                <th className="px-6 py-4 font-semibold text-center w-32">Status da Conta</th>
-                                                <th className="px-6 py-4 font-semibold text-center w-32">Extrair Dados?</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y">
-                                            {loadingAccounts ? (
-                                                [1, 2, 3].map(i => (
-                                                    <tr key={i}><td colSpan={3} className="px-6 py-4"><Skeleton className="h-8 w-full" /></td></tr>
-                                                ))
-                                            ) : (adAccounts?.length ?? 0) > 0 ? (
-                                                adAccounts?.map((acc: any) => (
-                                                    <tr key={acc.id} className="hover:bg-muted/20 transition-colors">
-                                                        <td className="px-6 py-4">
-                                                            <div className="font-medium text-foreground">{acc.adAccountName}</div>
-                                                            <div className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
-                                                                {acc.adAccountId}
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-6 py-4 text-center">
-                                                            <Badge
-                                                                variant={acc.isActive ? "default" : "outline"}
-                                                                className={`font-normal text-[10px] h-5 ${acc.isActive ? 'bg-emerald-500 hover:bg-emerald-600' : ''}`}
-                                                            >
-                                                                {acc.isActive ? 'Rastreando' : 'Inativa'}
-                                                            </Badge>
-                                                        </td>
-                                                        <td className="px-6 py-4 text-center">
-                                                            <Switch
-                                                                checked={acc.isActive}
-                                                                onCheckedChange={(val) => toggleMutation.mutate({ id: acc.id, isActive: val })}
-                                                            />
+                        <TabsContent value="ad-accounts" className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <h2 className="text-lg font-semibold flex items-center gap-2">
+                                    Contas de Anúncios Importadas
+                                </h2>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="gap-2"
+                                    onClick={() => syncMutation.mutate()}
+                                    disabled={syncMutation.isPending}
+                                >
+                                    <RefreshCw className={`h-4 w-4 ${syncMutation.isPending ? 'animate-spin' : ''}`} />
+                                    Sincronizar Contas
+                                </Button>
+                            </div>
+
+                            <Card>
+                                <CardContent className="p-0">
+                                    <div className="relative overflow-x-auto">
+                                        <table className="w-full text-sm text-left">
+                                            <thead className="text-xs uppercase bg-muted/50 border-b">
+                                                <tr>
+                                                    <th className="px-6 py-4 font-semibold">Conta</th>
+                                                    <th className="px-6 py-4 font-semibold text-right w-48">Extrair Dados (ROI)?</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y">
+                                                {loadingAccounts ? (
+                                                    [1, 2, 3].map(i => (
+                                                        <tr key={i}><td colSpan={2} className="px-6 py-4"><Skeleton className="h-8 w-full" /></td></tr>
+                                                    ))
+                                                ) : (adAccounts?.length ?? 0) > 0 ? (
+                                                    adAccounts?.map((acc: any) => (
+                                                        <tr key={acc.id} className={`hover:bg-muted/30 transition-colors ${acc.isActive ? 'bg-emerald-50/10' : ''}`}>
+                                                            <td className="px-6 py-4">
+                                                                <div className="font-medium text-foreground">{acc.adAccountName}</div>
+                                                                <div className="text-[10px] text-muted-foreground flex items-center gap-2 mt-0.5">
+                                                                    <span>{acc.adAccountId}</span>
+                                                                    <Badge
+                                                                        variant={acc.isActive ? "default" : "outline"}
+                                                                        className={`font-normal text-[9px] h-4 px-1.5 ${acc.isActive ? 'bg-emerald-500 hover:bg-emerald-600' : ''}`}
+                                                                    >
+                                                                        {acc.isActive ? 'Ativa' : 'Inativa'}
+                                                                    </Badge>
+                                                                </div>
+                                                            </td>
+                                                            <td className="px-6 py-4 text-right">
+                                                                <div className="flex items-center justify-end gap-3">
+                                                                    <span className={`text-xs font-medium ${acc.isActive ? 'text-emerald-600' : 'text-muted-foreground'}`}>
+                                                                        {acc.isActive ? 'ON' : 'OFF'}
+                                                                    </span>
+                                                                    <Switch
+                                                                        checked={acc.isActive}
+                                                                        onCheckedChange={(val) => toggleMutation.mutate({ id: acc.id, isActive: val })}
+                                                                        className={acc.isActive ? "data-[state=checked]:bg-emerald-500" : ""}
+                                                                    />
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    ))
+                                                ) : (
+                                                    <tr>
+                                                        <td colSpan={2} className="px-6 py-12 text-center text-muted-foreground italic">
+                                                            Nenhuma conta encontrada. Clique em Sincronizar.
                                                         </td>
                                                     </tr>
-                                                ))
-                                            ) : (
-                                                <tr>
-                                                    <td colSpan={3} className="px-6 py-12 text-center text-muted-foreground italic">
-                                                        Nenhuma conta encontrada. Clique em Sincronizar.
-                                                    </td>
-                                                </tr>
-                                            )}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </section>
-                )}
+                                                )}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
 
-                {/* Step 3: Meta Pixels Config (CAPI) */}
-                {(connections?.length ?? 0) > 0 && (
-                    <MetaPixelsConfigArea organizationId={organizationId} />
+                        <TabsContent value="pixels">
+                            <MetaPixelsConfigArea organizationId={organizationId} />
+                        </TabsContent>
+                    </Tabs>
                 )}
 
             </div>

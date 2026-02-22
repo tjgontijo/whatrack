@@ -3,12 +3,15 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import { toast } from 'sonner'
+import { useState } from 'react'
 import { Plus, Trash2, Key, Database } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
+import { Label } from '@/components/ui/label'
 
 interface MetaPixelsConfigAreaProps {
     organizationId: string | undefined
@@ -16,6 +19,8 @@ interface MetaPixelsConfigAreaProps {
 
 export function MetaPixelsConfigArea({ organizationId }: MetaPixelsConfigAreaProps) {
     const queryClient = useQueryClient()
+    const [isDialogOpen, setIsDialogOpen] = useState(false)
+    const [newData, setNewData] = useState({ name: '', pixelId: '', capiToken: '' })
 
     const { data: pixels, isLoading } = useQuery({
         queryKey: ['meta-ads', 'pixels', organizationId],
@@ -28,19 +33,24 @@ export function MetaPixelsConfigArea({ organizationId }: MetaPixelsConfigAreaPro
 
     const createMutation = useMutation({
         mutationFn: async () => {
+            if (!newData.name || !newData.pixelId || !newData.capiToken) {
+                throw new Error("Preencha todos os campos")
+            }
             return axios.post(`/api/v1/meta-ads/pixels`, {
                 organizationId,
-                name: 'Novo Pixel',
-                pixelId: '',
-                capiToken: ''
+                name: newData.name,
+                pixelId: newData.pixelId,
+                capiToken: newData.capiToken
             })
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['meta-ads', 'pixels'] })
-            toast.success('Pixel adicionado, preencha as informações.')
+            toast.success('Pixel adicionado com sucesso!')
+            setIsDialogOpen(false)
+            setNewData({ name: '', pixelId: '', capiToken: '' })
         },
         onError: (err: any) => {
-            toast.error(err?.response?.data?.error || 'Erro ao adicionar Pixel')
+            toast.error(err?.response?.data?.error || err.message || 'Erro ao adicionar Pixel')
         }
     })
 
@@ -79,15 +89,55 @@ export function MetaPixelsConfigArea({ organizationId }: MetaPixelsConfigAreaPro
                     <Database className="h-5 w-5 text-indigo-500" />
                     Meta Datasets (Pixels) para Conversions API
                 </h2>
-                <Button
-                    size="sm"
-                    className="gap-2"
-                    onClick={() => createMutation.mutate()}
-                    disabled={createMutation.isPending}
-                >
-                    <Plus className="h-4 w-4" />
-                    Adicionar Dataset
-                </Button>
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                    <DialogTrigger asChild>
+                        <Button size="sm" className="gap-2">
+                            <Plus className="h-4 w-4" />
+                            Adicionar Dataset
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Adicionar Novo Dataset (Pixel)</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                            <div className="space-y-2">
+                                <Label>Nome de Identificação</Label>
+                                <Input
+                                    placeholder="Ex: Pixel Principal"
+                                    value={newData.name}
+                                    onChange={e => setNewData({ ...newData, name: e.target.value })}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>ID do Dataset (Meta Pixel)</Label>
+                                <Input
+                                    placeholder="Ex: 123456789012345"
+                                    value={newData.pixelId}
+                                    onChange={e => setNewData({ ...newData, pixelId: e.target.value })}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Token de Acesso (CAPI)</Label>
+                                <Input
+                                    placeholder="CAPI Access Token..."
+                                    value={newData.capiToken}
+                                    onChange={e => setNewData({ ...newData, capiToken: e.target.value })}
+                                    type="password"
+                                />
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
+                            <Button
+                                onClick={() => createMutation.mutate()}
+                                disabled={createMutation.isPending || !newData.name || !newData.pixelId || !newData.capiToken}
+                            >
+                                {createMutation.isPending ? 'Salvando...' : 'Salvar Dataset'}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </div>
 
             <Card>
@@ -111,42 +161,14 @@ export function MetaPixelsConfigArea({ organizationId }: MetaPixelsConfigAreaPro
                                     pixels.map((pixel: any) => (
                                         <tr key={pixel.id} className="hover:bg-muted/20 transition-colors">
                                             <td className="px-6 py-4 space-y-2">
-                                                <Input
-                                                    placeholder="Nome de identificação"
-                                                    defaultValue={pixel.name || ''}
-                                                    className="h-8 text-xs font-semibold"
-                                                    onBlur={(e) => {
-                                                        if (e.target.value !== pixel.name) {
-                                                            updateMutation.mutate({ id: pixel.id, data: { name: e.target.value } })
-                                                        }
-                                                    }}
-                                                />
-                                                <Input
-                                                    placeholder="ID do Dataset (Ex: 123456789...)"
-                                                    defaultValue={pixel.pixelId.startsWith('temp_') ? '' : pixel.pixelId}
-                                                    className="h-8 text-xs font-mono bg-muted/50"
-                                                    onBlur={(e) => {
-                                                        const newVal = e.target.value;
-                                                        if (newVal !== pixel.pixelId && newVal !== '') {
-                                                            updateMutation.mutate({ id: pixel.id, data: { pixelId: newVal } })
-                                                        }
-                                                    }}
-                                                />
+                                                <div className="font-medium text-sm text-foreground mb-1">{pixel.name}</div>
+                                                <div className="text-xs font-mono text-muted-foreground bg-muted/50 p-1 rounded inline-block">
+                                                    ID: {pixel.pixelId.startsWith('temp_') ? 'Pendente' : pixel.pixelId}
+                                                </div>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <div className="relative">
-                                                    <Key className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
-                                                    <Input
-                                                        placeholder="Cole o longo Token de Acesso da Conversions API gerado no Facebook..."
-                                                        defaultValue={pixel.capiToken}
-                                                        type="password"
-                                                        className="h-10 pl-8 text-xs font-mono"
-                                                        onBlur={(e) => {
-                                                            if (e.target.value !== pixel.capiToken) {
-                                                                updateMutation.mutate({ id: pixel.id, data: { capiToken: e.target.value } })
-                                                            }
-                                                        }}
-                                                    />
+                                                <div className="text-xs font-mono text-muted-foreground truncate max-w-[200px]" title={pixel.capiToken}>
+                                                    {pixel.capiToken ? '••••••••••••••••••••' : 'Sem token'}
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 text-center">
