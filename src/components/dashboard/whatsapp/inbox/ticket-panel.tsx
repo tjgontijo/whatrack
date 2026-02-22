@@ -4,14 +4,13 @@ import React, { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { AlertCircle, Clock, User, DollarSign, Link as LinkIcon, AlertTriangle, Copy, Sparkles, Check, X, Megaphone, Smartphone, UserMinus, ShieldAlert } from 'lucide-react'
+import { AlertCircle, Clock, User, DollarSign, Link as LinkIcon, AlertTriangle, Copy, Sparkles, Check, X, Megaphone, Smartphone, UserMinus, ShieldAlert, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Skeleton } from '@/components/ui/skeleton'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   Select,
@@ -154,17 +153,9 @@ export function TicketPanel({
 
   if (isLoading) {
     return (
-      <div className="h-full flex flex-col p-6 bg-card">
-        <div className="flex items-center gap-4 mb-8">
-          <Skeleton className="h-16 w-16 rounded-full" />
-          <div className="space-y-2 flex-1">
-            <Skeleton className="h-4 w-2/3" />
-            <Skeleton className="h-3 w-1/3" />
-          </div>
-        </div>
-        <Skeleton className="h-20 w-full mb-4" />
-        <Skeleton className="h-10 w-full mb-4" />
-        <Skeleton className="h-10 w-full" />
+      <div className="h-full flex flex-col items-center justify-center p-6 bg-card gap-3">
+        <RefreshCw className="h-8 w-8 animate-spin text-primary/40" />
+        <p className="text-sm font-medium text-muted-foreground">Carregando detalhes...</p>
       </div>
     )
   }

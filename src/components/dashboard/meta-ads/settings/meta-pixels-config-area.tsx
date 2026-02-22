@@ -4,13 +4,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import { toast } from 'sonner'
 import { useState } from 'react'
-import { Plus, Trash2, Key, Database, Pencil } from 'lucide-react'
+import { Plus, Trash2, Key, Database, Pencil, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
-import { Skeleton } from '@/components/ui/skeleton'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
 import { Label } from '@/components/ui/label'
 
@@ -185,10 +184,8 @@ export function MetaPixelsConfigArea({ organizationId, initialPixels }: MetaPixe
                                 </tr>
                             </thead>
                             <tbody className="divide-y">
-                                {isLoading ? (
-                                    [1, 2].map(i => (
-                                        <tr key={i}><td colSpan={4} className="px-6 py-4"><Skeleton className="h-10 w-full" /></td></tr>
-                                    ))
+                                {isLoading && (!pixels || pixels.length === 0) ? (
+                                    <tr><td colSpan={4} className="px-6 py-8 text-center"><RefreshCw className="h-6 w-6 animate-spin mx-auto text-muted-foreground/20" /></td></tr>
                                 ) : (pixels?.length ?? 0) > 0 ? (
                                     pixels.map((pixel: any) => (
                                         <tr key={pixel.id} className="hover:bg-muted/20 transition-colors">

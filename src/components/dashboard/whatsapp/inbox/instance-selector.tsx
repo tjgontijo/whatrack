@@ -9,7 +9,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Skeleton } from '@/components/ui/skeleton'
 
 interface Instance {
   id: string
@@ -63,7 +62,7 @@ export function InstanceSelector({
   }, [instances, selectedInstanceId, isLoading, onInstanceChange])
 
   if (isLoading) {
-    return <Skeleton className="h-10 w-full" />
+    return <div className="h-10 w-full flex items-center px-3 border rounded-md text-sm text-muted-foreground bg-muted/20">Carregando...</div>
   }
 
   if (error || !instances) {

@@ -59,7 +59,7 @@ export function DashboardMetricCard({
           <div>
             <p className="text-sm font-medium text-muted-foreground">{title}</p>
             <div className="mt-3 min-h-[32px] text-2xl font-semibold tracking-tight text-foreground" suppressHydrationWarning>
-              {isLoading ? <Skeleton /> : value}
+              {isLoading ? <span className="text-muted-foreground/30">—</span> : value}
             </div>
           </div>
           {icon ? <div className="text-muted-foreground">{icon}</div> : null}
@@ -77,8 +77,4 @@ export function DashboardMetricGrid({ children }: { children: ReactNode }) {
       {children}
     </div>
   )
-}
-
-function Skeleton() {
-  return <div className="h-8 w-24 rounded-lg bg-muted animate-pulse" />
 }

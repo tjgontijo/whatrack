@@ -20,7 +20,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Switch } from '@/components/ui/switch'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
 import { MetaIcon } from '@/components/icons'
 import Link from 'next/link'
 import { TemplateMainShell, TemplateMainHeader } from '@/components/dashboard/leads'
@@ -148,8 +147,10 @@ export function MetaAdsSettingsContent({ organizationId, initialConnections, ini
                             </div>
 
                             <div className="grid gap-4">
-                                {loadingConnections ? (
-                                    <Skeleton className="h-24 w-full" />
+                                {loadingConnections && (!connections || connections.length === 0) ? (
+                                    <div className="flex justify-center p-8 bg-muted/5 rounded-xl border border-dashed text-muted-foreground/30">
+                                        <RefreshCw className="h-6 w-6 animate-spin" />
+                                    </div>
                                 ) : (connections?.length ?? 0) > 0 ? (
                                     connections?.map((conn: any) => (
                                         <Card key={conn.id} className="overflow-hidden border-blue-100 bg-blue-50/20">
@@ -231,10 +232,8 @@ export function MetaAdsSettingsContent({ organizationId, initialConnections, ini
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y">
-                                                    {loadingAccounts ? (
-                                                        [1, 2, 3].map(i => (
-                                                            <tr key={i}><td colSpan={2} className="px-6 py-4"><Skeleton className="h-8 w-full" /></td></tr>
-                                                        ))
+                                                    {loadingAccounts && (!adAccounts || adAccounts.length === 0) ? (
+                                                        <tr><td colSpan={2} className="px-6 py-8 text-center"><RefreshCw className="h-6 w-6 animate-spin mx-auto text-muted-foreground/20" /></td></tr>
                                                     ) : (adAccounts?.length ?? 0) > 0 ? (
                                                         adAccounts?.map((acc: any) => (
                                                             <tr key={acc.id} className={`hover:bg-muted/30 transition-colors ${acc.isActive ? 'bg-emerald-50/10' : ''}`}>

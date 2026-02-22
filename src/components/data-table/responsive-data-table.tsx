@@ -7,9 +7,9 @@ import { useDataTable } from '@/hooks/use-data-table'
 import { DataTableView } from './data-table-view'
 import { DataTableCardList } from './data-table-card-list'
 import { DataTablePagination } from './data-table-pagination'
-import { DataTableSkeleton } from './data-table-skeleton'
 import { DataTableEmptyState, DataTableErrorState } from './data-table-empty-state'
 import { cn } from '@/lib/utils'
+import { RefreshCw } from 'lucide-react'
 
 interface ResponsiveDataTableProps<TData> {
   data: TData[]
@@ -91,8 +91,9 @@ export const ResponsiveDataTable = React.forwardRef<
     // Loading state
     if (isLoading) {
       return (
-        <div ref={ref} className={className}>
-          <DataTableSkeleton isMobile={showCards} rows={5} className={tableClassName} />
+        <div ref={ref} className={cn("flex flex-col items-center justify-center py-20 gap-3 bg-muted/5 rounded-xl border border-dashed", className)}>
+          <RefreshCw className="h-8 w-8 animate-spin text-primary/40" />
+          <p className="text-sm font-medium text-muted-foreground">Carregando dados...</p>
         </div>
       )
     }

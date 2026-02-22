@@ -3,31 +3,13 @@
 import { Suspense } from 'react'
 
 import ClientSalesTable from '@/components/dashboard/sales/client-sales-table'
-import { Skeleton } from '@/components/ui/skeleton'
+import { RefreshCw } from 'lucide-react'
 
 function TableSkeleton() {
   return (
-    <div className="space-y-4">
-      <div className="rounded-lg border">
-        <div className="border-b p-4">
-          <div className="flex gap-4">
-            <Skeleton className="h-4 w-24" />
-            <Skeleton className="h-4 w-32" />
-            <Skeleton className="h-4 w-20" />
-            <Skeleton className="h-4 w-28" />
-          </div>
-        </div>
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="border-b p-4 last:border-0">
-            <div className="flex gap-4">
-              <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-4 w-32" />
-              <Skeleton className="h-4 w-20" />
-              <Skeleton className="h-4 w-28" />
-            </div>
-          </div>
-        ))}
-      </div>
+    <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
+      <RefreshCw className="h-8 w-8 animate-spin text-primary/40" />
+      <p className="text-sm font-medium text-muted-foreground">Carregando histórico de vendas...</p>
     </div>
   )
 }

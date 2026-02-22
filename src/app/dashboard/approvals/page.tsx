@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
+import { RefreshCw } from 'lucide-react'
 
 export default function ApprovalsPage() {
     const queryClient = useQueryClient()
@@ -66,15 +66,9 @@ export default function ApprovalsPage() {
 
     if (isLoading) {
         return (
-            <div className="p-6 max-w-5xl mx-auto space-y-6">
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight mb-2">Aprovações do Copilot IA</h1>
-                    <p className="text-muted-foreground">O Mastra AI leu as conversas e detectou oportunidades de conversão pra sua aprovação.</p>
-                </div>
-                <div className="grid gap-4">
-                    <Skeleton className="h-40 w-full rounded-xl" />
-                    <Skeleton className="h-40 w-full rounded-xl" />
-                </div>
+            <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
+                <RefreshCw className="h-8 w-8 animate-spin text-primary/40" />
+                <p className="text-sm font-medium text-muted-foreground">Analizando sugestões da IA...</p>
             </div>
         )
     }

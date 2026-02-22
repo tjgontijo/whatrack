@@ -1,7 +1,6 @@
 'use client'
 
-import React from 'react'
-import { Building2, Mail, Globe, MapPin, Store, Info, ExternalLink } from 'lucide-react'
+import { Building2, Mail, Globe, MapPin, Store, Info, ExternalLink, RefreshCw } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { whatsappApi } from '@/lib/whatsapp/client'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -9,7 +8,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { Skeleton } from '@/components/ui/skeleton'
 import type { WhatsAppPhoneNumber } from '@/types/whatsapp'
 
 interface ProfileViewProps {
@@ -151,27 +149,9 @@ export function ProfileView({ phone }: ProfileViewProps) {
 
 function ProfileSkeleton() {
     return (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="md:col-span-2 border-primary/10">
-                <div className="h-32 bg-muted/50 border-b" />
-                <div className="px-8 relative">
-                    <Skeleton className="h-24 w-24 rounded-full border-4 border-background absolute -top-12" />
-                </div>
-                <CardContent className="pt-16 pb-8 px-8 space-y-6">
-                    <div className="space-y-2">
-                        <Skeleton className="h-8 w-64" />
-                        <Skeleton className="h-4 w-full max-w-md" />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4 pt-4">
-                        <Skeleton className="h-10 w-full" />
-                        <Skeleton className="h-10 w-full" />
-                    </div>
-                </CardContent>
-            </Card>
-            <div className="space-y-6">
-                <Skeleton className="h-32 w-full rounded-xl" />
-                <Skeleton className="h-40 w-full rounded-xl" />
-            </div>
+        <div className="flex flex-col items-center justify-center py-20 gap-3">
+            <RefreshCw className="h-8 w-8 animate-spin text-primary/40" />
+            <p className="text-sm font-medium text-muted-foreground">Carregando perfil comercial...</p>
         </div>
     )
 }

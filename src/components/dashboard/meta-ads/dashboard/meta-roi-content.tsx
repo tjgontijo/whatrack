@@ -11,7 +11,6 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
 import {
     BarChart,
     Bar,
@@ -69,7 +68,7 @@ export function MetaROIContent({ roiData, isLoading, isRefetching, onRefresh }: 
                                 <DollarSign className="h-4 w-4" /> Investimento Total
                             </CardDescription>
                             <CardTitle className="text-3xl font-bold">
-                                {isLoading ? <Skeleton className="h-8 w-32" /> : `R$ ${totalSpend.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+                                {isLoading ? <span className="text-muted-foreground/30">—</span> : `R$ ${totalSpend.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
                             </CardTitle>
                         </CardHeader>
                     </Card>
@@ -80,7 +79,7 @@ export function MetaROIContent({ roiData, isLoading, isRefetching, onRefresh }: 
                                 <TrendingUp className="h-4 w-4" /> Receita Atribuída
                             </CardDescription>
                             <CardTitle className="text-3xl font-bold text-emerald-700">
-                                {isLoading ? <Skeleton className="h-8 w-32" /> : `R$ ${totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+                                {isLoading ? <span className="text-muted-foreground/30">—</span> : `R$ ${totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
                             </CardTitle>
                         </CardHeader>
                     </Card>
@@ -91,7 +90,7 @@ export function MetaROIContent({ roiData, isLoading, isRefetching, onRefresh }: 
                                 <Target className="h-4 w-4" /> ROAS Global
                             </CardDescription>
                             <CardTitle className="text-3xl font-bold">
-                                {isLoading ? <Skeleton className="h-8 w-16" /> : `${globalROAS}x`}
+                                {isLoading ? <span className="text-muted-foreground/30">—</span> : `${globalROAS}x`}
                             </CardTitle>
                         </CardHeader>
                     </Card>
@@ -108,7 +107,10 @@ export function MetaROIContent({ roiData, isLoading, isRefetching, onRefresh }: 
                     </CardHeader>
                     <CardContent className="h-[350px]">
                         {isLoading ? (
-                            <Skeleton className="h-full w-full" />
+                            <div className="h-full flex flex-col items-center justify-center gap-3">
+                                <RefreshCw className="h-8 w-8 animate-spin text-primary/40" />
+                                <p className="text-sm font-medium text-muted-foreground">Calculando retorno de investimento...</p>
+                            </div>
                         ) : (chartData?.length ?? 0) > 0 ? (
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
@@ -151,7 +153,7 @@ export function MetaROIContent({ roiData, isLoading, isRefetching, onRefresh }: 
                                 </thead>
                                 <tbody className="divide-y">
                                     {isLoading ? (
-                                        [1, 2, 3].map(i => <tr key={i}><td colSpan={5} className="px-6 py-4"><Skeleton className="h-6 w-full" /></td></tr>)
+                                        <tr><td colSpan={5} className="px-6 py-12 text-center"><RefreshCw className="h-6 w-6 animate-spin mx-auto text-muted-foreground/20" /></td></tr>
                                     ) : (roiData?.campaigns?.length ?? 0) > 0 ? (
                                         roiData?.campaigns?.map((camp: any) => (
                                             <tr key={camp.campaignId} className="hover:bg-muted/10 transition-colors">

@@ -19,7 +19,6 @@ import {
 import { useTheme } from 'next-themes'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Skeleton } from '@/components/ui/skeleton'
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -67,8 +66,6 @@ export function UserDropdownMenu({
         return 'U'
     }, [userName, userEmail])
 
-    const showSkeleton = userImage && !avatarLoaded && !avatarError
-
     const handleNavigate = (path: string) => {
         router.push(path)
     }
@@ -94,39 +91,29 @@ export function UserDropdownMenu({
                     size="lg"
                     className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                 >
-                    {showSkeleton ? (
-                        <>
-                            <Skeleton className="h-8 w-8 rounded-lg" />
-                            <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
-                                <Skeleton className="h-4 w-24 mb-1" />
-                                <Skeleton className="h-3 w-32" />
-                            </div>
-                        </>
-                    ) : (
-                        <>
-                            <Avatar className="h-8 w-8 rounded-lg">
-                                {userImage && !avatarError && (
-                                    <AvatarImage
-                                        src={userImage}
-                                        alt={userName}
-                                        onLoad={() => setAvatarLoaded(true)}
-                                        onError={() => setAvatarError(true)}
-                                    />
-                                )}
-                                <AvatarFallback className="rounded-lg bg-primary/10 text-primary">
-                                    {initials}
-                                </AvatarFallback>
-                            </Avatar>
-                            <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
-                                <span className="truncate font-semibold">
-                                    {userName || 'Usuário'}
-                                </span>
-                                <span className="truncate text-xs text-muted-foreground">
-                                    {userEmail}
-                                </span>
-                            </div>
-                        </>
-                    )}
+                    <>
+                        <Avatar className="h-8 w-8 rounded-lg">
+                            {userImage && !avatarError && (
+                                <AvatarImage
+                                    src={userImage}
+                                    alt={userName}
+                                    onLoad={() => setAvatarLoaded(true)}
+                                    onError={() => setAvatarError(true)}
+                                />
+                            )}
+                            <AvatarFallback className="rounded-lg bg-primary/10 text-primary">
+                                {initials}
+                            </AvatarFallback>
+                        </Avatar>
+                        <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
+                            <span className="truncate font-semibold">
+                                {userName || 'Usuário'}
+                            </span>
+                            <span className="truncate text-xs text-muted-foreground">
+                                {userEmail}
+                            </span>
+                        </div>
+                    </>
                     <ChevronsUpDown className="ml-auto size-4 group-data-[collapsible=icon]:hidden" />
                 </SidebarMenuButton>
             </DropdownMenuTrigger>
