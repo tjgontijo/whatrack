@@ -46,7 +46,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
         <div className="flex min-h-screen w-full bg-background">
           <DashboardSidebar />
 
-          <SidebarInset>
+          <SidebarInset className="min-w-0">
             <DashboardHeader />
 
             <main className="flex-1 overflow-y-auto px-4 py-2 min-w-0 overflow-x-hidden">

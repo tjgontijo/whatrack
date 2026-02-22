@@ -21,12 +21,12 @@ export default async function MetaAdsCampaignsPage() {
     }
 
     return (
-        <TemplateMainShell className="flex flex-col h-screen overflow-hidden bg-[#FAFAFA]">
+        <TemplateMainShell className="flex flex-col bg-[#FAFAFA] min-w-0">
             <TemplateMainHeader
                 title="Campanhas do Meta"
                 subtitle="Acompanhamento e dados detalhados das suas campanhas ativas"
             />
-            <div className="flex-1 overflow-y-auto overflow-x-hidden min-w-0 p-4 md:p-8">
+            <div className="flex-1 min-w-0 w-full p-4 md:p-8">
                 <MetaAdsCampaignsClient />
             </div>
         </TemplateMainShell>
