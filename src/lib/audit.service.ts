@@ -4,7 +4,7 @@ import { getRequestContext } from '@/lib/request-context'
 import { sanitizeForAudit } from '@/lib/audit-sanitize'
 
 export interface AuditLogInput {
-    organizationId: string
+    organizationId?: string // optional: can be null for global/system events
     action: string
     resourceType: string
     resourceId?: string
@@ -24,7 +24,7 @@ class AuditService {
             const context = getRequestContext()
 
             const auditData = {
-                organizationId: input.organizationId,
+                organizationId: input.organizationId ?? context?.organizationId ?? null,
                 userId: input.userId ?? context?.userId ?? null,
                 action: input.action,
                 resourceType: input.resourceType,
@@ -42,12 +42,11 @@ class AuditService {
                 msg: 'Audit Log Created',
                 action: auditData.action,
                 resource: auditData.resourceType,
-                requestId: auditData.requestId
+                requestId: auditData.requestId,
+                orgId: auditData.organizationId
             })
 
             // Persist to database
-            // We don't 'await' this in the main flow (handled by the caller if they don't 'await' auditService.log)
-            // but here we are inside an 'async' function that might be called with 'void'
             await prisma.orgAuditLog.create({
                 data: auditData
             })
