@@ -1,7 +1,76 @@
 import { prisma } from '@/lib/prisma';
+import { getRedis } from '@/lib/redis';
 import { verifyWebhookSignature } from '@/lib/whatsapp/webhook-signature';
 import { WebhookProcessor } from '@/services/whatsapp/webhook-processor';
 import { WhatsAppChatService } from '@/services/whatsapp-chat.service';
+import { resendProvider } from '@/services/mail/resend';
+import { generateWebhookFailureAlertEmail } from '@/services/mail/templates/WebhookFailureAlertEmail';
+
+const MAX_RETRIES = 3;
+const ALERT_THROTTLE_SECONDS = 3600; // 1 alert per webhook per hour
+
+async function sendWebhookFailureAlert(log: {
+  id: string;
+  organizationId: string | null;
+  eventType: string | null;
+  retryCount: number;
+  processingError: string | null;
+  createdAt: Date;
+}): Promise<void> {
+  // Throttle: at most 1 alert per webhook per hour
+  const throttleKey = `webhook_alert:${log.id}`;
+  try {
+    const redis = getRedis();
+    const alreadySent = await redis.get(throttleKey);
+    if (alreadySent) return;
+    await redis.setex(throttleKey, ALERT_THROTTLE_SECONDS, '1');
+  } catch {
+    // Redis unavailable — send alert anyway (no throttle)
+  }
+
+  if (!log.organizationId) {
+    console.warn(`[WebhookRetryJob] No organizationId for webhook ${log.id}, skipping alert`);
+    return;
+  }
+
+  try {
+    // Get organization owner email
+    const membership = await prisma.member.findFirst({
+      where: { organizationId: log.organizationId, role: 'owner' },
+      include: { user: { select: { email: true, name: true } } },
+    });
+
+    if (!membership?.user?.email) {
+      console.warn(`[WebhookRetryJob] No owner found for org ${log.organizationId}, skipping alert`);
+      return;
+    }
+
+    const organization = await prisma.organization.findUnique({
+      where: { id: log.organizationId },
+      select: { name: true },
+    });
+
+    const emailContent = await generateWebhookFailureAlertEmail({
+      organizationName: organization?.name || log.organizationId,
+      webhookId: log.id,
+      eventType: log.eventType ?? undefined,
+      retryCount: log.retryCount,
+      lastError: log.processingError || 'Unknown error',
+      createdAt: log.createdAt.toISOString(),
+    });
+
+    await resendProvider.send({
+      to: membership.user.email,
+      subject: emailContent.subject,
+      html: emailContent.html,
+      text: emailContent.text,
+    });
+
+    console.log(`[WebhookRetryJob] Alert sent to ${membership.user.email} for webhook ${log.id}`);
+  } catch (alertError) {
+    console.error(`[WebhookRetryJob] Failed to send alert for webhook ${log.id}:`, alertError);
+  }
+}
 
 /**
  * Webhook Retry Job (DLQ)
@@ -166,11 +235,14 @@ export async function webhookRetryJob(job: any): Promise<void> {
         failCount++;
 
         // Alert if webhook exceeded max retries
-        if (log.retryCount + 1 >= 3) {
+        if (log.retryCount + 1 >= MAX_RETRIES) {
           console.error(
-            `[WebhookRetryJob] ALERT: Webhook ${log.id} exceeded max retries (3/3)`
+            `[WebhookRetryJob] ALERT: Webhook ${log.id} exceeded max retries (${MAX_RETRIES}/${MAX_RETRIES})`
           );
-          // TODO: Send notification to admin/monitoring system
+          await sendWebhookFailureAlert({
+            ...log,
+            retryCount: log.retryCount + 1,
+          });
         }
       }
     }

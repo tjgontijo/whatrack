@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
@@ -25,8 +26,15 @@ export async function GET(
         const organizationId = access.organizationId
 
         const { searchParams } = new URL(request.url)
-        const page = parseInt(searchParams.get('page') || '1')
-        const pageSize = Math.min(parseInt(searchParams.get('pageSize') || '50'), 100)
+        const messagesQuerySchema = z.object({
+            page: z.coerce.number().int().min(1).default(1),
+            pageSize: z.coerce.number().int().min(1).max(100).default(50),
+        })
+        const parsedQuery = messagesQuerySchema.safeParse(Object.fromEntries(searchParams))
+        if (!parsedQuery.success) {
+            return NextResponse.json({ error: 'Parâmetros inválidos', details: parsedQuery.error.flatten() }, { status: 400 })
+        }
+        const { page, pageSize } = parsedQuery.data
         const skip = (page - 1) * pageSize
 
         // Try to find by conversationId first, then by leadId for backwards compatibility

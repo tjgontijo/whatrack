@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { apiError } from '@/lib/api-response'
 import type { Prisma } from '@prisma/client'
 import { z } from 'zod'
 import { revalidateTag } from 'next/cache'
@@ -171,10 +172,7 @@ export async function POST(req: Request) {
     return NextResponse.json(sale, { status: 201 })
   } catch (error) {
     console.error('[api/sales] POST error:', error)
-    return NextResponse.json(
-      { error: 'Falha ao criar venda', details: String(error) },
-      { status: 500 }
-    )
+    return apiError('Falha ao criar venda', 500, error)
   }
 }
 
@@ -186,16 +184,23 @@ export async function GET(req: Request) {
   const organizationId = access.organizationId
 
   const { searchParams } = new URL(req.url)
-  const q = (searchParams.get('q') || '').trim()
-  const page = Math.max(1, Number.parseInt(searchParams.get('page') || '1', 10) || 1)
-  const pageSize = Math.max(
-    1,
-    Math.min(100, Number.parseInt(searchParams.get('pageSize') || '20', 10) || 20),
-  )
 
-  const dateRangeValue = searchParams.get('dateRange')
-  const dateRangePreset = isDateRangePreset(dateRangeValue) ? (dateRangeValue as DateRangePreset) : undefined
-  const statusFilter = (searchParams.get('status') || '').trim() || undefined
+  const salesQuerySchema = z.object({
+    q: z.string().default(''),
+    page: z.coerce.number().int().min(1).default(1),
+    pageSize: z.coerce.number().int().min(1).max(100).default(20),
+    dateRange: z.string().optional(),
+    status: z.string().optional(),
+  })
+  const parsed = salesQuerySchema.safeParse(Object.fromEntries(searchParams))
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Parâmetros inválidos', details: parsed.error.flatten() }, { status: 400 })
+  }
+  const { q: rawQ, page, pageSize, dateRange: dateRangeValue, status: rawStatus } = parsed.data
+  const q = rawQ.trim()
+  const statusFilter = rawStatus?.trim() || undefined
+
+  const dateRangePreset = isDateRangePreset(dateRangeValue ?? null) ? (dateRangeValue as DateRangePreset) : undefined
 
   const ors: Prisma.SaleWhereInput[] = []
 
@@ -275,9 +280,6 @@ export async function GET(req: Request) {
     return NextResponse.json(payload)
   } catch (error) {
     console.error('[api/sales] GET error:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch sales', details: String(error) },
-      { status: 500 },
-    )
+    return apiError('Failed to fetch sales', 500, error)
   }
 }

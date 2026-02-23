@@ -59,6 +59,13 @@ export const DEFAULT_RATE_LIMITS: Record<string, RateLimitConfig> = {
     burst: { limit: 2, windowSeconds: 60 }, // 2 per minute
   },
 
+  // Centrifugo token: Authenticated users, token generation (1h validity)
+  '/api/v1/centrifugo/token': {
+    enabled: true,
+    ip: { limit: 60, windowSeconds: 3600 }, // 60 per hour
+    burst: { limit: 5, windowSeconds: 60 }, // 5 per minute
+  },
+
   // Default for unmapped endpoints
   default: {
     enabled: true,

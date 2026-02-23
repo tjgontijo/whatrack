@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server'
+import { apiError } from '@/lib/api-response'
 import type { Prisma } from '@prisma/client'
 import { z } from 'zod'
 
 import { prisma } from '@/lib/prisma'
+import { getRedis } from '@/lib/redis'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 
@@ -25,24 +27,7 @@ const leadsResponseSchema = z.object({
 
 type LeadPayload = z.infer<typeof leadsResponseSchema>
 
-// Simple in-memory cache
-const cache = new Map<string, { ts: number; data: LeadPayload }>()
-const CACHE_TTL_MS = 3000
-
-// Prevent concurrent requests from exhausting the connection pool
-let running = false
-const waitQueue: Array<() => void> = []
-async function serialize<T>(fn: () => Promise<T>): Promise<T> {
-  if (running) await new Promise<void>((resolve) => waitQueue.push(resolve))
-  running = true
-  try {
-    return await fn()
-  } finally {
-    running = false
-    const next = waitQueue.shift()
-    if (next) next()
-  }
-}
+const CACHE_TTL_SECONDS = 3
 
 const DATE_RANGE_PRESETS = [
   'today',
@@ -164,10 +149,7 @@ export async function POST(req: Request) {
       )
     }
 
-    return NextResponse.json(
-      { error: 'Falha ao criar lead', details: String(error) },
-      { status: 500 }
-    )
+    return apiError('Falha ao criar lead', 500, error)
   }
 }
 
@@ -179,15 +161,21 @@ export async function GET(req: Request) {
   const organizationId = access.organizationId
 
   const { searchParams } = new URL(req.url)
-  const q = (searchParams.get('q') || '').trim()
-  const page = Math.max(1, Number.parseInt(searchParams.get('page') || '1', 10) || 1)
-  const pageSize = Math.max(
-    1,
-    Math.min(100, Number.parseInt(searchParams.get('pageSize') || '20', 10) || 20)
-  )
 
-  const dateRangeValue = searchParams.get('dateRange')
-  const dateRangePreset = isDateRangePreset(dateRangeValue) ? (dateRangeValue as DateRangePreset) : undefined
+  const leadsQuerySchema = z.object({
+    q: z.string().default(''),
+    page: z.coerce.number().int().min(1).default(1),
+    pageSize: z.coerce.number().int().min(1).max(100).default(20),
+    dateRange: z.string().optional(),
+  })
+  const parsed = leadsQuerySchema.safeParse(Object.fromEntries(searchParams))
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Parâmetros inválidos', details: parsed.error.flatten() }, { status: 400 })
+  }
+  const { q: rawQ, page, pageSize, dateRange: dateRangeValue } = parsed.data
+  const q = rawQ.trim()
+
+  const dateRangePreset = isDateRangePreset(dateRangeValue ?? null) ? (dateRangeValue as DateRangePreset) : undefined
 
   const ors: Prisma.LeadWhereInput[] = []
   if (q) {
@@ -219,42 +207,48 @@ export async function GET(req: Request) {
   }
 
   try {
-    const cacheKey = JSON.stringify({ organizationId, q, page, pageSize, where })
-    const cached = cache.get(cacheKey)
-    if (cached && Date.now() - cached.ts < CACHE_TTL_MS) {
-      return NextResponse.json(cached.data)
+    const cacheKey = `leads:${JSON.stringify({ organizationId, q, page, pageSize, where })}`
+
+    // Try Redis cache first
+    try {
+      const redis = getRedis()
+      const cached = await redis.get(cacheKey)
+      if (cached) {
+        return NextResponse.json(JSON.parse(cached))
+      }
+    } catch {
+      // Redis unavailable — proceed without cache
     }
 
-    const [items, total] = await serialize(async () => {
-      const leads = await prisma.lead.findMany({
-        where,
-        orderBy: { createdAt: 'desc' },
-        skip: (page - 1) * pageSize,
-        take: pageSize,
-        select: {
-          id: true,
-          name: true,
-          phone: true,
-          mail: true,
-          waId: true,
-          createdAt: true,
-        },
-      })
-
-      const total = await prisma.lead.count({ where })
-
-      return [leads, total] as const
+    const leads = await prisma.lead.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      select: {
+        id: true,
+        name: true,
+        phone: true,
+        mail: true,
+        waId: true,
+        createdAt: true,
+      },
     })
 
-    const payload = leadsResponseSchema.parse({ items, total, page, pageSize })
-    cache.set(cacheKey, { ts: Date.now(), data: payload })
+    const total = await prisma.lead.count({ where })
+    const payload = leadsResponseSchema.parse({ items: leads, total, page, pageSize })
+
+    // Populate Redis cache (fire-and-forget)
+    try {
+      const redis = getRedis()
+      await redis.setex(cacheKey, CACHE_TTL_SECONDS, JSON.stringify(payload))
+    } catch {
+      // Redis unavailable — serve without caching
+    }
 
     return NextResponse.json(payload)
   } catch (error) {
     console.error('[api/leads] GET error:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch leads', details: String(error) },
-      { status: 500 }
-    )
+    return apiError('Failed to fetch leads', 500, error)
   }
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createHmac } from 'crypto'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import { rateLimitMiddleware } from '@/lib/middleware/rate-limit.middleware'
 
 /**
  * GET /api/v1/centrifugo/token
@@ -16,6 +17,9 @@ import { validateFullAccess } from '@/server/auth/validate-organization-access'
  * }
  */
 export async function GET(request: NextRequest) {
+  const rateLimited = await rateLimitMiddleware(request, '/api/v1/centrifugo/token')
+  if (rateLimited) return rateLimited
+
   try {
     // Validate user authentication and organization access
     const access = await validateFullAccess(request)

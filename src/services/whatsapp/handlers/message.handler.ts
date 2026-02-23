@@ -136,35 +136,52 @@ export async function messageHandler(payload: any, options: MessageHandlerOption
       // START TRANSACTION
       // ----------------------------------------------------------------------
       await prisma.$transaction(async (tx) => {
-        // 1. Find/Create Lead
-        let lead = await tx.lead.findFirst({
+        // 1. Find/Create Lead (upsert by waId to avoid race conditions on concurrent messages)
+        const existingLead = await tx.lead.findFirst({
           where: {
             organizationId: config.organizationId,
             OR: [{ waId: contactPhone }, { phone: contactPhone }],
           },
         });
 
-        const wasHistoryLead = lead?.source === 'history_sync';
+        const wasHistoryLead = existingLead?.source === 'history_sync';
 
-        if (!lead) {
-          lead = await tx.lead.create({
+        let lead;
+        if (existingLead) {
+          lead = await tx.lead.update({
+            where: { id: existingLead.id },
             data: {
-              organizationId: config.organizationId,
-              phone: contactPhone,
-              waId: contactPhone,
-              pushName: pushName || undefined,
               lastMessageAt: messageTimestamp,
-              source: isEcho ? 'outbound_message' : 'live_message',
+              pushName: pushName ?? existingLead.pushName ?? undefined,
             },
           });
         } else {
-          lead = await tx.lead.update({
-            where: { id: lead.id },
-            data: {
-              lastMessageAt: messageTimestamp,
-              pushName: pushName ?? lead.pushName ?? undefined,
-            },
-          });
+          try {
+            lead = await tx.lead.create({
+              data: {
+                organizationId: config.organizationId,
+                phone: contactPhone,
+                waId: contactPhone,
+                pushName: pushName || undefined,
+                lastMessageAt: messageTimestamp,
+                source: isEcho ? 'outbound_message' : 'live_message',
+              },
+            });
+          } catch (err: unknown) {
+            // Handle race condition: another concurrent message created the lead first (P2002)
+            if (err && typeof err === 'object' && 'code' in err && err.code === 'P2002') {
+              const raceLead = await tx.lead.findFirst({
+                where: { organizationId: config.organizationId, waId: contactPhone },
+              });
+              if (!raceLead) throw err;
+              lead = await tx.lead.update({
+                where: { id: raceLead.id },
+                data: { lastMessageAt: messageTimestamp, pushName: pushName ?? raceLead.pushName ?? undefined },
+              });
+            } else {
+              throw err;
+            }
+          }
         }
 
         // 2. Conversation

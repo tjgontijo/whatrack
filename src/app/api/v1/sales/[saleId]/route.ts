@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/api-response'
 import { z } from 'zod'
 import { revalidateTag } from 'next/cache'
 import { prisma } from '@/lib/prisma'
@@ -69,10 +70,7 @@ export async function PUT(
     return NextResponse.json(updated)
   } catch (error) {
     console.error('[api/sales/[saleId]] PUT error:', error)
-    return NextResponse.json(
-      { error: 'Falha ao atualizar venda', details: String(error) },
-      { status: 500 }
-    )
+    return apiError('Falha ao atualizar venda', 500, error)
   }
 }
 
@@ -112,9 +110,6 @@ export async function DELETE(
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('[api/sales/[saleId]] DELETE error:', error)
-    return NextResponse.json(
-      { error: 'Falha ao deletar venda', details: String(error) },
-      { status: 500 }
-    )
+    return apiError('Falha ao deletar venda', 500, error)
   }
 }

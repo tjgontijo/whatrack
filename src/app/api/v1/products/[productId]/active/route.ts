@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/api-response'
 import { prisma } from '@/lib/prisma'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
@@ -38,9 +39,6 @@ export async function PATCH(
     return NextResponse.json(updated)
   } catch (error) {
     console.error('[api/products/[productId]/active] PATCH error:', error)
-    return NextResponse.json(
-      { error: 'Falha ao alterar status do produto', details: String(error) },
-      { status: 500 }
-    )
+    return apiError('Falha ao alterar status do produto', 500, error)
   }
 }

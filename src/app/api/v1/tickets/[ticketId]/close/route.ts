@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/api-response'
 import { revalidateTag } from 'next/cache'
 
 import { prisma } from '@/lib/prisma'
@@ -164,9 +165,6 @@ export async function POST(
     return NextResponse.json(response)
   } catch (error) {
     console.error('[api/tickets/[ticketId]/close] POST error:', error)
-    return NextResponse.json(
-      { error: 'Falha ao fechar ticket', details: String(error) },
-      { status: 500 },
-    )
+    return apiError('Falha ao fechar ticket', 500, error)
   }
 }

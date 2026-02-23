@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { apiError } from '@/lib/api-response'
 import type { Prisma } from '@prisma/client'
 import { revalidateTag } from 'next/cache'
 import { z } from 'zod'
@@ -342,10 +343,7 @@ export async function GET(req: Request) {
     return NextResponse.json(payload)
   } catch (error) {
     console.error('[api/tickets] GET error:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch tickets', details: String(error) },
-      { status: 500 },
-    )
+    return apiError('Failed to fetch tickets', 500, error)
   }
 }
 
@@ -519,9 +517,6 @@ export async function POST(req: Request) {
     return NextResponse.json(response, { status: 201 })
   } catch (error) {
     console.error('[api/tickets] POST error:', error)
-    return NextResponse.json(
-      { error: 'Falha ao criar ticket', details: String(error) },
-      { status: 500 },
-    )
+    return apiError('Falha ao criar ticket', 500, error)
   }
 }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/api-response'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
@@ -29,10 +30,7 @@ export async function GET(
     return NextResponse.json(lead)
   } catch (error) {
     console.error('[api/leads/[leadId]] GET error:', error)
-    return NextResponse.json(
-      { error: 'Falha ao buscar lead', details: String(error) },
-      { status: 500 }
-    )
+    return apiError('Falha ao buscar lead', 500, error)
   }
 }
 
@@ -103,10 +101,7 @@ export async function PUT(
       }
     }
 
-    return NextResponse.json(
-      { error: 'Falha ao atualizar lead', details: String(error) },
-      { status: 500 }
-    )
+    return apiError('Falha ao atualizar lead', 500, error)
   }
 }
 
@@ -141,9 +136,6 @@ export async function DELETE(
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('[api/leads/[leadId]] DELETE error:', error)
-    return NextResponse.json(
-      { error: 'Falha ao deletar lead', details: String(error) },
-      { status: 500 }
-    )
+    return apiError('Falha ao deletar lead', 500, error)
   }
 }

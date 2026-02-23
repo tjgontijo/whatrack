@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/api-response'
 import { revalidateTag } from 'next/cache'
 
 import { prisma } from '@/lib/prisma'
@@ -149,10 +150,7 @@ export async function GET(
     return NextResponse.json(response)
   } catch (error) {
     console.error('[api/tickets/[ticketId]] GET error:', error)
-    return NextResponse.json(
-      { error: 'Falha ao buscar ticket', details: String(error) },
-      { status: 500 },
-    )
+    return apiError('Falha ao buscar ticket', 500, error)
   }
 }
 
@@ -314,9 +312,6 @@ export async function PATCH(
     return NextResponse.json(response)
   } catch (error) {
     console.error('[api/tickets/[ticketId]] PATCH error:', error)
-    return NextResponse.json(
-      { error: 'Falha ao atualizar ticket', details: String(error) },
-      { status: 500 },
-    )
+    return apiError('Falha ao atualizar ticket', 500, error)
   }
 }
