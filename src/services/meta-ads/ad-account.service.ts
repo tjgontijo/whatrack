@@ -2,7 +2,11 @@ import { prisma } from '@/lib/prisma';
 import { metaAccessTokenService } from './access-token.service';
 import axios from 'axios';
 
-const GRAPH_API_VERSION = process.env.META_GRAPH_API_VERSION || 'v25.0';
+function requireEnv(name: string): string {
+    const value = process.env[name];
+    if (!value) throw new Error(`[AdAccountService] ${name} environment variable is required`);
+    return value;
+}
 
 interface MetaAdAccountResponse {
     id: string;
@@ -24,7 +28,7 @@ export class MetaAdAccountService {
         const token = await metaAccessTokenService.getDecryptedToken(connectionId);
 
         // Fetch accounts available to this user
-        const response = await axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/me/adaccounts`, {
+        const response = await axios.get(`https://graph.facebook.com/${requireEnv('META_API_VERSION')}/me/adaccounts`, {
             params: {
                 access_token: token,
                 fields: 'id,name,account_status',

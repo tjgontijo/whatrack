@@ -20,7 +20,10 @@ import { getJobTracker } from '@/lib/queue';
 import { webhookRetryJob } from '@/jobs/webhook-retry.job';
 import { rateLimitMiddleware } from '@/lib/middleware/rate-limit.middleware';
 
-const CRON_SECRET = process.env.CRON_SECRET || 'development-secret';
+const CRON_SECRET = process.env.CRON_SECRET;
+if (!CRON_SECRET) {
+  throw new Error('[WebhookRetry] CRON_SECRET environment variable is required');
+}
 
 export const maxDuration = 60; // 60 seconds timeout for retry job
 

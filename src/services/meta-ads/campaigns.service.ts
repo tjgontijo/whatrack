@@ -2,7 +2,11 @@ import { prisma } from '@/lib/prisma';
 import { metaAccessTokenService } from './access-token.service';
 import axios from 'axios';
 
-const GRAPH_API_VERSION = process.env.META_GRAPH_API_VERSION || 'v20.0';
+function requireEnv(name: string): string {
+    const value = process.env[name];
+    if (!value) throw new Error(`[CampaignsService] ${name} environment variable is required`);
+    return value;
+}
 
 export class MetaCampaignsService {
     async getCampaigns(organizationId: string, searchParams: { days?: number, accountId?: string } = {}) {
@@ -49,7 +53,7 @@ export class MetaCampaignsService {
                         `insights.time_range(${timeRangeStr}){spend,impressions,clicks,inline_link_clicks,reach,actions,action_values}`
                     ].join(',');
 
-                    const response = await axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${acc.adAccountId}/campaigns`, {
+                    const response = await axios.get(`https://graph.facebook.com/${requireEnv('META_API_VERSION')}/${acc.adAccountId}/campaigns`, {
                         params: {
                             access_token: token,
                             fields: fields,

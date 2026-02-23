@@ -7,7 +7,7 @@ import type {
     WhatsAppMessage
 } from '@/types/whatsapp';
 
-const API_VERSION = process.env.META_API_VERSION || 'v24.0';
+const API_VERSION = process.env.META_API_VERSION;
 const GRAPH_API_URL = `https://graph.facebook.com/${API_VERSION}`;
 
 export const whatsappApi = {

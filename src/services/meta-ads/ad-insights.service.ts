@@ -2,7 +2,11 @@ import { prisma } from '@/lib/prisma';
 import { metaAccessTokenService } from './access-token.service';
 import axios from 'axios';
 
-const GRAPH_API_VERSION = process.env.META_GRAPH_API_VERSION || 'v25.0';
+function requireEnv(name: string): string {
+    const value = process.env[name];
+    if (!value) throw new Error(`[AdInsightsService] ${name} environment variable is required`);
+    return value;
+}
 
 export class MetaAdInsightsService {
     /**
@@ -36,7 +40,7 @@ export class MetaAdInsightsService {
             for (const acc of activeAccounts) {
                 try {
                     // 1. Get Spend from Meta (Account Level)
-                    const accountInsightsResponse = await axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${acc.adAccountId}/insights`, {
+                    const accountInsightsResponse = await axios.get(`https://graph.facebook.com/${requireEnv('META_API_VERSION')}/${acc.adAccountId}/insights`, {
                         params: {
                             access_token: token,
                             level: 'account',
@@ -48,7 +52,7 @@ export class MetaAdInsightsService {
                     const metaData = accountInsightsResponse.data.data?.[0] || { spend: '0', impressions: '0', clicks: '0' };
 
                     // 1.b Get Spend from Meta (Campaign Level)
-                    const campaignInsightsResponse = await axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${acc.adAccountId}/insights`, {
+                    const campaignInsightsResponse = await axios.get(`https://graph.facebook.com/${requireEnv('META_API_VERSION')}/${acc.adAccountId}/insights`, {
                         params: {
                             access_token: token,
                             level: 'campaign',

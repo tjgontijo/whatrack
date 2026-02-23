@@ -2,7 +2,11 @@ import { prisma } from '@/lib/prisma';
 import { metaAccessTokenService } from './access-token.service';
 import axios from 'axios';
 
-const GRAPH_API_VERSION = process.env.META_GRAPH_API_VERSION || 'v25.0';
+function requireEnv(name: string): string {
+    const value = process.env[name];
+    if (!value) throw new Error(`[AdEnrichmentService] ${name} environment variable is required`);
+    return value;
+}
 
 export class MetaAdEnrichmentService {
     /**
@@ -37,7 +41,7 @@ export class MetaAdEnrichmentService {
 
         try {
             // 1. Fetch Ad Details
-            const adResponse = await axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${tracking.metaAdId}`, {
+            const adResponse = await axios.get(`https://graph.facebook.com/${requireEnv('META_API_VERSION')}/${tracking.metaAdId}`, {
                 params: {
                     access_token: token,
                     fields: 'name,adset{id,name},campaign{id,name},account_id',

@@ -21,7 +21,10 @@ import { getJobTracker } from '@/lib/queue';
 import { whatsappHealthCheckJob } from '@/jobs/whatsapp-health-check.job';
 import { rateLimitMiddleware } from '@/lib/middleware/rate-limit.middleware';
 
-const CRON_SECRET = process.env.CRON_SECRET || 'development-secret';
+const CRON_SECRET = process.env.CRON_SECRET;
+if (!CRON_SECRET) {
+  throw new Error('[HealthCheck] CRON_SECRET environment variable is required');
+}
 
 export const maxDuration = 300; // 5 minutes timeout for health check
 

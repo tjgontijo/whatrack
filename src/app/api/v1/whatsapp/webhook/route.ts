@@ -17,11 +17,18 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { WhatsAppChatService } from '@/services/whatsapp-chat.service'
 import { verifyWebhookSignature } from '@/lib/whatsapp/webhook-signature'
 import { WebhookProcessor } from '@/services/whatsapp/webhook-processor'
 import { rateLimitMiddleware } from '@/lib/middleware/rate-limit.middleware'
+
+const webhookVerifySchema = z.object({
+    'hub.mode': z.literal('subscribe'),
+    'hub.verify_token': z.string().min(1),
+    'hub.challenge': z.string().min(1),
+})
 
 export const dynamic = 'force-dynamic'
 
@@ -35,23 +42,30 @@ const VERIFY_TOKEN = process.env.META_WEBHOOK_VERIFY_TOKEN
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
 
-    const mode = searchParams.get('hub.mode')
-    const token = searchParams.get('hub.verify_token')
-    const challenge = searchParams.get('hub.challenge')
+    // Validate query params with Zod before touching any values
+    const parsed = webhookVerifySchema.safeParse({
+        'hub.mode': searchParams.get('hub.mode'),
+        'hub.verify_token': searchParams.get('hub.verify_token'),
+        'hub.challenge': searchParams.get('hub.challenge'),
+    })
 
-    console.log('[webhook] GET verification:', { mode, token: token ? '***' : null })
+    if (!parsed.success) {
+        console.error('[webhook] GET verification: invalid params', parsed.error.flatten())
+        return NextResponse.json({ error: 'Verification failed' }, { status: 403 })
+    }
 
-    // Verify the request
-    if (mode === 'subscribe' && token === VERIFY_TOKEN) {
+    console.log('[webhook] GET verification received')
+
+    if (parsed.data['hub.verify_token'] === VERIFY_TOKEN) {
         console.log('[webhook] Verification successful')
         // Meta expects the challenge as plain text response
-        return new Response(challenge ?? '', {
+        return new Response(parsed.data['hub.challenge'], {
             status: 200,
             headers: { 'Content-Type': 'text/plain' },
         })
     }
 
-    console.error('[webhook] Verification failed: invalid token or mode')
+    console.error('[webhook] Verification failed: invalid token')
     return NextResponse.json({ error: 'Verification failed' }, { status: 403 })
 }
 
@@ -128,14 +142,16 @@ export async function POST(request: NextRequest) {
         }
 
         if (!isValidSignature) {
-            console.error('[webhook] ❌ SIGNATURE VERIFICATION FAILED')
+            console.error('[webhook] ❌ SIGNATURE VERIFICATION FAILED — payload rejected, no processing')
             if (webhookLogId) {
                 await prisma.whatsAppWebhookLog.update({
                     where: { id: webhookLogId },
                     data: { processingError: 'Invalid signature' }
                 }).catch(() => {})
             }
-            return NextResponse.json({ received: true })
+            // Return 200 to prevent Meta from retrying (per Meta docs), but do NOT process.
+            // The log entry has signatureValid=false so this can be audited separately.
+            return NextResponse.json({ received: true, rejected: true })
         }
 
         // 4. Process with WebhookProcessor (handles both new v2 and legacy v1 events)

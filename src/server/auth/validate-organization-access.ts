@@ -98,7 +98,7 @@ export async function validateFullAccess(
 
     const userId = session.user.id
     const organizationId =
-      extractOrganizationId(request) ?? session.session?.activeOrganizationId ?? undefined
+      session.session?.activeOrganizationId ?? extractOrganizationId(request) ?? undefined
 
     if (!organizationId) {
       return {

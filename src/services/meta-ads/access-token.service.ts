@@ -2,10 +2,11 @@ import { prisma } from '@/lib/prisma';
 import { encryption } from '@/lib/encryption';
 import axios from 'axios';
 
-const GRAPH_API_VERSION = process.env.META_GRAPH_API_VERSION || 'v25.0';
-const APP_ID = process.env.META_ADS_APP_ID;
-const APP_SECRET = process.env.META_ADS_APP_SECRET;
-const REDIRECT_URI = process.env.META_OAUTH_REDIRECT_URI || `${process.env.APP_URL}/api/v1/meta-ads/callback`;
+function requireEnv(name: string): string {
+    const value = process.env[name];
+    if (!value) throw new Error(`[MetaAccessTokenService] ${name} environment variable is required`);
+    return value;
+}
 
 interface MetaTokenDebug {
     data: {
@@ -29,11 +30,11 @@ export class MetaAccessTokenService {
      * Exchange OAuth Code for Short-Lived User Access Token
      */
     async getShortLivedToken(code: string): Promise<string> {
-        const response = await axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/oauth/access_token`, {
+        const response = await axios.get(`https://graph.facebook.com/${requireEnv('META_API_VERSION')}/oauth/access_token`, {
             params: {
-                client_id: APP_ID,
-                client_secret: APP_SECRET,
-                redirect_uri: REDIRECT_URI,
+                client_id: requireEnv('META_ADS_APP_ID'),
+                client_secret: requireEnv('META_ADS_APP_SECRET'),
+                redirect_uri: requireEnv('META_OAUTH_REDIRECT_URI'),
                 code,
             },
         });
@@ -45,11 +46,11 @@ export class MetaAccessTokenService {
      * Exchange Short-Lived Token for Long-Lived Token (60 days)
      */
     async getLongLivedToken(shortLivedToken: string): Promise<{ accessToken: string; expiresAt: Date }> {
-        const response = await axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/oauth/access_token`, {
+        const response = await axios.get(`https://graph.facebook.com/${requireEnv('META_API_VERSION')}/oauth/access_token`, {
             params: {
                 grant_type: 'fb_exchange_token',
-                client_id: APP_ID,
-                client_secret: APP_SECRET,
+                client_id: requireEnv('META_ADS_APP_ID'),
+                client_secret: requireEnv('META_ADS_APP_SECRET'),
                 fb_exchange_token: shortLivedToken,
             },
         });
@@ -69,7 +70,7 @@ export class MetaAccessTokenService {
      * Get User Info (Name and ID) using the valid token
      */
     async getUserInfo(accessToken: string): Promise<MetaUserInfo> {
-        const response = await axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/me`, {
+        const response = await axios.get(`https://graph.facebook.com/${requireEnv('META_API_VERSION')}/me`, {
             params: {
                 access_token: accessToken,
                 fields: 'id,name',
@@ -83,8 +84,10 @@ export class MetaAccessTokenService {
      * Debug Token to verify scopes and validity
      */
     async debugToken(accessToken: string): Promise<MetaTokenDebug['data']> {
-        const appToken = `${APP_ID}|${APP_SECRET}`;
-        const response = await axios.get(`https://graph.facebook.com/debug_token`, {
+        const appId = requireEnv('META_ADS_APP_ID');
+        const appSecret = requireEnv('META_ADS_APP_SECRET');
+        const appToken = `${appId}|${appSecret}`;
+        const response = await axios.get(`https://graph.facebook.com/${requireEnv('META_API_VERSION')}/debug_token`, {
             params: {
                 input_token: accessToken,
                 access_token: appToken,

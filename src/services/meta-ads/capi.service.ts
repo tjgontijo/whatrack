@@ -3,7 +3,11 @@ import { metaAccessTokenService } from './access-token.service';
 import crypto from 'crypto';
 import axios from 'axios';
 
-const GRAPH_API_VERSION = process.env.META_GRAPH_API_VERSION || 'v25.0';
+function requireEnv(name: string): string {
+    const value = process.env[name];
+    if (!value) throw new Error(`[CapiService] ${name} environment variable is required`);
+    return value;
+}
 
 interface CapiEventOptions {
     value?: number;
@@ -84,7 +88,7 @@ export class MetaCapiService {
 
             try {
                 const response = await axios.post(
-                    `https://graph.facebook.com/${GRAPH_API_VERSION}/${pixel.pixelId}/events`,
+                    `https://graph.facebook.com/${requireEnv('META_API_VERSION')}/${pixel.pixelId}/events`,
                     payload
                 );
 

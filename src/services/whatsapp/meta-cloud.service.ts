@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { resolveAccessToken } from '@/lib/whatsapp/token-crypto'
 
 const GRAPH_API_URL = 'https://graph.facebook.com'
-export const API_VERSION = process.env.META_API_VERSION || 'v24.0'
+export const API_VERSION = process.env.META_API_VERSION;
 
 interface SendTemplateParams {
     phoneId: string
@@ -33,7 +33,9 @@ export class MetaCloudService {
      * Fallback global (ENV) — usado quando não temos o contexto de organização.
      */
     static get accessToken() {
-        return process.env.META_ACCESS_TOKEN || ''
+        const token = process.env.META_ACCESS_TOKEN;
+        if (!token) throw new Error('[MetaCloudService] META_ACCESS_TOKEN environment variable is required');
+        return token;
     }
 
     /**
@@ -54,12 +56,16 @@ export class MetaCloudService {
             code: code.substring(0, 10) + '...'
         })
 
+        if (!appId) throw new Error('[MetaCloudService] NEXT_PUBLIC_META_APP_ID environment variable is required');
+        const appSecret = process.env.META_APP_SECRET;
+        if (!appSecret) throw new Error('[MetaCloudService] META_APP_SECRET environment variable is required');
+
         const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: new URLSearchParams({
-                client_id: appId || '',
-                client_secret: process.env.META_APP_SECRET || '',
+                client_id: appId,
+                client_secret: appSecret,
                 redirect_uri: finalRedirectUri,
                 code,
             }).toString(),

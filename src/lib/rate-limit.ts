@@ -83,14 +83,14 @@ class RateLimiter {
         retryAfter,
       };
     } catch (error) {
-      // If Redis fails, allow request (graceful degradation)
-      console.warn(`[RateLimit] ${strategy}/${identifier} - Redis error:`, error);
+      // If Redis fails, deny request (fail-secure: better to block than to allow unlimited requests)
+      console.error(`[RateLimit] ${strategy}/${identifier} - Redis error, denying request:`, error);
       return {
-        allowed: true,
+        allowed: false,
         current: 0,
         limit,
         resetAt: new Date(now + windowSeconds * 1000),
-        retryAfter: 0,
+        retryAfter: 5,
       };
     }
   }

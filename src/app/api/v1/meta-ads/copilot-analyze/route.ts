@@ -8,7 +8,11 @@ import { z } from 'zod';
 import { metaAccessTokenService } from '@/services/meta-ads/access-token.service';
 import axios from 'axios';
 
-const GRAPH_API_VERSION = process.env.META_GRAPH_API_VERSION || 'v20.0';
+function requireEnv(name: string): string {
+    const value = process.env[name];
+    if (!value) throw new Error(`[copilot-analyze] ${name} environment variable is required`);
+    return value;
+}
 
 const SYSTEM_PROMPT = `Você é um Analista de BI e Performance sênior especializado em Meta Ads.
 Sua única função é analisar dados de campanhas e fornecer diagnósticos profundos e analíticos.
@@ -73,13 +77,13 @@ export async function POST(req: Request) {
         };
 
         const [campaignDailyRes, adsetsRes, adsRes] = await Promise.all([
-            axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${campaignId}/insights`, {
+            axios.get(`https://graph.facebook.com/${requireEnv('META_API_VERSION')}/${campaignId}/insights`, {
                 params: { ...commonParams, time_increment: 1 }
             }).catch(() => ({ data: { data: [] } })),
-            axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${campaignId}/insights`, {
+            axios.get(`https://graph.facebook.com/${requireEnv('META_API_VERSION')}/${campaignId}/insights`, {
                 params: { ...commonParams, level: 'adset', fields: commonParams.fields + ',adset_name' }
             }).catch(() => ({ data: { data: [] } })),
-            axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${campaignId}/insights`, {
+            axios.get(`https://graph.facebook.com/${requireEnv('META_API_VERSION')}/${campaignId}/insights`, {
                 params: { ...commonParams, level: 'ad', fields: commonParams.fields + ',ad_name' }
             }).catch(() => ({ data: { data: [] } }))
         ]);

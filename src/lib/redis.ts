@@ -4,18 +4,20 @@ let redis: Redis | null = null;
 let isConnected = false;
 
 /**
- * Get Redis client with connection pooling
- * Returns singleton instance
+ * Get Redis client with connection pooling.
+ * Returns singleton instance.
+ *
+ * Requires REDIS_URL environment variable — throws on startup if missing.
  */
 export function getRedis(): Redis {
   if (!redis) {
     const redisUrl = process.env.REDIS_URL;
 
     if (!redisUrl) {
-      console.warn('[Redis] REDIS_URL not configured, using no-op fallback');
-      console.warn('[Redis] Set REDIS_URL env variable to enable caching and rate limiting');
-      // Return a dummy Redis instance that acts as no-op
-      return createNoOpRedis();
+      throw new Error(
+        '[Redis] REDIS_URL environment variable is required. ' +
+        'Set it to your Redis connection string (e.g. redis://default:password@host:port).'
+      );
     }
 
     try {
@@ -28,7 +30,7 @@ export function getRedis(): Redis {
         retryStrategy: (times) => {
           const delay = Math.min(times * 50, 2000);
           if (times > 10) {
-            console.error('[Redis] Max retries exceeded, using no-op fallback');
+            console.error('[Redis] Max retries exceeded');
             return null;
           }
           return delay;
@@ -63,7 +65,7 @@ export function getRedis(): Redis {
       });
     } catch (error) {
       console.error('[Redis] ✗ Failed to initialize:', error);
-      return createNoOpRedis();
+      throw error;
     }
   }
 
@@ -75,25 +77,4 @@ export function getRedis(): Redis {
  */
 export function isRedisConnected(): boolean {
   return isConnected;
-}
-
-/**
- * Create a no-op Redis instance for fallback
- * All operations will silently fail (allowing graceful degradation)
- */
-function createNoOpRedis(): Redis {
-  return {
-    get: async () => null,
-    set: async () => 'OK',
-    setex: async () => 'OK',
-    del: async () => 0,
-    exists: async () => 0,
-    keys: async () => [],
-    flushall: async () => 'OK',
-    quit: async () => 'OK',
-    disconnect: async () => 'OK',
-    incr: async () => 1,
-    expire: async () => 1,
-    ttl: async () => 3600,
-  } as any;
 }

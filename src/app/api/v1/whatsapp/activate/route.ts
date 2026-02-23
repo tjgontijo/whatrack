@@ -6,7 +6,7 @@ import { MetaCloudService } from '@/services/whatsapp/meta-cloud.service'
 export const dynamic = 'force-dynamic'
 
 const GRAPH_API_URL = 'https://graph.facebook.com'
-const API_VERSION = process.env.META_API_VERSION || 'v24.0'
+const API_VERSION = process.env.META_API_VERSION;
 
 /**
  * POST /api/v1/whatsapp/activate

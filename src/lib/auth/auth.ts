@@ -5,7 +5,8 @@ import { randomUUID } from 'crypto'
 
 import { prisma } from '../prisma'
 
-const appBaseURL = process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'http://localhost:3000'
+const appBaseURL = process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL;
+if (!appBaseURL) throw new Error('[Auth] BETTER_AUTH_URL environment variable is required');
 const OWNER_EMAIL = process.env.OWNER_EMAIL
 
 export const auth = betterAuth({

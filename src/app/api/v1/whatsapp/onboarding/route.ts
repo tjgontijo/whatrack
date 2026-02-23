@@ -53,12 +53,21 @@ export async function GET(request: NextRequest) {
     // Build onboarding URL
     // Doc: https://developers.facebook.com/docs/whatsapp/cloud-api/get-started/embedded-signup
     const onboardingUrl = new URL('https://www.facebook.com/dialog/oauth');
-    onboardingUrl.searchParams.set('client_id', process.env.NEXT_PUBLIC_META_APP_ID || '');
-    onboardingUrl.searchParams.set('redirect_uri', `${process.env.APP_URL}/api/v1/whatsapp/onboarding/callback`);
+    const metaAppId = process.env.NEXT_PUBLIC_META_APP_ID;
+    const metaConfigId = process.env.NEXT_PUBLIC_META_CONFIG_ID;
+    const appUrl = process.env.APP_URL;
+
+    if (!metaAppId || !metaConfigId || !appUrl) {
+      console.error('[Onboarding] Missing required env vars: NEXT_PUBLIC_META_APP_ID, NEXT_PUBLIC_META_CONFIG_ID, APP_URL');
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+    }
+
+    onboardingUrl.searchParams.set('client_id', metaAppId);
+    onboardingUrl.searchParams.set('redirect_uri', `${appUrl}/api/v1/whatsapp/onboarding/callback`);
     onboardingUrl.searchParams.set('state', trackingCode); // Pass tracking code back to track origin
     onboardingUrl.searchParams.set('scope', 'whatsapp_business_management,business_management');
     onboardingUrl.searchParams.set('response_type', 'code');
-    onboardingUrl.searchParams.set('config_id', process.env.NEXT_PUBLIC_META_CONFIG_ID || '');
+    onboardingUrl.searchParams.set('config_id', metaConfigId);
 
     console.log(`[Onboarding] Generated URL for org ${orgId}, tracking: ${trackingCode}`);
 
