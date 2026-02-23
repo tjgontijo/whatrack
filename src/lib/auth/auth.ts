@@ -1,6 +1,6 @@
 import { betterAuth } from 'better-auth'
 import { prismaAdapter } from 'better-auth/adapters/prisma'
-import { admin, organization, magicLink, emailOTP } from 'better-auth/plugins'
+import { admin, organization } from 'better-auth/plugins'
 import { randomUUID } from 'crypto'
 
 import { prisma } from '../prisma'
@@ -41,18 +41,6 @@ export const auth = betterAuth({
   plugins: [
     admin(),
     organization(),
-    magicLink({
-      sendMagicLink: async ({ email, url }: { email: string; url: string }) => {
-        // Implementação básica para evitar erro de inicialização
-        console.log(`Magic link to ${email}: ${url}`)
-      },
-    }),
-    emailOTP({
-      async sendVerificationOTP({ email, otp }: { email: string; otp: string }) {
-        // Implementação básica para evitar erro de inicialização
-        console.log(`OTP code to ${email}: ${otp}`)
-      },
-    }),
   ],
 
   databaseHooks: {

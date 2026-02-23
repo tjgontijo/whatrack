@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { fetchCnpjData, ReceitaWsError } from '@/services/company/receitaws'
 import { lookupCnpjSchema } from '../schemas'
-
+import { rateLimitMiddleware } from '@/lib/middleware/rate-limit.middleware'
 /**
  * GET /api/v1/company/lookup-public
  *
@@ -11,6 +11,10 @@ import { lookupCnpjSchema } from '../schemas'
  */
 export async function GET(request: NextRequest) {
   try {
+    // Check rate limits first
+    const rateLimitResponse = await rateLimitMiddleware(request, '/api/v1/company/lookup-public');
+    if (rateLimitResponse) return rateLimitResponse;
+
     const searchParams = request.nextUrl.searchParams
     const cnpj = searchParams.get('cnpj')
 

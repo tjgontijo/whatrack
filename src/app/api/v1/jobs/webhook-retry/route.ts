@@ -1,5 +1,5 @@
 /**
- * POST /api/v1/jobs/webhook-retry
+ * GET /api/v1/jobs/webhook-retry
  *
  * Trigger webhook retry job (DLQ)
  *
@@ -7,7 +7,7 @@
  * - Vercel/external cron calls this endpoint every 5 minutes
  * - Manual testing of retry logic
  *
- * Auth: Requires CRON_SECRET header for security
+ * Auth: Requires CRON_SECRET header (Vercel cron) for security
  * Locking: Redis-based distributed lock prevents concurrent executions
  * Rate Limiting:
  * - IP: 60 requests/hour
@@ -27,7 +27,7 @@ if (!CRON_SECRET) {
 
 export const maxDuration = 60; // 60 seconds timeout for retry job
 
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
   // Check rate limits first
   const rateLimitResponse = await rateLimitMiddleware(request, '/api/v1/jobs/webhook-retry');
   if (rateLimitResponse) return rateLimitResponse;
@@ -35,11 +35,11 @@ export async function POST(request: NextRequest) {
   const jobTracker = getJobTracker();
 
   try {
-    // Verify secret
-    const secret = request.headers.get('x-cron-secret');
+    // Verify secret (from Vercel Cron authorization header)
+    const authHeader = request.headers.get('authorization');
 
-    if (!secret || secret !== CRON_SECRET) {
-      console.error('[WebhookRetryAPI] Invalid CRON_SECRET');
+    if (!CRON_SECRET || authHeader !== `Bearer ${CRON_SECRET}`) {
+      console.error('[WebhookRetryAPI] Invalid or missing CRON_SECRET');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -86,58 +86,4 @@ export async function POST(request: NextRequest) {
   }
 }
 
-/**
- * GET /api/v1/jobs/webhook-retry
- *
- * Get webhook retry queue stats
- *
- * Rate Limiting:
- * - IP: 60 requests/hour
- * - Organization: 100 requests/hour
- * - Burst: 2 requests/minute
- */
-export async function GET(request: NextRequest) {
-  // Check rate limits first
-  const rateLimitResponse = await rateLimitMiddleware(request, '/api/v1/jobs/webhook-retry');
-  if (rateLimitResponse) return rateLimitResponse;
 
-  const jobTracker = getJobTracker();
-
-  try {
-    // Verify secret
-    const url = new URL(request.url);
-    const secret = url.searchParams.get('secret');
-
-    if (!secret || secret !== CRON_SECRET) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const isRunning = await jobTracker.isRunning('webhook-retry');
-
-    // Get pending webhooks count
-    const { prisma } = await import('@/lib/prisma');
-    const pendingCount = await prisma.whatsAppWebhookLog.count({
-      where: {
-        processed: false,
-        retryCount: { lt: 3 },
-        signatureValid: true,
-      },
-    });
-
-    return NextResponse.json({
-      success: true,
-      isRunning,
-      jobType: 'webhook-retry',
-      pendingWebhooks: pendingCount,
-    });
-  } catch (error) {
-    console.error('[WebhookRetryStats] Error:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    );
-  }
-}

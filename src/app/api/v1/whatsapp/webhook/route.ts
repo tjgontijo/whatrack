@@ -116,14 +116,38 @@ export async function POST(request: NextRequest) {
 
         console.log('[webhook] Event type detected:', eventType)
 
-        // 2. Log webhook BEFORE processing (for DLQ)
+        // 2. Verify webhook signature FIRST
+        const isValidSignature = verifyWebhookSignature(rawBody, signatureHeader)
+
+        if (!isValidSignature) {
+            console.error('[webhook] ❌ SIGNATURE VERIFICATION FAILED — payload rejected, no processing')
+            // Log the rejected webhook request
+            try {
+                const log = await prisma.whatsAppWebhookLog.create({
+                    data: {
+                        payload: payload,
+                        eventType,
+                        processed: true, // Mark as processed since it's rejected
+                        signatureValid: false,
+                        processingError: 'Invalid signature'
+                    }
+                })
+                webhookLogId = log.id
+            } catch (logError) {
+                console.error('[webhook] Failed to create rejected log entry:', logError)
+            }
+            // Return 200 to prevent Meta from retrying (per Meta docs), but do NOT process.
+            return NextResponse.json({ received: true, rejected: true })
+        }
+
+        // 3. Log valid webhook BEFORE processing (for DLQ)
         try {
             const log = await prisma.whatsAppWebhookLog.create({
                 data: {
                     payload: payload,
                     eventType,
                     processed: false,
-                    signatureValid: false, // Will update after verification
+                    signatureValid: true,
                 }
             })
             webhookLogId = log.id
@@ -131,28 +155,7 @@ export async function POST(request: NextRequest) {
             console.error('[webhook] Failed to create log entry:', logError)
         }
 
-        // 3. Verify webhook signature
-        const isValidSignature = verifyWebhookSignature(rawBody, signatureHeader)
 
-        if (webhookLogId) {
-            await prisma.whatsAppWebhookLog.update({
-                where: { id: webhookLogId },
-                data: { signatureValid: isValidSignature }
-            }).catch(err => console.error('[webhook] Failed to update signature status:', err))
-        }
-
-        if (!isValidSignature) {
-            console.error('[webhook] ❌ SIGNATURE VERIFICATION FAILED — payload rejected, no processing')
-            if (webhookLogId) {
-                await prisma.whatsAppWebhookLog.update({
-                    where: { id: webhookLogId },
-                    data: { processingError: 'Invalid signature' }
-                }).catch(() => {})
-            }
-            // Return 200 to prevent Meta from retrying (per Meta docs), but do NOT process.
-            // The log entry has signatureValid=false so this can be audited separately.
-            return NextResponse.json({ received: true, rejected: true })
-        }
 
         // 4. Process with WebhookProcessor (handles both new v2 and legacy v1 events)
         const processor = new WebhookProcessor()
@@ -166,7 +169,7 @@ export async function POST(request: NextRequest) {
                     data: {
                         processingError: processorError instanceof Error ? processorError.message : 'Unknown error'
                     }
-                }).catch(() => {})
+                }).catch(() => { })
             }
             // Don't throw - let DLQ retry it
         }

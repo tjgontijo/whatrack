@@ -1,5 +1,5 @@
 /**
- * POST /api/v1/jobs/whatsapp-health-check
+ * GET /api/v1/jobs/whatsapp-health-check
  *
  * Trigger WhatsApp health check job
  *
@@ -8,7 +8,7 @@
  * - External cron service (EasyCron, etc.)
  * - Manual testing
  *
- * Auth: Requires CRON_SECRET header for security
+ * Auth: Requires CRON_SECRET header (Vercel cron) for security
  * Locking: Redis-based distributed lock prevents duplicate runs
  * Rate Limiting:
  * - IP: 60 requests/hour
@@ -28,7 +28,7 @@ if (!CRON_SECRET) {
 
 export const maxDuration = 300; // 5 minutes timeout for health check
 
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
   // Check rate limits first
   const rateLimitResponse = await rateLimitMiddleware(request, '/api/v1/jobs/whatsapp-health-check');
   if (rateLimitResponse) return rateLimitResponse;
@@ -36,11 +36,11 @@ export async function POST(request: NextRequest) {
   const jobTracker = getJobTracker();
 
   try {
-    // Verify secret
-    const secret = request.headers.get('x-cron-secret');
+    // Verify secret (from Vercel Cron authorization header)
+    const authHeader = request.headers.get('authorization');
 
-    if (!secret || secret !== CRON_SECRET) {
-      console.error('[HealthCheckAPI] Invalid CRON_SECRET');
+    if (!CRON_SECRET || authHeader !== `Bearer ${CRON_SECRET}`) {
+      console.error('[HealthCheckAPI] Invalid or missing CRON_SECRET');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -87,47 +87,4 @@ export async function POST(request: NextRequest) {
   }
 }
 
-/**
- * GET /api/v1/jobs/whatsapp-health-check
- *
- * Check if health check is currently running
- *
- * Rate Limiting:
- * - IP: 60 requests/hour
- * - Organization: 100 requests/hour
- * - Burst: 2 requests/minute
- */
-export async function GET(request: NextRequest) {
-  // Check rate limits first
-  const rateLimitResponse = await rateLimitMiddleware(request, '/api/v1/jobs/whatsapp-health-check');
-  if (rateLimitResponse) return rateLimitResponse;
 
-  const jobTracker = getJobTracker();
-
-  try {
-    // Verify secret
-    const url = new URL(request.url);
-    const secret = url.searchParams.get('secret');
-
-    if (!secret || secret !== CRON_SECRET) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const isRunning = await jobTracker.isRunning('whatsapp-health-check');
-
-    return NextResponse.json({
-      success: true,
-      isRunning,
-      jobType: 'whatsapp-health-check',
-    });
-  } catch (error) {
-    console.error('[HealthCheckStatus] Error:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    );
-  }
-}
