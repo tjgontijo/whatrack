@@ -12,13 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { HeaderActions } from '@/components/dashboard/header-actions'
 import { RefreshCw, SlidersHorizontal } from 'lucide-react'
 import { DashboardMetricCard, DashboardMetricGrid } from '@/components/dashboard/charts/card'
@@ -82,7 +76,7 @@ export default function DashboardPage() {
     <K extends keyof DashboardFilters>(key: K, value: DashboardFilters[K]) => {
       setFilters((prev) => ({ ...prev, [key]: value }))
     },
-    [],
+    []
   )
 
   const { data, isFetching, refetch } = useQuery<DashboardSummaryResponse>({
@@ -128,7 +122,8 @@ export default function DashboardPage() {
   const productOptions = React.useMemo<FilterOption[]>(() => {
     if (!productFilters) return [{ label: 'Qualquer', value: 'any' }]
     const category = filters.serviceCategory || 'any'
-    const options = productFilters.productsByCategory[category] ?? productFilters.productsByCategory.any
+    const options =
+      productFilters.productsByCategory[category] ?? productFilters.productsByCategory.any
     return (options as FilterOption[]) ?? [{ label: 'Qualquer', value: 'any' }]
   }, [filters.serviceCategory, productFilters])
 
@@ -153,7 +148,7 @@ export default function DashboardPage() {
     })
 
     const deduped = mapped.filter(
-      (option, index, self) => self.findIndex((item) => item.value === option.value) === index,
+      (option, index, self) => self.findIndex((item) => item.value === option.value) === index
     )
 
     return deduped
@@ -164,11 +159,11 @@ export default function DashboardPage() {
     const mapped = sources.map((source) =>
       source == null
         ? { label: 'Sem origem', value: NO_TRAFFIC_SOURCE_VALUE }
-        : { label: source, value: source },
+        : { label: source, value: source }
     )
 
     const deduped = mapped.filter(
-      (option, index, self) => self.findIndex((item) => item.value === option.value) === index,
+      (option, index, self) => self.findIndex((item) => item.value === option.value) === index
     )
 
     const options: FilterOption[] = [{ label: 'Qualquer', value: 'any' }, ...deduped]
@@ -239,10 +234,7 @@ export default function DashboardPage() {
                 onValueChange={(value) => handleFilterChange('product', value)}
                 disabled={filters.serviceCategory === 'any'}
               />
-              <Button
-                onClick={() => setIsFilterSheetOpen(false)}
-                className="w-full mt-6"
-              >
+              <Button onClick={() => setIsFilterSheetOpen(false)} className="mt-6 w-full">
                 Aplicar Filtros
               </Button>
             </div>
@@ -252,7 +244,10 @@ export default function DashboardPage() {
 
       <div className="space-y-8" data-testid="dashboard-page">
         {/* Desktop Filters */}
-        <section className="hidden md:block rounded-2xl border border-border/60 bg-card p-6 shadow-sm" data-testid="dashboard-filters">
+        <section
+          className="border-border/60 bg-card hidden rounded-2xl border p-6 shadow-sm md:block"
+          data-testid="dashboard-filters"
+        >
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
             <FilterSelect
               label="Período"
@@ -292,96 +287,94 @@ export default function DashboardPage() {
           </div>
         </section>
 
-      <section className="rounded-2xl border border-border/60 bg-card p-6 shadow-sm">
-        <DashboardMetricGrid>
-          <DashboardMetricCard
-            title="Faturamento"
-            value={<span>{formatCurrencyBRL(data?.netRevenue ?? 0)}</span>}
-            isLoading={isFetching}
-          />
-          <DashboardMetricCard
-            title="Investimento em Anúncios"
-            value={<span>{formatCurrencyBRL(data?.investment ?? 0)}</span>}
-            isLoading={isFetching}
-          />
-          <DashboardMetricCard
-            title="Custo dos Serviços"
-            value={<span>{formatCurrencyBRL(data?.productsCost ?? 0)}</span>}
-            isLoading={isFetching}
-          />
-          <DashboardMetricCard
-            title="Lucro Bruto"
-            value={<span>{formatCurrencyBRL(data?.grossProfit ?? 0)}</span>}
-            isLoading={isFetching}
-          />
-          <div className="rounded-3xl border border-border/50 bg-card p-6 shadow-sm backdrop-blur-sm transition hover:-translate-y-0.5 hover:shadow-md xl:col-span-1 xl:row-span-3 md:col-span-1 md:row-span-3">
-            <header className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-muted-foreground">Distribuição de vendas por serviço</h3>
-            </header>
-            <div className="mt-4">
-              {isFetching ? (
-                <div className="flex h-[300px] items-center justify-center">
-                  <div className="h-12 w-12 animate-spin rounded-full border-2 border-muted-foreground/40 border-t-foreground" />
-                </div>
-              ) : (
-                <DashboardPieChart
-                  data={pieData}
-                  className="border-none bg-transparent p-0 shadow-none"
-                  height={300}
-                />
-              )}
+        <section className="border-border/60 bg-card rounded-2xl border p-6 shadow-sm">
+          <DashboardMetricGrid>
+            <DashboardMetricCard
+              title="Faturamento"
+              value={<span>{formatCurrencyBRL(data?.netRevenue ?? 0)}</span>}
+              isLoading={isFetching}
+            />
+            <DashboardMetricCard
+              title="Investimento em Anúncios"
+              value={<span>{formatCurrencyBRL(data?.investment ?? 0)}</span>}
+              isLoading={isFetching}
+            />
+            <DashboardMetricCard
+              title="Custo dos Serviços"
+              value={<span>{formatCurrencyBRL(data?.productsCost ?? 0)}</span>}
+              isLoading={isFetching}
+            />
+            <DashboardMetricCard
+              title="Lucro Bruto"
+              value={<span>{formatCurrencyBRL(data?.grossProfit ?? 0)}</span>}
+              isLoading={isFetching}
+            />
+            <div className="border-border/50 bg-card rounded-3xl border p-6 shadow-sm backdrop-blur-sm transition hover:-translate-y-0.5 hover:shadow-md md:col-span-1 md:row-span-3 xl:col-span-1 xl:row-span-3">
+              <header className="flex items-center justify-between">
+                <h3 className="text-muted-foreground text-sm font-semibold">
+                  Distribuição de vendas por serviço
+                </h3>
+              </header>
+              <div className="mt-4">
+                {isFetching ? (
+                  <div className="flex h-[300px] items-center justify-center">
+                    <div className="border-muted-foreground/40 border-t-foreground h-12 w-12 animate-spin rounded-full border-2" />
+                  </div>
+                ) : (
+                  <DashboardPieChart
+                    data={pieData}
+                    className="border-none bg-transparent p-0 shadow-none"
+                    height={300}
+                  />
+                )}
+              </div>
             </div>
-          </div>
-          <DashboardMetricCard
-            title="Lucro Líquido"
-            value={<span>{formatCurrencyBRL(data?.netProfit ?? 0)}</span>}
-            isLoading={isFetching}
-          />
-          <DashboardMetricCard
-            title="ROAS (Faturamento / Investimento)"
-            value={
-              <span>{data?.roas != null ? data.roas.toFixed(2) : '—'}</span>
-            }
-            isLoading={isFetching}
-          />
-          <DashboardMetricCard
-            title="ROI (Lucro / Investimento)"
-            value={<span>{data?.roi != null ? data.roi.toFixed(2) : '—'}</span>}
-            isLoading={isFetching}
-          />
-          <DashboardMetricCard
-            title="CAC"
-            value={
-              <span>
-                {data?.cards.cac != null ? formatCurrencyBRL(data.cards.cac) : '—'}
-              </span>
-            }
-            isLoading={isFetching}
-          />
-          <DashboardMetricCard
-            title="Ticket Médio"
-            value={
-              <span>
-                {data?.cards.ticket != null ? formatCurrencyBRL(data.cards.ticket) : '—'}
-              </span>
-            }
-            isLoading={isFetching}
-          />
-          <DashboardMetricCard
-            title="Número de Vendas"
-            value={<span>{data?.sales ?? 0}</span>}
-            isLoading={isFetching}
-          />
-          <DashboardMetricCard
-            title="Serviços Prestados"
-            value={<span>{data?.servicesCount ?? 0}</span>}
-            isLoading={isFetching}
-          />
-          <div className="xl:col-span-4 xl:row-span-2 md:col-span-2 md:row-span-2">
-            <FunnelChart steps={funnelSteps} />
-          </div>
-        </DashboardMetricGrid>
-      </section>
+            <DashboardMetricCard
+              title="Lucro Líquido"
+              value={<span>{formatCurrencyBRL(data?.netProfit ?? 0)}</span>}
+              isLoading={isFetching}
+            />
+            <DashboardMetricCard
+              title="ROAS (Faturamento / Investimento)"
+              value={<span>{data?.roas != null ? data.roas.toFixed(2) : '—'}</span>}
+              isLoading={isFetching}
+            />
+            <DashboardMetricCard
+              title="ROI (Lucro / Investimento)"
+              value={<span>{data?.roi != null ? data.roi.toFixed(2) : '—'}</span>}
+              isLoading={isFetching}
+            />
+            <DashboardMetricCard
+              title="CAC"
+              value={
+                <span>{data?.cards.cac != null ? formatCurrencyBRL(data.cards.cac) : '—'}</span>
+              }
+              isLoading={isFetching}
+            />
+            <DashboardMetricCard
+              title="Ticket Médio"
+              value={
+                <span>
+                  {data?.cards.ticket != null ? formatCurrencyBRL(data.cards.ticket) : '—'}
+                </span>
+              }
+              isLoading={isFetching}
+            />
+            <DashboardMetricCard
+              title="Número de Vendas"
+              value={<span>{data?.sales ?? 0}</span>}
+              isLoading={isFetching}
+            />
+            <DashboardMetricCard
+              title="Serviços Prestados"
+              value={<span>{data?.servicesCount ?? 0}</span>}
+              isLoading={isFetching}
+            />
+            <div className="md:col-span-2 md:row-span-2 xl:col-span-4 xl:row-span-2">
+              <FunnelChart steps={funnelSteps} />
+            </div>
+          </DashboardMetricGrid>
+        </section>
       </div>
     </>
   )
@@ -398,11 +391,11 @@ type FilterSelectProps = {
 function FilterSelect({ label, value, options, onValueChange, disabled }: FilterSelectProps) {
   return (
     <div className="w-full space-y-2">
-      <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+      <label className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
         {label}
       </label>
       <Select value={value} onValueChange={onValueChange} disabled={disabled}>
-        <SelectTrigger className="h-12 w-full items-center justify-between rounded-xl border-border/80 bg-muted/20 px-3 disabled:cursor-not-allowed disabled:opacity-60">
+        <SelectTrigger className="border-border/80 bg-muted/20 h-12 w-full items-center justify-between rounded-xl px-3 disabled:cursor-not-allowed disabled:opacity-60">
           <SelectValue placeholder="Selecionar" />
         </SelectTrigger>
         <SelectContent className="w-[var(--radix-select-trigger-width)]">

@@ -23,14 +23,14 @@ export function CentrifugoStatus() {
           ? 'background: #ef4444; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold'
           : 'background: #f59e0b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold'
 
-      const status = isConnected ? '✓ Connected' : isConnected === false ? '✗ Disconnected' : '⏳ Connecting...'
+      const status = isConnected
+        ? '✓ Connected'
+        : isConnected === false
+          ? '✗ Disconnected'
+          : '⏳ Connecting...'
 
       if (process.env.NODE_ENV === 'development') {
-        console.log(
-          '%c[Centrifugo] ' + status,
-          style,
-          { wsUrl, connected: isConnected }
-        )
+        console.log('%c[Centrifugo] ' + status, style, { wsUrl, connected: isConnected })
       }
     }
 
@@ -43,24 +43,30 @@ export function CentrifugoStatus() {
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 bg-white border border-gray-200 rounded-lg p-3 shadow-lg text-xs">
-      <div className="font-semibold mb-2 flex items-center gap-2">
+    <div className="fixed bottom-4 right-4 z-50 rounded-lg border border-gray-200 bg-white p-3 text-xs shadow-lg">
+      <div className="mb-2 flex items-center gap-2 font-semibold">
         <span
-          className={`w-2 h-2 rounded-full ${
-            isConnected ? 'bg-green-500' : isConnected === false ? 'bg-red-500' : 'bg-yellow-500 animate-pulse'
+          className={`h-2 w-2 rounded-full ${
+            isConnected
+              ? 'bg-green-500'
+              : isConnected === false
+                ? 'bg-red-500'
+                : 'animate-pulse bg-yellow-500'
           }`}
         />
         Centrifugo Status
       </div>
       <div className="space-y-1 text-gray-600">
         <div>
-          <strong>Connection:</strong> {isConnected ? '✓ Connected' : isConnected === false ? '✗ Disconnected' : '⏳ Loading...'}
+          <strong>Connection:</strong>{' '}
+          {isConnected ? '✓ Connected' : isConnected === false ? '✗ Disconnected' : '⏳ Loading...'}
         </div>
         <div>
-          <strong>URL:</strong> <code className="bg-gray-100 px-1 rounded text-xs">{wsUrl}</code>
+          <strong>URL:</strong> <code className="rounded bg-gray-100 px-1 text-xs">{wsUrl}</code>
         </div>
-        <div className="text-gray-500 mt-2">
-          Check console for detailed logs: <code className="bg-gray-100 px-1 rounded">[Centrifugo]</code>
+        <div className="mt-2 text-gray-500">
+          Check console for detailed logs:{' '}
+          <code className="rounded bg-gray-100 px-1">[Centrifugo]</code>
         </div>
       </div>
     </div>

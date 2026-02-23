@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import { Suspense } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -14,13 +14,13 @@ export default function ProductsPage() {
       </TabsList>
 
       <TabsContent value="products">
-        <Suspense fallback={<div className="text-sm text-muted-foreground">Carregando…</div>}>
+        <Suspense fallback={<div className="text-muted-foreground text-sm">Carregando…</div>}>
           <ProductsTable />
         </Suspense>
       </TabsContent>
 
       <TabsContent value="categories">
-        <Suspense fallback={<div className="text-sm text-muted-foreground">Carregando…</div>}>
+        <Suspense fallback={<div className="text-muted-foreground text-sm">Carregando…</div>}>
           <CategoriesTable />
         </Suspense>
       </TabsContent>

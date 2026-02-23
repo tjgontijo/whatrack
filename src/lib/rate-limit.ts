@@ -1,4 +1,4 @@
-import { getRedis } from './redis';
+import { getRedis } from './redis'
 
 /**
  * Rate Limiting Service
@@ -24,15 +24,15 @@ import { getRedis } from './redis';
  */
 
 interface RateLimitResult {
-  allowed: boolean;
-  current: number;
-  limit: number;
-  resetAt: Date;
-  retryAfter: number; // seconds
+  allowed: boolean
+  current: number
+  limit: number
+  resetAt: Date
+  retryAfter: number // seconds
 }
 
 class RateLimiter {
-  private redis = getRedis();
+  private redis = getRedis()
 
   /**
    * Check if request is allowed under rate limit
@@ -49,8 +49,8 @@ class RateLimiter {
     limit: number,
     windowSeconds: number
   ): Promise<RateLimitResult> {
-    const key = this.getKey(strategy, identifier);
-    const now = Date.now();
+    const key = this.getKey(strategy, identifier)
+    const now = Date.now()
 
     try {
       // Get current count with timeout protection
@@ -58,22 +58,22 @@ class RateLimiter {
         this.redis.incr(key),
         new Promise<number>((_, reject) =>
           setTimeout(() => reject(new Error('Redis timeout')), 5000)
-        )
-      ]);
+        ),
+      ])
 
       // Set expiration on first request (when count === 1)
       if (current === 1) {
-        await this.redis.expire(key, windowSeconds);
+        await this.redis.expire(key, windowSeconds)
       }
 
       // Calculate reset time
-      const ttl = await this.redis.ttl(key);
-      const safeWindowSeconds = ttl > 0 ? ttl : windowSeconds;
-      const resetAt = new Date(now + safeWindowSeconds * 1000);
+      const ttl = await this.redis.ttl(key)
+      const safeWindowSeconds = ttl > 0 ? ttl : windowSeconds
+      const resetAt = new Date(now + safeWindowSeconds * 1000)
 
       // Check if exceeded
-      const allowed = current <= limit;
-      const retryAfter = allowed ? 0 : safeWindowSeconds;
+      const allowed = current <= limit
+      const retryAfter = allowed ? 0 : safeWindowSeconds
 
       return {
         allowed,
@@ -81,17 +81,17 @@ class RateLimiter {
         limit,
         resetAt,
         retryAfter,
-      };
+      }
     } catch (error) {
       // If Redis fails, deny request (fail-secure: better to block than to allow unlimited requests)
-      console.error(`[RateLimit] ${strategy}/${identifier} - Redis error, denying request:`, error);
+      console.error(`[RateLimit] ${strategy}/${identifier} - Redis error, denying request:`, error)
       return {
         allowed: false,
         current: 0,
         limit,
         resetAt: new Date(now + windowSeconds * 1000),
         retryAfter: 5,
-      };
+      }
     }
   }
 
@@ -99,35 +99,35 @@ class RateLimiter {
    * Reset rate limit for identifier
    */
   async reset(strategy: 'ip' | 'org' | 'burst', identifier: string): Promise<void> {
-    const key = this.getKey(strategy, identifier);
-    await this.redis.del(key);
+    const key = this.getKey(strategy, identifier)
+    await this.redis.del(key)
   }
 
   /**
    * Get current count without incrementing
    */
   async getCount(strategy: 'ip' | 'org' | 'burst', identifier: string): Promise<number> {
-    const key = this.getKey(strategy, identifier);
-    const value = await this.redis.get(key);
-    return value ? parseInt(value, 10) : 0;
+    const key = this.getKey(strategy, identifier)
+    const value = await this.redis.get(key)
+    return value ? parseInt(value, 10) : 0
   }
 
   /**
    * Generate Redis key
    */
   private getKey(strategy: string, identifier: string): string {
-    return `ratelimit:${strategy}:${identifier}`;
+    return `ratelimit:${strategy}:${identifier}`
   }
 }
 
 /**
  * Singleton instance
  */
-let instance: RateLimiter | null = null;
+let instance: RateLimiter | null = null
 
 export function getRateLimiter(): RateLimiter {
   if (!instance) {
-    instance = new RateLimiter();
+    instance = new RateLimiter()
   }
-  return instance;
+  return instance
 }

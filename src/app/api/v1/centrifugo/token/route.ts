@@ -25,20 +25,14 @@ export async function GET(request: NextRequest) {
     const access = await validateFullAccess(request)
 
     if (!access.hasAccess || !access.userId || !access.organizationId) {
-      return NextResponse.json(
-        { error: access.error || 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: access.error || 'Unauthorized' }, { status: 401 })
     }
 
     const secret = process.env.CENTRIFUGO_TOKEN_HMAC_SECRET_KEY
 
     if (!secret) {
       console.error('[Centrifugo] CENTRIFUGO_TOKEN_HMAC_SECRET_KEY not configured')
-      return NextResponse.json(
-        { error: 'Server configuration error' },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
     }
 
     // Generate JWT token with user and organization context
@@ -60,18 +54,13 @@ export async function GET(request: NextRequest) {
     const message = `${header}.${payload}`
 
     // Sign with HMAC-SHA256
-    const signature = createHmac('sha256', secret)
-      .update(message, 'utf-8')
-      .digest('base64url')
+    const signature = createHmac('sha256', secret).update(message, 'utf-8').digest('base64url')
 
     const token = `${message}.${signature}`
 
     return NextResponse.json({ token }, { status: 200 })
   } catch (error) {
     console.error('[Centrifugo] Token generation error:', error)
-    return NextResponse.json(
-      { error: 'Failed to generate token' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to generate token' }, { status: 500 })
   }
 }

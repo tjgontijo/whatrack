@@ -1,19 +1,22 @@
-import Link from "next/link";
-import Image from "next/image";
-import { Button } from "@/components/ui/button";
+import Link from 'next/link'
+import Image from 'next/image'
+import { Button } from '@/components/ui/button'
 
 const navLinks = [
-  { label: "Por que WhatRack", href: "#why" },
-  { label: "Como funciona", href: "#how" },
-  { label: "Planos", href: "#pricing" },
-];
+  { label: 'Por que WhatRack', href: '#why' },
+  { label: 'Como funciona', href: '#how' },
+  { label: 'Planos', href: '#pricing' },
+]
 
 export function Header() {
   return (
-    <header className="sticky top-0 z-50 border-b border-border/40 bg-background/80 text-foreground backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
+    <header className="border-border/40 bg-background/80 text-foreground supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 border-b backdrop-blur-md">
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-4 sm:px-8 lg:px-0">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-3 flex-shrink-0 hover:opacity-80 transition-opacity">
+        <Link
+          href="/"
+          className="flex flex-shrink-0 items-center gap-3 transition-opacity hover:opacity-80"
+        >
           <Image
             src="/images/logo_transparent.png"
             alt="WhatRack"
@@ -25,12 +28,12 @@ export function Header() {
         </Link>
 
         {/* Navigation */}
-        <nav className="hidden items-center gap-8 text-sm font-medium text-muted-foreground md:flex">
+        <nav className="text-muted-foreground hidden items-center gap-8 text-sm font-medium md:flex">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="transition-colors hover:text-primary tracking-wide"
+              className="hover:text-primary tracking-wide transition-colors"
             >
               {link.label}
             </Link>
@@ -41,12 +44,12 @@ export function Header() {
         <div className="flex items-center gap-4">
           <Link
             href="/auth/sign-in"
-            className="hidden sm:block text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
+            className="text-muted-foreground hover:text-foreground hidden text-sm font-semibold transition-colors sm:block"
           >
             Entrar
           </Link>
           <Button
-            className="h-10 px-5 font-bold shadow-sm shadow-primary/20 hover:shadow-primary/40 transition-all hover:-translate-y-0.5"
+            className="shadow-primary/20 hover:shadow-primary/40 h-10 px-5 font-bold shadow-sm transition-all hover:-translate-y-0.5"
             asChild
           >
             <Link href="/auth/sign-up">Teste Grátis</Link>
@@ -54,5 +57,5 @@ export function Header() {
         </div>
       </div>
     </header>
-  );
+  )
 }

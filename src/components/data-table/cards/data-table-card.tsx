@@ -24,9 +24,9 @@ export const DataTableCard = React.forwardRef<HTMLDivElement, DataTableCardProps
         ref={ref}
         onClick={onClick}
         className={cn(
-          'rounded-lg border border-border/50 bg-card p-4',
+          'border-border/50 bg-card rounded-lg border p-4',
           'transition-all duration-200 ease-out',
-          'hover:shadow-md hover:border-border',
+          'hover:border-border hover:shadow-md',
           onClick && 'cursor-pointer',
           className
         )}
@@ -47,19 +47,21 @@ interface DataTableCardHeaderProps {
   className?: string
 }
 
-export const DataTableCardHeader = React.forwardRef<
-  HTMLDivElement,
-  DataTableCardHeaderProps
->(({ children, className }, ref) => {
-  return (
-    <div
-      ref={ref}
-      className={cn('flex items-start justify-between gap-2 mb-3 pb-3 border-b border-border/30', className)}
-    >
-      {children}
-    </div>
-  )
-})
+export const DataTableCardHeader = React.forwardRef<HTMLDivElement, DataTableCardHeaderProps>(
+  ({ children, className }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          'border-border/30 mb-3 flex items-start justify-between gap-2 border-b pb-3',
+          className
+        )}
+      >
+        {children}
+      </div>
+    )
+  }
+)
 
 DataTableCardHeader.displayName = 'DataTableCardHeader'
 
@@ -71,16 +73,15 @@ interface DataTableCardTitleProps {
   className?: string
 }
 
-export const DataTableCardTitle = React.forwardRef<
-  HTMLHeadingElement,
-  DataTableCardTitleProps
->(({ children, className }, ref) => {
-  return (
-    <h3 ref={ref} className={cn('font-semibold text-sm text-foreground truncate', className)}>
-      {children}
-    </h3>
-  )
-})
+export const DataTableCardTitle = React.forwardRef<HTMLHeadingElement, DataTableCardTitleProps>(
+  ({ children, className }, ref) => {
+    return (
+      <h3 ref={ref} className={cn('text-foreground truncate text-sm font-semibold', className)}>
+        {children}
+      </h3>
+    )
+  }
+)
 
 DataTableCardTitle.displayName = 'DataTableCardTitle'
 
@@ -95,7 +96,7 @@ interface DataTableCardMetaProps {
 export const DataTableCardMeta = React.forwardRef<HTMLDivElement, DataTableCardMetaProps>(
   ({ children, className }, ref) => {
     return (
-      <div ref={ref} className={cn('text-xs text-muted-foreground whitespace-nowrap', className)}>
+      <div ref={ref} className={cn('text-muted-foreground whitespace-nowrap text-xs', className)}>
         {children}
       </div>
     )
@@ -112,16 +113,15 @@ interface DataTableCardContentProps {
   className?: string
 }
 
-export const DataTableCardContent = React.forwardRef<
-  HTMLDivElement,
-  DataTableCardContentProps
->(({ children, className }, ref) => {
-  return (
-    <div ref={ref} className={cn('space-y-2 mb-3', className)}>
-      {children}
-    </div>
-  )
-})
+export const DataTableCardContent = React.forwardRef<HTMLDivElement, DataTableCardContentProps>(
+  ({ children, className }, ref) => {
+    return (
+      <div ref={ref} className={cn('mb-3 space-y-2', className)}>
+        {children}
+      </div>
+    )
+  }
+)
 
 DataTableCardContent.displayName = 'DataTableCardContent'
 
@@ -138,7 +138,7 @@ export const DataTableCardRow = React.forwardRef<HTMLDivElement, DataTableCardRo
   ({ label, children, className }, ref) => {
     return (
       <div ref={ref} className={cn('flex items-center gap-2', className)}>
-        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap">
+        <span className="text-muted-foreground whitespace-nowrap text-xs font-medium uppercase tracking-wider">
           {label}:
         </span>
         <div className="flex-1 text-sm">{children}</div>
@@ -157,16 +157,18 @@ interface DataTableCardFooterProps {
   className?: string
 }
 
-export const DataTableCardFooter = React.forwardRef<
-  HTMLDivElement,
-  DataTableCardFooterProps
->(({ children, className }, ref) => {
-  return (
-    <div ref={ref} className={cn('flex items-center gap-2 pt-3 border-t border-border/30', className)}>
-      {children}
-    </div>
-  )
-})
+export const DataTableCardFooter = React.forwardRef<HTMLDivElement, DataTableCardFooterProps>(
+  ({ children, className }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className={cn('border-border/30 flex items-center gap-2 border-t pt-3', className)}
+      >
+        {children}
+      </div>
+    )
+  }
+)
 
 DataTableCardFooter.displayName = 'DataTableCardFooter'
 
@@ -178,15 +180,14 @@ interface DataTableCardActionsProps {
   className?: string
 }
 
-export const DataTableCardActions = React.forwardRef<
-  HTMLDivElement,
-  DataTableCardActionsProps
->(({ children, className }, ref) => {
-  return (
-    <div ref={ref} className={cn('flex items-center gap-2', className)}>
-      {children}
-    </div>
-  )
-})
+export const DataTableCardActions = React.forwardRef<HTMLDivElement, DataTableCardActionsProps>(
+  ({ children, className }, ref) => {
+    return (
+      <div ref={ref} className={cn('flex items-center gap-2', className)}>
+        {children}
+      </div>
+    )
+  }
+)
 
 DataTableCardActions.displayName = 'DataTableCardActions'

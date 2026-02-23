@@ -17,17 +17,11 @@ export async function GET(
     const access = await validateFullAccess(request)
 
     if (!access.hasAccess || !access.organizationId) {
-      return NextResponse.json(
-        { error: access.error || 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: access.error || 'Unauthorized' }, { status: 401 })
     }
 
     if (!hasPermission(access.role, 'view:tickets')) {
-      return NextResponse.json(
-        { error: 'Sem permissão para visualizar tickets' },
-        { status: 403 }
-      )
+      return NextResponse.json({ error: 'Sem permissão para visualizar tickets' }, { status: 403 })
     }
 
     const { conversationId } = await params
@@ -105,9 +99,9 @@ export async function GET(
                 totalTickets: true,
                 lifetimeValue: true,
                 firstMessageAt: true,
-              }
-            }
-          }
+              },
+            },
+          },
         },
       },
     })
@@ -139,17 +133,16 @@ export async function GET(
         },
         leadInsights: {
           totalTickets: ticket.conversation.lead.totalTickets,
-          lifetimeValue: ticket.conversation.lead.lifetimeValue ? ticket.conversation.lead.lifetimeValue.toString() : '0',
+          lifetimeValue: ticket.conversation.lead.lifetimeValue
+            ? ticket.conversation.lead.lifetimeValue.toString()
+            : '0',
           firstMessageAt: ticket.conversation.lead.firstMessageAt?.toISOString() || null,
-        }
+        },
       },
       { status: 200 }
     )
   } catch (error) {
     console.error('[Conversation Ticket] Error:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch ticket' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to fetch ticket' }, { status: 500 })
   }
 }

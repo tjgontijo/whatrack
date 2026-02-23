@@ -18,34 +18,30 @@ interface DataTableCardListProps<TData> {
  * - Responsive spacing
  * - Empty state handling
  */
-export const DataTableCardList = React.forwardRef<
-  HTMLDivElement,
-  DataTableCardListProps<any>
->(({ rows, renderCard, className }, ref) => {
-  if (rows.length === 0) {
+export const DataTableCardList = React.forwardRef<HTMLDivElement, DataTableCardListProps<any>>(
+  ({ rows, renderCard, className }, ref) => {
+    if (rows.length === 0) {
+      return (
+        <div ref={ref} className={cn('py-8 text-center', className)}>
+          <div className="text-muted-foreground text-sm">Nenhum resultado</div>
+        </div>
+      )
+    }
+
     return (
-      <div ref={ref} className={cn('text-center py-8', className)}>
-        <div className="text-muted-foreground text-sm">Nenhum resultado</div>
+      <div
+        ref={ref}
+        className={cn('grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4', className)}
+        role="list"
+      >
+        {rows.map((row) => (
+          <div key={row.id} role="listitem">
+            {renderCard(row)}
+          </div>
+        ))}
       </div>
     )
   }
-
-  return (
-    <div
-      ref={ref}
-      className={cn(
-        'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3',
-        className
-      )}
-      role="list"
-    >
-      {rows.map((row) => (
-        <div key={row.id} role="listitem">
-          {renderCard(row)}
-        </div>
-      ))}
-    </div>
-  )
-})
+)
 
 DataTableCardList.displayName = 'DataTableCardList'

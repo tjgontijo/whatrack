@@ -17,7 +17,7 @@ export const CACHE_KEYS = {
     health: (configId: string) => `whatsapp:health:${configId}`,
     webhook: (logId: string) => `whatsapp:webhook:${logId}`,
   },
-};
+}
 
 export const CACHE_TTL = {
   ONBOARDING: 24 * 60 * 60, // 24 horas
@@ -25,4 +25,4 @@ export const CACHE_TTL = {
   TOKEN: 60 * 60, // 1 hora
   HEALTH: 5 * 60, // 5 minutos
   WEBHOOK: 24 * 60 * 60, // 24 horas
-};
+}

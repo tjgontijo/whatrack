@@ -180,9 +180,7 @@ export async function listTickets(params: TicketListParams) {
       open: openCount,
       closed_won: closedWonCount,
       closed_lost: closedLostCount,
-      totalDealValue: totalDealValue._sum.dealValue
-        ? Number(totalDealValue._sum.dealValue)
-        : 0,
+      totalDealValue: totalDealValue._sum.dealValue ? Number(totalDealValue._sum.dealValue) : 0,
     },
   }
 }
@@ -195,8 +193,12 @@ export async function getTicketById(ticketId: string, organizationId: string) {
         include: {
           lead: {
             select: {
-              id: true, name: true, phone: true, pushName: true,
-              profilePicUrl: true, waId: true,
+              id: true,
+              name: true,
+              phone: true,
+              pushName: true,
+              profilePicUrl: true,
+              waId: true,
             },
           },
         },
@@ -205,8 +207,13 @@ export async function getTicketById(ticketId: string, organizationId: string) {
       assignee: { select: { id: true, name: true, email: true, image: true } },
       tracking: {
         select: {
-          utmSource: true, utmMedium: true, utmCampaign: true,
-          sourceType: true, ctwaclid: true, referrerUrl: true, landingPage: true,
+          utmSource: true,
+          utmMedium: true,
+          utmCampaign: true,
+          sourceType: true,
+          ctwaclid: true,
+          referrerUrl: true,
+          landingPage: true,
         },
       },
       messages: {
@@ -267,7 +274,11 @@ export async function createTicket(params: CreateTicketParams) {
     where: { conversationId, status: 'open' },
   })
   if (existing) {
-    return { error: 'Conversa já possui um ticket aberto', ticketId: existing.id, status: 409 as const }
+    return {
+      error: 'Conversa já possui um ticket aberto',
+      ticketId: existing.id,
+      status: 409 as const,
+    }
   }
 
   // Resolve stage

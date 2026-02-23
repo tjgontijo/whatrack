@@ -4,27 +4,34 @@ import { Badge } from '@/components/ui/badge'
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-screen w-full bg-background font-sans">
+    <div className="bg-background flex min-h-screen w-full font-sans">
       {/* Left side: Premium Branding & Graphic */}
-      <div className="hidden lg:flex flex-col w-1/2 bg-muted/10 border-r border-border/40 relative overflow-hidden">
+      <div className="bg-muted/10 border-border/40 relative hidden w-1/2 flex-col overflow-hidden border-r lg:flex">
         {/* Subtle radial gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent pointer-events-none" />
+        <div className="from-primary/5 pointer-events-none absolute inset-0 bg-gradient-to-br via-transparent to-transparent" />
 
-        <div className="relative z-10 flex flex-col justify-between h-full p-12 lg:p-20">
+        <div className="relative z-10 flex h-full flex-col justify-between p-12 lg:p-20">
           <div>
             <div className="mb-12">
-              <img src="/images/logo_transparent.png" alt="Whatrack" className="h-9 w-auto opacity-90 transition-opacity hover:opacity-100" />
+              <img
+                src="/images/logo_transparent.png"
+                alt="Whatrack"
+                className="h-9 w-auto opacity-90 transition-opacity hover:opacity-100"
+              />
             </div>
 
-            <Badge className="mb-6 bg-primary/10 text-primary border-transparent pointer-events-none">
+            <Badge className="bg-primary/10 text-primary pointer-events-none mb-6 border-transparent">
               Para Lançadores & Agências
             </Badge>
 
-            <h1 className="text-4xl xl:text-5xl font-extrabold tracking-tight text-foreground leading-[1.15]">
+            <h1 className="text-foreground text-4xl font-extrabold leading-[1.15] tracking-tight xl:text-5xl">
               Venda mais no orgânico e escale no pago.
             </h1>
-            <p className="mt-6 text-lg text-muted-foreground w-11/12 leading-relaxed font-medium">
-              A plataforma definitiva que une <span className="text-foreground">Inteligência Artificial</span> no WhatsApp às campanhas do <span className="text-foreground">Meta Ads</span>. Envie as marcações perfeitas e treine seu pixel com compradores reais.
+            <p className="text-muted-foreground mt-6 w-11/12 text-lg font-medium leading-relaxed">
+              A plataforma definitiva que une{' '}
+              <span className="text-foreground">Inteligência Artificial</span> no WhatsApp às
+              campanhas do <span className="text-foreground">Meta Ads</span>. Envie as marcações
+              perfeitas e treine seu pixel com compradores reais.
             </p>
           </div>
 
@@ -34,39 +41,47 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
                 { col: 'bg-emerald-100 border-emerald-200' },
                 { col: 'bg-blue-100 border-blue-200' },
                 { col: 'bg-purple-100 border-purple-200' },
-                { col: 'bg-amber-100 border-amber-200 z-10' }
+                { col: 'bg-amber-100 border-amber-200 z-10' },
               ].map((style, i) => (
-                <div key={i} className={`h-10 w-10 sm:h-12 sm:w-12 rounded-full border-2 shadow-sm flex items-center justify-center ${style.col}`} />
+                <div
+                  key={i}
+                  className={`flex h-10 w-10 items-center justify-center rounded-full border-2 shadow-sm sm:h-12 sm:w-12 ${style.col}`}
+                />
               ))}
-              <div className="pl-8 flex flex-col">
-                <span className="text-sm font-bold text-foreground">+2.000 operações</span>
-                <span className="text-xs text-muted-foreground">já escalaram conosco.</span>
+              <div className="flex flex-col pl-8">
+                <span className="text-foreground text-sm font-bold">+2.000 operações</span>
+                <span className="text-muted-foreground text-xs">já escalaram conosco.</span>
               </div>
             </div>
           </div>
 
           {/* Accent decoration */}
-          <div className="absolute bottom-0 right-0 p-12 opacity-5 pointer-events-none">
-            <svg width="400" height="400" viewBox="0 0 100 100" className="w-96 h-96 fill-current text-primary blur-3xl rounded-full">
+          <div className="pointer-events-none absolute bottom-0 right-0 p-12 opacity-5">
+            <svg
+              width="400"
+              height="400"
+              viewBox="0 0 100 100"
+              className="text-primary h-96 w-96 rounded-full fill-current blur-3xl"
+            >
               <circle cx="50" cy="50" r="50" />
             </svg>
           </div>
-
         </div>
       </div>
 
       {/* Right side: Auth Form Content */}
-      <div className="flex-1 flex flex-col justify-center p-6 sm:p-12 relative bg-white">
-        <div className="lg:hidden absolute top-8 left-8">
-          <img src="/images/logo_transparent.png" alt="Whatrack" className="h-8 w-auto mix-blend-multiply dark:mix-blend-screen" />
+      <div className="relative flex flex-1 flex-col justify-center bg-white p-6 sm:p-12">
+        <div className="absolute left-8 top-8 lg:hidden">
+          <img
+            src="/images/logo_transparent.png"
+            alt="Whatrack"
+            className="h-8 w-auto mix-blend-multiply dark:mix-blend-screen"
+          />
         </div>
-        <div className="w-full max-w-[420px] mx-auto">
-          {children}
-        </div>
+        <div className="mx-auto w-full max-w-[420px]">{children}</div>
       </div>
 
       <Toaster richColors position="bottom-center" />
     </div>
   )
 }
-

@@ -58,7 +58,10 @@ export async function POST(req: Request) {
     const body = await req.json()
     const parsed = createStageSchema.safeParse(body)
     if (!parsed.success) {
-      return NextResponse.json({ error: 'Dados inválidos', details: parsed.error.flatten() }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: parsed.error.flatten() },
+        { status: 400 }
+      )
     }
 
     const { name, color, order: providedOrder } = parsed.data

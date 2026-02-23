@@ -32,7 +32,7 @@ interface ValidationResult {
  */
 export async function validateOrganizationAccess(
   userId: string,
-  organizationId: string,
+  organizationId: string
 ): Promise<ValidationResult> {
   try {
     // Verificar se o usuário é membro da organização
@@ -83,9 +83,7 @@ interface FullAccessResult {
  * Valida acesso completo: usuário autenticado + membro da organização
  * Retorna também o role do membro para verificações de permissão
  */
-export async function validateFullAccess(
-  request: Request,
-): Promise<FullAccessResult> {
+export async function validateFullAccess(request: Request): Promise<FullAccessResult> {
   try {
     const session = await getSessionFromRequest(request)
 
@@ -135,9 +133,7 @@ export async function validateFullAccess(
  * Valida acesso de administrador: usuário autenticado + membro com role owner ou admin
  * Usado para rotas que requerem privilégios administrativos (billing, settings, etc)
  */
-export async function validateAdminAccess(
-  request: Request,
-): Promise<FullAccessResult> {
+export async function validateAdminAccess(request: Request): Promise<FullAccessResult> {
   const access = await validateFullAccess(request)
 
   if (!access.hasAccess) {
@@ -158,9 +154,7 @@ export async function validateAdminAccess(
  * Valida acesso de proprietário: usuário autenticado + membro com role owner
  * Usado para rotas que requerem privilégios máximos (delete org, transfer ownership, etc)
  */
-export async function validateOwnerAccess(
-  request: Request,
-): Promise<FullAccessResult> {
+export async function validateOwnerAccess(request: Request): Promise<FullAccessResult> {
   const access = await validateFullAccess(request)
 
   if (!access.hasAccess) {

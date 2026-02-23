@@ -5,19 +5,9 @@ import { Info, TriangleAlert, CircleCheck, OctagonX } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarGroup,
-  AvatarGroupCount,
-} from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarGroup, AvatarGroupCount } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
-import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-  TooltipProvider,
-} from '@/components/ui/tooltip'
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip'
 
 import { SectionWrapper, ShowcaseBox } from './shared'
 
@@ -30,16 +20,14 @@ export function FeedbackSection() {
     >
       <div className="grid gap-6 lg:grid-cols-2">
         <ShowcaseBox>
-          <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
+          <h3 className="text-muted-foreground mb-4 text-xs font-semibold uppercase tracking-widest">
             Alerts
           </h3>
           <div className="space-y-3">
             <Alert>
               <Info className="size-4" />
               <AlertTitle>Informação</AlertTitle>
-              <AlertDescription>
-                Sua conta será verificada em até 24 horas.
-              </AlertDescription>
+              <AlertDescription>Sua conta será verificada em até 24 horas.</AlertDescription>
             </Alert>
 
             <Alert variant="destructive">
@@ -53,10 +41,10 @@ export function FeedbackSection() {
         </ShowcaseBox>
 
         <ShowcaseBox>
-          <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
+          <h3 className="text-muted-foreground mb-4 text-xs font-semibold uppercase tracking-widest">
             Toasts (Sonner)
           </h3>
-          <p className="text-xs text-muted-foreground mb-3">
+          <p className="text-muted-foreground mb-3 text-xs">
             Clique para disparar cada tipo de notificação.
           </p>
           <div className="flex flex-wrap gap-2">
@@ -65,7 +53,7 @@ export function FeedbackSection() {
               variant="outline"
               onClick={() => toast.success('Registro salvo com sucesso!')}
             >
-              <CircleCheck className="size-4 text-success" />
+              <CircleCheck className="text-success size-4" />
               Success
             </Button>
             <Button
@@ -73,7 +61,7 @@ export function FeedbackSection() {
               variant="outline"
               onClick={() => toast.error('Erro ao processar a solicitação.')}
             >
-              <OctagonX className="size-4 text-destructive" />
+              <OctagonX className="text-destructive size-4" />
               Error
             </Button>
             <Button
@@ -81,7 +69,7 @@ export function FeedbackSection() {
               variant="outline"
               onClick={() => toast.warning('Atenção: limite de envios atingido.')}
             >
-              <TriangleAlert className="size-4 text-warning" />
+              <TriangleAlert className="text-warning size-4" />
               Warning
             </Button>
             <Button
@@ -89,14 +77,14 @@ export function FeedbackSection() {
               variant="outline"
               onClick={() => toast.info('Nova mensagem recebida.')}
             >
-              <Info className="size-4 text-info" />
+              <Info className="text-info size-4" />
               Info
             </Button>
           </div>
         </ShowcaseBox>
 
         <ShowcaseBox>
-          <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
+          <h3 className="text-muted-foreground mb-4 text-xs font-semibold uppercase tracking-widest">
             Skeleton Loading
           </h3>
           <div className="space-y-4">
@@ -117,12 +105,12 @@ export function FeedbackSection() {
         </ShowcaseBox>
 
         <ShowcaseBox>
-          <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
+          <h3 className="text-muted-foreground mb-4 text-xs font-semibold uppercase tracking-widest">
             Avatares
           </h3>
           <div className="space-y-4">
             <div>
-              <p className="text-xs text-muted-foreground mb-2">Tamanhos</p>
+              <p className="text-muted-foreground mb-2 text-xs">Tamanhos</p>
               <div className="flex items-center gap-3">
                 <TooltipProvider>
                   <Tooltip>
@@ -154,7 +142,7 @@ export function FeedbackSection() {
             </div>
 
             <div>
-              <p className="text-xs text-muted-foreground mb-2">Avatar Group</p>
+              <p className="text-muted-foreground mb-2 text-xs">Avatar Group</p>
               <AvatarGroup>
                 <Avatar>
                   <AvatarFallback>MS</AvatarFallback>

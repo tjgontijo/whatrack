@@ -2,11 +2,19 @@ export function detectPaidPlatform(utmSource: string | null): 'Meta' | 'Google' 
   if (!utmSource) return null
   const normalized = utmSource.toLowerCase()
 
-  if (normalized.includes('meta') || normalized.includes('facebook') || normalized.includes('instagram')) {
+  if (
+    normalized.includes('meta') ||
+    normalized.includes('facebook') ||
+    normalized.includes('instagram')
+  ) {
     return 'Meta'
   }
 
-  if (normalized.includes('google') || normalized.includes('gads') || normalized.includes('adwords')) {
+  if (
+    normalized.includes('google') ||
+    normalized.includes('gads') ||
+    normalized.includes('adwords')
+  ) {
     return 'Google'
   }
 

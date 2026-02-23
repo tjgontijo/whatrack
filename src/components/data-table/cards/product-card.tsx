@@ -40,27 +40,14 @@ interface ProductCardProps {
  */
 export const ProductCard = React.memo(
   React.forwardRef<HTMLDivElement, ProductCardProps>(
-    (
-      {
-        id,
-        name,
-        active,
-        category,
-        price,
-        cost,
-        updatedAt,
-        onEdit,
-        className,
-      },
-      ref
-    ) => {
+    ({ id, name, active, category, price, cost, updatedAt, onEdit, className }, ref) => {
       const formattedDate = new Date(updatedAt).toLocaleString('pt-BR', {
         month: 'short',
         day: 'numeric',
         year: '2-digit',
       })
 
-      const margin = price && cost ? ((price - cost) / price * 100).toFixed(0) : null
+      const margin = price && cost ? (((price - cost) / price) * 100).toFixed(0) : null
 
       return (
         <DataTableCard ref={ref} className={className}>
@@ -91,7 +78,7 @@ export const ProductCard = React.memo(
             {/* Cost */}
             {cost !== null && (
               <DataTableCardRow label="Custo">
-                <span className="text-sm text-muted-foreground">{formatCurrencyBRL(cost)}</span>
+                <span className="text-muted-foreground text-sm">{formatCurrencyBRL(cost)}</span>
               </DataTableCardRow>
             )}
 
@@ -103,22 +90,15 @@ export const ProductCard = React.memo(
             )}
 
             {/* Updated At */}
-            <div className="border-t pt-3 mt-3">
-              <div className="text-xs text-muted-foreground">
-                Atualizado em {formattedDate}
-              </div>
+            <div className="mt-3 border-t pt-3">
+              <div className="text-muted-foreground text-xs">Atualizado em {formattedDate}</div>
             </div>
           </DataTableCardContent>
 
           {onEdit && (
             <DataTableCardFooter>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onEdit(id)}
-                className="w-full"
-              >
-                <Pencil className="h-4 w-4 mr-2" />
+              <Button variant="outline" size="sm" onClick={() => onEdit(id)} className="w-full">
+                <Pencil className="mr-2 h-4 w-4" />
                 Editar
               </Button>
             </DataTableCardFooter>

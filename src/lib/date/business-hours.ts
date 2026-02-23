@@ -67,10 +67,7 @@ export function getNextBusinessHour(config: BusinessHoursConfig): Date {
 /**
  * Calculate if a scheduled time falls within business hours
  */
-export function isWithinBusinessHours(
-  scheduledAt: Date,
-  config: BusinessHoursConfig
-): boolean {
+export function isWithinBusinessHours(scheduledAt: Date, config: BusinessHoursConfig): boolean {
   const hour = scheduledAt.getHours()
   const day = scheduledAt.getDay()
 
@@ -88,10 +85,7 @@ export function isWithinBusinessHours(
 /**
  * Adjust a scheduled time to the next business hour if it falls outside
  */
-export function adjustToBusinessHours(
-  scheduledAt: Date,
-  config: BusinessHoursConfig
-): Date {
+export function adjustToBusinessHours(scheduledAt: Date, config: BusinessHoursConfig): Date {
   if (isWithinBusinessHours(scheduledAt, config)) {
     return scheduledAt
   }

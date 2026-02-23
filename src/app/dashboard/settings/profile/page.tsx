@@ -1,29 +1,31 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
-import { toast } from "sonner"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { FormProvider as Form, Controller } from "react-hook-form"
-import { Field, FieldLabel, FieldError } from "@/components/ui/field"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { toast } from 'sonner'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { FormProvider as Form, Controller } from 'react-hook-form'
+import { Field, FieldLabel, FieldError } from '@/components/ui/field'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 const profileSchema = z.object({
-  name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
-  email: z.string().email("Email inválido"),
+  name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
+  email: z.string().email('Email inválido'),
 })
 
-const passwordSchema = z.object({
-  currentPassword: z.string().min(1, "Senha atual é obrigatória"),
-  newPassword: z.string().min(8, "Nova senha deve ter pelo menos 8 caracteres"),
-  confirmPassword: z.string(),
-}).refine((data) => data.newPassword === data.confirmPassword, {
-  message: "As senhas não coincidem",
-  path: ["confirmPassword"],
-})
+const passwordSchema = z
+  .object({
+    currentPassword: z.string().min(1, 'Senha atual é obrigatória'),
+    newPassword: z.string().min(8, 'Nova senha deve ter pelo menos 8 caracteres'),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: 'As senhas não coincidem',
+    path: ['confirmPassword'],
+  })
 
 export default function ProfilePage() {
   const [isLoadingProfile, setIsLoadingProfile] = useState(false)
@@ -32,34 +34,34 @@ export default function ProfilePage() {
   const profileForm = useForm({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      name: "",
-      email: "",
+      name: '',
+      email: '',
     },
   })
 
   const passwordForm = useForm({
     resolver: zodResolver(passwordSchema),
     defaultValues: {
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
     },
   })
 
   const onSubmitProfile = async (data: z.infer<typeof profileSchema>) => {
     setIsLoadingProfile(true)
     try {
-      const response = await fetch("/api/v1/users/me", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/v1/users/me', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       })
 
-      if (!response.ok) throw new Error("Erro ao atualizar perfil")
+      if (!response.ok) throw new Error('Erro ao atualizar perfil')
 
-      toast.success("Perfil atualizado com sucesso")
+      toast.success('Perfil atualizado com sucesso')
     } catch {
-      toast.error("Erro ao atualizar perfil")
+      toast.error('Erro ao atualizar perfil')
     } finally {
       setIsLoadingProfile(false)
     }
@@ -68,33 +70,33 @@ export default function ProfilePage() {
   const onSubmitPassword = async (data: z.infer<typeof passwordSchema>) => {
     setIsLoadingPassword(true)
     try {
-      const response = await fetch("/api/v1/users/me/password", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/v1/users/me/password', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           currentPassword: data.currentPassword,
           newPassword: data.newPassword,
         }),
       })
 
-      if (!response.ok) throw new Error("Erro ao alterar senha")
+      if (!response.ok) throw new Error('Erro ao alterar senha')
 
-      toast.success("Senha alterada com sucesso")
+      toast.success('Senha alterada com sucesso')
       passwordForm.reset()
     } catch {
-      toast.error("Erro ao alterar senha")
+      toast.error('Erro ao alterar senha')
     } finally {
       setIsLoadingPassword(false)
     }
   }
 
   return (
-    <div className="space-y-8 divide-y divide-border">
+    <div className="divide-border space-y-8 divide-y">
       {/* Profile Section */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-3 pt-8 first:pt-0">
+      <div className="grid grid-cols-1 gap-6 pt-8 first:pt-0 md:grid-cols-3">
         <div className="md:col-span-1">
           <h3 className="text-lg font-medium leading-none">Informações Pessoais</h3>
-          <p className="text-sm text-muted-foreground mt-2">
+          <p className="text-muted-foreground mt-2 text-sm">
             Atualize seu nome e email para a conta logada.
           </p>
         </div>
@@ -109,7 +111,12 @@ export default function ProfilePage() {
                     render={({ field, fieldState }) => (
                       <Field data-invalid={fieldState.invalid}>
                         <FieldLabel htmlFor={field.name}>Nome completo</FieldLabel>
-                        <Input id={field.name} placeholder="João Silva" className="max-w-md" {...field} />
+                        <Input
+                          id={field.name}
+                          placeholder="João Silva"
+                          className="max-w-md"
+                          {...field}
+                        />
                         <FieldError errors={[fieldState.error]} />
                       </Field>
                     )}
@@ -121,7 +128,13 @@ export default function ProfilePage() {
                     render={({ field, fieldState }) => (
                       <Field data-invalid={fieldState.invalid}>
                         <FieldLabel htmlFor={field.name}>Email</FieldLabel>
-                        <Input id={field.name} type="email" placeholder="joao@empresa.com" className="max-w-md" {...field} />
+                        <Input
+                          id={field.name}
+                          type="email"
+                          placeholder="joao@empresa.com"
+                          className="max-w-md"
+                          {...field}
+                        />
                         <FieldError errors={[fieldState.error]} />
                       </Field>
                     )}
@@ -129,7 +142,7 @@ export default function ProfilePage() {
 
                   <div className="pt-2">
                     <Button type="submit" disabled={isLoadingProfile}>
-                      {isLoadingProfile ? "Salvando..." : "Salvar alterações"}
+                      {isLoadingProfile ? 'Salvando...' : 'Salvar alterações'}
                     </Button>
                   </div>
                 </form>
@@ -140,10 +153,10 @@ export default function ProfilePage() {
       </div>
 
       {/* Password Section */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-3 pt-8">
+      <div className="grid grid-cols-1 gap-6 pt-8 md:grid-cols-3">
         <div className="md:col-span-1">
           <h3 className="text-lg font-medium leading-none">Alterar Senha</h3>
-          <p className="text-sm text-muted-foreground mt-2">
+          <p className="text-muted-foreground mt-2 text-sm">
             Mantenha sua conta segura com uma senha forte. Recomendamos números e símbolos.
           </p>
         </div>
@@ -170,7 +183,13 @@ export default function ProfilePage() {
                     render={({ field, fieldState }) => (
                       <Field data-invalid={fieldState.invalid}>
                         <FieldLabel htmlFor={field.name}>Nova senha</FieldLabel>
-                        <Input id={field.name} type="password" placeholder="Mínimo 8 caracteres" className="max-w-md" {...field} />
+                        <Input
+                          id={field.name}
+                          type="password"
+                          placeholder="Mínimo 8 caracteres"
+                          className="max-w-md"
+                          {...field}
+                        />
                         <FieldError errors={[fieldState.error]} />
                       </Field>
                     )}
@@ -190,7 +209,7 @@ export default function ProfilePage() {
 
                   <div className="pt-2">
                     <Button type="submit" disabled={isLoadingPassword}>
-                      {isLoadingPassword ? "Alterando..." : "Alterar senha"}
+                      {isLoadingPassword ? 'Alterando...' : 'Alterar senha'}
                     </Button>
                   </div>
                 </form>

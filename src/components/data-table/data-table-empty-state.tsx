@@ -19,10 +19,7 @@ interface DataTableEmptyStateProps {
  * - Customizable icon, title, description
  * - Optional action button
  */
-export const DataTableEmptyState = React.forwardRef<
-  HTMLDivElement,
-  DataTableEmptyStateProps
->(
+export const DataTableEmptyState = React.forwardRef<HTMLDivElement, DataTableEmptyStateProps>(
   (
     {
       title = 'Nenhum resultado encontrado',
@@ -33,21 +30,19 @@ export const DataTableEmptyState = React.forwardRef<
     },
     ref
   ) => {
-    const defaultIcon = icon || <Search className="h-12 w-12 text-muted-foreground" />
+    const defaultIcon = icon || <Search className="text-muted-foreground h-12 w-12" />
 
     return (
       <div
         ref={ref}
         className={cn(
-          'flex flex-col items-center justify-center rounded-lg border border-dashed py-12 px-4',
+          'flex flex-col items-center justify-center rounded-lg border border-dashed px-4 py-12',
           className
         )}
       >
-        <div className="mb-4 text-muted-foreground">{defaultIcon}</div>
-        <h3 className="mb-2 text-center font-semibold text-foreground">{title}</h3>
-        <p className="mb-6 max-w-sm text-center text-sm text-muted-foreground">
-          {description}
-        </p>
+        <div className="text-muted-foreground mb-4">{defaultIcon}</div>
+        <h3 className="text-foreground mb-2 text-center font-semibold">{title}</h3>
+        <p className="text-muted-foreground mb-6 max-w-sm text-center text-sm">{description}</p>
         {action}
       </div>
     )
@@ -66,10 +61,7 @@ interface DataTableErrorStateProps {
   className?: string
 }
 
-export const DataTableErrorState = React.forwardRef<
-  HTMLDivElement,
-  DataTableErrorStateProps
->(
+export const DataTableErrorState = React.forwardRef<HTMLDivElement, DataTableErrorStateProps>(
   (
     {
       title = 'Erro ao carregar dados',
@@ -83,15 +75,13 @@ export const DataTableErrorState = React.forwardRef<
       <div
         ref={ref}
         className={cn(
-          'flex flex-col items-center justify-center rounded-lg border border-destructive/30 bg-destructive/5 py-12 px-4',
+          'border-destructive/30 bg-destructive/5 flex flex-col items-center justify-center rounded-lg border px-4 py-12',
           className
         )}
       >
-        <AlertCircle className="mb-4 h-12 w-12 text-destructive" />
-        <h3 className="mb-2 text-center font-semibold text-foreground">{title}</h3>
-        <p className="mb-6 max-w-sm text-center text-sm text-muted-foreground">
-          {description}
-        </p>
+        <AlertCircle className="text-destructive mb-4 h-12 w-12" />
+        <h3 className="text-foreground mb-2 text-center font-semibold">{title}</h3>
+        <p className="text-muted-foreground mb-6 max-w-sm text-center text-sm">{description}</p>
         {action}
       </div>
     )

@@ -15,65 +15,65 @@
  * This script is idempotent — tokens already on the current version are skipped.
  */
 
-import { PrismaClient } from '../../prisma/generated/prisma';
-import { encryption } from '../../src/lib/encryption';
+import { PrismaClient } from '../../prisma/generated/prisma'
+import { encryption } from '../../src/lib/encryption'
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient()
 
 async function main() {
-  console.log('[ReEncrypt] Starting token re-encryption migration...');
-  console.log(`[ReEncrypt] Target version: ${process.env.ENCRYPTION_CURRENT_VERSION || 'v1'}`);
+  console.log('[ReEncrypt] Starting token re-encryption migration...')
+  console.log(`[ReEncrypt] Target version: ${process.env.ENCRYPTION_CURRENT_VERSION || 'v1'}`)
 
   const connections = await prisma.metaConnection.findMany({
     select: { id: true, accessToken: true },
-  });
+  })
 
-  console.log(`[ReEncrypt] Found ${connections.length} MetaConnection records`);
+  console.log(`[ReEncrypt] Found ${connections.length} MetaConnection records`)
 
-  let skipped = 0;
-  let migrated = 0;
-  let failed = 0;
+  let skipped = 0
+  let migrated = 0
+  let failed = 0
 
   for (const conn of connections) {
     if (encryption.isCurrentVersion(conn.accessToken)) {
-      skipped++;
-      continue;
+      skipped++
+      continue
     }
 
     try {
       // Decrypt with old key, re-encrypt with current key
-      const plaintext = encryption.decrypt(conn.accessToken);
-      const newCiphertext = encryption.encrypt(plaintext);
+      const plaintext = encryption.decrypt(conn.accessToken)
+      const newCiphertext = encryption.encrypt(plaintext)
 
       await prisma.metaConnection.update({
         where: { id: conn.id },
         data: { accessToken: newCiphertext },
-      });
+      })
 
-      migrated++;
+      migrated++
       if (migrated % 10 === 0) {
-        console.log(`[ReEncrypt] Migrated ${migrated}/${connections.length - skipped} tokens...`);
+        console.log(`[ReEncrypt] Migrated ${migrated}/${connections.length - skipped} tokens...`)
       }
     } catch (err) {
-      console.error(`[ReEncrypt] Failed to re-encrypt connection ${conn.id}:`, err);
-      failed++;
+      console.error(`[ReEncrypt] Failed to re-encrypt connection ${conn.id}:`, err)
+      failed++
     }
   }
 
-  console.log(`\n[ReEncrypt] Done.`);
-  console.log(`  Migrated: ${migrated}`);
-  console.log(`  Skipped (already current): ${skipped}`);
-  console.log(`  Failed: ${failed}`);
+  console.log(`\n[ReEncrypt] Done.`)
+  console.log(`  Migrated: ${migrated}`)
+  console.log(`  Skipped (already current): ${skipped}`)
+  console.log(`  Failed: ${failed}`)
 
   if (failed > 0) {
-    console.error('[ReEncrypt] Some tokens failed — check logs and retry');
-    process.exit(1);
+    console.error('[ReEncrypt] Some tokens failed — check logs and retry')
+    process.exit(1)
   }
 }
 
 main()
   .catch((err) => {
-    console.error('[ReEncrypt] Fatal error:', err);
-    process.exit(1);
+    console.error('[ReEncrypt] Fatal error:', err)
+    process.exit(1)
   })
-  .finally(() => prisma.$disconnect());
+  .finally(() => prisma.$disconnect())

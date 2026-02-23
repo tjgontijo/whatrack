@@ -52,10 +52,7 @@ interface ResponsiveDataTableProps<TData> {
  *   isLoading={isLoading}
  * />
  */
-export const ResponsiveDataTable = React.forwardRef<
-  HTMLDivElement,
-  ResponsiveDataTableProps<any>
->(
+export const ResponsiveDataTable = React.forwardRef<HTMLDivElement, ResponsiveDataTableProps<any>>(
   (
     {
       data,
@@ -91,9 +88,15 @@ export const ResponsiveDataTable = React.forwardRef<
     // Loading state
     if (isLoading) {
       return (
-        <div ref={ref} className={cn("flex flex-col items-center justify-center py-20 gap-3 bg-muted/5 rounded-xl border border-dashed", className)}>
-          <RefreshCw className="h-8 w-8 animate-spin text-primary/40" />
-          <p className="text-sm font-medium text-muted-foreground">Carregando dados...</p>
+        <div
+          ref={ref}
+          className={cn(
+            'bg-muted/5 flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed py-20',
+            className
+          )}
+        >
+          <RefreshCw className="text-primary/40 h-8 w-8 animate-spin" />
+          <p className="text-muted-foreground text-sm font-medium">Carregando dados...</p>
         </div>
       )
     }
@@ -118,9 +121,7 @@ export const ResponsiveDataTable = React.forwardRef<
     if (data.length === 0) {
       return (
         <div ref={ref} className={className}>
-          {emptyState || (
-            <DataTableEmptyState className={tableClassName} />
-          )}
+          {emptyState || <DataTableEmptyState className={tableClassName} />}
         </div>
       )
     }
@@ -129,11 +130,7 @@ export const ResponsiveDataTable = React.forwardRef<
       <div ref={ref} className={cn('space-y-4', className)}>
         {/* Mobile/Card view */}
         {showCards && (
-          <DataTableCardList
-            rows={rows}
-            renderCard={mobileCard}
-            className={tableClassName}
-          />
+          <DataTableCardList rows={rows} renderCard={mobileCard} className={tableClassName} />
         )}
 
         {/* Desktop/Table view */}

@@ -67,11 +67,13 @@ export function EditLeadDialog({ leadId, open, onOpenChange, onSuccess }: EditLe
     reset,
   } = useForm<EditLeadFormValues>({
     resolver: zodResolver(editLeadSchema),
-    values: lead ? {
-      name: lead.name || '',
-      phone: lead.phone ? applyWhatsAppMask(denormalizeWhatsApp(lead.phone)) : '',
-      mail: lead.mail || '',
-    } : undefined
+    values: lead
+      ? {
+          name: lead.name || '',
+          phone: lead.phone ? applyWhatsAppMask(denormalizeWhatsApp(lead.phone)) : '',
+          mail: lead.mail || '',
+        }
+      : undefined,
   })
 
   const submit = async (values: EditLeadFormValues) => {
@@ -101,7 +103,9 @@ export function EditLeadDialog({ leadId, open, onOpenChange, onSuccess }: EditLe
     } catch (error) {
       console.error('Erro ao atualizar lead:', error)
       const errorMessage =
-        error instanceof Error ? error.message : 'Não foi possível atualizar o lead. Tente novamente.'
+        error instanceof Error
+          ? error.message
+          : 'Não foi possível atualizar o lead. Tente novamente.'
       toast.error(errorMessage)
     }
   }
@@ -116,14 +120,14 @@ export function EditLeadDialog({ leadId, open, onOpenChange, onSuccess }: EditLe
 
         {isLoading ? (
           <div className="flex h-32 items-center justify-center">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
           </div>
         ) : (
           <form className="space-y-4" onSubmit={handleSubmit(submit)}>
             <div className="space-y-2">
               <Label htmlFor="edit-name">Nome</Label>
               <Input id="edit-name" placeholder="Nome completo" {...register('name')} />
-              {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+              {errors.name && <p className="text-destructive text-sm">{errors.name.message}</p>}
             </div>
 
             <div className="space-y-2">
@@ -140,17 +144,27 @@ export function EditLeadDialog({ leadId, open, onOpenChange, onSuccess }: EditLe
                   />
                 )}
               />
-              {errors.phone && <p className="text-sm text-destructive">{errors.phone.message}</p>}
+              {errors.phone && <p className="text-destructive text-sm">{errors.phone.message}</p>}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="edit-mail">Email</Label>
-              <Input id="edit-mail" type="email" placeholder="email@example.com" {...register('mail')} />
-              {errors.mail && <p className="text-sm text-destructive">{errors.mail.message}</p>}
+              <Input
+                id="edit-mail"
+                type="email"
+                placeholder="email@example.com"
+                {...register('mail')}
+              />
+              {errors.mail && <p className="text-destructive text-sm">{errors.mail.message}</p>}
             </div>
 
             <DialogFooter className="gap-2 pt-4">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                disabled={isSubmitting}
+              >
                 Cancelar
               </Button>
               <Button type="submit" className="gap-2" disabled={isSubmitting}>

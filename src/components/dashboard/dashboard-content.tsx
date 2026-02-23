@@ -23,21 +23,17 @@ export function DashboardContent({ organization, userId, children }: DashboardCo
     setShowOnboarding(false)
   }
 
-  const isOnboardingIncomplete = organization && organization.profile && organization.profile.onboardingStatus === 'pending'
+  const isOnboardingIncomplete =
+    organization && organization.profile && organization.profile.onboardingStatus === 'pending'
 
   return (
     <>
-      {isOnboardingIncomplete && (
-        <OnboardingBanner onComplete={() => setShowOnboarding(true)} />
-      )}
-      
+      {isOnboardingIncomplete && <OnboardingBanner onComplete={() => setShowOnboarding(true)} />}
+
       {showOnboarding && (
-        <OnboardingOverlay 
-          onComplete={handleCompleteOnboarding}
-          onSkip={handleSkipOnboarding}
-        />
+        <OnboardingOverlay onComplete={handleCompleteOnboarding} onSkip={handleSkipOnboarding} />
       )}
-      
+
       {children}
     </>
   )

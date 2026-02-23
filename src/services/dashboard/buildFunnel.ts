@@ -8,7 +8,10 @@ export type FunnelSummary = {
   attendances: number
 }
 
-export async function buildFunnel(organizationId: string, dateRange?: DateRange): Promise<FunnelSummary> {
+export async function buildFunnel(
+  organizationId: string,
+  dateRange?: DateRange
+): Promise<FunnelSummary> {
   const [leads, schedules, attendances] = await Promise.all([
     buildLeadsCount(organizationId, dateRange),
     buildAppointmentsCount(organizationId, dateRange),

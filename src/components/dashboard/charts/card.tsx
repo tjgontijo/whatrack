@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import type { ReactNode } from 'react'
 import { useEffect, useState } from 'react'
@@ -50,22 +50,27 @@ export function DashboardMetricCard({
       <article
         className={cn(
           cardWidthClass,
-          'flex h-full flex-col rounded-3xl border border-border/50 bg-card p-6 shadow-[0px_18px_35px_-25px_rgba(15,23,42,0.25)] backdrop-blur-sm',
+          'border-border/50 bg-card flex h-full flex-col rounded-3xl border p-6 shadow-[0px_18px_35px_-25px_rgba(15,23,42,0.25)] backdrop-blur-sm',
           'transition hover:-translate-y-0.5 hover:shadow-[0px_24px_45px_-28px_rgba(15,23,42,0.35)]',
-          className,
+          className
         )}
       >
         <header className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-sm font-medium text-muted-foreground">{title}</p>
-            <div className="mt-3 min-h-[32px] text-2xl font-semibold tracking-tight text-foreground" suppressHydrationWarning>
+            <p className="text-muted-foreground text-sm font-medium">{title}</p>
+            <div
+              className="text-foreground mt-3 min-h-[32px] text-2xl font-semibold tracking-tight"
+              suppressHydrationWarning
+            >
               {isLoading ? <span className="text-muted-foreground/30">—</span> : value}
             </div>
           </div>
           {icon ? <div className="text-muted-foreground">{icon}</div> : null}
         </header>
 
-        {trend && !isLoading ? <footer className="mt-4 text-xs font-medium text-emerald-600">{trend}</footer> : null}
+        {trend && !isLoading ? (
+          <footer className="mt-4 text-xs font-medium text-emerald-600">{trend}</footer>
+        ) : null}
       </article>
     </div>
   )
@@ -73,7 +78,10 @@ export function DashboardMetricCard({
 
 export function DashboardMetricGrid({ children }: { children: ReactNode }) {
   return (
-    <div className="grid gap-4 xl:grid-cols-4 md:grid-cols-2 grid-cols-1" style={{ gridAutoRows: '120px' }}>
+    <div
+      className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4"
+      style={{ gridAutoRows: '120px' }}
+    >
       {children}
     </div>
   )

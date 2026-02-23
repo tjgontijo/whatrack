@@ -112,17 +112,17 @@ export const SaleCard = React.memo(
               <div className="mt-3 space-y-2 border-t pt-3">
                 {ticketUtmSource && (
                   <DataTableCardRow label="UTM Source">
-                    <span className="text-xs text-muted-foreground">{ticketUtmSource}</span>
+                    <span className="text-muted-foreground text-xs">{ticketUtmSource}</span>
                   </DataTableCardRow>
                 )}
                 {ticketUtmMedium && (
                   <DataTableCardRow label="UTM Medium">
-                    <span className="text-xs text-muted-foreground">{ticketUtmMedium}</span>
+                    <span className="text-muted-foreground text-xs">{ticketUtmMedium}</span>
                   </DataTableCardRow>
                 )}
                 {ticketUtmCampaign && (
                   <DataTableCardRow label="UTM Campaign">
-                    <span className="text-xs text-muted-foreground">{ticketUtmCampaign}</span>
+                    <span className="text-muted-foreground text-xs">{ticketUtmCampaign}</span>
                   </DataTableCardRow>
                 )}
               </div>
@@ -132,13 +132,13 @@ export const SaleCard = React.memo(
             {ticketPipefyId && (
               <DataTableCardRow label="Pipefy">
                 <div className="flex items-center gap-1">
-                  <span className="text-xs text-muted-foreground">#{ticketPipefyId}</span>
+                  <span className="text-muted-foreground text-xs">#{ticketPipefyId}</span>
                   {ticketPipefyUrl && (
                     <a
                       href={ticketPipefyUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex h-6 w-6 items-center justify-center rounded border border-transparent text-muted-foreground transition hover:border-muted-foreground/20 hover:bg-muted"
+                      className="text-muted-foreground hover:border-muted-foreground/20 hover:bg-muted inline-flex h-6 w-6 items-center justify-center rounded border border-transparent transition"
                       aria-label="Abrir no Pipefy"
                     >
                       <ExternalLink className="h-3 w-3" />

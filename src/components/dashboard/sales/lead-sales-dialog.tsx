@@ -22,11 +22,15 @@ const leadSaleSchema = z.object({
   totalAmount: z.number().nullable(),
   status: z.string().nullable(),
   createdAt: z.string(),
-  items: z.array(z.object({
-    name: z.string(),
-    quantity: z.number(),
-    unitPrice: z.number(),
-  })).optional(),
+  items: z
+    .array(
+      z.object({
+        name: z.string(),
+        quantity: z.number(),
+        unitPrice: z.number(),
+      })
+    )
+    .optional(),
 })
 
 const leadSalesResponseSchema = z.object({
@@ -91,34 +95,34 @@ export function LeadSalesDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] w-full sm:max-w-none sm:w-[60vw] overflow-y-auto p-6">
+      <DialogContent className="max-h-[90vh] w-full overflow-y-auto p-6 sm:w-[60vw] sm:max-w-none">
         <DialogHeader>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:pr-8">
             <div>
               <DialogTitle>{leadName || 'Lead sem nome'}</DialogTitle>
               <DialogDescription>Telefone: {formattedPhone}</DialogDescription>
             </div>
-            <div className="rounded-md border bg-muted/30 px-3 py-2 text-right">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <div className="bg-muted/30 rounded-md border px-3 py-2 text-right">
+              <p className="text-muted-foreground text-[11px] font-semibold uppercase tracking-wide">
                 Total em compras
               </p>
-              <p className="text-lg font-semibold text-foreground">{totalAmountLabel}</p>
+              <p className="text-foreground text-lg font-semibold">{totalAmountLabel}</p>
               {totalSalesLabel && (
-                <p className="text-xs text-muted-foreground">{totalSalesLabel}</p>
+                <p className="text-muted-foreground text-xs">{totalSalesLabel}</p>
               )}
             </div>
           </div>
         </DialogHeader>
 
         {isLoading && (
-          <div className="flex items-center justify-center gap-2 py-10 text-muted-foreground">
+          <div className="text-muted-foreground flex items-center justify-center gap-2 py-10">
             <Loader2 className="h-4 w-4 animate-spin" />
             Carregando vendas…
           </div>
         )}
 
         {isError && !isLoading && (
-          <div className="space-y-3 rounded-md border border-destructive/40 bg-destructive/10 p-4 text-destructive">
+          <div className="border-destructive/40 bg-destructive/10 text-destructive space-y-3 rounded-md border p-4">
             <p>{(error as Error | undefined)?.message ?? 'Erro ao carregar dados.'}</p>
             <button
               type="button"

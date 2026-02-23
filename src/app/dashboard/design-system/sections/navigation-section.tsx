@@ -27,7 +27,7 @@ export function NavigationSection() {
     >
       <div className="grid gap-6 lg:grid-cols-2">
         <ShowcaseBox>
-          <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
+          <h3 className="text-muted-foreground mb-4 text-xs font-semibold uppercase tracking-widest">
             Tabs — Variante Default
           </h3>
           <Tabs defaultValue="visao-geral">
@@ -37,31 +37,25 @@ export function NavigationSection() {
               <TabsTrigger value="vendas">Vendas</TabsTrigger>
             </TabsList>
             <TabsContent value="visao-geral">
-              <div className="rounded-lg border border-border/50 p-4 mt-2">
-                <p className="text-sm text-muted-foreground">
-                  Conteúdo da aba Visão Geral
-                </p>
+              <div className="border-border/50 mt-2 rounded-lg border p-4">
+                <p className="text-muted-foreground text-sm">Conteúdo da aba Visão Geral</p>
               </div>
             </TabsContent>
             <TabsContent value="leads">
-              <div className="rounded-lg border border-border/50 p-4 mt-2">
-                <p className="text-sm text-muted-foreground">
-                  Conteúdo da aba Leads
-                </p>
+              <div className="border-border/50 mt-2 rounded-lg border p-4">
+                <p className="text-muted-foreground text-sm">Conteúdo da aba Leads</p>
               </div>
             </TabsContent>
             <TabsContent value="vendas">
-              <div className="rounded-lg border border-border/50 p-4 mt-2">
-                <p className="text-sm text-muted-foreground">
-                  Conteúdo da aba Vendas
-                </p>
+              <div className="border-border/50 mt-2 rounded-lg border p-4">
+                <p className="text-muted-foreground text-sm">Conteúdo da aba Vendas</p>
               </div>
             </TabsContent>
           </Tabs>
         </ShowcaseBox>
 
         <ShowcaseBox>
-          <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
+          <h3 className="text-muted-foreground mb-4 text-xs font-semibold uppercase tracking-widest">
             Tabs — Variante Line
           </h3>
           <Tabs defaultValue="todos">
@@ -71,31 +65,25 @@ export function NavigationSection() {
               <TabsTrigger value="inativos">Inativos</TabsTrigger>
             </TabsList>
             <TabsContent value="todos">
-              <div className="rounded-lg border border-border/50 p-4 mt-2">
-                <p className="text-sm text-muted-foreground">
-                  Conteúdo com line tabs
-                </p>
+              <div className="border-border/50 mt-2 rounded-lg border p-4">
+                <p className="text-muted-foreground text-sm">Conteúdo com line tabs</p>
               </div>
             </TabsContent>
             <TabsContent value="ativos">
-              <div className="rounded-lg border border-border/50 p-4 mt-2">
-                <p className="text-sm text-muted-foreground">
-                  Ativos
-                </p>
+              <div className="border-border/50 mt-2 rounded-lg border p-4">
+                <p className="text-muted-foreground text-sm">Ativos</p>
               </div>
             </TabsContent>
             <TabsContent value="inativos">
-              <div className="rounded-lg border border-border/50 p-4 mt-2">
-                <p className="text-sm text-muted-foreground">
-                  Inativos
-                </p>
+              <div className="border-border/50 mt-2 rounded-lg border p-4">
+                <p className="text-muted-foreground text-sm">Inativos</p>
               </div>
             </TabsContent>
           </Tabs>
         </ShowcaseBox>
 
         <ShowcaseBox>
-          <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
+          <h3 className="text-muted-foreground mb-4 text-xs font-semibold uppercase tracking-widest">
             Segmented Control
           </h3>
           <SegmentedControl
@@ -106,13 +94,13 @@ export function NavigationSection() {
               { value: 'cards', label: 'Cards', icon: <Grid3X3 className="size-4" /> },
             ]}
           />
-          <p className="text-xs text-muted-foreground mt-3">
+          <p className="text-muted-foreground mt-3 text-xs">
             Use para alternar entre modos de visualização (tabela/cards/kanban).
           </p>
         </ShowcaseBox>
 
         <ShowcaseBox>
-          <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
+          <h3 className="text-muted-foreground mb-4 text-xs font-semibold uppercase tracking-widest">
             Breadcrumb
           </h3>
           <Breadcrumb>
@@ -130,7 +118,7 @@ export function NavigationSection() {
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
-          <p className="text-xs text-muted-foreground mt-3">
+          <p className="text-muted-foreground mt-3 text-xs">
             Navegação hierárquica. Gerada automaticamente pelo DashboardHeader.
           </p>
         </ShowcaseBox>

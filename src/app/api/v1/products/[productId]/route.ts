@@ -4,7 +4,6 @@ import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
-
 const updateProductSchema = z.object({
   name: z.string().min(1).optional(),
   categoryId: z.string().nullable().optional(),

@@ -9,18 +9,18 @@ export const dynamic = 'force-dynamic'
  * Apenas Super Admins podem acessar.
  */
 export async function GET(request: NextRequest) {
-    try {
-        const user = await requireSuperAdmin(request)
-        if (user instanceof NextResponse) return user
+  try {
+    const user = await requireSuperAdmin(request)
+    if (user instanceof NextResponse) return user
 
-        const verifyToken = process.env.META_WEBHOOK_VERIFY_TOKEN || ''
+    const verifyToken = process.env.META_WEBHOOK_VERIFY_TOKEN || ''
 
-        return NextResponse.json({
-            verifyToken,
-            configured: !!verifyToken
-        })
-    } catch (error) {
-        console.error('[system/webhook-verify-token] Error:', error)
-        return NextResponse.json({ error: 'Failed to fetch verify token' }, { status: 500 })
-    }
+    return NextResponse.json({
+      verifyToken,
+      configured: !!verifyToken,
+    })
+  } catch (error) {
+    console.error('[system/webhook-verify-token] Error:', error)
+    return NextResponse.json({ error: 'Failed to fetch verify token' }, { status: 500 })
+  }
 }

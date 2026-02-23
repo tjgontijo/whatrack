@@ -25,7 +25,10 @@ export async function PUT(req: Request) {
     const body = await req.json()
     const parsed = reorderSchema.safeParse(body)
     if (!parsed.success) {
-      return NextResponse.json({ error: 'Dados inválidos', details: parsed.error.flatten() }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: parsed.error.flatten() },
+        { status: 400 }
+      )
     }
 
     const { orderedIds } = parsed.data

@@ -1,13 +1,13 @@
-import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@/lib/auth/auth"
-import { prisma } from "@/lib/prisma"
-import { createAuditLog } from "@/lib/audit-log"
+import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@/lib/auth/auth'
+import { prisma } from '@/lib/prisma'
+import { createAuditLog } from '@/lib/audit-log'
 
 export async function GET(req: NextRequest) {
   const session = await auth.api.getSession({ headers: req.headers })
 
   if (!session?.session?.activeOrganizationId) {
-    return NextResponse.json({ error: "No active organization" }, { status: 400 })
+    return NextResponse.json({ error: 'No active organization' }, { status: 400 })
   }
 
   const org = await prisma.organization.findUnique({
@@ -21,7 +21,7 @@ export async function PUT(req: NextRequest) {
   const session = await auth.api.getSession({ headers: req.headers })
 
   if (!session?.session?.activeOrganizationId) {
-    return NextResponse.json({ error: "No active organization" }, { status: 400 })
+    return NextResponse.json({ error: 'No active organization' }, { status: 400 })
   }
 
   const organizationId = session.session.activeOrganizationId

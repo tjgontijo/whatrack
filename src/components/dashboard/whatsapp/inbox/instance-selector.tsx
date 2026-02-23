@@ -32,10 +32,7 @@ interface InstanceSelectorProps {
  *
  * Default: "Todas as instâncias" (show all)
  */
-export function InstanceSelector({
-  selectedInstanceId,
-  onInstanceChange,
-}: InstanceSelectorProps) {
+export function InstanceSelector({ selectedInstanceId, onInstanceChange }: InstanceSelectorProps) {
   // Fetch list of connected instances
   const { data, isLoading, error } = useQuery({
     queryKey: ['whatsapp-instances'],
@@ -52,34 +49,26 @@ export function InstanceSelector({
 
   // Auto-select single instance if it's the only one
   useEffect(() => {
-    if (
-      instances.length === 1 &&
-      selectedInstanceId === null &&
-      !isLoading
-    ) {
+    if (instances.length === 1 && selectedInstanceId === null && !isLoading) {
       onInstanceChange(instances[0].id)
     }
   }, [instances, selectedInstanceId, isLoading, onInstanceChange])
 
   if (isLoading) {
-    return <div className="h-10 w-full flex items-center px-3 border rounded-md text-sm text-muted-foreground bg-muted/20">Carregando...</div>
+    return (
+      <div className="text-muted-foreground bg-muted/20 flex h-10 w-full items-center rounded-md border px-3 text-sm">
+        Carregando...
+      </div>
+    )
   }
 
   if (error || !instances) {
-    return (
-      <div className="text-xs text-muted-foreground p-2">
-        Erro ao carregar instâncias
-      </div>
-    )
+    return <div className="text-muted-foreground p-2 text-xs">Erro ao carregar instâncias</div>
   }
 
   // If no instances, show message
   if (instances.length === 0) {
-    return (
-      <div className="text-xs text-muted-foreground p-2">
-        Nenhuma instância conectada
-      </div>
-    )
+    return <div className="text-muted-foreground p-2 text-xs">Nenhuma instância conectada</div>
   }
 
   // Always show "Todas as instâncias" option, even with single instance
@@ -97,9 +86,7 @@ export function InstanceSelector({
             <div className="flex items-center gap-2">
               <span className="text-sm">{instance.displayPhone}</span>
               {instance.verifiedName && (
-                <span className="text-xs text-muted-foreground">
-                  ({instance.verifiedName})
-                </span>
+                <span className="text-muted-foreground text-xs">({instance.verifiedName})</span>
               )}
             </div>
           </SelectItem>

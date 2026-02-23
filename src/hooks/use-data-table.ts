@@ -39,12 +39,7 @@ interface UseDataTableReturn<TData> {
 export function useDataTable<TData extends Record<string, any>>(
   options: UseDataTableOptions<TData>
 ): UseDataTableReturn<TData> {
-  const {
-    data,
-    columns,
-    pagination,
-    onPaginationChange,
-  } = options
+  const { data, columns, pagination, onPaginationChange } = options
 
   // Calculate pagination state
   const paginationState = useMemo(() => {
@@ -61,9 +56,7 @@ export function useDataTable<TData extends Record<string, any>>(
     columns,
     getCoreRowModel: getCoreRowModel(),
     manualPagination: !!pagination,
-    pageCount: pagination
-      ? Math.ceil(pagination.total / pagination.pageSize)
-      : undefined,
+    pageCount: pagination ? Math.ceil(pagination.total / pagination.pageSize) : undefined,
     state: pagination
       ? {
           pagination: paginationState!,
@@ -71,10 +64,7 @@ export function useDataTable<TData extends Record<string, any>>(
       : undefined,
     onPaginationChange: pagination
       ? (updater) => {
-          const newState =
-            typeof updater === 'function'
-              ? updater(paginationState!)
-              : updater
+          const newState = typeof updater === 'function' ? updater(paginationState!) : updater
 
           onPaginationChange?.({
             page: newState.pageIndex + 1,

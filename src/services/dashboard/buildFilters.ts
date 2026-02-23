@@ -36,9 +36,9 @@ export function buildSalesWhere(filters: SummaryFilters): Prisma.SaleWhereInput 
     andConditions.push({
       items: {
         some: {
-          productId: filters.product
-        }
-      }
+          productId: filters.product,
+        },
+      },
     })
   }
 

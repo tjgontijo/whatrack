@@ -3,10 +3,9 @@ export function createAppBaseUrl() {
 
   if (!raw) {
     throw new Error(
-      '[tracking] Missing NEXT_PUBLIC_APP_URL/APP_URL. Configure it in the environment variables (e.g. https://whatrack.com).',
+      '[tracking] Missing NEXT_PUBLIC_APP_URL/APP_URL. Configure it in the environment variables (e.g. https://whatrack.com).'
     )
   }
 
   return raw.replace(/\/$/, '')
 }
-

@@ -103,7 +103,7 @@ function QuizOption({
   label,
   selected,
   onClick,
-  onSelect
+  onSelect,
 }: {
   label: string
   selected: boolean
@@ -118,7 +118,7 @@ function QuizOption({
         onSelect?.()
       }}
       className={cn(
-        'w-full text-left px-4 py-3 rounded-lg border transition-all',
+        'w-full rounded-lg border px-4 py-3 text-left transition-all',
         selected
           ? 'border-primary bg-primary/5 text-foreground'
           : 'border-border hover:border-primary/50'
@@ -152,28 +152,28 @@ function StepWrapper({
   nextLabel?: string
 }) {
   return (
-    <div className="w-full max-w-lg mx-auto">
+    <div className="mx-auto w-full max-w-lg">
       {onBack && (
         <button
           type="button"
           onClick={onBack}
-          className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8"
+          className="text-muted-foreground hover:text-foreground mb-8 flex items-center gap-1 text-sm transition-colors"
         >
           <ChevronLeft className="h-4 w-4" />
           Voltar
         </button>
       )}
-      {!onBack && <div className="h-10 mb-8" />}
+      {!onBack && <div className="mb-8 h-10" />}
 
       <div className="space-y-8">
-        <h2 className="text-2xl md:text-3xl font-semibold">{question}</h2>
+        <h2 className="text-2xl font-semibold md:text-3xl">{question}</h2>
         <div className="space-y-3">{children}</div>
         {onNext && !autoAdvance && (
           <Button
             type={isLast ? 'submit' : 'button'}
             onClick={isLast ? undefined : onNext}
             disabled={!canProceed || isSubmitting}
-            className="w-full h-12"
+            className="h-12 w-full"
           >
             {isSubmitting ? 'Salvando...' : nextLabel}
           </Button>
@@ -185,11 +185,7 @@ function StepWrapper({
 
 // Animação de entrada
 function AnimatedStep({ children }: { children: ReactNode }) {
-  return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
-      {children}
-    </div>
-  )
+  return <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">{children}</div>
 }
 
 interface OnboardingOverlayProps {
@@ -203,7 +199,9 @@ export function OnboardingOverlay({ onComplete, onSkip }: OnboardingOverlayProps
   const [cnpjFound, setCnpjFound] = useState(false)
   const [cnpjError, setCnpjError] = useState<string | null>(null)
   const [showCnpjConfirmation, setShowCnpjConfirmation] = useState(false)
-  const [cnpjLookupState, setCnpjLookupState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+  const [cnpjLookupState, setCnpjLookupState] = useState<'idle' | 'loading' | 'success' | 'error'>(
+    'idle'
+  )
 
   const form = useForm<OnboardingData>({
     resolver: zodResolver(onboardingSchema),
@@ -284,7 +282,8 @@ export function OnboardingOverlay({ onComplete, onSkip }: OnboardingOverlayProps
     if (digits.length <= 2) return digits
     if (digits.length <= 5) return `${digits.slice(0, 2)}.${digits.slice(2)}`
     if (digits.length <= 8) return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5)}`
-    if (digits.length <= 12) return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8)}`
+    if (digits.length <= 12)
+      return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8)}`
     return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`
   }
 
@@ -462,16 +461,16 @@ export function OnboardingOverlay({ onComplete, onSkip }: OnboardingOverlayProps
   const mainChannel = form.watch('mainAcquisitionChannel')
 
   return (
-    <div className="fixed inset-0 z-50 bg-background">
+    <div className="bg-background fixed inset-0 z-50">
       {/* Header */}
-      <div className="absolute top-0 left-0 right-0 border-b bg-background/95 backdrop-blur">
+      <div className="bg-background/95 absolute left-0 right-0 top-0 border-b backdrop-blur">
         <div className="mx-auto w-full max-w-lg px-4 py-3">
           <div className="flex items-center justify-between gap-4">
             <img src="/images/logo_transparent.png" alt="WhaTrack" className="h-6 w-auto" />
-            <div className="flex-1 max-w-[200px]">
-              <div className="h-1 w-full overflow-hidden rounded-full bg-muted">
+            <div className="max-w-[200px] flex-1">
+              <div className="bg-muted h-1 w-full overflow-hidden rounded-full">
                 <div
-                  className="h-full bg-primary transition-all duration-300"
+                  className="bg-primary h-full transition-all duration-300"
                   style={{ width: `${(currentStep / TOTAL_STEPS) * 100}%` }}
                 />
               </div>
@@ -480,7 +479,7 @@ export function OnboardingOverlay({ onComplete, onSkip }: OnboardingOverlayProps
               <button
                 type="button"
                 onClick={handleSkip}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                className="text-muted-foreground hover:text-foreground text-sm transition-colors"
               >
                 Pular
               </button>
@@ -490,23 +489,19 @@ export function OnboardingOverlay({ onComplete, onSkip }: OnboardingOverlayProps
       </div>
 
       {/* Conteúdo centralizado */}
-      <div className="flex items-center justify-center min-h-screen px-4 pt-16 pb-8">
+      <div className="flex min-h-screen items-center justify-center px-4 pb-8 pt-16">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="w-full">
-
             {/* Step 1: CNPJ */}
             {currentStep === 1 && !showCnpjConfirmation && (
-
-
               <AnimatedStep>
-                <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 mb-6 flex items-start gap-3">
-                  <InfoIcon className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                <div className="bg-primary/5 border-primary/20 mb-6 flex items-start gap-3 rounded-lg border p-4">
+                  <InfoIcon className="text-primary mt-0.5 h-5 w-5 flex-shrink-0" />
                   <div className="text-sm">
-                    <p className="font-medium text-foreground mb-1">
-                      Bem-vindo ao WhaTrack!
-                    </p>
+                    <p className="text-foreground mb-1 font-medium">Bem-vindo ao WhaTrack!</p>
                     <p className="text-muted-foreground">
-                      Responda essas 6 perguntas rápidas sobre seu negócio para personalizarmos sua experiência. Leva apenas <strong>40 segundos</strong>.
+                      Responda essas 6 perguntas rápidas sobre seu negócio para personalizarmos sua
+                      experiência. Leva apenas <strong>40 segundos</strong>.
                     </p>
                   </div>
                 </div>
@@ -544,7 +539,7 @@ export function OnboardingOverlay({ onComplete, onSkip }: OnboardingOverlayProps
                       {/* Visual feedback */}
                       {cnpjLookupState === 'loading' && (
                         <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                          <Loader2 className="text-muted-foreground h-4 w-4 animate-spin" />
                         </div>
                       )}
                       {cnpjLookupState === 'success' && (
@@ -554,14 +549,16 @@ export function OnboardingOverlay({ onComplete, onSkip }: OnboardingOverlayProps
                       )}
                       {cnpjLookupState === 'error' && (
                         <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                          <XCircle className="h-4 w-4 text-destructive" />
+                          <XCircle className="text-destructive h-4 w-4" />
                         </div>
                       )}
                     </div>
-                    {cnpjError && <p className="text-sm text-destructive">{cnpjError}</p>}
-                    {isSearchingCnpj && <p className="text-sm text-muted-foreground">Buscando dados da empresa...</p>}
+                    {cnpjError && <p className="text-destructive text-sm">{cnpjError}</p>}
+                    {isSearchingCnpj && (
+                      <p className="text-muted-foreground text-sm">Buscando dados da empresa...</p>
+                    )}
 
-                    <div className="pt-4 border-t border-border">
+                    <div className="border-border border-t pt-4">
                       <Button
                         type="button"
                         variant="outline"
@@ -588,32 +585,34 @@ export function OnboardingOverlay({ onComplete, onSkip }: OnboardingOverlayProps
                   onNext={goNext}
                 >
                   <div className="space-y-4">
-                    <div className="p-4 rounded-lg bg-primary/5 border border-primary/20 space-y-3">
+                    <div className="bg-primary/5 border-primary/20 space-y-3 rounded-lg border p-4">
                       <div>
-                        <p className="text-xs text-muted-foreground">Razão Social</p>
+                        <p className="text-muted-foreground text-xs">Razão Social</p>
                         <p className="font-semibold">{form.watch('razaoSocial')}</p>
                       </div>
                       {form.watch('nomeFantasia') && (
                         <div>
-                          <p className="text-xs text-muted-foreground">Nome Fantasia</p>
+                          <p className="text-muted-foreground text-xs">Nome Fantasia</p>
                           <p className="font-medium">{form.watch('nomeFantasia')}</p>
                         </div>
                       )}
-                      <div className="grid grid-cols-2 gap-3 pt-2 border-t border-primary/10">
+                      <div className="border-primary/10 grid grid-cols-2 gap-3 border-t pt-2">
                         <div>
-                          <p className="text-xs text-muted-foreground">Cidade/UF</p>
-                          <p className="text-sm">{form.watch('municipio')}/{form.watch('uf')}</p>
+                          <p className="text-muted-foreground text-xs">Cidade/UF</p>
+                          <p className="text-sm">
+                            {form.watch('municipio')}/{form.watch('uf')}
+                          </p>
                         </div>
                         {form.watch('porte') && (
                           <div>
-                            <p className="text-xs text-muted-foreground">Porte</p>
+                            <p className="text-muted-foreground text-xs">Porte</p>
                             <p className="text-sm">{form.watch('porte')}</p>
                           </div>
                         )}
                       </div>
                       {form.watch('cnaeDescription') && (
-                        <div className="pt-2 border-t border-primary/10">
-                          <p className="text-xs text-muted-foreground">Atividade Principal</p>
+                        <div className="border-primary/10 border-t pt-2">
+                          <p className="text-muted-foreground text-xs">Atividade Principal</p>
                           <p className="text-sm">{form.watch('cnaeDescription')}</p>
                         </div>
                       )}
@@ -630,7 +629,9 @@ export function OnboardingOverlay({ onComplete, onSkip }: OnboardingOverlayProps
                   question="Dados da empresa"
                   onBack={goBack}
                   onNext={goNext}
-                  canProceed={!!form.watch('cpf') && !!form.watch('companyName') && !!form.watch('segment')}
+                  canProceed={
+                    !!form.watch('cpf') && !!form.watch('companyName') && !!form.watch('segment')
+                  }
                 >
                   <div className="space-y-4">
                     <Controller
@@ -644,10 +645,8 @@ export function OnboardingOverlay({ onComplete, onSkip }: OnboardingOverlayProps
                             placeholder="000.000.000-00"
                             className="h-12"
                             {...field}
-                            value={field.value || ""}
-                            onChange={(e) =>
-                              field.onChange(applyCpfMask(e.target.value))
-                            }
+                            value={field.value || ''}
+                            onChange={(e) => field.onChange(applyCpfMask(e.target.value))}
                           />
                           <FieldError errors={[fieldState.error]} />
                         </Field>
@@ -659,7 +658,7 @@ export function OnboardingOverlay({ onComplete, onSkip }: OnboardingOverlayProps
                       render={({ field, fieldState }) => (
                         <Field data-invalid={fieldState.invalid}>
                           <FieldLabel htmlFor={field.name}>Nome da Empresa *</FieldLabel>
-                          <p className="text-xs text-muted-foreground mb-2">
+                          <p className="text-muted-foreground mb-2 text-xs">
                             Como sua empresa aparecerá nos relatórios e documentos
                           </p>
                           <Input
@@ -667,7 +666,7 @@ export function OnboardingOverlay({ onComplete, onSkip }: OnboardingOverlayProps
                             placeholder="Nome da empresa"
                             className="h-12"
                             {...field}
-                            value={field.value || ""}
+                            value={field.value || ''}
                           />
                           <FieldError errors={[fieldState.error]} />
                         </Field>
@@ -681,9 +680,9 @@ export function OnboardingOverlay({ onComplete, onSkip }: OnboardingOverlayProps
                           <FieldLabel htmlFor={field.name}>Área de Atuação *</FieldLabel>
                           <select
                             id={field.name}
-                            className="w-full h-12 px-3 rounded-lg border border-border bg-background"
+                            className="border-border bg-background h-12 w-full rounded-lg border px-3"
                             {...field}
-                            value={field.value || ""}
+                            value={field.value || ''}
                           >
                             <option value="">Selecione a área de atuação</option>
                             {segmentOptions.map((opt) => (
@@ -701,7 +700,6 @@ export function OnboardingOverlay({ onComplete, onSkip }: OnboardingOverlayProps
               </AnimatedStep>
             )}
 
-
             {/* Step 3: Atendentes */}
             {currentStep === 3 && (
               <AnimatedStep>
@@ -711,7 +709,7 @@ export function OnboardingOverlay({ onComplete, onSkip }: OnboardingOverlayProps
                   onNext={goNext}
                   autoAdvance
                 >
-                  <p className="text-sm text-muted-foreground mb-4">
+                  <p className="text-muted-foreground mb-4 text-sm">
                     Incluindo você e todos que conversam com clientes via WhatsApp
                   </p>
                   <div className="space-y-2">
@@ -738,7 +736,7 @@ export function OnboardingOverlay({ onComplete, onSkip }: OnboardingOverlayProps
                   onNext={goNext}
                   autoAdvance
                 >
-                  <p className="text-sm text-muted-foreground mb-4">
+                  <p className="text-muted-foreground mb-4 text-sm">
                     Estimativa aproximada está ótima! Isso nos ajuda a dimensionar melhor sua conta
                   </p>
                   <div className="space-y-2">
@@ -789,7 +787,7 @@ export function OnboardingOverlay({ onComplete, onSkip }: OnboardingOverlayProps
                   onNext={goNext}
                   autoAdvance
                 >
-                  <p className="text-sm text-muted-foreground mb-4">
+                  <p className="text-muted-foreground mb-4 text-sm">
                     Isso nos ajuda a sugerir recursos e integrações ideais para seu porte
                   </p>
                   <div className="space-y-2">
@@ -831,16 +829,20 @@ export function OnboardingOverlay({ onComplete, onSkip }: OnboardingOverlayProps
 
                     {/* Pergunta condicional: gasto em anúncios */}
                     {(mainChannel === 'meta' || mainChannel === 'google') && (
-                      <div className="mt-6 pt-6 border-t border-border space-y-3">
-                        <p className="text-sm font-medium">Quanto você investe por mês em anúncios?</p>
+                      <div className="border-border mt-6 space-y-3 border-t pt-6">
+                        <p className="text-sm font-medium">
+                          Quanto você investe por mês em anúncios?
+                        </p>
                         <select
-                          className="w-full h-10 px-3 rounded-lg border border-border bg-background text-sm"
+                          className="border-border bg-background h-10 w-full rounded-lg border px-3 text-sm"
                           value={form.watch('monthlyAdSpend') || ''}
                           onChange={(e) => form.setValue('monthlyAdSpend', e.target.value)}
                         >
                           <option value="">Selecione</option>
                           {monthlyAdSpendOptions.map((opt) => (
-                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                            <option key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </option>
                           ))}
                         </select>
                       </div>
@@ -849,7 +851,6 @@ export function OnboardingOverlay({ onComplete, onSkip }: OnboardingOverlayProps
                 </StepWrapper>
               </AnimatedStep>
             )}
-
           </form>
         </Form>
       </div>

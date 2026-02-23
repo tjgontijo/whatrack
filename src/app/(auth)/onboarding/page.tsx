@@ -6,18 +6,13 @@ import { OnboardingOverlay } from '@/components/onboarding/onboarding-overlay'
 export default function OnboardingPage() {
   const router = useRouter()
 
-  const handleComplete = () => {    
+  const handleComplete = () => {
     router.push('/dashboard')
   }
 
-  const handleSkip = () => {    
+  const handleSkip = () => {
     router.push('/dashboard')
   }
 
-  return (
-    <OnboardingOverlay 
-      onComplete={handleComplete}
-      onSkip={handleSkip}
-    />
-  )
+  return <OnboardingOverlay onComplete={handleComplete} onSkip={handleSkip} />
 }

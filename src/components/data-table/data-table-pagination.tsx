@@ -31,10 +31,7 @@ interface DataTablePaginationProps {
  * - Current page info
  * - Responsive layout
  */
-export const DataTablePagination = React.forwardRef<
-  HTMLDivElement,
-  DataTablePaginationProps
->(
+export const DataTablePagination = React.forwardRef<HTMLDivElement, DataTablePaginationProps>(
   (
     {
       page,
@@ -61,8 +58,8 @@ export const DataTablePagination = React.forwardRef<
         )}
       >
         {/* Page size selector - Desktop only */}
-        <div className="hidden md:flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">Itens por página</span>
+        <div className="hidden items-center gap-2 md:flex">
+          <span className="text-muted-foreground text-xs">Itens por página</span>
           <Select value={String(pageSize)} onValueChange={(v) => onPageSizeChange(Number(v))}>
             <SelectTrigger className="h-8 w-[70px]">
               <SelectValue />
@@ -78,7 +75,7 @@ export const DataTablePagination = React.forwardRef<
         </div>
 
         {/* Page info */}
-        <div className="text-xs text-muted-foreground">
+        <div className="text-muted-foreground text-xs">
           Página <span className="font-semibold">{page}</span> de{' '}
           <span className="font-semibold">{Math.max(1, pageCount)}</span>
           {total > 0 && (
@@ -103,8 +100,8 @@ export const DataTablePagination = React.forwardRef<
           </Button>
 
           {/* Page size selector - Mobile */}
-          <div className="md:hidden flex items-center gap-1">
-            <span className="text-xs text-muted-foreground">por pág:</span>
+          <div className="flex items-center gap-1 md:hidden">
+            <span className="text-muted-foreground text-xs">por pág:</span>
             <Select value={String(pageSize)} onValueChange={(v) => onPageSizeChange(Number(v))}>
               <SelectTrigger className="h-8 w-[60px]">
                 <SelectValue />

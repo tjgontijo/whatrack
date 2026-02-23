@@ -24,44 +24,21 @@ export const ticketsQuerySchema = z.object({
 export const createTicketSchema = z.object({
   conversationId: z.string().uuid('ID de conversa inválido'),
   stageId: z.string().uuid('ID de estágio inválido').optional(),
-  assigneeId: z
-    .string()
-    .uuid('ID de atribuído inválido')
-    .optional()
-    .nullable(),
-  dealValue: z
-    .number()
-    .nonnegative('Deal value não pode ser negativo')
-    .optional()
-    .nullable(),
+  assigneeId: z.string().uuid('ID de atribuído inválido').optional().nullable(),
+  dealValue: z.number().nonnegative('Deal value não pode ser negativo').optional().nullable(),
   notes: z.string().max(1000, 'Notas muito longas').optional(),
 })
 
 // PATCH /api/v1/tickets/:id - Update ticket
 export const updateTicketSchema = z.object({
   stageId: z.string().uuid('ID de estágio inválido').optional(),
-  assigneeId: z
-    .string()
-    .uuid('ID de atribuído inválido')
-    .optional()
-    .nullable(),
-  dealValue: z
-    .number()
-    .nonnegative('Deal value não pode ser negativo')
-    .optional()
-    .nullable(),
+  assigneeId: z.string().uuid('ID de atribuído inválido').optional().nullable(),
+  dealValue: z.number().nonnegative('Deal value não pode ser negativo').optional().nullable(),
 })
 
 // POST /api/v1/tickets/:id/close - Close ticket
 export const closeTicketSchema = z.object({
   reason: z.enum(['won', 'lost'] as const),
-  closedReason: z
-    .string()
-    .max(500, 'Motivo de fechamento muito longo')
-    .optional(),
-  dealValue: z
-    .number()
-    .nonnegative('Deal value não pode ser negativo')
-    .optional()
-    .nullable(),
+  closedReason: z.string().max(500, 'Motivo de fechamento muito longo').optional(),
+  dealValue: z.number().nonnegative('Deal value não pode ser negativo').optional().nullable(),
 })

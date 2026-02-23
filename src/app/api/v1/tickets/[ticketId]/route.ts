@@ -11,14 +11,17 @@ import { getTicketById, updateTicket } from '@/services/tickets/ticket.service'
 function getCapiEventForStage(stageName: string): 'LeadSubmitted' | 'Purchase' | null {
   const name = stageName.toLowerCase()
   if (name.includes('qualificado') || name.includes('qualified')) return 'LeadSubmitted'
-  if (name.includes('venda') || name.includes('pago') || name.includes('ganho') || name.includes('won')) return 'Purchase'
+  if (
+    name.includes('venda') ||
+    name.includes('pago') ||
+    name.includes('ganho') ||
+    name.includes('won')
+  )
+    return 'Purchase'
   return null
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ ticketId: string }> },
-) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ ticketId: string }> }) {
   const access = await validateFullAccess(req)
   if (!access.hasAccess || !access.organizationId) {
     return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
@@ -43,7 +46,7 @@ export async function GET(
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: Promise<{ ticketId: string }> },
+  { params }: { params: Promise<{ ticketId: string }> }
 ) {
   const access = await validateFullAccess(req)
   if (!access.hasAccess || !access.organizationId) {
@@ -59,7 +62,10 @@ export async function PATCH(
     const body = await req.json()
     const parsed = updateTicketSchema.safeParse(body)
     if (!parsed.success) {
-      return NextResponse.json({ error: 'Dados inválidos', details: parsed.error.flatten() }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: parsed.error.flatten() },
+        { status: 400 }
+      )
     }
 
     const result = await updateTicket({
@@ -78,10 +84,14 @@ export async function PATCH(
     if (parsed.data.stageId && parsed.data.stageId !== result.previousStageId) {
       const eventName = getCapiEventForStage(result.data.stage.name)
       if (eventName) {
-        metaCapiService.sendEvent(ticketId, eventName, {
-          eventId: `${eventName.toLowerCase()}-${ticketId}`,
-          value: result.data.dealValue ?? undefined,
-        }).catch(err => console.error(`[CAPI] Fire-and-forget failed for ticket ${ticketId}`, err))
+        metaCapiService
+          .sendEvent(ticketId, eventName, {
+            eventId: `${eventName.toLowerCase()}-${ticketId}`,
+            value: result.data.dealValue ?? undefined,
+          })
+          .catch((err) =>
+            console.error(`[CAPI] Fire-and-forget failed for ticket ${ticketId}`, err)
+          )
       }
     }
 

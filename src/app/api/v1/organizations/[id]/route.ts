@@ -4,11 +4,11 @@
  * PATCH - Update an existing organization
  */
 
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { getOrSyncUser } from "@/server/auth/server";
+import { NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+import { getOrSyncUser } from '@/server/auth/server'
 
-import { calculateMetrics } from "@/services/onboarding-metrics/metrics-calculator";
+import { calculateMetrics } from '@/services/onboarding-metrics/metrics-calculator'
 
 /**
  * Gera slug único a partir do nome da empresa
@@ -18,18 +18,15 @@ import { calculateMetrics } from "@/services/onboarding-metrics/metrics-calculat
  * - Remove caracteres especiais
  * - Adiciona sufixo aleatório se houver duplicata
  */
-async function generateUniqueSlug(
-  name: string,
-  excludeOrgId?: string
-): Promise<string> {
+async function generateUniqueSlug(name: string, excludeOrgId?: string): Promise<string> {
   const baseSlug = name
     .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") // Remove acentos
-    .replace(/[^\w\s-]/g, "") // Remove caracteres especiais
-    .replace(/\s+/g, "-") // Espaços → hífens
-    .replace(/-+/g, "-") // Remove hífens duplicados
-    .replace(/^-|-$/g, ""); // Remove hífens das pontas
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+    .replace(/[^\w\s-]/g, '') // Remove caracteres especiais
+    .replace(/\s+/g, '-') // Espaços → hífens
+    .replace(/-+/g, '-') // Remove hífens duplicados
+    .replace(/^-|-$/g, '') // Remove hífens das pontas
 
   // Verificar se slug já existe
   const existing = await prisma.organization.findFirst({
@@ -37,51 +34,48 @@ async function generateUniqueSlug(
       slug: baseSlug,
       ...(excludeOrgId && { id: { not: excludeOrgId } }),
     },
-  });
+  })
 
   // Se não existe, retornar base slug
   if (!existing) {
-    return baseSlug;
+    return baseSlug
   }
 
   // Se existe, adicionar sufixo aleatório de 4 caracteres
-  const randomSuffix = Math.random().toString(36).substring(2, 6);
-  return `${baseSlug}-${randomSuffix}`;
+  const randomSuffix = Math.random().toString(36).substring(2, 6)
+  return `${baseSlug}-${randomSuffix}`
 }
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const user = await getOrSyncUser(request);
+    const user = await getOrSyncUser(request)
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { id: organizationId } = await params;
+    const { id: organizationId } = await params
 
     // Verificar se o usuário é owner da organização
     const member = await prisma.member.findFirst({
       where: {
         organizationId,
         userId: user.id,
-        role: "owner",
+        role: 'owner',
       },
-    });
+    })
 
     if (!member) {
       return NextResponse.json(
-        { error: "Você não tem permissão para atualizar esta organização" },
+        { error: 'Você não tem permissão para atualizar esta organização' },
         { status: 403 }
-      );
+      )
     }
 
-    const body = await request.json();
+    const body = await request.json()
 
     // Calcular métricas se temos os dados necessários
-    let metrics = {};
+    let metrics = {}
     if (body.leadsPerDay && body.avgTicket && body.monthlyRevenue && body.attendantsCount) {
       metrics = calculateMetrics({
         leadsPerDay: body.leadsPerDay,
@@ -89,13 +83,13 @@ export async function PATCH(
         monthlyRevenue: body.monthlyRevenue,
         attendantsCount: body.attendantsCount,
         monthlyAdSpend: body.monthlyAdSpend,
-      });
+      })
     }
 
     // Gerar novo slug se companyName for fornecido
-    let newSlug: string | undefined;
+    let newSlug: string | undefined
     if (body.companyName) {
-      newSlug = await generateUniqueSlug(body.companyName, organizationId);
+      newSlug = await generateUniqueSlug(body.companyName, organizationId)
     }
 
     // Atualizar organização (apenas campos que existem no schema)
@@ -106,12 +100,12 @@ export async function PATCH(
         ...(body.companyName && { name: body.companyName }), // companyName -> name
         ...(newSlug && { slug: newSlug }),
       },
-    });
+    })
 
     // Criar ou atualizar OrganizationProfile com dados de negócio
     const existingProfile = await prisma.organizationProfile.findFirst({
       where: { organizationId },
-    });
+    })
 
     if (existingProfile) {
       await prisma.organizationProfile.update({
@@ -128,11 +122,10 @@ export async function PATCH(
           ...(body.onboardingStatus === 'completed' && { onboardingCompletedAt: new Date() }),
           ...metrics,
         },
-      });
+      })
     } else {
       await prisma.organizationProfile.create({
         data: {
-
           organizationId,
           cpf: body.cpf || null,
           avgTicket: body.avgTicket || null,
@@ -145,7 +138,7 @@ export async function PATCH(
           ...(body.onboardingStatus === 'completed' && { onboardingCompletedAt: new Date() }),
           ...metrics,
         },
-      });
+      })
     }
 
     // Criar ou atualizar OrganizationCompany se temos dados de CNPJ
@@ -175,26 +168,25 @@ export async function PATCH(
         telefone: body.telefone || null,
         qsa: body.qsa || null,
         atividadesSecundarias: body.atividadesSecundarias || null,
-      };
+      }
 
       const existingCompany = await prisma.organizationCompany.findFirst({
         where: { organizationId },
-      });
+      })
 
       if (existingCompany) {
         await prisma.organizationCompany.update({
           where: { id: existingCompany.id },
           data: companyData,
-        });
+        })
       } else {
         await prisma.organizationCompany.create({
           data: {
-
             organizationId,
             ...companyData,
             authorizedByUserId: user.id,
           },
-        });
+        })
       }
     }
 
@@ -205,12 +197,9 @@ export async function PATCH(
         slug: organization.slug,
       },
       { status: 200 }
-    );
+    )
   } catch (error) {
-    console.error("Failed to update organization:", error);
-    return NextResponse.json(
-      { error: "Failed to update organization" },
-      { status: 500 }
-    );
+    console.error('Failed to update organization:', error)
+    return NextResponse.json({ error: 'Failed to update organization' }, { status: 500 })
   }
 }

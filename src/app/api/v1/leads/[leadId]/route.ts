@@ -4,10 +4,7 @@ import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ leadId: string }> }
-) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ leadId: string }> }) {
   const access = await validateFullAccess(req)
   if (!access.hasAccess || !access.organizationId) {
     return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
@@ -41,10 +38,7 @@ const updateLeadSchema = z.object({
   waId: z.string().optional().nullable(),
 })
 
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: Promise<{ leadId: string }> }
-) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ leadId: string }> }) {
   const access = await validateFullAccess(req)
   if (!access.hasAccess || !access.organizationId) {
     return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })

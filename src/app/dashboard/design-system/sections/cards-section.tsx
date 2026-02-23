@@ -37,15 +37,13 @@ export function CardsSection() {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Card Básico */}
         <div>
-          <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">
+          <h3 className="text-muted-foreground mb-3 text-xs font-semibold uppercase tracking-widest">
             Card Básico
           </h3>
           <Card>
             <CardHeader>
               <CardTitle>Resumo do Mês</CardTitle>
-              <CardDescription>
-                Visão geral das métricas de janeiro
-              </CardDescription>
+              <CardDescription>Visão geral das métricas de janeiro</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
@@ -69,14 +67,14 @@ export function CardsSection() {
               </Button>
             </CardFooter>
           </Card>
-          <p className="text-[11px] font-mono text-muted-foreground mt-2">
+          <p className="text-muted-foreground mt-2 font-mono text-[11px]">
             Card / CardHeader / CardTitle / CardContent / CardFooter
           </p>
         </div>
 
         {/* DataTable Card */}
         <div>
-          <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">
+          <h3 className="text-muted-foreground mb-3 text-xs font-semibold uppercase tracking-widest">
             DataTable Card
           </h3>
           <DataTableCard>
@@ -89,7 +87,7 @@ export function CardsSection() {
                 <span className="text-sm">+55 11 99999-0000</span>
               </DataTableCardRow>
               <DataTableCardRow label="Email">
-                <span className="text-sm text-primary">maria@email.com</span>
+                <span className="text-primary text-sm">maria@email.com</span>
               </DataTableCardRow>
               <DataTableCardRow label="Status">
                 <Badge variant="secondary">Qualificado</Badge>
@@ -107,25 +105,23 @@ export function CardsSection() {
               </Button>
             </DataTableCardFooter>
           </DataTableCard>
-          <p className="text-[11px] font-mono text-muted-foreground mt-2">
+          <p className="text-muted-foreground mt-2 font-mono text-[11px]">
             DataTableCard / Header / Title / Meta / Content / Row / Footer
           </p>
         </div>
 
         {/* Metric Card */}
         <div>
-          <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">
+          <h3 className="text-muted-foreground mb-3 text-xs font-semibold uppercase tracking-widest">
             Metric Card
           </h3>
           <DashboardMetricCard
             title="Vendas do Mês"
             value="R$ 48.250"
             icon={<TrendingUp className="size-5" />}
-            trend={
-              <span className="text-success">+12,5% vs mês anterior</span>
-            }
+            trend={<span className="text-success">+12,5% vs mês anterior</span>}
           />
-          <p className="text-[11px] font-mono text-muted-foreground mt-2">
+          <p className="text-muted-foreground mt-2 font-mono text-[11px]">
             DashboardMetricCard (title, value, icon, trend)
           </p>
         </div>
@@ -136,7 +132,7 @@ export function CardsSection() {
       {/* Buttons & Badges */}
       <div className="grid gap-6 lg:grid-cols-2">
         <ShowcaseBox>
-          <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
+          <h3 className="text-muted-foreground mb-4 text-xs font-semibold uppercase tracking-widest">
             Botões
           </h3>
           <div className="space-y-4">
@@ -168,7 +164,7 @@ export function CardsSection() {
         </ShowcaseBox>
 
         <ShowcaseBox>
-          <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
+          <h3 className="text-muted-foreground mb-4 text-xs font-semibold uppercase tracking-widest">
             Badges
           </h3>
           <div className="space-y-4">
@@ -180,19 +176,13 @@ export function CardsSection() {
               <Badge variant="ghost">Ghost</Badge>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground mb-2">
+              <p className="text-muted-foreground mb-2 text-xs">
                 Para status, use Badge com cores semânticas:
               </p>
               <div className="flex flex-wrap items-center gap-2">
-                <Badge className="bg-success/10 text-success border-success/20">
-                  Ativo
-                </Badge>
-                <Badge className="bg-warning/10 text-warning border-warning/20">
-                  Pendente
-                </Badge>
-                <Badge className="bg-info/10 text-info border-info/20">
-                  Em progresso
-                </Badge>
+                <Badge className="bg-success/10 text-success border-success/20">Ativo</Badge>
+                <Badge className="bg-warning/10 text-warning border-warning/20">Pendente</Badge>
+                <Badge className="bg-info/10 text-info border-info/20">Em progresso</Badge>
                 <Badge className="bg-destructive/10 text-destructive border-destructive/20">
                   Cancelado
                 </Badge>

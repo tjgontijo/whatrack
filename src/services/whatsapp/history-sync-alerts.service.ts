@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/prisma'
 
 /**
  * WhatsApp History Sync Alerts Service
@@ -8,12 +8,12 @@ import { prisma } from '@/lib/prisma';
  */
 
 interface SyncAlert {
-  type: 'warning' | 'error' | 'info';
-  message: string;
-  timestamp: Date;
-  configId: string;
-  organizationId: string;
-  metadata?: Record<string, any>;
+  type: 'warning' | 'error' | 'info'
+  message: string
+  timestamp: Date
+  configId: string
+  organizationId: string
+  metadata?: Record<string, any>
 }
 
 export class HistorySyncAlertsService {
@@ -22,7 +22,7 @@ export class HistorySyncAlertsService {
    * Se não receber webhook de história em X minutos após state_sync
    */
   async checkSyncTimeouts(timeoutMinutes: number = 30): Promise<void> {
-    const cutoffTime = new Date(Date.now() - timeoutMinutes * 60 * 1000);
+    const cutoffTime = new Date(Date.now() - timeoutMinutes * 60 * 1000)
 
     try {
       // Buscar configs que estão 'pending_history' há mais que timeout
@@ -36,7 +36,7 @@ export class HistorySyncAlertsService {
         include: {
           organization: true,
         },
-      });
+      })
 
       for (const config of staleSyncs) {
         await this.createAlert({
@@ -50,12 +50,12 @@ export class HistorySyncAlertsService {
             timeoutMinutes,
             startedAt: config.historySyncStartedAt,
           },
-        });
+        })
 
-        console.warn(`[HistorySyncAlerts] Sync timeout for config ${config.id}`);
+        console.warn(`[HistorySyncAlerts] Sync timeout for config ${config.id}`)
       }
     } catch (error) {
-      console.error('[HistorySyncAlerts] Error checking sync timeouts', error);
+      console.error('[HistorySyncAlerts] Error checking sync timeouts', error)
     }
   }
 
@@ -72,7 +72,7 @@ export class HistorySyncAlertsService {
           createdAt: 'desc',
         },
         take: 100,
-      });
+      })
 
       for (const sync of failedSyncs) {
         await this.createAlert({
@@ -80,21 +80,24 @@ export class HistorySyncAlertsService {
           message: `Falha na sincronização de histórico: ${sync.errorMessage || 'Erro desconhecido'}`,
           timestamp: new Date(),
           configId: sync.connectionId,
-          organizationId: (await prisma.whatsAppConfig.findUnique({
-            where: { id: sync.connectionId },
-          }))?.organizationId || '',
+          organizationId:
+            (
+              await prisma.whatsAppConfig.findUnique({
+                where: { id: sync.connectionId },
+              })
+            )?.organizationId || '',
           metadata: {
             errorCode: sync.errorCode,
             errorMessage: sync.errorMessage,
             phase: sync.phase,
             progress: sync.progress,
           },
-        });
+        })
 
-        console.error(`[HistorySyncAlerts] Sync failed: ${sync.errorMessage}`);
+        console.error(`[HistorySyncAlerts] Sync failed: ${sync.errorMessage}`)
       }
     } catch (error) {
-      console.error('[HistorySyncAlerts] Error checking sync failures', error);
+      console.error('[HistorySyncAlerts] Error checking sync failures', error)
     }
   }
 
@@ -104,9 +107,9 @@ export class HistorySyncAlertsService {
   async alertSyncCompleted(configId: string, totalMessages: number): Promise<void> {
     const config = await prisma.whatsAppConfig.findUnique({
       where: { id: configId },
-    });
+    })
 
-    if (!config) return;
+    if (!config) return
 
     await this.createAlert({
       type: 'info',
@@ -118,9 +121,9 @@ export class HistorySyncAlertsService {
         totalMessages,
         completedAt: new Date(),
       },
-    });
+    })
 
-    console.log(`[HistorySyncAlerts] Sync completed for config ${configId}`);
+    console.log(`[HistorySyncAlerts] Sync completed for config ${configId}`)
   }
 
   /**
@@ -129,7 +132,7 @@ export class HistorySyncAlertsService {
    */
   async checkInactiveHistoryLeads(daysWithoutMessage: number = 7): Promise<void> {
     try {
-      const cutoffDate = new Date(Date.now() - daysWithoutMessage * 24 * 60 * 60 * 1000);
+      const cutoffDate = new Date(Date.now() - daysWithoutMessage * 24 * 60 * 60 * 1000)
 
       const inactiveLeads = await prisma.lead.findMany({
         where: {
@@ -144,18 +147,18 @@ export class HistorySyncAlertsService {
           phone: true,
           lastMessageAt: true,
         },
-      });
+      })
 
       if (inactiveLeads.length > 0) {
         // Agrupar por organização
         const byOrg = inactiveLeads.reduce(
           (acc, lead) => {
-            if (!acc[lead.organizationId]) acc[lead.organizationId] = [];
-            acc[lead.organizationId].push(lead);
-            return acc;
+            if (!acc[lead.organizationId]) acc[lead.organizationId] = []
+            acc[lead.organizationId].push(lead)
+            return acc
           },
           {} as Record<string, typeof inactiveLeads>
-        );
+        )
 
         for (const [orgId, leads] of Object.entries(byOrg)) {
           await this.createAlert({
@@ -167,13 +170,13 @@ export class HistorySyncAlertsService {
             metadata: {
               inactiveLeadCount: leads.length,
               daysWithoutMessage,
-              oldestLastMessage: Math.min(...leads.map(l => l.lastMessageAt?.getTime() || 0)),
+              oldestLastMessage: Math.min(...leads.map((l) => l.lastMessageAt?.getTime() || 0)),
             },
-          });
+          })
         }
       }
     } catch (error) {
-      console.error('[HistorySyncAlerts] Error checking inactive leads', error);
+      console.error('[HistorySyncAlerts] Error checking inactive leads', error)
     }
   }
 
@@ -188,7 +191,7 @@ export class HistorySyncAlertsService {
         configId: alert.configId,
         organizationId: alert.organizationId,
         metadata: alert.metadata,
-      });
+      })
 
       // TODO: Integrar com sistema de notificações
       // - Slack webhook
@@ -202,9 +205,9 @@ export class HistorySyncAlertsService {
         configId: alert.configId,
         organizationId: alert.organizationId,
         ...alert.metadata,
-      });
+      })
     } catch (error) {
-      console.error('[HistorySyncAlerts] Error creating alert', error);
+      console.error('[HistorySyncAlerts] Error creating alert', error)
     }
   }
 
@@ -213,16 +216,16 @@ export class HistorySyncAlertsService {
    * Ideal para ser executado por um cron job a cada 5 minutos
    */
   async runPeriodicChecks(): Promise<void> {
-    console.log('[HistorySyncAlerts] Running periodic checks...');
+    console.log('[HistorySyncAlerts] Running periodic checks...')
 
     await Promise.allSettled([
       this.checkSyncTimeouts(30), // 30 minutos
       this.checkSyncFailures(),
       this.checkInactiveHistoryLeads(7), // 7 dias
-    ]);
+    ])
 
-    console.log('[HistorySyncAlerts] Periodic checks completed');
+    console.log('[HistorySyncAlerts] Periodic checks completed')
   }
 }
 
-export const historySyncAlertsService = new HistorySyncAlertsService();
+export const historySyncAlertsService = new HistorySyncAlertsService()

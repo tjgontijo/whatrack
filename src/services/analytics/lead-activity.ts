@@ -1,7 +1,7 @@
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/prisma'
 
 export async function getLeadActivity(organizationId: string) {
-    const waitingLeads = await prisma.$queryRaw`
+  const waitingLeads = await prisma.$queryRaw`
     SELECT
       l.id,
       l.name,
@@ -20,9 +20,9 @@ export async function getLeadActivity(organizationId: string) {
       AND c.last_inbound_at > COALESCE(c.last_outbound_at, '1970-01-01')
     ORDER BY c.last_inbound_at ASC
     LIMIT 20;
-  `;
+  `
 
-    const forgottenLeads = await prisma.$queryRaw`
+  const forgottenLeads = await prisma.$queryRaw`
     SELECT
       l.id,
       l.name,
@@ -38,10 +38,10 @@ export async function getLeadActivity(organizationId: string) {
       AND c.last_outbound_at < NOW() - INTERVAL '24 hours'
       AND (c.last_inbound_at IS NULL OR c.last_inbound_at < c.last_outbound_at)
     ORDER BY c.last_outbound_at ASC;
-  `;
+  `
 
-    return {
-        waitingLeads,
-        forgottenLeads,
-    };
+  return {
+    waitingLeads,
+    forgottenLeads,
+  }
 }

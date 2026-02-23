@@ -62,17 +62,17 @@ export function ColorsSection() {
       <div className="space-y-8">
         {groups.map((group) => (
           <div key={group.title}>
-            <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">
+            <h3 className="text-muted-foreground mb-3 text-xs font-semibold uppercase tracking-widest">
               {group.title}
             </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
               {group.tokens.map((token) => (
                 <div
                   key={token.variable}
-                  className="flex items-center gap-3 rounded-xl border border-border/50 bg-card p-3"
+                  className="border-border/50 bg-card flex items-center gap-3 rounded-xl border p-3"
                 >
                   <div
-                    className="size-10 rounded-lg shrink-0 border border-border/30"
+                    className="border-border/30 size-10 shrink-0 rounded-lg border"
                     style={{ backgroundColor: token.color }}
                   />
                   <TokenLabel name={token.name} variable={token.variable} />

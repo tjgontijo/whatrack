@@ -35,7 +35,7 @@ async function publishTestMessage() {
     let response = await fetch('https://centrifugo.whatrack.com/api/publish', {
       method: 'POST',
       headers: {
-        'Authorization': `apikey ${apiKey}`,
+        Authorization: `apikey ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(messagePayload),
@@ -64,7 +64,7 @@ async function publishTestMessage() {
     response = await fetch('https://centrifugo.whatrack.com/api/publish', {
       method: 'POST',
       headers: {
-        'Authorization': `apikey ${apiKey}`,
+        Authorization: `apikey ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(ticketPayload),
@@ -85,7 +85,6 @@ async function publishTestMessage() {
     console.log('3. Clique em "Se Inscrever"')
     console.log('4. Execute este script novamente')
     console.log('5. Você deve ver a mensagem aparecer em tempo real no teste!')
-
   } catch (error) {
     console.error('❌ Erro ao publicar:', error instanceof Error ? error.message : String(error))
     console.log('\n📖 Dicas de debug:')

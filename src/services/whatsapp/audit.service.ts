@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/prisma'
 
 export type WhatsAppAuditAction =
   | 'ONBOARDING_STARTED'
@@ -11,17 +11,17 @@ export type WhatsAppAuditAction =
   | 'CONNECTION_DISCONNECTED'
   | 'HEALTH_CHECK'
   | 'TOKEN_EXPIRED'
-  | 'TOKEN_RENEWED';
+  | 'TOKEN_RENEWED'
 
 export interface AuditLogInput {
-  organizationId: string;
-  action: WhatsAppAuditAction;
-  description?: string;
-  metadata?: Record<string, any>;
-  trackingCode?: string;
-  connectionId?: string;
-  ipAddress?: string;
-  userAgent?: string;
+  organizationId: string
+  action: WhatsAppAuditAction
+  description?: string
+  metadata?: Record<string, any>
+  trackingCode?: string
+  connectionId?: string
+  ipAddress?: string
+  userAgent?: string
 }
 
 /**
@@ -45,11 +45,11 @@ export class WhatsAppAuditService {
           ipAddress: input.ipAddress,
           userAgent: input.userAgent,
         },
-      });
+      })
 
-      console.log(`[AuditLog] ${input.action}: ${input.description || ''}`);
+      console.log(`[AuditLog] ${input.action}: ${input.description || ''}`)
     } catch (error) {
-      console.error('[AuditLog] Error logging audit event:', error);
+      console.error('[AuditLog] Error logging audit event:', error)
       // Don't throw - audit logging failure shouldn't break the main flow
     }
   }
@@ -68,7 +68,7 @@ export class WhatsAppAuditService {
       description: `WhatsApp onboarding started with tracking code ${trackingCode}`,
       trackingCode,
       metadata,
-    });
+    })
   }
 
   /**
@@ -91,7 +91,7 @@ export class WhatsAppAuditService {
         wabaId,
         ...metadata,
       },
-    });
+    })
   }
 
   /**
@@ -112,7 +112,7 @@ export class WhatsAppAuditService {
         error,
         ...metadata,
       },
-    });
+    })
   }
 
   /**
@@ -127,7 +127,7 @@ export class WhatsAppAuditService {
   ): Promise<void> {
     const durationMinutes = connectedDuration
       ? Math.floor(connectedDuration / 1000 / 60)
-      : undefined;
+      : undefined
 
     await this.log({
       organizationId,
@@ -139,7 +139,7 @@ export class WhatsAppAuditService {
         connectedDurationMinutes: durationMinutes,
         ...metadata,
       },
-    });
+    })
   }
 
   /**
@@ -160,7 +160,7 @@ export class WhatsAppAuditService {
         wabaId,
         ...metadata,
       },
-    });
+    })
   }
 
   /**
@@ -181,7 +181,7 @@ export class WhatsAppAuditService {
         wabaId,
         ...metadata,
       },
-    });
+    })
   }
 
   /**
@@ -206,7 +206,7 @@ export class WhatsAppAuditService {
           status,
           ...metadata,
         },
-      });
+      })
     }
   }
 
@@ -216,15 +216,15 @@ export class WhatsAppAuditService {
   async getAuditLogs(
     organizationId: string,
     options?: {
-      action?: WhatsAppAuditAction;
-      connectionId?: string;
-      trackingCode?: string;
-      limit?: number;
-      offset?: number;
+      action?: WhatsAppAuditAction
+      connectionId?: string
+      trackingCode?: string
+      limit?: number
+      offset?: number
     }
   ) {
-    const limit = options?.limit ?? 100;
-    const offset = options?.offset ?? 0;
+    const limit = options?.limit ?? 100
+    const offset = options?.offset ?? 0
 
     const [logs, total] = await Promise.all([
       prisma.whatsAppAuditLog.findMany({
@@ -246,10 +246,10 @@ export class WhatsAppAuditService {
           ...(options?.trackingCode && { trackingCode: options.trackingCode }),
         },
       }),
-    ]);
+    ])
 
-    return { logs, total, limit, offset };
+    return { logs, total, limit, offset }
   }
 }
 
-export const whatsappAuditService = new WhatsAppAuditService();
+export const whatsappAuditService = new WhatsAppAuditService()

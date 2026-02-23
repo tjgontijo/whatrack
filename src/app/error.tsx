@@ -16,21 +16,20 @@ export default function Error({
   }, [error])
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-6" data-testid="error-page">
+    <div
+      className="flex min-h-screen flex-col items-center justify-center p-6"
+      data-testid="error-page"
+    >
       <div className="mx-auto max-w-md space-y-6 text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
-          <AlertCircle className="h-8 w-8 text-destructive" />
+        <div className="bg-destructive/10 mx-auto flex h-16 w-16 items-center justify-center rounded-full">
+          <AlertCircle className="text-destructive h-8 w-8" />
         </div>
         <div className="space-y-2">
           <h1 className="text-2xl font-bold tracking-tight">Algo deu errado</h1>
           <p className="text-muted-foreground">
             Ocorreu um erro inesperado. Por favor, tente novamente.
           </p>
-          {error.message && (
-            <p className="text-sm text-muted-foreground/70">
-              {error.message}
-            </p>
-          )}
+          {error.message && <p className="text-muted-foreground/70 text-sm">{error.message}</p>}
         </div>
         <Button onClick={reset} className="gap-2">
           <RotateCcw className="h-4 w-4" />

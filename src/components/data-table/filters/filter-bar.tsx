@@ -22,15 +22,12 @@ interface FilterBarProps {
  * - Badge for active filter count (via slot)
  */
 export const FilterBar = React.forwardRef<HTMLDivElement, FilterBarProps>(
-  (
-    { children, onClearAll, showClearButton = false, className },
-    ref
-  ) => {
+  ({ children, onClearAll, showClearButton = false, className }, ref) => {
     return (
       <div
         ref={ref}
         className={cn(
-          'rounded-lg border border-border/50 bg-card p-4 shadow-sm',
+          'border-border/50 bg-card rounded-lg border p-4 shadow-sm',
           'space-y-4',
           className
         )}
@@ -41,12 +38,7 @@ export const FilterBar = React.forwardRef<HTMLDivElement, FilterBarProps>(
           <>
             <Separator />
             <div className="flex justify-end">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onClearAll}
-                className="text-xs"
-              >
+              <Button variant="ghost" size="sm" onClick={onClearAll} className="text-xs">
                 Limpar filtros
               </Button>
             </div>
@@ -77,13 +69,11 @@ export const FilterBarSection = React.forwardRef<HTMLDivElement, FilterBarSectio
     return (
       <div ref={ref} className={cn('space-y-3', className)}>
         {title && (
-          <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+          <h3 className="text-muted-foreground text-xs font-semibold uppercase tracking-widest">
             {title}
           </h3>
         )}
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {children}
-        </div>
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{children}</div>
       </div>
     )
   }

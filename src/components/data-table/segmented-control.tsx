@@ -43,19 +43,9 @@ interface SegmentedControlProps<T = string> {
  * />
  * ```
  */
-export const SegmentedControl = React.forwardRef<
-  HTMLDivElement,
-  SegmentedControlProps
->(
+export const SegmentedControl = React.forwardRef<HTMLDivElement, SegmentedControlProps>(
   (
-    {
-      value,
-      onChange,
-      options,
-      className,
-      'aria-label': ariaLabel = 'Selector',
-      ...props
-    },
+    { value, onChange, options, className, 'aria-label': ariaLabel = 'Selector', ...props },
     ref
   ) => {
     return (
@@ -63,10 +53,7 @@ export const SegmentedControl = React.forwardRef<
         ref={ref}
         role="group"
         aria-label={ariaLabel}
-        className={cn(
-          'inline-flex items-center gap-1 rounded-lg bg-muted p-1',
-          className
-        )}
+        className={cn('bg-muted inline-flex items-center gap-1 rounded-lg p-1', className)}
         {...props}
       >
         {options.map((option) => (

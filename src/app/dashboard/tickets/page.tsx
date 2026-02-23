@@ -11,9 +11,20 @@ import { CrudListView } from '@/components/dashboard/crud/crud-list-view'
 import { CrudCardView } from '@/components/dashboard/crud/crud-card-view'
 import { CrudKanbanView } from '@/components/dashboard/crud/crud-kanban-view'
 import { useCrudInfiniteQuery } from '@/hooks/use-crud-infinite-query'
-import { type ColumnDef, type CardConfig, type KanbanColumn, type ViewType } from '@/components/dashboard/crud/types'
+import {
+  type ColumnDef,
+  type CardConfig,
+  type KanbanColumn,
+  type ViewType,
+} from '@/components/dashboard/crud/types'
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 
@@ -49,7 +60,10 @@ const STATUS_OPTIONS = [
   { value: 'closed_lost', label: 'Perdidos' },
 ]
 
-const STATUS_BADGE: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+const STATUS_BADGE: Record<
+  string,
+  { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }
+> = {
   open: { label: 'Aberto', variant: 'default' },
   closed_won: { label: 'Ganho', variant: 'secondary' },
   closed_lost: { label: 'Perdido', variant: 'destructive' },
@@ -79,12 +93,12 @@ const columns: ColumnDef<TicketItem>[] = [
     label: 'Lead',
     render: (ticket) => (
       <div className="flex items-center gap-2.5">
-        <Avatar className="h-7 w-7 border border-border/50 shrink-0">
-          <AvatarFallback className="text-[9px] bg-primary/5 text-primary font-semibold">
+        <Avatar className="border-border/50 h-7 w-7 shrink-0 border">
+          <AvatarFallback className="bg-primary/5 text-primary text-[9px] font-semibold">
             {getInitials(getLeadName(ticket))}
           </AvatarFallback>
         </Avatar>
-        <span className="font-medium text-[13px] truncate">{getLeadName(ticket)}</span>
+        <span className="truncate text-[13px] font-medium">{getLeadName(ticket)}</span>
       </div>
     ),
   },
@@ -94,7 +108,10 @@ const columns: ColumnDef<TicketItem>[] = [
     width: 160,
     render: (ticket) => (
       <div className="flex items-center gap-1.5">
-        <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: ticket.stage.color }} />
+        <span
+          className="h-2 w-2 shrink-0 rounded-full"
+          style={{ backgroundColor: ticket.stage.color }}
+        />
         <span className="text-sm">{ticket.stage.name}</span>
       </div>
     ),
@@ -105,7 +122,11 @@ const columns: ColumnDef<TicketItem>[] = [
     width: 110,
     render: (ticket) => {
       const s = STATUS_BADGE[ticket.status]
-      return s ? <Badge variant={s.variant}>{s.label}</Badge> : <span className="text-muted-foreground">—</span>
+      return s ? (
+        <Badge variant={s.variant}>{s.label}</Badge>
+      ) : (
+        <span className="text-muted-foreground">—</span>
+      )
     },
   },
   {
@@ -114,7 +135,11 @@ const columns: ColumnDef<TicketItem>[] = [
     width: 120,
     render: (ticket) => (
       <span className="font-semibold text-emerald-600">
-        {ticket.dealValue ? formatCurrencyBRL(ticket.dealValue) : <span className="text-muted-foreground">—</span>}
+        {ticket.dealValue ? (
+          formatCurrencyBRL(ticket.dealValue)
+        ) : (
+          <span className="text-muted-foreground">—</span>
+        )}
       </span>
     ),
   },
@@ -122,11 +147,12 @@ const columns: ColumnDef<TicketItem>[] = [
     key: 'assignee',
     label: 'Responsável',
     width: 140,
-    render: (ticket) => ticket.assignee ? (
-      <span className="text-sm text-muted-foreground">{ticket.assignee.name}</span>
-    ) : (
-      <span className="text-muted-foreground">—</span>
-    ),
+    render: (ticket) =>
+      ticket.assignee ? (
+        <span className="text-muted-foreground text-sm">{ticket.assignee.name}</span>
+      ) : (
+        <span className="text-muted-foreground">—</span>
+      ),
   },
   {
     key: 'createdAt',
@@ -135,14 +161,14 @@ const columns: ColumnDef<TicketItem>[] = [
     headerClassName: 'text-right',
     className: 'text-right',
     render: (ticket) => (
-      <span className="text-xs text-muted-foreground">{daysSince(ticket.createdAt)}d</span>
+      <span className="text-muted-foreground text-xs">{daysSince(ticket.createdAt)}d</span>
     ),
   },
 ]
 
 const cardConfig: CardConfig<TicketItem> = {
   icon: (ticket) => (
-    <Avatar className="h-9 w-9 border border-border">
+    <Avatar className="border-border h-9 w-9 border">
       <AvatarFallback className="bg-primary/5 text-primary text-xs font-bold">
         {getInitials(getLeadName(ticket))}
       </AvatarFallback>
@@ -150,25 +176,34 @@ const cardConfig: CardConfig<TicketItem> = {
   ),
   title: getLeadName,
   subtitle: (ticket) => (
-    <div className="flex items-center gap-1.5 mt-0.5">
-      <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: ticket.stage.color }} />
-      <span className="text-xs text-muted-foreground">{ticket.stage.name}</span>
+    <div className="mt-0.5 flex items-center gap-1.5">
+      <span
+        className="h-2 w-2 shrink-0 rounded-full"
+        style={{ backgroundColor: ticket.stage.color }}
+      />
+      <span className="text-muted-foreground text-xs">{ticket.stage.name}</span>
     </div>
   ),
   badge: (ticket) => {
     const s = STATUS_BADGE[ticket.status]
-    return s ? <Badge variant={s.variant} className="text-[10px]">{s.label}</Badge> : null
+    return s ? (
+      <Badge variant={s.variant} className="text-[10px]">
+        {s.label}
+      </Badge>
+    ) : null
   },
   footer: (ticket) => (
-    <div className="flex items-center justify-between w-full">
-      <span className="flex items-center gap-1 text-xs text-muted-foreground">
+    <div className="flex w-full items-center justify-between">
+      <span className="text-muted-foreground flex items-center gap-1 text-xs">
         <MessageSquare className="h-3 w-3" />
         {ticket.messagesCount}
       </span>
       {ticket.dealValue ? (
-        <span className="text-xs font-semibold text-emerald-600">{formatCurrencyBRL(ticket.dealValue)}</span>
+        <span className="text-xs font-semibold text-emerald-600">
+          {formatCurrencyBRL(ticket.dealValue)}
+        </span>
       ) : (
-        <span className="text-xs text-muted-foreground">{daysSince(ticket.createdAt)}d atrás</span>
+        <span className="text-muted-foreground text-xs">{daysSince(ticket.createdAt)}d atrás</span>
       )}
     </div>
   ),
@@ -176,35 +211,39 @@ const cardConfig: CardConfig<TicketItem> = {
 
 function TicketKanbanCard({ ticket }: { ticket: TicketItem }) {
   return (
-    <div className="rounded-xl border border-border bg-card p-3 shadow-sm hover:shadow-md transition-shadow">
-      <div className="flex items-start gap-2 mb-2">
-        <Avatar className="h-7 w-7 border border-border/50 shrink-0 mt-0.5">
-          <AvatarFallback className="text-[9px] bg-primary/5 text-primary font-semibold">
+    <div className="border-border bg-card rounded-xl border p-3 shadow-sm transition-shadow hover:shadow-md">
+      <div className="mb-2 flex items-start gap-2">
+        <Avatar className="border-border/50 mt-0.5 h-7 w-7 shrink-0 border">
+          <AvatarFallback className="bg-primary/5 text-primary text-[9px] font-semibold">
             {getInitials(getLeadName(ticket))}
           </AvatarFallback>
         </Avatar>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold truncate leading-tight">{getLeadName(ticket)}</p>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold leading-tight">{getLeadName(ticket)}</p>
           {ticket.lead.phone && (
-            <p className="text-[11px] text-muted-foreground font-mono truncate">{ticket.lead.phone}</p>
+            <p className="text-muted-foreground truncate font-mono text-[11px]">
+              {ticket.lead.phone}
+            </p>
           )}
         </div>
       </div>
 
-      <div className="flex items-center justify-between text-[11px] text-muted-foreground mt-2">
+      <div className="text-muted-foreground mt-2 flex items-center justify-between text-[11px]">
         <span className="flex items-center gap-1">
           <Calendar className="h-3 w-3" />
           {daysSince(ticket.createdAt)}d
         </span>
         {ticket.dealValue && (
-          <span className="flex items-center gap-1 text-emerald-600 font-semibold">
+          <span className="flex items-center gap-1 font-semibold text-emerald-600">
             <DollarSign className="h-3 w-3" />
             {formatCurrencyBRL(ticket.dealValue)}
           </span>
         )}
         {ticket.assignee && (
           <Avatar className="h-4 w-4">
-            <AvatarFallback className="text-[8px] bg-muted">{getInitials(ticket.assignee.name)}</AvatarFallback>
+            <AvatarFallback className="bg-muted text-[8px]">
+              {getInitials(ticket.assignee.name)}
+            </AvatarFallback>
           </Avatar>
         )}
       </div>
@@ -228,11 +267,14 @@ export default function TicketsPage() {
     return () => clearTimeout(handle)
   }, [searchInput])
 
-  const filters = React.useMemo(() => ({
-    ...(debouncedSearch ? { q: debouncedSearch } : {}),
-    ...(statusFilter !== 'all' ? { status: statusFilter } : {}),
-    ...(dateRange !== 'all' ? { dateRange } : {}),
-  }), [debouncedSearch, statusFilter, dateRange])
+  const filters = React.useMemo(
+    () => ({
+      ...(debouncedSearch ? { q: debouncedSearch } : {}),
+      ...(statusFilter !== 'all' ? { status: statusFilter } : {}),
+      ...(dateRange !== 'all' ? { dateRange } : {}),
+    }),
+    [debouncedSearch, statusFilter, dateRange]
+  )
 
   const {
     data: tickets,
@@ -286,23 +328,27 @@ export default function TicketsPage() {
   const filtersNode = (
     <>
       <Select value={statusFilter} onValueChange={setStatusFilter}>
-        <SelectTrigger className="h-7 w-36 text-xs border-border">
+        <SelectTrigger className="border-border h-7 w-36 text-xs">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
           {STATUS_OPTIONS.map((opt) => (
-            <SelectItem key={opt.value} value={opt.value} className="text-xs">{opt.label}</SelectItem>
+            <SelectItem key={opt.value} value={opt.value} className="text-xs">
+              {opt.label}
+            </SelectItem>
           ))}
         </SelectContent>
       </Select>
 
       <Select value={dateRange} onValueChange={setDateRange}>
-        <SelectTrigger className="h-7 w-36 text-xs border-border">
+        <SelectTrigger className="border-border h-7 w-36 text-xs">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
           {DATE_OPTIONS.map((opt) => (
-            <SelectItem key={opt.value} value={opt.value} className="text-xs">{opt.label}</SelectItem>
+            <SelectItem key={opt.value} value={opt.value} className="text-xs">
+              {opt.label}
+            </SelectItem>
           ))}
         </SelectContent>
       </Select>

@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getRateLimiter } from '@/lib/rate-limit';
-import { prisma } from '@/lib/prisma';
+import { NextRequest, NextResponse } from 'next/server'
+import { getRateLimiter } from '@/lib/rate-limit'
+import { prisma } from '@/lib/prisma'
 
 /**
  * Rate Limit Configuration per endpoint
@@ -8,19 +8,19 @@ import { prisma } from '@/lib/prisma';
  * Defines allowed limits for IP, organization, and burst strategies
  */
 export interface RateLimitConfig {
-  enabled: boolean;
+  enabled: boolean
   ip?: {
-    limit: number; // requests
-    windowSeconds: number;
-  };
+    limit: number // requests
+    windowSeconds: number
+  }
   org?: {
-    limit: number; // requests
-    windowSeconds: number;
-  };
+    limit: number // requests
+    windowSeconds: number
+  }
   burst?: {
-    limit: number; // requests
-    windowSeconds: number;
-  };
+    limit: number // requests
+    windowSeconds: number
+  }
 }
 
 /**
@@ -73,32 +73,32 @@ export const DEFAULT_RATE_LIMITS: Record<string, RateLimitConfig> = {
     org: { limit: 1000, windowSeconds: 3600 }, // 1000 per hour
     burst: { limit: 20, windowSeconds: 60 }, // 20 per minute
   },
-};
+}
 
 /**
  * Extract client IP from request
  * Handles proxy headers (X-Forwarded-For, CF-Connecting-IP, etc.)
  */
 export function getClientIp(request: NextRequest): string {
-  const forwarded = request.headers.get('x-forwarded-for');
-  const cfConnectingIp = request.headers.get('cf-connecting-ip');
-  const xRealIp = request.headers.get('x-real-ip');
+  const forwarded = request.headers.get('x-forwarded-for')
+  const cfConnectingIp = request.headers.get('cf-connecting-ip')
+  const xRealIp = request.headers.get('x-real-ip')
 
   if (forwarded) {
-    return forwarded.split(',')[0].trim();
+    return forwarded.split(',')[0].trim()
   }
 
   if (cfConnectingIp) {
-    return cfConnectingIp;
+    return cfConnectingIp
   }
 
   if (xRealIp) {
-    return xRealIp;
+    return xRealIp
   }
 
   // Fallback: Use socket connection info or default
   // In production (Vercel/serverless), headers should always be present
-  return 'unknown-ip';
+  return 'unknown-ip'
 }
 
 /**
@@ -110,18 +110,18 @@ export function getClientIp(request: NextRequest): string {
  */
 export async function getOrganizationId(request: NextRequest): Promise<string | null> {
   // Try query parameter first (support both orgId and organizationId)
-  const url = new URL(request.url);
-  const orgIdParam = url.searchParams.get('orgId') || url.searchParams.get('organizationId');
-  if (orgIdParam) return orgIdParam;
+  const url = new URL(request.url)
+  const orgIdParam = url.searchParams.get('orgId') || url.searchParams.get('organizationId')
+  if (orgIdParam) return orgIdParam
 
   // Try header
-  const orgIdHeader = request.headers.get('x-org-id');
-  if (orgIdHeader) return orgIdHeader;
+  const orgIdHeader = request.headers.get('x-org-id')
+  if (orgIdHeader) return orgIdHeader
 
   // TODO: Extract from session if available
   // This would require parsing the session cookie and getting org from database
 
-  return null;
+  return null
 }
 
 /**
@@ -143,47 +143,62 @@ export async function rateLimitMiddleware(
   config?: RateLimitConfig
 ): Promise<NextResponse | null> {
   // Get configuration for this endpoint
-  const finalConfig = config || DEFAULT_RATE_LIMITS[endpoint] || DEFAULT_RATE_LIMITS.default;
+  const finalConfig = config || DEFAULT_RATE_LIMITS[endpoint] || DEFAULT_RATE_LIMITS.default
 
   // If rate limiting disabled for this endpoint, allow request
   if (!finalConfig.enabled) {
-    return null;
+    return null
   }
 
-  const rateLimiter = getRateLimiter();
-  const clientIp = getClientIp(request);
-  const orgId = await getOrganizationId(request);
+  const rateLimiter = getRateLimiter()
+  const clientIp = getClientIp(request)
+  const orgId = await getOrganizationId(request)
 
   // Check all strategies
-  const checks: { name: string; result: Awaited<ReturnType<typeof rateLimiter.checkLimit>> }[] = [];
+  const checks: { name: string; result: Awaited<ReturnType<typeof rateLimiter.checkLimit>> }[] = []
 
   // IP-based limit
   if (finalConfig.ip) {
-    const result = await rateLimiter.checkLimit('ip', clientIp, finalConfig.ip.limit, finalConfig.ip.windowSeconds);
-    checks.push({ name: 'ip', result });
+    const result = await rateLimiter.checkLimit(
+      'ip',
+      clientIp,
+      finalConfig.ip.limit,
+      finalConfig.ip.windowSeconds
+    )
+    checks.push({ name: 'ip', result })
   }
 
   // Organization-based limit
   if (finalConfig.org && orgId) {
-    const result = await rateLimiter.checkLimit('org', orgId, finalConfig.org.limit, finalConfig.org.windowSeconds);
-    checks.push({ name: 'org', result });
+    const result = await rateLimiter.checkLimit(
+      'org',
+      orgId,
+      finalConfig.org.limit,
+      finalConfig.org.windowSeconds
+    )
+    checks.push({ name: 'org', result })
   }
 
   // Burst limit (always checked if configured)
   if (finalConfig.burst) {
-    const burstKey = orgId ? `${clientIp}:${orgId}` : clientIp;
-    const result = await rateLimiter.checkLimit('burst', burstKey, finalConfig.burst.limit, finalConfig.burst.windowSeconds);
-    checks.push({ name: 'burst', result });
+    const burstKey = orgId ? `${clientIp}:${orgId}` : clientIp
+    const result = await rateLimiter.checkLimit(
+      'burst',
+      burstKey,
+      finalConfig.burst.limit,
+      finalConfig.burst.windowSeconds
+    )
+    checks.push({ name: 'burst', result })
   }
 
   // Check if any limit was exceeded
-  const exceeded = checks.find((check) => !check.result.allowed);
+  const exceeded = checks.find((check) => !check.result.allowed)
   if (exceeded) {
-    const { current, limit, retryAfter, resetAt } = exceeded.result;
+    const { current, limit, retryAfter, resetAt } = exceeded.result
 
     console.warn(
       `[RateLimit] ${exceeded.name.toUpperCase()} exceeded - IP: ${clientIp}, Org: ${orgId || 'N/A'}, Current: ${current}/${limit}`
-    );
+    )
 
     // Return 429 Too Many Requests
     return NextResponse.json(
@@ -204,11 +219,11 @@ export async function rateLimitMiddleware(
           'X-RateLimit-Reset': resetAt.toISOString(),
         },
       }
-    );
+    )
   }
 
   // All checks passed, allow request
-  return null;
+  return null
 }
 
 /**
@@ -238,15 +253,15 @@ export async function getOrganizationRateLimitConfig(
     const org = await prisma.organization.findUnique({
       where: { id: orgId },
       select: { id: true },
-    });
+    })
 
-    if (!org) return baseConfig;
+    if (!org) return baseConfig
 
     // For now, return base config
     // TODO: Add tier field to Organization and implement tier-based scaling
-    return baseConfig;
+    return baseConfig
   } catch (error) {
-    console.error('[RateLimit] Error fetching org config:', error);
-    return baseConfig;
+    console.error('[RateLimit] Error fetching org config:', error)
+    return baseConfig
   }
 }

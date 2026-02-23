@@ -31,10 +31,7 @@ interface DataTableFiltersSheetProps {
  * - Scrollable content
  * - Safe area handling for iOS notch
  */
-export const DataTableFiltersSheet = React.forwardRef<
-  HTMLDivElement,
-  DataTableFiltersSheetProps
->(
+export const DataTableFiltersSheet = React.forwardRef<HTMLDivElement, DataTableFiltersSheetProps>(
   (
     {
       open,
@@ -55,7 +52,7 @@ export const DataTableFiltersSheet = React.forwardRef<
           side="bottom"
           className={cn(
             'h-auto max-h-[85vh] overflow-y-auto',
-            'px-4 py-6 pb-safe-bottom',
+            'pb-safe-bottom px-4 py-6',
             className
           )}
         >

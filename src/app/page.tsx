@@ -8,13 +8,13 @@ import {
   LandingCTA,
   LandingFooter,
   LANDING_CONTENT,
-} from "@/components/landing";
+} from '@/components/landing'
 
 export default function HomePage() {
-  const content = LANDING_CONTENT.generic;
+  const content = LANDING_CONTENT.generic
 
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground">
+    <div className="bg-background text-foreground flex min-h-screen flex-col">
       <LandingHeader variant="generic" />
       <LandingHero content={content.hero} />
       <LandingProblem content={content.problem} />
@@ -24,5 +24,5 @@ export default function HomePage() {
       <LandingCTA content={content.cta} />
       <LandingFooter />
     </div>
-  );
+  )
 }

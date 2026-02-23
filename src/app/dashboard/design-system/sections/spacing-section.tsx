@@ -32,21 +32,21 @@ export function SpacingSection() {
     >
       <div className="grid gap-6 lg:grid-cols-2">
         <ShowcaseBox>
-          <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
+          <h3 className="text-muted-foreground mb-4 text-xs font-semibold uppercase tracking-widest">
             Escala
           </h3>
           <div className="space-y-3">
             {spacingScale.map((s) => (
               <div key={s.name} className="flex items-center gap-3">
-                <span className="text-xs font-mono text-muted-foreground w-6 text-right shrink-0">
+                <span className="text-muted-foreground w-6 shrink-0 text-right font-mono text-xs">
                   {s.name}
                 </span>
                 <div
-                  className="h-5 rounded-md bg-primary/20 border border-primary/30"
+                  className="bg-primary/20 border-primary/30 h-5 rounded-md border"
                   style={{ width: s.px }}
                 />
-                <span className="text-xs text-muted-foreground">{s.px}</span>
-                <span className="text-[11px] font-mono text-muted-foreground/60 hidden sm:inline">
+                <span className="text-muted-foreground text-xs">{s.px}</span>
+                <span className="text-muted-foreground/60 hidden font-mono text-[11px] sm:inline">
                   {s.tw}
                 </span>
               </div>
@@ -55,22 +55,22 @@ export function SpacingSection() {
         </ShowcaseBox>
 
         <ShowcaseBox>
-          <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
+          <h3 className="text-muted-foreground mb-4 text-xs font-semibold uppercase tracking-widest">
             Padrões de uso
           </h3>
           <div className="space-y-3">
             {patterns.map((p) => (
               <div
                 key={p.context}
-                className="flex flex-col gap-0.5 pb-3 border-b border-border/30 last:border-0 last:pb-0"
+                className="border-border/30 flex flex-col gap-0.5 border-b pb-3 last:border-0 last:pb-0"
               >
                 <div className="flex items-baseline justify-between gap-2">
                   <span className="text-sm font-medium">{p.context}</span>
-                  <code className="text-[11px] font-mono text-primary bg-primary/5 px-1.5 py-0.5 rounded-md shrink-0">
+                  <code className="text-primary bg-primary/5 shrink-0 rounded-md px-1.5 py-0.5 font-mono text-[11px]">
                     {p.value}
                   </code>
                 </div>
-                <span className="text-xs text-muted-foreground">{p.desc}</span>
+                <span className="text-muted-foreground text-xs">{p.desc}</span>
               </div>
             ))}
           </div>

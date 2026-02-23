@@ -7,7 +7,6 @@ import { prisma } from '@/lib/prisma'
 import { getRedis } from '@/lib/redis'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
-
 // Lead schema - simplified without ticket/conversation dependencies
 const leadSchema = z.object({
   id: z.string(),
@@ -170,12 +169,17 @@ export async function GET(req: Request) {
   })
   const parsed = leadsQuerySchema.safeParse(Object.fromEntries(searchParams))
   if (!parsed.success) {
-    return NextResponse.json({ error: 'Parâmetros inválidos', details: parsed.error.flatten() }, { status: 400 })
+    return NextResponse.json(
+      { error: 'Parâmetros inválidos', details: parsed.error.flatten() },
+      { status: 400 }
+    )
   }
   const { q: rawQ, page, pageSize, dateRange: dateRangeValue } = parsed.data
   const q = rawQ.trim()
 
-  const dateRangePreset = isDateRangePreset(dateRangeValue ?? null) ? (dateRangeValue as DateRangePreset) : undefined
+  const dateRangePreset = isDateRangePreset(dateRangeValue ?? null)
+    ? (dateRangeValue as DateRangePreset)
+    : undefined
 
   const ors: Prisma.LeadWhereInput[] = []
   if (q) {

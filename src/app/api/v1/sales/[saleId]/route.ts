@@ -5,7 +5,6 @@ import { revalidateTag } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
-
 const updateSaleSchema = z.object({
   totalAmount: z.number().optional(),
   profit: z.number().optional(),
@@ -14,10 +13,7 @@ const updateSaleSchema = z.object({
   notes: z.string().optional(),
 })
 
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: Promise<{ saleId: string }> }
-) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ saleId: string }> }) {
   const access = await validateFullAccess(req)
   if (!access.hasAccess || !access.organizationId) {
     return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
@@ -43,9 +39,10 @@ export async function PUT(
     }
 
     // Track status change
-    const statusChangedAt = validated.status && validated.status !== existing.status
-      ? new Date()
-      : existing.statusChangedAt
+    const statusChangedAt =
+      validated.status && validated.status !== existing.status
+        ? new Date()
+        : existing.statusChangedAt
 
     const updated = await prisma.sale.update({
       where: { id: saleId },

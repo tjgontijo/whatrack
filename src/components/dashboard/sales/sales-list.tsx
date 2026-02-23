@@ -33,7 +33,7 @@ export type SalesListProps = {
 export function SalesList({ sales }: SalesListProps) {
   if (!sales.length) {
     return (
-      <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
+      <div className="text-muted-foreground rounded-md border border-dashed p-4 text-sm">
         Nenhuma venda registrada para este lead.
       </div>
     )
@@ -47,19 +47,19 @@ export function SalesList({ sales }: SalesListProps) {
         const servicesTotal = sale.services.reduce((acc, service) => acc + (service.price ?? 0), 0)
 
         return (
-          <div key={sale.id} className="rounded-md border bg-muted/20 p-4 text-sm">
+          <div key={sale.id} className="bg-muted/20 rounded-md border p-4 text-sm">
             <header className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
               <div className="space-y-1">
-                <p className="text-base font-semibold text-foreground">
+                <p className="text-foreground text-base font-semibold">
                   {formatCurrencyBRL(sale.amount)}
                 </p>
-                <p className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
+                <p className="text-muted-foreground flex flex-wrap items-center gap-1 text-xs">
                   <span>Registrada em {formatDateTime(sale.createdAt)}</span>
                   {sale.updatedAt !== sale.createdAt && (
                     <>
                       <span className="text-muted-foreground/60">|</span>
                       <span>
-                        <span className="font-medium text-foreground">Atualizada em:</span>{' '}
+                        <span className="text-foreground font-medium">Atualizada em:</span>{' '}
                         {formatDateTime(sale.updatedAt)}
                       </span>
                     </>
@@ -82,9 +82,11 @@ export function SalesList({ sales }: SalesListProps) {
                 {renderTag('Origem', sale.ticket.utmSource)}
                 {renderTag('Meio', sale.ticket.utmMedium)}
                 {renderTag('Campanha', sale.ticket.utmCampaign)}
-                <span className="inline-flex items-center gap-1 rounded-full border border-muted-foreground/30 bg-muted/10 px-2 py-1">
-                  <span className="text-[10px] uppercase text-muted-foreground">Criado</span>
-                  <span className="text-xs font-medium text-foreground">{formatDateTime(sale.ticket.createdAt)}</span>
+                <span className="border-muted-foreground/30 bg-muted/10 inline-flex items-center gap-1 rounded-full border px-2 py-1">
+                  <span className="text-muted-foreground text-[10px] uppercase">Criado</span>
+                  <span className="text-foreground text-xs font-medium">
+                    {formatDateTime(sale.ticket.createdAt)}
+                  </span>
                 </span>
               </div>
             )}
@@ -100,40 +102,43 @@ export function SalesList({ sales }: SalesListProps) {
 
             {sale.services.length > 0 && (
               <section className="mt-4 space-y-3">
-                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <div className="text-muted-foreground flex items-center gap-2 text-xs font-semibold uppercase tracking-wide">
                   <ReceiptText className="h-4 w-4" aria-hidden="true" /> Serviços
                 </div>
 
-                <div className="overflow-hidden rounded-md border bg-background/80">
-                  <div className="hidden bg-muted/60 px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground sm:grid sm:grid-cols-[minmax(0,2fr)_minmax(0,100px)]">
+                <div className="bg-background/80 overflow-hidden rounded-md border">
+                  <div className="bg-muted/60 text-muted-foreground hidden px-3 py-2 text-[11px] font-medium uppercase tracking-wide sm:grid sm:grid-cols-[minmax(0,2fr)_minmax(0,100px)]">
                     <span>Serviço</span>
                     <span className="text-right">Valor</span>
                   </div>
 
-                  <ul className="divide-y divide-border text-xs">
+                  <ul className="divide-border divide-y text-xs">
                     {sale.services.map((service, index) => (
                       <li
                         key={`${service.name ?? 'servico'}-${index}`}
                         className="grid gap-1 px-3 py-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,100px)] sm:items-center"
                       >
                         <div className="space-y-1">
-                          <span className="text-sm font-medium text-foreground">
+                          <span className="text-foreground text-sm font-medium">
                             {service.name ?? 'Serviço sem nome'}
                           </span>
                           {service.quantity !== null && (
-                            <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
-                              Quantidade: <span className="font-semibold text-foreground">{service.quantity}</span>
+                            <span className="text-muted-foreground text-[11px] uppercase tracking-wide">
+                              Quantidade:{' '}
+                              <span className="text-foreground font-semibold">
+                                {service.quantity}
+                              </span>
                             </span>
                           )}
                         </div>
-                        <span className="text-sm font-semibold text-foreground sm:text-right">
+                        <span className="text-foreground text-sm font-semibold sm:text-right">
                           {service.price !== null ? formatCurrencyBRL(service.price) : '—'}
                         </span>
                       </li>
                     ))}
 
-                    <li className="grid gap-1 bg-muted/40 px-3 py-3 text-sm font-semibold text-foreground sm:grid-cols-[minmax(0,2fr)_minmax(0,100px)] sm:items-center">
-                      <span className="uppercase tracking-wide text-muted-foreground">Total</span>
+                    <li className="bg-muted/40 text-foreground grid gap-1 px-3 py-3 text-sm font-semibold sm:grid-cols-[minmax(0,2fr)_minmax(0,100px)] sm:items-center">
+                      <span className="text-muted-foreground uppercase tracking-wide">Total</span>
                       <span className="sm:text-right">{formatCurrencyBRL(servicesTotal)}</span>
                     </li>
                   </ul>
@@ -142,11 +147,11 @@ export function SalesList({ sales }: SalesListProps) {
             )}
 
             {showFallback && fallbackDescription && (
-              <details className="mt-4 group">
-                <summary className="cursor-pointer text-xs font-medium text-foreground underline">
+              <details className="group mt-4">
+                <summary className="text-foreground cursor-pointer text-xs font-medium underline">
                   Ver descrição completa
                 </summary>
-                <pre className="mt-2 max-h-48 overflow-auto rounded bg-background/60 p-2 text-[11px] text-muted-foreground">
+                <pre className="bg-background/60 text-muted-foreground mt-2 max-h-48 overflow-auto rounded p-2 text-[11px]">
                   {fallbackDescription}
                 </pre>
               </details>
@@ -161,9 +166,9 @@ export function SalesList({ sales }: SalesListProps) {
 function renderTag(label: string, value: string | null | undefined) {
   if (!value) return null
   return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-muted-foreground/30 bg-muted/10 px-2 py-1">
-      <span className="text-[10px] uppercase text-muted-foreground">{label}</span>
-      <span className="text-xs font-medium text-foreground">{value}</span>
+    <span className="border-muted-foreground/30 bg-muted/10 inline-flex items-center gap-1 rounded-full border px-2 py-1">
+      <span className="text-muted-foreground text-[10px] uppercase">{label}</span>
+      <span className="text-foreground text-xs font-medium">{value}</span>
     </span>
   )
 }
@@ -215,8 +220,23 @@ function formatRawDescriptionItem(value: unknown): string | null {
 
   if (typeof value === 'object') {
     const record = value as Record<string, unknown>
-    const serviceName = firstNonEmpty(record, ['servico', 'serviço', 'serviço(s)', 'descricao', 'descrição', 'name', 'title'])
-    const serviceValue = firstNonEmpty(record, ['valor', 'price', 'preco', 'preço', 'value', 'total'])
+    const serviceName = firstNonEmpty(record, [
+      'servico',
+      'serviço',
+      'serviço(s)',
+      'descricao',
+      'descrição',
+      'name',
+      'title',
+    ])
+    const serviceValue = firstNonEmpty(record, [
+      'valor',
+      'price',
+      'preco',
+      'preço',
+      'value',
+      'total',
+    ])
     const serviceQty = firstNonEmpty(record, ['quantidade', 'quantity', 'qtde', 'qty'])
 
     const parts: string[] = []

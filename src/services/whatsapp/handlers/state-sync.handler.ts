@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/prisma'
 
 /**
  * State Sync Handler - PRD: WhatsApp History Sync
@@ -18,65 +18,65 @@ import { prisma } from '@/lib/prisma';
 
 export async function stateSyncHandler(payload: any): Promise<void> {
   // Extract value from webhook structure (same pattern as messageHandler)
-  const entry = payload.entry?.[0];
-  const change = entry?.changes?.[0];
-  const value = change?.value;
+  const entry = payload.entry?.[0]
+  const change = entry?.changes?.[0]
+  const value = change?.value
 
   if (!value) {
-    throw new Error('Invalid payload: missing entry/changes/value structure');
+    throw new Error('Invalid payload: missing entry/changes/value structure')
   }
 
-  const metadata = value.metadata;
-  const phoneNumberId = metadata?.phone_number_id;
+  const metadata = value.metadata
+  const phoneNumberId = metadata?.phone_number_id
 
   if (!phoneNumberId) {
-    throw new Error('Invalid payload: missing phone_number_id');
+    throw new Error('Invalid payload: missing phone_number_id')
   }
 
   // Find WhatsAppConfig by phoneNumberId
   const config = await prisma.whatsAppConfig.findUnique({
     where: { phoneId: phoneNumberId },
     include: { organization: true },
-  });
+  })
 
   if (!config) {
-    throw new Error(`WhatsAppConfig not found for phoneId: ${phoneNumberId}`);
+    throw new Error(`WhatsAppConfig not found for phoneId: ${phoneNumberId}`)
   }
 
-  console.log('[StateSyncHandler] Processing state sync webhook');
+  console.log('[StateSyncHandler] Processing state sync webhook')
 
-  const stateSync = value.state_sync || [];
+  const stateSync = value.state_sync || []
   if (!Array.isArray(stateSync) || stateSync.length === 0) {
-    console.warn('[StateSyncHandler] No state_sync data found in payload');
-    return;
+    console.warn('[StateSyncHandler] No state_sync data found in payload')
+    return
   }
 
-  let contactsAdded = 0;
-  let contactsUpdated = 0;
-  let contactsDeleted = 0;
+  let contactsAdded = 0
+  let contactsUpdated = 0
+  let contactsDeleted = 0
 
   for (const item of stateSync) {
     try {
-      const action = item.action; // 'add' | 'update' | 'delete'
-      const contactData = item.contact || {};
+      const action = item.action // 'add' | 'update' | 'delete'
+      const contactData = item.contact || {}
 
       if (item.type !== 'contact') {
-        console.log(`[StateSyncHandler] Skipping non-contact item: ${item.type}`);
-        continue;
+        console.log(`[StateSyncHandler] Skipping non-contact item: ${item.type}`)
+        continue
       }
 
-      const waId = contactData.wa_id || contactData.phone_number;
-      const fullName = contactData.full_name;
-      const firstName = contactData.first_name;
-      const displayName = fullName || firstName || 'Unknown';
+      const waId = contactData.wa_id || contactData.phone_number
+      const fullName = contactData.full_name
+      const firstName = contactData.first_name
+      const displayName = fullName || firstName || 'Unknown'
 
       if (!waId) {
-        console.warn('[StateSyncHandler] Contact missing wa_id/phone_number');
-        continue;
+        console.warn('[StateSyncHandler] Contact missing wa_id/phone_number')
+        continue
       }
 
       // Normalize phone number
-      const normalizedPhone = waId.startsWith('+') ? waId : `+${waId}`;
+      const normalizedPhone = waId.startsWith('+') ? waId : `+${waId}`
 
       if (action === 'add' || action === 'update') {
         // UPSERT Lead with source='state_sync'
@@ -102,14 +102,14 @@ export async function stateSyncHandler(payload: any): Promise<void> {
             isActive: true,
             deletedAt: null, // Reactivate if was deleted
           },
-        });
+        })
 
         if (action === 'add') {
-          contactsAdded++;
-          console.log(`[StateSyncHandler] Contact added: ${lead.id}`);
+          contactsAdded++
+          console.log(`[StateSyncHandler] Contact added: ${lead.id}`)
         } else {
-          contactsUpdated++;
-          console.log(`[StateSyncHandler] Contact updated: ${lead.id}`);
+          contactsUpdated++
+          console.log(`[StateSyncHandler] Contact updated: ${lead.id}`)
         }
       } else if (action === 'delete') {
         // Mark Lead as inactive/deleted
@@ -118,7 +118,7 @@ export async function stateSyncHandler(payload: any): Promise<void> {
             organizationId: config.organizationId,
             OR: [{ waId }, { phone: normalizedPhone }],
           },
-        });
+        })
 
         if (lead) {
           await prisma.lead.update({
@@ -127,14 +127,14 @@ export async function stateSyncHandler(payload: any): Promise<void> {
               isActive: false,
               deletedAt: new Date(),
             },
-          });
+          })
 
-          contactsDeleted++;
-          console.log(`[StateSyncHandler] Contact deleted/deactivated: ${lead.id}`);
+          contactsDeleted++
+          console.log(`[StateSyncHandler] Contact deleted/deactivated: ${lead.id}`)
         }
       }
     } catch (error) {
-      console.error('[StateSyncHandler] Error processing state sync item', error);
+      console.error('[StateSyncHandler] Error processing state sync item', error)
       // Continue with next item instead of failing
     }
   }
@@ -150,10 +150,10 @@ export async function stateSyncHandler(payload: any): Promise<void> {
         historySyncStartedAt: new Date(),
       }),
     },
-  });
+  })
 
   console.log(
     `[StateSyncHandler] Completed: added=${contactsAdded}, ` +
-    `updated=${contactsUpdated}, deleted=${contactsDeleted}`
-  );
+      `updated=${contactsUpdated}, deleted=${contactsDeleted}`
+  )
 }

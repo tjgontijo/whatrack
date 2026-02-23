@@ -12,13 +12,7 @@ import {
   SelectItem,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  Field,
-  FieldLabel,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-} from '@/components/ui/field'
+import { Field, FieldLabel, FieldDescription, FieldError, FieldGroup } from '@/components/ui/field'
 import { Separator } from '@/components/ui/separator'
 
 import { SectionWrapper, ShowcaseBox } from './shared'
@@ -32,7 +26,7 @@ export function FormsSection() {
     >
       <div className="grid gap-6 lg:grid-cols-2">
         <ShowcaseBox>
-          <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
+          <h3 className="text-muted-foreground mb-4 text-xs font-semibold uppercase tracking-widest">
             Campos padrão
           </h3>
           <FieldGroup>
@@ -44,9 +38,7 @@ export function FormsSection() {
             <Field>
               <FieldLabel>Email</FieldLabel>
               <Input type="email" placeholder="email@exemplo.com" />
-              <FieldDescription>
-                Usado para notificações do sistema.
-              </FieldDescription>
+              <FieldDescription>Usado para notificações do sistema.</FieldDescription>
             </Field>
 
             <Field>
@@ -72,7 +64,7 @@ export function FormsSection() {
 
         <div className="space-y-6">
           <ShowcaseBox>
-            <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
+            <h3 className="text-muted-foreground mb-4 text-xs font-semibold uppercase tracking-widest">
               Toggles & Checks
             </h3>
             <FieldGroup>
@@ -80,7 +72,7 @@ export function FormsSection() {
                 <FieldLabel className="flex-1">
                   <div>
                     <p className="text-sm font-medium">Notificações por email</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-muted-foreground text-xs">
                       Receba atualizações sobre novos leads
                     </p>
                   </div>
@@ -94,9 +86,7 @@ export function FormsSection() {
                 <FieldLabel className="flex-1">
                   <div>
                     <p className="text-sm font-medium">Modo escuro automático</p>
-                    <p className="text-xs text-muted-foreground">
-                      Seguir configuração do sistema
-                    </p>
+                    <p className="text-muted-foreground text-xs">Seguir configuração do sistema</p>
                   </div>
                 </FieldLabel>
                 <Switch defaultChecked />
@@ -122,26 +112,19 @@ export function FormsSection() {
           </ShowcaseBox>
 
           <ShowcaseBox>
-            <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
+            <h3 className="text-muted-foreground mb-4 text-xs font-semibold uppercase tracking-widest">
               Estado de erro
             </h3>
             <FieldGroup>
               <Field data-invalid="true">
                 <FieldLabel>Nome do produto</FieldLabel>
-                <Input
-                  aria-invalid="true"
-                  defaultValue=""
-                  placeholder="Obrigatório"
-                />
+                <Input aria-invalid="true" defaultValue="" placeholder="Obrigatório" />
                 <FieldError>Nome é obrigatório</FieldError>
               </Field>
 
               <Field data-invalid="true">
                 <FieldLabel>Preço</FieldLabel>
-                <Input
-                  aria-invalid="true"
-                  defaultValue="-50"
-                />
+                <Input aria-invalid="true" defaultValue="-50" />
                 <FieldError>O preço deve ser maior que zero</FieldError>
               </Field>
             </FieldGroup>

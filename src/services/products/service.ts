@@ -19,12 +19,10 @@ export type ProductListItem = {
   id: string
   name: string
   active: boolean
-  category:
-    | {
-        id: string
-        name: string
-      }
-    | null
+  category: {
+    id: string
+    name: string
+  } | null
   price: number | null
   cost: number | null
   createdAt: string

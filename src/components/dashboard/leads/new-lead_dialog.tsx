@@ -27,11 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  applyWhatsAppMask,
-  normalizeWhatsApp,
-  validateWhatsApp,
-} from '@/lib/mask/phone-mask'
+import { applyWhatsAppMask, normalizeWhatsApp, validateWhatsApp } from '@/lib/mask/phone-mask'
 
 const ORIGIN_OPTIONS = [
   { label: 'Instagram', value: 'Instagram' },
@@ -83,7 +79,11 @@ export type NewLeadDialogProps = {
   onOpenChange?: (open: boolean) => void
 }
 
-export function NewLeadDialog({ onSuccess, open: controlledOpen, onOpenChange }: NewLeadDialogProps) {
+export function NewLeadDialog({
+  onSuccess,
+  open: controlledOpen,
+  onOpenChange,
+}: NewLeadDialogProps) {
   const [internalOpen, setInternalOpen] = useState(false)
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen
   const setOpen = controlledOpen !== undefined ? onOpenChange || (() => {}) : setInternalOpen
@@ -140,7 +140,10 @@ export function NewLeadDialog({ onSuccess, open: controlledOpen, onOpenChange }:
       onSuccess?.()
     } catch (error) {
       console.error('Erro ao criar lead:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Não foi possível registrar o lead. Tente novamente.'
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Não foi possível registrar o lead. Tente novamente.'
       toast.error(errorMessage)
     }
   }
@@ -149,7 +152,7 @@ export function NewLeadDialog({ onSuccess, open: controlledOpen, onOpenChange }:
     <Dialog open={open} onOpenChange={handleOpenChange}>
       {controlledOpen === undefined && (
         <DialogTrigger asChild>
-          <Button type="button" className="gap-2 cursor-pointer">
+          <Button type="button" className="cursor-pointer gap-2">
             <Plus className="h-4 w-4" />
             Novo lead
           </Button>
@@ -167,7 +170,7 @@ export function NewLeadDialog({ onSuccess, open: controlledOpen, onOpenChange }:
           <div className="space-y-2">
             <Label htmlFor="lead-name">Nome *</Label>
             <Input id="lead-name" placeholder="Nome completo" {...register('name')} />
-            {errors.name ? <p className="text-sm text-destructive">{errors.name.message}</p> : null}
+            {errors.name ? <p className="text-destructive text-sm">{errors.name.message}</p> : null}
           </div>
 
           <div className="space-y-2">
@@ -185,7 +188,9 @@ export function NewLeadDialog({ onSuccess, open: controlledOpen, onOpenChange }:
                 />
               )}
             />
-            {errors.whatsapp ? <p className="text-sm text-destructive">{errors.whatsapp.message}</p> : null}
+            {errors.whatsapp ? (
+              <p className="text-destructive text-sm">{errors.whatsapp.message}</p>
+            ) : null}
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -209,7 +214,9 @@ export function NewLeadDialog({ onSuccess, open: controlledOpen, onOpenChange }:
                   </Select>
                 )}
               />
-              {errors.origin ? <p className="text-sm text-destructive">{errors.origin.message}</p> : null}
+              {errors.origin ? (
+                <p className="text-destructive text-sm">{errors.origin.message}</p>
+              ) : null}
             </div>
 
             <div className="space-y-2">
@@ -232,12 +239,19 @@ export function NewLeadDialog({ onSuccess, open: controlledOpen, onOpenChange }:
                   </Select>
                 )}
               />
-              {errors.medium ? <p className="text-sm text-destructive">{errors.medium.message}</p> : null}
+              {errors.medium ? (
+                <p className="text-destructive text-sm">{errors.medium.message}</p>
+              ) : null}
             </div>
           </div>
 
           <DialogFooter className="gap-2">
-            <Button type="button" variant="outline" onClick={() => handleOpenChange(false)} disabled={isSubmitting}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => handleOpenChange(false)}
+              disabled={isSubmitting}
+            >
               Cancelar
             </Button>
             <Button type="submit" className="gap-2" disabled={isSubmitting}>

@@ -60,9 +60,7 @@ interface AgentsAnalyticsResponse {
 
 export type Period = '7d' | '30d' | '90d'
 
-async function fetchDashboardAnalytics(
-  period: Period
-): Promise<DashboardAnalyticsResponse> {
+async function fetchDashboardAnalytics(period: Period): Promise<DashboardAnalyticsResponse> {
   const response = await fetch(`/api/v1/dashboard/analytics?period=${period}`)
   if (!response.ok) {
     throw new Error('Failed to fetch dashboard analytics')
@@ -70,12 +68,8 @@ async function fetchDashboardAnalytics(
   return response.json()
 }
 
-async function fetchAgentsAnalytics(
-  period: Period
-): Promise<AgentsAnalyticsResponse> {
-  const response = await fetch(
-    `/api/v1/dashboard/analytics/agents?period=${period}`
-  )
+async function fetchAgentsAnalytics(period: Period): Promise<AgentsAnalyticsResponse> {
+  const response = await fetch(`/api/v1/dashboard/analytics/agents?period=${period}`)
   if (!response.ok) {
     throw new Error('Failed to fetch agents analytics')
   }

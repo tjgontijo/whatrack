@@ -32,12 +32,7 @@ export function ShowcaseBox({
   className?: string
 }) {
   return (
-    <div
-      className={cn(
-        'rounded-2xl border border-border/50 bg-muted/20 p-6',
-        className
-      )}
-    >
+    <div className={cn('border-border/50 bg-muted/20 rounded-2xl border p-6', className)}>
       {children}
     </div>
   )
@@ -46,10 +41,8 @@ export function ShowcaseBox({
 export function TokenLabel({ name, variable }: { name: string; variable: string }) {
   return (
     <div className="min-w-0">
-      <p className="text-sm font-medium truncate">{name}</p>
-      <p className="text-[11px] text-muted-foreground font-mono truncate">
-        {variable}
-      </p>
+      <p className="truncate text-sm font-medium">{name}</p>
+      <p className="text-muted-foreground truncate font-mono text-[11px]">{variable}</p>
     </div>
   )
 }

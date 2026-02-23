@@ -3,27 +3,21 @@ import { z } from 'zod'
 // ============================================
 // SIGN-UP SCHEMA (Simplificado)
 // ============================================
-export const signUpSchema = z.object({
-  name: z
-    .string()
-    .min(2, 'Nome deve ter pelo menos 2 caracteres'),
-  email: z
-    .string()
-    .email('Email inválido'),
-  phone: z
-    .string()
-    .min(14, 'WhatsApp inválido') // (11) 99999-9999 = 15 chars, mínimo (11) 9999-9999 = 14
-    .regex(/^\(\d{2}\) \d{4,5}-\d{4}$/, 'Formato inválido'),
-  password: z
-    .string()
-    .min(8, 'Senha deve ter pelo menos 8 caracteres'),
-  confirmPassword: z
-    .string()
-    .min(1, 'Confirme sua senha'),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: 'As senhas não coincidem',
-  path: ['confirmPassword'],
-})
+export const signUpSchema = z
+  .object({
+    name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
+    email: z.string().email('Email inválido'),
+    phone: z
+      .string()
+      .min(14, 'WhatsApp inválido') // (11) 99999-9999 = 15 chars, mínimo (11) 9999-9999 = 14
+      .regex(/^\(\d{2}\) \d{4,5}-\d{4}$/, 'Formato inválido'),
+    password: z.string().min(8, 'Senha deve ter pelo menos 8 caracteres'),
+    confirmPassword: z.string().min(1, 'Confirme sua senha'),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'As senhas não coincidem',
+    path: ['confirmPassword'],
+  })
 
 export type SignUpData = z.infer<typeof signUpSchema>
 
@@ -34,27 +28,32 @@ export type SignUpData = z.infer<typeof signUpSchema>
 // ============================================
 // STEP 2: COMPANY
 // ============================================
-export const step2Schema = z.object({
-  hasCnpj: z.boolean(),
-  cnpj: z.string().optional(),
-  companyName: z.string().optional(),
-  // Dados preenchidos automaticamente via ReceitaWS
-  razaoSocial: z.string().optional(),
-  nomeFantasia: z.string().optional(),
-  cnaeCode: z.string().optional(),
-  cnaeDescription: z.string().optional(),
-  municipio: z.string().optional(),
-  uf: z.string().optional(),
-  porte: z.string().optional(),
-}).refine((data) => {
-  if (data.hasCnpj) {
-    return data.cnpj && data.cnpj.replace(/\D/g, '').length === 14
-  }
-  return data.companyName && data.companyName.length >= 2
-}, {
-  message: 'Informe o CNPJ ou nome da empresa',
-  path: ['cnpj'],
-})
+export const step2Schema = z
+  .object({
+    hasCnpj: z.boolean(),
+    cnpj: z.string().optional(),
+    companyName: z.string().optional(),
+    // Dados preenchidos automaticamente via ReceitaWS
+    razaoSocial: z.string().optional(),
+    nomeFantasia: z.string().optional(),
+    cnaeCode: z.string().optional(),
+    cnaeDescription: z.string().optional(),
+    municipio: z.string().optional(),
+    uf: z.string().optional(),
+    porte: z.string().optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.hasCnpj) {
+        return data.cnpj && data.cnpj.replace(/\D/g, '').length === 14
+      }
+      return data.companyName && data.companyName.length >= 2
+    },
+    {
+      message: 'Informe o CNPJ ou nome da empresa',
+      path: ['cnpj'],
+    }
+  )
 
 export type Step2Data = z.infer<typeof step2Schema>
 
@@ -188,50 +187,52 @@ export type Step4Data = z.infer<typeof step4Schema>
 // ============================================
 // COMPLETE SIGN-UP SCHEMA
 // ============================================
-export const signUpCompleteSchema = z.object({
-  // Step 1
-  name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
-  email: z.string().email('Email inválido'),
-  password: z.string().min(8, 'Senha deve ter pelo menos 8 caracteres'),
-  confirmPassword: z.string().min(1, 'Confirme sua senha'),
-  phone: z.string().optional(),
-  
-  // Step 2
-  hasCnpj: z.boolean().optional(),
-  cnpj: z.string().optional(),
-  companyName: z.string().optional(),
-  razaoSocial: z.string().optional(),
-  nomeFantasia: z.string().optional(),
-  cnaeCode: z.string().optional(),
-  cnaeDescription: z.string().optional(),
-  municipio: z.string().optional(),
-  uf: z.string().optional(),
-  porte: z.string().optional(),
-  
-  // Step 3
-  attendantsCount: z.string(),
-  leadsPerDay: z.string(),
-  avgTicket: z.string(),
-  monthlyRevenue: z.string(),
-  mainChannel: z.string(),
-  adPlatforms: z.object({
-    meta: z.boolean(),
-    google: z.boolean(),
-    tiktok: z.boolean(),
-    linkedin: z.boolean(),
-    youtube: z.boolean(),
-  }),
-  monthlyAdSpend: z.string().optional(),
-  mainPainPoint: z.string(),
-  
-  // Step 4
-  currency: z.string(),
-  timezone: z.string(),
-  acceptTerms: z.literal(true, 'Você deve aceitar os termos'),
-  referralSource: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: 'As senhas não coincidem',
-  path: ['confirmPassword'],
-})
+export const signUpCompleteSchema = z
+  .object({
+    // Step 1
+    name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
+    email: z.string().email('Email inválido'),
+    password: z.string().min(8, 'Senha deve ter pelo menos 8 caracteres'),
+    confirmPassword: z.string().min(1, 'Confirme sua senha'),
+    phone: z.string().optional(),
+
+    // Step 2
+    hasCnpj: z.boolean().optional(),
+    cnpj: z.string().optional(),
+    companyName: z.string().optional(),
+    razaoSocial: z.string().optional(),
+    nomeFantasia: z.string().optional(),
+    cnaeCode: z.string().optional(),
+    cnaeDescription: z.string().optional(),
+    municipio: z.string().optional(),
+    uf: z.string().optional(),
+    porte: z.string().optional(),
+
+    // Step 3
+    attendantsCount: z.string(),
+    leadsPerDay: z.string(),
+    avgTicket: z.string(),
+    monthlyRevenue: z.string(),
+    mainChannel: z.string(),
+    adPlatforms: z.object({
+      meta: z.boolean(),
+      google: z.boolean(),
+      tiktok: z.boolean(),
+      linkedin: z.boolean(),
+      youtube: z.boolean(),
+    }),
+    monthlyAdSpend: z.string().optional(),
+    mainPainPoint: z.string(),
+
+    // Step 4
+    currency: z.string(),
+    timezone: z.string(),
+    acceptTerms: z.literal(true, 'Você deve aceitar os termos'),
+    referralSource: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'As senhas não coincidem',
+    path: ['confirmPassword'],
+  })
 
 export type SignUpCompleteData = z.infer<typeof signUpCompleteSchema>

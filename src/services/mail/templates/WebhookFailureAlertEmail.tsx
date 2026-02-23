@@ -1,13 +1,4 @@
-import {
-  Body,
-  Container,
-  Head,
-  Hr,
-  Html,
-  Preview,
-  Section,
-  Text,
-} from '@react-email/components'
+import { Body, Container, Head, Hr, Html, Preview, Section, Text } from '@react-email/components'
 import { render } from '@react-email/render'
 import * as React from 'react'
 
@@ -72,7 +63,8 @@ export const WebhookFailureAlertEmail = ({
             <Hr style={hr} />
 
             <Text style={footer}>
-              Verifique os logs do sistema para mais detalhes. Este alerta é enviado no máximo uma vez por hora por webhook.
+              Verifique os logs do sistema para mais detalhes. Este alerta é enviado no máximo uma
+              vez por hora por webhook.
             </Text>
           </Section>
         </Container>
@@ -99,7 +91,9 @@ export async function generateWebhookFailureAlertEmail(props: WebhookFailureAler
     `Último erro: ${props.lastError}`,
     '',
     'Verifique os logs do sistema para mais detalhes.',
-  ].filter(Boolean).join('\n')
+  ]
+    .filter(Boolean)
+    .join('\n')
 
   const html = await render(React.createElement(WebhookFailureAlertEmail, props))
 

@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@/lib/auth/auth"
+import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@/lib/auth/auth'
 
 export async function PUT(req: NextRequest) {
   const session = await auth.api.getSession({ headers: req.headers })
 
   if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   // TODO: Implement password change logic

@@ -12,8 +12,8 @@ import { rateLimitMiddleware } from '@/lib/middleware/rate-limit.middleware'
 export async function GET(request: NextRequest) {
   try {
     // Check rate limits first
-    const rateLimitResponse = await rateLimitMiddleware(request, '/api/v1/company/lookup-public');
-    if (rateLimitResponse) return rateLimitResponse;
+    const rateLimitResponse = await rateLimitMiddleware(request, '/api/v1/company/lookup-public')
+    if (rateLimitResponse) return rateLimitResponse
 
     const searchParams = request.nextUrl.searchParams
     const cnpj = searchParams.get('cnpj')
@@ -52,9 +52,6 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    return NextResponse.json(
-      { error: 'Erro ao buscar dados do CNPJ' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Erro ao buscar dados do CNPJ' }, { status: 500 })
   }
 }

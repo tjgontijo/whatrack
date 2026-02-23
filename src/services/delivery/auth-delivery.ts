@@ -130,4 +130,3 @@ class AuthDeliveryService {
 }
 
 export const authDeliveryService = new AuthDeliveryService()
-

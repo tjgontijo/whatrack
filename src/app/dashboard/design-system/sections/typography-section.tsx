@@ -66,20 +66,18 @@ export function TypographySection() {
           {scale.map((item) => (
             <div
               key={item.name}
-              className="flex flex-col gap-1 pb-6 border-b border-border/30 last:border-0 last:pb-0"
+              className="border-border/30 flex flex-col gap-1 border-b pb-6 last:border-0 last:pb-0"
             >
-              <div className="flex items-baseline gap-3 mb-1">
+              <div className="mb-1 flex items-baseline gap-3">
                 <Badge variant="outline" className="shrink-0 font-mono">
                   {item.name}
                 </Badge>
-                <span className="text-[11px] text-muted-foreground font-mono truncate">
+                <span className="text-muted-foreground truncate font-mono text-[11px]">
                   {item.classes}
                 </span>
               </div>
               <p className={item.classes}>{item.text}</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Uso: {item.usage}
-              </p>
+              <p className="text-muted-foreground mt-1 text-xs">Uso: {item.usage}</p>
             </div>
           ))}
         </div>

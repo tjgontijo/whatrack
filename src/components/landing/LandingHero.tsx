@@ -1,42 +1,41 @@
-import Link from "next/link";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { LandingContent } from "./types";
+import Link from 'next/link'
+import { ArrowRight, CheckCircle2 } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { LandingContent } from './types'
 
 interface LandingHeroProps {
-  content: LandingContent["hero"];
+  content: LandingContent['hero']
 }
 
 export function LandingHero({ content }: LandingHeroProps) {
   return (
-    <section className="relative overflow-hidden bg-background text-foreground pt-32 pb-20 lg:pt-48 lg:pb-32">
+    <section className="bg-background text-foreground relative overflow-hidden pb-20 pt-32 lg:pb-32 lg:pt-48">
       {/* Background elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute left-1/2 -top-40 -translate-x-1/2 h-[600px] w-[800px] rounded-full bg-primary/10 blur-[120px]" />
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="bg-primary/10 absolute -top-40 left-1/2 h-[600px] w-[800px] -translate-x-1/2 rounded-full blur-[120px]" />
       </div>
 
-      <div className="relative mx-auto flex w-full max-w-6xl flex-col items-center text-center px-6 sm:px-8">
+      <div className="relative mx-auto flex w-full max-w-6xl flex-col items-center px-6 text-center sm:px-8">
         <Badge
           variant="secondary"
-          className="mb-8 w-fit bg-primary/10 text-primary border-primary/20 px-4 py-1.5 text-sm font-semibold uppercase tracking-widest"
+          className="bg-primary/10 text-primary border-primary/20 mb-8 w-fit px-4 py-1.5 text-sm font-semibold uppercase tracking-widest"
         >
           {content.badge}
         </Badge>
 
-        <h1 className="text-5xl font-extrabold tracking-tight sm:text-6xl xl:text-7xl max-w-4xl text-foreground !leading-[1.1]">
-          {content.headline}{" "}
-          <span className="text-primary">{content.highlightedText}</span>
+        <h1 className="text-foreground max-w-4xl text-5xl font-extrabold !leading-[1.1] tracking-tight sm:text-6xl xl:text-7xl">
+          {content.headline} <span className="text-primary">{content.highlightedText}</span>
         </h1>
 
-        <p className="mt-8 text-xl text-muted-foreground sm:text-2xl max-w-3xl leading-relaxed">
+        <p className="text-muted-foreground mt-8 max-w-3xl text-xl leading-relaxed sm:text-2xl">
           {content.subheadline}
         </p>
 
-        <div className="mt-10 flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center w-full max-w-md sm:max-w-none">
+        <div className="mt-10 flex w-full max-w-md flex-col justify-center gap-4 sm:max-w-none sm:flex-row sm:gap-6">
           <Button
             size="lg"
-            className="h-14 px-8 text-lg font-bold shadow-xl shadow-primary/20 hover:shadow-primary/40 transition-all hover:-translate-y-1"
+            className="shadow-primary/20 hover:shadow-primary/40 h-14 px-8 text-lg font-bold shadow-xl transition-all hover:-translate-y-1"
             asChild
           >
             <Link href="/auth/sign-up">
@@ -47,64 +46,61 @@ export function LandingHero({ content }: LandingHeroProps) {
           <Button
             size="lg"
             variant="outline"
-            className="h-14 px-8 text-lg font-bold border-2"
+            className="h-14 border-2 px-8 text-lg font-bold"
             asChild
           >
             <Link href="#como-funciona">{content.ctaSecondary}</Link>
           </Button>
         </div>
 
-        <div className="mt-12 flex flex-col sm:flex-row items-center gap-6 text-sm text-muted-foreground font-medium">
+        <div className="text-muted-foreground mt-12 flex flex-col items-center gap-6 text-sm font-medium sm:flex-row">
           {content.highlights.map((highlight) => (
             <div key={highlight} className="flex items-center gap-2">
-              <CheckCircle2 className="h-5 w-5 text-emerald-500 flex-shrink-0" />
+              <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-emerald-500" />
               <span>{highlight}</span>
             </div>
           ))}
         </div>
 
         {/* Hero Mockup or Abstract Dashboard preview */}
-        <div className="mt-20 w-full relative">
-          <div className="absolute -inset-1 bg-gradient-to-b from-primary/30 to-transparent rounded-2xl blur-lg" />
-          <div className="relative rounded-2xl border border-border/50 bg-card overflow-hidden shadow-2xl flex flex-col">
-            <div className="h-12 border-b border-border/50 flex items-center px-4 gap-2 bg-muted/30">
-              <div className="w-3 h-3 rounded-full bg-destructive/80" />
-              <div className="w-3 h-3 rounded-full bg-amber-400" />
-              <div className="w-3 h-3 rounded-full bg-emerald-400" />
+        <div className="relative mt-20 w-full">
+          <div className="from-primary/30 absolute -inset-1 rounded-2xl bg-gradient-to-b to-transparent blur-lg" />
+          <div className="border-border/50 bg-card relative flex flex-col overflow-hidden rounded-2xl border shadow-2xl">
+            <div className="border-border/50 bg-muted/30 flex h-12 items-center gap-2 border-b px-4">
+              <div className="bg-destructive/80 h-3 w-3 rounded-full" />
+              <div className="h-3 w-3 rounded-full bg-amber-400" />
+              <div className="h-3 w-3 rounded-full bg-emerald-400" />
             </div>
-            <div className="h-[300px] sm:h-[400px] bg-gradient-to-br from-background to-muted/20 w-full flex items-center justify-center p-8">
+            <div className="from-background to-muted/20 flex h-[300px] w-full items-center justify-center bg-gradient-to-br p-8 sm:h-[400px]">
               {/* Abstract placeholder for the dashboard map/funnel */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full h-full max-w-4xl opacity-80">
-                <div className="bg-card border border-border/40 rounded-xl p-6 flex flex-col gap-4 shadow-sm h-full">
-                  <div className="h-4 w-1/3 bg-muted rounded-full" />
-                  <div className="h-8 w-2/3 bg-emerald-500/10 text-emerald-600 rounded-md flex items-center px-3 font-mono font-bold">
+              <div className="grid h-full w-full max-w-4xl grid-cols-1 gap-6 opacity-80 md:grid-cols-3">
+                <div className="bg-card border-border/40 flex h-full flex-col gap-4 rounded-xl border p-6 shadow-sm">
+                  <div className="bg-muted h-4 w-1/3 rounded-full" />
+                  <div className="flex h-8 w-2/3 items-center rounded-md bg-emerald-500/10 px-3 font-mono font-bold text-emerald-600">
                     R$ 14.500
                   </div>
-                  <div className="flex-1 rounded-lg border border-dashed border-border flex items-end p-2 gap-2">
-                    <div className="w-full bg-primary/20 h-1/3 rounded-sm" />
-                    <div className="w-full bg-primary/40 h-2/3 rounded-sm" />
-                    <div className="w-full bg-primary h-full rounded-sm shadow-[0_0_15px_rgba(var(--primary),0.5)]" />
+                  <div className="border-border flex flex-1 items-end gap-2 rounded-lg border border-dashed p-2">
+                    <div className="bg-primary/20 h-1/3 w-full rounded-sm" />
+                    <div className="bg-primary/40 h-2/3 w-full rounded-sm" />
+                    <div className="bg-primary h-full w-full rounded-sm shadow-[0_0_15px_rgba(var(--primary),0.5)]" />
                   </div>
                 </div>
-                <div className="hidden md:flex bg-card border border-border/40 rounded-xl p-6 flex-col gap-4 shadow-sm h-full">
-                  <div className="h-4 w-1/2 bg-muted rounded-full" />
-                  <div className="space-y-3 mt-4">
+                <div className="bg-card border-border/40 hidden h-full flex-col gap-4 rounded-xl border p-6 shadow-sm md:flex">
+                  <div className="bg-muted h-4 w-1/2 rounded-full" />
+                  <div className="mt-4 space-y-3">
                     {[1, 2, 3, 4].map((i) => (
                       <div key={i} className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-muted shrink-0" />
-                        <div className="flex-1 h-3 bg-muted/50 rounded-full" />
+                        <div className="bg-muted h-8 w-8 shrink-0 rounded-full" />
+                        <div className="bg-muted/50 h-3 flex-1 rounded-full" />
                       </div>
                     ))}
                   </div>
                 </div>
-                <div className="hidden md:flex bg-card border border-border/40 rounded-xl p-6 flex-col gap-4 shadow-sm h-full">
-                  <div className="h-4 w-1/3 bg-muted rounded-full" />
-                  <div className="h-full flex items-center justify-center">
-                    <div className="relative w-32 h-32">
-                      <svg
-                        viewBox="0 0 100 100"
-                        className="w-full h-full transform -rotate-90"
-                      >
+                <div className="bg-card border-border/40 hidden h-full flex-col gap-4 rounded-xl border p-6 shadow-sm md:flex">
+                  <div className="bg-muted h-4 w-1/3 rounded-full" />
+                  <div className="flex h-full items-center justify-center">
+                    <div className="relative h-32 w-32">
+                      <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90 transform">
                         <circle
                           cx="50"
                           cy="50"
@@ -120,7 +116,7 @@ export function LandingHero({ content }: LandingHeroProps) {
                           strokeDashoffset="60"
                         />
                       </svg>
-                      <div className="absolute inset-0 flex items-center justify-center font-bold text-2xl text-foreground">
+                      <div className="text-foreground absolute inset-0 flex items-center justify-center text-2xl font-bold">
                         76%
                       </div>
                     </div>
@@ -132,5 +128,5 @@ export function LandingHero({ content }: LandingHeroProps) {
         </div>
       </div>
     </section>
-  );
+  )
 }

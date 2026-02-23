@@ -12,12 +12,15 @@ interface HistorySyncBadgeProps {
 export function HistorySyncBadge({ status, progress = 0 }: HistorySyncBadgeProps) {
   if (!status) return null
 
-  const statusConfig: Record<string, {
-    label: string;
-    icon: React.ComponentType<any>;
-    className: string;
-    animate?: boolean;
-  }> = {
+  const statusConfig: Record<
+    string,
+    {
+      label: string
+      icon: React.ComponentType<any>
+      className: string
+      animate?: boolean
+    }
+  > = {
     pending_consent: {
       label: 'Aguardando Aprovação',
       icon: Clock,
@@ -59,7 +62,7 @@ export function HistorySyncBadge({ status, progress = 0 }: HistorySyncBadgeProps
   return (
     <Badge
       variant="outline"
-      className={`font-semibold border gap-1.5 flex items-center ${config.className}`}
+      className={`flex items-center gap-1.5 border font-semibold ${config.className}`}
     >
       <Icon className={`h-3.5 w-3.5 ${config.animate ? 'animate-spin' : ''}`} />
       {config.label}

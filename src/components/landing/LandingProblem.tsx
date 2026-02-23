@@ -1,70 +1,69 @@
-import { AlertCircle, TrendingDown, Users, MessageSquare } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { LandingContent } from "./types";
+import { AlertCircle, TrendingDown, Users, MessageSquare } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { LandingContent } from './types'
 
 const iconMap = {
   message: MessageSquare,
   trending: TrendingDown,
   users: Users,
   alert: AlertCircle,
-};
+}
 
 interface LandingProblemProps {
-  content: LandingContent["problem"];
+  content: LandingContent['problem']
 }
 
 export function LandingProblem({ content }: LandingProblemProps) {
   return (
     <section
       id="problema"
-      className="relative bg-[#f8f9fa] dark:bg-muted/10 border-y border-border/50 py-24 sm:py-32 overflow-hidden"
+      className="dark:bg-muted/10 border-border/50 relative overflow-hidden border-y bg-[#f8f9fa] py-24 sm:py-32"
     >
-      <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-0 relative z-10">
+      <div className="relative z-10 mx-auto max-w-7xl px-6 sm:px-8 lg:px-0">
         <div className="mb-16 space-y-4 text-center">
           <Badge
             variant="secondary"
-            className="bg-destructive/10 text-destructive border-transparent px-4 py-1.5 uppercase tracking-widest text-xs font-bold"
+            className="bg-destructive/10 text-destructive border-transparent px-4 py-1.5 text-xs font-bold uppercase tracking-widest"
           >
             {content.badge}
           </Badge>
-          <h2 className="text-4xl font-extrabold text-foreground sm:text-5xl tracking-tight max-w-3xl mx-auto">
-            {content.headline}{" "}
-            <span className="text-destructive">{content.highlightedText}</span>
+          <h2 className="text-foreground mx-auto max-w-3xl text-4xl font-extrabold tracking-tight sm:text-5xl">
+            {content.headline} <span className="text-destructive">{content.highlightedText}</span>
           </h2>
-          <p className="mx-auto max-w-2xl text-lg text-muted-foreground font-medium mt-4">
+          <p className="text-muted-foreground mx-auto mt-4 max-w-2xl text-lg font-medium">
             {content.subheadline}
           </p>
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 mt-12">
+        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {content.problems.map((problem) => {
-            const Icon = iconMap[problem.icon];
+            const Icon = iconMap[problem.icon]
             return (
               <div
                 key={problem.title}
-                className="bg-white dark:bg-card rounded-2xl border border-border/60 p-8 shadow-sm transition-all hover:shadow-lg hover:-translate-y-1 relative group"
+                className="dark:bg-card border-border/60 group relative rounded-2xl border bg-white p-8 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
               >
-                <div className="absolute top-0 right-0 w-32 h-32 bg-destructive/5 rounded-bl-full -mr-8 -mt-8 pointer-events-none transition-transform group-hover:scale-110" />
-                <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-destructive/10 border border-destructive/20 relative z-10">
-                  <Icon className="h-7 w-7 text-destructive" />
+                <div className="bg-destructive/5 pointer-events-none absolute right-0 top-0 -mr-8 -mt-8 h-32 w-32 rounded-bl-full transition-transform group-hover:scale-110" />
+                <div className="bg-destructive/10 border-destructive/20 relative z-10 mb-6 inline-flex h-14 w-14 items-center justify-center rounded-xl border">
+                  <Icon className="text-destructive h-7 w-7" />
                 </div>
-                <h3 className="mb-3 text-xl font-bold text-foreground relative z-10 leading-tight">
+                <h3 className="text-foreground relative z-10 mb-3 text-xl font-bold leading-tight">
                   {problem.title}
                 </h3>
-                <p className="text-muted-foreground text-sm font-medium leading-relaxed relative z-10">
+                <p className="text-muted-foreground relative z-10 text-sm font-medium leading-relaxed">
                   {problem.description}
                 </p>
               </div>
-            );
+            )
           })}
         </div>
 
         {content.closingText && (
-          <p className="mt-12 text-center text-lg text-muted-foreground max-w-3xl mx-auto font-medium italic">
+          <p className="text-muted-foreground mx-auto mt-12 max-w-3xl text-center text-lg font-medium italic">
             {content.closingText}
           </p>
         )}
       </div>
     </section>
-  );
+  )
 }

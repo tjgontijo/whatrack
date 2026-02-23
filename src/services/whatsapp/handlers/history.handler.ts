@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/prisma'
 
 /**
  * History Handler - PRD: WhatsApp History Sync
@@ -20,56 +20,56 @@ import { prisma } from '@/lib/prisma';
  */
 
 function resolveMessageTimestamp(rawTimestamp: string | number | undefined): Date {
-  const parsed = Number.parseInt(String(rawTimestamp ?? ''), 10);
+  const parsed = Number.parseInt(String(rawTimestamp ?? ''), 10)
   if (Number.isFinite(parsed)) {
-    return new Date(parsed * 1000);
+    return new Date(parsed * 1000)
   }
-  return new Date();
+  return new Date()
 }
 
 export async function historyHandler(payload: any): Promise<void> {
   // Extract value from webhook structure (same pattern as messageHandler)
-  const entry = payload.entry?.[0];
-  const change = entry?.changes?.[0];
-  const value = change?.value;
+  const entry = payload.entry?.[0]
+  const change = entry?.changes?.[0]
+  const value = change?.value
 
   if (!value) {
-    throw new Error('Invalid payload: missing entry/changes/value structure');
+    throw new Error('Invalid payload: missing entry/changes/value structure')
   }
 
-  const metadata = value.metadata;
-  const phoneNumberId = metadata?.phone_number_id;
+  const metadata = value.metadata
+  const phoneNumberId = metadata?.phone_number_id
 
   if (!phoneNumberId) {
-    throw new Error('Invalid payload: missing phone_number_id');
+    throw new Error('Invalid payload: missing phone_number_id')
   }
 
   // Find WhatsAppConfig by phoneNumberId
   const config = await prisma.whatsAppConfig.findUnique({
     where: { phoneId: phoneNumberId },
     include: { organization: true },
-  });
+  })
 
   if (!config) {
-    throw new Error(`WhatsAppConfig not found for phoneId: ${phoneNumberId}`);
+    throw new Error(`WhatsAppConfig not found for phoneId: ${phoneNumberId}`)
   }
 
-  console.log('[HistoryHandler] Processing history webhook');
+  console.log('[HistoryHandler] Processing history webhook')
 
-  const historyData = value.history || [];
+  const historyData = value.history || []
   if (!Array.isArray(historyData) || historyData.length === 0) {
-    console.warn('[HistoryHandler] No history data found in payload');
-    return;
+    console.warn('[HistoryHandler] No history data found in payload')
+    return
   }
 
   // Get metadata from first chunk
-  const firstChunk = historyData[0];
-  const chunkMetadata = firstChunk?.metadata || {};
-  const phase = chunkMetadata.phase;
-  const chunkOrder = chunkMetadata.chunk_order;
-  const progress = chunkMetadata.progress || 0;
+  const firstChunk = historyData[0]
+  const chunkMetadata = firstChunk?.metadata || {}
+  const phase = chunkMetadata.phase
+  const chunkOrder = chunkMetadata.chunk_order
+  const progress = chunkMetadata.progress || 0
 
-  console.log(`[HistoryHandler] Phase: ${phase}, Chunk: ${chunkOrder}, Progress: ${progress}%`);
+  console.log(`[HistoryHandler] Phase: ${phase}, Chunk: ${chunkOrder}, Progress: ${progress}%`)
 
   // Create sync log entry
   const syncLog = await prisma.whatsAppHistorySync.create({
@@ -82,29 +82,34 @@ export async function historyHandler(payload: any): Promise<void> {
       progress,
       lastPayloadAt: new Date(),
     },
-  });
+  })
 
-  let totalMessagesImported = 0;
-  let totalThreadsProcessed = 0;
+  let totalMessagesImported = 0
+  let totalThreadsProcessed = 0
 
   // Process each thread (conversation)
-  const threads = firstChunk?.threads || [];
+  const threads = firstChunk?.threads || []
 
   for (const thread of threads) {
     try {
       // wa_id can be in context.wa_id or thread.id (fallback)
-      const waId = thread.context?.wa_id || thread.id;
-      const username = thread.context?.username;
+      const waId = thread.context?.wa_id || thread.id
+      const username = thread.context?.username
 
       if (!waId) {
-        console.warn('[HistoryHandler] Thread missing wa_id, skipping:', JSON.stringify(thread).substring(0, 200));
-        continue;
+        console.warn(
+          '[HistoryHandler] Thread missing wa_id, skipping:',
+          JSON.stringify(thread).substring(0, 200)
+        )
+        continue
       }
 
-      console.log(`[HistoryHandler] Processing thread for waId: ${waId}, messages: ${thread.messages?.length || 0}`);
+      console.log(
+        `[HistoryHandler] Processing thread for waId: ${waId}, messages: ${thread.messages?.length || 0}`
+      )
 
       // Normalize phone number
-      const normalizedPhone = waId.startsWith('+') ? waId : `+${waId}`;
+      const normalizedPhone = waId.startsWith('+') ? waId : `+${waId}`
 
       // 1. UPSERT Lead with source='history_sync'
       const lead = await prisma.lead.upsert({
@@ -127,7 +132,7 @@ export async function historyHandler(payload: any): Promise<void> {
           // Don't override source if already set
           pushName: username ?? undefined,
         },
-      });
+      })
 
       // 2. UPSERT Conversation
       const conversation = await prisma.conversation.upsert({
@@ -145,32 +150,32 @@ export async function historyHandler(payload: any): Promise<void> {
         update: {
           updatedAt: new Date(),
         },
-      });
+      })
 
       // 3. UPSERT Messages with source='history'
-      const messages = thread.messages || [];
+      const messages = thread.messages || []
 
       for (const msg of messages) {
         try {
-          const messageTimestamp = resolveMessageTimestamp(msg.timestamp);
-          const fromPhone = msg.from;
-          const messageId = msg.id;
+          const messageTimestamp = resolveMessageTimestamp(msg.timestamp)
+          const fromPhone = msg.from
+          const messageId = msg.id
 
           if (!messageId || !fromPhone) {
-            console.warn('[HistoryHandler] Message missing id or from');
-            continue;
+            console.warn('[HistoryHandler] Message missing id or from')
+            continue
           }
 
           // Determine direction based on history_context
-          const fromMe = msg.history_context?.from_me || false;
-          const direction = fromMe ? 'OUTBOUND' : 'INBOUND';
+          const fromMe = msg.history_context?.from_me || false
+          const direction = fromMe ? 'OUTBOUND' : 'INBOUND'
 
           // Extract message content
-          let messageBody = '';
-          let messageType = msg.type || 'text';
+          let messageBody = ''
+          let messageType = msg.type || 'text'
 
           if (msg.text?.body) {
-            messageBody = msg.text.body;
+            messageBody = msg.text.body
           }
 
           // UPSERT with idempotency
@@ -195,20 +200,20 @@ export async function historyHandler(payload: any): Promise<void> {
               status: msg.history_context?.status || 'read',
               updatedAt: new Date(),
             },
-          });
+          })
 
-          totalMessagesImported++;
-          console.log(`[HistoryHandler] Message upserted: ${createdMessage.id}`);
+          totalMessagesImported++
+          console.log(`[HistoryHandler] Message upserted: ${createdMessage.id}`)
         } catch (msgError) {
-          console.error('[HistoryHandler] Error importing message', msgError);
+          console.error('[HistoryHandler] Error importing message', msgError)
           // Continue with next message instead of failing
         }
       }
 
-      totalThreadsProcessed++;
-      console.log(`[HistoryHandler] Thread processed: ${thread.id}, ${messages.length} messages`);
+      totalThreadsProcessed++
+      console.log(`[HistoryHandler] Thread processed: ${thread.id}, ${messages.length} messages`)
     } catch (threadError) {
-      console.error('[HistoryHandler] Error processing thread', threadError);
+      console.error('[HistoryHandler] Error processing thread', threadError)
       // Continue with next thread instead of failing
     }
   }
@@ -220,7 +225,7 @@ export async function historyHandler(payload: any): Promise<void> {
       status: 'completed',
       lastPayloadAt: new Date(),
     },
-  });
+  })
 
   // 5. Update WhatsAppConfig with progress
   await prisma.whatsAppConfig.update({
@@ -241,10 +246,10 @@ export async function historyHandler(payload: any): Promise<void> {
       }),
       lastWebhookAt: new Date(),
     },
-  });
+  })
 
   console.log(
     `[HistoryHandler] Completed: ${totalThreadsProcessed} threads, ` +
-    `${totalMessagesImported} messages imported, progress: ${progress}%`
-  );
+      `${totalMessagesImported} messages imported, progress: ${progress}%`
+  )
 }

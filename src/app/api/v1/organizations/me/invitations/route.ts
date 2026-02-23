@@ -1,14 +1,14 @@
-import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@/lib/auth/auth"
-import { prisma } from "@/lib/prisma"
-import { resendProvider } from "@/services/mail/resend"
-import { generateInvitationEmail } from "@/services/mail/templates/InvitationEmail"
+import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@/lib/auth/auth'
+import { prisma } from '@/lib/prisma'
+import { resendProvider } from '@/services/mail/resend'
+import { generateInvitationEmail } from '@/services/mail/templates/InvitationEmail'
 
 export async function POST(req: NextRequest) {
   const session = await auth.api.getSession({ headers: req.headers })
 
   if (!session?.session?.activeOrganizationId) {
-    return NextResponse.json({ error: "No active organization" }, { status: 400 })
+    return NextResponse.json({ error: 'No active organization' }, { status: 400 })
   }
 
   const organizationId = session.session.activeOrganizationId
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
       data: {
         email,
         role,
-        status: "pending",
+        status: 'pending',
         organizationId,
         inviterId: session.user.id,
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
@@ -63,13 +63,13 @@ export async function GET(req: NextRequest) {
   const session = await auth.api.getSession({ headers: req.headers })
 
   if (!session?.session?.activeOrganizationId) {
-    return NextResponse.json({ error: "No active organization" }, { status: 400 })
+    return NextResponse.json({ error: 'No active organization' }, { status: 400 })
   }
 
   const invitations = await prisma.invitation.findMany({
     where: {
       organizationId: session.session.activeOrganizationId,
-      status: "pending",
+      status: 'pending',
     },
     include: {
       user: {

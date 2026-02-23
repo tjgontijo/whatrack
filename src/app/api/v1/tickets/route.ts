@@ -64,10 +64,24 @@ export async function GET(req: Request) {
   })
 
   if (!parsed.success) {
-    return NextResponse.json({ error: 'Parâmetros inválidos', details: parsed.error.flatten() }, { status: 400 })
+    return NextResponse.json(
+      { error: 'Parâmetros inválidos', details: parsed.error.flatten() },
+      { status: 400 }
+    )
   }
 
-  const { q, status, stageId, assigneeId, sourceType, utmSource, windowStatus, dateRange, page, pageSize } = parsed.data
+  const {
+    q,
+    status,
+    stageId,
+    assigneeId,
+    sourceType,
+    utmSource,
+    windowStatus,
+    dateRange,
+    page,
+    pageSize,
+  } = parsed.data
 
   try {
     const result = await listTickets({
@@ -104,7 +118,10 @@ export async function POST(req: Request) {
     const body = await req.json()
     const parsed = createTicketSchema.safeParse(body)
     if (!parsed.success) {
-      return NextResponse.json({ error: 'Dados inválidos', details: parsed.error.flatten() }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: parsed.error.flatten() },
+        { status: 400 }
+      )
     }
 
     const result = await createTicket({
@@ -119,7 +136,7 @@ export async function POST(req: Request) {
     if ('error' in result) {
       return NextResponse.json(
         { error: result.error, ...('ticketId' in result ? { ticketId: result.ticketId } : {}) },
-        { status: result.status },
+        { status: result.status }
       )
     }
 

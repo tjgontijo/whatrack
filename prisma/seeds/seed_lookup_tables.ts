@@ -69,7 +69,7 @@ const aiSchemaFieldTypes = [
   { name: 'NUMBER', description: 'Número inteiro ou decimal.' },
   { name: 'BOOLEAN', description: 'Verdadeiro ou falso.' },
   { name: 'ENUM', description: 'Lista de opções pré-definidas.' },
-  { name: 'ARRAY', description: 'Lista de múltiplos valores.' }
+  { name: 'ARRAY', description: 'Lista de múltiplos valores.' },
 ]
 
 const aiInsightActionStatuses = [
@@ -79,7 +79,13 @@ const aiInsightActionStatuses = [
 ]
 
 async function upsertByName(
-  model: { upsert: (args: { where: { name: string }; update: { description: string }; create: { name: string; description: string } }) => Promise<unknown> },
+  model: {
+    upsert: (args: {
+      where: { name: string }
+      update: { description: string }
+      create: { name: string; description: string }
+    }) => Promise<unknown>
+  },
   items: { name: string; description: string }[]
 ) {
   for (const item of items) {

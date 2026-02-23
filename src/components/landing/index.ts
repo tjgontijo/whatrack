@@ -1,10 +1,10 @@
-export { LandingHeader } from "./LandingHeader";
-export { LandingHero } from "./LandingHero";
-export { LandingProblem } from "./LandingProblem";
-export { LandingSolution } from "./LandingSolution";
-export { LandingHowItWorks } from "./LandingHowItWorks";
-export { LandingPricing } from "./LandingPricing";
-export { LandingCTA } from "./LandingCTA";
-export { LandingFooter } from "./LandingFooter";
-export { LANDING_CONTENT } from "./types";
-export type { LandingVariant, LandingContent } from "./types";
+export { LandingHeader } from './LandingHeader'
+export { LandingHero } from './LandingHero'
+export { LandingProblem } from './LandingProblem'
+export { LandingSolution } from './LandingSolution'
+export { LandingHowItWorks } from './LandingHowItWorks'
+export { LandingPricing } from './LandingPricing'
+export { LandingCTA } from './LandingCTA'
+export { LandingFooter } from './LandingFooter'
+export { LANDING_CONTENT } from './types'
+export type { LandingVariant, LandingContent } from './types'

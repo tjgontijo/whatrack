@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { createId } from '@paralleldrive/cuid2';
-import { rateLimitMiddleware } from '@/lib/middleware/rate-limit.middleware';
+import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+import { createId } from '@paralleldrive/cuid2'
+import { rateLimitMiddleware } from '@/lib/middleware/rate-limit.middleware'
 
 /**
  * GET /api/v1/whatsapp/onboarding
@@ -25,20 +25,20 @@ import { rateLimitMiddleware } from '@/lib/middleware/rate-limit.middleware';
  */
 export async function GET(request: NextRequest) {
   // Check rate limits first
-  const rateLimitResponse = await rateLimitMiddleware(request, '/api/v1/whatsapp/onboarding');
-  if (rateLimitResponse) return rateLimitResponse;
+  const rateLimitResponse = await rateLimitMiddleware(request, '/api/v1/whatsapp/onboarding')
+  if (rateLimitResponse) return rateLimitResponse
   try {
     // Get organization from query
-    const url = new URL(request.url);
-    const orgId = url.searchParams.get('organizationId');
+    const url = new URL(request.url)
+    const orgId = url.searchParams.get('organizationId')
 
     if (!orgId) {
-      return NextResponse.json({ error: 'organizationId required' }, { status: 400 });
+      return NextResponse.json({ error: 'organizationId required' }, { status: 400 })
     }
 
     // Generate tracking code
-    const trackingCode = createId();
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    const trackingCode = createId()
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
 
     // Create onboarding record
     const onboarding = await prisma.whatsAppOnboarding.create({
@@ -48,36 +48,38 @@ export async function GET(request: NextRequest) {
         expiresAt,
         status: 'pending',
       },
-    });
+    })
 
     // Build onboarding URL
     // Doc: https://developers.facebook.com/docs/whatsapp/cloud-api/get-started/embedded-signup
-    const onboardingUrl = new URL('https://www.facebook.com/dialog/oauth');
-    const metaAppId = process.env.NEXT_PUBLIC_META_APP_ID;
-    const metaConfigId = process.env.NEXT_PUBLIC_META_CONFIG_ID;
-    const appUrl = process.env.APP_URL;
+    const onboardingUrl = new URL('https://www.facebook.com/dialog/oauth')
+    const metaAppId = process.env.NEXT_PUBLIC_META_APP_ID
+    const metaConfigId = process.env.NEXT_PUBLIC_META_CONFIG_ID
+    const appUrl = process.env.APP_URL
 
     if (!metaAppId || !metaConfigId || !appUrl) {
-      console.error('[Onboarding] Missing required env vars: NEXT_PUBLIC_META_APP_ID, NEXT_PUBLIC_META_CONFIG_ID, APP_URL');
-      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+      console.error(
+        '[Onboarding] Missing required env vars: NEXT_PUBLIC_META_APP_ID, NEXT_PUBLIC_META_CONFIG_ID, APP_URL'
+      )
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
     }
 
-    onboardingUrl.searchParams.set('client_id', metaAppId);
-    onboardingUrl.searchParams.set('redirect_uri', `${appUrl}/api/v1/whatsapp/onboarding/callback`);
-    onboardingUrl.searchParams.set('state', trackingCode); // Pass tracking code back to track origin
-    onboardingUrl.searchParams.set('scope', 'whatsapp_business_management,business_management');
-    onboardingUrl.searchParams.set('response_type', 'code');
-    onboardingUrl.searchParams.set('config_id', metaConfigId);
+    onboardingUrl.searchParams.set('client_id', metaAppId)
+    onboardingUrl.searchParams.set('redirect_uri', `${appUrl}/api/v1/whatsapp/onboarding/callback`)
+    onboardingUrl.searchParams.set('state', trackingCode) // Pass tracking code back to track origin
+    onboardingUrl.searchParams.set('scope', 'whatsapp_business_management,business_management')
+    onboardingUrl.searchParams.set('response_type', 'code')
+    onboardingUrl.searchParams.set('config_id', metaConfigId)
 
-    console.log(`[Onboarding] Generated URL for org ${orgId}, tracking: ${trackingCode}`);
+    console.log(`[Onboarding] Generated URL for org ${orgId}, tracking: ${trackingCode}`)
 
     return NextResponse.json({
       onboardingUrl: onboardingUrl.toString(),
       trackingCode,
       expiresIn: 86400,
-    });
+    })
   } catch (error) {
-    console.error('[Onboarding] Error generating URL', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('[Onboarding] Error generating URL', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

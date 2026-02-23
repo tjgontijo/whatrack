@@ -56,8 +56,7 @@ export function proxy(request: NextRequest) {
   const sessionToken = request.cookies.get('better-auth.session_token')?.value
   const secureSessionToken = request.cookies.get('__Secure-better-auth.session_token')?.value
   const hasPlausibleCookie =
-    looksLikeSessionCookie(sessionToken) ||
-    looksLikeSessionCookie(secureSessionToken)
+    looksLikeSessionCookie(sessionToken) || looksLikeSessionCookie(secureSessionToken)
 
   if (!hasPlausibleCookie) {
     return unauthorizedResponse(request)
@@ -67,7 +66,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    '/((?!_next/static|_next/image|images|favicon.ico|robots.txt|sitemap.xml).*)',
-  ],
+  matcher: ['/((?!_next/static|_next/image|images|favicon.ico|robots.txt|sitemap.xml).*)'],
 }

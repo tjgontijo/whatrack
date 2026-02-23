@@ -36,21 +36,13 @@ interface FilterSelectProps {
  */
 export const FilterSelect = React.forwardRef<HTMLButtonElement, FilterSelectProps>(
   (
-    {
-      value,
-      onChange,
-      options,
-      label,
-      placeholder = 'Selecionar',
-      disabled = false,
-      className,
-    },
+    { value, onChange, options, label, placeholder = 'Selecionar', disabled = false, className },
     ref
   ) => {
     return (
       <div className="w-full space-y-2">
         {label && (
-          <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          <Label className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
             {label}
           </Label>
         )}
@@ -58,7 +50,7 @@ export const FilterSelect = React.forwardRef<HTMLButtonElement, FilterSelectProp
           <SelectTrigger
             ref={ref}
             className={cn(
-              'h-10 w-full items-center justify-between rounded-lg border-border/80 bg-muted/20',
+              'border-border/80 bg-muted/20 h-10 w-full items-center justify-between rounded-lg',
               'disabled:cursor-not-allowed disabled:opacity-60',
               className
             )}

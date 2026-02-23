@@ -22,15 +22,17 @@ interface FilterSwitchProps {
  * - Fully controlled component
  */
 export const FilterSwitch = React.forwardRef<HTMLButtonElement, FilterSwitchProps>(
-  (
-    { checked, onChange, label, disabled = false, className },
-    ref
-  ) => {
+  ({ checked, onChange, label, disabled = false, className }, ref) => {
     return (
-      <div className={cn('flex items-center gap-3 rounded-md border bg-background px-3 py-2', className)}>
+      <div
+        className={cn(
+          'bg-background flex items-center gap-3 rounded-md border px-3 py-2',
+          className
+        )}
+      >
         <Label
           htmlFor={`switch-${label}`}
-          className="text-xs font-medium uppercase tracking-wide cursor-pointer flex-1"
+          className="flex-1 cursor-pointer text-xs font-medium uppercase tracking-wide"
         >
           {label}
         </Label>

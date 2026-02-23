@@ -28,10 +28,7 @@ export async function GET(request: NextRequest) {
     const access = await validateFullAccess(request)
 
     if (!access.hasAccess || !access.organizationId) {
-      return NextResponse.json(
-        { error: access.error || 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: access.error || 'Unauthorized' }, { status: 401 })
     }
 
     // Fetch all connected instances for the organization
@@ -68,9 +65,6 @@ export async function GET(request: NextRequest) {
     )
   } catch (error) {
     console.error('[WhatsApp Instances] Error:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch instances' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to fetch instances' }, { status: 500 })
   }
 }

@@ -75,55 +75,56 @@ export function useRealtime(organizationId: string | undefined) {
       setClient(centrifuge)
 
       // Subscribe to message updates channel
-      const messagesSub = subscribeTo(
-        centrifuge,
-        `org:${organizationId}:messages`,
-        (data) => {
-          console.log('[Centrifugo] Message event:', data)
-          console.log('[Centrifugo] Invalidating with conversationId:', data.conversationId, 'orgId:', organizationId)
-          // Invalidate specific chat if conversationId is provided
-          if (data.conversationId) {
-            console.log('[Centrifugo] Invalidating chat-messages query key:', ['chat-messages', data.conversationId, organizationId])
-            queryClient.invalidateQueries({
-              queryKey: ['chat-messages', data.conversationId, organizationId]
-            })
-          } else {
-            // Fallback: invalidate all chat-messages queries
-            console.log('[Centrifugo] No conversationId, invalidating all chat-messages')
-            queryClient.invalidateQueries({
-              queryKey: ['chat-messages']
-            })
-          }
-          // Invalidate chat list only for this organization
+      const messagesSub = subscribeTo(centrifuge, `org:${organizationId}:messages`, (data) => {
+        console.log('[Centrifugo] Message event:', data)
+        console.log(
+          '[Centrifugo] Invalidating with conversationId:',
+          data.conversationId,
+          'orgId:',
+          organizationId
+        )
+        // Invalidate specific chat if conversationId is provided
+        if (data.conversationId) {
+          console.log('[Centrifugo] Invalidating chat-messages query key:', [
+            'chat-messages',
+            data.conversationId,
+            organizationId,
+          ])
           queryClient.invalidateQueries({
-            queryKey: ['whatsapp-chats', organizationId]
+            queryKey: ['chat-messages', data.conversationId, organizationId],
+          })
+        } else {
+          // Fallback: invalidate all chat-messages queries
+          console.log('[Centrifugo] No conversationId, invalidating all chat-messages')
+          queryClient.invalidateQueries({
+            queryKey: ['chat-messages'],
           })
         }
-      )
+        // Invalidate chat list only for this organization
+        queryClient.invalidateQueries({
+          queryKey: ['whatsapp-chats', organizationId],
+        })
+      })
 
       // Subscribe to ticket updates channel
-      const ticketsSub = subscribeTo(
-        centrifuge,
-        `org:${organizationId}:tickets`,
-        (data) => {
-          console.log('[Centrifugo] Ticket event:', data)
-          // Invalidate specific ticket if conversationId is provided
-          if (data.conversationId) {
-            queryClient.invalidateQueries({
-              queryKey: ['conversation-ticket', data.conversationId]
-            })
-          } else {
-            // Fallback: invalidate all tickets
-            queryClient.invalidateQueries({
-              queryKey: ['conversation-ticket']
-            })
-          }
-          // Invalidate chat list for this organization
+      const ticketsSub = subscribeTo(centrifuge, `org:${organizationId}:tickets`, (data) => {
+        console.log('[Centrifugo] Ticket event:', data)
+        // Invalidate specific ticket if conversationId is provided
+        if (data.conversationId) {
           queryClient.invalidateQueries({
-            queryKey: ['whatsapp-chats', organizationId]
+            queryKey: ['conversation-ticket', data.conversationId],
+          })
+        } else {
+          // Fallback: invalidate all tickets
+          queryClient.invalidateQueries({
+            queryKey: ['conversation-ticket'],
           })
         }
-      )
+        // Invalidate chat list for this organization
+        queryClient.invalidateQueries({
+          queryKey: ['whatsapp-chats', organizationId],
+        })
+      })
 
       // Cleanup function
       return () => {
@@ -140,10 +141,13 @@ export function useRealtime(organizationId: string | undefined) {
 
   // Auto-refresh token when it's about to expire
   useEffect(() => {
-    const refreshInterval = setInterval(() => {
-      console.log('[Centrifugo] Refreshing token')
-      refetchToken()
-    }, 50 * 60 * 1000) // 50 minutes
+    const refreshInterval = setInterval(
+      () => {
+        console.log('[Centrifugo] Refreshing token')
+        refetchToken()
+      },
+      50 * 60 * 1000
+    ) // 50 minutes
 
     return () => clearInterval(refreshInterval)
   }, [refetchToken])

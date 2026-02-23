@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -92,9 +92,7 @@ export function CategoryFormDialog({ onSuccess }: CategoryFormDialogProps) {
           <div className="space-y-2">
             <Label htmlFor="category-name">Nome *</Label>
             <Input id="category-name" placeholder="Nome da categoria" {...register('name')} />
-            {errors.name ? (
-              <p className="text-sm text-destructive">{errors.name.message}</p>
-            ) : null}
+            {errors.name ? <p className="text-destructive text-sm">{errors.name.message}</p> : null}
           </div>
 
           <DialogFooter className="gap-2">

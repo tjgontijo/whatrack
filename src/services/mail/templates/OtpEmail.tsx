@@ -18,11 +18,7 @@ interface OtpEmailProps {
   expiresIn?: number
 }
 
-export const OtpEmail = ({
-  name = 'Usuário',
-  otp,
-  expiresIn = 5,
-}: OtpEmailProps) => (
+export const OtpEmail = ({ name = 'Usuário', otp, expiresIn = 5 }: OtpEmailProps) => (
   <Html>
     <Head />
     <Preview>🔐 Seu código de acesso - Kadernim</Preview>
@@ -40,9 +36,7 @@ export const OtpEmail = ({
             Olá <strong>{name}</strong>,
           </Text>
 
-          <Text style={paragraph}>
-            Use o código abaixo para acessar sua conta no Kadernim:
-          </Text>
+          <Text style={paragraph}>Use o código abaixo para acessar sua conta no Kadernim:</Text>
 
           {/* OTP Display */}
           <Section style={codeContainer}>
@@ -66,17 +60,24 @@ export const OtpEmail = ({
 
           {/* Security Notice */}
           <Text style={securityText}>
-            🔒 <strong>Segurança:</strong> Nunca compartilhe este código com outras pessoas. A Kadernim nunca pedirá seu código por email.
+            🔒 <strong>Segurança:</strong> Nunca compartilhe este código com outras pessoas. A
+            Kadernim nunca pedirá seu código por email.
           </Text>
 
           {/* Support */}
           <Section style={supportBox}>
             <Text style={supportTitle}>Precisa de ajuda?</Text>
             <Text style={supportText}>
-              📞 WhatsApp: <Link href="https://wa.me/551148635262" style={linkStyle}>+55 11 4863-5262</Link>
+              📞 WhatsApp:{' '}
+              <Link href="https://wa.me/551148635262" style={linkStyle}>
+                +55 11 4863-5262
+              </Link>
             </Text>
             <Text style={supportText}>
-              ✉️ E-mail: <Link href="mailto:contato@kadernim.com.br" style={linkStyle}>contato@kadernim.com.br</Link>
+              ✉️ E-mail:{' '}
+              <Link href="mailto:contato@kadernim.com.br" style={linkStyle}>
+                contato@kadernim.com.br
+              </Link>
             </Text>
             <Text style={supportText}>📍 Brasília - DF, Brasil</Text>
           </Section>
@@ -84,12 +85,8 @@ export const OtpEmail = ({
           <Hr style={hr} />
 
           {/* Footer */}
-          <Text style={footer}>
-            © 2025 Kadernim. Todos os direitos reservados.
-          </Text>
-          <Text style={footerSmall}>
-            Este é um email automático. Por favor, não responda.
-          </Text>
+          <Text style={footer}>© 2025 Kadernim. Todos os direitos reservados.</Text>
+          <Text style={footerSmall}>Este é um email automático. Por favor, não responda.</Text>
         </Section>
       </Container>
     </Body>
@@ -98,11 +95,7 @@ export const OtpEmail = ({
 
 export default OtpEmail
 
-export async function generateOtpEmail({
-  name = 'Usuário',
-  otp,
-  expiresIn = 5,
-}: OtpEmailProps) {
+export async function generateOtpEmail({ name = 'Usuário', otp, expiresIn = 5 }: OtpEmailProps) {
   const subject = '🔐 Seu código de acesso - Kadernim'
 
   const text = [
@@ -118,9 +111,7 @@ export async function generateOtpEmail({
     'Endereço: Brasília - DF, Brasil',
   ].join('\n')
 
-  const htmlRaw = await render(
-    React.createElement(OtpEmail, { name, otp, expiresIn })
-  )
+  const htmlRaw = await render(React.createElement(OtpEmail, { name, otp, expiresIn }))
   const html = await pretty(htmlRaw)
 
   return { subject, text, html }

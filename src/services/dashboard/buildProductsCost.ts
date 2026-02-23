@@ -28,7 +28,11 @@ export async function buildProductsCost(where: Prisma.SaleWhereInput): Promise<P
   })
 
   const productIds = Array.from(
-    new Set(saleItems.map((item: { productId: string | null }) => item.productId).filter((id): id is string => Boolean(id))),
+    new Set(
+      saleItems
+        .map((item: { productId: string | null }) => item.productId)
+        .filter((id): id is string => Boolean(id))
+    )
   )
 
   const products = productIds.length
@@ -50,7 +54,7 @@ export async function buildProductsCost(where: Prisma.SaleWhereInput): Promise<P
 
   for (const item of saleItems) {
     const quantity = Number(item.quantity)
-    const unitCost = item.productId ? productCostMap.get(item.productId) ?? 0 : 0
+    const unitCost = item.productId ? (productCostMap.get(item.productId) ?? 0) : 0
     const lineCost = unitCost * quantity
 
     if (Number.isFinite(lineCost)) {

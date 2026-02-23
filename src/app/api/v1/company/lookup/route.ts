@@ -12,10 +12,7 @@ import { lookupCnpjSchema } from '../schemas'
 export async function GET(request: NextRequest) {
   const access = await validateFullAccess(request)
   if (!access.hasAccess || !access.organizationId) {
-    return NextResponse.json(
-      { error: access.error ?? 'Acesso negado' },
-      { status: 403 }
-    )
+    return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
   }
 
   try {
@@ -56,9 +53,6 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    return NextResponse.json(
-      { error: 'Erro ao buscar dados do CNPJ' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Erro ao buscar dados do CNPJ' }, { status: 500 })
   }
 }

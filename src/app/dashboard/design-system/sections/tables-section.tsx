@@ -44,9 +44,7 @@ export function TablesSection() {
             {data.map((row) => (
               <TableRow key={row.nome}>
                 <TableCell className="font-medium">{row.nome}</TableCell>
-                <TableCell className="text-muted-foreground">
-                  {row.email}
-                </TableCell>
+                <TableCell className="text-muted-foreground">{row.email}</TableCell>
                 <TableCell>
                   <Badge
                     variant="secondary"
@@ -59,9 +57,7 @@ export function TablesSection() {
                     {row.status}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-right font-medium">
-                  {row.vendas}
-                </TableCell>
+                <TableCell className="text-right font-medium">{row.vendas}</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -69,15 +65,15 @@ export function TablesSection() {
       </ShowcaseBox>
 
       <ShowcaseBox className="mt-6">
-        <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
+        <h3 className="text-muted-foreground mb-4 text-xs font-semibold uppercase tracking-widest">
           Empty State
         </h3>
         <div className="flex flex-col items-center justify-center py-12 text-center">
-          <div className="flex size-12 items-center justify-center rounded-xl bg-muted mb-3">
-            <Package className="size-6 text-muted-foreground" />
+          <div className="bg-muted mb-3 flex size-12 items-center justify-center rounded-xl">
+            <Package className="text-muted-foreground size-6" />
           </div>
           <p className="text-sm font-medium">Nenhum item encontrado</p>
-          <p className="text-xs text-muted-foreground mt-1 max-w-[240px]">
+          <p className="text-muted-foreground mt-1 max-w-[240px] text-xs">
             Tente ajustar os filtros ou adicione um novo registro.
           </p>
           <Button size="sm" className="mt-4">

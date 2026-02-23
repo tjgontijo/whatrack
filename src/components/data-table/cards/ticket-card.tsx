@@ -76,7 +76,11 @@ export const TicketCard = React.memo(
             <DataTableCardTitle className="text-base">{formattedDate}</DataTableCardTitle>
             {stage && (
               <DataTableCardMeta>
-                <Badge variant="secondary" className="text-xs" style={{ backgroundColor: stage.color, color: 'white' }}>
+                <Badge
+                  variant="secondary"
+                  className="text-xs"
+                  style={{ backgroundColor: stage.color, color: 'white' }}
+                >
                   {stage.name}
                 </Badge>
               </DataTableCardMeta>
@@ -129,17 +133,17 @@ export const TicketCard = React.memo(
               <div className="mt-3 space-y-2 border-t pt-3">
                 {utmSource && (
                   <DataTableCardRow label="UTM Source">
-                    <span className="text-xs text-muted-foreground">{utmSource}</span>
+                    <span className="text-muted-foreground text-xs">{utmSource}</span>
                   </DataTableCardRow>
                 )}
                 {utmMedium && (
                   <DataTableCardRow label="UTM Medium">
-                    <span className="text-xs text-muted-foreground">{utmMedium}</span>
+                    <span className="text-muted-foreground text-xs">{utmMedium}</span>
                   </DataTableCardRow>
                 )}
                 {utmCampaign && (
                   <DataTableCardRow label="UTM Campaign">
-                    <span className="text-xs text-muted-foreground">{utmCampaign}</span>
+                    <span className="text-muted-foreground text-xs">{utmCampaign}</span>
                   </DataTableCardRow>
                 )}
               </div>
@@ -149,13 +153,13 @@ export const TicketCard = React.memo(
             {pipefyId && (
               <DataTableCardRow label="Pipefy">
                 <div className="flex items-center gap-1">
-                  <span className="text-xs text-muted-foreground">#{pipefyId}</span>
+                  <span className="text-muted-foreground text-xs">#{pipefyId}</span>
                   {pipefyUrl && (
                     <a
                       href={pipefyUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex h-6 w-6 items-center justify-center rounded border border-transparent text-muted-foreground transition hover:border-muted-foreground/20 hover:bg-muted"
+                      className="text-muted-foreground hover:border-muted-foreground/20 hover:bg-muted inline-flex h-6 w-6 items-center justify-center rounded border border-transparent transition"
                       aria-label="Abrir no Pipefy"
                     >
                       <ExternalLink className="h-3 w-3" />

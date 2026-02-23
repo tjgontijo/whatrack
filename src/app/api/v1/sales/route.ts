@@ -7,7 +7,6 @@ import { revalidateTag } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
-
 // Sales schema - simplified without ticket dependencies
 const saleSchema = z.object({
   id: z.string(),
@@ -31,12 +30,16 @@ const createSaleSchema = z.object({
   discount: z.number().optional(),
   status: z.enum(['pending', 'completed', 'cancelled']).optional(),
   notes: z.string().optional(),
-  items: z.array(z.object({
-    productId: z.string().optional(),
-    name: z.string(),
-    quantity: z.number().int().positive(),
-    unitPrice: z.number(),
-  })).optional(),
+  items: z
+    .array(
+      z.object({
+        productId: z.string().optional(),
+        name: z.string(),
+        quantity: z.number().int().positive(),
+        unitPrice: z.number(),
+      })
+    )
+    .optional(),
 })
 
 const DATE_RANGE_PRESETS = [
@@ -134,7 +137,10 @@ export async function POST(req: Request) {
     // Calculate total from items if provided
     let calculatedTotal = validated.totalAmount || 0
     if (validated.items && validated.items.length > 0) {
-      calculatedTotal = validated.items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0)
+      calculatedTotal = validated.items.reduce(
+        (sum, item) => sum + item.quantity * item.unitPrice,
+        0
+      )
       if (validated.discount) {
         calculatedTotal -= validated.discount
       }
@@ -149,16 +155,18 @@ export async function POST(req: Request) {
         status: validated.status || 'pending',
         notes: validated.notes,
         createdBy: userId,
-        items: validated.items ? {
-          create: validated.items.map(item => ({
-            organizationId,
-            productId: item.productId,
-            name: item.name,
-            quantity: item.quantity,
-            unitPrice: item.unitPrice,
-            total: item.quantity * item.unitPrice,
-          }))
-        } : undefined,
+        items: validated.items
+          ? {
+              create: validated.items.map((item) => ({
+                organizationId,
+                productId: item.productId,
+                name: item.name,
+                quantity: item.quantity,
+                unitPrice: item.unitPrice,
+                total: item.quantity * item.unitPrice,
+              })),
+            }
+          : undefined,
       },
       include: {
         items: true,
@@ -194,13 +202,18 @@ export async function GET(req: Request) {
   })
   const parsed = salesQuerySchema.safeParse(Object.fromEntries(searchParams))
   if (!parsed.success) {
-    return NextResponse.json({ error: 'Parâmetros inválidos', details: parsed.error.flatten() }, { status: 400 })
+    return NextResponse.json(
+      { error: 'Parâmetros inválidos', details: parsed.error.flatten() },
+      { status: 400 }
+    )
   }
   const { q: rawQ, page, pageSize, dateRange: dateRangeValue, status: rawStatus } = parsed.data
   const q = rawQ.trim()
   const statusFilter = rawStatus?.trim() || undefined
 
-  const dateRangePreset = isDateRangePreset(dateRangeValue ?? null) ? (dateRangeValue as DateRangePreset) : undefined
+  const dateRangePreset = isDateRangePreset(dateRangeValue ?? null)
+    ? (dateRangeValue as DateRangePreset)
+    : undefined
 
   const ors: Prisma.SaleWhereInput[] = []
 

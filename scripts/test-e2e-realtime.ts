@@ -53,12 +53,7 @@ async function testRealTimeFlow() {
   }
 
   if (!apiKey) {
-    log(
-      'Env Check',
-      'FAIL',
-      'CENTRIFUGO_API_KEY not set',
-      'Set in .env or docker-compose'
-    )
+    log('Env Check', 'FAIL', 'CENTRIFUGO_API_KEY not set', 'Set in .env or docker-compose')
     return
   }
 
@@ -72,11 +67,7 @@ async function testRealTimeFlow() {
     return
   }
 
-  log(
-    'Env Check',
-    'PASS',
-    'All required environment variables are set'
-  )
+  log('Env Check', 'PASS', 'All required environment variables are set')
 
   // ============================================================
   // 2. Generate JWT Token (Simulating Frontend)
@@ -98,9 +89,7 @@ async function testRealTimeFlow() {
   const payload = Buffer.from(JSON.stringify(claims)).toString('base64url')
   const message = `${header}.${payload}`
 
-  const signature = createHmac('sha256', tokenSecret)
-    .update(message, 'utf-8')
-    .digest('base64url')
+  const signature = createHmac('sha256', tokenSecret).update(message, 'utf-8').digest('base64url')
 
   const jwtToken = `${message}.${signature}`
 
@@ -161,7 +150,7 @@ async function testRealTimeFlow() {
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
-        'Authorization': `apikey ${apiKey}`,
+        Authorization: `apikey ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(publishPayload),
@@ -199,7 +188,7 @@ async function testRealTimeFlow() {
     const response = await fetch(infoUrl, {
       method: 'POST',
       headers: {
-        'Authorization': `apikey ${apiKey}`,
+        Authorization: `apikey ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({}),
@@ -235,9 +224,9 @@ async function testRealTimeFlow() {
   console.log('📊 TEST SUMMARY')
   console.log('='.repeat(60) + '\n')
 
-  const passed = results.filter(r => r.status === 'PASS').length
-  const failed = results.filter(r => r.status === 'FAIL').length
-  const skipped = results.filter(r => r.status === 'SKIP').length
+  const passed = results.filter((r) => r.status === 'PASS').length
+  const failed = results.filter((r) => r.status === 'FAIL').length
+  const skipped = results.filter((r) => r.status === 'SKIP').length
 
   console.log(`Total Tests: ${results.length}`)
   console.log(`✅ Passed: ${passed}`)
@@ -263,7 +252,7 @@ async function testRealTimeFlow() {
   console.log('\n')
 }
 
-testRealTimeFlow().catch(error => {
+testRealTimeFlow().catch((error) => {
   console.error('Fatal error:', error)
   process.exit(1)
 })

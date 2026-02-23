@@ -25,9 +25,9 @@ import { WebhookProcessor } from '@/services/whatsapp/webhook-processor'
 import { rateLimitMiddleware } from '@/lib/middleware/rate-limit.middleware'
 
 const webhookVerifySchema = z.object({
-    'hub.mode': z.literal('subscribe'),
-    'hub.verify_token': z.string().min(1),
-    'hub.challenge': z.string().min(1),
+  'hub.mode': z.literal('subscribe'),
+  'hub.verify_token': z.string().min(1),
+  'hub.challenge': z.string().min(1),
 })
 
 export const dynamic = 'force-dynamic'
@@ -40,33 +40,33 @@ const VERIFY_TOKEN = process.env.META_WEBHOOK_VERIFY_TOKEN
  * Webhook verification endpoint for Meta
  */
 export async function GET(request: Request) {
-    const { searchParams } = new URL(request.url)
+  const { searchParams } = new URL(request.url)
 
-    // Validate query params with Zod before touching any values
-    const parsed = webhookVerifySchema.safeParse({
-        'hub.mode': searchParams.get('hub.mode'),
-        'hub.verify_token': searchParams.get('hub.verify_token'),
-        'hub.challenge': searchParams.get('hub.challenge'),
-    })
+  // Validate query params with Zod before touching any values
+  const parsed = webhookVerifySchema.safeParse({
+    'hub.mode': searchParams.get('hub.mode'),
+    'hub.verify_token': searchParams.get('hub.verify_token'),
+    'hub.challenge': searchParams.get('hub.challenge'),
+  })
 
-    if (!parsed.success) {
-        console.error('[webhook] GET verification: invalid params', parsed.error.flatten())
-        return NextResponse.json({ error: 'Verification failed' }, { status: 403 })
-    }
-
-    console.log('[webhook] GET verification received')
-
-    if (parsed.data['hub.verify_token'] === VERIFY_TOKEN) {
-        console.log('[webhook] Verification successful')
-        // Meta expects the challenge as plain text response
-        return new Response(parsed.data['hub.challenge'], {
-            status: 200,
-            headers: { 'Content-Type': 'text/plain' },
-        })
-    }
-
-    console.error('[webhook] Verification failed: invalid token')
+  if (!parsed.success) {
+    console.error('[webhook] GET verification: invalid params', parsed.error.flatten())
     return NextResponse.json({ error: 'Verification failed' }, { status: 403 })
+  }
+
+  console.log('[webhook] GET verification received')
+
+  if (parsed.data['hub.verify_token'] === VERIFY_TOKEN) {
+    console.log('[webhook] Verification successful')
+    // Meta expects the challenge as plain text response
+    return new Response(parsed.data['hub.challenge'], {
+      status: 200,
+      headers: { 'Content-Type': 'text/plain' },
+    })
+  }
+
+  console.error('[webhook] Verification failed: invalid token')
+  return NextResponse.json({ error: 'Verification failed' }, { status: 403 })
 }
 
 /**
@@ -84,169 +84,173 @@ export async function GET(request: Request) {
  * 5. If error, DLQ retry job picks it up every 5 minutes
  */
 export async function POST(request: NextRequest) {
-    // Check rate limits first
-    const rateLimitResponse = await rateLimitMiddleware(request, '/api/v1/whatsapp/webhook');
-    if (rateLimitResponse) return rateLimitResponse;
-    let webhookLogId: string | null = null
+  // Check rate limits first
+  const rateLimitResponse = await rateLimitMiddleware(request, '/api/v1/whatsapp/webhook')
+  if (rateLimitResponse) return rateLimitResponse
+  let webhookLogId: string | null = null
 
-    try {
-        // 1. Read raw body for signature verification
-        const rawBody = await request.text()
-        const signatureHeader = request.headers.get('x-hub-signature-256')
-        const payload = JSON.parse(rawBody)
+  try {
+    // 1. Read raw body for signature verification
+    const rawBody = await request.text()
+    const signatureHeader = request.headers.get('x-hub-signature-256')
+    const payload = JSON.parse(rawBody)
 
-        // Extract event type for logging
-        let eventType: string | null = null
-        const changes = payload.entry?.[0]?.changes?.[0]
+    // Extract event type for logging
+    let eventType: string | null = null
+    const changes = payload.entry?.[0]?.changes?.[0]
 
-        console.log('[webhook] Payload structure:', {
-            hasEntry: !!payload.entry,
-            entryLength: payload.entry?.length,
-            hasChanges: !!changes,
-            changesField: changes?.field,
-            hasValue: !!changes?.value,
-            messages: changes?.value?.messages?.length,
-        })
+    console.log('[webhook] Payload structure:', {
+      hasEntry: !!payload.entry,
+      entryLength: payload.entry?.length,
+      hasChanges: !!changes,
+      changesField: changes?.field,
+      hasValue: !!changes?.value,
+      messages: changes?.value?.messages?.length,
+    })
 
-        if (changes?.field === 'account_update') {
-            eventType = payload.entry?.[0]?.changes?.[0]?.value?.event || 'account_update'
-        } else if (changes?.field) {
-            eventType = changes.field
-        }
-
-        console.log('[webhook] Event type detected:', eventType)
-
-        // 2. Verify webhook signature FIRST
-        const isValidSignature = verifyWebhookSignature(rawBody, signatureHeader)
-
-        if (!isValidSignature) {
-            console.error('[webhook] ❌ SIGNATURE VERIFICATION FAILED — payload rejected, no processing')
-            // Log the rejected webhook request
-            try {
-                const log = await prisma.whatsAppWebhookLog.create({
-                    data: {
-                        payload: payload,
-                        eventType,
-                        processed: true, // Mark as processed since it's rejected
-                        signatureValid: false,
-                        processingError: 'Invalid signature'
-                    }
-                })
-                webhookLogId = log.id
-            } catch (logError) {
-                console.error('[webhook] Failed to create rejected log entry:', logError)
-            }
-            // Return 200 to prevent Meta from retrying (per Meta docs), but do NOT process.
-            return NextResponse.json({ received: true, rejected: true })
-        }
-
-        // 3. Log valid webhook BEFORE processing (for DLQ)
-        try {
-            const log = await prisma.whatsAppWebhookLog.create({
-                data: {
-                    payload: payload,
-                    eventType,
-                    processed: false,
-                    signatureValid: true,
-                }
-            })
-            webhookLogId = log.id
-        } catch (logError) {
-            console.error('[webhook] Failed to create log entry:', logError)
-        }
-
-
-
-        // 4. Process with WebhookProcessor (handles both new v2 and legacy v1 events)
-        const processor = new WebhookProcessor()
-        try {
-            await processor.process(payload)
-        } catch (processorError) {
-            console.error('[webhook] Processor error:', processorError)
-            if (webhookLogId) {
-                await prisma.whatsAppWebhookLog.update({
-                    where: { id: webhookLogId },
-                    data: {
-                        processingError: processorError instanceof Error ? processorError.message : 'Unknown error'
-                    }
-                }).catch(() => { })
-            }
-            // Don't throw - let DLQ retry it
-        }
-
-        // 5. Process legacy chat messages (v1 compatibility)
-        const changes_field = changes?.field
-        const value = changes?.value
-        const metadata = value?.metadata
-        const phoneId = metadata?.phone_number_id
-        const wabaId = payload.entry?.[0]?.id
-
-        let instanceId: string | null = null
-        if (phoneId || wabaId) {
-            const config = await prisma.whatsAppConfig.findFirst({
-                where: {
-                    OR: [
-                        phoneId ? { phoneId: phoneId } : null,
-                        wabaId ? { wabaId: wabaId } : null,
-                    ].filter((cond): cond is { phoneId: string } | { wabaId: string } => cond !== null)
-                },
-                select: { id: true }
-            })
-            instanceId = config?.id ?? null
-
-            if (config?.id) {
-                await prisma.whatsAppConfig.update({
-                    where: { id: config.id },
-                    data: { lastWebhookAt: new Date() }
-                }).catch(err => console.error('[webhook] Failed to update lastWebhookAt:', err))
-            }
-        }
-
-        // NOTE: Legacy message processing removed - messageHandler in WebhookProcessor handles this
-        // See PRD-REALTIME-FIX.md for details
-
-        // Handle echo events
-        const echoEvents = changes_field === 'smb_message_echoes' ? (value?.message_echoes ?? []) : []
-        if (echoEvents.length > 0 && instanceId) {
-            for (const echo of echoEvents) {
-                try {
-                    await WhatsAppChatService.processMessageEcho(instanceId, echo)
-                } catch (err) {
-                    console.error('[webhook] Error processing echo:', echo.id, err)
-                }
-            }
-        }
-
-        // Handle status updates
-        if (value?.statuses && instanceId) {
-            for (const status of value.statuses) {
-                try {
-                    await WhatsAppChatService.processStatusUpdate(instanceId, status)
-                } catch (err) {
-                    console.error('[webhook] Error processing status update:', status.id, err)
-                }
-            }
-        }
-
-        // 6. Mark as processed ONLY if everything succeeded
-        if (webhookLogId) {
-            await prisma.whatsAppWebhookLog.update({
-                where: { id: webhookLogId },
-                data: {
-                    processed: true,
-                    processedAt: new Date()
-                }
-            }).catch(err => console.error('[webhook] Failed to mark processed:', err))
-        }
-
-        // Always return 200 to Meta
-        return NextResponse.json({
-            received: true,
-            logId: webhookLogId,
-        })
-    } catch (error) {
-        console.error('[webhook] POST error:', error)
-        // Always return 200 to prevent Meta from retrying
-        return NextResponse.json({ received: true })
+    if (changes?.field === 'account_update') {
+      eventType = payload.entry?.[0]?.changes?.[0]?.value?.event || 'account_update'
+    } else if (changes?.field) {
+      eventType = changes.field
     }
+
+    console.log('[webhook] Event type detected:', eventType)
+
+    // 2. Verify webhook signature FIRST
+    const isValidSignature = verifyWebhookSignature(rawBody, signatureHeader)
+
+    if (!isValidSignature) {
+      console.error('[webhook] ❌ SIGNATURE VERIFICATION FAILED — payload rejected, no processing')
+      // Log the rejected webhook request
+      try {
+        const log = await prisma.whatsAppWebhookLog.create({
+          data: {
+            payload: payload,
+            eventType,
+            processed: true, // Mark as processed since it's rejected
+            signatureValid: false,
+            processingError: 'Invalid signature',
+          },
+        })
+        webhookLogId = log.id
+      } catch (logError) {
+        console.error('[webhook] Failed to create rejected log entry:', logError)
+      }
+      // Return 200 to prevent Meta from retrying (per Meta docs), but do NOT process.
+      return NextResponse.json({ received: true, rejected: true })
+    }
+
+    // 3. Log valid webhook BEFORE processing (for DLQ)
+    try {
+      const log = await prisma.whatsAppWebhookLog.create({
+        data: {
+          payload: payload,
+          eventType,
+          processed: false,
+          signatureValid: true,
+        },
+      })
+      webhookLogId = log.id
+    } catch (logError) {
+      console.error('[webhook] Failed to create log entry:', logError)
+    }
+
+    // 4. Process with WebhookProcessor (handles both new v2 and legacy v1 events)
+    const processor = new WebhookProcessor()
+    try {
+      await processor.process(payload)
+    } catch (processorError) {
+      console.error('[webhook] Processor error:', processorError)
+      if (webhookLogId) {
+        await prisma.whatsAppWebhookLog
+          .update({
+            where: { id: webhookLogId },
+            data: {
+              processingError:
+                processorError instanceof Error ? processorError.message : 'Unknown error',
+            },
+          })
+          .catch(() => {})
+      }
+      // Don't throw - let DLQ retry it
+    }
+
+    // 5. Process legacy chat messages (v1 compatibility)
+    const changes_field = changes?.field
+    const value = changes?.value
+    const metadata = value?.metadata
+    const phoneId = metadata?.phone_number_id
+    const wabaId = payload.entry?.[0]?.id
+
+    let instanceId: string | null = null
+    if (phoneId || wabaId) {
+      const config = await prisma.whatsAppConfig.findFirst({
+        where: {
+          OR: [phoneId ? { phoneId: phoneId } : null, wabaId ? { wabaId: wabaId } : null].filter(
+            (cond): cond is { phoneId: string } | { wabaId: string } => cond !== null
+          ),
+        },
+        select: { id: true },
+      })
+      instanceId = config?.id ?? null
+
+      if (config?.id) {
+        await prisma.whatsAppConfig
+          .update({
+            where: { id: config.id },
+            data: { lastWebhookAt: new Date() },
+          })
+          .catch((err) => console.error('[webhook] Failed to update lastWebhookAt:', err))
+      }
+    }
+
+    // NOTE: Legacy message processing removed - messageHandler in WebhookProcessor handles this
+    // See PRD-REALTIME-FIX.md for details
+
+    // Handle echo events
+    const echoEvents = changes_field === 'smb_message_echoes' ? (value?.message_echoes ?? []) : []
+    if (echoEvents.length > 0 && instanceId) {
+      for (const echo of echoEvents) {
+        try {
+          await WhatsAppChatService.processMessageEcho(instanceId, echo)
+        } catch (err) {
+          console.error('[webhook] Error processing echo:', echo.id, err)
+        }
+      }
+    }
+
+    // Handle status updates
+    if (value?.statuses && instanceId) {
+      for (const status of value.statuses) {
+        try {
+          await WhatsAppChatService.processStatusUpdate(instanceId, status)
+        } catch (err) {
+          console.error('[webhook] Error processing status update:', status.id, err)
+        }
+      }
+    }
+
+    // 6. Mark as processed ONLY if everything succeeded
+    if (webhookLogId) {
+      await prisma.whatsAppWebhookLog
+        .update({
+          where: { id: webhookLogId },
+          data: {
+            processed: true,
+            processedAt: new Date(),
+          },
+        })
+        .catch((err) => console.error('[webhook] Failed to mark processed:', err))
+    }
+
+    // Always return 200 to Meta
+    return NextResponse.json({
+      received: true,
+      logId: webhookLogId,
+    })
+  } catch (error) {
+    console.error('[webhook] POST error:', error)
+    // Always return 200 to prevent Meta from retrying
+    return NextResponse.json({ received: true })
+  }
 }

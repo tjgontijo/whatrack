@@ -10,7 +10,7 @@ import { closeTicketSchema } from '@/lib/validations/ticket-schemas'
 // POST /api/v1/tickets/:id/close - Close ticket (won/lost)
 export async function POST(
   req: NextRequest,
-  { params }: { params: Promise<{ ticketId: string }> },
+  { params }: { params: Promise<{ ticketId: string }> }
 ) {
   const access = await validateFullAccess(req)
   if (!access.hasAccess || !access.organizationId) {
@@ -18,10 +18,7 @@ export async function POST(
   }
 
   if (!hasPermission(access.role, 'manage:tickets')) {
-    return NextResponse.json(
-      { error: 'Sem permissão para fechar tickets' },
-      { status: 403 },
-    )
+    return NextResponse.json({ error: 'Sem permissão para fechar tickets' }, { status: 403 })
   }
 
   const organizationId = access.organizationId
@@ -37,7 +34,7 @@ export async function POST(
           error: 'Dados inválidos',
           details: parsed.error.flatten(),
         },
-        { status: 400 },
+        { status: 400 }
       )
     }
 
@@ -62,7 +59,7 @@ export async function POST(
           error: 'Ticket já está fechado',
           currentStatus: existing.status,
         },
-        { status: 409 },
+        { status: 409 }
       )
     }
 
@@ -70,10 +67,8 @@ export async function POST(
 
     // Close ticket using transaction
     const closed = await prisma.$transaction(async (tx) => {
-      const now = new Date();
-      const resolutionTimeSec = Math.floor(
-        (now.getTime() - existing.createdAt.getTime()) / 1000
-      );
+      const now = new Date()
+      const resolutionTimeSec = Math.floor((now.getTime() - existing.createdAt.getTime()) / 1000)
 
       const updatedTicket = await tx.ticket.update({
         where: { id: ticketId },
@@ -117,7 +112,7 @@ export async function POST(
             },
           },
         },
-      });
+      })
 
       // Update Lead lifetime value and tickets count
       if (newStatus === 'closed_won' && typeof dealValue === 'number' && dealValue > 0) {
@@ -127,17 +122,17 @@ export async function POST(
             lifetimeValue: { increment: dealValue },
             totalTickets: { increment: 1 },
           },
-        });
+        })
       } else {
         await tx.lead.update({
           where: { id: existing.leadId },
           data: {
             totalTickets: { increment: 1 },
           },
-        });
+        })
       }
 
-      return updatedTicket;
+      return updatedTicket
     })
 
     // Format response

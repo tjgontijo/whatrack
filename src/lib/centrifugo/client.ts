@@ -8,11 +8,7 @@ export function createCentrifugoClient(token: string) {
   return client
 }
 
-export function subscribeTo(
-  client: Centrifuge,
-  channel: string,
-  onMessage: (data: any) => void,
-) {
+export function subscribeTo(client: Centrifuge, channel: string, onMessage: (data: any) => void) {
   const sub = client.newSubscription(channel)
 
   // Centrifuge v5 events

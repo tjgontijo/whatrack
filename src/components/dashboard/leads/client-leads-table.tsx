@@ -8,7 +8,11 @@ import { useState } from 'react'
 
 import { ResponsiveDataTable } from '@/components/data-table/responsive-data-table'
 import { PageHeader } from '@/components/data-table/page-header'
-import { ContentHeader, ContentHeaderTabs, ContentHeaderActions } from '@/components/data-table/content-header'
+import {
+  ContentHeader,
+  ContentHeaderTabs,
+  ContentHeaderActions,
+} from '@/components/data-table/content-header'
 import { ContentHeaderTab } from '@/components/data-table/content-header-tab'
 import { SegmentedControl } from '@/components/data-table/segmented-control'
 import { LeadCard } from '@/components/data-table/cards/lead-card'
@@ -65,7 +69,10 @@ export default function ClientLeadsTable() {
   // Filters
   const q = (searchParams.get('q') || '').trim()
   const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1)
-  const pageSize = Math.max(1, Math.min(100, parseInt(searchParams.get('pageSize') || '20', 10) || 20))
+  const pageSize = Math.max(
+    1,
+    Math.min(100, parseInt(searchParams.get('pageSize') || '20', 10) || 20)
+  )
   const statusFilter = searchParams.get('status') || 'all'
 
   const rawDateRange = searchParams.get('dateRange')
@@ -91,25 +98,28 @@ export default function ClientLeadsTable() {
   const [input, setInput] = React.useState(q)
   const debounceRef = React.useRef<NodeJS.Timeout>(null)
 
-  const handleSearchChange = React.useCallback((value: string) => {
-    setInput(value)
+  const handleSearchChange = React.useCallback(
+    (value: string) => {
+      setInput(value)
 
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current)
-    }
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current)
+      }
 
-    debounceRef.current = setTimeout(() => {
-      const trimmed = value.trim()
+      debounceRef.current = setTimeout(() => {
+        const trimmed = value.trim()
 
-      updateQueryParams((params) => {
-        if (trimmed.length === 0 || trimmed.length < 3) {
-          params.delete('q')
-        } else {
-          params.set('q', trimmed)
-        }
-      })
-    }, 400)
-  }, [updateQueryParams])
+        updateQueryParams((params) => {
+          if (trimmed.length === 0 || trimmed.length < 3) {
+            params.delete('q')
+          } else {
+            params.set('q', trimmed)
+          }
+        })
+      }, 400)
+    },
+    [updateQueryParams]
+  )
 
   // Fetch data
   const { data, isLoading, isError } = useQuery<ApiResponse>({
@@ -144,7 +154,11 @@ export default function ClientLeadsTable() {
       { header: 'Nome', accessorKey: 'name', cell: ({ getValue }) => getValue() || '-' },
       { header: 'Telefone', accessorKey: 'phone', cell: ({ getValue }) => getValue() || '-' },
       { header: 'Email', accessorKey: 'mail', cell: ({ getValue }) => getValue() || '-' },
-      { header: 'Criado em', accessorKey: 'createdAt', cell: ({ getValue }) => new Date(getValue() as Date).toLocaleString('pt-BR') },
+      {
+        header: 'Criado em',
+        accessorKey: 'createdAt',
+        cell: ({ getValue }) => new Date(getValue() as Date).toLocaleString('pt-BR'),
+      },
     ],
     []
   )
@@ -210,8 +224,8 @@ export default function ClientLeadsTable() {
             value={viewMode}
             onChange={setViewMode as (value: string) => void}
             options={[
-              { value: 'table', icon: <List className="w-4 h-4" />, label: 'Tabela' },
-              { value: 'cards', icon: <LayoutGrid className="w-4 h-4" />, label: 'Cards' },
+              { value: 'table', icon: <List className="h-4 w-4" />, label: 'Tabela' },
+              { value: 'cards', icon: <LayoutGrid className="h-4 w-4" />, label: 'Cards' },
             ]}
             aria-label="Modo de visualização"
           />
@@ -223,11 +237,7 @@ export default function ClientLeadsTable() {
         />
 
         <ContentHeaderActions>
-          <Button
-            size="sm"
-            onClick={() => setIsNewLeadDialogOpen(true)}
-            className="gap-1"
-          >
+          <Button size="sm" onClick={() => setIsNewLeadDialogOpen(true)} className="gap-1">
             <Plus className="h-4 w-4" />
             <span className="hidden sm:inline">Add Lead</span>
           </Button>
@@ -253,10 +263,7 @@ export default function ClientLeadsTable() {
                 }
               })
             }}
-            options={[
-              { value: 'all', label: 'Todas as datas' },
-              ...DATE_FILTER_OPTIONS,
-            ]}
+            options={[{ value: 'all', label: 'Todas as datas' }, ...DATE_FILTER_OPTIONS]}
             placeholder="Selecione data"
           />
         </FilterGroup>
@@ -266,12 +273,7 @@ export default function ClientLeadsTable() {
       <ResponsiveDataTable
         data={items}
         columns={columns}
-        mobileCard={(row) => (
-          <LeadCard
-            lead={row.original}
-            onOpenDialog={() => { }}
-          />
-        )}
+        mobileCard={(row) => <LeadCard lead={row.original} onOpenDialog={() => {}} />}
         pagination={{
           page,
           pageSize,
@@ -294,10 +296,7 @@ export default function ClientLeadsTable() {
       />
 
       {/* New Lead Dialog */}
-      <NewLeadDialog
-        open={isNewLeadDialogOpen}
-        onOpenChange={setIsNewLeadDialogOpen}
-      />
+      <NewLeadDialog open={isNewLeadDialogOpen} onOpenChange={setIsNewLeadDialogOpen} />
 
       {/* Floating Action Button */}
       <FloatingActionButton

@@ -6,8 +6,7 @@ import { Button } from '@/components/ui/button'
 import { X, Search, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-interface FilterInputProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
+interface FilterInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
   value: string
   onChange: (value: string) => void
   onClear?: () => void
@@ -76,7 +75,7 @@ export const FilterInput = React.forwardRef<HTMLInputElement, FilterInputProps>(
       <div className="relative w-full">
         <div className="relative flex items-center">
           {icon && (
-            <div className="absolute left-3 flex items-center text-muted-foreground pointer-events-none">
+            <div className="text-muted-foreground pointer-events-none absolute left-3 flex items-center">
               {icon}
             </div>
           )}
@@ -86,16 +85,12 @@ export const FilterInput = React.forwardRef<HTMLInputElement, FilterInputProps>(
             value={displayValue}
             onChange={handleChange}
             placeholder={placeholder}
-            className={cn(
-              'pr-10',
-              icon && 'pl-10',
-              className
-            )}
+            className={cn('pr-10', icon && 'pl-10', className)}
             {...props}
           />
           {isLoading && (
             <Loader2
-              className="absolute right-3 h-4 w-4 text-muted-foreground animate-spin"
+              className="text-muted-foreground absolute right-3 h-4 w-4 animate-spin"
               aria-hidden="true"
             />
           )}
@@ -109,7 +104,7 @@ export const FilterInput = React.forwardRef<HTMLInputElement, FilterInputProps>(
               onClick={handleClear}
               aria-label="Clear search"
             >
-              <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+              <X className="text-muted-foreground hover:text-foreground h-4 w-4" />
             </Button>
           )}
         </div>

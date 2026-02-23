@@ -45,7 +45,10 @@ const saleItemSchema = z.object({
 
 type SaleListItem = z.infer<typeof saleItemSchema>
 
-const STATUS_BADGE: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' }> = {
+const STATUS_BADGE: Record<
+  string,
+  { label: string; variant: 'default' | 'secondary' | 'destructive' }
+> = {
   pending: { label: 'Pendente', variant: 'secondary' },
   completed: { label: 'Concluída', variant: 'default' },
   cancelled: { label: 'Cancelada', variant: 'destructive' },
@@ -62,28 +65,32 @@ type ApiResponse = {
 function SaleCard({ item }: { item: SaleListItem }) {
   const s = item.status ? STATUS_BADGE[item.status] : null
   return (
-    <div className="flex flex-col gap-2 p-4 bg-white dark:bg-card border shadow-sm rounded-xl hover:shadow-md transition-shadow">
-      <div className="flex justify-between items-start">
+    <div className="dark:bg-card flex flex-col gap-2 rounded-xl border bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
+      <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400">
             <ShoppingCart className="h-4 w-4" />
           </div>
           <div className="flex flex-col">
-            <span className="font-bold text-base text-foreground">
+            <span className="text-foreground text-base font-bold">
               {formatCurrencyBRL(item.totalAmount)}
             </span>
-            <span className="text-xs text-muted-foreground mt-0.5">
+            <span className="text-muted-foreground mt-0.5 text-xs">
               {new Date(item.createdAt).toLocaleDateString('pt-BR')}
             </span>
           </div>
         </div>
       </div>
       {(item.notes || s) && (
-        <div className="mt-2 flex items-center justify-between border-t border-border pt-3">
-          <span className="text-sm text-muted-foreground truncate max-w-[180px]">
+        <div className="border-border mt-2 flex items-center justify-between border-t pt-3">
+          <span className="text-muted-foreground max-w-[180px] truncate text-sm">
             {item.notes || 'Sem observações'}
           </span>
-          {s && <Badge variant={s.variant} className="text-[10px] uppercase font-bold tracking-wider">{s.label}</Badge>}
+          {s && (
+            <Badge variant={s.variant} className="text-[10px] font-bold uppercase tracking-wider">
+              {s.label}
+            </Badge>
+          )}
         </div>
       )}
     </div>
@@ -102,7 +109,10 @@ export default function ClientSalesTable() {
   // Filters from URL
   const q = (searchParams.get('q') || '').trim()
   const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1)
-  const pageSize = Math.max(1, Math.min(100, parseInt(searchParams.get('pageSize') || '20', 10) || 20))
+  const pageSize = Math.max(
+    1,
+    Math.min(100, parseInt(searchParams.get('pageSize') || '20', 10) || 20)
+  )
   const statusFilter = searchParams.get('status') || 'all'
   const rawDateRange = searchParams.get('dateRange')
   const dateRange = React.useMemo<DateFilterValue | undefined>(() => {
@@ -126,25 +136,28 @@ export default function ClientSalesTable() {
   const [input, setInput] = React.useState(q)
   const debounceRef = React.useRef<NodeJS.Timeout>(null)
 
-  const handleSearchChange = React.useCallback((value: string) => {
-    setInput(value)
+  const handleSearchChange = React.useCallback(
+    (value: string) => {
+      setInput(value)
 
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current)
-    }
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current)
+      }
 
-    debounceRef.current = setTimeout(() => {
-      const trimmed = value.trim()
+      debounceRef.current = setTimeout(() => {
+        const trimmed = value.trim()
 
-      updateQueryParams((params) => {
-        if (trimmed.length === 0 || trimmed.length < 3) {
-          params.delete('q')
-        } else {
-          params.set('q', trimmed)
-        }
-      })
-    }, 400)
-  }, [updateQueryParams])
+        updateQueryParams((params) => {
+          if (trimmed.length === 0 || trimmed.length < 3) {
+            params.delete('q')
+          } else {
+            params.set('q', trimmed)
+          }
+        })
+      }, 400)
+    },
+    [updateQueryParams]
+  )
 
   const { data, isLoading, isError } = useQuery<ApiResponse>({
     queryKey: ['sales', q, page, pageSize, dateRange ?? null, statusFilter] as const,
@@ -175,10 +188,10 @@ export default function ClientSalesTable() {
         accessorKey: 'totalAmount',
         cell: ({ row }) => (
           <div className="flex items-center gap-3">
-            <div className="hidden sm:flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100/50 text-emerald-600">
+            <div className="hidden h-8 w-8 items-center justify-center rounded-lg bg-emerald-100/50 text-emerald-600 sm:flex">
               <ShoppingCart className="h-4 w-4" />
             </div>
-            <span className="font-bold text-foreground">
+            <span className="text-foreground font-bold">
               {formatCurrencyBRL(row.original.totalAmount)}
             </span>
           </div>
@@ -189,14 +202,20 @@ export default function ClientSalesTable() {
         accessorKey: 'status',
         cell: ({ row }) => {
           const s = row.original.status ? STATUS_BADGE[row.original.status] : null
-          return s ? <Badge variant={s.variant} className="uppercase tracking-wider text-[10px] font-bold">{s.label}</Badge> : <span className="text-muted-foreground">—</span>
+          return s ? (
+            <Badge variant={s.variant} className="text-[10px] font-bold uppercase tracking-wider">
+              {s.label}
+            </Badge>
+          ) : (
+            <span className="text-muted-foreground">—</span>
+          )
         },
       },
       {
         header: 'Notas / Campanha',
         accessorKey: 'notes',
         cell: ({ row }) => (
-          <span className="text-muted-foreground font-medium truncate max-w-[200px] block">
+          <span className="text-muted-foreground block max-w-[200px] truncate font-medium">
             {row.original.notes || 'Sem observações'}
           </span>
         ),
@@ -205,7 +224,7 @@ export default function ClientSalesTable() {
         header: 'Data do Registro',
         accessorKey: 'createdAt',
         cell: ({ row }) => (
-          <span className="text-sm font-medium text-muted-foreground">
+          <span className="text-muted-foreground text-sm font-medium">
             {new Date(row.original.createdAt).toLocaleString('pt-BR')}
           </span>
         ),
@@ -266,8 +285,8 @@ export default function ClientSalesTable() {
             value={viewMode}
             onChange={setViewMode as (value: string) => void}
             options={[
-              { value: 'table', icon: <List className="w-4 h-4" />, label: 'Tabela' },
-              { value: 'cards', icon: <LayoutGrid className="w-4 h-4" />, label: 'Cards' },
+              { value: 'table', icon: <List className="h-4 w-4" />, label: 'Tabela' },
+              { value: 'cards', icon: <LayoutGrid className="h-4 w-4" />, label: 'Cards' },
             ]}
             aria-label="Modo de visualização"
           />
@@ -294,10 +313,7 @@ export default function ClientSalesTable() {
                 else params.set('dateRange', val)
               })
             }}
-            options={[
-              { value: 'all', label: 'Todas as datas' },
-              ...DATE_FILTER_OPTIONS,
-            ]}
+            options={[{ value: 'all', label: 'Todas as datas' }, ...DATE_FILTER_OPTIONS]}
             placeholder="Filtrar por data..."
           />
         </FilterGroup>

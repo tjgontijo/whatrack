@@ -7,9 +7,33 @@ import { isValidCnpjFormat } from '@/lib/mask/cnpj'
 
 // Lista de UFs válidas do Brasil
 const validUFs = [
-  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA',
-  'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN',
-  'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO',
+  'AC',
+  'AL',
+  'AP',
+  'AM',
+  'BA',
+  'CE',
+  'DF',
+  'ES',
+  'GO',
+  'MA',
+  'MT',
+  'MS',
+  'MG',
+  'PA',
+  'PB',
+  'PR',
+  'PE',
+  'PI',
+  'RJ',
+  'RN',
+  'RS',
+  'RO',
+  'RR',
+  'SC',
+  'SP',
+  'SE',
+  'TO',
 ] as const
 
 /**
@@ -40,11 +64,9 @@ export const saveCompanySchema = z.object({
   uf: z.enum(validUFs, { message: 'UF inválida' }),
 
   // Checkbox de autorização - deve ser true para salvar
-  authorized: z
-    .boolean()
-    .refine((val) => val === true, {
-      message: 'É necessário autorizar a consulta de dados',
-    }),
+  authorized: z.boolean().refine((val) => val === true, {
+    message: 'É necessário autorizar a consulta de dados',
+  }),
 
   // Campos opcionais (frontend)
   nomeFantasia: z.string().optional(),
@@ -72,14 +94,22 @@ export const saveCompanySchema = z.object({
   telefone: z.string().optional(),
 
   // JSON fields
-  qsa: z.array(z.object({
-    nome: z.string(),
-    qual: z.string(),
-  })).optional(),
-  atividadesSecundarias: z.array(z.object({
-    code: z.string(),
-    text: z.string(),
-  })).optional(),
+  qsa: z
+    .array(
+      z.object({
+        nome: z.string(),
+        qual: z.string(),
+      })
+    )
+    .optional(),
+  atividadesSecundarias: z
+    .array(
+      z.object({
+        code: z.string(),
+        text: z.string(),
+      })
+    )
+    .optional(),
 })
 
 export type SaveCompanyInput = z.infer<typeof saveCompanySchema>

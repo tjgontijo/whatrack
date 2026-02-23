@@ -43,17 +43,14 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   return (
     <HeaderActionsProvider>
       <SidebarProvider>
-        <div className="flex min-h-screen w-full bg-background">
+        <div className="bg-background flex min-h-screen w-full">
           <DashboardSidebar />
 
           <SidebarInset className="min-w-0">
             <DashboardHeader />
 
-            <main className="flex-1 overflow-y-auto px-4 py-2 min-w-0 overflow-x-hidden">
-              <DashboardContent
-                organization={organization}
-                userId={session.user.id}
-              >
+            <main className="min-w-0 flex-1 overflow-y-auto overflow-x-hidden px-4 py-2">
+              <DashboardContent organization={organization} userId={session.user.id}>
                 <div className="mx-auto w-full min-w-0">
                   <OrganizationSelectorGate />
                   {children}

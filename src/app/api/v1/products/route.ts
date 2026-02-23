@@ -1,11 +1,7 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 
-import {
-  listProducts,
-  createProduct,
-  type ListProductsParams,
-} from '@/services/products/service'
+import { listProducts, createProduct, type ListProductsParams } from '@/services/products/service'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 const getParamsSchema = z.object({
@@ -73,7 +69,10 @@ export async function POST(request: Request) {
     const parsed = createSchema.safeParse(json)
 
     if (!parsed.success) {
-      return NextResponse.json({ error: 'Invalid payload', details: parsed.error.flatten() }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Invalid payload', details: parsed.error.flatten() },
+        { status: 400 }
+      )
     }
 
     const result = await createProduct({

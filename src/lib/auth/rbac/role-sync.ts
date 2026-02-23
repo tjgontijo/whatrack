@@ -15,7 +15,7 @@ export async function syncUserRole(userId: string): Promise<UserRoleType> {
     select: {
       id: true,
       role: true,
-    }
+    },
   })
 
   if (!user) {
@@ -28,7 +28,7 @@ export async function syncUserRole(userId: string): Promise<UserRoleType> {
   if (user.role !== newRole) {
     await prisma.user.update({
       where: { id: userId },
-      data: { role: newRole }
+      data: { role: newRole },
     })
   }
 
@@ -44,7 +44,7 @@ export async function syncAllUserRoles(): Promise<{ updated: number }> {
     select: {
       id: true,
       role: true,
-    }
+    },
   })
 
   let updated = 0
@@ -55,7 +55,7 @@ export async function syncAllUserRoles(): Promise<{ updated: number }> {
     if (user.role !== newRole) {
       await prisma.user.update({
         where: { id: user.id },
-        data: { role: newRole }
+        data: { role: newRole },
       })
       updated++
     }

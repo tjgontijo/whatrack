@@ -4,355 +4,386 @@ import React, { useState } from 'react'
 import { authClient } from '@/lib/auth/auth-client'
 import { useQuery } from '@tanstack/react-query'
 import {
-    flexRender,
-    getCoreRowModel,
-    getFilteredRowModel,
-    getSortedRowModel,
-    useReactTable,
-    SortingState,
-    VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getSortedRowModel,
+  useReactTable,
+  SortingState,
+  VisibilityState,
 } from '@tanstack/react-table'
 import { campaignsColumns, MetaCampaign } from './columns'
 import { Button } from '@/components/ui/button'
 import { CampaignAnalysisDrawer } from '@/components/dashboard/meta-ads/campaign-analysis-drawer'
 import { Sparkles, RefreshCw, Search, Settings2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from '@/components/ui/table'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Switch } from '@/components/ui/switch'
 
 const COLUMN_NAMES: Record<string, string> = {
-    status: 'Status',
-    name: 'Campanha',
-    budget: 'Orçamento',
-    spend: 'Gastos',
-    ctr: 'CTR',
-    clicks: 'Cliques',
-    cpc: 'CPC',
-    landingPageViews: 'Visitas Pág. (LPV)',
-    metaCpv: 'CPV',
-    initiateCheckout: 'Checkouts Inic. (IC)',
-    metaCti: 'CTI',
-    metaCpa: 'CPA',
-    metaPurchases: 'Vendas',
-    metaRevenue: 'Faturamento',
-    metaProfit: 'Lucro',
-    conversion: 'Conversão',
-    impressions: 'Impressões',
-    cpm: 'CPM',
-    reach: 'Alcance',
-    frequency: 'Frequência',
-    metaRoas: 'ROI',
-    addsToCart: 'Adições Ca. (ATC)',
-    metaCpatc: 'Custo por ATC',
+  status: 'Status',
+  name: 'Campanha',
+  budget: 'Orçamento',
+  spend: 'Gastos',
+  ctr: 'CTR',
+  clicks: 'Cliques',
+  cpc: 'CPC',
+  landingPageViews: 'Visitas Pág. (LPV)',
+  metaCpv: 'CPV',
+  initiateCheckout: 'Checkouts Inic. (IC)',
+  metaCti: 'CTI',
+  metaCpa: 'CPA',
+  metaPurchases: 'Vendas',
+  metaRevenue: 'Faturamento',
+  metaProfit: 'Lucro',
+  conversion: 'Conversão',
+  impressions: 'Impressões',
+  cpm: 'CPM',
+  reach: 'Alcance',
+  frequency: 'Frequência',
+  metaRoas: 'ROI',
+  addsToCart: 'Adições Ca. (ATC)',
+  metaCpatc: 'Custo por ATC',
 }
 
 // Columns hidden by default
 const DEFAULT_HIDDEN_COLUMNS = {
-    metaCpa: false,
-    metaPurchases: false,
-    impressions: false,
-    cpm: false,
-    reach: false,
-    frequency: false,
-    metaRoas: false,
-    addsToCart: false,
-    metaCpatc: false,
+  metaCpa: false,
+  metaPurchases: false,
+  impressions: false,
+  cpm: false,
+  reach: false,
+  frequency: false,
+  metaRoas: false,
+  addsToCart: false,
+  metaCpatc: false,
 }
 
 export function MetaAdsCampaignsClient() {
-    const { data: session } = authClient.useSession()
-    const { data: activeOrg } = authClient.useActiveOrganization()
-    const organizationId = activeOrg?.id
+  const { data: session } = authClient.useSession()
+  const { data: activeOrg } = authClient.useActiveOrganization()
+  const organizationId = activeOrg?.id
 
-    const [days, setDays] = useState('1')
-    const [globalFilter, setGlobalFilter] = useState('')
-    const [statusFilter, setStatusFilter] = useState('ACTIVE')
-    const [accountFilter, setAccountFilter] = useState('ALL')
-    const [onlyWithSpend, setOnlyWithSpend] = useState(true)
+  const [days, setDays] = useState('1')
+  const [globalFilter, setGlobalFilter] = useState('')
+  const [statusFilter, setStatusFilter] = useState('ACTIVE')
+  const [accountFilter, setAccountFilter] = useState('ALL')
+  const [onlyWithSpend, setOnlyWithSpend] = useState(true)
 
-    const [analysisDrawerOpen, setAnalysisDrawerOpen] = useState(false)
-    const [selectedCampaignForAnalysis, setSelectedCampaignForAnalysis] = useState<{ id: string, name: string, accountId: string } | null>(null)
+  const [analysisDrawerOpen, setAnalysisDrawerOpen] = useState(false)
+  const [selectedCampaignForAnalysis, setSelectedCampaignForAnalysis] = useState<{
+    id: string
+    name: string
+    accountId: string
+  } | null>(null)
 
-    const [sorting, setSorting] = useState<SortingState>([])
-    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(DEFAULT_HIDDEN_COLUMNS)
+  const [sorting, setSorting] = useState<SortingState>([])
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(DEFAULT_HIDDEN_COLUMNS)
 
-    const { data: campaigns, isLoading, isError, refetch, isRefetching } = useQuery<MetaCampaign[]>({
-        queryKey: ['meta-campaigns', organizationId, days],
-        queryFn: async () => {
-            if (!organizationId) throw new Error("No organization selected")
-            const response = await fetch(`/api/v1/meta-ads/campaigns?organizationId=${organizationId}&days=${days}`)
-            if (!response.ok) throw new Error("Failed to fetch campaigns")
-            return response.json()
-        },
-        enabled: !!organizationId,
-        refetchOnWindowFocus: false,
+  const {
+    data: campaigns,
+    isLoading,
+    isError,
+    refetch,
+    isRefetching,
+  } = useQuery<MetaCampaign[]>({
+    queryKey: ['meta-campaigns', organizationId, days],
+    queryFn: async () => {
+      if (!organizationId) throw new Error('No organization selected')
+      const response = await fetch(
+        `/api/v1/meta-ads/campaigns?organizationId=${organizationId}&days=${days}`
+      )
+      if (!response.ok) throw new Error('Failed to fetch campaigns')
+      return response.json()
+    },
+    enabled: !!organizationId,
+    refetchOnWindowFocus: false,
+  })
+
+  const uniqueAccounts = React.useMemo(() => {
+    if (!campaigns) return []
+    const accMap = new Map<string, string>()
+    campaigns.forEach((c) => {
+      if (!accMap.has(c.accountId)) {
+        accMap.set(c.accountId, c.accountName)
+      }
     })
+    return Array.from(accMap.entries()).map(([id, name]) => ({ id, name }))
+  }, [campaigns])
 
-    const uniqueAccounts = React.useMemo(() => {
-        if (!campaigns) return []
-        const accMap = new Map<string, string>()
-        campaigns.forEach(c => {
-            if (!accMap.has(c.accountId)) {
-                accMap.set(c.accountId, c.accountName)
-            }
-        })
-        return Array.from(accMap.entries()).map(([id, name]) => ({ id, name }))
-    }, [campaigns])
+  const filteredData = React.useMemo(() => {
+    let currentData = campaigns || []
 
-    const filteredData = React.useMemo(() => {
-        let currentData = campaigns || []
+    if (statusFilter !== 'ALL') {
+      currentData = currentData.filter((c) => c.status === statusFilter)
+    }
 
-        if (statusFilter !== 'ALL') {
-            currentData = currentData.filter(c => c.status === statusFilter)
-        }
+    if (accountFilter !== 'ALL') {
+      currentData = currentData.filter((c) => c.accountId === accountFilter)
+    }
 
-        if (accountFilter !== 'ALL') {
-            currentData = currentData.filter(c => c.accountId === accountFilter)
-        }
+    if (onlyWithSpend) {
+      currentData = currentData.filter((c) => c.spend > 0)
+    }
 
-        if (onlyWithSpend) {
-            currentData = currentData.filter(c => c.spend > 0)
-        }
+    return currentData
+  }, [campaigns, statusFilter, accountFilter, onlyWithSpend])
 
-        return currentData
-    }, [campaigns, statusFilter, accountFilter, onlyWithSpend])
-
-    const table = useReactTable({
-        data: filteredData,
-        // INJECTION: Temporary workaround - we map the columns and append the actions column here
-        columns: [
-            ...campaignsColumns,
-            {
-                id: 'actions',
-                cell: ({ row }) => {
-                    const campaign = row.original;
-                    return (
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 group hover:bg-indigo-50 hover:text-indigo-600 font-medium text-xs whitespace-nowrap"
-                            onClick={() => {
-                                setSelectedCampaignForAnalysis({
-                                    id: campaign.id,
-                                    name: campaign.name,
-                                    accountId: campaign.accountId
-                                });
-                                setAnalysisDrawerOpen(true);
-                            }}
-                        >
-                            <Sparkles className="w-3.5 h-3.5 mr-1.5 text-indigo-400 group-hover:text-indigo-600" />
-                            Analisar (Copilot IA)
-                        </Button>
-                    );
-                },
-                enableSorting: false,
-                enableHiding: false,
-            }
-        ],
-        getCoreRowModel: getCoreRowModel(),
-        getFilteredRowModel: getFilteredRowModel(),
-        getSortedRowModel: getSortedRowModel(),
-        onSortingChange: setSorting,
-        onColumnVisibilityChange: setColumnVisibility,
-        state: {
-            sorting,
-            globalFilter,
-            columnVisibility,
+  const table = useReactTable({
+    data: filteredData,
+    // INJECTION: Temporary workaround - we map the columns and append the actions column here
+    columns: [
+      ...campaignsColumns,
+      {
+        id: 'actions',
+        cell: ({ row }) => {
+          const campaign = row.original
+          return (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="group h-8 whitespace-nowrap text-xs font-medium hover:bg-indigo-50 hover:text-indigo-600"
+              onClick={() => {
+                setSelectedCampaignForAnalysis({
+                  id: campaign.id,
+                  name: campaign.name,
+                  accountId: campaign.accountId,
+                })
+                setAnalysisDrawerOpen(true)
+              }}
+            >
+              <Sparkles className="mr-1.5 h-3.5 w-3.5 text-indigo-400 group-hover:text-indigo-600" />
+              Analisar (Copilot IA)
+            </Button>
+          )
         },
-        onGlobalFilterChange: setGlobalFilter,
-    })
+        enableSorting: false,
+        enableHiding: false,
+      },
+    ],
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    onSortingChange: setSorting,
+    onColumnVisibilityChange: setColumnVisibility,
+    state: {
+      sorting,
+      globalFilter,
+      columnVisibility,
+    },
+    onGlobalFilterChange: setGlobalFilter,
+  })
 
-    if (!organizationId) return null
+  if (!organizationId) return null
 
-    return (
-        <div className="space-y-4 flex flex-col min-w-0 w-full">
-            {/* Toolbar */}
-            <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center bg-white p-4 rounded-xl border border-border shadow-sm">
-                <div className="flex flex-col md:flex-row gap-4 flex-1 w-full flex-wrap">
-                    {/* Search Component */}
-                    <div className="relative max-w-sm w-full md:w-auto flex-1">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            placeholder="Buscar campanha..."
-                            className="pl-9"
-                            value={globalFilter ?? ''}
-                            onChange={e => setGlobalFilter(e.target.value)}
-                        />
-                    </div>
-
-                    {/* Account Filter */}
-                    <Select value={accountFilter} onValueChange={setAccountFilter}>
-                        <SelectTrigger className="w-full md:w-[220px]">
-                            <SelectValue placeholder="Conta de Anúncio" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="ALL">Todas as contas</SelectItem>
-                            {uniqueAccounts.map(acc => (
-                                <SelectItem key={acc.id} value={acc.id}>{acc.name}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-
-                    {/* Status Filter */}
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
-                        <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="ALL">Todos os status</SelectItem>
-                            <SelectItem value="ACTIVE">Ativas</SelectItem>
-                            <SelectItem value="PAUSED">Pausadas</SelectItem>
-                            <SelectItem value="COMPLETED">Concluídas</SelectItem>
-                        </SelectContent>
-                    </Select>
-
-                    {/* Days Filter */}
-                    <Select value={days} onValueChange={setDays}>
-                        <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="Período" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="1">Hoje</SelectItem>
-                            <SelectItem value="7">Últimos 7 dias</SelectItem>
-                            <SelectItem value="14">Últimos 14 dias</SelectItem>
-                            <SelectItem value="30">Últimos 30 dias</SelectItem>
-                            <SelectItem value="90">Últimos 90 dias</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                <div className="flex items-center gap-4 self-end md:self-auto flex-wrap">
-                    <div className="flex items-center space-x-2">
-                        <label
-                            htmlFor="spend-filter"
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-muted-foreground whitespace-nowrap"
-                        >
-                            Com gastos
-                        </label>
-                        <Switch
-                            id="spend-filter"
-                            checked={onlyWithSpend}
-                            onCheckedChange={setOnlyWithSpend}
-                        />
-                    </div>
-                    <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isRefetching || isLoading} className="h-10">
-                        <RefreshCw className={`h-4 w-4 mr-2 ${isRefetching ? 'animate-spin' : ''}`} />
-                        Atualizar
-                    </Button>
-
-                    {/* Toggle Columns */}
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm" className="h-10">
-                                <Settings2 className="mr-2 h-4 w-4" />
-                                Colunas
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-[240px]">
-                            <DropdownMenuLabel>Métricas Exibidas</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <ScrollArea className="h-[300px]">
-                                {table
-                                    .getAllColumns()
-                                    .filter(column => column.getCanHide())
-                                    .map(column => {
-                                        return (
-                                            <DropdownMenuCheckboxItem
-                                                key={column.id}
-                                                className="capitalize cursor-pointer"
-                                                checked={column.getIsVisible()}
-                                                onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                                                onSelect={(e) => e.preventDefault()}
-                                            >
-                                                {COLUMN_NAMES[column.id] || column.id}
-                                            </DropdownMenuCheckboxItem>
-                                        )
-                                    })}
-                            </ScrollArea>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
-            </div>
-
-            {/* Table Area */}
-            <div className="rounded-xl border bg-card text-card-foreground shadow-sm bg-white w-full relative overflow-hidden">
-                {isLoading ? (
-                    <div className="flex flex-col items-center justify-center h-64 bg-muted/5">
-                        <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground/30 mb-4" />
-                        <p className="text-sm font-medium text-muted-foreground">Carregando métricas de campanhas...</p>
-                    </div>
-                ) : isError ? (
-                    <div className="flex flex-col items-center justify-center p-12 text-center text-muted-foreground">
-                        <p className="text-destructive font-medium">Erro ao carregar dados.</p>
-                        <p className="text-sm">Verifique suas conexões do Meta Ads.</p>
-                    </div>
-                ) : (
-                    <Table className="w-full text-sm">
-                        <TableHeader>
-                            {table.getHeaderGroups().map((headerGroup) => (
-                                <TableRow key={headerGroup.id} className="hover:bg-transparent">
-                                    {headerGroup.headers.map((header) => (
-                                        <TableHead key={header.id} className="whitespace-nowrap px-4 py-3 bg-muted/40 font-semibold text-muted-foreground h-11 border-b">
-                                            {header.isPlaceholder
-                                                ? null
-                                                : flexRender(
-                                                    header.column.columnDef.header,
-                                                    header.getContext()
-                                                )}
-                                        </TableHead>
-                                    ))}
-                                </TableRow>
-                            ))}
-                        </TableHeader>
-                        <TableBody>
-                            {table.getRowModel().rows?.length ? (
-                                table.getRowModel().rows.map((row) => (
-                                    <TableRow
-                                        key={row.id}
-                                        data-state={row.getIsSelected() && "selected"}
-                                        className="border-b transition-colors hover:bg-muted/30"
-                                    >
-                                        {row.getVisibleCells().map((cell) => (
-                                            <TableCell key={cell.id} className="px-4 py-3 align-middle bg-white">
-                                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                            </TableCell>
-                                        ))}
-                                    </TableRow>
-                                ))
-                            ) : (
-                                <TableRow>
-                                    <TableCell colSpan={campaignsColumns.length} className="h-24 text-center">
-                                        Nenhuma campanha encontrada com os filtros atuais.
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
-                )}
-            </div>
-
-            {/* AI Copilot Drawer */}
-            <CampaignAnalysisDrawer
-                isOpen={analysisDrawerOpen}
-                onClose={() => {
-                    setAnalysisDrawerOpen(false)
-                    // Resetting campaign selection optionally, but we can keep it for faster re-opning
-                }}
-                campaignName={selectedCampaignForAnalysis?.name || ''}
-                campaignId={selectedCampaignForAnalysis?.id || ''}
-                accountId={selectedCampaignForAnalysis?.accountId || ''}
-                organizationId={organizationId}
+  return (
+    <div className="flex w-full min-w-0 flex-col space-y-4">
+      {/* Toolbar */}
+      <div className="border-border flex flex-col items-start justify-between gap-4 rounded-xl border bg-white p-4 shadow-sm md:flex-row md:items-center">
+        <div className="flex w-full flex-1 flex-col flex-wrap gap-4 md:flex-row">
+          {/* Search Component */}
+          <div className="relative w-full max-w-sm flex-1 md:w-auto">
+            <Search className="text-muted-foreground absolute left-2.5 top-2.5 h-4 w-4" />
+            <Input
+              placeholder="Buscar campanha..."
+              className="pl-9"
+              value={globalFilter ?? ''}
+              onChange={(e) => setGlobalFilter(e.target.value)}
             />
+          </div>
+
+          {/* Account Filter */}
+          <Select value={accountFilter} onValueChange={setAccountFilter}>
+            <SelectTrigger className="w-full md:w-[220px]">
+              <SelectValue placeholder="Conta de Anúncio" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">Todas as contas</SelectItem>
+              {uniqueAccounts.map((acc) => (
+                <SelectItem key={acc.id} value={acc.id}>
+                  {acc.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Status Filter */}
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">Todos os status</SelectItem>
+              <SelectItem value="ACTIVE">Ativas</SelectItem>
+              <SelectItem value="PAUSED">Pausadas</SelectItem>
+              <SelectItem value="COMPLETED">Concluídas</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Days Filter */}
+          <Select value={days} onValueChange={setDays}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Período" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1">Hoje</SelectItem>
+              <SelectItem value="7">Últimos 7 dias</SelectItem>
+              <SelectItem value="14">Últimos 14 dias</SelectItem>
+              <SelectItem value="30">Últimos 30 dias</SelectItem>
+              <SelectItem value="90">Últimos 90 dias</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-    )
+
+        <div className="flex flex-wrap items-center gap-4 self-end md:self-auto">
+          <div className="flex items-center space-x-2">
+            <label
+              htmlFor="spend-filter"
+              className="text-muted-foreground whitespace-nowrap text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              Com gastos
+            </label>
+            <Switch id="spend-filter" checked={onlyWithSpend} onCheckedChange={setOnlyWithSpend} />
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => refetch()}
+            disabled={isRefetching || isLoading}
+            className="h-10"
+          >
+            <RefreshCw className={`mr-2 h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
+            Atualizar
+          </Button>
+
+          {/* Toggle Columns */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="h-10">
+                <Settings2 className="mr-2 h-4 w-4" />
+                Colunas
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-[240px]">
+              <DropdownMenuLabel>Métricas Exibidas</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <ScrollArea className="h-[300px]">
+                {table
+                  .getAllColumns()
+                  .filter((column) => column.getCanHide())
+                  .map((column) => {
+                    return (
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="cursor-pointer capitalize"
+                        checked={column.getIsVisible()}
+                        onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                        onSelect={(e) => e.preventDefault()}
+                      >
+                        {COLUMN_NAMES[column.id] || column.id}
+                      </DropdownMenuCheckboxItem>
+                    )
+                  })}
+              </ScrollArea>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+
+      {/* Table Area */}
+      <div className="bg-card text-card-foreground relative w-full overflow-hidden rounded-xl border bg-white shadow-sm">
+        {isLoading ? (
+          <div className="bg-muted/5 flex h-64 flex-col items-center justify-center">
+            <RefreshCw className="text-muted-foreground/30 mb-4 h-8 w-8 animate-spin" />
+            <p className="text-muted-foreground text-sm font-medium">
+              Carregando métricas de campanhas...
+            </p>
+          </div>
+        ) : isError ? (
+          <div className="text-muted-foreground flex flex-col items-center justify-center p-12 text-center">
+            <p className="text-destructive font-medium">Erro ao carregar dados.</p>
+            <p className="text-sm">Verifique suas conexões do Meta Ads.</p>
+          </div>
+        ) : (
+          <Table className="w-full text-sm">
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id} className="hover:bg-transparent">
+                  {headerGroup.headers.map((header) => (
+                    <TableHead
+                      key={header.id}
+                      className="bg-muted/40 text-muted-foreground h-11 whitespace-nowrap border-b px-4 py-3 font-semibold"
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(header.column.columnDef.header, header.getContext())}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && 'selected'}
+                    className="hover:bg-muted/30 border-b transition-colors"
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id} className="bg-white px-4 py-3 align-middle">
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={campaignsColumns.length} className="h-24 text-center">
+                    Nenhuma campanha encontrada com os filtros atuais.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        )}
+      </div>
+
+      {/* AI Copilot Drawer */}
+      <CampaignAnalysisDrawer
+        isOpen={analysisDrawerOpen}
+        onClose={() => {
+          setAnalysisDrawerOpen(false)
+          // Resetting campaign selection optionally, but we can keep it for faster re-opning
+        }}
+        campaignName={selectedCampaignForAnalysis?.name || ''}
+        campaignId={selectedCampaignForAnalysis?.id || ''}
+        accountId={selectedCampaignForAnalysis?.accountId || ''}
+        organizationId={organizationId}
+      />
+    </div>
+  )
 }

@@ -26,7 +26,7 @@ const LEADS_PER_DAY_MAP: Record<string, number> = {
 }
 
 const AVG_TICKET_MAP: Record<string, number> = {
-  'ate_500': 250,
+  ate_500: 250,
   '500_1500': 1000,
   '1500_5000': 3250,
   '5000_15000': 10000,
@@ -34,7 +34,7 @@ const AVG_TICKET_MAP: Record<string, number> = {
 }
 
 const MONTHLY_REVENUE_MAP: Record<string, number> = {
-  'ate_10k': 5000,
+  ate_10k: 5000,
   '10k_50k': 30000,
   '50k_100k': 75000,
   '100k_500k': 300000,
@@ -51,8 +51,8 @@ const ATTENDANTS_MAP: Record<string, number> = {
 }
 
 const AD_SPEND_MAP: Record<string, number> = {
-  'nenhum': 0,
-  'ate_1k': 500,
+  nenhum: 0,
+  ate_1k: 500,
   '1k_5k': 3000,
   '5k_20k': 12500,
   '20k_50k': 35000,
@@ -70,29 +70,19 @@ export function calculateMetrics(inputs: BusinessInputs): CalculatedMetrics {
   const salesPerMonth = avgTicket > 0 ? monthlyRevenue / avgTicket : 0
 
   // Taxa de conversão = Vendas / Leads
-  const conversionRate = leadsPerMonth > 0 
-    ? (salesPerMonth / leadsPerMonth) * 100 
-    : null
+  const conversionRate = leadsPerMonth > 0 ? (salesPerMonth / leadsPerMonth) * 100 : null
 
   // CPL = Investimento / Leads
-  const cpl = leadsPerMonth > 0 && adSpend > 0 
-    ? adSpend / leadsPerMonth 
-    : null
+  const cpl = leadsPerMonth > 0 && adSpend > 0 ? adSpend / leadsPerMonth : null
 
   // CAC = Investimento / Vendas
-  const cac = salesPerMonth > 0 && adSpend > 0 
-    ? adSpend / salesPerMonth 
-    : null
+  const cac = salesPerMonth > 0 && adSpend > 0 ? adSpend / salesPerMonth : null
 
   // ROAS = Faturamento / Investimento
-  const roas = adSpend > 0 
-    ? monthlyRevenue / adSpend 
-    : null
+  const roas = adSpend > 0 ? monthlyRevenue / adSpend : null
 
   // Valor do Lead = Ticket * Conversão
-  const leadValue = conversionRate !== null 
-    ? avgTicket * (conversionRate / 100) 
-    : null
+  const leadValue = conversionRate !== null ? avgTicket * (conversionRate / 100) : null
 
   // Leads por atendente
   const leadsPerAttendant = leadsPerMonth / attendants

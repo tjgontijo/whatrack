@@ -24,15 +24,15 @@ export const DataTableView = React.forwardRef<HTMLDivElement, DataTableViewProps
       <div ref={ref} className={cn('rounded-md border', className)}>
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b bg-muted/50 hover:bg-muted/50">
+            <tr className="bg-muted/50 hover:bg-muted/50 border-b">
               {headers.map((header) => (
                 <th
                   key={header.id}
-                  className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
+                  className="text-muted-foreground px-4 py-3 text-left text-xs font-medium uppercase tracking-wider"
                 >
-                  {header.isPlaceholder ? null : (
-                    flexRender(header.column.columnDef.header, header.getContext())
-                  )}
+                  {header.isPlaceholder
+                    ? null
+                    : flexRender(header.column.columnDef.header, header.getContext())}
                 </th>
               ))}
             </tr>
@@ -42,7 +42,7 @@ export const DataTableView = React.forwardRef<HTMLDivElement, DataTableViewProps
               rows.map((row) => (
                 <tr
                   key={row.id}
-                  className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
+                  className="hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors"
                 >
                   {row.getVisibleCells().map((cell) => (
                     <td key={cell.id} className="px-4 py-3">

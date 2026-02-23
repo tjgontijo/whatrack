@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react'
 
 interface HistorySyncStatus {
-  status: string | null;
-  progress: number;
-  error: string | null;
+  status: string | null
+  progress: number
+  error: string | null
 }
 
 /**
@@ -21,35 +21,35 @@ export function useHistorySyncStatus(configId?: string): HistorySyncStatus {
     status: null,
     progress: 0,
     error: null,
-  });
+  })
 
   useEffect(() => {
-    if (!configId) return;
+    if (!configId) return
 
     const checkStatus = async () => {
       try {
-        const response = await fetch(`/api/v1/whatsapp/config/${configId}`);
-        if (!response.ok) return;
+        const response = await fetch(`/api/v1/whatsapp/config/${configId}`)
+        if (!response.ok) return
 
-        const data = await response.json();
+        const data = await response.json()
         setStatus({
           status: data.historySyncStatus,
           progress: data.historySyncProgress || 0,
           error: data.historySyncError || null,
-        });
+        })
       } catch (error) {
-        console.error('[useHistorySyncStatus] Error fetching status:', error);
+        console.error('[useHistorySyncStatus] Error fetching status:', error)
       }
-    };
+    }
 
     // Verificar imediatamente
-    checkStatus();
+    checkStatus()
 
     // Pooling a cada 10 segundos durante sincronização
-    const interval = setInterval(checkStatus, 10000);
+    const interval = setInterval(checkStatus, 10000)
 
-    return () => clearInterval(interval);
-  }, [configId]);
+    return () => clearInterval(interval)
+  }, [configId])
 
-  return status;
+  return status
 }

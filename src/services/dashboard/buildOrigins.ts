@@ -15,7 +15,7 @@ export type OriginSummary = {
 
 export async function buildOriginsSummary(
   _organizationId: string,
-  _dateRange?: DateRange,
+  _dateRange?: DateRange
 ): Promise<OriginSummary[]> {
   return []
 }

@@ -12,10 +12,7 @@ import { saveCompanySchema } from './schemas'
 export async function GET(request: NextRequest) {
   const access = await validateFullAccess(request)
   if (!access.hasAccess || !access.organizationId) {
-    return NextResponse.json(
-      { error: access.error ?? 'Acesso negado' },
-      { status: 403 }
-    )
+    return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
   }
 
   try {
@@ -24,19 +21,13 @@ export async function GET(request: NextRequest) {
     })
 
     if (!company) {
-      return NextResponse.json(
-        { error: 'Dados da empresa não encontrados' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Dados da empresa não encontrados' }, { status: 404 })
     }
 
     return NextResponse.json(company)
   } catch (error) {
     console.error('[api/v1/company] GET error:', error)
-    return NextResponse.json(
-      { error: 'Erro ao buscar dados da empresa' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Erro ao buscar dados da empresa' }, { status: 500 })
   }
 }
 
@@ -49,10 +40,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const access = await validateFullAccess(request)
   if (!access.hasAccess || !access.organizationId || !access.userId) {
-    return NextResponse.json(
-      { error: access.error ?? 'Acesso negado' },
-      { status: 403 }
-    )
+    return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
   }
 
   try {
@@ -157,19 +145,13 @@ export async function POST(request: NextRequest) {
     console.error('[api/v1/company] POST error:', error)
 
     // Erro de constraint única (CNPJ já existe em outra org)
-    if (
-      error instanceof Error &&
-      error.message.includes('Unique constraint')
-    ) {
+    if (error instanceof Error && error.message.includes('Unique constraint')) {
       return NextResponse.json(
         { error: 'Este CNPJ já está vinculado a outra organização' },
         { status: 409 }
       )
     }
 
-    return NextResponse.json(
-      { error: 'Erro ao salvar dados da empresa' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Erro ao salvar dados da empresa' }, { status: 500 })
   }
 }

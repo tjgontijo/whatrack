@@ -52,18 +52,30 @@ export function DashboardPieChart({
   activeOuterRadiusOffset = 8,
 }: DashboardPieChartProps) {
   const chartData = React.useMemo(() => data.filter((item) => item.value > 0), [data])
-  const totalValue = React.useMemo(() => chartData.reduce((sum, item) => sum + item.value, 0), [chartData])
+  const totalValue = React.useMemo(
+    () => chartData.reduce((sum, item) => sum + item.value, 0),
+    [chartData]
+  )
 
   if (!chartData.length) {
     return (
-      <div className={cn('flex w-full items-center justify-center rounded-2xl border border-dashed border-border/50 bg-muted/10 p-6 text-sm text-muted-foreground', className)} style={{ minHeight: `${Math.max(height, 240)}px` }}>
+      <div
+        className={cn(
+          'border-border/50 bg-muted/10 text-muted-foreground flex w-full items-center justify-center rounded-2xl border border-dashed p-6 text-sm',
+          className
+        )}
+        style={{ minHeight: `${Math.max(height, 240)}px` }}
+      >
         {emptyMessage}
       </div>
     )
   }
 
   return (
-    <div className={cn('w-full rounded-2xl border border-border/50 bg-card p-4 shadow-sm', className)} style={{ height }}>
+    <div
+      className={cn('border-border/50 bg-card w-full rounded-2xl border p-4 shadow-sm', className)}
+      style={{ height }}
+    >
       <div className="h-full w-full [&_svg]:!bg-transparent">
         <ResponsivePie
           data={chartData}
@@ -95,8 +107,8 @@ export function DashboardPieChart({
             },
           }}
           tooltip={({ datum }: { datum: ComputedDatum<DashboardPieDatum> }) => (
-            <div className="rounded-xl border border-border/60 bg-popover px-3 py-2 text-xs shadow-lg">
-              <p className="font-semibold text-popover-foreground">{datum.label}</p>
+            <div className="border-border/60 bg-popover rounded-xl border px-3 py-2 text-xs shadow-lg">
+              <p className="text-popover-foreground font-semibold">{datum.label}</p>
               <p className="text-popover-foreground/80">{formatCurrencyBRL(datum.value)}</p>
               <p className="text-muted-foreground">
                 {totalValue > 0 ? ((datum.value / totalValue) * 100).toFixed(1) : '0.0'}%

@@ -39,9 +39,7 @@ async function testWebSocket() {
   const payload = Buffer.from(JSON.stringify(claims)).toString('base64url')
   const message = `${header}.${payload}`
 
-  const signature = createHmac('sha256', token)
-    .update(message, 'utf-8')
-    .digest('base64url')
+  const signature = createHmac('sha256', token).update(message, 'utf-8').digest('base64url')
 
   const jwtToken = `${message}.${signature}`
 
@@ -53,7 +51,7 @@ async function testWebSocket() {
     const response = await fetch('https://centrifugo.whatrack.com/api/info', {
       method: 'POST',
       headers: {
-        'Authorization': 'apikey 7f5a2d9c4e8b1a6f3d0c9e7b2a4f6c1d',
+        Authorization: 'apikey 7f5a2d9c4e8b1a6f3d0c9e7b2a4f6c1d',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({}),

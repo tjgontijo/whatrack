@@ -1,13 +1,13 @@
 export default [
   {
     ignores: [
-      "node_modules/**",
-      ".next/**",
-      "out/**",
-      "build/**",
-      "next-env.d.ts",
-      "dist/**",
-      ".turbo/**",
+      'node_modules/**',
+      '.next/**',
+      'out/**',
+      'build/**',
+      'next-env.d.ts',
+      'dist/**',
+      '.turbo/**',
     ],
   },
-];
+]

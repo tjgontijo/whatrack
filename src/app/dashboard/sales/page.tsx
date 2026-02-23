@@ -7,9 +7,9 @@ import { RefreshCw } from 'lucide-react'
 
 function TableSkeleton() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
-      <RefreshCw className="h-8 w-8 animate-spin text-primary/40" />
-      <p className="text-sm font-medium text-muted-foreground">Carregando histórico de vendas...</p>
+    <div className="flex min-h-[400px] flex-col items-center justify-center gap-3">
+      <RefreshCw className="text-primary/40 h-8 w-8 animate-spin" />
+      <p className="text-muted-foreground text-sm font-medium">Carregando histórico de vendas...</p>
     </div>
   )
 }

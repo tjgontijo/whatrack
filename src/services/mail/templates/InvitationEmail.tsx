@@ -33,7 +33,9 @@ export const InvitationEmail = ({
   return (
     <Html>
       <Head />
-      <Preview>Você foi convidado para {organizationName} no {appName}</Preview>
+      <Preview>
+        Você foi convidado para {organizationName} no {appName}
+      </Preview>
       <Body style={main}>
         <Container style={container}>
           <Section style={header}>
@@ -56,9 +58,7 @@ export const InvitationEmail = ({
               </Button>
             </Section>
 
-            <Text style={alternativeLink}>
-              Ou copie e cole este link no seu navegador:
-            </Text>
+            <Text style={alternativeLink}>Ou copie e cole este link no seu navegador:</Text>
             <Link href={acceptUrl} style={linkStyle}>
               {acceptUrl}
             </Link>
@@ -68,7 +68,8 @@ export const InvitationEmail = ({
             <Section style={warningBox}>
               <Text style={warningText}>
                 <strong>Atenção:</strong> Este convite expira em{' '}
-                <strong>{expiresInDays} dias</strong>. Se você não esperava este email, pode ignorá-lo.
+                <strong>{expiresInDays} dias</strong>. Se você não esperava este email, pode
+                ignorá-lo.
               </Text>
             </Section>
 
@@ -77,9 +78,7 @@ export const InvitationEmail = ({
             <Text style={footer}>
               © {new Date().getFullYear()} {appName}. Todos os direitos reservados.
             </Text>
-            <Text style={footerSmall}>
-              Este é um email automático. Por favor, não responda.
-            </Text>
+            <Text style={footerSmall}>Este é um email automático. Por favor, não responda.</Text>
           </Section>
         </Container>
       </Body>

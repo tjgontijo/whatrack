@@ -25,10 +25,7 @@ interface StatusIconButtonProps {
  * - Optional count badge
  * - Color-customizable via className props
  */
-export const StatusIconButton = React.forwardRef<
-  HTMLButtonElement,
-  StatusIconButtonProps
->(
+export const StatusIconButton = React.forwardRef<HTMLButtonElement, StatusIconButtonProps>(
   (
     {
       hasData,
@@ -53,9 +50,9 @@ export const StatusIconButton = React.forwardRef<
         onClick={hasData ? onClick : undefined}
         disabled={!hasData}
         className={cn(
-          'relative inline-flex h-8 w-8 items-center justify-center rounded-full border border-transparent transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+          'focus-visible:ring-ring relative inline-flex h-8 w-8 items-center justify-center rounded-full border border-transparent transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
           hasData
-            ? 'cursor-pointer hover:border-muted-foreground/40 hover:bg-muted/40'
+            ? 'hover:border-muted-foreground/40 hover:bg-muted/40 cursor-pointer'
             : 'cursor-not-allowed opacity-50'
         )}
         aria-label={label}
@@ -63,11 +60,11 @@ export const StatusIconButton = React.forwardRef<
         {hasData ? (
           <ActiveIcon className={cn('h-4 w-4 text-emerald-600', activeClassName)} />
         ) : (
-          <InactiveIcon className={cn('h-4 w-4 text-muted-foreground', inactiveClassName)} />
+          <InactiveIcon className={cn('text-muted-foreground h-4 w-4', inactiveClassName)} />
         )}
 
         {hasData && count !== undefined && count > 0 && (
-          <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
+          <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
             {count > 99 ? '99+' : count}
           </span>
         )}

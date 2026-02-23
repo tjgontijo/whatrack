@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import type { ReactNode } from 'react'
 
@@ -40,14 +40,16 @@ export function FunnelChart({ steps, className }: FunnelChartProps) {
   return (
     <section
       className={cn(
-        'flex h-full flex-col gap-4 rounded-3xl border border-border/60 bg-card p-6 shadow-[0px_18px_35px_-25px_rgba(15,23,42,0.25)] backdrop-blur-sm',
-        className,
+        'border-border/60 bg-card flex h-full flex-col gap-4 rounded-3xl border p-6 shadow-[0px_18px_35px_-25px_rgba(15,23,42,0.25)] backdrop-blur-sm',
+        className
       )}
     >
       <header className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-semibold text-muted-foreground">Funil Comercial</p>
-          <p className="text-xs text-muted-foreground/70">Lead → Agendamento → Comparecimento → Venda</p>
+          <p className="text-muted-foreground text-sm font-semibold">Funil Comercial</p>
+          <p className="text-muted-foreground/70 text-xs">
+            Lead → Agendamento → Comparecimento → Venda
+          </p>
         </div>
       </header>
 
@@ -76,17 +78,21 @@ export function FunnelChart({ steps, className }: FunnelChartProps) {
             },
           }}
           tooltip={({ part }) => (
-            <div className="min-w-[220px] rounded-xl border border-border/70 bg-popover px-3 py-2 text-xs shadow-lg">
-              <p className="font-semibold text-popover-foreground">{part.data.label}</p>
+            <div className="border-border/70 bg-popover min-w-[220px] rounded-xl border px-3 py-2 text-xs shadow-lg">
+              <p className="text-popover-foreground font-semibold">{part.data.label}</p>
               <p className="text-popover-foreground/80">Valor: {formatInteger(part.data.value)}</p>
               {Number(part.data.conversionPrev ?? -1) >= 0 ? (
-                <p className="text-muted-foreground">Vs etapa anterior: {Number(part.data.conversionPrev).toFixed(1)}%</p>
+                <p className="text-muted-foreground">
+                  Vs etapa anterior: {Number(part.data.conversionPrev).toFixed(1)}%
+                </p>
               ) : null}
               {Number(part.data.conversionFromStart ?? -1) >= 0 ? (
-                <p className="text-muted-foreground">Desde o início: {Number(part.data.conversionFromStart).toFixed(1)}%</p>
+                <p className="text-muted-foreground">
+                  Desde o início: {Number(part.data.conversionFromStart).toFixed(1)}%
+                </p>
               ) : null}
               {part.data.helperText ? (
-                <div className="mt-1 text-[11px] text-muted-foreground">{part.data.helperText}</div>
+                <div className="text-muted-foreground mt-1 text-[11px]">{part.data.helperText}</div>
               ) : null}
             </div>
           )}

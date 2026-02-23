@@ -128,18 +128,12 @@ export async function fetchCnpjData(cnpj: string): Promise<CompanyData> {
 
     // Rate limit
     if (response.status === 429) {
-      throw new ReceitaWsError(
-        'Limite de consultas excedido. Aguarde um momento.',
-        'RATE_LIMIT'
-      )
+      throw new ReceitaWsError('Limite de consultas excedido. Aguarde um momento.', 'RATE_LIMIT')
     }
 
     // Outros erros HTTP
     if (!response.ok) {
-      throw new ReceitaWsError(
-        `Erro ao consultar CNPJ: ${response.statusText}`,
-        'API_ERROR'
-      )
+      throw new ReceitaWsError(`Erro ao consultar CNPJ: ${response.statusText}`, 'API_ERROR')
     }
 
     const data: ReceitaWsResponse = await response.json()

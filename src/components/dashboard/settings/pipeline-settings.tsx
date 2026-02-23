@@ -45,10 +45,22 @@ import { DeleteConfirmDialog } from '@/components/dashboard/crud/delete-confirm-
 import { TemplateMainShell, TemplateMainHeader } from '@/components/dashboard/leads'
 
 const PRESET_COLORS = [
-  '#6366f1', '#8b5cf6', '#ec4899', '#f43f5e',
-  '#ef4444', '#f97316', '#f59e0b', '#eab308',
-  '#84cc16', '#22c55e', '#10b981', '#14b8a6',
-  '#06b6d4', '#0ea5e9', '#3b82f6', '#64748b',
+  '#6366f1',
+  '#8b5cf6',
+  '#ec4899',
+  '#f43f5e',
+  '#ef4444',
+  '#f97316',
+  '#f59e0b',
+  '#eab308',
+  '#84cc16',
+  '#22c55e',
+  '#10b981',
+  '#14b8a6',
+  '#06b6d4',
+  '#0ea5e9',
+  '#3b82f6',
+  '#64748b',
 ]
 
 interface Stage {
@@ -89,43 +101,39 @@ function StageItem({
         transition,
         opacity: isDragging ? 0.4 : 1,
       }}
-      className="flex items-center gap-3 p-3 rounded-xl border border-border bg-card hover:bg-muted/30 transition-colors group"
+      className="border-border bg-card hover:bg-muted/30 group flex items-center gap-3 rounded-xl border p-3 transition-colors"
     >
       <button
         {...attributes}
         {...listeners}
-        className="cursor-grab active:cursor-grabbing text-muted-foreground/40 hover:text-muted-foreground transition-colors"
+        className="text-muted-foreground/40 hover:text-muted-foreground cursor-grab transition-colors active:cursor-grabbing"
       >
         <GripVertical className="h-4 w-4" />
       </button>
 
-      <span
-        className="h-3 w-3 rounded-full shrink-0"
-        style={{ backgroundColor: stage.color }}
-      />
+      <span className="h-3 w-3 shrink-0 rounded-full" style={{ backgroundColor: stage.color }} />
 
-      <div className="flex-1 min-w-0">
+      <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium truncate">{stage.name}</span>
+          <span className="truncate text-sm font-medium">{stage.name}</span>
           {stage.isDefault && (
-            <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Padrão</Badge>
+            <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">
+              Padrão
+            </Badge>
           )}
           {stage.isClosed && (
-            <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-muted-foreground">Fechada</Badge>
+            <Badge variant="outline" className="text-muted-foreground px-1.5 py-0 text-[10px]">
+              Fechada
+            </Badge>
           )}
         </div>
-        <p className="text-[11px] text-muted-foreground mt-0.5">
+        <p className="text-muted-foreground mt-0.5 text-[11px]">
           {stage.ticketsCount} ticket{stage.ticketsCount !== 1 ? 's' : ''}
         </p>
       </div>
 
-      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7"
-          onClick={() => onEdit(stage)}
-        >
+      <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(stage)}>
           <Pencil className="h-3.5 w-3.5" />
         </Button>
         <DeleteConfirmDialog
@@ -139,7 +147,7 @@ function StageItem({
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7 text-destructive hover:text-destructive"
+              className="text-destructive hover:text-destructive h-7 w-7"
               disabled={stage.isDefault}
               title={stage.isDefault ? 'Não é possível excluir a fase padrão' : 'Excluir'}
             >
@@ -220,12 +228,12 @@ function StageDialog({
             </div>
           </div>
 
-          <div className="flex items-center justify-between rounded-lg border border-border px-4 py-3">
+          <div className="border-border flex items-center justify-between rounded-lg border px-4 py-3">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-primary" />
+              <CheckCircle2 className="text-primary h-4 w-4" />
               <div>
                 <p className="text-sm font-medium">Fase padrão</p>
-                <p className="text-xs text-muted-foreground">Novos tickets entram aqui</p>
+                <p className="text-muted-foreground text-xs">Novos tickets entram aqui</p>
               </div>
             </div>
             <Switch
@@ -234,12 +242,14 @@ function StageDialog({
             />
           </div>
 
-          <div className="flex items-center justify-between rounded-lg border border-border px-4 py-3">
+          <div className="border-border flex items-center justify-between rounded-lg border px-4 py-3">
             <div className="flex items-center gap-2">
-              <XCircle className="h-4 w-4 text-muted-foreground" />
+              <XCircle className="text-muted-foreground h-4 w-4" />
               <div>
                 <p className="text-sm font-medium">Fase de fechamento</p>
-                <p className="text-xs text-muted-foreground">Tickets nesta fase são considerados fechados</p>
+                <p className="text-muted-foreground text-xs">
+                  Tickets nesta fase são considerados fechados
+                </p>
               </div>
             </div>
             <Switch
@@ -254,7 +264,14 @@ function StageDialog({
             Cancelar
           </Button>
           <Button onClick={() => onSave(form)} disabled={!form.name.trim() || isSaving}>
-            {isSaving ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Salvando...</> : 'Salvar'}
+            {isSaving ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Salvando...
+              </>
+            ) : (
+              'Salvar'
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -385,7 +402,7 @@ export function PipelineSettings() {
   const isSaving = createMutation.isPending || updateMutation.isPending
 
   return (
-    <TemplateMainShell className="flex flex-col h-full overflow-hidden">
+    <TemplateMainShell className="flex h-full flex-col overflow-hidden">
       <TemplateMainHeader
         title="Pipeline"
         subtitle="Gerencie as fases do seu funil de tickets"
@@ -405,14 +422,14 @@ export function PipelineSettings() {
       />
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-6 bg-muted/5">
+      <div className="bg-muted/5 flex-1 overflow-y-auto p-6">
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
           </div>
         ) : (
-          <div className="max-w-xl mx-auto space-y-2">
-            <p className="text-xs text-muted-foreground mb-4 uppercase tracking-widest font-semibold">
+          <div className="mx-auto max-w-xl space-y-2">
+            <p className="text-muted-foreground mb-4 text-xs font-semibold uppercase tracking-widest">
               {stages.length} fase{stages.length !== 1 ? 's' : ''} — arraste para reordenar
             </p>
 
@@ -421,7 +438,10 @@ export function PipelineSettings() {
               collisionDetection={closestCenter}
               onDragEnd={handleDragEnd}
             >
-              <SortableContext items={stages.map((s) => s.id)} strategy={verticalListSortingStrategy}>
+              <SortableContext
+                items={stages.map((s) => s.id)}
+                strategy={verticalListSortingStrategy}
+              >
                 {stages.map((stage) => (
                   <StageItem
                     key={stage.id}
@@ -438,11 +458,13 @@ export function PipelineSettings() {
 
             {stages.length === 0 && (
               <div className="flex flex-col items-center justify-center py-16 text-center">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted mb-3">
-                  <Kanban className="h-6 w-6 text-muted-foreground" />
+                <div className="bg-muted mb-3 flex h-12 w-12 items-center justify-center rounded-xl">
+                  <Kanban className="text-muted-foreground h-6 w-6" />
                 </div>
-                <p className="font-bold text-muted-foreground">Nenhuma fase configurada</p>
-                <p className="text-xs text-muted-foreground/60 mt-1">Clique em &quot;Adicionar Fase&quot; para começar</p>
+                <p className="text-muted-foreground font-bold">Nenhuma fase configurada</p>
+                <p className="text-muted-foreground/60 mt-1 text-xs">
+                  Clique em &quot;Adicionar Fase&quot; para começar
+                </p>
               </div>
             )}
           </div>

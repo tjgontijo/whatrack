@@ -11,85 +11,84 @@ export const dynamic = 'force-dynamic'
  * Returns paginated message history for a specific conversation.
  * Accepts either conversationId or leadId (for backwards compatibility).
  */
-export async function GET(
-    request: NextRequest,
-    props: { params: Promise<{ leadId: string }> }
-) {
-    try {
-        const params = await props.params
-        const conversationIdOrLeadId = params.leadId
+export async function GET(request: NextRequest, props: { params: Promise<{ leadId: string }> }) {
+  try {
+    const params = await props.params
+    const conversationIdOrLeadId = params.leadId
 
-        const access = await validateFullAccess(request)
-        if (!access.hasAccess || !access.organizationId) {
-            return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
-        }
-        const organizationId = access.organizationId
-
-        const { searchParams } = new URL(request.url)
-        const messagesQuerySchema = z.object({
-            page: z.coerce.number().int().min(1).default(1),
-            pageSize: z.coerce.number().int().min(1).max(100).default(50),
-        })
-        const parsedQuery = messagesQuerySchema.safeParse(Object.fromEntries(searchParams))
-        if (!parsedQuery.success) {
-            return NextResponse.json({ error: 'Parâmetros inválidos', details: parsedQuery.error.flatten() }, { status: 400 })
-        }
-        const { page, pageSize } = parsedQuery.data
-        const skip = (page - 1) * pageSize
-
-        // Try to find by conversationId first, then by leadId for backwards compatibility
-        let conversation = await prisma.conversation.findFirst({
-            where: {
-                id: conversationIdOrLeadId,
-                lead: {
-                    organizationId
-                }
-            },
-            select: { id: true, leadId: true }
-        })
-
-        // Fallback: if not found as conversation, try as leadId
-        if (!conversation) {
-            const lead = await prisma.lead.findFirst({
-                where: {
-                    id: conversationIdOrLeadId,
-                    organizationId
-                },
-                select: { id: true, conversations: { select: { id: true, leadId: true }, take: 1 } }
-            })
-
-            if (!lead) {
-                return NextResponse.json({ error: 'Conversa não encontrada' }, { status: 404 })
-            }
-
-            conversation = lead.conversations[0]
-            if (!conversation) {
-                return NextResponse.json({ error: 'Conversa não encontrada' }, { status: 404 })
-            }
-        }
-
-        const leadId = conversation.leadId
-
-        // Fetch messages
-        const [items, total] = await Promise.all([
-            prisma.message.findMany({
-                where: { leadId },
-                orderBy: { timestamp: 'desc' },
-                skip,
-                take: pageSize,
-            }),
-            prisma.message.count({ where: { leadId } })
-        ])
-
-        return NextResponse.json({
-            items: items.reverse(), // Reverse to show in chronological order on UI
-            total,
-            page,
-            pageSize
-        })
-
-    } catch (error) {
-        console.error('[api/whatsapp/chats/messages] GET error:', error)
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+    const access = await validateFullAccess(request)
+    if (!access.hasAccess || !access.organizationId) {
+      return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
     }
+    const organizationId = access.organizationId
+
+    const { searchParams } = new URL(request.url)
+    const messagesQuerySchema = z.object({
+      page: z.coerce.number().int().min(1).default(1),
+      pageSize: z.coerce.number().int().min(1).max(100).default(50),
+    })
+    const parsedQuery = messagesQuerySchema.safeParse(Object.fromEntries(searchParams))
+    if (!parsedQuery.success) {
+      return NextResponse.json(
+        { error: 'Parâmetros inválidos', details: parsedQuery.error.flatten() },
+        { status: 400 }
+      )
+    }
+    const { page, pageSize } = parsedQuery.data
+    const skip = (page - 1) * pageSize
+
+    // Try to find by conversationId first, then by leadId for backwards compatibility
+    let conversation = await prisma.conversation.findFirst({
+      where: {
+        id: conversationIdOrLeadId,
+        lead: {
+          organizationId,
+        },
+      },
+      select: { id: true, leadId: true },
+    })
+
+    // Fallback: if not found as conversation, try as leadId
+    if (!conversation) {
+      const lead = await prisma.lead.findFirst({
+        where: {
+          id: conversationIdOrLeadId,
+          organizationId,
+        },
+        select: { id: true, conversations: { select: { id: true, leadId: true }, take: 1 } },
+      })
+
+      if (!lead) {
+        return NextResponse.json({ error: 'Conversa não encontrada' }, { status: 404 })
+      }
+
+      conversation = lead.conversations[0]
+      if (!conversation) {
+        return NextResponse.json({ error: 'Conversa não encontrada' }, { status: 404 })
+      }
+    }
+
+    const leadId = conversation.leadId
+
+    // Fetch messages
+    const [items, total] = await Promise.all([
+      prisma.message.findMany({
+        where: { leadId },
+        orderBy: { timestamp: 'desc' },
+        skip,
+        take: pageSize,
+      }),
+      prisma.message.count({ where: { leadId } }),
+    ])
+
+    return NextResponse.json({
+      items: items.reverse(), // Reverse to show in chronological order on UI
+      total,
+      page,
+      pageSize,
+    })
+  } catch (error) {
+    console.error('[api/whatsapp/chats/messages] GET error:', error)
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+  }
 }

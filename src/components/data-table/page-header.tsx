@@ -28,42 +28,27 @@ interface PageHeaderProps {
 export const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(
   ({ title, description, stats, className, children }, ref) => {
     return (
-      <div
-        ref={ref}
-        className={cn(
-          'w-full',
-          className
-        )}
-      >
+      <div ref={ref} className={cn('w-full', className)}>
         {/* Duas colunas: Título/Descrição (esquerda) e Métricas (direita) */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           {/* Coluna Esquerda: Título + Descrição */}
-          <div className="flex-1 min-w-0">
+          <div className="min-w-0 flex-1">
             <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
-            {description && (
-              <p className="text-muted-foreground mt-2">{description}</p>
-            )}
+            {description && <p className="text-muted-foreground mt-2">{description}</p>}
           </div>
 
           {/* Coluna Direita: Estatísticas (inline, alinhadas bottom-right) */}
           {stats && stats.length > 0 && (
             <div className="flex items-end gap-6">
               {stats.map((stat, index) => (
-                <div
-                  key={index}
-                  className="text-right"
-                >
-                  <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                <div key={index} className="text-right">
+                  <div className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
                     {stat.label}
                   </div>
-                  <div className="flex items-baseline justify-end gap-1 mt-1">
-                    <div className="text-lg font-bold">
-                      {stat.value}
-                    </div>
+                  <div className="mt-1 flex items-baseline justify-end gap-1">
+                    <div className="text-lg font-bold">{stat.value}</div>
                     {stat.change && (
-                      <div className="text-xs font-medium text-green-600">
-                        {stat.change}
-                      </div>
+                      <div className="text-xs font-medium text-green-600">{stat.change}</div>
                     )}
                   </div>
                 </div>

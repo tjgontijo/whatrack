@@ -64,11 +64,11 @@ export function OrganizationSelectorGate() {
   }
 
   return (
-    <div className="rounded-lg border border-dashed border-border bg-muted/30 p-4">
+    <div className="border-border bg-muted/30 rounded-lg border border-dashed p-4">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="text-sm font-medium">Selecione uma organização para continuar</p>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-muted-foreground text-xs">
             É necessário definir a organização ativa para carregar os dados do dashboard.
           </p>
         </div>

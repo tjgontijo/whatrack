@@ -1,99 +1,101 @@
-import { prisma } from '@/lib/prisma';
-import { getDefaultTicketStage } from '@/services/tickets/ensure-ticket-stages';
-import { publishToCentrifugo } from '@/lib/centrifugo/server';
-import { metaAdEnrichmentService } from '@/services/meta-ads/ad-enrichment.service';
+import { prisma } from '@/lib/prisma'
+import { getDefaultTicketStage } from '@/services/tickets/ensure-ticket-stages'
+import { publishToCentrifugo } from '@/lib/centrifugo/server'
+import { metaAdEnrichmentService } from '@/services/meta-ads/ad-enrichment.service'
 
-const WINDOW_MS = 24 * 60 * 60 * 1000;
-const DEFAULT_EXPIRATION_DAYS = 30;
+const WINDOW_MS = 24 * 60 * 60 * 1000
+const DEFAULT_EXPIRATION_DAYS = 30
 
 function resolveMessageTimestamp(rawTimestamp: string | number | undefined): Date {
-  const parsed = Number.parseInt(String(rawTimestamp ?? ''), 10);
+  const parsed = Number.parseInt(String(rawTimestamp ?? ''), 10)
   if (Number.isFinite(parsed)) {
-    return new Date(parsed * 1000);
+    return new Date(parsed * 1000)
   }
-  return new Date();
+  return new Date()
 }
 
 function extractTrackingFromMessage(message: any) {
-  const referral = message?.referral;
-  if (!referral) return null;
+  const referral = message?.referral
+  if (!referral) return null
 
-  const tracking: Record<string, string> = {};
+  const tracking: Record<string, string> = {}
 
   if (referral.ctwa_clid) {
-    tracking.ctwaclid = referral.ctwa_clid;
+    tracking.ctwaclid = referral.ctwa_clid
   }
 
   // Meta Ads Specific Fields
-  if (referral.source_id) tracking.metaAdId = referral.source_id;
-  if (referral.source_type) tracking.metaSourceType = referral.source_type;
-  if (referral.media_type) tracking.metaPlacement = referral.media_type;
+  if (referral.source_id) tracking.metaAdId = referral.source_id
+  if (referral.source_type) tracking.metaSourceType = referral.source_type
+  if (referral.media_type) tracking.metaPlacement = referral.media_type
 
   if (referral.source_url) {
-    tracking.referrerUrl = referral.source_url;
-    tracking.landingPage = referral.source_url;
+    tracking.referrerUrl = referral.source_url
+    tracking.landingPage = referral.source_url
 
     try {
-      const url = new URL(referral.source_url);
-      const params = url.searchParams;
+      const url = new URL(referral.source_url)
+      const params = url.searchParams
 
-      const utmFields = ['source', 'medium', 'campaign', 'term', 'content'];
-      utmFields.forEach(field => {
-        const val = params.get(`utm_${field}`);
-        if (val) tracking[`utm${field.charAt(0).toUpperCase() + field.slice(1)}`] = val;
-      });
+      const utmFields = ['source', 'medium', 'campaign', 'term', 'content']
+      utmFields.forEach((field) => {
+        const val = params.get(`utm_${field}`)
+        if (val) tracking[`utm${field.charAt(0).toUpperCase() + field.slice(1)}`] = val
+      })
 
-      const otherFields = ['gclid', 'fbclid', 'ttclid'];
-      otherFields.forEach(field => {
-        const val = params.get(field);
-        if (val) tracking[field] = val;
-      });
+      const otherFields = ['gclid', 'fbclid', 'ttclid']
+      otherFields.forEach((field) => {
+        const val = params.get(field)
+        if (val) tracking[field] = val
+      })
 
-      const ctwaclid = params.get('ctwaclid') || params.get('ctwa_clid');
-      if (ctwaclid) tracking.ctwaclid = ctwaclid;
-
+      const ctwaclid = params.get('ctwaclid') || params.get('ctwa_clid')
+      if (ctwaclid) tracking.ctwaclid = ctwaclid
     } catch {
       // ignore invalid URLs
     }
   }
 
-  if (Object.keys(tracking).length === 0) return null;
+  if (Object.keys(tracking).length === 0) return null
 
   const sourceType =
     referral.source_type === 'ad' ||
-      tracking.ctwaclid ||
-      tracking.metaAdId ||
-      tracking.gclid ||
-      tracking.fbclid ||
-      tracking.ttclid
+    tracking.ctwaclid ||
+    tracking.metaAdId ||
+    tracking.gclid ||
+    tracking.fbclid ||
+    tracking.ttclid
       ? 'paid'
-      : 'organic';
+      : 'organic'
 
-  return { ...tracking, sourceType };
+  return { ...tracking, sourceType }
 }
 
 interface MessageHandlerOptions {
-  isEcho?: boolean;
+  isEcho?: boolean
 }
 
-export async function messageHandler(payload: any, options: MessageHandlerOptions = {}): Promise<void> {
-  const { isEcho = false } = options;
-  const entry = payload.entry?.[0];
-  const change = entry?.changes?.[0];
-  const value = change?.value;
+export async function messageHandler(
+  payload: any,
+  options: MessageHandlerOptions = {}
+): Promise<void> {
+  const { isEcho = false } = options
+  const entry = payload.entry?.[0]
+  const change = entry?.changes?.[0]
+  const value = change?.value
 
-  const messagesArray = isEcho ? value?.message_echoes : value?.messages;
+  const messagesArray = isEcho ? value?.message_echoes : value?.messages
 
   if (!messagesArray || !Array.isArray(messagesArray)) {
-    console.warn(`[MessageHandler] No ${isEcho ? 'message_echoes' : 'messages'} found in payload`);
-    return;
+    console.warn(`[MessageHandler] No ${isEcho ? 'message_echoes' : 'messages'} found in payload`)
+    return
   }
 
-  const metadata = value.metadata;
-  const phoneNumberId = metadata?.phone_number_id;
+  const metadata = value.metadata
+  const phoneNumberId = metadata?.phone_number_id
 
   if (!phoneNumberId) {
-    throw new Error('Invalid payload: missing phone_number_id');
+    throw new Error('Invalid payload: missing phone_number_id')
   }
 
   // Find Config + Organization Profile (for expiration rules)
@@ -101,37 +103,38 @@ export async function messageHandler(payload: any, options: MessageHandlerOption
     where: { phoneId: phoneNumberId },
     include: {
       organization: {
-        include: { profile: true }
-      }
+        include: { profile: true },
+      },
     },
-  });
+  })
 
   if (!config) {
-    throw new Error(`WhatsAppConfig not found for phoneId: ${phoneNumberId}`);
+    throw new Error(`WhatsAppConfig not found for phoneId: ${phoneNumberId}`)
   }
 
-  console.log(`[MessageHandler] Processing for Organization: ${config.organizationId}`);
+  console.log(`[MessageHandler] Processing for Organization: ${config.organizationId}`)
 
-  const defaultStage = await getDefaultTicketStage(prisma, config.organizationId);
-  const expirationDays = config.organization.profile?.ticketExpirationDays || DEFAULT_EXPIRATION_DAYS;
+  const defaultStage = await getDefaultTicketStage(prisma, config.organizationId)
+  const expirationDays =
+    config.organization.profile?.ticketExpirationDays || DEFAULT_EXPIRATION_DAYS
 
   // Collect events
-  const eventsToPublish: any[] = [];
-  let successCount = 0;
+  const eventsToPublish: any[] = []
+  let successCount = 0
 
   for (const message of messagesArray) {
     try {
-      const contactPhone = isEcho ? message.to : message.from;
-      const messageId = message.id;
-      const messageTimestamp = resolveMessageTimestamp(message.timestamp);
+      const contactPhone = isEcho ? message.to : message.from
+      const messageId = message.id
+      const messageTimestamp = resolveMessageTimestamp(message.timestamp)
 
-      if (!contactPhone) continue;
+      if (!contactPhone) continue
 
-      const existingMessage = await prisma.message.findUnique({ where: { wamid: messageId } });
-      if (existingMessage) continue;
+      const existingMessage = await prisma.message.findUnique({ where: { wamid: messageId } })
+      if (existingMessage) continue
 
-      const contactProfile = value.contacts?.find((contact: any) => contact.wa_id === contactPhone);
-      const pushName = contactProfile?.profile?.name;
+      const contactProfile = value.contacts?.find((contact: any) => contact.wa_id === contactPhone)
+      const pushName = contactProfile?.profile?.name
 
       // START TRANSACTION
       // ----------------------------------------------------------------------
@@ -142,11 +145,11 @@ export async function messageHandler(payload: any, options: MessageHandlerOption
             organizationId: config.organizationId,
             OR: [{ waId: contactPhone }, { phone: contactPhone }],
           },
-        });
+        })
 
-        const wasHistoryLead = existingLead?.source === 'history_sync';
+        const wasHistoryLead = existingLead?.source === 'history_sync'
 
-        let lead;
+        let lead
         if (existingLead) {
           lead = await tx.lead.update({
             where: { id: existingLead.id },
@@ -154,7 +157,7 @@ export async function messageHandler(payload: any, options: MessageHandlerOption
               lastMessageAt: messageTimestamp,
               pushName: pushName ?? existingLead.pushName ?? undefined,
             },
-          });
+          })
         } else {
           try {
             lead = await tx.lead.create({
@@ -166,20 +169,23 @@ export async function messageHandler(payload: any, options: MessageHandlerOption
                 lastMessageAt: messageTimestamp,
                 source: isEcho ? 'outbound_message' : 'live_message',
               },
-            });
+            })
           } catch (err: unknown) {
             // Handle race condition: another concurrent message created the lead first (P2002)
             if (err && typeof err === 'object' && 'code' in err && err.code === 'P2002') {
               const raceLead = await tx.lead.findFirst({
                 where: { organizationId: config.organizationId, waId: contactPhone },
-              });
-              if (!raceLead) throw err;
+              })
+              if (!raceLead) throw err
               lead = await tx.lead.update({
                 where: { id: raceLead.id },
-                data: { lastMessageAt: messageTimestamp, pushName: pushName ?? raceLead.pushName ?? undefined },
-              });
+                data: {
+                  lastMessageAt: messageTimestamp,
+                  pushName: pushName ?? raceLead.pushName ?? undefined,
+                },
+              })
             } else {
-              throw err;
+              throw err
             }
           }
         }
@@ -196,37 +202,42 @@ export async function messageHandler(payload: any, options: MessageHandlerOption
             instanceId: config.id,
             metaConversationId: value.conversation_id || null,
           },
-        });
+        })
 
         // 3. Ticket Management (Expiry & Last-Touch)
         let ticket = await tx.ticket.findFirst({
           where: { conversationId: conversation.id, status: 'open' },
           orderBy: { createdAt: 'desc' },
-        });
+        })
 
         // Check Expiration
         if (ticket) {
-          const daysSinceCreation = (messageTimestamp.getTime() - ticket.createdAt.getTime()) / (1000 * 60 * 60 * 24);
+          const daysSinceCreation =
+            (messageTimestamp.getTime() - ticket.createdAt.getTime()) / (1000 * 60 * 60 * 24)
 
           // Only expire if it's an INBOUND message that would restart the conversation flow
           // If it's just an echo, we usually keep the ticket open unless specific rules apply
           if (!isEcho && daysSinceCreation > expirationDays) {
-            console.log(`[MessageHandler] Ticket ${ticket.id} expired (${daysSinceCreation.toFixed(1)} days). Closing.`);
+            console.log(
+              `[MessageHandler] Ticket ${ticket.id} expired (${daysSinceCreation.toFixed(1)} days). Closing.`
+            )
 
             await tx.ticket.update({
               where: { id: ticket.id },
               data: {
                 status: 'closed',
                 closedReason: 'expired_attribution',
-                closedAt: messageTimestamp
-              }
-            });
-            ticket = null; // Force create new ticket
+                closedAt: messageTimestamp,
+              },
+            })
+            ticket = null // Force create new ticket
           }
         }
 
-        const isNewTicket = !ticket;
-        const windowExpiresAt = wasHistoryLead ? null : new Date(messageTimestamp.getTime() + WINDOW_MS);
+        const isNewTicket = !ticket
+        const windowExpiresAt = wasHistoryLead
+          ? null
+          : new Date(messageTimestamp.getTime() + WINDOW_MS)
 
         if (!ticket) {
           ticket = await tx.ticket.create({
@@ -243,25 +254,25 @@ export async function messageHandler(payload: any, options: MessageHandlerOption
               source: 'incoming_message',
               originatedFrom: wasHistoryLead ? 'history_lead' : 'new_contact',
             },
-          });
+          })
         } else {
           // Renew window
           if (!isEcho) {
             await tx.ticket.update({
               where: { id: ticket.id },
               data: { windowExpiresAt, windowOpen: true },
-            });
+            })
           }
         }
 
         // 4. Message Creation
-        let messageBody = '';
-        const messageType = message.type || 'text';
-        if (message.text?.body) messageBody = message.text.body;
-        else if (message.image?.caption) messageBody = message.image.caption;
-        else if (message.document?.caption) messageBody = message.document.caption;
+        let messageBody = ''
+        const messageType = message.type || 'text'
+        if (message.text?.body) messageBody = message.text.body
+        else if (message.image?.caption) messageBody = message.image.caption
+        else if (message.document?.caption) messageBody = message.document.caption
 
-        const direction = isEcho ? 'OUTBOUND' : 'INBOUND';
+        const direction = isEcho ? 'OUTBOUND' : 'INBOUND'
 
         const createdMessage = await tx.message.create({
           data: {
@@ -279,7 +290,7 @@ export async function messageHandler(payload: any, options: MessageHandlerOption
             source: 'live',
             rawMeta: message,
           },
-        });
+        })
 
         // 5. Update counts and KPIs
         if (!isEcho) {
@@ -291,7 +302,7 @@ export async function messageHandler(payload: any, options: MessageHandlerOption
               inboundMessagesCount: { increment: 1 },
               lastInboundAt: messageTimestamp,
             },
-          });
+          })
 
           await tx.conversation.update({
             where: { id: conversation.id },
@@ -301,13 +312,13 @@ export async function messageHandler(payload: any, options: MessageHandlerOption
               lastInboundAt: messageTimestamp,
               unreadCount: { increment: 1 },
             },
-          });
+          })
 
           if (!lead.firstMessageAt) {
             await tx.lead.update({
               where: { id: lead.id },
               data: { firstMessageAt: messageTimestamp },
-            });
+            })
           }
         } else {
           // Outbound Message (Clinic -> Client)
@@ -315,61 +326,61 @@ export async function messageHandler(payload: any, options: MessageHandlerOption
             messagesCount: { increment: 1 },
             outboundMessagesCount: { increment: 1 },
             lastOutboundAt: messageTimestamp,
-          };
+          }
 
           if (ticket.firstResponseTimeSec === null) {
             const responseTime = Math.floor(
               (messageTimestamp.getTime() - ticket.createdAt.getTime()) / 1000
-            );
-            ticketUpdateData.firstResponseTimeSec = responseTime;
+            )
+            ticketUpdateData.firstResponseTimeSec = responseTime
           }
 
           await tx.ticket.update({
             where: { id: ticket.id },
             data: ticketUpdateData,
-          });
+          })
 
           const convUpdateData: any = {
             messagesCount: { increment: 1 },
             outboundMessagesCount: { increment: 1 },
             lastOutboundAt: messageTimestamp,
             unreadCount: 0, // Reset unread count since clinic replied
-          };
+          }
 
           if (conversation.lastInboundAt) {
             const thisResponseTime = Math.floor(
               (messageTimestamp.getTime() - conversation.lastInboundAt.getTime()) / 1000
-            );
+            )
 
             if (conversation.avgResponseTimeSec === null) {
-              convUpdateData.avgResponseTimeSec = thisResponseTime;
+              convUpdateData.avgResponseTimeSec = thisResponseTime
             } else {
               convUpdateData.avgResponseTimeSec = Math.floor(
                 conversation.avgResponseTimeSec * 0.7 + thisResponseTime * 0.3
-              );
+              )
             }
           }
 
           if (conversation.firstResponseTimeSec === null) {
             const firstResp = Math.floor(
               (messageTimestamp.getTime() - conversation.createdAt.getTime()) / 1000
-            );
-            convUpdateData.firstResponseTimeSec = firstResp;
+            )
+            convUpdateData.firstResponseTimeSec = firstResp
           }
 
           await tx.conversation.update({
             where: { id: conversation.id },
             data: convUpdateData,
-          });
+          })
         }
 
         // 5. Attribution Logic (Last-Touch)
         if (!isEcho) {
-          const trackingData = extractTrackingFromMessage(message) as any;
+          const trackingData = extractTrackingFromMessage(message) as any
           if (trackingData) {
             const existingTracking = await tx.ticketTracking.findUnique({
               where: { ticketId: ticket.id },
-            });
+            })
 
             if (!existingTracking) {
               // New Tracking
@@ -378,20 +389,25 @@ export async function messageHandler(payload: any, options: MessageHandlerOption
                   ticketId: ticket.id,
                   ...trackingData,
                   // Initialize Enrichment Status if ad is present
-                  metaEnrichmentStatus: trackingData.metaAdId ? 'PENDING' : 'PENDING'
+                  metaEnrichmentStatus: trackingData.metaAdId ? 'PENDING' : 'PENDING',
                 },
-              });
+              })
 
               // Trigger Enrichment (Queue)
               if (trackingData.metaAdId) {
-                metaAdEnrichmentService.enrichTicket(ticket.id).catch(err =>
-                  console.error(`[Enrichment] Fire-and-forget failed for ticket ${ticket.id}`, err)
-                );
+                metaAdEnrichmentService
+                  .enrichTicket(ticket.id)
+                  .catch((err) =>
+                    console.error(
+                      `[Enrichment] Fire-and-forget failed for ticket ${ticket.id}`,
+                      err
+                    )
+                  )
               }
-
             } else {
               // Update Existing Tracking (Last-Touch)
-              const hasNewAd = trackingData.metaAdId && trackingData.metaAdId !== existingTracking.metaAdId;
+              const hasNewAd =
+                trackingData.metaAdId && trackingData.metaAdId !== existingTracking.metaAdId
 
               if (hasNewAd) {
                 // Log History
@@ -400,8 +416,8 @@ export async function messageHandler(payload: any, options: MessageHandlerOption
                     ticketId: ticket.id,
                     oldAdId: existingTracking.metaAdId,
                     newAdId: trackingData.metaAdId,
-                  }
-                });
+                  },
+                })
               }
 
               // Update fields
@@ -410,15 +426,22 @@ export async function messageHandler(payload: any, options: MessageHandlerOption
                 data: {
                   ...trackingData,
                   // Reset enrichment if ad changed
-                  metaEnrichmentStatus: hasNewAd ? 'PENDING' : existingTracking.metaEnrichmentStatus,
-                  metaEnrichmentError: hasNewAd ? null : existingTracking.metaEnrichmentError
-                }
-              });
+                  metaEnrichmentStatus: hasNewAd
+                    ? 'PENDING'
+                    : existingTracking.metaEnrichmentStatus,
+                  metaEnrichmentError: hasNewAd ? null : existingTracking.metaEnrichmentError,
+                },
+              })
 
               if (hasNewAd) {
-                metaAdEnrichmentService.enrichTicket(ticket.id).catch(err =>
-                  console.error(`[Enrichment] Update enrichment failed for ticket ${ticket.id}`, err)
-                );
+                metaAdEnrichmentService
+                  .enrichTicket(ticket.id)
+                  .catch((err) =>
+                    console.error(
+                      `[Enrichment] Update enrichment failed for ticket ${ticket.id}`,
+                      err
+                    )
+                  )
               }
             }
           }
@@ -435,16 +458,15 @@ export async function messageHandler(payload: any, options: MessageHandlerOption
             body: messageBody,
             timestamp: messageTimestamp,
             direction,
-          }
-        });
+          },
+        })
 
-        successCount++;
-      });
+        successCount++
+      })
       // END TRANSACTION
       // ----------------------------------------------------------------------
-
     } catch (error) {
-      console.error('[MessageHandler] Error processing message', error);
+      console.error('[MessageHandler] Error processing message', error)
       // Continue to next message if one fails
     }
   }
@@ -453,14 +475,14 @@ export async function messageHandler(payload: any, options: MessageHandlerOption
   await prisma.whatsAppConfig.update({
     where: { id: config.id },
     data: { lastWebhookAt: new Date() },
-  });
+  })
 
-  console.log(`[MessageHandler] Processed ${successCount}/${messagesArray.length} messages`);
+  console.log(`[MessageHandler] Processed ${successCount}/${messagesArray.length} messages`)
 
   // Publish events
   for (const event of eventsToPublish) {
-    publishToCentrifugo(event.channel, event.data).catch(err =>
+    publishToCentrifugo(event.channel, event.data).catch((err) =>
       console.error('[MessageHandler] Centrifugo publish failed', err)
-    );
+    )
   }
 }

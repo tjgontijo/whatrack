@@ -78,14 +78,16 @@ const ROLE_DEFINITIONS: RoleDefinition[] = [
       'view:tickets',
       'view:sales',
       'view:products',
-      'view:meta'],
+      'view:meta',
+    ],
   },
 ]
 
 const ROLE_PRIORITY: RoleName[] = ['owner', 'admin', 'user']
 
 function normalizeRole(role: string | null | undefined): RoleName {
-  return (ROLE_DEFINITIONS.find((definition) => definition.name === role)?.name ?? 'user') as RoleName
+  return (ROLE_DEFINITIONS.find((definition) => definition.name === role)?.name ??
+    'user') as RoleName
 }
 
 export function getRoleDefinitions() {
@@ -106,7 +108,10 @@ export function isAdmin(userRole: string | null | undefined): boolean {
   return normalized === 'admin' || normalized === 'owner'
 }
 
-export function hasPermission(userRole: string | null | undefined, permission: Permission): boolean {
+export function hasPermission(
+  userRole: string | null | undefined,
+  permission: Permission
+): boolean {
   const normalized = normalizeRole(userRole)
   const roleDefinition = ROLE_DEFINITIONS.find((definition) => definition.name === normalized)
   return Boolean(roleDefinition?.permissions.includes(permission))
@@ -114,27 +119,25 @@ export function hasPermission(userRole: string | null | undefined, permission: P
 
 export function hasAnyPermission(
   userRole: string | null | undefined,
-  permissions: Permission[],
+  permissions: Permission[]
 ): boolean {
   return permissions.some((permission) => hasPermission(userRole, permission))
 }
 
 export function hasAllPermissions(
   userRole: string | null | undefined,
-  permissions: Permission[],
+  permissions: Permission[]
 ): boolean {
   return permissions.every((permission) => hasPermission(userRole, permission))
 }
 
 export function canAccessResource(
   userRole: string | null | undefined,
-  resourcePermission: Permission,
+  resourcePermission: Permission
 ): boolean {
   return hasPermission(userRole, resourcePermission)
 }
 
-export function getHighestRole(
-  currentRole: string | null | undefined,
-): UserRoleType {
+export function getHighestRole(currentRole: string | null | undefined): UserRoleType {
   return normalizeRole(currentRole)
 }

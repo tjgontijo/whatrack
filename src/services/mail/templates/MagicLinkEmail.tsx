@@ -42,7 +42,8 @@ export const MagicLinkEmail = ({
           </Text>
 
           <Text style={paragraph}>
-            Você solicitou um link de acesso para sua conta no Kadernim. Clique no botão abaixo para acessar sua conta:
+            Você solicitou um link de acesso para sua conta no Kadernim. Clique no botão abaixo para
+            acessar sua conta:
           </Text>
 
           {/* CTA Button */}
@@ -53,9 +54,7 @@ export const MagicLinkEmail = ({
           </Section>
 
           {/* Alternative Link */}
-          <Text style={alternativeLink}>
-            Ou copie e cole este link no seu navegador:
-          </Text>
+          <Text style={alternativeLink}>Ou copie e cole este link no seu navegador:</Text>
           <Link href={magicLink} style={linkStyle}>
             {magicLink}
           </Link>
@@ -65,22 +64,30 @@ export const MagicLinkEmail = ({
           {/* Expiration Notice */}
           <Section style={warningBox}>
             <Text style={warningText}>
-              <strong>⏰ Atenção:</strong> Este link expira em <strong>{expiresIn} minutos</strong>. Se você não solicitou este email, ignore-o.
+              <strong>⏰ Atenção:</strong> Este link expira em <strong>{expiresIn} minutos</strong>.
+              Se você não solicitou este email, ignore-o.
             </Text>
           </Section>
 
           {/* Security Notice */}
           <Text style={securityText}>
-            🔒 <strong>Segurança:</strong> Nunca compartilhe este link com outras pessoas. A Kadernim nunca pedirá sua senha por email.
+            🔒 <strong>Segurança:</strong> Nunca compartilhe este link com outras pessoas. A
+            Kadernim nunca pedirá sua senha por email.
           </Text>
 
           <Section style={supportBox}>
             <Text style={supportTitle}>Precisa de ajuda?</Text>
             <Text style={supportText}>
-              📞 WhatsApp: <Link href="https://wa.me/551148635262" style={linkStyle}>+55 11 4863-5262</Link>
+              📞 WhatsApp:{' '}
+              <Link href="https://wa.me/551148635262" style={linkStyle}>
+                +55 11 4863-5262
+              </Link>
             </Text>
             <Text style={supportText}>
-              ✉️ E-mail: <Link href="mailto:contato@kadernim.com.br" style={linkStyle}>contato@kadernim.com.br</Link>
+              ✉️ E-mail:{' '}
+              <Link href="mailto:contato@kadernim.com.br" style={linkStyle}>
+                contato@kadernim.com.br
+              </Link>
             </Text>
             <Text style={supportText}>📍 Brasília - DF, Brasil</Text>
           </Section>
@@ -88,12 +95,8 @@ export const MagicLinkEmail = ({
           <Hr style={hr} />
 
           {/* Footer */}
-          <Text style={footer}>
-            © 2025 Kadernim. Todos os direitos reservados.
-          </Text>
-          <Text style={footerSmall}>
-            Este é um email automático. Por favor, não responda.
-          </Text>
+          <Text style={footer}>© 2025 Kadernim. Todos os direitos reservados.</Text>
+          <Text style={footerSmall}>Este é um email automático. Por favor, não responda.</Text>
         </Section>
       </Container>
     </Body>
@@ -122,9 +125,7 @@ export async function generateMagicLinkEmail({
     'Endereço: Brasília - DF, Brasil',
   ].join('\n')
 
-  const htmlRaw = await render(
-    React.createElement(MagicLinkEmail, { name, magicLink, expiresIn })
-  )
+  const htmlRaw = await render(React.createElement(MagicLinkEmail, { name, magicLink, expiresIn }))
   const html = await pretty(htmlRaw)
 
   return { subject, text, html }

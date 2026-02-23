@@ -31,13 +31,13 @@ export const PhoneWithWhatsApp = React.forwardRef<HTMLDivElement, PhoneWithWhats
 
     return (
       <div ref={ref} className={cn('flex items-center gap-2', className)}>
-        <span className="text-sm text-foreground">{masked}</span>
+        <span className="text-foreground text-sm">{masked}</span>
         {hasValidPhone && (
           <a
             href={`https://wa.me/${whatsappNumber}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-transparent text-emerald-600 transition hover:border-emerald-500/40 hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="focus-visible:ring-ring inline-flex h-7 w-7 items-center justify-center rounded-full border border-transparent text-emerald-600 transition hover:border-emerald-500/40 hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
             aria-label={`Conversar no WhatsApp com ${masked}`}
           >
             <Image

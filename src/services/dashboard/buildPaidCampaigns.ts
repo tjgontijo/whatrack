@@ -21,7 +21,7 @@ export type PaidCampaignSummary = {
 
 export async function buildPaidCampaignsSummary(
   _organizationId: string,
-  _dateRange?: DateRange,
+  _dateRange?: DateRange
 ): Promise<PaidCampaignSummary[]> {
   return []
 }

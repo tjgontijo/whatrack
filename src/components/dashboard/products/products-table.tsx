@@ -10,9 +10,20 @@ import { CrudDataView } from '@/components/dashboard/crud/crud-data-view'
 import { CrudListView } from '@/components/dashboard/crud/crud-list-view'
 import { CrudCardView } from '@/components/dashboard/crud/crud-card-view'
 import { useCrudInfiniteQuery } from '@/hooks/use-crud-infinite-query'
-import { type ColumnDef, type CardConfig, type RowActions, type ViewType } from '@/components/dashboard/crud/types'
+import {
+  type ColumnDef,
+  type CardConfig,
+  type RowActions,
+  type ViewType,
+} from '@/components/dashboard/crud/types'
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 
 import { ProductFormDialog } from './product-form-dialog'
@@ -78,21 +89,22 @@ const columns: ColumnDef<Product>[] = [
 ]
 
 const cardConfig: CardConfig<Product> = {
-  icon: () => <Package2 className="h-7 w-7 text-primary/60" />,
+  icon: () => <Package2 className="text-primary/60 h-7 w-7" />,
   title: (item) => item.name,
-  subtitle: (item) => item.category ? (
-    <span className="flex items-center gap-1 text-xs text-muted-foreground">
-      <Tag className="h-3 w-3" />
-      {item.category.name}
-    </span>
-  ) : null,
+  subtitle: (item) =>
+    item.category ? (
+      <span className="text-muted-foreground flex items-center gap-1 text-xs">
+        <Tag className="h-3 w-3" />
+        {item.category.name}
+      </span>
+    ) : null,
   badge: (item) => (
     <Badge variant={item.active ? 'default' : 'secondary'} className="text-[10px]">
       {item.active ? 'Ativo' : 'Inativo'}
     </Badge>
   ),
   footer: (item) => (
-    <span className="text-xs font-semibold text-foreground">{formatCurrencyBRL(item.price)}</span>
+    <span className="text-foreground text-xs font-semibold">{formatCurrencyBRL(item.price)}</span>
   ),
 }
 
@@ -118,11 +130,14 @@ export function ProductsTable() {
     }, 400)
   }, [])
 
-  const filters = React.useMemo(() => ({
-    ...(debouncedSearch ? { search: debouncedSearch } : {}),
-    ...(status !== 'all' ? { status } : {}),
-    ...(categoryFilter !== 'all' ? { categoryId: categoryFilter } : {}),
-  }), [debouncedSearch, status, categoryFilter])
+  const filters = React.useMemo(
+    () => ({
+      ...(debouncedSearch ? { search: debouncedSearch } : {}),
+      ...(status !== 'all' ? { status } : {}),
+      ...(categoryFilter !== 'all' ? { categoryId: categoryFilter } : {}),
+    }),
+    [debouncedSearch, status, categoryFilter]
+  )
 
   // Fetch categories
   const categoriesQuery = useQuery({
@@ -142,20 +157,14 @@ export function ProductsTable() {
   })
   const categories = categoriesQuery.data ?? []
 
-  const {
-    data,
-    total,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isLoading,
-  } = useCrudInfiniteQuery<Product>({
-    queryKey: ['products'],
-    endpoint: '/api/v1/products',
-    pageSize: 30,
-    filters,
-    enabled: !!organizationId,
-  })
+  const { data, total, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
+    useCrudInfiniteQuery<Product>({
+      queryKey: ['products'],
+      endpoint: '/api/v1/products',
+      pageSize: 30,
+      filters,
+      enabled: !!organizationId,
+    })
 
   const rowActions: RowActions<Product> = {
     customActions: () => null,
@@ -164,7 +173,7 @@ export function ProductsTable() {
   const filtersNode = (
     <>
       <Select value={status} onValueChange={setStatus}>
-        <SelectTrigger className="h-7 w-32 text-xs border-border">
+        <SelectTrigger className="border-border h-7 w-32 text-xs">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -178,13 +187,17 @@ export function ProductsTable() {
 
       {categories.length > 0 && (
         <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-          <SelectTrigger className="h-7 w-40 text-xs border-border">
+          <SelectTrigger className="border-border h-7 w-40 text-xs">
             <SelectValue placeholder="Categoria" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all" className="text-xs">Todas as categorias</SelectItem>
+            <SelectItem value="all" className="text-xs">
+              Todas as categorias
+            </SelectItem>
             {categories.map((c) => (
-              <SelectItem key={c.id} value={c.id} className="text-xs">{c.name}</SelectItem>
+              <SelectItem key={c.id} value={c.id} className="text-xs">
+                {c.name}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>

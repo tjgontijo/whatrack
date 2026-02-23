@@ -24,11 +24,7 @@ interface ContentHeaderTabProps {
 export const ContentHeaderTab = React.forwardRef<HTMLDivElement, ContentHeaderTabProps>(
   ({ items, value, onChange, className }, ref) => {
     return (
-      <div
-        ref={ref}
-        className={cn('flex items-center gap-1', className)}
-        role="tablist"
-      >
+      <div ref={ref} className={cn('flex items-center gap-1', className)} role="tablist">
         {items.map((item) => (
           <Button
             key={item.value}
@@ -41,9 +37,7 @@ export const ContentHeaderTab = React.forwardRef<HTMLDivElement, ContentHeaderTa
           >
             {item.label}
             {item.count !== undefined && (
-              <span className="ml-1.5 text-xs font-medium opacity-70">
-                {item.count}
-              </span>
+              <span className="ml-1.5 text-xs font-medium opacity-70">{item.count}</span>
             )}
           </Button>
         ))}

@@ -21,13 +21,11 @@ export const FilterGroup = React.forwardRef<HTMLDivElement, FilterGroupProps>(
     return (
       <div ref={ref} className={cn('space-y-3', className)}>
         {label && (
-          <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+          <div className="text-muted-foreground text-xs font-semibold uppercase tracking-widest">
             {label}
           </div>
         )}
-        <div className="space-y-2">
-          {children}
-        </div>
+        <div className="space-y-2">{children}</div>
       </div>
     )
   }

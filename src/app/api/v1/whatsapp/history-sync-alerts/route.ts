@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { historySyncAlertsService } from '@/services/whatsapp/history-sync-alerts.service';
+import { NextRequest, NextResponse } from 'next/server'
+import { historySyncAlertsService } from '@/services/whatsapp/history-sync-alerts.service'
 
 /**
  * POST /api/v1/whatsapp/history-sync-alerts
@@ -12,26 +12,20 @@ import { historySyncAlertsService } from '@/services/whatsapp/history-sync-alert
 export async function POST(req: NextRequest) {
   try {
     // Verificar token de autenticação
-    const authHeader = req.headers.get('authorization');
-    const expectedToken = process.env.HISTORY_SYNC_ALERT_TOKEN;
+    const authHeader = req.headers.get('authorization')
+    const expectedToken = process.env.HISTORY_SYNC_ALERT_TOKEN
 
     if (!expectedToken) {
-      console.error('[HistorySyncAlertsAPI] HISTORY_SYNC_ALERT_TOKEN não configurado');
-      return NextResponse.json(
-        { error: 'Alert token not configured' },
-        { status: 500 }
-      );
+      console.error('[HistorySyncAlertsAPI] HISTORY_SYNC_ALERT_TOKEN não configurado')
+      return NextResponse.json({ error: 'Alert token not configured' }, { status: 500 })
     }
 
     if (authHeader !== `Bearer ${expectedToken}`) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Executar verificações periódicas
-    await historySyncAlertsService.runPeriodicChecks();
+    await historySyncAlertsService.runPeriodicChecks()
 
     return NextResponse.json(
       {
@@ -40,14 +34,11 @@ export async function POST(req: NextRequest) {
         timestamp: new Date().toISOString(),
       },
       { status: 200 }
-    );
+    )
   } catch (error) {
-    console.error('[HistorySyncAlertsAPI] Error running alerts check', error);
+    console.error('[HistorySyncAlertsAPI] Error running alerts check', error)
 
-    return NextResponse.json(
-      { error: 'Failed to run alerts check' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to run alerts check' }, { status: 500 })
   }
 }
 
@@ -59,22 +50,19 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   try {
     // Verificar query param para ativar/desativar
-    const { searchParams } = new URL(req.url);
-    const action = searchParams.get('action');
+    const { searchParams } = new URL(req.url)
+    const action = searchParams.get('action')
 
     if (action === 'run') {
       // Executar verificações manualmente
-      const authHeader = req.headers.get('authorization');
-      const expectedToken = process.env.HISTORY_SYNC_ALERT_TOKEN;
+      const authHeader = req.headers.get('authorization')
+      const expectedToken = process.env.HISTORY_SYNC_ALERT_TOKEN
 
       if (authHeader !== `Bearer ${expectedToken}`) {
-        return NextResponse.json(
-          { error: 'Unauthorized' },
-          { status: 401 }
-        );
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
       }
 
-      await historySyncAlertsService.runPeriodicChecks();
+      await historySyncAlertsService.runPeriodicChecks()
 
       return NextResponse.json(
         {
@@ -83,7 +71,7 @@ export async function GET(req: NextRequest) {
           timestamp: new Date().toISOString(),
         },
         { status: 200 }
-      );
+      )
     }
 
     // Status da saúde dos alertas
@@ -108,13 +96,10 @@ export async function GET(req: NextRequest) {
         ],
       },
       { status: 200 }
-    );
+    )
   } catch (error) {
-    console.error('[HistorySyncAlertsAPI] Error checking status', error);
+    console.error('[HistorySyncAlertsAPI] Error checking status', error)
 
-    return NextResponse.json(
-      { error: 'Failed to check status' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to check status' }, { status: 500 })
   }
 }

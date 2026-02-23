@@ -3,7 +3,6 @@ import { apiError } from '@/lib/api-response'
 import { prisma } from '@/lib/prisma'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
-
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ productId: string }> }

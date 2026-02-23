@@ -1,4 +1,4 @@
-import { Metadata } from "next";
+import { Metadata } from 'next'
 import {
   LandingHeader,
   LandingHero,
@@ -9,25 +9,25 @@ import {
   LandingCTA,
   LandingFooter,
   LANDING_CONTENT,
-} from "@/components/landing";
+} from '@/components/landing'
 
 export const metadata: Metadata = {
-  title: "WhaTrack para Lançadores | ROI em tempo real no seu lançamento",
+  title: 'WhaTrack para Lançadores | ROI em tempo real no seu lançamento',
   description:
-    "Rastreie do clique no anúncio até o fechamento no WhatsApp. Veja o ROI durante o carrinho aberto. Teste grátis por 7 dias.",
+    'Rastreie do clique no anúncio até o fechamento no WhatsApp. Veja o ROI durante o carrinho aberto. Teste grátis por 7 dias.',
   openGraph: {
-    title: "WhaTrack para Lançadores | ROI em tempo real no seu lançamento",
+    title: 'WhaTrack para Lançadores | ROI em tempo real no seu lançamento',
     description:
-      "Rastreie do clique no anúncio até o fechamento no WhatsApp. Veja o ROI durante o carrinho aberto.",
-    type: "website",
+      'Rastreie do clique no anúncio até o fechamento no WhatsApp. Veja o ROI durante o carrinho aberto.',
+    type: 'website',
   },
-};
+}
 
 export default function LancamentosPage() {
-  const content = LANDING_CONTENT.lancadores;
+  const content = LANDING_CONTENT.lancadores
 
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground">
+    <div className="bg-background text-foreground flex min-h-screen flex-col">
       <LandingHeader variant="lancadores" />
       <LandingHero content={content.hero} />
       <LandingProblem content={content.problem} />
@@ -37,5 +37,5 @@ export default function LancamentosPage() {
       <LandingCTA content={content.cta} />
       <LandingFooter />
     </div>
-  );
+  )
 }

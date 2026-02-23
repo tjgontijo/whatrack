@@ -1,7 +1,7 @@
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/prisma'
 
 export async function getHourlyHeatmap(organizationId: string, startDate: Date, endDate: Date) {
-    const heatmap = await prisma.$queryRaw`
+  const heatmap = await prisma.$queryRaw`
     SELECT
       EXTRACT(DOW FROM timestamp)::int as day_of_week,
       EXTRACT(HOUR FROM timestamp)::int as hour,
@@ -13,7 +13,7 @@ export async function getHourlyHeatmap(organizationId: string, startDate: Date, 
       AND m.timestamp BETWEEN ${startDate} AND ${endDate}
     GROUP BY day_of_week, hour
     ORDER BY day_of_week, hour;
-  `;
+  `
 
-    return heatmap;
+  return heatmap
 }

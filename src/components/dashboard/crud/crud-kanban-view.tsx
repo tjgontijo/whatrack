@@ -39,7 +39,9 @@ interface SortableCardProps<T> {
 
 function SortableCard<T>({ item, getItemId, renderCard }: SortableCardProps<T>) {
   const id = getItemId(item)
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id,
+  })
 
   return (
     <div
@@ -49,18 +51,16 @@ function SortableCard<T>({ item, getItemId, renderCard }: SortableCardProps<T>) 
         transition,
         opacity: isDragging ? 0.4 : 1,
       }}
-      className="relative group/card"
+      className="group/card relative"
     >
       <div
         {...attributes}
         {...listeners}
-        className="absolute left-1 top-1/2 -translate-y-1/2 z-10 cursor-grab active:cursor-grabbing opacity-0 group-hover/card:opacity-100 transition-opacity"
+        className="absolute left-1 top-1/2 z-10 -translate-y-1/2 cursor-grab opacity-0 transition-opacity active:cursor-grabbing group-hover/card:opacity-100"
       >
-        <GripVertical className="h-4 w-4 text-muted-foreground" />
+        <GripVertical className="text-muted-foreground h-4 w-4" />
       </div>
-      <div className="pl-5">
-        {renderCard(item, isDragging)}
-      </div>
+      <div className="pl-5">{renderCard(item, isDragging)}</div>
     </div>
   )
 }
@@ -86,16 +86,16 @@ function KanbanColumnComponent<T>({
   const isOver = activeId !== null
 
   return (
-    <div className="flex flex-col w-[320px] shrink-0 h-full bg-muted/20 dark:bg-muted/10 rounded-2xl border border-border/40 p-2 shadow-sm">
+    <div className="bg-muted/20 dark:bg-muted/10 border-border/40 flex h-full w-[320px] shrink-0 flex-col rounded-2xl border p-2 shadow-sm">
       {/* Column Header */}
-      <div className="flex items-center justify-between px-3 py-3 mb-3 shrink-0 bg-transparent">
+      <div className="mb-3 flex shrink-0 items-center justify-between bg-transparent px-3 py-3">
         <div className="flex items-center gap-2">
           <span
-            className="h-2.5 w-2.5 rounded-full shrink-0"
+            className="h-2.5 w-2.5 shrink-0 rounded-full"
             style={{ backgroundColor: column.color }}
           />
-          <span className="text-sm font-semibold text-foreground truncate">{column.name}</span>
-          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 min-w-[20px] text-center">
+          <span className="text-foreground truncate text-sm font-semibold">{column.name}</span>
+          <Badge variant="secondary" className="min-w-[20px] px-1.5 py-0 text-center text-[10px]">
             {items.length}
           </Badge>
         </div>
@@ -116,8 +116,11 @@ function KanbanColumnComponent<T>({
       <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
         <div
           className={cn(
-            'flex-1 flex flex-col gap-3 px-1 pb-4 overflow-y-auto scrollbar-thin min-h-[80px] rounded-xl transition-all duration-200',
-            isOver && activeId && !itemIds.includes(activeId) && 'bg-primary/5 ring-1 ring-primary/20 ring-inset'
+            'scrollbar-thin flex min-h-[80px] flex-1 flex-col gap-3 overflow-y-auto rounded-xl px-1 pb-4 transition-all duration-200',
+            isOver &&
+              activeId &&
+              !itemIds.includes(activeId) &&
+              'bg-primary/5 ring-primary/20 ring-1 ring-inset'
           )}
         >
           {items.map((item) => (
@@ -130,8 +133,8 @@ function KanbanColumnComponent<T>({
           ))}
 
           {items.length === 0 && (
-            <div className="flex-1 flex items-center justify-center min-h-[60px]">
-              <p className="text-xs text-muted-foreground/50 text-center">Vazio</p>
+            <div className="flex min-h-[60px] flex-1 items-center justify-center">
+              <p className="text-muted-foreground/50 text-center text-xs">Vazio</p>
             </div>
           )}
         </div>
@@ -237,7 +240,7 @@ export function CrudKanbanView<T>({
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex gap-3 h-full overflow-x-auto px-6 py-4 pb-6 scrollbar-thin">
+      <div className="scrollbar-thin flex h-full gap-3 overflow-x-auto px-6 py-4 pb-6">
         {sortedColumns.map((column) => (
           <KanbanColumnComponent
             key={column.id}
@@ -253,7 +256,7 @@ export function CrudKanbanView<T>({
 
       <DragOverlay dropAnimation={{ duration: 200, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }}>
         {activeItem ? (
-          <div className="opacity-90 rotate-2 shadow-2xl scale-105 transition-transform cursor-grabbing ring-2 ring-primary ring-offset-1 rounded-xl">
+          <div className="ring-primary rotate-2 scale-105 cursor-grabbing rounded-xl opacity-90 shadow-2xl ring-2 ring-offset-1 transition-transform">
             {renderCard(activeItem, true)}
           </div>
         ) : null}

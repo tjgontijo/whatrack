@@ -14,8 +14,8 @@ export async function isOrganizationComplete(organizationId: string): Promise<bo
         profile: {
           select: {
             onboardingStatus: true,
-          }
-        }
+          },
+        },
       },
     })
 

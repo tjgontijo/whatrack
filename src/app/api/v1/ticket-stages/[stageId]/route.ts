@@ -6,16 +6,16 @@ import { hasPermission } from '@/lib/auth/rbac/roles'
 
 const updateStageSchema = z.object({
   name: z.string().min(1).max(60).optional(),
-  color: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Cor inválida').optional(),
+  color: z
+    .string()
+    .regex(/^#[0-9a-fA-F]{6}$/, 'Cor inválida')
+    .optional(),
   isDefault: z.boolean().optional(),
   isClosed: z.boolean().optional(),
 })
 
 // PUT /api/v1/ticket-stages/:id
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: Promise<{ stageId: string }> },
-) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ stageId: string }> }) {
   const access = await validateFullAccess(req)
   if (!access.hasAccess || !access.organizationId) {
     return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
@@ -37,7 +37,10 @@ export async function PUT(
     const body = await req.json()
     const parsed = updateStageSchema.safeParse(body)
     if (!parsed.success) {
-      return NextResponse.json({ error: 'Dados inválidos', details: parsed.error.flatten() }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: parsed.error.flatten() },
+        { status: 400 }
+      )
     }
 
     const { name, color, isDefault, isClosed } = parsed.data
@@ -79,7 +82,7 @@ export async function PUT(
 // DELETE /api/v1/ticket-stages/:id
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: Promise<{ stageId: string }> },
+  { params }: { params: Promise<{ stageId: string }> }
 ) {
   const access = await validateFullAccess(req)
   if (!access.hasAccess || !access.organizationId) {
@@ -106,7 +109,10 @@ export async function DELETE(
     // Ensure there's at least one other stage
     const count = await prisma.ticketStage.count({ where: { organizationId } })
     if (count <= 1) {
-      return NextResponse.json({ error: 'A organização deve ter ao menos uma fase' }, { status: 409 })
+      return NextResponse.json(
+        { error: 'A organização deve ter ao menos uma fase' },
+        { status: 409 }
+      )
     }
 
     // Move tickets from deleted stage to default stage

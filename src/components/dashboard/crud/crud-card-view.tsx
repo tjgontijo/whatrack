@@ -44,36 +44,34 @@ export function CrudCardView<T>({
         <div
           key={getRowKey(item, index)}
           className={cn(
-            'group relative rounded-xl border border-border bg-card overflow-hidden transition-all hover:border-primary/40 hover:shadow-md',
+            'border-border bg-card hover:border-primary/40 group relative overflow-hidden rounded-xl border transition-all hover:shadow-md',
             config.onClick && 'cursor-pointer',
             cardClassName
           )}
           onClick={() => config.onClick?.(item)}
         >
           {/* Card Content */}
-          <div className="flex p-3 gap-3">
+          <div className="flex gap-3 p-3">
             {config.icon && (
               <div className="relative w-16 shrink-0">
-                <div className="aspect-square w-full bg-primary/5 rounded-lg border border-primary/10 flex items-center justify-center">
+                <div className="bg-primary/5 border-primary/10 flex aspect-square w-full items-center justify-center rounded-lg border">
                   {config.icon(item)}
                 </div>
               </div>
             )}
 
-            <div className={cn('flex-1 min-w-0', rowActions && 'pr-8')}>
-              <h3 className="font-semibold text-sm text-foreground truncate leading-tight mb-1">
+            <div className={cn('min-w-0 flex-1', rowActions && 'pr-8')}>
+              <h3 className="text-foreground mb-1 truncate text-sm font-semibold leading-tight">
                 {config.title(item)}
               </h3>
               {config.subtitle && (
-                <div className="flex items-center gap-1.5">
-                  {config.subtitle(item)}
-                </div>
+                <div className="flex items-center gap-1.5">{config.subtitle(item)}</div>
               )}
             </div>
 
             {rowActions && (
               <div
-                className="absolute right-2 top-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute right-2 top-2 flex flex-col gap-1 opacity-0 transition-opacity group-hover:opacity-100"
                 onClick={(e) => e.stopPropagation()}
               >
                 {rowActions.customActions?.(item)}
@@ -82,7 +80,7 @@ export function CrudCardView<T>({
           </div>
 
           {(config.footer || config.badge) && (
-            <div className="border-t border-border/50 px-3 py-2 bg-muted/5 flex items-center justify-between">
+            <div className="border-border/50 bg-muted/5 flex items-center justify-between border-t px-3 py-2">
               {config.badge?.(item)}
               {config.footer?.(item)}
             </div>

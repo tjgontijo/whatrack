@@ -1,4 +1,4 @@
-import { Metadata } from "next";
+import { Metadata } from 'next'
 import {
   LandingHeader,
   LandingHero,
@@ -9,25 +9,25 @@ import {
   LandingCTA,
   LandingFooter,
   LANDING_CONTENT,
-} from "@/components/landing";
+} from '@/components/landing'
 
 export const metadata: Metadata = {
-  title: "WhaTrack para Agências | Prove o ROI dos seus clientes",
+  title: 'WhaTrack para Agências | Prove o ROI dos seus clientes',
   description:
-    "Conecte os anúncios do seu cliente às vendas no WhatsApp. Mostre relatórios de ROI que ninguém questiona. Teste grátis por 7 dias.",
+    'Conecte os anúncios do seu cliente às vendas no WhatsApp. Mostre relatórios de ROI que ninguém questiona. Teste grátis por 7 dias.',
   openGraph: {
-    title: "WhaTrack para Agências | Prove o ROI dos seus clientes",
+    title: 'WhaTrack para Agências | Prove o ROI dos seus clientes',
     description:
-      "Conecte os anúncios do seu cliente às vendas no WhatsApp. Mostre relatórios de ROI que ninguém questiona.",
-    type: "website",
+      'Conecte os anúncios do seu cliente às vendas no WhatsApp. Mostre relatórios de ROI que ninguém questiona.',
+    type: 'website',
   },
-};
+}
 
 export default function AgenciasPage() {
-  const content = LANDING_CONTENT.agencias;
+  const content = LANDING_CONTENT.agencias
 
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground">
+    <div className="bg-background text-foreground flex min-h-screen flex-col">
       <LandingHeader variant="agencias" />
       <LandingHero content={content.hero} />
       <LandingProblem content={content.problem} />
@@ -37,5 +37,5 @@ export default function AgenciasPage() {
       <LandingCTA content={content.cta} />
       <LandingFooter />
     </div>
-  );
+  )
 }

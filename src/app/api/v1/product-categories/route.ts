@@ -67,7 +67,10 @@ export async function POST(request: Request) {
     const parsed = createSchema.safeParse(json)
 
     if (!parsed.success) {
-      return NextResponse.json({ error: 'Invalid payload', details: parsed.error.flatten() }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Invalid payload', details: parsed.error.flatten() },
+        { status: 400 }
+      )
     }
 
     const result = await createCategory({

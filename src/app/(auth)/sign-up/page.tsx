@@ -59,7 +59,7 @@ export default function SignUpPage() {
       }
 
       // 2. Aguardar sincronização da session
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      await new Promise((resolve) => setTimeout(resolve, 1000))
 
       // 3. Criar organização vazia
       try {
@@ -105,16 +105,22 @@ export default function SignUpPage() {
   const isSubmitting = form.formState.isSubmitting
 
   return (
-    <div className="w-full space-y-6 lg:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500" data-testid="sign-up-page">
+    <div
+      className="animate-in fade-in slide-in-from-bottom-4 w-full space-y-6 duration-500 lg:space-y-8"
+      data-testid="sign-up-page"
+    >
       <div className="text-left">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">Crie sua conta</h1>
-        <p className="mt-2 text-sm text-muted-foreground font-medium">
+        <h1 className="text-foreground text-3xl font-bold tracking-tight">Crie sua conta</h1>
+        <p className="text-muted-foreground mt-2 text-sm font-medium">
           Comece a rastrear seus leads em minutos
         </p>
       </div>
 
       <Form {...form}>
-        <form className="space-y-4 lg:space-y-5 flex flex-col pt-2" onSubmit={form.handleSubmit(handleSubmit)}>
+        <form
+          className="flex flex-col space-y-4 pt-2 lg:space-y-5"
+          onSubmit={form.handleSubmit(handleSubmit)}
+        >
           <Controller
             control={form.control}
             name="name"
@@ -125,7 +131,7 @@ export default function SignUpPage() {
                   id={field.name}
                   placeholder="Seu nome"
                   autoComplete="name"
-                  className="h-11 lg:h-12 px-4 shadow-sm transition-shadow focus-visible:ring-primary focus-visible:border-primary"
+                  className="focus-visible:ring-primary focus-visible:border-primary h-11 px-4 shadow-sm transition-shadow lg:h-12"
                   disabled={isSubmitting}
                   {...field}
                 />
@@ -145,7 +151,7 @@ export default function SignUpPage() {
                   type="email"
                   placeholder="seu@empresa.com"
                   autoComplete="email"
-                  className="h-11 lg:h-12 px-4 shadow-sm transition-shadow focus-visible:ring-primary focus-visible:border-primary"
+                  className="focus-visible:ring-primary focus-visible:border-primary h-11 px-4 shadow-sm transition-shadow lg:h-12"
                   disabled={isSubmitting}
                   {...field}
                 />
@@ -165,7 +171,7 @@ export default function SignUpPage() {
                   type="tel"
                   placeholder="(11) 99999-9999"
                   autoComplete="tel"
-                  className="h-11 lg:h-12 px-4 shadow-sm transition-shadow focus-visible:ring-primary focus-visible:border-primary"
+                  className="focus-visible:ring-primary focus-visible:border-primary h-11 px-4 shadow-sm transition-shadow lg:h-12"
                   disabled={isSubmitting}
                   {...field}
                   onChange={(e) => field.onChange(applyPhoneMask(e.target.value))}
@@ -175,7 +181,7 @@ export default function SignUpPage() {
             )}
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-5">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:gap-5">
             <Controller
               control={form.control}
               name="password"
@@ -187,7 +193,7 @@ export default function SignUpPage() {
                     type="password"
                     placeholder="Mín. 8 caracteres"
                     autoComplete="new-password"
-                    className="h-11 lg:h-12 px-4 shadow-sm transition-shadow focus-visible:ring-primary focus-visible:border-primary"
+                    className="focus-visible:ring-primary focus-visible:border-primary h-11 px-4 shadow-sm transition-shadow lg:h-12"
                     disabled={isSubmitting}
                     {...field}
                   />
@@ -207,7 +213,7 @@ export default function SignUpPage() {
                     type="password"
                     placeholder="Repita a senha"
                     autoComplete="new-password"
-                    className="h-11 lg:h-12 px-4 shadow-sm transition-shadow focus-visible:ring-primary focus-visible:border-primary"
+                    className="focus-visible:ring-primary focus-visible:border-primary h-11 px-4 shadow-sm transition-shadow lg:h-12"
                     disabled={isSubmitting}
                     {...field}
                   />
@@ -217,15 +223,22 @@ export default function SignUpPage() {
             />
           </div>
 
-          <Button type="submit" className="w-full h-12 mt-6 lg:mt-8 font-semibold text-sm shadow-md shadow-primary/20 transition-all hover:-translate-y-0.5" disabled={isSubmitting}>
+          <Button
+            type="submit"
+            className="shadow-primary/20 mt-6 h-12 w-full text-sm font-semibold shadow-md transition-all hover:-translate-y-0.5 lg:mt-8"
+            disabled={isSubmitting}
+          >
             {isSubmitting ? 'Criando conta...' : 'Criar conta gratuitamente'}
           </Button>
         </form>
       </Form>
 
-      <div className="text-center text-sm text-muted-foreground pt-2 lg:pt-4 border-t border-border/50">
+      <div className="text-muted-foreground border-border/50 border-t pt-2 text-center text-sm lg:pt-4">
         Já tem uma conta?{' '}
-        <Link href="/sign-in" className="font-bold tracking-wide text-foreground hover:text-primary transition-colors hover:underline">
+        <Link
+          href="/sign-in"
+          className="text-foreground hover:text-primary font-bold tracking-wide transition-colors hover:underline"
+        >
           Fazer login
         </Link>
       </div>

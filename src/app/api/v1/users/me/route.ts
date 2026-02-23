@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers'
-import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@/lib/auth/auth"
-import { prisma } from "@/lib/prisma"
+import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@/lib/auth/auth'
+import { prisma } from '@/lib/prisma'
 
 async function getSessionFromRequest(req: NextRequest) {
   const headers = new Headers(req.headers)
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
   const session = await getSessionFromRequest(req)
 
   if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   const user = await prisma.user.findUnique({
@@ -41,7 +41,7 @@ export async function PUT(req: NextRequest) {
   const session = await getSessionFromRequest(req)
 
   if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   const body = await req.json()
@@ -64,7 +64,7 @@ export async function PATCH(req: NextRequest) {
   const session = await getSessionFromRequest(req)
 
   if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   const body = await req.json()

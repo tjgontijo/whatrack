@@ -27,7 +27,7 @@ async function testCentrifugoConnection() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `apikey ${apiKey}`,
+        Authorization: `apikey ${apiKey}`,
       },
       body: JSON.stringify({}),
     })
@@ -57,7 +57,7 @@ async function testCentrifugoConnection() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `apikey ${apiKey}`,
+        Authorization: `apikey ${apiKey}`,
       },
       body: JSON.stringify({
         channel: testChannel,
@@ -136,9 +136,8 @@ async function checkEnvironmentVariables() {
     const value = process.env[v]
     if (value) {
       // Mostrar parcialmente para debug
-      const masked = v.includes('KEY') || v.includes('SECRET')
-        ? value.substring(0, 8) + '...'
-        : value
+      const masked =
+        v.includes('KEY') || v.includes('SECRET') ? value.substring(0, 8) + '...' : value
       console.log(`✅ ${v}: ${masked}`)
     } else {
       console.log(`❌ ${v}: NÃO DEFINIDO`)

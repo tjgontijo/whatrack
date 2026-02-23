@@ -77,12 +77,10 @@ export function DesignSystemContent() {
   return (
     <div className="flex h-full overflow-hidden">
       {/* Sidebar Navigation — desktop */}
-      <nav className="hidden lg:flex w-56 shrink-0 flex-col border-r border-border/50 bg-background py-6 px-3 overflow-y-auto">
+      <nav className="border-border/50 bg-background hidden w-56 shrink-0 flex-col overflow-y-auto border-r px-3 py-6 lg:flex">
         <div className="mb-6 px-3">
           <h1 className="text-lg font-bold tracking-tight">Design System</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Referência visual
-          </p>
+          <p className="text-muted-foreground mt-0.5 text-xs">Referência visual</p>
         </div>
         <div className="space-y-0.5">
           {sections.map((section) => {
@@ -92,7 +90,7 @@ export function DesignSystemContent() {
                 key={section.id}
                 onClick={() => scrollTo(section.id)}
                 className={cn(
-                  'flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors cursor-pointer',
+                  'flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors',
                   activeSection === section.id
                     ? 'bg-primary/10 text-primary font-medium'
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
@@ -107,8 +105,8 @@ export function DesignSystemContent() {
       </nav>
 
       {/* Mobile Navigation */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background/95 backdrop-blur-sm">
-        <div className="flex overflow-x-auto px-2 py-2 gap-1 scrollbar-hide">
+      <div className="border-border bg-background/95 fixed bottom-0 left-0 right-0 z-40 border-t backdrop-blur-sm lg:hidden">
+        <div className="scrollbar-hide flex gap-1 overflow-x-auto px-2 py-2">
           {sections.map((section) => {
             const Icon = section.icon
             return (
@@ -116,7 +114,7 @@ export function DesignSystemContent() {
                 key={section.id}
                 onClick={() => scrollTo(section.id)}
                 className={cn(
-                  'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs whitespace-nowrap transition-colors shrink-0 cursor-pointer',
+                  'flex shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-xs transition-colors',
                   activeSection === section.id
                     ? 'bg-primary/10 text-primary font-medium'
                     : 'text-muted-foreground hover:text-foreground'
@@ -131,11 +129,8 @@ export function DesignSystemContent() {
       </div>
 
       {/* Main Content */}
-      <main
-        ref={mainRef}
-        className="flex-1 overflow-y-auto pb-20 lg:pb-8"
-      >
-        <div className="max-w-4xl mx-auto px-6 py-8 space-y-16">
+      <main ref={mainRef} className="flex-1 overflow-y-auto pb-20 lg:pb-8">
+        <div className="mx-auto max-w-4xl space-y-16 px-6 py-8">
           <ColorsSection />
           <Separator />
           <TypographySection />

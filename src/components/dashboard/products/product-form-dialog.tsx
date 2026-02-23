@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
@@ -63,7 +63,12 @@ type ProductFormDialogProps = {
   onOpenChange?: (open: boolean) => void
 }
 
-export function ProductFormDialog({ categories, onSuccess, open: controlledOpen, onOpenChange }: ProductFormDialogProps) {
+export function ProductFormDialog({
+  categories,
+  onSuccess,
+  open: controlledOpen,
+  onOpenChange,
+}: ProductFormDialogProps) {
   const { data: activeOrg } = authClient.useActiveOrganization()
   const organizationId = activeOrg?.id
   const [internalOpen, setInternalOpen] = useState(false)
@@ -139,9 +144,7 @@ export function ProductFormDialog({ categories, onSuccess, open: controlledOpen,
           <div className="space-y-2">
             <Label htmlFor="product-name">Nome *</Label>
             <Input id="product-name" placeholder="Nome do produto" {...register('name')} />
-            {errors.name ? (
-              <p className="text-sm text-destructive">{errors.name.message}</p>
-            ) : null}
+            {errors.name ? <p className="text-destructive text-sm">{errors.name.message}</p> : null}
           </div>
 
           <div className="space-y-2">
@@ -151,9 +154,9 @@ export function ProductFormDialog({ categories, onSuccess, open: controlledOpen,
               name="categoryId"
               render={({ field }) => (
                 <Select
-                    onValueChange={(value) => field.onChange(value === '__none__' ? null : value)}
-                    value={field.value ?? '__none__'}
-                  >
+                  onValueChange={(value) => field.onChange(value === '__none__' ? null : value)}
+                  value={field.value ?? '__none__'}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione" />
                   </SelectTrigger>
@@ -180,7 +183,7 @@ export function ProductFormDialog({ categories, onSuccess, open: controlledOpen,
                 {...register('price')}
               />
               {errors.price ? (
-                <p className="text-sm text-destructive">{errors.price.message}</p>
+                <p className="text-destructive text-sm">{errors.price.message}</p>
               ) : null}
             </div>
             <div className="space-y-2">
@@ -192,7 +195,7 @@ export function ProductFormDialog({ categories, onSuccess, open: controlledOpen,
                 {...register('cost')}
               />
               {errors.cost ? (
-                <p className="text-sm text-destructive">{errors.cost.message}</p>
+                <p className="text-destructive text-sm">{errors.cost.message}</p>
               ) : null}
             </div>
           </div>

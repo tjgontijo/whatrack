@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import * as React from 'react'
 import { useQuery } from '@tanstack/react-query'
@@ -47,7 +47,8 @@ export function CategoriesTable() {
   const router = useRouter()
 
   const searchValue = (searchParams.get('categoryQ') || '').trim()
-  const status = (searchParams.get('categoryStatus') as (typeof STATUS_OPTIONS)[number]['value']) ?? 'all'
+  const status =
+    (searchParams.get('categoryStatus') as (typeof STATUS_OPTIONS)[number]['value']) ?? 'all'
   const page = Math.max(1, parseInt(searchParams.get('categoryPage') || '1', 10) || 1)
 
   const updateQueryParams = React.useCallback(
@@ -56,7 +57,7 @@ export function CategoriesTable() {
       mutator(params)
       router.push(`/dashboard/products?${params.toString()}`)
     },
-    [router, searchParams],
+    [router, searchParams]
   )
 
   const categoriesQuery = useQuery({
@@ -86,26 +87,29 @@ export function CategoriesTable() {
   const [input, setInput] = React.useState(searchValue)
   const debounceRef = React.useRef<NodeJS.Timeout>(null)
 
-  const handleSearchChange = React.useCallback((value: string) => {
-    setInput(value)
+  const handleSearchChange = React.useCallback(
+    (value: string) => {
+      setInput(value)
 
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current)
-    }
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current)
+      }
 
-    debounceRef.current = setTimeout(() => {
-      const trimmed = value.trim()
+      debounceRef.current = setTimeout(() => {
+        const trimmed = value.trim()
 
-      updateQueryParams((params) => {
-        if (trimmed.length === 0 || trimmed.length < 3) {
-          params.delete('categoryQ')
-        } else {
-          params.set('categoryQ', trimmed)
-        }
-        params.set('categoryPage', '1')
-      })
-    }, 400)
-  }, [updateQueryParams])
+        updateQueryParams((params) => {
+          if (trimmed.length === 0 || trimmed.length < 3) {
+            params.delete('categoryQ')
+          } else {
+            params.set('categoryQ', trimmed)
+          }
+          params.set('categoryPage', '1')
+        })
+      }, 400)
+    },
+    [updateQueryParams]
+  )
 
   const handleStatusChange = (value: (typeof STATUS_OPTIONS)[number]['value']) => {
     updateQueryParams((params) => {
@@ -139,17 +143,22 @@ export function CategoriesTable() {
               <button
                 type="button"
                 onClick={() => handleSearchChange('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full border border-transparent p-1 text-muted-foreground transition hover:border-border hover:bg-muted"
+                className="text-muted-foreground hover:border-border hover:bg-muted absolute right-2 top-1/2 -translate-y-1/2 rounded-full border border-transparent p-1 transition"
                 aria-label="Limpar busca"
               >
                 <X className="h-4 w-4" />
               </button>
             ) : null}
           </div>
-          <Select value={status} onValueChange={(value) => handleStatusChange(value as typeof status)}>
+          <Select
+            value={status}
+            onValueChange={(value) => handleStatusChange(value as typeof status)}
+          >
             <SelectTrigger className="w-[180px] justify-between">
               <div className="flex flex-col text-left leading-tight">
-                <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Status</span>
+                <span className="text-muted-foreground text-[10px] uppercase tracking-wide">
+                  Status
+                </span>
                 <SelectValue placeholder="Todas" />
               </div>
             </SelectTrigger>
@@ -170,21 +179,21 @@ export function CategoriesTable() {
         />
       </div>
 
-      <div className="overflow-hidden rounded-xl border bg-card">
+      <div className="bg-card overflow-hidden rounded-xl border">
         <table className="min-w-full border-collapse text-sm">
           <thead className="bg-muted/50 text-left">
             <tr>
-              <th className="px-4 py-3 font-medium text-muted-foreground">Categoria</th>
-              <th className="px-4 py-3 font-medium text-muted-foreground">Status</th>
-              <th className="px-4 py-3 font-medium text-muted-foreground">Criada em</th>
+              <th className="text-muted-foreground px-4 py-3 font-medium">Categoria</th>
+              <th className="text-muted-foreground px-4 py-3 font-medium">Status</th>
+              <th className="text-muted-foreground px-4 py-3 font-medium">Criada em</th>
             </tr>
           </thead>
           <tbody>
             {categoriesQuery.data?.items.map((category) => (
               <tr key={category.id} className="border-t">
                 <td className="px-4 py-3">
-                  <div className="font-medium text-foreground">{category.name}</div>
-                  <p className="text-xs text-muted-foreground">
+                  <div className="text-foreground font-medium">{category.name}</div>
+                  <p className="text-muted-foreground text-xs">
                     Atualizado em {new Date(category.updatedAt).toLocaleDateString('pt-BR')}
                   </p>
                 </td>
@@ -200,7 +209,7 @@ export function CategoriesTable() {
             ))}
             {!categoriesQuery.data?.items.length && !categoriesQuery.isFetching ? (
               <tr>
-                <td colSpan={3} className="px-4 py-6 text-center text-sm text-muted-foreground">
+                <td colSpan={3} className="text-muted-foreground px-4 py-6 text-center text-sm">
                   Nenhuma categoria encontrada.
                 </td>
               </tr>
@@ -208,7 +217,7 @@ export function CategoriesTable() {
           </tbody>
         </table>
         {categoriesQuery.isFetching ? (
-          <div className="border-t px-4 py-2 text-sm text-muted-foreground">Atualizando...</div>
+          <div className="text-muted-foreground border-t px-4 py-2 text-sm">Atualizando...</div>
         ) : null}
       </div>
 

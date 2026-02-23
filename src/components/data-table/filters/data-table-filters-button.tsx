@@ -23,38 +23,33 @@ interface DataTableFiltersButtonProps {
 export const DataTableFiltersButton = React.forwardRef<
   HTMLButtonElement,
   DataTableFiltersButtonProps
->(
-  (
-    { activeCount = 0, onClick, className },
-    ref
-  ) => {
-    return (
-      <div className="relative">
-        <Button
-          ref={ref}
-          variant="ghost"
-          size="sm"
-          onClick={onClick}
-          className={className}
-          aria-label="Abrir filtros"
-          aria-expanded="false"
-          aria-controls="filter-sheet"
-        >
-          <SlidersHorizontal className="h-4 w-4" />
-        </Button>
+>(({ activeCount = 0, onClick, className }, ref) => {
+  return (
+    <div className="relative">
+      <Button
+        ref={ref}
+        variant="ghost"
+        size="sm"
+        onClick={onClick}
+        className={className}
+        aria-label="Abrir filtros"
+        aria-expanded="false"
+        aria-controls="filter-sheet"
+      >
+        <SlidersHorizontal className="h-4 w-4" />
+      </Button>
 
-        {activeCount > 0 && (
-          <Badge
-            variant="default"
-            className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
-            aria-label={`${activeCount} filtros ativos`}
-          >
-            {activeCount}
-          </Badge>
-        )}
-      </div>
-    )
-  }
-)
+      {activeCount > 0 && (
+        <Badge
+          variant="default"
+          className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center p-0 text-xs"
+          aria-label={`${activeCount} filtros ativos`}
+        >
+          {activeCount}
+        </Badge>
+      )}
+    </div>
+  )
+})
 
 DataTableFiltersButton.displayName = 'DataTableFiltersButton'

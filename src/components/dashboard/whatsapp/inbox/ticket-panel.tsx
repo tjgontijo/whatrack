@@ -4,7 +4,28 @@ import React, { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { AlertCircle, Clock, User, DollarSign, Link as LinkIcon, AlertTriangle, Copy, Sparkles, Check, X, Megaphone, Smartphone, UserMinus, ShieldAlert, RefreshCw, Activity, MessageSquare, Timer, ArrowDownRight, ArrowUpRight } from 'lucide-react'
+import {
+  AlertCircle,
+  Clock,
+  User,
+  DollarSign,
+  Link as LinkIcon,
+  AlertTriangle,
+  Copy,
+  Sparkles,
+  Check,
+  X,
+  Megaphone,
+  Smartphone,
+  UserMinus,
+  ShieldAlert,
+  RefreshCw,
+  Activity,
+  MessageSquare,
+  Timer,
+  ArrowDownRight,
+  ArrowUpRight,
+} from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Badge } from '@/components/ui/badge'
@@ -82,22 +103,14 @@ const STATUS_BADGE_MAP: Record<string, { bg: string; text: string; label: string
   closed_lost: { bg: 'bg-red-500/10', text: 'text-red-700', label: 'Perdido' },
 }
 
-export function TicketPanel({
-  conversationId,
-  organizationId,
-  chat,
-}: TicketPanelProps) {
+export function TicketPanel({ conversationId, organizationId, chat }: TicketPanelProps) {
   const [showAiApproval, setShowAiApproval] = useState(true)
   const queryClient = useQueryClient()
-
-
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['conversation-ticket', conversationId],
     queryFn: async () => {
-      const response = await fetch(
-        `/api/v1/conversations/${conversationId}/ticket`
-      )
+      const response = await fetch(`/api/v1/conversations/${conversationId}/ticket`)
       if (response.status === 404) return null
       if (!response.ok) throw new Error('Failed to fetch ticket')
       return response.json() as Promise<TicketResponse>
@@ -116,7 +129,7 @@ export function TicketPanel({
       if (!res.ok) return { items: [] }
       return res.json()
     },
-    enabled: !!ticket?.id
+    enabled: !!ticket?.id,
   })
 
   const currentInsight = insightsData?.items?.find((a: any) => a.ticketId === ticket?.id)
@@ -139,7 +152,7 @@ export function TicketPanel({
       const res = await fetch(`/api/v1/tickets/${ticket.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stageId: newStageId })
+        body: JSON.stringify({ stageId: newStageId }),
       })
       if (!res.ok) throw new Error()
       toast.success('Etapa atualizada!', { id: toastId })
@@ -201,21 +214,21 @@ export function TicketPanel({
 
   if (isLoading) {
     return (
-      <div className="h-full flex flex-col items-center justify-center p-6 bg-card gap-3">
-        <RefreshCw className="h-8 w-8 animate-spin text-primary/40" />
-        <p className="text-sm font-medium text-muted-foreground">Carregando detalhes...</p>
+      <div className="bg-card flex h-full flex-col items-center justify-center gap-3 p-6">
+        <RefreshCw className="text-primary/40 h-8 w-8 animate-spin" />
+        <p className="text-muted-foreground text-sm font-medium">Carregando detalhes...</p>
       </div>
     )
   }
 
   if (error || !ticket) {
     return (
-      <div className="h-full flex flex-col items-center justify-center p-6 text-center">
-        <div className="bg-muted/50 p-4 rounded-full mb-4">
-          <ShieldAlert className="h-8 w-8 text-muted-foreground" />
+      <div className="flex h-full flex-col items-center justify-center p-6 text-center">
+        <div className="bg-muted/50 mb-4 rounded-full p-4">
+          <ShieldAlert className="text-muted-foreground h-8 w-8" />
         </div>
-        <h3 className="font-semibold text-lg mb-1">Nenhum CRM Localizado</h3>
-        <p className="text-sm text-muted-foreground">
+        <h3 className="mb-1 text-lg font-semibold">Nenhum CRM Localizado</h3>
+        <p className="text-muted-foreground text-sm">
           As informações de negociação aparecerão aqui.
         </p>
       </div>
@@ -226,13 +239,12 @@ export function TicketPanel({
   const windowStatus = getWindowStatus()
 
   return (
-    <div className="flex flex-col h-full bg-background border-l border-border/40 min-h-0">
-      <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
-        <div className="flex flex-col p-6 space-y-6">
-
+    <div className="bg-background border-border/40 flex h-full min-h-0 flex-col border-l">
+      <div className="custom-scrollbar flex-1 overflow-y-auto overflow-x-hidden">
+        <div className="flex flex-col space-y-6 p-6">
           {/* Header do Lead */}
-          <div className="flex flex-col items-center text-center space-y-3">
-            <Avatar className="h-20 w-20 border-2 border-border/50 shadow-sm">
+          <div className="flex flex-col items-center space-y-3 text-center">
+            <Avatar className="border-border/50 h-20 w-20 border-2 shadow-sm">
               <AvatarImage src={chat?.profilePicUrl || undefined} />
               <AvatarFallback className="bg-primary/5 text-primary text-xl font-medium uppercase">
                 {chat?.name?.substring(0, 2) || 'LE'}
@@ -240,7 +252,7 @@ export function TicketPanel({
             </Avatar>
             <div className="space-y-1">
               <h2 className="text-xl font-bold tracking-tight">{chat?.name || 'Lead'}</h2>
-              <div className="flex items-center justify-center gap-2 text-muted-foreground">
+              <div className="text-muted-foreground flex items-center justify-center gap-2">
                 <Smartphone className="h-3.5 w-3.5" />
                 <span className="text-sm">{chat?.phone || 'Sem Telefone'}</span>
                 <button className="text-muted-foreground hover:text-foreground transition-colors">
@@ -252,23 +264,26 @@ export function TicketPanel({
           {/* Destaque: Tráfego Pago (Aha! Moment UX) */}
           {ticket.tracking?.sourceType === 'paid' && (
             <div className="relative overflow-hidden rounded-xl border border-[#c13584]/20 bg-gradient-to-br from-[#c13584]/10 to-[#833ab4]/5 p-4">
-              <div className="absolute top-0 right-0 p-3 opacity-20">
+              <div className="absolute right-0 top-0 p-3 opacity-20">
                 <Megaphone className="h-12 w-12 text-[#c13584]" />
               </div>
               <div className="relative z-10">
-                <div className="flex items-center gap-2 mb-2">
-                  <Badge className="bg-[#c13584] text-white hover:bg-[#c13584]/90 border-0 text-[10px] uppercase font-bold tracking-wider">
+                <div className="mb-2 flex items-center gap-2">
+                  <Badge className="border-0 bg-[#c13584] text-[10px] font-bold uppercase tracking-wider text-white hover:bg-[#c13584]/90">
                     ✨ Meta Ads
                   </Badge>
                   <span className="text-xs font-medium text-[#c13584]">Lead pago via clique</span>
                 </div>
                 {ticket.tracking.utmCampaign && (
-                  <p className="text-sm font-semibold text-foreground mb-1">
+                  <p className="text-foreground mb-1 text-sm font-semibold">
                     Campanha: {ticket.tracking.utmCampaign}
                   </p>
                 )}
                 {ticket.tracking.ctwaclid && (
-                  <p className="text-[10px] text-muted-foreground/80 font-mono truncate max-w-[200px]" title={ticket.tracking.ctwaclid}>
+                  <p
+                    className="text-muted-foreground/80 max-w-[200px] truncate font-mono text-[10px]"
+                    title={ticket.tracking.ctwaclid}
+                  >
                     ID: {ticket.tracking.ctwaclid}
                   </p>
                 )}
@@ -278,26 +293,32 @@ export function TicketPanel({
           {/* Destaque: Copilot IA (Mastra) */}
           {/* AI Copilot Suggestion Box */}
           {currentInsight && showAiApproval && (
-            <div className="mb-4 bg-primary/10 border border-primary/20 rounded-lg p-3 shadow-sm relative overflow-hidden group">
+            <div className="bg-primary/10 border-primary/20 group relative mb-4 overflow-hidden rounded-lg border p-3 shadow-sm">
               {/* Agent Header */}
-              <div className="flex items-center gap-2 mb-3">
-                <div className="p-1.5 bg-primary/20 rounded-full">
-                  <Sparkles className="h-4 w-4 text-primary animate-pulse" />
+              <div className="mb-3 flex items-center gap-2">
+                <div className="bg-primary/20 rounded-full p-1.5">
+                  <Sparkles className="text-primary h-4 w-4 animate-pulse" />
                 </div>
-                <span className="text-sm font-bold text-primary">IA Detectou Fechamento!</span>
-                <Badge className="ml-auto bg-green-100 text-green-800 text-[10px] hover:bg-green-100 uppercase">
+                <span className="text-primary text-sm font-bold">IA Detectou Fechamento!</span>
+                <Badge className="ml-auto bg-green-100 text-[10px] uppercase text-green-800 hover:bg-green-100">
                   {currentInsight?.agent?.name || 'Copilot 2.0'}
                 </Badge>
               </div>
-              <div className="bg-background/80 rounded border border-border/50 p-3 mb-3 text-sm">
-                <p className="text-muted-foreground break-words leading-relaxed text-xs mb-2">
-                  "{(currentInsight?.payload as any)?.reasoning || 'Insight gerado baseado na conversa.'}"
+              <div className="bg-background/80 border-border/50 mb-3 rounded border p-3 text-sm">
+                <p className="text-muted-foreground mb-2 break-words text-xs leading-relaxed">
+                  "
+                  {(currentInsight?.payload as any)?.reasoning ||
+                    'Insight gerado baseado na conversa.'}
+                  "
                 </p>
-                <div className="flex justify-between items-center bg-card p-2 rounded border">
-                  <span className="font-medium text-xs truncate mr-2" title={(currentInsight?.payload as any)?.productName}>
+                <div className="bg-card flex items-center justify-between rounded border p-2">
+                  <span
+                    className="mr-2 truncate text-xs font-medium"
+                    title={(currentInsight?.payload as any)?.productName}
+                  >
                     {(currentInsight?.payload as any)?.productName || 'Não especificado'}
                   </span>
-                  <span className="font-bold text-green-600 text-sm whitespace-nowrap">
+                  <span className="whitespace-nowrap text-sm font-bold text-green-600">
                     {formatDealValue((currentInsight?.payload as any)?.dealValue)}
                   </span>
                 </div>
@@ -305,22 +326,28 @@ export function TicketPanel({
               <div className="flex gap-2">
                 <Button
                   size="sm"
-                  className="w-full bg-primary hover:bg-primary/90 text-xs"
+                  className="bg-primary hover:bg-primary/90 w-full text-xs"
                   onClick={async () => {
                     const loadingToast = toast.loading('Aplicando sugestão...')
                     try {
-                      const res = await fetch(`/api/v1/ai-insights/${currentInsight.id}/approve`, { method: 'PATCH' })
+                      const res = await fetch(`/api/v1/ai-insights/${currentInsight.id}/approve`, {
+                        method: 'PATCH',
+                      })
                       if (!res.ok) throw new Error()
-                      toast.success('Ticket atualizado com sucesso e CAPI acionado.', { id: loadingToast })
+                      toast.success('Ticket atualizado com sucesso e CAPI acionado.', {
+                        id: loadingToast,
+                      })
                       setShowAiApproval(false)
-                      queryClient.invalidateQueries({ queryKey: ['conversation-ticket', conversationId] })
+                      queryClient.invalidateQueries({
+                        queryKey: ['conversation-ticket', conversationId],
+                      })
                       queryClient.invalidateQueries({ queryKey: ['ai-insights'] })
                     } catch {
                       toast.error('Erro ao aprovar.', { id: loadingToast })
                     }
                   }}
                 >
-                  <Check className="h-3.5 w-3.5 mr-1.5" /> Aplicar e Fechar Venda
+                  <Check className="mr-1.5 h-3.5 w-3.5" /> Aplicar e Fechar Venda
                 </Button>
                 <Button
                   size="sm"
@@ -328,14 +355,16 @@ export function TicketPanel({
                   className="px-3"
                   onClick={async () => {
                     try {
-                      await fetch(`/api/v1/ai-insights/${currentInsight.id}/reject`, { method: 'PATCH' })
+                      await fetch(`/api/v1/ai-insights/${currentInsight.id}/reject`, {
+                        method: 'PATCH',
+                      })
                       toast.info('Sugestão rejeitada.')
                       setShowAiApproval(false)
                       queryClient.invalidateQueries({ queryKey: ['ai-insights'] })
-                    } catch { }
+                    } catch {}
                   }}
                 >
-                  <X className="h-3.5 w-3.5 text-muted-foreground" />
+                  <X className="text-muted-foreground h-3.5 w-3.5" />
                 </Button>
               </div>
             </div>
@@ -343,21 +372,24 @@ export function TicketPanel({
 
           {/* CRM Interno */}
           <div className="space-y-4 pt-2">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Oportunidade</h3>
+            <h3 className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
+              Oportunidade
+            </h3>
             <div className="grid gap-3">
-
               {/* Seletor de Etapas (Stages) */}
               <div className="flex flex-col gap-1.5">
-                <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Etapa do Funil</Label>
-                <Select
-                  value={ticket.stage?.id || ''}
-                  onValueChange={handleUpdateStage}
-                >
-                  <SelectTrigger className="h-9 w-full bg-card shadow-sm border-border/50">
+                <Label className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider">
+                  Etapa do Funil
+                </Label>
+                <Select value={ticket.stage?.id || ''} onValueChange={handleUpdateStage}>
+                  <SelectTrigger className="bg-card border-border/50 h-9 w-full shadow-sm">
                     <SelectValue>
                       {ticket.stage ? (
                         <div className="flex items-center gap-2">
-                          <div className="h-2 w-2 rounded-full" style={{ backgroundColor: ticket.stage.color }} />
+                          <div
+                            className="h-2 w-2 rounded-full"
+                            style={{ backgroundColor: ticket.stage.color }}
+                          />
                           <span className="text-sm font-medium">{ticket.stage.name}</span>
                         </div>
                       ) : (
@@ -369,7 +401,10 @@ export function TicketPanel({
                     {stages.map((stage: any) => (
                       <SelectItem key={stage.id} value={stage.id}>
                         <div className="flex items-center gap-2">
-                          <div className="h-2 w-2 rounded-full" style={{ backgroundColor: stage.color }} />
+                          <div
+                            className="h-2 w-2 rounded-full"
+                            style={{ backgroundColor: stage.color }}
+                          />
                           <span className="text-sm font-medium">{stage.name}</span>
                         </div>
                       </SelectItem>
@@ -379,11 +414,13 @@ export function TicketPanel({
               </div>
 
               {/* Responsável */}
-              <div className="flex flex-col gap-1.5 border-t border-border/40 pt-3">
-                <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Responsável</Label>
-                <div className="flex items-center px-3 py-2 rounded-md border border-border/50 bg-muted/20">
-                  <User className="h-4 w-4 text-muted-foreground mr-2" />
-                  <span className="text-sm text-foreground/90">
+              <div className="border-border/40 flex flex-col gap-1.5 border-t pt-3">
+                <Label className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider">
+                  Responsável
+                </Label>
+                <div className="border-border/50 bg-muted/20 flex items-center rounded-md border px-3 py-2">
+                  <User className="text-muted-foreground mr-2 h-4 w-4" />
+                  <span className="text-foreground/90 text-sm">
                     {ticket.assignee?.name || 'Não atribuído'}
                   </span>
                 </div>
@@ -391,60 +428,73 @@ export function TicketPanel({
 
               {/* Valor Estimado */}
               <div className="flex flex-col gap-1.5">
-                <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Valor Estimado</Label>
-                <div className="flex items-center px-3 py-2 rounded-md border border-border/50 bg-muted/20">
-                  <DollarSign className="h-4 w-4 text-green-600/70 mr-2" />
-                  <span className="text-sm font-semibold text-foreground/90">
+                <Label className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider">
+                  Valor Estimado
+                </Label>
+                <div className="border-border/50 bg-muted/20 flex items-center rounded-md border px-3 py-2">
+                  <DollarSign className="mr-2 h-4 w-4 text-green-600/70" />
+                  <span className="text-foreground/90 text-sm font-semibold">
                     {formatDealValue(ticket.dealValue)}
                   </span>
                 </div>
               </div>
-
             </div>
           </div>
-
 
           {/* Dossiê & KPIs do Atendimento */}
           {ticket.kpis && (
             <div className="pt-2">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Dossiê do Atendimento</h3>
+              <h3 className="text-muted-foreground mb-3 text-xs font-bold uppercase tracking-wider">
+                Dossiê do Atendimento
+              </h3>
               <div className="grid grid-cols-2 gap-2">
-
                 {/* Contagem de Mensagens (Vendedor x Lead) */}
-                <div className="col-span-2 flex items-center justify-between p-3 rounded-lg border border-border/50 bg-card">
+                <div className="border-border/50 bg-card col-span-2 flex items-center justify-between rounded-lg border p-3">
                   <div className="flex items-center gap-2">
-                    <MessageSquare className="h-4 w-4 text-primary/70" />
-                    <span className="text-xs font-medium text-muted-foreground">Volume da Conversa</span>
+                    <MessageSquare className="text-primary/70 h-4 w-4" />
+                    <span className="text-muted-foreground text-xs font-medium">
+                      Volume da Conversa
+                    </span>
                   </div>
                   <div className="flex items-center gap-3 text-xs font-bold">
-                    <span className="flex items-center gap-1 text-green-600" title="Mensagens da Clínica">
+                    <span
+                      className="flex items-center gap-1 text-green-600"
+                      title="Mensagens da Clínica"
+                    >
                       <ArrowUpRight className="h-3 w-3" /> {ticket.kpis.outboundMessagesCount}
                     </span>
                     <span className="text-border">|</span>
-                    <span className="flex items-center gap-1 text-blue-600" title="Mensagens do Cliente">
+                    <span
+                      className="flex items-center gap-1 text-blue-600"
+                      title="Mensagens do Cliente"
+                    >
                       <ArrowDownRight className="h-3 w-3" /> {ticket.kpis.inboundMessagesCount}
                     </span>
                   </div>
                 </div>
 
                 {/* Tempo 1a Resposta */}
-                <div className="col-span-1 flex flex-col gap-1 p-3 rounded-lg border border-border/40 bg-muted/10">
-                  <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
+                <div className="border-border/40 bg-muted/10 col-span-1 flex flex-col gap-1 rounded-lg border p-3">
+                  <div className="text-muted-foreground mb-1 flex items-center gap-1.5">
                     <Timer className="h-3.5 w-3.5" />
-                    <span className="text-[10px] font-bold uppercase tracking-wider">1ª Resposta</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider">
+                      1ª Resposta
+                    </span>
                   </div>
-                  <span className="text-sm font-bold text-foreground">
+                  <span className="text-foreground text-sm font-bold">
                     {formatTimer(ticket.kpis.firstResponseTimeSec)}
                   </span>
                 </div>
 
                 {/* Tempo de Resolução */}
-                <div className="col-span-1 flex flex-col gap-1 p-3 rounded-lg border border-border/40 bg-muted/10">
-                  <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
+                <div className="border-border/40 bg-muted/10 col-span-1 flex flex-col gap-1 rounded-lg border p-3">
+                  <div className="text-muted-foreground mb-1 flex items-center gap-1.5">
                     <Activity className="h-3.5 w-3.5" />
-                    <span className="text-[10px] font-bold uppercase tracking-wider">Resolução</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider">
+                      Resolução
+                    </span>
                   </div>
-                  <span className="text-sm font-bold text-foreground">
+                  <span className="text-foreground text-sm font-bold">
                     {formatTimer(ticket.kpis.resolutionTimeSec)}
                   </span>
                 </div>
@@ -455,19 +505,27 @@ export function TicketPanel({
           {/* Histórico do Lead / LTV */}
           {ticket.leadInsights && (
             <div className="pt-2">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Histórico do Cliente</h3>
+              <h3 className="text-muted-foreground mb-3 text-xs font-bold uppercase tracking-wider">
+                Histórico do Cliente
+              </h3>
               <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between p-3 rounded-lg border border-border/50 bg-card">
+                <div className="border-border/50 bg-card flex items-center justify-between rounded-lg border p-3">
                   <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-primary/70" />
-                    <span className="text-xs font-medium text-muted-foreground">Oportunidades Iniciais</span>
+                    <User className="text-primary/70 h-4 w-4" />
+                    <span className="text-muted-foreground text-xs font-medium">
+                      Oportunidades Iniciais
+                    </span>
                   </div>
-                  <span className="text-xs font-bold">{ticket.leadInsights.totalTickets} tickets</span>
+                  <span className="text-xs font-bold">
+                    {ticket.leadInsights.totalTickets} tickets
+                  </span>
                 </div>
-                <div className="flex items-center justify-between p-3 rounded-lg border border-emerald-500/20 bg-gradient-to-r from-emerald-500/5 to-transparent">
+                <div className="flex items-center justify-between rounded-lg border border-emerald-500/20 bg-gradient-to-r from-emerald-500/5 to-transparent p-3">
                   <div className="flex items-center gap-2">
                     <DollarSign className="h-4 w-4 text-emerald-600" />
-                    <span className="text-xs font-medium text-muted-foreground">Valor Gerado (LTV)</span>
+                    <span className="text-muted-foreground text-xs font-medium">
+                      Valor Gerado (LTV)
+                    </span>
                   </div>
                   <span className="text-sm font-bold text-emerald-600">
                     {formatDealValue(ticket.leadInsights.lifetimeValue)}
@@ -476,7 +534,6 @@ export function TicketPanel({
               </div>
             </div>
           )}
-
         </div>
       </div>
     </div>
