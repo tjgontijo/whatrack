@@ -104,8 +104,9 @@ model User {
   invitations     Invitation[]
   members         Member[]
   sessions        Session[]
-  assignedTickets Ticket[]     @relation("TicketAssignee")
-  roleRef         UserRole     @relation(fields: [role], references: [name])
+  assignedTickets Ticket[]       @relation("TicketAssignee")
+  orgAuditLogs    OrgAuditLog[]
+  roleRef         UserRole       @relation(fields: [role], references: [name])
 
   @@map("user")
 }
@@ -240,6 +241,9 @@ model Organization {
   // AI Platform Relations
   aiAgents   AiAgent[]
   aiInsights AiInsight[]
+
+  // Audit
+  orgAuditLogs OrgAuditLog[]
 
   @@map("organization")
 }
@@ -1001,4 +1005,24 @@ model AiInsight {
   @@index([ticketId])
   @@index([agentId])
   @@map("ai_insights")
+}
+
+model OrgAuditLog {
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String       @db.Uuid
+  userId         String       @db.Uuid
+  action         String       // e.g. "member.role_changed", "member.removed", "webhook.updated", "meta_ads.connected"
+  resourceType   String       // e.g. "member", "organization", "webhook", "meta_connection"
+  resourceId     String?      // ID of the affected resource
+  before         Json?        // State before the action (no sensitive data)
+  after          Json?        // State after the action (no sensitive data)
+  createdAt      DateTime     @default(now())
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("org_audit_logs")
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from 'next/headers';
 import { auth } from "@/lib/auth/auth";
 import { prisma } from "@/lib/prisma";
+import { createAuditLog } from "@/lib/audit-log";
 
 async function getSessionFromRequest(req: NextRequest) {
     const headers = new Headers(req.headers);
@@ -48,9 +49,23 @@ export async function DELETE(req: NextRequest) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    await prisma.metaConnection.delete({
+    const connection = await prisma.metaConnection.findUnique({
         where: { id },
+        select: { organizationId: true, fbUserId: true, fbUserName: true, status: true },
     });
+
+    await prisma.metaConnection.delete({ where: { id } });
+
+    if (connection) {
+        await createAuditLog({
+            organizationId: connection.organizationId,
+            userId: session.user.id,
+            action: 'meta_ads.disconnected',
+            resourceType: 'meta_connection',
+            resourceId: id,
+            before: { fbUserId: connection.fbUserId, fbUserName: connection.fbUserName, status: connection.status },
+        });
+    }
 
     return NextResponse.json({ success: true });
 }

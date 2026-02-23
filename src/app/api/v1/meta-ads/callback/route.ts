@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { metaAccessTokenService } from "@/services/meta-ads/access-token.service";
 import { metaAdAccountService } from "@/services/meta-ads/ad-account.service";
 import { getRedis } from "@/lib/redis";
+import { createAuditLog } from "@/lib/audit-log";
 
 export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
@@ -26,9 +27,11 @@ export async function GET(req: NextRequest) {
     await redis.del(stateKey);
 
     let organizationId: string;
+    let userId: string;
     try {
         const stateData = JSON.parse(stateRaw) as { organizationId: string; userId: string };
         organizationId = stateData.organizationId;
+        userId = stateData.userId;
     } catch {
         console.error('[MetaCallback] Failed to parse OAuth state data');
         return NextResponse.redirect(new URL('/dashboard/settings/meta-ads?error=meta_auth_failed', req.url));
@@ -44,7 +47,17 @@ export async function GET(req: NextRequest) {
         // 3. Initial sync of ad accounts
         await metaAdAccountService.syncAdAccounts(connection.id);
 
-        // 4. Redirect to success page (which closes the popup)
+        // 4. Audit log
+        await createAuditLog({
+            organizationId,
+            userId,
+            action: 'meta_ads.connected',
+            resourceType: 'meta_connection',
+            resourceId: connection.id,
+            after: { fbUserId: connection.fbUserId, fbUserName: connection.fbUserName },
+        });
+
+        // 5. Redirect to success page (which closes the popup)
         return NextResponse.redirect(new URL(`/auth/meta-ads/success`, req.url));
 
     } catch (error: any) {
