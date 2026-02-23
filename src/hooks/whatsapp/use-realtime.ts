@@ -4,6 +4,27 @@ import { useEffect, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { createCentrifugoClient, subscribeTo } from '@/lib/centrifugo/client'
 
+function normalizeCentrifugoIssue(payload: unknown) {
+  if (!payload || typeof payload !== 'object') {
+    return null
+  }
+
+  const issue = payload as Record<string, unknown>
+  const nestedError =
+    issue.error && typeof issue.error === 'object' ? (issue.error as Record<string, unknown>) : {}
+
+  const details = {
+    type: issue.type ?? null,
+    code: issue.code ?? nestedError.code ?? null,
+    message: issue.message ?? issue.reason ?? nestedError.message ?? null,
+    temporary: issue.temporary ?? nestedError.temporary ?? null,
+    transport: issue.transport ?? null,
+  }
+
+  const hasUsefulData = Object.values(details).some((value) => value !== null && value !== '')
+  return hasUsefulData ? details : null
+}
+
 /**
  * Hook for managing Centrifugo WebSocket connection and subscriptions.
  *
@@ -62,13 +83,23 @@ export function useRealtime(organizationId: string | undefined) {
         setConnected(true)
       })
 
-      centrifuge.on('disconnected', () => {
-        console.log('[Centrifugo] Disconnected')
+      centrifuge.on('disconnected', (ctx: unknown) => {
+        const details = normalizeCentrifugoIssue(ctx)
+        if (details) {
+          console.warn('[Centrifugo] Disconnected:', details)
+        } else {
+          console.warn('[Centrifugo] Disconnected')
+        }
         setConnected(false)
       })
 
-      centrifuge.on('error', (error: any) => {
-        console.error('[Centrifugo] Connection error:', error)
+      centrifuge.on('error', (error: unknown) => {
+        const details = normalizeCentrifugoIssue(error)
+        if (details) {
+          console.warn('[Centrifugo] Connection issue:', details)
+        } else {
+          console.warn('[Centrifugo] Connection issue')
+        }
       })
 
       centrifuge.connect()
