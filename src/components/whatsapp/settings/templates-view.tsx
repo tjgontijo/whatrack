@@ -269,7 +269,6 @@ export function TemplatesView({ phone: _phone }: TemplatesViewProps) {
     <TooltipProvider>
       <CrudPageShell
         title="Templates WhatsApp"
-        subtitle="Gerencie suas mensagens padronizadas do WhatsApp"
         icon={MessageSquare}
         view={view}
         setView={setView}

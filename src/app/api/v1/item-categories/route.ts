@@ -1,22 +1,22 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 
-import { listProducts, createProduct, type ListProductsParams } from '@/services/products/service'
+import {
+  listItemCategories,
+  createItemCategory,
+  type ListItemCategoriesParams,
+} from '@/services/items/service'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 const getParamsSchema = z.object({
   search: z.string().optional(),
   status: z.enum(['active', 'inactive']).optional(),
-  categoryId: z.string().optional(),
   page: z.coerce.number().optional(),
   pageSize: z.coerce.number().optional(),
 })
 
 const createSchema = z.object({
   name: z.string().min(1),
-  categoryId: z.string().optional(),
-  price: z.number().nonnegative().nullable().optional(),
-  cost: z.number().nonnegative().nullable().optional(),
 })
 
 export async function GET(request: Request) {
@@ -31,7 +31,6 @@ export async function GET(request: Request) {
     const parsed = getParamsSchema.safeParse({
       search: searchParams.get('search') ?? undefined,
       status: searchParams.get('status') ?? undefined,
-      categoryId: searchParams.get('categoryId') ?? undefined,
       page: searchParams.get('page') ?? undefined,
       pageSize: searchParams.get('pageSize') ?? undefined,
     })
@@ -40,20 +39,19 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Invalid query params' }, { status: 400 })
     }
 
-    const payload: ListProductsParams = {
+    const payload: ListItemCategoriesParams = {
       organizationId,
       search: parsed.data.search,
       status: parsed.data.status,
-      categoryId: parsed.data.categoryId,
       page: parsed.data.page,
       pageSize: parsed.data.pageSize,
     }
 
-    const response = await listProducts(payload)
+    const response = await listItemCategories(payload)
     return NextResponse.json(response)
   } catch (error) {
-    console.error('[api/products] GET error', error)
-    return NextResponse.json({ error: 'Failed to load products' }, { status: 500 })
+    console.error('[api/item-categories] GET error', error)
+    return NextResponse.json({ error: 'Failed to load categories' }, { status: 500 })
   }
 }
 
@@ -75,17 +73,14 @@ export async function POST(request: Request) {
       )
     }
 
-    const result = await createProduct({
+    const result = await createItemCategory({
       organizationId,
       name: parsed.data.name,
-      categoryId: parsed.data.categoryId ?? null,
-      price: parsed.data.price ?? null,
-      cost: parsed.data.cost ?? null,
     })
 
     return NextResponse.json(result, { status: 201 })
   } catch (error) {
-    console.error('[api/products] POST error', error)
-    return NextResponse.json({ error: 'Failed to create product' }, { status: 500 })
+    console.error('[api/item-categories] POST error', error)
+    return NextResponse.json({ error: 'Failed to create category' }, { status: 500 })
   }
 }

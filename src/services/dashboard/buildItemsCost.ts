@@ -2,12 +2,12 @@ import { Prisma } from '../../../prisma/generated/prisma/client'
 
 import { prisma } from '@/lib/prisma'
 
-export type ProductsCostResult = {
+export type ItemsCostResult = {
   cost: number
   servicesCount: number
 }
 
-export async function buildProductsCost(where: Prisma.SaleWhereInput): Promise<ProductsCostResult> {
+export async function buildItemsCost(where: Prisma.SaleWhereInput): Promise<ItemsCostResult> {
   const sales = await prisma.sale.findMany({
     where,
     select: { id: true },
@@ -23,30 +23,30 @@ export async function buildProductsCost(where: Prisma.SaleWhereInput): Promise<P
     where: { saleId: { in: saleIds } },
     select: {
       quantity: true,
-      productId: true,
+      itemId: true,
     },
   })
 
-  const productIds = Array.from(
+  const itemIds = Array.from(
     new Set(
       saleItems
-        .map((item: { productId: string | null }) => item.productId)
+        .map((item: { itemId: string | null }) => item.itemId)
         .filter((id): id is string => Boolean(id))
     )
   )
 
-  const products = productIds.length
+  const items = itemIds.length
     ? await prisma.$queryRaw<{ id: string; cost: number | null }[]>`
         SELECT "id", "cost"
-        FROM "products"
-        WHERE "id" IN (${Prisma.join(productIds)})
+        FROM "items"
+        WHERE "id" IN (${Prisma.join(itemIds)})
       `
     : []
 
-  const productCostMap = new Map<string, number>()
-  for (const product of products) {
-    const numericCost = product.cost ?? 0
-    productCostMap.set(product.id, Number.isFinite(numericCost) ? numericCost : 0)
+  const itemCostMap = new Map<string, number>()
+  for (const item of items) {
+    const numericCost = item.cost ?? 0
+    itemCostMap.set(item.id, Number.isFinite(numericCost) ? numericCost : 0)
   }
 
   let totalCost = 0
@@ -54,7 +54,7 @@ export async function buildProductsCost(where: Prisma.SaleWhereInput): Promise<P
 
   for (const item of saleItems) {
     const quantity = Number(item.quantity)
-    const unitCost = item.productId ? (productCostMap.get(item.productId) ?? 0) : 0
+    const unitCost = item.itemId ? (itemCostMap.get(item.itemId) ?? 0) : 0
     const lineCost = unitCost * quantity
 
     if (Number.isFinite(lineCost)) {

@@ -6,7 +6,7 @@ import { Ticket, User, Calendar, MessageSquare, DollarSign, TrendingUp } from 'l
 import { toast } from 'sonner'
 
 import { CrudPageShell } from '@/components/dashboard/crud/crud-page-shell'
-import { CrudDataView } from '@/components/dashboard/crud/crud-data-view'
+import { CrudDataView, CrudEmptyState } from '@/components/dashboard/crud/crud-data-view'
 import { CrudListView } from '@/components/dashboard/crud/crud-list-view'
 import { CrudCardView } from '@/components/dashboard/crud/crud-card-view'
 import { CrudKanbanView } from '@/components/dashboard/crud/crud-kanban-view'
@@ -358,7 +358,7 @@ export default function TicketsPage() {
   return (
     <CrudPageShell
       title="Tickets"
-      subtitle="Gerencie seu pipeline de atendimento."
+      showTitle={false}
       icon={Ticket}
       view={view}
       setView={setView}
@@ -374,6 +374,7 @@ export default function TicketsPage() {
       <CrudDataView
         data={tickets}
         view={view}
+        emptyView={<CrudEmptyState />}
         tableView={
           <CrudListView
             data={tickets}

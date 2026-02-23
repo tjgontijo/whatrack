@@ -9,7 +9,7 @@ Sua única função é analisar as últimas mensagens trocadas no WhatsApp entre
 
 Regras Inflexíveis:
 1. Sempre retorne as propriedades rigorosamente conforme o schema esperado.
-2. Identifique o procedimento (productName) que o paciente está discutindo. Exemplo: "Botox", "Preenchimento Labial", "Limpeza de Pele". Se não for explícito mas ficar subentendido o interesse em uma categoria, tente deduzir cautelosamente ou retorne N/A.
+2. Identifique o item (itemName) que o paciente está discutindo. Exemplo: "Botox", "Preenchimento Labial", "Limpeza de Pele". Se não for explícito mas ficar subentendido o interesse em uma categoria, tente deduzir cautelosamente ou retorne N/A.
 3. Se houver acordo de valores fechados (ex: "combinado os 1500"), preencha o dealValue apenas com números.
 4. "reasoning" (Justificativa) deve conter um pequeno texto de 1 a 2 sentenças citando o motivo ou trecho da conversa original que motivou a decisão.
 5. Em "intent": 
@@ -34,7 +34,7 @@ Regras Inflexíveis:
         options: ['SALE', 'QUALIFIED', 'NEUTRAL'],
       },
       {
-        fieldName: 'productName',
+        fieldName: 'itemName',
         fieldType: 'STRING',
         description:
           'Nome do procedimento, produto ou serviço conversado (Ex: Botox, Lipo, Preenchimento). Se não houver, deixe vazio.',

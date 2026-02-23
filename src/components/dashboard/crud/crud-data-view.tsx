@@ -13,6 +13,28 @@ interface CrudDataViewProps<T> {
   emptyView?: React.ReactNode
 }
 
+type CrudEmptyStateProps = {
+  title?: string
+  description?: string
+}
+
+export function CrudEmptyState({
+  title = 'Nenhum registro encontrado.',
+  description = 'Tente buscar por termos diferentes ou verifique os filtros.',
+}: CrudEmptyStateProps) {
+  return (
+    <div className="mx-6 my-4 flex min-h-[calc(100vh-280px)] items-center justify-center rounded-3xl border border-dashed bg-muted/20 px-10 py-20 text-center">
+      <div>
+        <div className="bg-muted mx-auto mb-3 flex size-12 items-center justify-center rounded-xl">
+          <Package className="text-muted-foreground size-6" />
+        </div>
+        <p className="text-muted-foreground font-bold">{title}</p>
+        <p className="text-muted-foreground/60 mt-1 text-xs">{description}</p>
+      </div>
+    </div>
+  )
+}
+
 export function CrudDataView<T>({
   data,
   view,
@@ -22,19 +44,7 @@ export function CrudDataView<T>({
   emptyView,
 }: CrudDataViewProps<T>) {
   if (data.length === 0 && view !== 'kanban') {
-    return (
-      emptyView || (
-        <div className="bg-muted/20 mx-6 my-4 flex flex-col items-center justify-center rounded-3xl border border-dashed px-10 py-20 text-center">
-          <div className="bg-muted mb-3 flex size-12 items-center justify-center rounded-xl">
-            <Package className="text-muted-foreground size-6" />
-          </div>
-          <p className="text-muted-foreground font-bold">Nenhum registro encontrado.</p>
-          <p className="text-muted-foreground/60 mt-1 text-xs">
-            Tente buscar por termos diferentes ou verifique os filtros.
-          </p>
-        </div>
-      )
-    )
+    return emptyView || <CrudEmptyState />
   }
 
   return (

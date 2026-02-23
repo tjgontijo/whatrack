@@ -22,7 +22,7 @@ const ROUTE_LABELS: Record<string, string> = {
   leads: 'Leads',
   tickets: 'Tickets',
   sales: 'Vendas',
-  products: 'Produtos',
+  items: 'Itens',
   settings: 'Configurações',
   'settings/whatsapp': 'WhatsApp',
   'settings/whatsapp/webhooks': 'Webhook Meta',

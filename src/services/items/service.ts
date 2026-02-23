@@ -6,7 +6,7 @@ const MIN_PAGE_SIZE = 1
 const DEFAULT_PAGE_SIZE = 50
 const MAX_PAGE_SIZE = 100
 
-export type ListProductsParams = {
+export type ListItemsParams = {
   organizationId: string
   search?: string
   status?: 'active' | 'inactive'
@@ -15,7 +15,7 @@ export type ListProductsParams = {
   pageSize?: number
 }
 
-export type ProductListItem = {
+export type ItemListItem = {
   id: string
   name: string
   active: boolean
@@ -29,8 +29,8 @@ export type ProductListItem = {
   updatedAt: string
 }
 
-export type ProductListResponse = {
-  items: ProductListItem[]
+export type ItemListResponse = {
+  items: ItemListItem[]
   total: number
   page: number
   pageSize: number
@@ -60,11 +60,11 @@ function decimalToNumber(value: Prisma.Decimal | null | undefined) {
   return Number(value)
 }
 
-export async function listProducts(params: ListProductsParams): Promise<ProductListResponse> {
+export async function listItems(params: ListItemsParams): Promise<ItemListResponse> {
   const page = normalizePage(params.page)
   const pageSize = normalizePageSize(params.pageSize)
 
-  const where: Prisma.ProductWhereInput = {
+  const where: Prisma.ItemWhereInput = {
     organizationId: params.organizationId,
   }
 
@@ -86,7 +86,7 @@ export async function listProducts(params: ListProductsParams): Promise<ProductL
   }
 
   const [items, total] = await Promise.all([
-    prisma.product.findMany({
+    prisma.item.findMany({
       where,
       orderBy: { createdAt: 'desc' },
       skip: (page - 1) * pageSize,
@@ -97,19 +97,19 @@ export async function listProducts(params: ListProductsParams): Promise<ProductL
         },
       },
     }),
-    prisma.product.count({ where }),
+    prisma.item.count({ where }),
   ])
 
   return {
-    items: items.map((product) => ({
-      id: product.id,
-      name: product.name,
-      active: product.active,
-      category: product.category ? { id: product.category.id, name: product.category.name } : null,
-      price: decimalToNumber(product.price),
-      cost: decimalToNumber(product.cost),
-      createdAt: product.createdAt.toISOString(),
-      updatedAt: product.updatedAt.toISOString(),
+    items: items.map((item) => ({
+      id: item.id,
+      name: item.name,
+      active: item.active,
+      category: item.category ? { id: item.category.id, name: item.category.name } : null,
+      price: decimalToNumber(item.price),
+      cost: decimalToNumber(item.cost),
+      createdAt: item.createdAt.toISOString(),
+      updatedAt: item.updatedAt.toISOString(),
     })),
     total,
     page,
@@ -117,7 +117,7 @@ export async function listProducts(params: ListProductsParams): Promise<ProductL
   }
 }
 
-export type CreateProductParams = {
+export type CreateItemParams = {
   organizationId: string
   name: string
   categoryId?: string | null
@@ -125,8 +125,8 @@ export type CreateProductParams = {
   cost?: number | null
 }
 
-export async function createProduct(params: CreateProductParams): Promise<ProductListItem> {
-  const created = await prisma.product.create({
+export async function createItem(params: CreateItemParams): Promise<ItemListItem> {
+  const created = await prisma.item.create({
     data: {
       organizationId: params.organizationId,
       name: params.name.trim(),
@@ -154,7 +154,7 @@ export async function createProduct(params: CreateProductParams): Promise<Produc
   }
 }
 
-export type ListCategoriesParams = {
+export type ListItemCategoriesParams = {
   organizationId: string
   search?: string
   status?: 'active' | 'inactive'
@@ -162,7 +162,7 @@ export type ListCategoriesParams = {
   pageSize?: number
 }
 
-export type CategoryListItem = {
+export type ItemCategoryListItem = {
   id: string
   name: string
   active: boolean
@@ -170,18 +170,20 @@ export type CategoryListItem = {
   updatedAt: string
 }
 
-export type CategoryListResponse = {
-  items: CategoryListItem[]
+export type ItemCategoryListResponse = {
+  items: ItemCategoryListItem[]
   total: number
   page: number
   pageSize: number
 }
 
-export async function listCategories(params: ListCategoriesParams): Promise<CategoryListResponse> {
+export async function listItemCategories(
+  params: ListItemCategoriesParams
+): Promise<ItemCategoryListResponse> {
   const page = normalizePage(params.page)
   const pageSize = normalizePageSize(params.pageSize)
 
-  const where: Prisma.ProductCategoryWhereInput = {
+  const where: Prisma.ItemCategoryWhereInput = {
     organizationId: params.organizationId,
   }
 
@@ -199,13 +201,13 @@ export async function listCategories(params: ListCategoriesParams): Promise<Cate
   }
 
   const [items, total] = await Promise.all([
-    prisma.productCategory.findMany({
+    prisma.itemCategory.findMany({
       where,
       orderBy: { createdAt: 'desc' },
       skip: (page - 1) * pageSize,
       take: pageSize,
     }),
-    prisma.productCategory.count({ where }),
+    prisma.itemCategory.count({ where }),
   ])
 
   return {
@@ -222,13 +224,15 @@ export async function listCategories(params: ListCategoriesParams): Promise<Cate
   }
 }
 
-export type CreateCategoryParams = {
+export type CreateItemCategoryParams = {
   organizationId: string
   name: string
 }
 
-export async function createCategory(params: CreateCategoryParams): Promise<CategoryListItem> {
-  const created = await prisma.productCategory.create({
+export async function createItemCategory(
+  params: CreateItemCategoryParams
+): Promise<ItemCategoryListItem> {
+  const created = await prisma.itemCategory.create({
     data: {
       organizationId: params.organizationId,
       name: params.name.trim(),

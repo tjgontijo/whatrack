@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Package2, Tag } from 'lucide-react'
 
 import { CrudPageShell } from '@/components/dashboard/crud/crud-page-shell'
-import { CrudDataView } from '@/components/dashboard/crud/crud-data-view'
+import { CrudDataView, CrudEmptyState } from '@/components/dashboard/crud/crud-data-view'
 import { CrudListView } from '@/components/dashboard/crud/crud-list-view'
 import { CrudCardView } from '@/components/dashboard/crud/crud-card-view'
 import { useCrudInfiniteQuery } from '@/hooks/use-crud-infinite-query'
@@ -26,12 +26,12 @@ import {
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 
-import { ProductFormDialog } from './product-form-dialog'
+import { ItemFormDialog } from './item-form-dialog'
 import { ORGANIZATION_HEADER } from '@/lib/constants'
 import { authClient } from '@/lib/auth/auth-client'
 import { formatCurrencyBRL } from '@/lib/mask/formatters'
 
-type Product = {
+type Item = {
   id: string
   name: string
   active: boolean
@@ -52,7 +52,7 @@ const STATUS_OPTIONS = [
   { label: 'Inativos', value: 'inactive' },
 ] as const
 
-const columns: ColumnDef<Product>[] = [
+const columns: ColumnDef<Item>[] = [
   {
     key: 'name',
     label: 'Nome',
@@ -61,7 +61,7 @@ const columns: ColumnDef<Product>[] = [
   {
     key: 'category',
     label: 'Categoria',
-    width: 160,
+    width: 180,
     render: (item) => item.category?.name ?? <span className="text-muted-foreground">—</span>,
   },
   {
@@ -79,7 +79,7 @@ const columns: ColumnDef<Product>[] = [
   {
     key: 'active',
     label: 'Status',
-    width: 100,
+    width: 110,
     render: (item) => (
       <Badge variant={item.active ? 'default' : 'secondary'}>
         {item.active ? 'Ativo' : 'Inativo'}
@@ -88,7 +88,7 @@ const columns: ColumnDef<Product>[] = [
   },
 ]
 
-const cardConfig: CardConfig<Product> = {
+const cardConfig: CardConfig<Item> = {
   icon: () => <Package2 className="text-primary/60 h-7 w-7" />,
   title: (item) => item.name,
   subtitle: (item) =>
@@ -108,7 +108,7 @@ const cardConfig: CardConfig<Product> = {
   ),
 }
 
-export function ProductsTable() {
+export function ItemsTable() {
   const { data: activeOrg } = authClient.useActiveOrganization()
   const organizationId = activeOrg?.id
 
@@ -116,9 +116,8 @@ export function ProductsTable() {
   const [searchInput, setSearchInput] = useState('')
   const [status, setStatus] = useState<string>('all')
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
-  const [isProductFormDialogOpen, setIsProductFormDialogOpen] = useState(false)
+  const [isItemFormDialogOpen, setIsItemFormDialogOpen] = useState(false)
 
-  // Debounced search
   const [debouncedSearch, setDebouncedSearch] = React.useState('')
   const debounceRef = React.useRef<NodeJS.Timeout>(null)
 
@@ -139,11 +138,10 @@ export function ProductsTable() {
     [debouncedSearch, status, categoryFilter]
   )
 
-  // Fetch categories
   const categoriesQuery = useQuery({
-    queryKey: ['product-categories', organizationId],
+    queryKey: ['item-categories', organizationId],
     queryFn: async () => {
-      const url = new URL('/api/v1/product-categories', window.location.origin)
+      const url = new URL('/api/v1/item-categories', window.location.origin)
       url.searchParams.set('status', 'active')
       url.searchParams.set('pageSize', '200')
       const response = await fetch(url.toString(), {
@@ -157,16 +155,16 @@ export function ProductsTable() {
   })
   const categories = categoriesQuery.data ?? []
 
-  const { data, total, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
-    useCrudInfiniteQuery<Product>({
-      queryKey: ['products'],
-      endpoint: '/api/v1/products',
+  const { data, total, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, refetch } =
+    useCrudInfiniteQuery<Item>({
+      queryKey: ['items'],
+      endpoint: '/api/v1/items',
       pageSize: 30,
       filters,
       enabled: !!organizationId,
     })
 
-  const rowActions: RowActions<Product> = {
+  const rowActions: RowActions<Item> = {
     customActions: () => null,
   }
 
@@ -208,16 +206,16 @@ export function ProductsTable() {
   return (
     <>
       <CrudPageShell
-        title="Produtos"
-        subtitle="Gerencie seus produtos e categorias."
+        title="Itens"
+        showTitle={false}
         icon={Package2}
-        onAdd={() => setIsProductFormDialogOpen(true)}
+        onAdd={() => setIsItemFormDialogOpen(true)}
         view={view}
         setView={setView}
         enabledViews={['list', 'cards']}
         searchInput={searchInput}
         onSearchChange={handleSearchChange}
-        searchPlaceholder="Buscar produtos..."
+        searchPlaceholder="Buscar itens..."
         totalItems={total}
         isFetchingMore={isFetchingNextPage}
         filters={filtersNode}
@@ -226,6 +224,7 @@ export function ProductsTable() {
         <CrudDataView
           data={data}
           view={view}
+          emptyView={<CrudEmptyState />}
           tableView={
             <CrudListView
               data={data}
@@ -245,10 +244,14 @@ export function ProductsTable() {
         />
       </CrudPageShell>
 
-      <ProductFormDialog
+      <ItemFormDialog
         categories={categories}
-        open={isProductFormDialogOpen}
-        onOpenChange={setIsProductFormDialogOpen}
+        open={isItemFormDialogOpen}
+        onOpenChange={setIsItemFormDialogOpen}
+        onSuccess={() => {
+          void categoriesQuery.refetch()
+          void refetch()
+        }}
       />
     </>
   )

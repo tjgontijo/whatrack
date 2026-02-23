@@ -15,7 +15,7 @@ export function DashboardSidebar() {
     { title: 'IA Copilot', href: '/dashboard/approvals', icon: 'Sparkles' },
     { title: 'Tickets', href: '/dashboard/tickets', icon: 'Kanban' },
     { title: 'Vendas', href: '/dashboard/sales', icon: 'ShoppingBag' },
-    { title: 'Produtos', href: '/dashboard/products', icon: 'Package' },
+    { title: 'Itens', href: '/dashboard/items', icon: 'Package' },
     { title: 'Meta Ads', href: '/dashboard/meta-ads/campaigns', icon: 'Meta' },
   ]
 

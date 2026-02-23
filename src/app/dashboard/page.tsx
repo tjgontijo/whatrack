@@ -37,8 +37,8 @@ const dashboardFiltersSchema = z.object({
   period: z.string(),
   trafficSource: z.string(),
   trafficType: z.string(),
-  serviceCategory: z.string(),
-  product: z.string(),
+  itemCategory: z.string(),
+  item: z.string(),
 })
 
 type FilterOption = z.infer<typeof filterOptionSchema>
@@ -62,8 +62,8 @@ const defaultFilters: DashboardFilters = dashboardFiltersSchema.parse({
   period: periodOptions.find((option) => option.value === '7d')?.value ?? '7d',
   trafficSource: 'any',
   trafficType: 'any',
-  serviceCategory: 'any',
-  product: 'any',
+  itemCategory: 'any',
+  item: 'any',
 })
 
 export default function DashboardPage() {
@@ -91,7 +91,7 @@ export default function DashboardPage() {
       url.searchParams.set('period', filters.period)
       url.searchParams.set('trafficSource', filters.trafficSource)
       url.searchParams.set('trafficType', filters.trafficType)
-      url.searchParams.set('product', filters.product)
+      url.searchParams.set('item', filters.item)
 
       const response = await fetch(url.toString(), {
         headers: {
@@ -112,20 +112,20 @@ export default function DashboardPage() {
 
   const pieData = data?.salesByService ?? []
 
-  const productFilters = data?.productFilters
+  const itemFilters = data?.itemFilters
 
-  const serviceCategoryOptions = React.useMemo<FilterOption[]>(() => {
-    if (!productFilters) return [{ label: 'Qualquer', value: 'any' }]
-    return productFilters.categories
-  }, [productFilters])
+  const itemCategoryOptions = React.useMemo<FilterOption[]>(() => {
+    if (!itemFilters) return [{ label: 'Qualquer', value: 'any' }]
+    return itemFilters.categories
+  }, [itemFilters])
 
-  const productOptions = React.useMemo<FilterOption[]>(() => {
-    if (!productFilters) return [{ label: 'Qualquer', value: 'any' }]
-    const category = filters.serviceCategory || 'any'
+  const itemOptions = React.useMemo<FilterOption[]>(() => {
+    if (!itemFilters) return [{ label: 'Qualquer', value: 'any' }]
+    const category = filters.itemCategory || 'any'
     const options =
-      productFilters.productsByCategory[category] ?? productFilters.productsByCategory.any
+      itemFilters.itemsByCategory[category] ?? itemFilters.itemsByCategory.any
     return (options as FilterOption[]) ?? [{ label: 'Qualquer', value: 'any' }]
-  }, [filters.serviceCategory, productFilters])
+  }, [filters.itemCategory, itemFilters])
 
   const funnelSteps = React.useMemo(() => {
     const funnel = data?.funnel
@@ -218,21 +218,21 @@ export default function DashboardPage() {
                 onValueChange={(value) => handleFilterChange('trafficSource', value)}
               />
               <FilterSelect
-                label="Categoria de serviço"
-                value={filters.serviceCategory}
-                options={serviceCategoryOptions}
+                label="Categoria de item"
+                value={filters.itemCategory}
+                options={itemCategoryOptions}
                 onValueChange={(value) => {
-                  handleFilterChange('serviceCategory', value)
-                  // sempre que a categoria mudar, resetamos o produto para 'any'
-                  handleFilterChange('product', 'any')
+                  handleFilterChange('itemCategory', value)
+                  // sempre que a categoria mudar, resetamos o item para 'any'
+                  handleFilterChange('item', 'any')
                 }}
               />
               <FilterSelect
-                label="Produto/Serviço"
-                value={filters.product}
-                options={productOptions}
-                onValueChange={(value) => handleFilterChange('product', value)}
-                disabled={filters.serviceCategory === 'any'}
+                label="Item"
+                value={filters.item}
+                options={itemOptions}
+                onValueChange={(value) => handleFilterChange('item', value)}
+                disabled={filters.itemCategory === 'any'}
               />
               <Button onClick={() => setIsFilterSheetOpen(false)} className="mt-6 w-full">
                 Aplicar Filtros
@@ -268,21 +268,21 @@ export default function DashboardPage() {
               onValueChange={(value) => handleFilterChange('trafficSource', value)}
             />
             <FilterSelect
-              label="Categoria de serviço"
-              value={filters.serviceCategory}
-              options={serviceCategoryOptions}
+              label="Categoria de item"
+              value={filters.itemCategory}
+              options={itemCategoryOptions}
               onValueChange={(value) => {
-                handleFilterChange('serviceCategory', value)
-                // sempre que a categoria mudar, resetamos o produto para 'any'
-                handleFilterChange('product', 'any')
+                handleFilterChange('itemCategory', value)
+                // sempre que a categoria mudar, resetamos o item para 'any'
+                handleFilterChange('item', 'any')
               }}
             />
             <FilterSelect
-              label="Produto/Serviço"
-              value={filters.product}
-              options={productOptions}
-              onValueChange={(value) => handleFilterChange('product', value)}
-              disabled={filters.serviceCategory === 'any'}
+              label="Item"
+              value={filters.item}
+              options={itemOptions}
+              onValueChange={(value) => handleFilterChange('item', value)}
+              disabled={filters.itemCategory === 'any'}
             />
           </div>
         </section>
@@ -300,8 +300,8 @@ export default function DashboardPage() {
               isLoading={isFetching}
             />
             <DashboardMetricCard
-              title="Custo dos Serviços"
-              value={<span>{formatCurrencyBRL(data?.productsCost ?? 0)}</span>}
+              title="Custo dos Itens"
+              value={<span>{formatCurrencyBRL(data?.itemsCost ?? 0)}</span>}
               isLoading={isFetching}
             />
             <DashboardMetricCard

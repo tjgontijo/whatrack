@@ -33,7 +33,7 @@ const createSaleSchema = z.object({
   items: z
     .array(
       z.object({
-        productId: z.string().optional(),
+        itemId: z.string().optional(),
         name: z.string(),
         quantity: z.number().int().positive(),
         unitPrice: z.number(),
@@ -159,7 +159,7 @@ export async function POST(req: Request) {
           ? {
               create: validated.items.map((item) => ({
                 organizationId,
-                productId: item.productId,
+                itemId: item.itemId,
                 name: item.name,
                 quantity: item.quantity,
                 unitPrice: item.unitPrice,

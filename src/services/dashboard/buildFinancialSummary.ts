@@ -2,14 +2,14 @@ export type FinancialSummaryInput = {
   totalRevenue: number
   salesCount: number
   investment?: number | null
-  productsCost?: number | null
+  itemsCost?: number | null
   servicesCount?: number | null
 }
 
 export type FinancialSummary = {
   netRevenue: number
   investment: number
-  productsCost: number
+  itemsCost: number
   servicesCount: number
   grossProfit: number
   netProfit: number
@@ -29,15 +29,15 @@ export function buildFinancialSummary({
   totalRevenue,
   salesCount,
   investment = 0,
-  productsCost = 0,
+  itemsCost = 0,
   servicesCount = 0,
 }: FinancialSummaryInput): FinancialSummary {
   const netRevenue = totalRevenue
   const investmentValue = Number.isFinite(investment) ? Number(investment) : 0
-  const productsCostValue = Number.isFinite(productsCost) ? Number(productsCost) : 0
+  const itemsCostValue = Number.isFinite(itemsCost) ? Number(itemsCost) : 0
   const servicesCountValue = Number.isFinite(servicesCount) ? Number(servicesCount) : 0
 
-  const grossProfit = netRevenue - productsCostValue
+  const grossProfit = netRevenue - itemsCostValue
   const netProfit = grossProfit - investmentValue
 
   const roas = investmentValue > 0 ? netRevenue / investmentValue : null
@@ -50,7 +50,7 @@ export function buildFinancialSummary({
   return {
     netRevenue,
     investment: investmentValue,
-    productsCost: productsCostValue,
+    itemsCost: itemsCostValue,
     servicesCount: servicesCountValue,
     grossProfit,
     netProfit,

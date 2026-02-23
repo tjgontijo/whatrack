@@ -1,49 +1,56 @@
 'use client'
 
 import * as React from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { ColumnDef } from '@tanstack/react-table'
-import { useSearchParams, useRouter } from 'next/navigation'
-import { z } from 'zod'
+import { useState } from 'react'
+import { ShoppingCart } from 'lucide-react'
 
-import { ResponsiveDataTable } from '@/components/data-table/responsive-data-table'
-import { PageHeader } from '@/components/data-table/page-header'
-import { ContentHeader, ContentHeaderTabs } from '@/components/data-table/content-header'
-import { ContentHeaderTab } from '@/components/data-table/content-header-tab'
-import { SegmentedControl } from '@/components/data-table/segmented-control'
-import { FilterInput } from '@/components/data-table/filters/filter-input'
-import { FilterSelect } from '@/components/data-table/filters/filter-select'
-import { FilterGroup } from '@/components/data-table/filters/filter-group'
-import { DataTableFiltersButton } from '@/components/data-table/filters/data-table-filters-button'
-import { DataTableFiltersSheet } from '@/components/data-table/filters/data-table-filters-sheet'
-import { useIsMobile } from '@/hooks/use-mobile'
-
-import { LayoutGrid, List, ShoppingCart } from 'lucide-react'
+import { CrudPageShell } from '@/components/dashboard/crud/crud-page-shell'
+import { CrudDataView, CrudEmptyState } from '@/components/dashboard/crud/crud-data-view'
+import { CrudListView } from '@/components/dashboard/crud/crud-list-view'
+import { CrudCardView } from '@/components/dashboard/crud/crud-card-view'
+import { useCrudInfiniteQuery } from '@/hooks/use-crud-infinite-query'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
+import {
+  type CardConfig,
+  type ColumnDef,
+  type RowActions,
+  type ViewType,
+} from '@/components/dashboard/crud/types'
 import { formatCurrencyBRL } from '@/lib/mask/formatters'
 
-const DATE_FILTER_OPTIONS = [
-  { value: '1d', label: '1 dia' },
+type SaleListItem = {
+  id: string
+  totalAmount: number | null
+  status: string | null
+  notes: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+const DATE_OPTIONS = [
+  { value: 'today', label: 'Hoje' },
+  { value: 'yesterday', label: 'Ontem' },
   { value: '3d', label: '3 dias' },
   { value: '7d', label: '7 dias' },
-  { value: '14d', label: '14 dias' },
+  { value: '15d', label: '15 dias' },
   { value: '30d', label: '30 dias' },
   { value: 'thisMonth', label: 'Este mês' },
   { value: 'lastMonth', label: 'Mês anterior' },
 ] as const
 
-type DateFilterValue = (typeof DATE_FILTER_OPTIONS)[number]['value']
-
-const saleItemSchema = z.object({
-  id: z.string(),
-  totalAmount: z.number().nullable(),
-  status: z.string().nullable(),
-  notes: z.string().nullable(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-})
-
-type SaleListItem = z.infer<typeof saleItemSchema>
+const STATUS_OPTIONS = [
+  { value: 'all', label: 'Todas' },
+  { value: 'completed', label: 'Concluídas' },
+  { value: 'pending', label: 'Pendentes' },
+  { value: 'cancelled', label: 'Canceladas' },
+] as const
 
 const STATUS_BADGE: Record<
   string,
@@ -54,290 +61,176 @@ const STATUS_BADGE: Record<
   cancelled: { label: 'Cancelada', variant: 'destructive' },
 }
 
-type ApiResponse = {
-  items: SaleListItem[]
-  total: number
-  page: number
-  pageSize: number
-}
+const columns: ColumnDef<SaleListItem>[] = [
+  {
+    key: 'totalAmount',
+    label: 'Valor da Venda',
+    render: (sale) => <span className="font-semibold">{formatCurrencyBRL(sale.totalAmount)}</span>,
+  },
+  {
+    key: 'status',
+    label: 'Status',
+    width: 130,
+    render: (sale) => {
+      const status = sale.status ? STATUS_BADGE[sale.status] : null
+      return status ? (
+        <Badge variant={status.variant}>{status.label}</Badge>
+      ) : (
+        <span className="text-muted-foreground">—</span>
+      )
+    },
+  },
+  {
+    key: 'notes',
+    label: 'Observações',
+    render: (sale) =>
+      sale.notes ? (
+        <span className="block max-w-[260px] truncate text-sm">{sale.notes}</span>
+      ) : (
+        <span className="text-muted-foreground">Sem observações</span>
+      ),
+  },
+  {
+    key: 'createdAt',
+    label: 'Criada em',
+    width: 170,
+    render: (sale) => (
+      <span className="text-muted-foreground text-xs">
+        {new Date(sale.createdAt).toLocaleString('pt-BR')}
+      </span>
+    ),
+  },
+]
 
-// Minimal Mobile Card rendering for the Responsive Data Table
-function SaleCard({ item }: { item: SaleListItem }) {
-  const s = item.status ? STATUS_BADGE[item.status] : null
-  return (
-    <div className="dark:bg-card flex flex-col gap-2 rounded-xl border bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400">
-            <ShoppingCart className="h-4 w-4" />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-foreground text-base font-bold">
-              {formatCurrencyBRL(item.totalAmount)}
-            </span>
-            <span className="text-muted-foreground mt-0.5 text-xs">
-              {new Date(item.createdAt).toLocaleDateString('pt-BR')}
-            </span>
-          </div>
-        </div>
-      </div>
-      {(item.notes || s) && (
-        <div className="border-border mt-2 flex items-center justify-between border-t pt-3">
-          <span className="text-muted-foreground max-w-[180px] truncate text-sm">
-            {item.notes || 'Sem observações'}
-          </span>
-          {s && (
-            <Badge variant={s.variant} className="text-[10px] font-bold uppercase tracking-wider">
-              {s.label}
-            </Badge>
-          )}
-        </div>
-      )}
-    </div>
-  )
+const cardConfig: CardConfig<SaleListItem> = {
+  icon: () => <ShoppingCart className="text-primary/60 h-7 w-7" />,
+  title: (sale) => formatCurrencyBRL(sale.totalAmount),
+  subtitle: (sale) => (
+    <span className="text-muted-foreground text-xs">
+      {new Date(sale.createdAt).toLocaleDateString('pt-BR')}
+    </span>
+  ),
+  badge: (sale) => {
+    const status = sale.status ? STATUS_BADGE[sale.status] : null
+    return status ? (
+      <Badge variant={status.variant} className="text-[10px]">
+        {status.label}
+      </Badge>
+    ) : null
+  },
+  footer: (sale) => (
+    <span className="text-muted-foreground text-xs truncate">
+      {sale.notes || 'Sem observações'}
+    </span>
+  ),
 }
 
 export default function ClientSalesTable() {
-  const searchParams = useSearchParams()
-  const router = useRouter()
-  const isMobileDevice = useIsMobile()
-  const isDesktop = !isMobileDevice
+  const [view, setView] = useState<ViewType>('list')
+  const [searchInput, setSearchInput] = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [dateRange, setDateRange] = useState('7d')
 
-  const [viewMode, setViewMode] = React.useState<'table' | 'cards'>('table')
-  const [isFiltersOpen, setIsFiltersOpen] = React.useState(false)
-
-  // Filters from URL
-  const q = (searchParams.get('q') || '').trim()
-  const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1)
-  const pageSize = Math.max(
-    1,
-    Math.min(100, parseInt(searchParams.get('pageSize') || '20', 10) || 20)
-  )
-  const statusFilter = searchParams.get('status') || 'all'
-  const rawDateRange = searchParams.get('dateRange')
-  const dateRange = React.useMemo<DateFilterValue | undefined>(() => {
-    if (!rawDateRange) return undefined
-    return DATE_FILTER_OPTIONS.some((option) => option.value === rawDateRange)
-      ? (rawDateRange as DateFilterValue)
-      : undefined
-  }, [rawDateRange])
-
-  // URL updating helper
-  const updateQueryParams = React.useCallback(
-    (mutator: (params: URLSearchParams) => void) => {
-      const params = new URLSearchParams(Array.from(searchParams.entries()))
-      mutator(params)
-      params.set('page', '1') // Reset page on filter
-      router.push(`/dashboard/sales?${params.toString()}`)
-    },
-    [router, searchParams]
-  )
-
-  const [input, setInput] = React.useState(q)
+  const [debouncedSearch, setDebouncedSearch] = React.useState('')
   const debounceRef = React.useRef<NodeJS.Timeout>(null)
 
-  const handleSearchChange = React.useCallback(
-    (value: string) => {
-      setInput(value)
+  const handleSearchChange = React.useCallback((value: string) => {
+    setSearchInput(value)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      setDebouncedSearch(value.length >= 3 ? value.trim() : '')
+    }, 400)
+  }, [])
 
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current)
-      }
-
-      debounceRef.current = setTimeout(() => {
-        const trimmed = value.trim()
-
-        updateQueryParams((params) => {
-          if (trimmed.length === 0 || trimmed.length < 3) {
-            params.delete('q')
-          } else {
-            params.set('q', trimmed)
-          }
-        })
-      }, 400)
-    },
-    [updateQueryParams]
+  const filters = React.useMemo(
+    () => ({
+      ...(debouncedSearch ? { q: debouncedSearch } : {}),
+      ...(statusFilter !== 'all' ? { status: statusFilter } : {}),
+      ...(dateRange ? { dateRange } : {}),
+    }),
+    [debouncedSearch, statusFilter, dateRange]
   )
 
-  const { data, isLoading, isError } = useQuery<ApiResponse>({
-    queryKey: ['sales', q, page, pageSize, dateRange ?? null, statusFilter] as const,
-    queryFn: async (): Promise<ApiResponse> => {
-      const u = new URL('/api/v1/sales', window.location.origin)
-      if (q) u.searchParams.set('q', q)
-      u.searchParams.set('page', String(page))
-      u.searchParams.set('pageSize', String(pageSize))
-      if (dateRange) u.searchParams.set('dateRange', dateRange)
-      if (statusFilter !== 'all') u.searchParams.set('status', statusFilter)
+  const { data, total, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
+    useCrudInfiniteQuery<SaleListItem>({
+      queryKey: ['sales'],
+      endpoint: '/api/v1/sales',
+      pageSize: 30,
+      filters,
+    })
 
-      const res = await fetch(u.toString(), { cache: 'no-store' })
-      if (!res.ok) throw new Error('Failed to fetch sales')
-      return (await res.json()) as ApiResponse
-    },
-    placeholderData: (prev) => prev as ApiResponse | undefined,
-    staleTime: 10_000,
-    refetchOnWindowFocus: false,
-  })
+  const rowActions: RowActions<SaleListItem> = {
+    customActions: () => null,
+  }
 
-  const items = data?.items ?? []
-  const total = data?.total ?? 0
+  const filtersNode = (
+    <>
+      <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <SelectTrigger className="border-border h-7 w-36 text-xs">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {STATUS_OPTIONS.map((option) => (
+            <SelectItem key={option.value} value={option.value} className="text-xs">
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
-  const columns = React.useMemo<ColumnDef<SaleListItem>[]>(
-    () => [
-      {
-        header: 'Valor da Compra',
-        accessorKey: 'totalAmount',
-        cell: ({ row }) => (
-          <div className="flex items-center gap-3">
-            <div className="hidden h-8 w-8 items-center justify-center rounded-lg bg-emerald-100/50 text-emerald-600 sm:flex">
-              <ShoppingCart className="h-4 w-4" />
-            </div>
-            <span className="text-foreground font-bold">
-              {formatCurrencyBRL(row.original.totalAmount)}
-            </span>
-          </div>
-        ),
-      },
-      {
-        header: 'Status',
-        accessorKey: 'status',
-        cell: ({ row }) => {
-          const s = row.original.status ? STATUS_BADGE[row.original.status] : null
-          return s ? (
-            <Badge variant={s.variant} className="text-[10px] font-bold uppercase tracking-wider">
-              {s.label}
-            </Badge>
-          ) : (
-            <span className="text-muted-foreground">—</span>
-          )
-        },
-      },
-      {
-        header: 'Notas / Campanha',
-        accessorKey: 'notes',
-        cell: ({ row }) => (
-          <span className="text-muted-foreground block max-w-[200px] truncate font-medium">
-            {row.original.notes || 'Sem observações'}
-          </span>
-        ),
-      },
-      {
-        header: 'Data do Registro',
-        accessorKey: 'createdAt',
-        cell: ({ row }) => (
-          <span className="text-muted-foreground text-sm font-medium">
-            {new Date(row.original.createdAt).toLocaleString('pt-BR')}
-          </span>
-        ),
-      },
-    ],
-    []
+      <Select value={dateRange} onValueChange={setDateRange}>
+        <SelectTrigger className="border-border h-7 w-36 text-xs">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {DATE_OPTIONS.map((option) => (
+            <SelectItem key={option.value} value={option.value} className="text-xs">
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </>
   )
-
-  const activeFilterCount = React.useMemo(() => {
-    let count = 0
-    if (q) count++
-    if (dateRange) count++
-    if (statusFilter !== 'all') count++
-    return count
-  }, [q, dateRange, statusFilter])
 
   return (
-    <div className="space-y-4">
-      <PageHeader
-        title="Histórico de Vendas"
-        description="Acompanhe todas as vendas capturadas em tempo real pelas integrações."
-        stats={[
-          {
-            label: 'TOTAL DE VENDAS',
-            value: total,
-          },
-        ]}
+    <CrudPageShell
+      title="Vendas"
+      showTitle={false}
+      icon={ShoppingCart}
+      view={view}
+      setView={setView}
+      enabledViews={['list', 'cards']}
+      searchInput={searchInput}
+      onSearchChange={handleSearchChange}
+      searchPlaceholder="Pesquisar valor, status, observação..."
+      totalItems={total}
+      isFetchingMore={isFetchingNextPage}
+      filters={filtersNode}
+      isLoading={isLoading}
+    >
+      <CrudDataView
+        data={data}
+        view={view}
+        emptyView={<CrudEmptyState />}
+        tableView={
+          <CrudListView
+            data={data}
+            columns={columns}
+            rowActions={rowActions}
+            onEndReached={hasNextPage ? fetchNextPage : undefined}
+          />
+        }
+        cardView={
+          <CrudCardView
+            data={data}
+            config={cardConfig}
+            rowActions={rowActions}
+            onEndReached={hasNextPage ? fetchNextPage : undefined}
+            gridClassName="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+          />
+        }
       />
-
-      <ContentHeader>
-        <FilterInput
-          value={input}
-          onChange={handleSearchChange}
-          placeholder="Pesquisar valor, ID..."
-          isLoading={isLoading}
-        />
-
-        <ContentHeaderTabs>
-          <ContentHeaderTab
-            items={[
-              { value: 'all', label: 'Todas' },
-              { value: 'completed', label: 'Concluídas' },
-              { value: 'pending', label: 'Pendentes' },
-              { value: 'cancelled', label: 'Canceladas' },
-            ]}
-            value={statusFilter}
-            onChange={(value) => {
-              updateQueryParams((params) => {
-                if (value === 'all') params.delete('status')
-                else params.set('status', value)
-              })
-            }}
-          />
-        </ContentHeaderTabs>
-
-        {isDesktop && (
-          <SegmentedControl
-            value={viewMode}
-            onChange={setViewMode as (value: string) => void}
-            options={[
-              { value: 'table', icon: <List className="h-4 w-4" />, label: 'Tabela' },
-              { value: 'cards', icon: <LayoutGrid className="h-4 w-4" />, label: 'Cards' },
-            ]}
-            aria-label="Modo de visualização"
-          />
-        )}
-
-        <DataTableFiltersButton
-          activeCount={activeFilterCount}
-          onClick={() => setIsFiltersOpen(true)}
-        />
-      </ContentHeader>
-
-      <DataTableFiltersSheet
-        open={isFiltersOpen}
-        onOpenChange={setIsFiltersOpen}
-        title="Filtros de Vendas"
-        onApply={() => setIsFiltersOpen(false)}
-      >
-        <FilterGroup label="Período das Vendas">
-          <FilterSelect
-            value={dateRange ?? 'all'}
-            onChange={(val) => {
-              updateQueryParams((params) => {
-                if (val === 'all') params.delete('dateRange')
-                else params.set('dateRange', val)
-              })
-            }}
-            options={[{ value: 'all', label: 'Todas as datas' }, ...DATE_FILTER_OPTIONS]}
-            placeholder="Filtrar por data..."
-          />
-        </FilterGroup>
-      </DataTableFiltersSheet>
-
-      <ResponsiveDataTable
-        data={items}
-        columns={columns}
-        mobileCard={(row) => <SaleCard item={row.original} />}
-        pagination={{
-          page,
-          pageSize,
-          total,
-          onPageChange: (newPage) => {
-            updateQueryParams((p) => p.set('page', String(newPage)))
-          },
-          onPageSizeChange: (newPageSize) => {
-            updateQueryParams((p) => p.set('pageSize', String(newPageSize)))
-          },
-        }}
-        forceCardView={isDesktop && viewMode === 'cards'}
-        isLoading={isLoading}
-        isError={isError}
-      />
-    </div>
+    </CrudPageShell>
   )
 }

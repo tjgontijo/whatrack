@@ -19,7 +19,7 @@ import {
 
 interface CrudPageShellProps {
   title: string
-  subtitle: string
+  showTitle?: boolean
   icon: React.ElementType
   onAdd?: () => void
 
@@ -47,7 +47,7 @@ interface CrudPageShellProps {
 
 export function CrudPageShell({
   title,
-  subtitle,
+  showTitle = true,
   icon: Icon,
   onAdd,
   view,
@@ -78,20 +78,21 @@ export function CrudPageShell({
         <>
           {/* Page Header */}
           <div className="border-border bg-background mt-6 flex flex-col border-b">
-            <div className="flex flex-col gap-2 px-6 py-3 md:flex-row md:items-center md:justify-between">
-              <div className="flex items-center gap-3">
-                {Icon && (
-                  <div className="bg-primary/10 text-primary flex h-10 w-10 items-center justify-center rounded-lg">
-                    <Icon className="h-5 w-5" />
+            {showTitle && (
+              <div className="flex flex-col gap-2 px-6 py-3 md:flex-row md:items-center md:justify-between">
+                <div className="flex items-center gap-3">
+                  {Icon && (
+                    <div className="bg-primary/10 text-primary flex h-10 w-10 items-center justify-center rounded-lg">
+                      <Icon className="h-5 w-5" />
+                    </div>
+                  )}
+                  <div>
+                    <h1 className="text-foreground text-lg font-bold tracking-tight">{title}</h1>
                   </div>
-                )}
-                <div>
-                  <h1 className="text-foreground text-lg font-bold tracking-tight">{title}</h1>
-                  <p className="text-muted-foreground text-sm">{subtitle}</p>
                 </div>
+                <div className="flex items-center gap-3">{actions}</div>
               </div>
-              <div className="flex items-center gap-3">{actions}</div>
-            </div>
+            )}
             <div className="px-6 pb-2">
               <ViewSwitcher
                 view={view}
@@ -132,14 +133,16 @@ export function CrudPageShell({
 
       {isMobile && (
         <div className="bg-background flex flex-col gap-3 border-b p-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-xl font-bold">{title}</h1>
-            {!isLoading && (
-              <span className="text-muted-foreground text-[11px] font-medium">
-                {totalItems} itens
-              </span>
-            )}
-          </div>
+          {showTitle && (
+            <div className="flex items-center justify-between">
+              <h1 className="text-xl font-bold">{title}</h1>
+              {!isLoading && (
+                <span className="text-muted-foreground text-[11px] font-medium">
+                  {totalItems} itens
+                </span>
+              )}
+            </div>
+          )}
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
               <Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />

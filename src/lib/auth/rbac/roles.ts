@@ -7,8 +7,8 @@ export type Permission =
   | 'manage:tickets'
   | 'view:sales'
   | 'manage:sales'
-  | 'view:products'
-  | 'manage:products'
+  | 'view:items'
+  | 'manage:items'
   | 'view:meta'
   | 'manage:meta'
   | 'manage:members'
@@ -39,8 +39,8 @@ const ROLE_DEFINITIONS: RoleDefinition[] = [
       'manage:tickets',
       'view:sales',
       'manage:sales',
-      'view:products',
-      'manage:products',
+      'view:items',
+      'manage:items',
       'view:meta',
       'manage:meta',
       'manage:members',
@@ -61,8 +61,8 @@ const ROLE_DEFINITIONS: RoleDefinition[] = [
       'manage:tickets',
       'view:sales',
       'manage:sales',
-      'view:products',
-      'manage:products',
+      'view:items',
+      'manage:items',
       'view:meta',
       'manage:meta',
       'manage:members',
@@ -77,7 +77,7 @@ const ROLE_DEFINITIONS: RoleDefinition[] = [
       'view:leads',
       'view:tickets',
       'view:sales',
-      'view:products',
+      'view:items',
       'view:meta',
     ],
   },

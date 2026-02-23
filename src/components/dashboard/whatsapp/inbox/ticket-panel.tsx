@@ -314,9 +314,9 @@ export function TicketPanel({ conversationId, organizationId, chat }: TicketPane
                 <div className="bg-card flex items-center justify-between rounded border p-2">
                   <span
                     className="mr-2 truncate text-xs font-medium"
-                    title={(currentInsight?.payload as any)?.productName}
+                    title={(currentInsight?.payload as any)?.itemName}
                   >
-                    {(currentInsight?.payload as any)?.productName || 'Não especificado'}
+                    {(currentInsight?.payload as any)?.itemName || 'Não especificado'}
                   </span>
                   <span className="whitespace-nowrap text-sm font-bold text-green-600">
                     {formatDealValue((currentInsight?.payload as any)?.dealValue)}

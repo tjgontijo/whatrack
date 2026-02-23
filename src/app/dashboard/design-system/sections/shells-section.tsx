@@ -8,9 +8,9 @@ const shells = [
   {
     name: 'CrudPageShell',
     description:
-      'Shell padrão de todas as páginas CRUD. Header + ViewSwitcher + Toolbar + Content com infinite scroll. Sem paginação.',
+      'Shell padrão de páginas CRUD. Header opcional (showTitle) + ViewSwitcher + Toolbar + Content com infinite scroll. Sem paginação.',
     structure: [
-      { label: 'Page Header (ícone + título + subtítulo + ações)', height: 'h-14' },
+      { label: 'Page Header opcional (ícone + título + ações)', height: 'h-14' },
       { label: 'ViewSwitcher (list / cards / kanban)', height: 'h-8' },
       { label: 'Toolbar (search + filtros + contagem de itens)', height: 'h-10' },
       { label: 'Content Area (flex-1, scroll + virtuoso)', height: 'flex-1' },

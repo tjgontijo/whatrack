@@ -130,10 +130,10 @@ export default function ApprovalsPage() {
                     <div className="bg-background/80 flex items-center justify-between rounded-lg border p-3 shadow-sm">
                       <div>
                         <p className="text-muted-foreground mb-0.5 text-[10px] font-semibold uppercase">
-                          Procedimento / Produto
+                          Item
                         </p>
                         <p className="text-sm font-medium">
-                          {approval.productName || 'Não especificado'}
+                          {approval.itemName || 'Não especificado'}
                         </p>
                       </div>
                       <div className="text-right">

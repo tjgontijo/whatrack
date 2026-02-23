@@ -30,7 +30,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const payload = insight.payload as any
     const dealValue = payload?.dealValue || null
     const eventName = payload?.intent === 'SALE' ? 'Purchase' : 'LeadSubmitted'
-    const productName = payload?.productName || 'Procedimento IA'
+    const itemName = payload?.itemName || 'Item IA'
 
     await prisma.$transaction(async (tx) => {
       // 1. Update status
@@ -61,7 +61,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
             items: {
               create: {
                 organizationId: access.organizationId as string,
-                name: productName,
+                name: itemName,
                 unitPrice: dealValue,
                 quantity: 1,
                 total: dealValue,

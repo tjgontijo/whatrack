@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
 
 import {
@@ -25,6 +26,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
 import { ORGANIZATION_HEADER } from '@/lib/constants'
 import { authClient } from '@/lib/auth/auth-client'
 
@@ -56,28 +58,34 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>
 
-type ProductFormDialogProps = {
+type ItemFormDialogProps = {
   categories: CategoryOption[]
   onSuccess?: () => void
   open?: boolean
   onOpenChange?: (open: boolean) => void
 }
 
-export function ProductFormDialog({
+export function ItemFormDialog({
   categories,
   onSuccess,
   open: controlledOpen,
   onOpenChange,
-}: ProductFormDialogProps) {
+}: ItemFormDialogProps) {
   const { data: activeOrg } = authClient.useActiveOrganization()
   const organizationId = activeOrg?.id
+
   const [internalOpen, setInternalOpen] = useState(false)
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen
   const setOpen = controlledOpen !== undefined ? onOpenChange || (() => {}) : setInternalOpen
 
+  const [createdCategories, setCreatedCategories] = useState<CategoryOption[]>([])
+  const [newCategoryName, setNewCategoryName] = useState('')
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false)
+
   const {
     control,
     register,
+    setValue,
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
@@ -91,14 +99,66 @@ export function ProductFormDialog({
     },
   })
 
+  useEffect(() => {
+    if (!open) {
+      setCreatedCategories([])
+      setNewCategoryName('')
+    }
+  }, [open])
+
+  const allCategories = useMemo(() => {
+    const map = new Map<string, CategoryOption>()
+    for (const category of categories) map.set(category.id, category)
+    for (const category of createdCategories) map.set(category.id, category)
+    return Array.from(map.values())
+  }, [categories, createdCategories])
+
   const closeDialog = () => {
     setOpen(false)
     reset()
+    setCreatedCategories([])
+    setNewCategoryName('')
+  }
+
+  const createCategoryInline = async () => {
+    const trimmedName = newCategoryName.trim()
+    if (!trimmedName) {
+      toast.error('Digite o nome da categoria')
+      return
+    }
+
+    setIsCreatingCategory(true)
+    try {
+      const response = await fetch('/api/v1/item-categories', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          [ORGANIZATION_HEADER]: organizationId ?? '',
+        },
+        body: JSON.stringify({ name: trimmedName }),
+      })
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}))
+        throw new Error(error?.error ?? 'Falha ao criar categoria')
+      }
+
+      const created = (await response.json()) as CategoryOption
+      setCreatedCategories((prev) => [...prev, created])
+      setValue('categoryId', created.id)
+      setNewCategoryName('')
+      toast.success('Categoria criada')
+      onSuccess?.()
+    } catch (error) {
+      toast.error((error as Error).message)
+    } finally {
+      setIsCreatingCategory(false)
+    }
   }
 
   const submit = async (values: FormValues) => {
     try {
-      const response = await fetch('/api/v1/products', {
+      const response = await fetch('/api/v1/items', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -114,10 +174,10 @@ export function ProductFormDialog({
 
       if (!response.ok) {
         const error = await response.json().catch(() => ({}))
-        throw new Error(error?.error ?? 'Falha ao criar produto')
+        throw new Error(error?.error ?? 'Falha ao criar item')
       }
 
-      toast.success('Produto criado com sucesso')
+      toast.success('Item criado com sucesso')
       closeDialog()
       onSuccess?.()
     } catch (error) {
@@ -130,20 +190,20 @@ export function ProductFormDialog({
       {controlledOpen === undefined && (
         <DialogTrigger asChild>
           <Button type="button" className="cursor-pointer">
-            Novo produto
+            Novo item
           </Button>
         </DialogTrigger>
       )}
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Novo produto</DialogTitle>
-          <DialogDescription>Cadastre um produto/serviço disponível para venda.</DialogDescription>
+          <DialogTitle>Novo item</DialogTitle>
+          <DialogDescription>Cadastre um item para uso em vendas e acompanhamento.</DialogDescription>
         </DialogHeader>
 
         <form className="space-y-4" onSubmit={handleSubmit(submit)}>
           <div className="space-y-2">
-            <Label htmlFor="product-name">Nome *</Label>
-            <Input id="product-name" placeholder="Nome do produto" {...register('name')} />
+            <Label htmlFor="item-name">Nome *</Label>
+            <Input id="item-name" placeholder="Nome do item" {...register('name')} />
             {errors.name ? <p className="text-destructive text-sm">{errors.name.message}</p> : null}
           </div>
 
@@ -162,7 +222,7 @@ export function ProductFormDialog({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="__none__">Sem categoria</SelectItem>
-                    {categories.map((category) => (
+                    {allCategories.map((category) => (
                       <SelectItem key={category.id} value={category.id}>
                         {category.name}
                       </SelectItem>
@@ -173,27 +233,38 @@ export function ProductFormDialog({
             />
           </div>
 
+          <div className="space-y-2">
+            <Separator />
+            <Label>Nova categoria (inline)</Label>
+            <div className="flex gap-2">
+              <Input
+                value={newCategoryName}
+                onChange={(event) => setNewCategoryName(event.target.value)}
+                placeholder="Digite o nome da categoria"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={createCategoryInline}
+                disabled={isCreatingCategory}
+              >
+                <Plus className="mr-1 h-4 w-4" />
+                {isCreatingCategory ? 'Criando...' : 'Criar'}
+              </Button>
+            </div>
+          </div>
+
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="product-price">Preço sugerido</Label>
-              <Input
-                id="product-price"
-                placeholder="Ex: 350"
-                inputMode="decimal"
-                {...register('price')}
-              />
+              <Label htmlFor="item-price">Preço sugerido</Label>
+              <Input id="item-price" placeholder="Ex: 350" inputMode="decimal" {...register('price')} />
               {errors.price ? (
                 <p className="text-destructive text-sm">{errors.price.message}</p>
               ) : null}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="product-cost">Custo</Label>
-              <Input
-                id="product-cost"
-                placeholder="Ex: 150"
-                inputMode="decimal"
-                {...register('cost')}
-              />
+              <Label htmlFor="item-cost">Custo</Label>
+              <Input id="item-cost" placeholder="Ex: 150" inputMode="decimal" {...register('cost')} />
               {errors.cost ? (
                 <p className="text-destructive text-sm">{errors.cost.message}</p>
               ) : null}

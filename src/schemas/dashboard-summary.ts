@@ -6,14 +6,14 @@ const salesByServiceSliceSchema = z.object({
   value: z.number().nonnegative(),
 })
 
-const productFilterOptionSchema = z.object({
+const itemFilterOptionSchema = z.object({
   label: z.string(),
   value: z.string(),
 })
 
-const productFiltersSchema = z.object({
-  categories: z.array(productFilterOptionSchema),
-  productsByCategory: z.record(z.string(), z.array(productFilterOptionSchema)),
+const itemFiltersSchema = z.object({
+  categories: z.array(itemFilterOptionSchema),
+  itemsByCategory: z.record(z.string(), z.array(itemFilterOptionSchema)),
 })
 
 const originSummarySchema = z.object({
@@ -55,7 +55,7 @@ export const dashboardSummaryResponseSchema = z.object({
 
   servicesCount: z.number().int().nonnegative(),
 
-  productsCost: z.number(),
+  itemsCost: z.number(),
   grossProfit: z.number(),
   netProfit: z.number(),
 
@@ -91,7 +91,7 @@ export const dashboardSummaryResponseSchema = z.object({
     sales: z.number().int().nonnegative(),
   }),
 
-  productFilters: productFiltersSchema,
+  itemFilters: itemFiltersSchema,
 
   origins: z.array(originSummarySchema),
 

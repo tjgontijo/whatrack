@@ -9,7 +9,7 @@ export type SummaryFilters = {
   period?: string
   trafficSource?: string
   trafficType?: string
-  product?: string
+  item?: string
 }
 
 export function resolveFiltersDateRange(filters: SummaryFilters): DateRange | undefined {
@@ -32,14 +32,56 @@ export function buildSalesWhere(filters: SummaryFilters): Prisma.SaleWhereInput 
     andConditions.push({ createdAt: { gte: dateRange.gte, lte: dateRange.lte } })
   }
 
-  if (filters.product && filters.product !== 'any') {
+  if (filters.item && filters.item !== 'any') {
     andConditions.push({
       items: {
         some: {
-          productId: filters.product,
+          itemId: filters.item,
         },
       },
     })
+  }
+
+  if (filters.trafficType && filters.trafficType !== 'any') {
+    andConditions.push({
+      ticket: {
+        is: {
+          tracking: {
+            is: {
+              sourceType: filters.trafficType,
+            },
+          },
+        },
+      },
+    })
+  }
+
+  if (filters.trafficSource && filters.trafficSource !== 'any') {
+    if (filters.trafficSource === NO_TRAFFIC_SOURCE_VALUE) {
+      andConditions.push({
+        ticket: {
+          is: {
+            tracking: {
+              is: {
+                utmSource: null,
+              },
+            },
+          },
+        },
+      })
+    } else {
+      andConditions.push({
+        ticket: {
+          is: {
+            tracking: {
+              is: {
+                utmSource: filters.trafficSource,
+              },
+            },
+          },
+        },
+      })
+    }
   }
 
   if (!andConditions.length) {

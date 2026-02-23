@@ -5,31 +5,31 @@ import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: Promise<{ productId: string }> }
+  { params }: { params: Promise<{ itemId: string }> }
 ) {
   const access = await validateFullAccess(req)
   if (!access.hasAccess || !access.organizationId) {
     return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
   }
   const organizationId = access.organizationId
-  const { productId } = await params
+  const { itemId } = await params
 
   try {
-    // Verify product belongs to organization
-    const existing = await prisma.product.findFirst({
+    // Verify item belongs to organization
+    const existing = await prisma.item.findFirst({
       where: {
-        id: productId,
+        id: itemId,
         organizationId,
       },
     })
 
     if (!existing) {
-      return NextResponse.json({ error: 'Produto não encontrado' }, { status: 404 })
+      return NextResponse.json({ error: 'Item não encontrado' }, { status: 404 })
     }
 
     // Toggle active status
-    const updated = await prisma.product.update({
-      where: { id: productId },
+    const updated = await prisma.item.update({
+      where: { id: itemId },
       data: {
         active: !existing.active,
       },
@@ -37,7 +37,7 @@ export async function PATCH(
 
     return NextResponse.json(updated)
   } catch (error) {
-    console.error('[api/products/[productId]/active] PATCH error:', error)
-    return apiError('Falha ao alterar status do produto', 500, error)
+    console.error('[api/items/[itemId]/active] PATCH error:', error)
+    return apiError('Falha ao alterar status do item', 500, error)
   }
 }
