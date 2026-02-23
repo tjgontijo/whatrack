@@ -1010,19 +1010,24 @@ model AiInsight {
 model OrgAuditLog {
   id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   organizationId String       @db.Uuid
-  userId         String       @db.Uuid
-  action         String       // e.g. "member.role_changed", "member.removed", "webhook.updated", "meta_ads.connected"
-  resourceType   String       // e.g. "member", "organization", "webhook", "meta_connection"
-  resourceId     String?      // ID of the affected resource
-  before         Json?        // State before the action (no sensitive data)
-  after          Json?        // State after the action (no sensitive data)
+  userId         String?      @db.Uuid    // nullable: suporta ações de sistema
+  action         String
+  resourceType   String
+  resourceId     String?
+  before         Json?
+  after          Json?
+  ip             String?
+  userAgent      String?
+  requestId      String?
+  metadata       Json?
   createdAt      DateTime     @default(now())
 
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user           User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([organizationId])
   @@index([userId])
   @@index([createdAt])
+  @@index([requestId])
   @@map("org_audit_logs")
 }
