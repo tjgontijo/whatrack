@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth/auth'
 import { prisma } from '@/lib/prisma'
-import { createAuditLog } from '@/lib/audit-log'
+import { auditService } from '@/lib/audit.service'
 
 export async function DELETE(
   req: NextRequest,
@@ -25,7 +25,7 @@ export async function DELETE(
     where: { id: memberId, organizationId },
   })
 
-  await createAuditLog({
+  void auditService.log({
     organizationId,
     userId: session.user.id,
     action: 'member.removed',

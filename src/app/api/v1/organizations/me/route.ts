@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth/auth'
 import { prisma } from '@/lib/prisma'
-import { createAuditLog } from '@/lib/audit-log'
+import { auditService } from '@/lib/audit.service'
 
 export async function GET(req: NextRequest) {
   const session = await auth.api.getSession({ headers: req.headers })
@@ -38,7 +38,7 @@ export async function PUT(req: NextRequest) {
     data: { name },
   })
 
-  await createAuditLog({
+  void auditService.log({
     organizationId,
     userId: session.user.id,
     action: 'organization.updated',

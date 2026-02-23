@@ -1,33 +1,12 @@
-import type { Prisma } from '@prisma/client'
-import { prisma } from '@/lib/prisma'
+import { auditService, AuditLogInput } from './audit.service'
 
-export interface AuditLogParams {
-  organizationId: string
-  userId: string
-  action: string
-  resourceType: string
-  resourceId?: string
-  before?: Prisma.InputJsonValue
-  after?: Prisma.InputJsonValue
-}
+export type AuditLogParams = AuditLogInput
 
 /**
- * Creates an org audit log entry. Never throws — failures are logged to console only.
+ * Creates an org audit log entry. Never throws — failures are logged via Pino.
+ * This is a compatibility wrapper for the new AuditService.
  */
 export async function createAuditLog(params: AuditLogParams): Promise<void> {
-  try {
-    await prisma.orgAuditLog.create({
-      data: {
-        organizationId: params.organizationId,
-        userId: params.userId,
-        action: params.action,
-        resourceType: params.resourceType,
-        resourceId: params.resourceId,
-        before: params.before ?? undefined,
-        after: params.after ?? undefined,
-      },
-    })
-  } catch (err) {
-    console.error('[AuditLog] Failed to create audit log entry:', err)
-  }
+  // We use void to fire-and-forget, but provide await for compatibility
+  await auditService.log(params)
 }

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { auth } from '@/lib/auth/auth'
 import { prisma } from '@/lib/prisma'
-import { createAuditLog } from '@/lib/audit-log'
+import { auditService } from '@/lib/audit.service'
 
 async function getSessionFromRequest(req: NextRequest) {
   const headers = new Headers(req.headers)
@@ -57,7 +57,7 @@ export async function DELETE(req: NextRequest) {
   await prisma.metaConnection.delete({ where: { id } })
 
   if (connection) {
-    await createAuditLog({
+    void auditService.log({
       organizationId: connection.organizationId,
       userId: session.user.id,
       action: 'meta_ads.disconnected',
