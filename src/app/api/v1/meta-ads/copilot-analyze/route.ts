@@ -10,33 +10,32 @@ import axios from 'axios';
 
 const GRAPH_API_VERSION = process.env.META_GRAPH_API_VERSION || 'v20.0';
 
-const SYSTEM_PROMPT = `Você é um especialista sênior em tráfego pago com foco em Meta Ads (Facebook e Instagram).
-Sua única função é analisar dados de performance de campanhas e fornecer diagnósticos precisos.
+const SYSTEM_PROMPT = `Você é um Analista de BI e Performance sênior especializado em Meta Ads.
+Sua única função é analisar séries temporais de dados de campanhas e fornecer diagnósticos profundos e analíticos.
 
-REGRAS:
-- Responda APENAS sobre tráfego pago e Meta Ads. Recuse qualquer outro assunto.
-- Baseie TODOS os diagnósticos nos dados fornecidos (orçamento diário, gastos, cliques, CPA, ROI/ROAS, funil). Nunca invente métricas.
-- Priorize gargalos com maior impacto financeiro.
-- Use linguagem direta e técnica, adequada para um gestor de tráfego experiente.
-- Planos de ação devem ser específicos e implementáveis imediatamente.
+REGRAS ESTritas:
+1. FOCO NO DIAGNÓSTICO: Priorize a identificação clara de tendências, picos e quebras estruturais usando dados precisos.
+2. ESCOPO DA CAMPANHA: NÃO faça "drill-down" sugerindo otimizações a nível de criativos específicos ou de conjuntos de anúncios, visto que você só está vendo dados agrupados (macro) da campanha.
+3. CAUSA RAIZ: Foque em eficiência do funil da página, fadiga estrutural, oscilação de CPM/leilão ou estrangulamento de CPA.
+4. LINGUAGEM DE BI: Use jargões corretos, foque nos dados e evite recomendações genéricas de "guru de marketing".
+5. RECOMENDAÇÕES ENXUTAS: Forneça poucas ações (focadas em orçamento, lances ou pausas/escalas macro).
 
 CONTEXTO DE ANÁLISE:
-Você receberá um payload JSON com o histórico diário da campanha (spend, impressions, clicks, cpc, cpm, lpv, cpv, ic, cpaIc, purchases, cpa, revenue, roas) dos últimos dias. Diferencie entre fuga de clique -> LPV, LPV -> IC, ou IC -> Compra. Identifique tendências, padrões de fadiga e ineficiências.`;
+Você receberá o histórico de resultados diários. Correlacione o volume gasto com CPA e trace onde o funil está quebrando (Cliques -> LPV -> IC -> Compra).`;
 
 const analysisMapZodSchema = z.object({
-    status: z.enum(["CRITICAL", "WARNING", "HEALTHY"]).describe("Diagnóstico geral da campanha."),
-    summary: z.string().describe("Resumo executivo em 2-3 frases sobre a saúde geral da campanha."),
-    bottlenecks: z.array(z.object({
-        type: z.string().describe("Ex: 'Fadiga de Criativo', 'Fuga LPV→IC'"),
+    status: z.enum(["CRITICAL", "WARNING", "HEALTHY"]).describe("Diagnóstico geral de saúde sistêmica da campanha."),
+    executiveSummary: z.string().describe("Resumo analítico direto ao ponto sobre o comportamento da campanha no período avaliado."),
+    deepDiagnostics: z.array(z.object({
+        area: z.string().describe("Ex: 'Fuga de Etapa (LPV -> IC)', 'CPA em Degradação', 'Instabilidade de Leilão'"),
         severity: z.enum(["high", "medium", "low"]),
-        description: z.string().describe("Diagnóstico detalhado em 1-2 frases. Inclua a métrica evidenciadora inline, ex: 'CTR caiu de 1.2% para 0.4% nos últimos 3 dias'"),
-    })),
-    actionPlan: z.array(z.object({
-        priority: z.number().int().min(1),
-        action: z.string().describe("Ação prática e específica"),
-        rationale: z.string().describe("Por que essa ação resolve o gargalo identificado"),
-        effort: z.enum(["low", "medium", "high"]).describe("Esforço de implementação"),
-    })),
+        observation: z.string().describe("Leitura do dado factual. Ex: 'O CPA médio pulou de R$20 nos primeiros dias para R$45 nos últimos 3 dias.'"),
+        rootCause: z.string().describe("A causa macro-estrutural embasada pela observação. Como você não vê os criativos, foque na fadiga agregada ou queda de eficiência sazonal/página."),
+    })).describe("Diagnóstico puro e profundo. Liste os de alta severidade primeiro."),
+    keyRecommendations: z.array(z.object({
+        priority: z.number().int(),
+        action: z.string().describe("Ação focada em investimento, ajuste de funil externo (LP) ou alteração macro de estrutura.")
+    })).max(3).describe("Apenas 1 a 3 recomendações vitais e baseadas nos diagnósticos."),
 });
 
 export async function POST(req: Request) {
@@ -117,7 +116,16 @@ export async function POST(req: Request) {
             };
         });
 
-        // 4. Instantiate Mastra Agent
+        // Validation 4: At least 7 days with active spend
+        const activeDays = timeline.filter((day: any) => day.spend > 0);
+        if (activeDays.length < 7) {
+            return NextResponse.json({
+                error: 'Campanha muito recente para análise estatística segura',
+                detail: `A campanha possui apenas ${activeDays.length} dias ativos com gasto (sendo necessários pelo menos 7). Deixe-a performar mais tempo ou estenda o limite de dias global da análise.`
+            }, { status: 400 });
+        }
+
+        // 5. Instantiate Mastra Agent
         const mastraAgent = new Agent({
             name: 'Meta Ads Copilot',
             id: 'meta-ads-copilot',
