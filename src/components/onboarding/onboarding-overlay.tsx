@@ -351,19 +351,64 @@ export function OnboardingOverlay({ onComplete, onSkip }: OnboardingOverlayProps
     }
   }
 
+  const resolveOrganizationId = async () => {
+    const orgRes = await fetch('/api/v1/organizations/current', {
+      method: 'GET',
+      credentials: 'include',
+    })
+
+    if (orgRes.ok) {
+      const { id } = await orgRes.json()
+      if (!id) throw new Error('Organização inválida')
+      return id as string
+    }
+
+    // Em casos raros de usuário órfão (sem org), cria uma organização padrão.
+    if (orgRes.status !== 404) {
+      throw new Error('Erro ao obter organização')
+    }
+
+    const userRes = await fetch('/api/v1/users/me', {
+      method: 'GET',
+      credentials: 'include',
+    })
+
+    if (!userRes.ok) {
+      throw new Error('Erro ao obter usuário')
+    }
+
+    const user = await userRes.json()
+    const nameFromUser =
+      typeof user?.name === 'string' && user.name.trim()
+        ? user.name.trim()
+        : typeof user?.email === 'string'
+          ? user.email.split('@')[0]
+          : ''
+
+    const fallbackName = nameFromUser || 'Minha organizacao'
+
+    const createRes = await fetch('/api/v1/organizations', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: fallbackName }),
+    })
+
+    if (!createRes.ok) {
+      throw new Error('Erro ao criar organização')
+    }
+
+    const createdOrg = await createRes.json()
+    if (!createdOrg?.id) {
+      throw new Error('Falha ao criar organização')
+    }
+
+    return createdOrg.id as string
+  }
+
   const handleSkip = async () => {
     try {
-      // Obter ID da organização do usuário
-      const orgRes = await fetch('/api/v1/organizations/current', {
-        method: 'GET',
-        credentials: 'include',
-      })
-
-      if (!orgRes.ok) {
-        throw new Error('Erro ao obter organização')
-      }
-
-      const { id: organizationId } = await orgRes.json()
+      const organizationId = await resolveOrganizationId()
 
       const response = await fetch(`/api/v1/organizations/${organizationId}`, {
         method: 'PATCH',
@@ -388,17 +433,7 @@ export function OnboardingOverlay({ onComplete, onSkip }: OnboardingOverlayProps
 
   const handleSubmit = async (values: OnboardingData) => {
     try {
-      // Obter ID da organização do usuário
-      const orgRes = await fetch('/api/v1/organizations/current', {
-        method: 'GET',
-        credentials: 'include',
-      })
-
-      if (!orgRes.ok) {
-        throw new Error('Erro ao obter organização')
-      }
-
-      const { id: organizationId } = await orgRes.json()
+      const organizationId = await resolveOrganizationId()
 
       const response = await fetch(`/api/v1/organizations/${organizationId}`, {
         method: 'PATCH',

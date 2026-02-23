@@ -10,6 +10,24 @@ import { getOrSyncUser } from '@/server/auth/server'
 
 import { calculateMetrics } from '@/services/onboarding-metrics/metrics-calculator'
 
+const onboardingStatuses = [
+  { name: 'pending', description: 'Onboarding iniciado e aguardando conclusão.' },
+  { name: 'completed', description: 'Onboarding concluído com sucesso.' },
+  { name: 'skipped', description: 'Onboarding pulado pelo usuário.' },
+] as const
+
+async function ensureOnboardingStatuses() {
+  await Promise.all(
+    onboardingStatuses.map((status) =>
+      prisma.onboardingStatus.upsert({
+        where: { name: status.name },
+        create: status,
+        update: {},
+      })
+    )
+  )
+}
+
 export async function POST(request: Request) {
   try {
     // Check authentication
@@ -59,6 +77,8 @@ export async function POST(request: Request) {
       })
     }
 
+    await ensureOnboardingStatuses()
+
     // Create organization
     const organization = await prisma.organization.create({
       data: {
@@ -72,7 +92,7 @@ export async function POST(request: Request) {
     await prisma.organizationProfile.create({
       data: {
         organizationId: organization.id,
-        onboardingStatus: 'pending',
+        onboardingStatus: 'skipped',
       },
     })
 

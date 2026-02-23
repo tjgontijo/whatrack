@@ -50,7 +50,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
             <DashboardHeader />
 
             <main className="min-w-0 flex-1 overflow-y-auto overflow-x-hidden px-4 py-2">
-              <DashboardContent organization={organization} userId={session.user.id}>
+              <DashboardContent>
                 <div className="mx-auto w-full min-w-0">
                   <OrganizationSelectorGate />
                   {children}

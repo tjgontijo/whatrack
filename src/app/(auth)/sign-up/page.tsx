@@ -69,15 +69,29 @@ export default function SignUpPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             name: values.name,
-            onboardingCompleted: false,
           }),
         })
 
         if (!orgResponse.ok) {
-          console.error('[sign-up] Failed to create organization')
+          let message = 'Não foi possível criar sua organização. Tente novamente.'
+          try {
+            const errorData = await orgResponse.json()
+            if (typeof errorData?.error === 'string' && errorData.error.trim()) {
+              message = errorData.error
+            }
+          } catch {
+            // Ignore parse errors and keep fallback message
+          }
+          console.error('[sign-up] Failed to create organization', {
+            status: orgResponse.status,
+          })
+          toast.error(message)
+          return
         }
       } catch (orgError) {
         console.error('[sign-up] Error creating organization:', orgError)
+        toast.error('Não foi possível criar sua organização. Tente novamente.')
+        return
       }
 
       // 4. Atualizar phone do usuário

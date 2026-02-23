@@ -10,6 +10,24 @@ import { getOrSyncUser } from '@/server/auth/server'
 
 import { calculateMetrics } from '@/services/onboarding-metrics/metrics-calculator'
 
+const onboardingStatuses = [
+  { name: 'pending', description: 'Onboarding iniciado e aguardando conclusão.' },
+  { name: 'completed', description: 'Onboarding concluído com sucesso.' },
+  { name: 'skipped', description: 'Onboarding pulado pelo usuário.' },
+] as const
+
+async function ensureOnboardingStatuses() {
+  await Promise.all(
+    onboardingStatuses.map((status) =>
+      prisma.onboardingStatus.upsert({
+        where: { name: status.name },
+        create: status,
+        update: {},
+      })
+    )
+  )
+}
+
 /**
  * Gera slug único a partir do nome da empresa
  * - Normaliza para lowercase
@@ -55,24 +73,34 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     }
 
     const { id: organizationId } = await params
+    const body = await request.json()
+    const isSkipOnlyUpdate =
+      body &&
+      typeof body === 'object' &&
+      !Array.isArray(body) &&
+      Object.keys(body).length === 1 &&
+      body.onboardingStatus === 'skipped'
 
-    // Verificar se o usuário é owner da organização
+    // Somente owner pode editar dados da organização.
+    // Exceção: marcar onboarding como "skipped" pode ser feito por qualquer membro.
     const member = await prisma.member.findFirst({
       where: {
         organizationId,
         userId: user.id,
-        role: 'owner',
+        ...(isSkipOnlyUpdate ? {} : { role: 'owner' }),
       },
     })
 
     if (!member) {
       return NextResponse.json(
-        { error: 'Você não tem permissão para atualizar esta organização' },
+        {
+          error: isSkipOnlyUpdate
+            ? 'Você não pertence a esta organização'
+            : 'Você não tem permissão para atualizar esta organização',
+        },
         { status: 403 }
       )
     }
-
-    const body = await request.json()
 
     // Calcular métricas se temos os dados necessários
     let metrics = {}
@@ -106,6 +134,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     const existingProfile = await prisma.organizationProfile.findFirst({
       where: { organizationId },
     })
+
+    if (body.onboardingStatus) {
+      await ensureOnboardingStatuses()
+    }
 
     if (existingProfile) {
       await prisma.organizationProfile.update({
