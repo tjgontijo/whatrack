@@ -46,6 +46,9 @@ function unauthorizedResponse(request: NextRequest) {
   return NextResponse.redirect(new URL('/sign-in', request.url))
 }
 
+import { randomUUID } from 'crypto'
+import { requestContextStorage } from '@/lib/request-context'
+
 export function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
@@ -62,7 +65,18 @@ export function proxy(request: NextRequest) {
     return unauthorizedResponse(request)
   }
 
-  return NextResponse.next()
+  const requestId = randomUUID()
+  const ip =
+    request.headers.get('x-forwarded-for')?.split(',')[0].trim() ??
+    request.headers.get('x-real-ip') ??
+    null
+  const userAgent = request.headers.get('user-agent') ?? null
+
+  return requestContextStorage.run({ requestId, ip, userAgent }, () => {
+    const res = NextResponse.next()
+    res.headers.set('X-Request-Id', requestId)
+    return res
+  })
 }
 
 export const config = {
