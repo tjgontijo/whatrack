@@ -2,24 +2,11 @@ import { PrismaClient } from '../../prisma/generated/prisma'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { auditService } from '@/lib/audit.service'
 
-const globalForPrisma = global as unknown as {
-  prisma: PrismaClient | undefined
-}
-
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL!,
 })
 
-const client =
-  globalForPrisma.prisma ??
-  new PrismaClient({
-    adapter,
-    log: ['error', 'warn'],
-  })
-
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = client
-
-// Selective Audit Middleware
+// Selective Audit Models
 const AUDIT_MODELS = new Set([
   'Organization',
   'Member',
@@ -27,39 +14,66 @@ const AUDIT_MODELS = new Set([
   'WhatsAppConnection',
 ])
 
-client.$use(async (params, next) => {
-  const isAuditModel = params.model && AUDIT_MODELS.has(params.model)
-  const isAuditAction = ['create', 'update', 'delete'].includes(params.action)
-
-  if (!isAuditModel || !isAuditAction) {
-    return next(params)
-  }
-
-  // Capture 'before' state for updates and deletes
-  let before = null
-  if (['update', 'delete'].includes(params.action)) {
-    try {
-      before = await (client as any)[params.model!].findUnique({
-        where: params.args.where,
-      })
-    } catch (err) {
-      // Ignore if fetch fails
-    }
-  }
-
-  const result = await next(params)
-
-  // Fire-and-forget audit log
-  void auditService.log({
-    organizationId: result?.organizationId || result?.id || before?.organizationId || undefined,
-    action: `${params.model?.toLowerCase()}.${params.action}`,
-    resourceType: params.model!,
-    resourceId: result?.id || params.args.where?.id || undefined,
-    before: before ?? undefined,
-    after: params.action === 'delete' ? null : result,
+const prismaClientSingleton = () => {
+  const baseClient = new PrismaClient({
+    adapter,
+    log: ['error', 'warn'],
   })
 
-  return result
-})
+  return baseClient.$extends({
+    query: {
+      $allModels: {
+        async $allOperations({ model, operation, args, query }) {
+          const isAuditModel = model && AUDIT_MODELS.has(model)
+          const isAuditAction = ['create', 'update', 'delete'].includes(operation as string)
 
-export const prisma = client
+          if (!isAuditModel || !isAuditAction) {
+            return query(args)
+          }
+
+          // Capture 'before' state for updates and deletes
+          let before: any = null
+          if (['update', 'delete'].includes(operation as string)) {
+            try {
+              before = await (baseClient as any)[model!].findUnique({
+                where: (args as any).where,
+              })
+            } catch (err) {
+              // Ignore if fetch fails
+            }
+          }
+
+          const result = await query(args)
+
+          // Fire-and-forget audit log
+          void auditService.log({
+            organizationId: (result as any)?.organizationId || (result as any)?.id || before?.organizationId || undefined,
+            action: `${model?.toLowerCase()}.${operation}`,
+            resourceType: model!,
+            resourceId: (result as any)?.id || (args as any).where?.id || undefined,
+            before: before ?? undefined,
+            after: operation === 'delete' ? undefined : result,
+          })
+
+          return result
+        },
+      },
+    },
+  })
+}
+
+const globalForPrisma = global as unknown as {
+  prisma: PrismaClient | undefined
+}
+
+// We cast the extended client back to PrismaClient so that callers retain full
+// `include` type inference. The audit middleware still runs at runtime because
+// the underlying object is still the extended client.
+export const prisma = (
+  globalForPrisma.prisma ?? prismaClientSingleton()
+) as unknown as PrismaClient
+
+if (process.env.NODE_ENV !== 'production') {
+  // Store the extended instance in global to avoid re-initialising
+  ; (globalForPrisma as any).prisma = prisma
+}

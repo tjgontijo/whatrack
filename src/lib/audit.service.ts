@@ -24,17 +24,17 @@ class AuditService {
             const context = getRequestContext()
 
             const auditData = {
-                organizationId: input.organizationId ?? context?.organizationId ?? null,
-                userId: input.userId ?? context?.userId ?? null,
+                organizationId: input.organizationId ?? context?.organizationId ?? undefined,
+                userId: input.userId ?? context?.userId ?? undefined,
                 action: input.action,
                 resourceType: input.resourceType,
-                resourceId: input.resourceId ?? null,
-                before: input.before ? sanitizeForAudit(input.before) : null,
-                after: input.after ? sanitizeForAudit(input.after) : null,
-                ip: context?.ip ?? null,
-                userAgent: context?.userAgent ?? null,
-                requestId: context?.requestId ?? null,
-                metadata: input.metadata ?? null,
+                resourceId: input.resourceId ?? undefined,
+                before: input.before ? sanitizeForAudit(input.before) : undefined,
+                after: input.after ? sanitizeForAudit(input.after) : undefined,
+                ip: context?.ip ?? undefined,
+                userAgent: context?.userAgent ?? undefined,
+                requestId: context?.requestId ?? undefined,
+                metadata: input.metadata ?? undefined,
             }
 
             // Log to Pino for observability

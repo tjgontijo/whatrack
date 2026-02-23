@@ -1,6 +1,4 @@
-import type { Prisma, PrismaClient } from '@prisma/client'
-
-type DbClient = PrismaClient | Prisma.TransactionClient
+type DbClient = any
 
 export const DEFAULT_TICKET_STAGES = [
   { name: 'Novo', color: '#6366f1', order: 1, isDefault: true, isClosed: false },

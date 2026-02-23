@@ -102,10 +102,10 @@ function formatTicketItem(ticket: any) {
     assignee: ticket.assignee,
     tracking: ticket.tracking
       ? {
-          utmSource: ticket.tracking.utmSource ?? null,
-          sourceType: ticket.tracking.sourceType ?? null,
-          ctwaclid: ticket.tracking.ctwaclid ?? null,
-        }
+        utmSource: ticket.tracking.utmSource ?? null,
+        sourceType: ticket.tracking.sourceType ?? null,
+        ctwaclid: ticket.tracking.ctwaclid ?? null,
+      }
       : null,
     status: ticket.status,
     windowOpen: ticket.windowOpen,
@@ -301,12 +301,12 @@ export async function createTicket(params: CreateTicketParams) {
     if (!assignee) return { error: 'Atribuído não encontrado', status: 404 as const }
   }
 
-  const ticket = await prisma.ticket.create({
+  const ticket: any = await prisma.ticket.create({
     data: {
       organizationId,
       leadId: conversation.leadId,
       conversationId,
-      stageId: targetStageId,
+      stageId: targetStageId!,
       assigneeId: assigneeId || null,
       dealValue,
       status: 'open',

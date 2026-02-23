@@ -19,6 +19,7 @@ import {
   Webhook,
   Kanban,
   Sparkles,
+  ShieldCheck,
 } from 'lucide-react'
 
 import {
@@ -65,6 +66,7 @@ const ICON_MAP = {
   ChevronRight,
   Kanban,
   Sparkles,
+  ShieldCheck,
 } as const
 
 type NavItem = {
@@ -272,6 +274,20 @@ export function SidebarClient({ navItems }: SidebarClientProps) {
                   <Link href="/dashboard/settings/ai" onClick={handleNavClick}>
                     <Sparkles className="h-4 w-4" />
                     <span>IA Copilot</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              {/* Audit Logs Settings */}
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  tooltip="Logs de Auditoria"
+                  isActive={pathname === '/dashboard/settings/audit-logs'}
+                >
+                  <Link href="/dashboard/settings/audit-logs" onClick={handleNavClick}>
+                    <ShieldCheck className="h-4 w-4" />
+                    <span>Auditoria</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

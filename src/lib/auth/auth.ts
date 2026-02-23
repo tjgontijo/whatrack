@@ -71,7 +71,7 @@ export const auth = betterAuth({
         after: async (session) => {
           // Audit Log - Login
           void auditService.log({
-            organizationId: session.activeOrganizationId ?? undefined,
+            organizationId: ((session as any).activeOrganizationId as string) || undefined,
             userId: session.userId,
             action: 'auth.login',
             resourceType: 'session',
