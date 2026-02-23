@@ -17,7 +17,8 @@ import {
     Tooltip as RechartsTooltip,
     ResponsiveContainer,
     Bar,
-    ComposedChart
+    ComposedChart,
+    LabelList
 } from 'recharts'
 import { formatCurrencyBRL } from '@/lib/mask/formatters'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -249,8 +250,12 @@ export function CampaignAnalysisDrawer({
                                                             return [formatCurrencyBRL(Number(value)), name]
                                                         }}
                                                     />
-                                                    <Bar dataKey="spend" name="Gasto Ocorrido" fill="#cbd5e1" radius={[2, 2, 0, 0]} maxBarSize={30} />
-                                                    <Line type="monotone" dataKey="revenue" name="Retorno (ROAS)" stroke="#10b981" strokeWidth={3} dot={{ r: 0 }} activeDot={{ r: 4 }} />
+                                                    <Bar dataKey="spend" name="Gasto Ocorrido" fill="#cbd5e1" radius={[2, 2, 0, 0]} maxBarSize={30}>
+                                                        <LabelList dataKey="spend" position="top" formatter={(val: any) => Number(val) > 0 ? `R$${val}` : ''} style={{ fontSize: '10px', fill: '#94a3b8' }} />
+                                                    </Bar>
+                                                    <Line type="monotone" dataKey="revenue" name="Retorno (ROAS)" stroke="#10b981" strokeWidth={3} dot={{ r: 0 }} activeDot={{ r: 4 }}>
+                                                        <LabelList dataKey="revenue" position="top" formatter={(val: any) => Number(val) > 0 ? `R$${val}` : ''} style={{ fontSize: '10px', fill: '#059669', fontWeight: 'bold' }} />
+                                                    </Line>
                                                 </ComposedChart>
                                             </ResponsiveContainer>
                                         </div>
@@ -297,8 +302,12 @@ export function CampaignAnalysisDrawer({
                                                             return [value, name]
                                                         }}
                                                     />
-                                                    <Line yAxisId="left" type="monotone" dataKey="cpa" name="Custo por Aquisição (CPA)" stroke="#ef4444" strokeWidth={2} dot={{ r: 3 }} strokeDasharray="4 4" />
-                                                    <Bar yAxisId="right" dataKey="purchases" name="Volume de Compras" fill="#6366f1" radius={[2, 2, 0, 0]} maxBarSize={30} opacity={0.8} />
+                                                    <Line yAxisId="left" type="monotone" dataKey="cpa" name="Custo por Aquisição (CPA)" stroke="#ef4444" strokeWidth={2} dot={{ r: 3 }} strokeDasharray="4 4">
+                                                        <LabelList dataKey="cpa" position="top" formatter={(val: any) => Number(val) > 0 ? `R$${val}` : ''} style={{ fontSize: '10px', fill: '#ef4444' }} />
+                                                    </Line>
+                                                    <Bar yAxisId="right" dataKey="purchases" name="Volume de Compras" fill="#6366f1" radius={[2, 2, 0, 0]} maxBarSize={30} opacity={0.8}>
+                                                        <LabelList dataKey="purchases" position="top" formatter={(val: any) => Number(val) > 0 ? val : ''} style={{ fontSize: '10px', fill: '#4f46e5', fontWeight: 'bold' }} />
+                                                    </Bar>
                                                 </ComposedChart>
                                             </ResponsiveContainer>
                                         </div>

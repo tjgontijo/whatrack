@@ -11,31 +11,28 @@ import axios from 'axios';
 const GRAPH_API_VERSION = process.env.META_GRAPH_API_VERSION || 'v20.0';
 
 const SYSTEM_PROMPT = `Você é um Analista de BI e Performance sênior especializado em Meta Ads.
-Sua única função é analisar séries temporais de dados de campanhas e fornecer diagnósticos profundos e analíticos.
+Sua única função é analisar dados de campanhas e fornecer diagnósticos profundos e analíticos.
 
-REGRAS ESTritas:
-1. FOCO NO DIAGNÓSTICO: Priorize a identificação clara de tendências, picos e quebras estruturais usando dados precisos.
-2. ESCOPO DA CAMPANHA: NÃO faça "drill-down" sugerindo otimizações a nível de criativos específicos ou de conjuntos de anúncios, visto que você só está vendo dados agrupados (macro) da campanha.
-3. CAUSA RAIZ: Foque em eficiência do funil da página, fadiga estrutural, oscilação de CPM/leilão ou estrangulamento de CPA.
-4. LINGUAGEM DE BI: Use jargões corretos, foque nos dados e evite recomendações genéricas de "guru de marketing".
-5. RECOMENDAÇÕES ENXUTAS: Forneça poucas ações (focadas em orçamento, lances ou pausas/escalas macro).
-
-CONTEXTO DE ANÁLISE:
-Você receberá o histórico de resultados diários. Correlacione o volume gasto com CPA e trace onde o funil está quebrando (Cliques -> LPV -> IC -> Compra).`;
+REGRAS ESTRITAS:
+1. FOCO NO DIAGNÓSTICO: Priorize a identificação clara de tendências, sazonalidade e eficiência.
+2. CONTEXTO MACRO: Atente-se aos dias da semana informados na timeline e relacione com eventos, feriados ou comportamentos de 'final de semana' vs 'dias úteis'. Use a sua base de dados externa se o período coincidir com feriados nacionais do Brasil (como Carnaval, feriados prolongados, etc).
+3. ESTRUTURA DA CAMPANHA: Note quais conjuntos de anúncio (AdSets) e criativos (Ads) estão puxando o resultado para cima ou para baixo (você receberá os maiores gastadores).
+4. LINGUAGEM DE BI: Use jargões corretos e foque na correlação dos dados reais.
+5. RECOMENDAÇÕES: Formule planos de ação embasados no contexto temporal e estrutural.`;
 
 const analysisMapZodSchema = z.object({
     status: z.enum(["CRITICAL", "WARNING", "HEALTHY"]).describe("Diagnóstico geral de saúde sistêmica da campanha."),
-    executiveSummary: z.string().describe("Resumo analítico direto ao ponto sobre o comportamento da campanha no período avaliado."),
+    executiveSummary: z.string().describe("Resumo analítico direto ao ponto sobre o comportamento da campanha. Mencione os dias de semana, sazonalidade ou ofensores/highlights se eles ditaram o resultado."),
     deepDiagnostics: z.array(z.object({
-        area: z.string().describe("Ex: 'Fuga de Etapa (LPV -> IC)', 'CPA em Degradação', 'Instabilidade de Leilão'"),
+        area: z.string().describe("Ex: 'Fuga de Etapa (LPV -> IC)', 'Alta performance aos finais de semana', 'Criativo vencedor', 'Criativo X puxando o CPA'"),
         severity: z.enum(["high", "medium", "low"]),
-        observation: z.string().describe("Leitura do dado factual. Ex: 'O CPA médio pulou de R$20 nos primeiros dias para R$45 nos últimos 3 dias.'"),
-        rootCause: z.string().describe("A causa macro-estrutural embasada pela observação. Como você não vê os criativos, foque na fadiga agregada ou queda de eficiência sazonal/página."),
+        observation: z.string().describe("Leitura do dado factual. Ex: 'O Criativo A gastou 60% do orçamento gerando 1 compra', 'O ROAS triplicou no sábado'."),
+        rootCause: z.string().describe("Sua hipótese como BI sobre o cenário, contextualizando com os dados de conjunto/criativo ou calendário macro caso faça sentido."),
     })).describe("Diagnóstico puro e profundo. Liste os de alta severidade primeiro."),
     keyRecommendations: z.array(z.object({
         priority: z.number().int(),
-        action: z.string().describe("Ação focada em investimento, ajuste de funil externo (LP) ou alteração macro de estrutura.")
-    })).max(3).describe("Apenas 1 a 3 recomendações vitais e baseadas nos diagnósticos."),
+        action: z.string().describe("Ação focada em investimento, realocação de verba, testes/pausas de criativo/conjunto, etc.")
+    })).max(4).describe("Apenas 1 a 4 recomendações vitais e baseadas nos diagnósticos."),
 });
 
 export async function POST(req: Request) {
@@ -63,44 +60,58 @@ export async function POST(req: Request) {
 
         const token = await metaAccessTokenService.getDecryptedToken(account.connectionId);
 
-        // 2. Fetch Time Range Data
+        // 2. Fetch Time Range Data concurrent requests
         const dateStart = new Date();
         dateStart.setDate(dateStart.getDate() - (days - 1));
         const dateStartStr = dateStart.toISOString().split('T')[0];
         const dateEndStr = new Date().toISOString().split('T')[0];
 
-        const response = await axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${campaignId}/insights`, {
-            params: {
-                access_token: token,
-                time_range: JSON.stringify({ since: dateStartStr, until: dateEndStr }),
-                time_increment: 1, // Break down by day!
-                fields: 'spend,impressions,clicks,inline_link_clicks,reach,actions,action_values'
-            }
-        });
+        const commonParams = {
+            access_token: token,
+            time_range: JSON.stringify({ since: dateStartStr, until: dateEndStr }),
+            fields: 'spend,impressions,clicks,inline_link_clicks,reach,actions,action_values'
+        };
 
-        const rawData = response.data.data || [];
+        const [campaignDailyRes, adsetsRes, adsRes] = await Promise.all([
+            axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${campaignId}/insights`, {
+                params: { ...commonParams, time_increment: 1 }
+            }).catch(() => ({ data: { data: [] } })),
+            axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${campaignId}/insights`, {
+                params: { ...commonParams, level: 'adset', fields: commonParams.fields + ',adset_name' }
+            }).catch(() => ({ data: { data: [] } })),
+            axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${campaignId}/insights`, {
+                params: { ...commonParams, level: 'ad', fields: commonParams.fields + ',ad_name' }
+            }).catch(() => ({ data: { data: [] } }))
+        ]);
 
-        // 3. Transform Data to clean JSON array for the LLM
+        const rawData = campaignDailyRes.data.data || [];
+        const rawAdsets = adsetsRes.data.data || [];
+        const rawAds = adsRes.data.data || [];
+
+        // 3. Transform Data maps
+        const getActionVal = (list: any[], type: string) => {
+            let item = list.find((a: any) => a.action_type === type);
+            if (!item) item = list.find((a: any) => a.action_type === `offsite_conversion.fb_pixel_${type}`);
+            return item ? Number(item.value) : 0;
+        };
+
         const timeline = rawData.map((dayData: any) => {
             const actions = dayData.actions || [];
             const actionValues = dayData.action_values || [];
-
-            const getActionVal = (list: any[], type: string) => {
-                let item = list.find((a: any) => a.action_type === type);
-                if (!item) item = list.find((a: any) => a.action_type === `offsite_conversion.fb_pixel_${type}`);
-                return item ? Number(item.value) : 0;
-            };
-
             const spend = Number(dayData.spend || 0);
             const clicks = Number(dayData.inline_link_clicks || dayData.clicks || 0);
-
             const purchases = getActionVal(actions, 'purchase');
             const rev = getActionVal(actionValues, 'purchase');
             const ic = getActionVal(actions, 'initiate_checkout');
             const lpv = getActionVal(actions, 'landing_page_view');
 
+            // Format weekday
+            const dateObj = new Date(dayData.date_start + 'T12:00:00Z');
+            const dayOfWeek = dateObj.toLocaleDateString('pt-BR', { weekday: 'long' });
+
             return {
                 date: dayData.date_start,
+                dayOfWeek,
                 spend,
                 impressions: Number(dayData.impressions || 0),
                 clicks,
@@ -115,6 +126,27 @@ export async function POST(req: Request) {
                 roas: spend > 0 ? Number((rev / spend).toFixed(2)) : 0,
             };
         });
+
+        const mapAggregates = (data: any[], nameField: string) => {
+            return data.map(item => {
+                const actions = item.actions || [];
+                const actionValues = item.action_values || [];
+                const spend = Number(item.spend || 0);
+                const purchases = getActionVal(actions, 'purchase');
+                const rev = getActionVal(actionValues, 'purchase');
+                return {
+                    name: item[nameField] || 'Desconhecido',
+                    spend,
+                    purchases,
+                    cpa: purchases > 0 ? Number((spend / purchases).toFixed(2)) : 0,
+                    roas: spend > 0 ? Number((rev / spend).toFixed(2)) : 0,
+                    clicks: Number(item.inline_link_clicks || item.clicks || 0)
+                };
+            }).sort((a, b) => b.spend - a.spend).slice(0, 5); // Limit TOP 5 objects
+        };
+
+        const topAdsets = mapAggregates(rawAdsets, 'adset_name');
+        const topAds = mapAggregates(rawAds, 'ad_name');
 
         // Validation 4: At least 7 days with active spend
         const activeDays = timeline.filter((day: any) => day.spend > 0);
@@ -133,11 +165,18 @@ export async function POST(req: Request) {
             model: openai('gpt-4o'), // High intelligence
         });
 
-        const prompt = `Analise a campanha "${campaignName}" com base no seguinte histórico dos últimos ${days} dias (ordenados do mais antigo para o mais recente):
+        const prompt = `Analise a campanha "${campaignName}" com base nestes dados dos últimos ${days} dias:
         
+TIMELINE (Diário):
 ${JSON.stringify(timeline, null, 2)}
 
-Produza a análise solicitada.`;
+TOP 5 CONJUNTOS DE ANÚNCIO (AGREGADO NO PERÍODO):
+${JSON.stringify(topAdsets, null, 2)}
+
+TOP 5 CRIATIVOS/ANÚNCIOS (AGREGADO NO PERÍODO):
+${JSON.stringify(topAds, null, 2)}
+
+Produza a análise solicitada avaliando também performance de dias da semana e os maiores gastadores acima.`;
 
         // 5. Generate Insight
         const result = (await mastraAgent.generate(
