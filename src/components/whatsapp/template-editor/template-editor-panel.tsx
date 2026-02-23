@@ -60,53 +60,44 @@ export function TemplateEditorPanel({
     mode
 }: TemplateEditorPanelProps) {
     const queryClient = useQueryClient()
-    const [variables, setVariables] = useState<string[]>([])
 
-    const form = useForm<TemplateFormValues>({
-        resolver: zodResolver(templateSchema),
-        defaultValues: {
-            name: '',
-            category: 'UTILITY',
-            language: 'pt_BR',
-            bodyText: '',
-            samples: {},
-        },
-    })
-
-    const bodyText = form.watch('bodyText')
-    const samples = form.watch('samples') || {}
-
-    // Load template data when editing
-    useEffect(() => {
+    const defaultValues = React.useMemo(() => {
         if (mode === 'edit' && template) {
             const bodyComponent = template.components?.find((c: any) => c.type === 'BODY')
-            form.reset({
+            return {
                 name: template.name,
                 category: template.category as 'MARKETING' | 'UTILITY',
                 language: template.language,
                 bodyText: bodyComponent?.text || '',
                 samples: {},
-            })
-        } else if (mode === 'create') {
-            form.reset({
-                name: '',
-                category: 'UTILITY',
-                language: 'pt_BR',
-                bodyText: '',
-                samples: {},
-            })
+            }
         }
-    }, [mode, template, form])
+        return {
+            name: '',
+            category: 'UTILITY' as const,
+            language: 'pt_BR',
+            bodyText: '',
+            samples: {},
+        }
+    }, [mode, template])
+
+    const form = useForm<TemplateFormValues>({
+        resolver: zodResolver(templateSchema),
+        defaultValues,
+        values: defaultValues,
+    })
+
+    const bodyText = form.watch('bodyText')
+    const samples = form.watch('samples') || {}
 
     // Detect variables in real-time
-    useEffect(() => {
+    const variables = React.useMemo(() => {
         const matches = bodyText?.match(/\{\{(\d+)\}\}/g) || []
-        const uniqueMatches = Array.from(new Set(matches)).sort((a, b) => {
+        return Array.from(new Set(matches)).sort((a, b) => {
             const numA = parseInt(a.replace(/\{\{|\}\}/g, ''))
             const numB = parseInt(b.replace(/\{\{|\}\}/g, ''))
             return numA - numB
         })
-        setVariables(uniqueMatches)
     }, [bodyText])
 
     const mutation = useMutation({

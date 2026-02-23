@@ -108,12 +108,15 @@ export function ProductsTable() {
 
   // Debounced search
   const [debouncedSearch, setDebouncedSearch] = React.useState('')
-  React.useEffect(() => {
-    const handle = setTimeout(() => {
-      setDebouncedSearch(searchInput.length >= 2 ? searchInput.trim() : '')
+  const debounceRef = React.useRef<NodeJS.Timeout>(null)
+
+  const handleSearchChange = React.useCallback((value: string) => {
+    setSearchInput(value)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      setDebouncedSearch(value.length >= 2 ? value.trim() : '')
     }, 400)
-    return () => clearTimeout(handle)
-  }, [searchInput])
+  }, [])
 
   const filters = React.useMemo(() => ({
     ...(debouncedSearch ? { search: debouncedSearch } : {}),
@@ -200,7 +203,7 @@ export function ProductsTable() {
         setView={setView}
         enabledViews={['list', 'cards']}
         searchInput={searchInput}
-        onSearchChange={setSearchInput}
+        onSearchChange={handleSearchChange}
         searchPlaceholder="Buscar produtos..."
         totalItems={total}
         isFetchingMore={isFetchingNextPage}

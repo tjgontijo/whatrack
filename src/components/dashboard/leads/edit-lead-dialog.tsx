@@ -48,16 +48,6 @@ export type EditLeadDialogProps = {
 export function EditLeadDialog({ leadId, open, onOpenChange, onSuccess }: EditLeadDialogProps) {
   const queryClient = useQueryClient()
 
-  const {
-    control,
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-    reset,
-  } = useForm<EditLeadFormValues>({
-    resolver: zodResolver(editLeadSchema),
-  })
-
   // Fetch lead data when dialog opens
   const { data: lead, isLoading } = useQuery({
     queryKey: ['lead', leadId],
@@ -69,15 +59,20 @@ export function EditLeadDialog({ leadId, open, onOpenChange, onSuccess }: EditLe
     enabled: open && !!leadId,
   })
 
-  useEffect(() => {
-    if (lead) {
-      reset({
-        name: lead.name || '',
-        phone: lead.phone ? applyWhatsAppMask(denormalizeWhatsApp(lead.phone)) : '',
-        mail: lead.mail || '',
-      })
-    }
-  }, [lead, reset])
+  const {
+    control,
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm<EditLeadFormValues>({
+    resolver: zodResolver(editLeadSchema),
+    values: lead ? {
+      name: lead.name || '',
+      phone: lead.phone ? applyWhatsAppMask(denormalizeWhatsApp(lead.phone)) : '',
+      mail: lead.mail || '',
+    } : undefined
+  })
 
   const submit = async (values: EditLeadFormValues) => {
     try {

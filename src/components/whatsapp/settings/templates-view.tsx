@@ -71,10 +71,7 @@ export function TemplatesView({ phone: _phone }: TemplatesViewProps) {
     const paginatedTemplates = filteredTemplates.slice((page - 1) * limit, page * limit)
     const totalItems = filteredTemplates.length
 
-    // Reset page when search changes
-    useEffect(() => {
-        setPage(1)
-    }, [searchInput])
+    // Removed useEffect for resetting page, now handled in onSearchChange
 
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -268,7 +265,10 @@ export function TemplatesView({ phone: _phone }: TemplatesViewProps) {
                 setView={setView}
                 enabledViews={['list', 'cards']}
                 searchInput={searchInput}
-                onSearchChange={setSearchInput}
+                onSearchChange={(val) => {
+                    setSearchInput(val)
+                    setPage(1)
+                }}
                 searchPlaceholder="Buscar por nome, categoria ou conteúdo..."
                 totalItems={totalItems}
                 onAdd={handleCreate}

@@ -84,46 +84,28 @@ export function CategoriesTable() {
   }, [categoriesQuery.data])
 
   const [input, setInput] = React.useState(searchValue)
-  React.useEffect(() => setInput(searchValue), [searchValue])
+  const debounceRef = React.useRef<NodeJS.Timeout>(null)
 
-  React.useEffect(() => {
-    const trimmed = input.trim()
+  const handleSearchChange = React.useCallback((value: string) => {
+    setInput(value)
 
-    if (!trimmed.length) {
-      if (searchValue) {
-        updateQueryParams((params) => {
-          params.delete('categoryQ')
-          params.set('categoryPage', '1')
-        })
-      }
-      return undefined
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current)
     }
 
-    if (trimmed.length < 3) {
-      if (searchValue) {
-        updateQueryParams((params) => {
-          params.delete('categoryQ')
-          params.set('categoryPage', '1')
-        })
-      }
-      return undefined
-    }
+    debounceRef.current = setTimeout(() => {
+      const trimmed = value.trim()
 
-    if (trimmed === searchValue) {
-      return undefined
-    }
-
-    const handle = window.setTimeout(() => {
       updateQueryParams((params) => {
-        params.set('categoryQ', trimmed)
+        if (trimmed.length === 0 || trimmed.length < 3) {
+          params.delete('categoryQ')
+        } else {
+          params.set('categoryQ', trimmed)
+        }
         params.set('categoryPage', '1')
       })
     }, 400)
-
-    return () => {
-      window.clearTimeout(handle)
-    }
-  }, [input, searchValue, updateQueryParams])
+  }, [updateQueryParams])
 
   const handleStatusChange = (value: (typeof STATUS_OPTIONS)[number]['value']) => {
     updateQueryParams((params) => {
@@ -151,12 +133,12 @@ export function CategoriesTable() {
               className="pr-10"
               placeholder="Nome da categoria"
               value={input}
-              onChange={(event) => setInput(event.target.value)}
+              onChange={(event) => handleSearchChange(event.target.value)}
             />
             {input.trim().length > 0 ? (
               <button
                 type="button"
-                onClick={() => setInput('')}
+                onClick={() => handleSearchChange('')}
                 className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full border border-transparent p-1 text-muted-foreground transition hover:border-border hover:bg-muted"
                 aria-label="Limpar busca"
               >

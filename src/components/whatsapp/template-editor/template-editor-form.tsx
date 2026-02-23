@@ -47,20 +47,39 @@ interface TemplateEditorFormProps {
 
 export function TemplateEditorForm({ template, onClose }: TemplateEditorFormProps) {
     const queryClient = useQueryClient()
-    const [variables, setVariables] = useState<string[]>([])
     const mode = template ? 'edit' : 'create'
 
-    const form = useForm<TemplateFormValues>({
-        resolver: zodResolver(templateSchema),
-        defaultValues: {
+    const defaultValues = React.useMemo(() => {
+        if (mode === 'edit' && template) {
+            const headerComponent = template.components?.find((c: any) => c.type.toUpperCase() === 'HEADER')
+            const bodyComponent = template.components?.find((c: any) => c.type.toUpperCase() === 'BODY')
+            const footerComponent = template.components?.find((c: any) => c.type.toUpperCase() === 'FOOTER')
+
+            return {
+                name: template.name,
+                category: template.category as any,
+                language: template.language,
+                headerText: headerComponent?.text || '',
+                bodyText: bodyComponent?.text || '',
+                footerText: footerComponent?.text || '',
+                samples: {},
+            }
+        }
+        return {
             name: '',
-            category: 'MARKETING',
+            category: 'MARKETING' as const,
             language: 'pt_BR',
             headerText: '',
             bodyText: '',
             footerText: '',
             samples: {},
-        },
+        }
+    }, [mode, template])
+
+    const form = useForm<TemplateFormValues>({
+        resolver: zodResolver(templateSchema),
+        defaultValues,
+        values: defaultValues,
     })
 
     const name = form.watch('name')
@@ -69,32 +88,13 @@ export function TemplateEditorForm({ template, onClose }: TemplateEditorFormProp
     const footerText = form.watch('footerText')
     const samples = form.watch('samples') || {}
 
-    useEffect(() => {
-        if (mode === 'edit' && template) {
-            const headerComponent = template.components?.find((c: any) => c.type.toUpperCase() === 'HEADER')
-            const bodyComponent = template.components?.find((c: any) => c.type.toUpperCase() === 'BODY')
-            const footerComponent = template.components?.find((c: any) => c.type.toUpperCase() === 'FOOTER')
-
-            form.reset({
-                name: template.name,
-                category: template.category as any,
-                language: template.language,
-                headerText: headerComponent?.text || '',
-                bodyText: bodyComponent?.text || '',
-                footerText: footerComponent?.text || '',
-                samples: {},
-            })
-        }
-    }, [mode, template, form])
-
-    useEffect(() => {
+    const variables = React.useMemo(() => {
         const matches = bodyText?.match(/\{\{(\d+)\}\}/g) || []
-        const uniqueMatches = Array.from(new Set(matches)).sort((a, b) => {
+        return Array.from(new Set(matches)).sort((a, b) => {
             const numA = parseInt(a.replace(/\{\{|\}\}/g, ''))
             const numB = parseInt(b.replace(/\{\{|\}\}/g, ''))
             return numA - numB
         })
-        setVariables(uniqueMatches)
     }, [bodyText])
 
     const mutation = useMutation({

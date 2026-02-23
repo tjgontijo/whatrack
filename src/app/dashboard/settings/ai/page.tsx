@@ -1,47 +1,45 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { Sparkles, Plus, Edit2, Trash2, Power, PowerOff, Bot } from 'lucide-react'
+import React from 'react'
+import { Sparkles, Plus, Edit2, Trash2, Bot } from 'lucide-react'
 import { toast } from 'sonner'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
 export default function AiAgentsPage() {
-    const [agents, setAgents] = useState<any[]>([])
-    const [isLoading, setIsLoading] = useState(true)
+    const queryClient = useQueryClient()
 
-    useEffect(() => {
-        fetchAgents()
-    }, [])
-
-    const fetchAgents = async () => {
-        setIsLoading(true)
-        try {
+    const { data: agents = [], isLoading } = useQuery({
+        queryKey: ['ai-agents'],
+        queryFn: async () => {
             const res = await fetch('/api/v1/ai-agents')
-            if (!res.ok) throw new Error()
+            if (!res.ok) throw new Error('Erro ao carregar agentes de IA.')
             const data = await res.json()
-            setAgents(data.agents || [])
-        } catch {
-            toast.error('Erro ao carregar agentes de IA.')
-        } finally {
-            setIsLoading(false)
+            return data.agents || []
         }
-    }
+    })
 
-    const handleDelete = async (id: string, name: string) => {
-        if (!confirm(`Tem certeza que deseja apagar o agente "${name}"?`)) return
-
-        const toastId = toast.loading('Apagando agente...')
-        try {
+    const deleteMutation = useMutation({
+        mutationFn: async ({ id, name }: { id: string, name: string }) => {
             const res = await fetch(`/api/v1/ai-agents/${id}`, { method: 'DELETE' })
             if (!res.ok) throw new Error()
-            toast.success('Agente apagado com sucesso.', { id: toastId })
-            fetchAgents()
-        } catch {
-            toast.error('Erro ao apagar agente.', { id: toastId })
+            return name
+        },
+        onSuccess: (name) => {
+            toast.success(`Agente "${name}" apagado com sucesso.`)
+            queryClient.invalidateQueries({ queryKey: ['ai-agents'] })
+        },
+        onError: () => {
+            toast.error('Erro ao apagar agente.')
         }
+    })
+
+    const handleDelete = (id: string, name: string) => {
+        if (!confirm(`Tem certeza que deseja apagar o agente "${name}"?`)) return
+        deleteMutation.mutate({ id, name })
     }
 
     return (
@@ -79,7 +77,7 @@ export default function AiAgentsPage() {
                 </Card>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {agents.map(agent => (
+                    {agents.map((agent: any) => (
                         <Card key={agent.id} className="flex flex-col">
                             <CardHeader className="flex flex-row items-start justify-between pb-2 space-y-0">
                                 <div className="space-y-1">

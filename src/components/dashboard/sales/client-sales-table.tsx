@@ -124,30 +124,27 @@ export default function ClientSalesTable() {
   )
 
   const [input, setInput] = React.useState(q)
-  React.useEffect(() => setInput(q), [q])
+  const debounceRef = React.useRef<NodeJS.Timeout>(null)
 
-  // Debounced search logic
-  React.useEffect(() => {
-    const trimmed = input.trim()
+  const handleSearchChange = React.useCallback((value: string) => {
+    setInput(value)
 
-    if (trimmed.length === 0) {
-      if (q) updateQueryParams((p) => p.delete('q'))
-      return undefined
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current)
     }
 
-    if (trimmed.length < 3) {
-      if (q) updateQueryParams((p) => p.delete('q'))
-      return undefined
-    }
+    debounceRef.current = setTimeout(() => {
+      const trimmed = value.trim()
 
-    if (trimmed === q) return undefined
-
-    const handle = window.setTimeout(() => {
-      updateQueryParams((p) => p.set('q', trimmed))
+      updateQueryParams((params) => {
+        if (trimmed.length === 0 || trimmed.length < 3) {
+          params.delete('q')
+        } else {
+          params.set('q', trimmed)
+        }
+      })
     }, 400)
-
-    return () => window.clearTimeout(handle)
-  }, [input, q, updateQueryParams])
+  }, [updateQueryParams])
 
   const { data, isLoading, isError } = useQuery<ApiResponse>({
     queryKey: ['sales', q, page, pageSize, dateRange ?? null, statusFilter] as const,
@@ -241,7 +238,7 @@ export default function ClientSalesTable() {
       <ContentHeader>
         <FilterInput
           value={input}
-          onChange={setInput}
+          onChange={handleSearchChange}
           placeholder="Pesquisar valor, ID..."
           isLoading={isLoading}
         />
