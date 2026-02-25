@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 const PUBLIC_ROUTES = ['/', '/pricing', '/privacy', '/terms']
-const AUTH_ROUTES = ['/sign-in', '/sign-up', '/forgot-password', '/reset-password']
+const AUTH_ROUTES = ['/sign-in', '/sign-up', '/forgot-password', '/reset-password', '/accept-invitation']
 
 const PUBLIC_API_PREFIXES = [
   '/api/v1/auth',
@@ -11,6 +11,7 @@ const PUBLIC_API_PREFIXES = [
   '/api/v1/whatsapp/instances',
   '/api/v1/whatsapp/webhook',
   '/api/v1/billing/plans',
+  '/api/v1/invitations',
 ]
 
 function isApiRoute(pathname: string) {
