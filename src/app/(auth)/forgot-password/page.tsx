@@ -31,7 +31,7 @@ export default function ForgotPasswordPage() {
   const handleSubmit = async (values: ForgotPasswordFormValues) => {
     try {
       // Call API endpoint for password recovery
-      const response = await fetch('/api/v1/auth/forget-password', {
+      const response = await fetch('/api/v1/auth/request-password-reset', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -52,7 +52,7 @@ export default function ForgotPasswordPage() {
       toast.success('Email de recuperação enviado! Verifique sua caixa de entrada.')
     } catch (error) {
       console.error('[forgot-password] erro ao enviar email', error)
-      toast.error('Falha na communication com o servidor. Tente novamente.')
+      toast.error('Falha na comunicação com o servidor. Tente novamente.')
     }
   }
 
