@@ -19,7 +19,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getJobTracker } from '@/lib/db/queue'
 import { whatsappHealthCheckJob } from '@/jobs/whatsapp-health-check.job'
-import { rateLimitMiddleware } from '@/lib/middleware/rate-limit.middleware'
+import { rateLimitMiddleware } from '@/lib/utils/rate-limit.middleware'
 
 const CRON_SECRET = process.env.CRON_SECRET
 if (!CRON_SECRET) {

@@ -22,7 +22,7 @@ import { prisma } from '@/lib/db/prisma'
 import { WhatsAppChatService } from '@/services/whatsapp/whatsapp-chat.service'
 import { verifyWebhookSignature } from '@/lib/whatsapp/webhook-signature'
 import { WebhookProcessor } from '@/services/whatsapp/webhook-processor'
-import { rateLimitMiddleware } from '@/lib/middleware/rate-limit.middleware'
+import { rateLimitMiddleware } from '@/lib/utils/rate-limit.middleware'
 
 const webhookVerifySchema = z.object({
   'hub.mode': z.literal('subscribe'),

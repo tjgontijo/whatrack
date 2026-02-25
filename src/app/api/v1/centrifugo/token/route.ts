@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createHmac } from 'crypto'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { rateLimitMiddleware } from '@/lib/middleware/rate-limit.middleware'
+import { rateLimitMiddleware } from '@/lib/utils/rate-limit.middleware'
 
 /**
  * GET /api/v1/centrifugo/token
