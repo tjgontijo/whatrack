@@ -11,6 +11,7 @@ import {
 } from '@react-email/components'
 import { pretty, render } from '@react-email/render'
 import * as React from 'react'
+import { resolveAppName } from './shared/app-name.server'
 
 interface OtpEmailProps {
   name?: string
@@ -18,85 +19,90 @@ interface OtpEmailProps {
   expiresIn?: number
 }
 
-export const OtpEmail = ({ name = 'Usuário', otp, expiresIn = 5 }: OtpEmailProps) => (
-  <Html>
-    <Head />
-    <Preview>🔐 Seu código de acesso - Kadernim</Preview>
-    <Body style={main}>
-      <Container style={container}>
-        {/* Header */}
-        <Section style={header}>
-          <Text style={headerTitle}>Kadernim</Text>
-          <Text style={headerSubtitle}>Plataforma de Gerenciamento Educacional</Text>
-        </Section>
+export const OtpEmail = ({ name = 'Usuário', otp, expiresIn = 5 }: OtpEmailProps) => {
+  const appName = resolveAppName()
 
-        {/* Content */}
-        <Section style={content}>
-          <Text style={greeting}>
-            Olá <strong>{name}</strong>,
-          </Text>
-
-          <Text style={paragraph}>Use o código abaixo para acessar sua conta no Kadernim:</Text>
-
-          {/* OTP Display */}
-          <Section style={codeContainer}>
-            <div style={codeBox}>
-              <Text style={codeText}>{otp}</Text>
-            </div>
+  return (
+    <Html>
+      <Head />
+      <Preview>{`🔐 Seu código de acesso - ${appName}`}</Preview>
+      <Body style={main}>
+        <Container style={container}>
+          {/* Header */}
+          <Section style={header}>
+            <Text style={headerTitle}>{appName}</Text>
+            <Text style={headerSubtitle}>Acesso seguro à sua conta</Text>
           </Section>
 
-          <Text style={expirationMessage}>
-            Este código é válido por <strong>{expiresIn} minutos</strong>.
-          </Text>
-
-          <Hr style={hr} />
-
-          {/* Warning */}
-          <Section style={warningBox}>
-            <Text style={warningText}>
-              <strong>⏰ Atenção:</strong> Se você não solicitou este email, ignore-o.
+          {/* Content */}
+          <Section style={content}>
+            <Text style={greeting}>
+              Olá <strong>{name}</strong>,
             </Text>
+
+            <Text style={paragraph}>Use o código abaixo para acessar sua conta no {appName}:</Text>
+
+            {/* OTP Display */}
+            <Section style={codeContainer}>
+              <div style={codeBox}>
+                <Text style={codeText}>{otp}</Text>
+              </div>
+            </Section>
+
+            <Text style={expirationMessage}>
+              Este código é válido por <strong>{expiresIn} minutos</strong>.
+            </Text>
+
+            <Hr style={hr} />
+
+            {/* Warning */}
+            <Section style={warningBox}>
+              <Text style={warningText}>
+                <strong>⏰ Atenção:</strong> Se você não solicitou este email, ignore-o.
+              </Text>
+            </Section>
+
+            {/* Security Notice */}
+            <Text style={securityText}>
+              🔒 <strong>Segurança:</strong> Nunca compartilhe este código com outras pessoas. O{' '}
+              {appName} nunca pedirá seu código por email.
+            </Text>
+
+            {/* Support */}
+            <Section style={supportBox}>
+              <Text style={supportTitle}>Precisa de ajuda?</Text>
+              <Text style={supportText}>
+                📞 WhatsApp:{' '}
+                <Link href="https://wa.me/551148635262" style={linkStyle}>
+                  +55 11 4863-5262
+                </Link>
+              </Text>
+              <Text style={supportText}>
+                ✉️ E-mail:{' '}
+                <Link href="mailto:contato@whatrack.com" style={linkStyle}>
+                  contato@whatrack.com
+                </Link>
+              </Text>
+              <Text style={supportText}>📍 Brasília - DF, Brasil</Text>
+            </Section>
+
+            <Hr style={hr} />
+
+            {/* Footer */}
+            <Text style={footer}>© {new Date().getFullYear()} {appName}. Todos os direitos reservados.</Text>
+            <Text style={footerSmall}>Este é um email automático. Por favor, não responda.</Text>
           </Section>
-
-          {/* Security Notice */}
-          <Text style={securityText}>
-            🔒 <strong>Segurança:</strong> Nunca compartilhe este código com outras pessoas. A
-            Kadernim nunca pedirá seu código por email.
-          </Text>
-
-          {/* Support */}
-          <Section style={supportBox}>
-            <Text style={supportTitle}>Precisa de ajuda?</Text>
-            <Text style={supportText}>
-              📞 WhatsApp:{' '}
-              <Link href="https://wa.me/551148635262" style={linkStyle}>
-                +55 11 4863-5262
-              </Link>
-            </Text>
-            <Text style={supportText}>
-              ✉️ E-mail:{' '}
-              <Link href="mailto:contato@kadernim.com.br" style={linkStyle}>
-                contato@kadernim.com.br
-              </Link>
-            </Text>
-            <Text style={supportText}>📍 Brasília - DF, Brasil</Text>
-          </Section>
-
-          <Hr style={hr} />
-
-          {/* Footer */}
-          <Text style={footer}>© 2025 Kadernim. Todos os direitos reservados.</Text>
-          <Text style={footerSmall}>Este é um email automático. Por favor, não responda.</Text>
-        </Section>
-      </Container>
-    </Body>
-  </Html>
-)
+        </Container>
+      </Body>
+    </Html>
+  )
+}
 
 export default OtpEmail
 
 export async function generateOtpEmail({ name = 'Usuário', otp, expiresIn = 5 }: OtpEmailProps) {
-  const subject = '🔐 Seu código de acesso - Kadernim'
+  const appName = resolveAppName()
+  const subject = `🔐 Seu código de acesso - ${appName}`
 
   const text = [
     `Olá ${name}!`,
@@ -107,7 +113,7 @@ export async function generateOtpEmail({ name = 'Usuário', otp, expiresIn = 5 }
     '',
     'Precisa de ajuda?',
     'WhatsApp: +55 11 4863-5262',
-    'E-mail: contato@kadernim.com.br',
+    'E-mail: contato@whatrack.com',
     'Endereço: Brasília - DF, Brasil',
   ].join('\n')
 

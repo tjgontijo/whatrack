@@ -1,6 +1,7 @@
 import { Body, Container, Head, Hr, Html, Preview, Section, Text } from '@react-email/components'
 import { render } from '@react-email/render'
 import * as React from 'react'
+import { resolveAppName } from './shared/app-name.server'
 
 interface WebhookFailureAlertEmailProps {
   organizationName: string
@@ -19,7 +20,7 @@ export const WebhookFailureAlertEmail = ({
   lastError,
   createdAt,
 }: WebhookFailureAlertEmailProps) => {
-  const appName = process.env.NEXT_PUBLIC_APP_NAME || process.env.APP_NAME || 'WhaTrack'
+  const appName = resolveAppName()
 
   return (
     <Html>
@@ -76,7 +77,7 @@ export const WebhookFailureAlertEmail = ({
 export default WebhookFailureAlertEmail
 
 export async function generateWebhookFailureAlertEmail(props: WebhookFailureAlertEmailProps) {
-  const appName = process.env.NEXT_PUBLIC_APP_NAME || process.env.APP_NAME || 'WhaTrack'
+  const appName = resolveAppName()
   const subject = `[${appName}] Webhook falhou após ${props.retryCount} tentativas — ${props.organizationName}`
 
   const text = [

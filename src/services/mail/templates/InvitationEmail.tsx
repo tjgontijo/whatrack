@@ -12,6 +12,7 @@ import {
 } from '@react-email/components'
 import { render } from '@react-email/render'
 import * as React from 'react'
+import { resolveAppName } from './shared/app-name.server'
 
 interface InvitationEmailProps {
   inviteeName?: string
@@ -28,7 +29,7 @@ export const InvitationEmail = ({
   acceptUrl,
   expiresInDays = 7,
 }: InvitationEmailProps) => {
-  const appName = process.env.NEXT_PUBLIC_APP_NAME || process.env.APP_NAME || 'WhaTrack'
+  const appName = resolveAppName()
 
   return (
     <Html>
@@ -89,7 +90,7 @@ export const InvitationEmail = ({
 export default InvitationEmail
 
 export async function generateInvitationEmail(props: InvitationEmailProps) {
-  const appName = process.env.NEXT_PUBLIC_APP_NAME || process.env.APP_NAME || 'WhaTrack'
+  const appName = resolveAppName()
   const subject = `Você foi convidado para ${props.organizationName} no ${appName}`
 
   const text = [

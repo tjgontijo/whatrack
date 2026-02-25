@@ -12,6 +12,7 @@ import {
 } from '@react-email/components'
 import { pretty, render } from '@react-email/render'
 import * as React from 'react'
+import { resolveAppName } from './shared/app-name.server'
 
 interface MagicLinkEmailProps {
   name?: string
@@ -23,85 +24,89 @@ export const MagicLinkEmail = ({
   name = 'Usuário',
   magicLink,
   expiresIn = 20,
-}: MagicLinkEmailProps) => (
-  <Html>
-    <Head />
-    <Preview>🔐 Seu link de acesso - Kadernim</Preview>
-    <Body style={main}>
-      <Container style={container}>
-        {/* Header */}
-        <Section style={header}>
-          <Text style={headerTitle}>Kadernim</Text>
-          <Text style={headerSubtitle}>Plataforma de Gerenciamento Educacional</Text>
-        </Section>
+}: MagicLinkEmailProps) => {
+  const appName = resolveAppName()
 
-        {/* Content */}
-        <Section style={content}>
-          <Text style={greeting}>
-            Olá <strong>{name}</strong>,
-          </Text>
-
-          <Text style={paragraph}>
-            Você solicitou um link de acesso para sua conta no Kadernim. Clique no botão abaixo para
-            acessar sua conta:
-          </Text>
-
-          {/* CTA Button */}
-          <Section style={buttonContainer}>
-            <Button style={button} href={magicLink}>
-              🔐 Acessar Minha Conta
-            </Button>
+  return (
+    <Html>
+      <Head />
+      <Preview>{`🔐 Seu link de acesso - ${appName}`}</Preview>
+      <Body style={main}>
+        <Container style={container}>
+          {/* Header */}
+          <Section style={header}>
+            <Text style={headerTitle}>{appName}</Text>
+            <Text style={headerSubtitle}>Acesso seguro à sua conta</Text>
           </Section>
 
-          {/* Alternative Link */}
-          <Text style={alternativeLink}>Ou copie e cole este link no seu navegador:</Text>
-          <Link href={magicLink} style={linkStyle}>
-            {magicLink}
-          </Link>
-
-          <Hr style={hr} />
-
-          {/* Expiration Notice */}
-          <Section style={warningBox}>
-            <Text style={warningText}>
-              <strong>⏰ Atenção:</strong> Este link expira em <strong>{expiresIn} minutos</strong>.
-              Se você não solicitou este email, ignore-o.
+          {/* Content */}
+          <Section style={content}>
+            <Text style={greeting}>
+              Olá <strong>{name}</strong>,
             </Text>
+
+            <Text style={paragraph}>
+              Você solicitou um link de acesso para sua conta no {appName}. Clique no botão abaixo
+              para acessar sua conta:
+            </Text>
+
+            {/* CTA Button */}
+            <Section style={buttonContainer}>
+              <Button style={button} href={magicLink}>
+                🔐 Acessar Minha Conta
+              </Button>
+            </Section>
+
+            {/* Alternative Link */}
+            <Text style={alternativeLink}>Ou copie e cole este link no seu navegador:</Text>
+            <Link href={magicLink} style={linkStyle}>
+              {magicLink}
+            </Link>
+
+            <Hr style={hr} />
+
+            {/* Expiration Notice */}
+            <Section style={warningBox}>
+              <Text style={warningText}>
+                <strong>⏰ Atenção:</strong> Este link expira em{' '}
+                <strong>{expiresIn} minutos</strong>. Se você não solicitou este email, ignore-o.
+              </Text>
+            </Section>
+
+            {/* Security Notice */}
+            <Text style={securityText}>
+              🔒 <strong>Segurança:</strong> Nunca compartilhe este link com outras pessoas. O{' '}
+              {appName} nunca pedirá sua senha por email.
+            </Text>
+
+            <Section style={supportBox}>
+              <Text style={supportTitle}>Precisa de ajuda?</Text>
+              <Text style={supportText}>
+                📞 WhatsApp:{' '}
+                <Link href="https://wa.me/551148635262" style={linkStyle}>
+                  +55 11 4863-5262
+                </Link>
+              </Text>
+              <Text style={supportText}>
+                ✉️ E-mail:{' '}
+                <Link href="mailto:contato@whatrack.com" style={linkStyle}>
+                  contato@whatrack.com
+                </Link>
+              </Text>
+              <Text style={supportText}>📍 Brasília - DF, Brasil</Text>
+            </Section>
+
+            <Hr style={hr} />
+
+            {/* Footer */}
+            <Text style={footer}>© {new Date().getFullYear()} {appName}. Todos os direitos reservados.</Text>
+            <Text style={footerSmall}>Este é um email automático. Por favor, não responda.</Text>
           </Section>
-
-          {/* Security Notice */}
-          <Text style={securityText}>
-            🔒 <strong>Segurança:</strong> Nunca compartilhe este link com outras pessoas. A
-            Kadernim nunca pedirá sua senha por email.
-          </Text>
-
-          <Section style={supportBox}>
-            <Text style={supportTitle}>Precisa de ajuda?</Text>
-            <Text style={supportText}>
-              📞 WhatsApp:{' '}
-              <Link href="https://wa.me/551148635262" style={linkStyle}>
-                +55 11 4863-5262
-              </Link>
-            </Text>
-            <Text style={supportText}>
-              ✉️ E-mail:{' '}
-              <Link href="mailto:contato@kadernim.com.br" style={linkStyle}>
-                contato@kadernim.com.br
-              </Link>
-            </Text>
-            <Text style={supportText}>📍 Brasília - DF, Brasil</Text>
-          </Section>
-
-          <Hr style={hr} />
-
-          {/* Footer */}
-          <Text style={footer}>© 2025 Kadernim. Todos os direitos reservados.</Text>
-          <Text style={footerSmall}>Este é um email automático. Por favor, não responda.</Text>
-        </Section>
-      </Container>
-    </Body>
-  </Html>
-)
+        </Container>
+      </Body>
+    </Html>
+  )
+}
 
 export default MagicLinkEmail
 
@@ -110,7 +115,8 @@ export async function generateMagicLinkEmail({
   magicLink,
   expiresIn = 20,
 }: MagicLinkEmailProps) {
-  const subject = '🔐 Seu link de acesso - Kadernim'
+  const appName = resolveAppName()
+  const subject = `🔐 Seu link de acesso - ${appName}`
 
   const text = [
     `Olá ${name}!`,
@@ -121,7 +127,7 @@ export async function generateMagicLinkEmail({
     '',
     'Precisa de ajuda?',
     'WhatsApp: +55 11 4863-5262',
-    'E-mail: contato@kadernim.com.br',
+    'E-mail: contato@whatrack.com',
     'Endereço: Brasília - DF, Brasil',
   ].join('\n')
 

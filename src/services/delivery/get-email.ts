@@ -1,5 +1,6 @@
 import { generateMagicLinkEmail } from '@/services/mail/templates/MagicLinkEmail'
 import { generateOtpEmail } from '@/services/mail/templates/OtpEmail'
+import { resolveAppName } from '@/services/mail/templates/shared/app-name.server'
 
 import { DeliveryData, DeliveryType, EmailTemplate } from './types'
 
@@ -9,10 +10,18 @@ export type GetEmailTemplateParams = {
   data: DeliveryData
 }
 
-const otpSubjectMap: Record<Exclude<DeliveryType, 'magic-link'>, string> = {
-  otp: '🔐 Seu código de acesso - Kadernim',
-  'email-verification': '🔐 Código de verificação - Kadernim',
-  'password-reset': '🔐 Código para redefinir senha - Kadernim',
+const buildOtpSubjectMap = (
+  appName: string
+): Record<Exclude<DeliveryType, 'magic-link'>, string> => ({
+  otp: `🔐 Seu código de acesso - ${appName}`,
+  'email-verification': `🔐 Código de verificação - ${appName}`,
+  'password-reset': `🔐 Código para redefinir senha - ${appName}`,
+})
+
+const resolveOtpSubject = (type: Exclude<DeliveryType, 'magic-link'>): string => {
+  const appName = resolveAppName()
+  const subjectMap = buildOtpSubjectMap(appName)
+  return subjectMap[type]
 }
 
 export async function getEmailTemplate({
@@ -38,7 +47,7 @@ export async function getEmailTemplate({
     throw new Error('OTP é obrigatório para envio deste tipo de mensagem')
   }
 
-  const subject = otpSubjectMap[type] ?? '🔐 Código de verificação - Kadernim'
+  const subject = resolveOtpSubject(type)
 
   const template = await generateOtpEmail({ name, otp, expiresIn })
 

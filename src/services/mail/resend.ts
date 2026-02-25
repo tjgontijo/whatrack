@@ -1,34 +1,22 @@
 // src/lib/mail/resend.ts
 import { Resend } from 'resend'
+import { requireEnv } from '@/lib/env/require-env.server'
 import { EmailPayload, EmailResponse, EmailProvider } from './types'
 
-class ResendProvider implements EmailProvider {
-  private client: Resend | null = null
+const RESEND_API_KEY = requireEnv('RESEND_API_KEY')
+const RESEND_FROM = requireEnv('RESEND_FROM')
 
-  constructor() {
-    // Inicializar o cliente Resend se a chave API estiver disponível
-    if (process.env.RESEND_API_KEY) {
-      this.client = new Resend(process.env.RESEND_API_KEY)
-    }
-  }
+class ResendProvider implements EmailProvider {
+  private client: Resend = new Resend(RESEND_API_KEY)
 
   isConfigured(): boolean {
-    return !!this.client && !!process.env.EMAIL_FROM
+    return true
   }
 
   async send(payload: EmailPayload): Promise<EmailResponse> {
     try {
-      if (!this.isConfigured()) {
-        throw new Error('Resend não está configurado. Verifique RESEND_API_KEY e EMAIL_FROM.')
-      }
-
-      const { data, error } = await this.client!.emails.send({
-        from:
-          process.env.RESEND_FROM ||
-          process.env.EMAIL_FROM ||
-          (() => {
-            throw new Error('[Resend] RESEND_FROM environment variable is required')
-          })(),
+      const { data, error } = await this.client.emails.send({
+        from: RESEND_FROM,
         to: payload.to,
         subject: payload.subject,
         html: payload.html || '',

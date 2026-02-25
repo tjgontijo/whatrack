@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 
 import { auditService } from '@/lib/audit.service'
+import { requireEnv } from '@/lib/env/require-env.server'
 import { prisma } from '@/lib/prisma'
 import { legacyOrganizationJson } from '@/server/http/legacy-organization'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
@@ -20,6 +21,7 @@ const createInvitationSchema = z.object({
     .default('user')
     .transform((value) => value.toLowerCase()),
 })
+const APP_URL = requireEnv('APP_URL')
 
 export async function POST(req: NextRequest) {
   const access = await validatePermissionAccess(req, 'manage:team_members')
@@ -141,8 +143,7 @@ export async function POST(req: NextRequest) {
   ])
 
   // Send invitation email (failure does not revert invitation creation)
-  const appUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  const acceptUrl = `${appUrl}/sign-in?invitationId=${invitation.id}`
+  const acceptUrl = `${APP_URL}/sign-in?invitationId=${invitation.id}`
 
   try {
     const inviterUser = await prisma.user.findUnique({
