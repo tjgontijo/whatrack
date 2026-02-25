@@ -67,3 +67,6 @@ node_modules/
 
 # Infra secrets
 /infra/*
+
+# Mastra local storage artifacts
+mastra.db*
