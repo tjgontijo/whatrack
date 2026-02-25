@@ -25,7 +25,7 @@ trap 'echo -e "${RED}❌ Erro ao executar reset-db${NC}"; exit 1' ERR
 
 # 1. Limpeza de arquivos locais e cache
 print_box "🧹 Limpando arquivos locais e cache..."
-rm -rf .next .turbo node_modules/.cache prisma/generated prisma/migrations public/sw.js public/manifest.webmanifest public/*.map public/*.js || true
+rm -rf .next .turbo node_modules/.cache prisma/generated prisma/migrations public/sw.js public/manifest.webmanifest public/*.js || true
 npm cache clean --force
 
 # 3. Instalação de dependências
