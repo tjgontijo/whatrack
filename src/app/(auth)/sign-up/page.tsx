@@ -14,13 +14,6 @@ import { authClient } from '@/lib/auth/auth-client'
 import { signUpSchema, type SignUpData } from '@/schemas/sign-up'
 import { getAuthErrorMessage } from '@/lib/auth/error-messages'
 
-function applyPhoneMask(value: string): string {
-  const digits = value.replace(/\D/g, '').slice(0, 11)
-  if (digits.length <= 2) return digits
-  if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`
-  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`
-}
-
 export default function SignUpPage() {
   const router = useRouter()
 
@@ -29,7 +22,6 @@ export default function SignUpPage() {
     defaultValues: {
       name: '',
       email: '',
-      phone: '',
       password: '',
       confirmPassword: '',
     },
@@ -60,53 +52,6 @@ export default function SignUpPage() {
 
       // 2. Aguardar sincronização da session
       await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      // 3. Criar organização vazia
-      try {
-        const orgResponse = await fetch('/api/v1/organizations', {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: values.name,
-          }),
-        })
-
-        if (!orgResponse.ok) {
-          let message = 'Não foi possível criar sua organização. Tente novamente.'
-          try {
-            const errorData = await orgResponse.json()
-            if (typeof errorData?.error === 'string' && errorData.error.trim()) {
-              message = errorData.error
-            }
-          } catch {
-            // Ignore parse errors and keep fallback message
-          }
-          console.error('[sign-up] Failed to create organization', {
-            status: orgResponse.status,
-          })
-          toast.error(message)
-          return
-        }
-      } catch (orgError) {
-        console.error('[sign-up] Error creating organization:', orgError)
-        toast.error('Não foi possível criar sua organização. Tente novamente.')
-        return
-      }
-
-      // 4. Atualizar phone do usuário
-      if (values.phone) {
-        try {
-          await fetch('/api/v1/users/me', {
-            method: 'PATCH',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phone: values.phone.replace(/\D/g, '') }),
-          })
-        } catch (phoneError) {
-          console.error('[sign-up] Error updating phone:', phoneError)
-        }
-      }
 
       toast.success('Conta criada com sucesso!')
       router.push('/dashboard')
@@ -168,27 +113,6 @@ export default function SignUpPage() {
                   className="focus-visible:ring-primary focus-visible:border-primary h-11 px-4 shadow-sm transition-shadow lg:h-12"
                   disabled={isSubmitting}
                   {...field}
-                />
-                <FieldError errors={[fieldState.error]} />
-              </Field>
-            )}
-          />
-
-          <Controller
-            control={form.control}
-            name="phone"
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>WhatsApp Pessoal</FieldLabel>
-                <Input
-                  id={field.name}
-                  type="tel"
-                  placeholder="(11) 99999-9999"
-                  autoComplete="tel"
-                  className="focus-visible:ring-primary focus-visible:border-primary h-11 px-4 shadow-sm transition-shadow lg:h-12"
-                  disabled={isSubmitting}
-                  {...field}
-                  onChange={(e) => field.onChange(applyPhoneMask(e.target.value))}
                 />
                 <FieldError errors={[fieldState.error]} />
               </Field>

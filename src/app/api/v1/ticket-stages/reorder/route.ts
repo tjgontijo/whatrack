@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
-import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { hasPermission } from '@/lib/auth/rbac/roles'
+import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 
 const reorderSchema = z.object({
   orderedIds: z.array(z.string().uuid()).min(1),
@@ -10,13 +9,9 @@ const reorderSchema = z.object({
 
 // PUT /api/v1/ticket-stages/reorder
 export async function PUT(req: Request) {
-  const access = await validateFullAccess(req)
+  const access = await validatePermissionAccess(req, 'manage:tickets')
   if (!access.hasAccess || !access.organizationId) {
     return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
-  }
-
-  if (!hasPermission(access.role, 'manage:tickets')) {
-    return NextResponse.json({ error: 'Sem permissão' }, { status: 403 })
   }
 
   const organizationId = access.organizationId

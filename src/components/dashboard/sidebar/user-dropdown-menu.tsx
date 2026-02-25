@@ -2,20 +2,7 @@
 
 import * as React from 'react'
 import { useRouter } from 'next/navigation'
-import {
-  ChevronsUpDown,
-  Sparkles,
-  Settings,
-  CreditCard,
-  Bell,
-  LogOut,
-  Building2,
-  User,
-  Users,
-  Sun,
-  Moon,
-  Monitor,
-} from 'lucide-react'
+import { ChevronsUpDown, LogOut, User, Sun, Moon, Monitor } from 'lucide-react'
 import { useTheme } from 'next-themes'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -34,7 +21,6 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { SidebarMenuButton } from '@/components/ui/sidebar'
 import { authClient } from '@/lib/auth/auth-client'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 interface UserDropdownMenuProps {
   userName: string
@@ -45,8 +31,12 @@ interface UserDropdownMenuProps {
 export function UserDropdownMenu({ userName, userEmail, userImage }: UserDropdownMenuProps) {
   const router = useRouter()
   const { setTheme } = useTheme()
-  const [avatarLoaded, setAvatarLoaded] = React.useState(false)
+  const [mounted, setMounted] = React.useState(false)
   const [avatarError, setAvatarError] = React.useState(false)
+
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const initials = React.useMemo(() => {
     const name = (userName ?? '').trim()
@@ -78,6 +68,35 @@ export function UserDropdownMenu({ userName, userEmail, userImage }: UserDropdow
     }
   }
 
+  const userSummary = (
+    <>
+      <Avatar className="h-8 w-8 rounded-lg">
+        {userImage && !avatarError && (
+          <AvatarImage src={userImage} alt={userName} onError={() => setAvatarError(true)} />
+        )}
+        <AvatarFallback className="bg-primary/10 text-primary rounded-lg">
+          {initials}
+        </AvatarFallback>
+      </Avatar>
+      <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
+        <span className="truncate font-semibold">{userName || 'Usuário'}</span>
+        <span className="text-muted-foreground truncate text-xs">{userEmail}</span>
+      </div>
+      <ChevronsUpDown className="ml-auto size-4 group-data-[collapsible=icon]:hidden" />
+    </>
+  )
+
+  if (!mounted) {
+    return (
+      <SidebarMenuButton
+        size="lg"
+        className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+      >
+        {userSummary}
+      </SidebarMenuButton>
+    )
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -85,26 +104,7 @@ export function UserDropdownMenu({ userName, userEmail, userImage }: UserDropdow
           size="lg"
           className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
         >
-          <>
-            <Avatar className="h-8 w-8 rounded-lg">
-              {userImage && !avatarError && (
-                <AvatarImage
-                  src={userImage}
-                  alt={userName}
-                  onLoad={() => setAvatarLoaded(true)}
-                  onError={() => setAvatarError(true)}
-                />
-              )}
-              <AvatarFallback className="bg-primary/10 text-primary rounded-lg">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
-            <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
-              <span className="truncate font-semibold">{userName || 'Usuário'}</span>
-              <span className="text-muted-foreground truncate text-xs">{userEmail}</span>
-            </div>
-          </>
-          <ChevronsUpDown className="ml-auto size-4 group-data-[collapsible=icon]:hidden" />
+          {userSummary}
         </SidebarMenuButton>
       </DropdownMenuTrigger>
 
@@ -131,20 +131,10 @@ export function UserDropdownMenu({ userName, userEmail, userImage }: UserDropdow
 
         <DropdownMenuSeparator />
 
-        <DropdownMenuSeparator />
-
         <DropdownMenuGroup>
-          <DropdownMenuItem onSelect={() => handleNavigate('/dashboard/settings/organization')}>
-            <Building2 className="mr-2 h-4 w-4" />
-            Empresa
-          </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => handleNavigate('/dashboard/settings/profile')}>
+          <DropdownMenuItem onSelect={() => handleNavigate('/dashboard/minha-conta')}>
             <User className="mr-2 h-4 w-4" />
-            Perfil
-          </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => handleNavigate('/dashboard/settings/team')}>
-            <Users className="mr-2 h-4 w-4" />
-            Equipe
+            Minha Conta
           </DropdownMenuItem>
         </DropdownMenuGroup>
 

@@ -29,7 +29,7 @@ export function CTA() {
             className="text-primary h-14 bg-white px-8 text-lg font-bold shadow-xl shadow-black/10 transition-transform hover:-translate-y-1 hover:bg-white/90"
             asChild
           >
-            <Link href="/auth/sign-up">
+            <Link href="/sign-up">
               Começar meus 7 Dias Grátis
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>

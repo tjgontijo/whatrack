@@ -3,7 +3,6 @@
 import { Fragment } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { useQueryClient } from '@tanstack/react-query'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import {
   Breadcrumb,
@@ -23,6 +22,7 @@ const ROUTE_LABELS: Record<string, string> = {
   tickets: 'Tickets',
   sales: 'Vendas',
   items: 'Itens',
+  'item-categories': 'Categorias',
   settings: 'Configurações',
   'settings/whatsapp': 'WhatsApp',
   'settings/whatsapp/webhooks': 'Webhook Meta',
@@ -30,35 +30,29 @@ const ROUTE_LABELS: Record<string, string> = {
   'settings/profile': 'Perfil',
   'settings/organization': 'Organização',
   'settings/team': 'Equipe',
+  'minha-conta': 'Minha Conta',
+  equipe: 'Organização',
   'meta-ads': 'Meta Ads',
   chat: 'Chat',
   'send-test': 'Teste de Envio',
 }
 
-function getRouteLabel(segment: string, fullPath: string, queryClient: any): string {
-  // 1. Check if we have a dynamic WhatsApp phone number in cache
-  if (fullPath.startsWith('settings/whatsapp/')) {
-    const phoneId = segment
-    // Try to find the phone in the "listPhoneNumbers" query cache
-    const phoneNumbers = queryClient.getQueryData(['whatsapp', 'phone-numbers']) as any[]
-    if (phoneNumbers) {
-      const phone = phoneNumbers.find((p: any) => p.id === phoneId)
-      if (phone) return phone.display_phone_number
-    }
-  }
-
-  // 2. Try full path from mapping
+function getRouteLabel(segment: string, fullPath: string): string {
+  // 1. Try full path from mapping
   if (ROUTE_LABELS[fullPath]) {
     return ROUTE_LABELS[fullPath]
   }
-  // 3. Fall back to segment
+  // 2. Fall back to segment
   if (ROUTE_LABELS[segment]) {
     return ROUTE_LABELS[segment]
   }
-  // 4. Case-by-case friendly names
+  // 3. Case-by-case friendly names
   if (segment === 'whatsapp') return 'WhatsApp'
+  if (fullPath.startsWith('settings/whatsapp/') && /^[a-zA-Z0-9_-]{8,}$/.test(segment)) {
+    return 'Instância'
+  }
 
-  // Capitalize first letter as fallback
+  // 4. Capitalize first letter as fallback
   return segment.charAt(0).toUpperCase() + segment.slice(1)
 }
 
@@ -68,7 +62,7 @@ type BreadcrumbItemData = {
   isCurrentPage: boolean
 }
 
-function generateBreadcrumbs(pathname: string, queryClient: any): BreadcrumbItemData[] {
+function generateBreadcrumbs(pathname: string): BreadcrumbItemData[] {
   const withoutDashboard = pathname.replace(/^\/dashboard\/?/, '')
 
   if (!withoutDashboard) {
@@ -85,7 +79,7 @@ function generateBreadcrumbs(pathname: string, queryClient: any): BreadcrumbItem
     const isLast = index === segments.length - 1
 
     breadcrumbs.push({
-      label: getRouteLabel(segment, currentPath, queryClient),
+      label: getRouteLabel(segment, currentPath),
       href: `/dashboard/${currentPath}`,
       isCurrentPage: isLast,
     })
@@ -96,8 +90,7 @@ function generateBreadcrumbs(pathname: string, queryClient: any): BreadcrumbItem
 
 export function DashboardHeader() {
   const pathname = usePathname()
-  const queryClient = useQueryClient()
-  const breadcrumbs = generateBreadcrumbs(pathname, queryClient)
+  const breadcrumbs = generateBreadcrumbs(pathname)
 
   return (
     <header className="bg-background flex h-[65px] shrink-0 items-center gap-2 border-b px-4">

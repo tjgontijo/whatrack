@@ -23,8 +23,6 @@ export type ItemListItem = {
     id: string
     name: string
   } | null
-  price: number | null
-  cost: number | null
   createdAt: string
   updatedAt: string
 }
@@ -48,16 +46,6 @@ function normalizePageSize(input?: number) {
     return DEFAULT_PAGE_SIZE
   }
   return value
-}
-
-function toDecimal(value: number | null | undefined) {
-  if (value == null) return undefined
-  return new Prisma.Decimal(value)
-}
-
-function decimalToNumber(value: Prisma.Decimal | null | undefined) {
-  if (value == null) return null
-  return Number(value)
 }
 
 export async function listItems(params: ListItemsParams): Promise<ItemListResponse> {
@@ -106,8 +94,6 @@ export async function listItems(params: ListItemsParams): Promise<ItemListRespon
       name: item.name,
       active: item.active,
       category: item.category ? { id: item.category.id, name: item.category.name } : null,
-      price: decimalToNumber(item.price),
-      cost: decimalToNumber(item.cost),
       createdAt: item.createdAt.toISOString(),
       updatedAt: item.updatedAt.toISOString(),
     })),
@@ -121,8 +107,6 @@ export type CreateItemParams = {
   organizationId: string
   name: string
   categoryId?: string | null
-  price?: number | null
-  cost?: number | null
 }
 
 export async function createItem(params: CreateItemParams): Promise<ItemListItem> {
@@ -131,8 +115,6 @@ export async function createItem(params: CreateItemParams): Promise<ItemListItem
       organizationId: params.organizationId,
       name: params.name.trim(),
       categoryId: params.categoryId ?? undefined,
-      price: toDecimal(params.price),
-      cost: toDecimal(params.cost),
       active: true,
     },
     include: {
@@ -147,8 +129,6 @@ export async function createItem(params: CreateItemParams): Promise<ItemListItem
     name: created.name,
     active: created.active,
     category: created.category ? { id: created.category.id, name: created.category.name } : null,
-    price: decimalToNumber(created.price),
-    cost: decimalToNumber(created.cost),
     createdAt: created.createdAt.toISOString(),
     updatedAt: created.updatedAt.toISOString(),
   }
@@ -166,6 +146,7 @@ export type ItemCategoryListItem = {
   id: string
   name: string
   active: boolean
+  itemsCount: number
   createdAt: string
   updatedAt: string
 }
@@ -206,6 +187,13 @@ export async function listItemCategories(
       orderBy: { createdAt: 'desc' },
       skip: (page - 1) * pageSize,
       take: pageSize,
+      include: {
+        _count: {
+          select: {
+            items: true,
+          },
+        },
+      },
     }),
     prisma.itemCategory.count({ where }),
   ])
@@ -215,6 +203,7 @@ export async function listItemCategories(
       id: category.id,
       name: category.name,
       active: category.active,
+      itemsCount: category._count.items,
       createdAt: category.createdAt.toISOString(),
       updatedAt: category.updatedAt.toISOString(),
     })),
@@ -244,6 +233,7 @@ export async function createItemCategory(
     id: created.id,
     name: created.name,
     active: created.active,
+    itemsCount: 0,
     createdAt: created.createdAt.toISOString(),
     updatedAt: created.updatedAt.toISOString(),
   }

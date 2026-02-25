@@ -26,18 +26,15 @@ import {
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 
-import { ItemFormDialog } from './item-form-dialog'
+import { ItemFormDrawer } from './item-form-drawer'
 import { ORGANIZATION_HEADER } from '@/lib/constants'
 import { authClient } from '@/lib/auth/auth-client'
-import { formatCurrencyBRL } from '@/lib/mask/formatters'
 
 type Item = {
   id: string
   name: string
   active: boolean
   category: { id: string; name: string } | null
-  price: number | null
-  cost: number | null
   createdAt: string
   updatedAt: string
 }
@@ -63,18 +60,6 @@ const columns: ColumnDef<Item>[] = [
     label: 'Categoria',
     width: 180,
     render: (item) => item.category?.name ?? <span className="text-muted-foreground">—</span>,
-  },
-  {
-    key: 'price',
-    label: 'Preço',
-    width: 140,
-    render: (item) => formatCurrencyBRL(item.price),
-  },
-  {
-    key: 'cost',
-    label: 'Custo',
-    width: 140,
-    render: (item) => formatCurrencyBRL(item.cost),
   },
   {
     key: 'active',
@@ -103,9 +88,7 @@ const cardConfig: CardConfig<Item> = {
       {item.active ? 'Ativo' : 'Inativo'}
     </Badge>
   ),
-  footer: (item) => (
-    <span className="text-foreground text-xs font-semibold">{formatCurrencyBRL(item.price)}</span>
-  ),
+  footer: (item) => <span className="text-muted-foreground text-xs">{item.category?.name ?? 'Sem categoria'}</span>,
 }
 
 export function ItemsTable() {
@@ -116,7 +99,7 @@ export function ItemsTable() {
   const [searchInput, setSearchInput] = useState('')
   const [status, setStatus] = useState<string>('all')
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
-  const [isItemFormDialogOpen, setIsItemFormDialogOpen] = useState(false)
+  const [isItemFormDrawerOpen, setIsItemFormDrawerOpen] = useState(false)
 
   const [debouncedSearch, setDebouncedSearch] = React.useState('')
   const debounceRef = React.useRef<NodeJS.Timeout>(null)
@@ -209,7 +192,7 @@ export function ItemsTable() {
         title="Itens"
         showTitle={false}
         icon={Package2}
-        onAdd={() => setIsItemFormDialogOpen(true)}
+        onAdd={() => setIsItemFormDrawerOpen(true)}
         view={view}
         setView={setView}
         enabledViews={['list', 'cards']}
@@ -244,10 +227,10 @@ export function ItemsTable() {
         />
       </CrudPageShell>
 
-      <ItemFormDialog
+      <ItemFormDrawer
         categories={categories}
-        open={isItemFormDialogOpen}
-        onOpenChange={setIsItemFormDialogOpen}
+        open={isItemFormDrawerOpen}
+        onOpenChange={setIsItemFormDrawerOpen}
         onSuccess={() => {
           void categoriesQuery.refetch()
           void refetch()

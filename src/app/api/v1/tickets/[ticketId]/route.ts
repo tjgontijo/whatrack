@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/api-response'
 import { revalidateTag } from 'next/cache'
 
-import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { hasPermission } from '@/lib/auth/rbac/roles'
+import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { updateTicketSchema } from '@/lib/validations/ticket-schemas'
 import { metaCapiService } from '@/services/meta-ads/capi.service'
 import { getTicketById, updateTicket } from '@/services/tickets/ticket.service'
@@ -22,12 +21,9 @@ function getCapiEventForStage(stageName: string): 'LeadSubmitted' | 'Purchase' |
 }
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ ticketId: string }> }) {
-  const access = await validateFullAccess(req)
+  const access = await validatePermissionAccess(req, 'view:tickets')
   if (!access.hasAccess || !access.organizationId) {
     return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
-  }
-  if (!hasPermission(access.role, 'view:tickets')) {
-    return NextResponse.json({ error: 'Sem permissão para visualizar tickets' }, { status: 403 })
   }
 
   const { ticketId } = await params
@@ -48,12 +44,9 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ ticketId: string }> }
 ) {
-  const access = await validateFullAccess(req)
+  const access = await validatePermissionAccess(req, 'manage:tickets')
   if (!access.hasAccess || !access.organizationId) {
     return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
-  }
-  if (!hasPermission(access.role, 'manage:tickets')) {
-    return NextResponse.json({ error: 'Sem permissão para atualizar tickets' }, { status: 403 })
   }
 
   const { ticketId } = await params

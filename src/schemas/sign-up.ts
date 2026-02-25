@@ -7,10 +7,6 @@ export const signUpSchema = z
   .object({
     name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
     email: z.string().email('Email inválido'),
-    phone: z
-      .string()
-      .min(14, 'WhatsApp inválido') // (11) 99999-9999 = 15 chars, mínimo (11) 9999-9999 = 14
-      .regex(/^\(\d{2}\) \d{4,5}-\d{4}$/, 'Formato inválido'),
     password: z.string().min(8, 'Senha deve ter pelo menos 8 caracteres'),
     confirmPassword: z.string().min(1, 'Confirme sua senha'),
   })

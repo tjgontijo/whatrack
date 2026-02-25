@@ -44,6 +44,7 @@ export function OrganizationSelectorGate() {
 
   if (!session || activeOrg || loadingActive) return null
   if (loadingList) return null
+  if (orgs.length === 0) return null
 
   const handleSelect = async () => {
     if (!selectedId) {

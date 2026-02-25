@@ -73,7 +73,7 @@ export function LandingHeader({ variant = 'generic' }: LandingHeaderProps) {
         {/* Action Buttons */}
         <div className="flex items-center gap-4">
           <Link
-            href="/auth/sign-in"
+            href="/sign-in"
             className="text-muted-foreground hover:text-foreground hidden text-sm font-semibold transition-colors sm:block"
           >
             Entrar
@@ -82,7 +82,7 @@ export function LandingHeader({ variant = 'generic' }: LandingHeaderProps) {
             className="shadow-primary/20 hover:shadow-primary/40 h-10 px-5 font-bold shadow-sm transition-all hover:-translate-y-0.5"
             asChild
           >
-            <Link href="/auth/sign-up">Testar Grátis</Link>
+            <Link href="/sign-up">Testar Grátis</Link>
           </Button>
         </div>
       </div>

@@ -1,21 +1,17 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth/auth'
-import { headers } from 'next/headers'
 import { MetaCloudService } from '@/services/whatsapp/meta-cloud.service'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: Request) {
   try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    })
-
-    if (!session?.session?.activeOrganizationId) {
+    const access = await validateFullAccess(request)
+    if (!access.hasAccess || !access.organizationId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const config = await MetaCloudService.getConfig(session.session.activeOrganizationId)
+    const config = await MetaCloudService.getConfig(access.organizationId)
 
     if (!config || !config.wabaId) {
       return NextResponse.json(
@@ -43,16 +39,13 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    })
-
-    if (!session?.session?.activeOrganizationId) {
+    const access = await validateFullAccess(request)
+    if (!access.hasAccess || !access.organizationId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const body = await request.json()
-    const config = await MetaCloudService.getConfig(session.session.activeOrganizationId)
+    const config = await MetaCloudService.getConfig(access.organizationId)
 
     console.log('[API] RECEBIDA REQUISIÇÃO PARA CRIAR TEMPLATE:', JSON.stringify(body, null, 2))
 
@@ -83,11 +76,8 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    })
-
-    if (!session?.session?.activeOrganizationId) {
+    const access = await validateFullAccess(request)
+    if (!access.hasAccess || !access.organizationId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -102,7 +92,7 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: 'Components array is required' }, { status: 400 })
     }
 
-    const config = await MetaCloudService.getConfig(session.session.activeOrganizationId)
+    const config = await MetaCloudService.getConfig(access.organizationId)
 
     if (!config || !config.wabaId) {
       return NextResponse.json(
@@ -130,11 +120,8 @@ export async function PUT(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    })
-
-    if (!session?.session?.activeOrganizationId) {
+    const access = await validateFullAccess(request)
+    if (!access.hasAccess || !access.organizationId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -145,7 +132,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Template name is required' }, { status: 400 })
     }
 
-    const config = await MetaCloudService.getConfig(session.session.activeOrganizationId)
+    const config = await MetaCloudService.getConfig(access.organizationId)
 
     if (!config || !config.wabaId) {
       return NextResponse.json(

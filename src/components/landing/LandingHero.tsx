@@ -38,7 +38,7 @@ export function LandingHero({ content }: LandingHeroProps) {
             className="shadow-primary/20 hover:shadow-primary/40 h-14 px-8 text-lg font-bold shadow-xl transition-all hover:-translate-y-1"
             asChild
           >
-            <Link href="/auth/sign-up">
+            <Link href="/sign-up">
               {content.ctaPrimary}
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>

@@ -2,6 +2,7 @@ import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth/auth'
 import { prisma } from '@/lib/prisma'
+import { applyOrganizationLegacyHeaders } from '@/server/http/legacy-organization'
 
 async function getSessionFromRequest(req: NextRequest) {
   const headers = new Headers(req.headers)
@@ -20,7 +21,10 @@ export async function GET(req: NextRequest) {
   const session = await getSessionFromRequest(req)
 
   if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return applyOrganizationLegacyHeaders(
+      NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
+      '/api/v1/me/account'
+    )
   }
 
   const user = await prisma.user.findUnique({
@@ -34,14 +38,17 @@ export async function GET(req: NextRequest) {
     },
   })
 
-  return NextResponse.json(user)
+  return applyOrganizationLegacyHeaders(NextResponse.json(user), '/api/v1/me/account')
 }
 
 export async function PUT(req: NextRequest) {
   const session = await getSessionFromRequest(req)
 
   if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return applyOrganizationLegacyHeaders(
+      NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
+      '/api/v1/me/account'
+    )
   }
 
   const body = await req.json()
@@ -57,14 +64,17 @@ export async function PUT(req: NextRequest) {
     },
   })
 
-  return NextResponse.json(updated)
+  return applyOrganizationLegacyHeaders(NextResponse.json(updated), '/api/v1/me/account')
 }
 
 export async function PATCH(req: NextRequest) {
   const session = await getSessionFromRequest(req)
 
   if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return applyOrganizationLegacyHeaders(
+      NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
+      '/api/v1/me/account'
+    )
   }
 
   const body = await req.json()
@@ -86,5 +96,5 @@ export async function PATCH(req: NextRequest) {
     },
   })
 
-  return NextResponse.json(updated)
+  return applyOrganizationLegacyHeaders(NextResponse.json(updated), '/api/v1/me/account')
 }

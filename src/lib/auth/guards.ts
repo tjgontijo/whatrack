@@ -7,6 +7,7 @@ export interface AuthenticatedUser {
   email: string
   role: UserRole
   activeOrganizationId: string | null
+  activeTeamId: string | null
 }
 
 /**
@@ -26,6 +27,7 @@ export async function requireAuth(request: NextRequest): Promise<AuthenticatedUs
     email: session.user.email,
     role: session.user.role as UserRole,
     activeOrganizationId: session.session.activeOrganizationId || null,
+    activeTeamId: session.session.activeOrganizationId || null,
   }
 }
 
@@ -72,7 +74,9 @@ export async function requirePermission(
  */
 export async function requireOrganization(
   request: NextRequest
-): Promise<(AuthenticatedUser & { activeOrganizationId: string }) | NextResponse> {
+): Promise<
+  (AuthenticatedUser & { activeTeamId: string; activeOrganizationId: string }) | NextResponse
+> {
   const user = await requireAuth(request)
 
   if (user instanceof NextResponse) return user
@@ -81,5 +85,20 @@ export async function requireOrganization(
     return NextResponse.json({ error: 'No active organization selected' }, { status: 400 })
   }
 
-  return user as AuthenticatedUser & { activeOrganizationId: string }
+  return {
+    ...user,
+    activeOrganizationId: user.activeOrganizationId,
+    activeTeamId: user.activeOrganizationId,
+  }
+}
+
+/**
+ * Backward-compatible alias.
+ */
+export async function requireTeam(
+  request: NextRequest
+): Promise<
+  (AuthenticatedUser & { activeTeamId: string; activeOrganizationId: string }) | NextResponse
+> {
+  return requireOrganization(request)
 }

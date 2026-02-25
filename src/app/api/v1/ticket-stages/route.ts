@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
-import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { hasPermission } from '@/lib/auth/rbac/roles'
+import { validateFullAccess, validatePermissionAccess } from '@/server/auth/validate-organization-access'
 
 const createStageSchema = z.object({
   name: z.string().min(1).max(60),
@@ -43,13 +42,9 @@ export async function GET(req: Request) {
 
 // POST /api/v1/ticket-stages — create stage
 export async function POST(req: Request) {
-  const access = await validateFullAccess(req)
+  const access = await validatePermissionAccess(req, 'manage:tickets')
   if (!access.hasAccess || !access.organizationId) {
     return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
-  }
-
-  if (!hasPermission(access.role, 'manage:tickets')) {
-    return NextResponse.json({ error: 'Sem permissão' }, { status: 403 })
   }
 
   const organizationId = access.organizationId

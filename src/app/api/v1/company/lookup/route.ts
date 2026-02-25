@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { fetchCnpjData, ReceitaWsError } from '@/services/company/receitaws'
+import { getOrSyncUser } from '@/server/auth/server'
 import { lookupCnpjSchema } from '../schemas'
 
 /**
@@ -10,9 +10,9 @@ import { lookupCnpjSchema } from '../schemas'
  * Query params: cnpj (obrigatório)
  */
 export async function GET(request: NextRequest) {
-  const access = await validateFullAccess(request)
-  if (!access.hasAccess || !access.organizationId) {
-    return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
+  const user = await getOrSyncUser(request)
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   try {

@@ -17,9 +17,21 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 const PERIOD_PRESET_LABELS: Record<AuditLogPeriodPreset, string> = {
   today: 'Hoje',
@@ -98,23 +110,13 @@ function extractChangedFields(before: unknown, after: unknown): string[] {
   return changed
 }
 
-function getOrganizationName(log: AuditLogWithRelations): string {
-  const value = log.organization?.name?.trim()
-  return value || 'Organização removida'
-}
-
-function getOrganizationSlug(log: AuditLogWithRelations): string {
-  const value = log.organization?.slug?.trim()
-  return value || log.organizationId || '—'
-}
-
 function JsonViewer({ data }: { data: unknown }) {
   if (data === null || data === undefined) {
     return <span className="text-muted-foreground italic">N/A</span>
   }
 
   return (
-    <pre className="bg-muted overflow-x-auto rounded-md p-4 text-xs whitespace-pre-wrap">
+    <pre className="bg-muted overflow-x-auto whitespace-pre-wrap rounded-md p-4 text-xs">
       {JSON.stringify(data, null, 2)}
     </pre>
   )
@@ -142,9 +144,9 @@ function AuditLogDetails({ log }: { log: AuditLogWithRelations }) {
               </p>
             </div>
             <div>
-              <p className="text-muted-foreground text-sm font-medium">Organização</p>
-              <p className="font-semibold">{getOrganizationName(log)}</p>
-              <p className="text-muted-foreground text-xs">{getOrganizationSlug(log)}</p>
+              <p className="text-muted-foreground text-sm font-medium">Equipe</p>
+              <p className="font-semibold">Equipe ativa</p>
+              <p className="text-muted-foreground text-xs">{log.organizationId || '—'}</p>
             </div>
           </div>
 
@@ -235,11 +237,15 @@ function CustomDatePicker({
       <PopoverTrigger asChild>
         <Button
           variant="outline"
-          className="w-full justify-start text-left font-normal data-[empty=true]:text-muted-foreground"
+          className="data-[empty=true]:text-muted-foreground w-full justify-start text-left font-normal"
           data-empty={!selectedDate}
         >
           <CalendarIcon className="h-4 w-4" />
-          {selectedDate ? format(selectedDate, 'dd/MM/yyyy', { locale: ptBR }) : <span>{placeholder}</span>}
+          {selectedDate ? (
+            format(selectedDate, 'dd/MM/yyyy', { locale: ptBR })
+          ) : (
+            <span>{placeholder}</span>
+          )}
         </Button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-auto p-0">
@@ -262,27 +268,18 @@ export function AuditLogsTable() {
   const [startDate, setStartDate] = React.useState(defaultRange.startDate)
   const [endDate, setEndDate] = React.useState(defaultRange.endDate)
   const [resourceType, setResourceType] = React.useState('all')
-  const [organizationId, setOrganizationId] = React.useState('all')
 
   const isCustomPeriodInvalid = periodPreset === 'custom' && (!startDate || !endDate)
 
-  const {
-    logs,
-    isLoading,
-    isError,
-    error,
-    hasNextPage,
-    fetchNextPage,
-    isFetchingNextPage,
-  } = useAuditLogsInfinite({
-    periodPreset,
-    startDate: periodPreset === 'custom' ? startDate : undefined,
-    endDate: periodPreset === 'custom' ? endDate : undefined,
-    resourceType: resourceType === 'all' ? undefined : resourceType,
-    organizationId: organizationId === 'all' ? undefined : organizationId,
-    pageSize: 50,
-    enabled: !isCustomPeriodInvalid,
-  })
+  const { logs, isLoading, isError, error, hasNextPage, fetchNextPage, isFetchingNextPage } =
+    useAuditLogsInfinite({
+      periodPreset,
+      startDate: periodPreset === 'custom' ? startDate : undefined,
+      endDate: periodPreset === 'custom' ? endDate : undefined,
+      resourceType: resourceType === 'all' ? undefined : resourceType,
+      pageSize: 50,
+      enabled: !isCustomPeriodInvalid,
+    })
 
   const filtersQuery = useAuditLogFilters()
 
@@ -361,25 +358,6 @@ export function AuditLogsTable() {
 
           <div className="space-y-1">
             <p className="text-muted-foreground text-[11px] font-semibold uppercase tracking-wide">
-              Organização
-            </p>
-            <Select value={organizationId} onValueChange={setOrganizationId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Todas as organizações" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas as organizações</SelectItem>
-                {(filtersQuery.data?.organizations ?? []).map((organization) => (
-                  <SelectItem key={organization.id} value={organization.id}>
-                    {organization.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-1">
-            <p className="text-muted-foreground text-[11px] font-semibold uppercase tracking-wide">
               Recurso
             </p>
             <Select value={resourceType} onValueChange={setResourceType}>
@@ -412,7 +390,9 @@ export function AuditLogsTable() {
         )}
 
         {isCustomPeriodInvalid && (
-          <p className="text-destructive mt-2 text-xs">Informe data inicial e final no período customizado.</p>
+          <p className="text-destructive mt-2 text-xs">
+            Informe data inicial e final no período customizado.
+          </p>
         )}
       </div>
 
@@ -466,9 +446,6 @@ export function AuditLogsTable() {
                   Data/Hora
                 </th>
                 <th className="text-muted-foreground px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide">
-                  Organização
-                </th>
-                <th className="text-muted-foreground px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide">
                   Usuário
                 </th>
                 <th className="text-muted-foreground px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide">
@@ -488,12 +465,8 @@ export function AuditLogsTable() {
 
               return (
                 <>
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td className="whitespace-nowrap px-4 py-3">
                     {format(new Date(log.createdAt), 'dd/MM/yyyy HH:mm:ss', { locale: ptBR })}
-                  </td>
-                  <td className="px-4 py-3">
-                    <p className="text-sm font-medium">{getOrganizationName(log)}</p>
-                    <p className="text-muted-foreground text-xs">{getOrganizationSlug(log)}</p>
                   </td>
                   <td className="px-4 py-3">
                     <UserCell log={log} />

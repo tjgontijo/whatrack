@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { hasPermission } from '@/lib/auth/rbac/roles'
+import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 
 /**
  * GET /api/v1/conversations/:conversationId/ticket
@@ -14,14 +13,10 @@ export async function GET(
   { params }: { params: Promise<{ conversationId: string }> }
 ) {
   try {
-    const access = await validateFullAccess(request)
+    const access = await validatePermissionAccess(request, 'view:tickets')
 
     if (!access.hasAccess || !access.organizationId) {
       return NextResponse.json({ error: access.error || 'Unauthorized' }, { status: 401 })
-    }
-
-    if (!hasPermission(access.role, 'view:tickets')) {
-      return NextResponse.json({ error: 'Sem permissão para visualizar tickets' }, { status: 403 })
     }
 
     const { conversationId } = await params

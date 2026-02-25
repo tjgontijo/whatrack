@@ -9,7 +9,7 @@ import { CrudDataView, CrudEmptyState } from '@/components/dashboard/crud/crud-d
 import { CrudListView } from '@/components/dashboard/crud/crud-list-view'
 import { CrudCardView } from '@/components/dashboard/crud/crud-card-view'
 import { useCrudInfiniteQuery } from '@/hooks/use-crud-infinite-query'
-import { NewLeadDialog } from '@/components/dashboard/leads/new-lead_dialog'
+import { NewLeadDrawer } from '@/components/dashboard/leads/new-lead-drawer'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
   Select,
@@ -113,7 +113,7 @@ export default function ClientLeadsTable() {
   const [view, setView] = useState<ViewType>('list')
   const [searchInput, setSearchInput] = useState('')
   const [dateRange, setDateRange] = useState<string>('7d')
-  const [isNewLeadDialogOpen, setIsNewLeadDialogOpen] = useState(false)
+  const [isNewLeadDrawerOpen, setIsNewLeadDrawerOpen] = useState(false)
 
   const [debouncedSearch, setDebouncedSearch] = React.useState('')
   const debounceRef = React.useRef<NodeJS.Timeout>(null)
@@ -167,7 +167,7 @@ export default function ClientLeadsTable() {
         title="Leads"
         showTitle={false}
         icon={Users}
-        onAdd={() => setIsNewLeadDialogOpen(true)}
+        onAdd={() => setIsNewLeadDrawerOpen(true)}
         view={view}
         setView={setView}
         enabledViews={['list', 'cards']}
@@ -202,7 +202,7 @@ export default function ClientLeadsTable() {
         />
       </CrudPageShell>
 
-      <NewLeadDialog open={isNewLeadDialogOpen} onOpenChange={setIsNewLeadDialogOpen} />
+      <NewLeadDrawer open={isNewLeadDrawerOpen} onOpenChange={setIsNewLeadDrawerOpen} />
     </>
   )
 }

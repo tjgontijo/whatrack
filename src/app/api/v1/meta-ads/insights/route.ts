@@ -1,31 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
 import { z } from 'zod'
-import { auth } from '@/lib/auth/auth'
 import { metaAdInsightsService } from '@/services/meta-ads/ad-insights.service'
-
-async function getSessionFromRequest(req: NextRequest) {
-  const headers = new Headers(req.headers)
-  if (!headers.get('cookie')) {
-    const cookieStore = await cookies()
-    const cookieHeader = cookieStore
-      .getAll()
-      .map((cookie) => `${cookie.name}=${cookie.value}`)
-      .join('; ')
-    if (cookieHeader) headers.set('cookie', cookieHeader)
-  }
-  return auth.api.getSession({ headers })
-}
+import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 
 const insightsQuerySchema = z.object({
-  organizationId: z.string().min(1),
+  organizationId: z.string().min(1).optional(),
+  teamId: z.string().min(1).optional(),
   days: z.coerce.number().int().min(1).max(365).default(30),
 })
 
 export async function GET(req: NextRequest) {
-  const session = await getSessionFromRequest(req)
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const access = await validatePermissionAccess(req, 'view:campaigns')
+  if (!access.hasAccess || !access.teamId) {
+    return NextResponse.json({ error: access.error ?? 'Unauthorized' }, { status: 401 })
   }
 
   const { searchParams } = new URL(req.url)
@@ -36,9 +23,12 @@ export async function GET(req: NextRequest) {
       { status: 400 }
     )
   }
-  const { organizationId, days } = parsed.data
+  const scopedTeamId = parsed.data.teamId ?? parsed.data.organizationId ?? access.teamId
+  if (scopedTeamId !== access.teamId) {
+    return NextResponse.json({ error: 'Forbidden for requested team' }, { status: 403 })
+  }
 
-  const roi = await metaAdInsightsService.getROI(organizationId, days)
+  const roi = await metaAdInsightsService.getROI(access.teamId, parsed.data.days)
 
   return NextResponse.json(roi)
 }

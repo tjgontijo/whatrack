@@ -16,6 +16,7 @@ export function DashboardSidebar() {
     { title: 'Tickets', href: '/dashboard/tickets', icon: 'Kanban' },
     { title: 'Vendas', href: '/dashboard/sales', icon: 'ShoppingBag' },
     { title: 'Itens', href: '/dashboard/items', icon: 'Package' },
+    { title: 'Categorias', href: '/dashboard/item-categories', icon: 'Package' },
     { title: 'Meta Ads', href: '/dashboard/meta-ads/campaigns', icon: 'Meta' },
   ]
 

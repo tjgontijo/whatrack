@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth/auth'
-import { headers } from 'next/headers'
 import { prisma } from '@/lib/prisma'
 import { MetaCloudService } from '@/services/whatsapp/meta-cloud.service'
 import { encryptToken } from '@/lib/whatsapp/token-crypto'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 export const dynamic = 'force-dynamic'
 
@@ -39,15 +38,12 @@ export async function POST(request: Request) {
   )
 
   try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    })
-
-    if (!session?.session?.activeOrganizationId) {
+    const access = await validateFullAccess(request)
+    if (!access.hasAccess || !access.organizationId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const orgId = session.session.activeOrganizationId
+    const orgId = access.organizationId
     const { wabaId, code, phoneNumberId } = await request.json()
 
     if (!wabaId) {

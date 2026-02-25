@@ -1,10 +1,13 @@
 import { useState, useCallback, useRef } from 'react'
 import { toast } from 'sonner'
+import { useOrganizationCompletion } from '@/hooks/use-organization-completion'
 
 export function useMetaAdsOnboarding(organizationId: string | undefined, onSuccess?: () => void) {
   const [isPending, setIsPending] = useState(false)
   const popupRef = useRef<Window | null>(null)
   const checkIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const { isLoading: isCompletionLoading, isModuleBlocked, integrationBlockMessage } =
+    useOrganizationCompletion()
 
   const clearState = useCallback(() => {
     if (checkIntervalRef.current) {
@@ -15,6 +18,16 @@ export function useMetaAdsOnboarding(organizationId: string | undefined, onSucce
   }, [])
 
   const startOnboarding = useCallback(() => {
+    if (isCompletionLoading) {
+      toast.error('Validando dados da organização. Tente novamente em alguns segundos.')
+      return
+    }
+
+    if (isModuleBlocked('metaAds')) {
+      toast.error(integrationBlockMessage)
+      return
+    }
+
     if (!organizationId) {
       toast.error('Organização não identificada.')
       return
@@ -53,7 +66,14 @@ export function useMetaAdsOnboarding(organizationId: string | undefined, onSucce
         onSuccess?.()
       }
     }, 500)
-  }, [organizationId, onSuccess, clearState])
+  }, [
+    organizationId,
+    onSuccess,
+    clearState,
+    integrationBlockMessage,
+    isCompletionLoading,
+    isModuleBlocked,
+  ])
 
   return {
     isPending,

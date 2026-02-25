@@ -1,24 +1,24 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth/auth'
-import { headers } from 'next/headers'
 import { MetaCloudService } from '@/services/whatsapp/meta-cloud.service'
 import { resolveAccessToken } from '@/lib/whatsapp/token-crypto'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: Request) {
   try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    })
-
-    if (!session?.session?.activeOrganizationId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const access = await validateFullAccess(request)
+    if (!access.hasAccess || !access.organizationId) {
+      const isUnauthenticated = access.error === 'Usuário não autenticado'
+      return NextResponse.json(
+        { error: access.error || 'Acesso negado' },
+        { status: isUnauthenticated ? 401 : 403 }
+      )
     }
 
-    const configs = await MetaCloudService.getAllConfigs(session.session.activeOrganizationId)
+    const configs = await MetaCloudService.getAllConfigs(access.organizationId)
 
-    console.log('[API] PhoneNumbers - activeOrg:', session.session.activeOrganizationId)
+    console.log('[API] PhoneNumbers - activeOrg:', access.organizationId)
     console.log('[API] PhoneNumbers - configs found:', configs.length)
 
     if (configs.length === 0) {

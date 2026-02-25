@@ -124,7 +124,7 @@ export function Pricing() {
                 variant={plan.highlighted ? 'default' : 'outline'}
                 asChild
               >
-                <Link href="/auth/sign-up">{plan.cta}</Link>
+                <Link href="/sign-up">{plan.cta}</Link>
               </Button>
             </div>
           ))}

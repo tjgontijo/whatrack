@@ -2,8 +2,7 @@ import { NextResponse } from 'next/server'
 import { apiError } from '@/lib/api-response'
 import { revalidateTag } from 'next/cache'
 
-import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { hasPermission } from '@/lib/auth/rbac/roles'
+import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { ticketsQuerySchema, createTicketSchema } from '@/lib/validations/ticket-schemas'
 import { listTickets, createTicket } from '@/services/tickets/ticket.service'
 
@@ -41,12 +40,9 @@ function resolveDateRange(preset: DateRangePreset): { gte: Date; lte: Date } {
 }
 
 export async function GET(req: Request) {
-  const access = await validateFullAccess(req)
+  const access = await validatePermissionAccess(req, 'view:tickets')
   if (!access.hasAccess || !access.organizationId) {
     return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
-  }
-  if (!hasPermission(access.role, 'view:tickets')) {
-    return NextResponse.json({ error: 'Sem permissão para visualizar tickets' }, { status: 403 })
   }
 
   const { searchParams } = new URL(req.url)
@@ -106,12 +102,9 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const access = await validateFullAccess(req)
+  const access = await validatePermissionAccess(req, 'manage:tickets')
   if (!access.hasAccess || !access.organizationId) {
     return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
-  }
-  if (!hasPermission(access.role, 'manage:tickets')) {
-    return NextResponse.json({ error: 'Sem permissão para criar tickets' }, { status: 403 })
   }
 
   try {

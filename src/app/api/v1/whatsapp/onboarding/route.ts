@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { createId } from '@paralleldrive/cuid2'
 import { rateLimitMiddleware } from '@/lib/middleware/rate-limit.middleware'
+import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 
 /**
  * GET /api/v1/whatsapp/onboarding
@@ -28,13 +29,11 @@ export async function GET(request: NextRequest) {
   const rateLimitResponse = await rateLimitMiddleware(request, '/api/v1/whatsapp/onboarding')
   if (rateLimitResponse) return rateLimitResponse
   try {
-    // Get organization from query
-    const url = new URL(request.url)
-    const orgId = url.searchParams.get('organizationId')
-
-    if (!orgId) {
-      return NextResponse.json({ error: 'organizationId required' }, { status: 400 })
+    const access = await validatePermissionAccess(request, 'manage:whatsapp')
+    if (!access.hasAccess || !access.organizationId) {
+      return NextResponse.json({ error: access.error || 'Unauthorized' }, { status: 401 })
     }
+    const orgId = access.organizationId
 
     // Generate tracking code
     const trackingCode = createId()

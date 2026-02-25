@@ -7,8 +7,6 @@ import { validateFullAccess } from '@/server/auth/validate-organization-access'
 const updateItemSchema = z.object({
   name: z.string().min(1).optional(),
   categoryId: z.string().nullable().optional(),
-  price: z.number().nonnegative().nullable().optional(),
-  cost: z.number().nonnegative().nullable().optional(),
   active: z.boolean().optional(),
 })
 
@@ -82,8 +80,6 @@ export async function PUT(
       data: {
         name: validated.name,
         categoryId: validated.categoryId,
-        price: validated.price,
-        cost: validated.cost,
         active: validated.active,
       },
     })

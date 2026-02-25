@@ -1,17 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { hasPermission } from '@/lib/auth/rbac/roles'
+import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { getEfficiencyMetrics } from '@/services/analytics'
 
 export async function GET(req: NextRequest) {
   try {
-    const access = await validateFullAccess(req)
+    const access = await validatePermissionAccess(req, 'view:analytics')
     if (!access.hasAccess || !access.organizationId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    if (!hasPermission(access.role, 'view:analytics')) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     const { searchParams } = new URL(req.url)

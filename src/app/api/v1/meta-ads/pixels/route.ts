@@ -1,32 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { auth } from '@/lib/auth/auth'
 import { prisma } from '@/lib/prisma'
-
-async function getSessionFromRequest(req: NextRequest) {
-  const headers = new Headers(req.headers)
-  if (!headers.get('cookie')) {
-    const cookieStore = await cookies()
-    const cookieHeader = cookieStore
-      .getAll()
-      .map((cookie) => `${cookie.name}=${cookie.value}`)
-      .join('; ')
-    if (cookieHeader) headers.set('cookie', cookieHeader)
-  }
-  return auth.api.getSession({ headers })
-}
+import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 
 export async function GET(req: NextRequest) {
-  const session = await getSessionFromRequest(req)
+  const access = await validatePermissionAccess(req, 'view:integrations')
   const { searchParams } = new URL(req.url)
-  const organizationId = searchParams.get('organizationId')
+  const requestedTeamId = searchParams.get('teamId') ?? searchParams.get('organizationId')
 
-  if (!session || !organizationId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!access.hasAccess || !access.teamId) {
+    return NextResponse.json({ error: access.error ?? 'Unauthorized' }, { status: 401 })
+  }
+
+  if (requestedTeamId && requestedTeamId !== access.teamId) {
+    return NextResponse.json({ error: 'Forbidden for requested team' }, { status: 403 })
   }
 
   const pixels = await prisma.metaPixel.findMany({
-    where: { organizationId },
+    where: { organizationId: access.teamId },
     orderBy: { createdAt: 'desc' },
   })
 
@@ -34,25 +24,31 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const session = await getSessionFromRequest(req)
+  const access = await validatePermissionAccess(req, 'manage:integrations')
 
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!access.hasAccess || !access.teamId) {
+    return NextResponse.json({ error: access.error ?? 'Unauthorized' }, { status: 401 })
   }
 
   try {
     const body = await req.json()
-    const { organizationId, pixelId, capiToken, name } = body
+    const { teamId, organizationId, pixelId, capiToken, name } = body
 
-    if (!organizationId) {
+    const scopedTeamId = teamId ?? organizationId ?? access.teamId
+
+    if (!scopedTeamId) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    }
+
+    if (scopedTeamId !== access.teamId) {
+      return NextResponse.json({ error: 'Forbidden for requested team' }, { status: 403 })
     }
 
     const fallbackPixelId = pixelId || `temp_${Date.now()}`
 
     const pixel = await prisma.metaPixel.create({
       data: {
-        organizationId,
+        organizationId: access.teamId,
         pixelId: fallbackPixelId,
         capiToken: capiToken || '',
         name,

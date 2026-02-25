@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth/auth'
-import { headers } from 'next/headers'
 import { prisma } from '@/lib/prisma'
 import { Agent } from '@mastra/core/agent'
 import { openai } from '@ai-sdk/openai'
 import { z } from 'zod'
 import { metaAccessTokenService } from '@/services/meta-ads/access-token.service'
 import axios from 'axios'
+import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 
 function requireEnv(name: string): string {
   const value = process.env[name]
@@ -72,21 +71,27 @@ const analysisMapZodSchema = z.object({
 
 export async function POST(req: Request) {
   try {
-    const session = await auth.api.getSession({ headers: await headers() })
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const access = await validatePermissionAccess(req, 'manage:ai')
+    if (!access.hasAccess || !access.teamId) {
+      return NextResponse.json({ error: access.error ?? 'Unauthorized' }, { status: 401 })
     }
 
     const body = await req.json()
-    const { organizationId, campaignId, accountId, campaignName, days = 7 } = body
+    const { teamId, organizationId, campaignId, accountId, campaignName, days = 7 } = body
 
-    if (!organizationId || !campaignId || !accountId) {
+    const scopedTeamId = teamId ?? organizationId ?? access.teamId
+
+    if (!scopedTeamId || !campaignId || !accountId) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    }
+
+    if (scopedTeamId !== access.teamId) {
+      return NextResponse.json({ error: 'Forbidden for requested team' }, { status: 403 })
     }
 
     // 1. Fetch Token
     const account = await prisma.metaAdAccount.findFirst({
-      where: { organizationId, adAccountId: accountId },
+      where: { organizationId: access.teamId, adAccountId: accountId },
     })
 
     if (!account) {

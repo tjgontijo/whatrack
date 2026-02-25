@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth/auth'
-import { headers } from 'next/headers'
 import { MetaCloudService } from '@/services/whatsapp/meta-cloud.service'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,15 +15,12 @@ const API_VERSION = process.env.META_API_VERSION
  */
 export async function POST(request: Request) {
   try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    })
-
-    if (!session?.session?.activeOrganizationId) {
+    const access = await validateFullAccess(request)
+    if (!access.hasAccess || !access.organizationId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const config = await MetaCloudService.getConfig(session.session.activeOrganizationId)
+    const config = await MetaCloudService.getConfig(access.organizationId)
 
     if (!config || !config.phoneId || !config.wabaId) {
       return NextResponse.json(

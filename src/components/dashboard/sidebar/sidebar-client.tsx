@@ -1,5 +1,4 @@
 'use client'
-import { useState } from 'react'
 import { usePathname } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -12,6 +11,7 @@ import {
   Settings,
   ShoppingBag,
   Users,
+  User,
   Inbox,
   ChevronRight,
   FileText,
@@ -33,24 +33,19 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
   SidebarRail,
   useSidebar,
 } from '@/components/ui/sidebar'
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { WhatsAppIcon, MetaIcon } from '@/components/icons'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { authClient, useSession } from '@/lib/auth/auth-client'
 import { AuthGuards } from '@/lib/auth/roles'
-import { Button } from '@/components/ui/button'
 import { UserDropdownMenu } from './user-dropdown-menu'
 
 // Icon mapping for dynamic nav items
 const ICON_MAP = {
   LayoutDashboard,
   Users,
+  User,
   MessageSquare,
   Inbox,
   ShoppingBag,
@@ -82,15 +77,10 @@ type SidebarClientProps = {
 
 export function SidebarClient({ navItems }: SidebarClientProps) {
   const pathname = usePathname()
-  const { isMobile, setOpenMobile, open: sidebarOpen } = useSidebar()
+  const { isMobile, setOpenMobile } = useSidebar()
   const { data: session } = useSession()
   const { data: activeOrg } = authClient.useActiveOrganization()
   const { data: organizations } = authClient.useListOrganizations()
-
-  // State for collapsible menus
-  const [whatsappOpen, setWhatsappOpen] = useState(() =>
-    pathname.startsWith('/dashboard/settings/whatsapp')
-  )
 
   const userName = session?.user?.name || 'Usuário'
   const userEmail = session?.user?.email || ''
@@ -114,10 +104,6 @@ export function SidebarClient({ navItems }: SidebarClientProps) {
   )
 
   const isSuperAdmin = AuthGuards.isSuperAdmin(session?.user?.role)
-
-  const whatsappSubItems = isSuperAdmin
-    ? [{ title: 'Webhooks', href: '/dashboard/settings/whatsapp/webhooks', icon: Webhook }]
-    : []
 
   const isWhatsAppActive = pathname.startsWith('/dashboard/settings/whatsapp')
 
@@ -222,6 +208,32 @@ export function SidebarClient({ navItems }: SidebarClientProps) {
           <SidebarGroupLabel>Configurações</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  tooltip="Minha Conta"
+                  isActive={pathname === '/dashboard/minha-conta'}
+                >
+                  <Link href="/dashboard/minha-conta" onClick={handleNavClick}>
+                    <User className="h-4 w-4" />
+                    <span>Minha Conta</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  tooltip="Organização"
+                  isActive={pathname === '/dashboard/equipe' || pathname.startsWith('/dashboard/equipe/')}
+                >
+                  <Link href="/dashboard/equipe" onClick={handleNavClick}>
+                    <Users className="h-4 w-4" />
+                    <span>Organização</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
               {/* WhatsApp Item */}
               <SidebarMenuItem>
                 <SidebarMenuButton

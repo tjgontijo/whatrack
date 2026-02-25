@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
-    const access = await validateFullAccess(request)
+    const access = await validatePermissionAccess(request, 'view:ai')
     if (!access.hasAccess || !access.organizationId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -35,7 +35,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
-    const access = await validateFullAccess(request)
+    const access = await validatePermissionAccess(request, 'manage:ai')
     if (!access.hasAccess || !access.organizationId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -100,7 +100,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
-    const access = await validateFullAccess(request)
+    const access = await validatePermissionAccess(request, 'manage:ai')
     if (!access.hasAccess || !access.organizationId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

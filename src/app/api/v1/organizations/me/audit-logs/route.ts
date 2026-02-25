@@ -1,53 +1,74 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth/auth'
+import { z } from 'zod'
+
 import { prisma } from '@/lib/prisma'
+import { legacyOrganizationJson } from '@/server/http/legacy-organization'
+import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
+
+const querySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(20),
+  action: z.string().optional(),
+  resourceType: z.string().optional(),
+})
 
 export async function GET(req: NextRequest) {
-    const session = await auth.api.getSession({ headers: req.headers })
+  const access = await validatePermissionAccess(req, 'view:audit')
+  if (!access.hasAccess || !access.teamId) {
+    return legacyOrganizationJson(
+      { error: access.error ?? 'Acesso negado' },
+      { status: 403 },
+      '/api/v1/organizations/me/audit-logs'
+    )
+  }
 
-    if (!session?.session?.activeOrganizationId) {
-        return NextResponse.json({ error: 'No active organization' }, { status: 400 })
-    }
+  const { searchParams } = new URL(req.url)
+  const parsed = querySchema.safeParse(Object.fromEntries(searchParams))
+  if (!parsed.success) {
+    return legacyOrganizationJson(
+      { error: 'Parâmetros inválidos', details: parsed.error.flatten() },
+      { status: 400 },
+      '/api/v1/organizations/me/audit-logs'
+    )
+  }
 
-    const organizationId = session.session.activeOrganizationId
-    const { searchParams } = new URL(req.url)
+  const { page, pageSize, action, resourceType } = parsed.data
+  const skip = (page - 1) * pageSize
 
-    const page = parseInt(searchParams.get('page') || '1')
-    const pageSize = parseInt(searchParams.get('pageSize') || '20')
-    const skip = (page - 1) * pageSize
-    const action = searchParams.get('action') || undefined
-    const resourceType = searchParams.get('resourceType') || undefined
+  const where = {
+    organizationId: access.teamId,
+    ...(action ? { action } : {}),
+    ...(resourceType ? { resourceType } : {}),
+  }
 
-    const where = {
-        organizationId,
-        ...(action && { action }),
-        ...(resourceType && { resourceType }),
-    }
+  const [logs, total] = await Promise.all([
+    prisma.orgAuditLog.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take: pageSize,
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+          },
+        },
+      },
+    }),
+    prisma.orgAuditLog.count({ where }),
+  ])
 
-    const [logs, total] = await Promise.all([
-        prisma.orgAuditLog.findMany({
-            where,
-            orderBy: { createdAt: 'desc' },
-            skip,
-            take: pageSize,
-            include: {
-                user: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                        image: true,
-                    },
-                },
-            },
-        }),
-        prisma.orgAuditLog.count({ where }),
-    ])
-
-    return NextResponse.json({
-        data: logs,
-        total,
-        page,
-        pageSize,
-    })
+  return legacyOrganizationJson(
+    {
+      data: logs,
+      total,
+      page,
+      pageSize,
+    },
+    { status: 200 },
+    '/api/v1/organizations/me/audit-logs'
+  )
 }

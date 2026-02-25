@@ -15,8 +15,6 @@ const getParamsSchema = z.object({
 const createSchema = z.object({
   name: z.string().min(1),
   categoryId: z.string().optional(),
-  price: z.number().nonnegative().nullable().optional(),
-  cost: z.number().nonnegative().nullable().optional(),
 })
 
 export async function GET(request: Request) {
@@ -79,8 +77,6 @@ export async function POST(request: Request) {
       organizationId,
       name: parsed.data.name,
       categoryId: parsed.data.categoryId ?? null,
-      price: parsed.data.price ?? null,
-      cost: parsed.data.cost ?? null,
     })
 
     return NextResponse.json(result, { status: 201 })

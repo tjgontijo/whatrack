@@ -44,7 +44,7 @@ export function LandingFooter() {
             <h4 className="text-foreground font-semibold">Empresa</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/auth/sign-in" className="hover:text-foreground transition">
+                <Link href="/sign-in" className="hover:text-foreground transition">
                   Entrar
                 </Link>
               </li>

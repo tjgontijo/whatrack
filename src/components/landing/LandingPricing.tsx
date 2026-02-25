@@ -166,7 +166,7 @@ export function LandingPricing({ variant = 'generic' }: LandingPricingProps) {
                 variant={plan.highlighted ? 'default' : 'outline'}
                 asChild
               >
-                <Link href="/auth/sign-up">{plan.cta}</Link>
+                <Link href="/sign-up">{plan.cta}</Link>
               </Button>
             </div>
           ))}

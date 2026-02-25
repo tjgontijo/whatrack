@@ -241,7 +241,8 @@ model Organization {
   aiInsights AiInsight[]
 
   // Audit
-  orgAuditLogs OrgAuditLog[]
+  orgAuditLogs       OrgAuditLog[]
+  organizationRoles  OrganizationRole[]
 
   @@map("organization")
 }
@@ -285,9 +286,60 @@ model Member {
   role           String
   createdAt      DateTime
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  permissionOverrides MemberPermissionOverride[]
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([organizationId, role])
   @@map("member")
+}
+
+model OrganizationRole {
+  id             String                       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String                       @db.Uuid
+  key            String
+  name           String
+  description    String?
+  isSystem       Boolean                      @default(false)
+  createdAt      DateTime                     @default(now())
+  updatedAt      DateTime                     @updatedAt
+  organization   Organization                 @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  permissions    OrganizationRolePermission[]
+
+  @@unique([organizationId, key])
+  @@unique([organizationId, name])
+  @@index([organizationId])
+  @@index([isSystem])
+  @@map("organization_roles")
+}
+
+model OrganizationRolePermission {
+  id                 String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationRoleId String           @db.Uuid
+  permissionKey      String
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  organizationRole   OrganizationRole @relation(fields: [organizationRoleId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationRoleId, permissionKey])
+  @@index([organizationRoleId])
+  @@index([permissionKey])
+  @@map("organization_role_permissions")
+}
+
+model MemberPermissionOverride {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  memberId      String   @db.Uuid
+  permissionKey String
+  effect        String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  member        Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([memberId, permissionKey])
+  @@index([memberId])
+  @@index([permissionKey])
+  @@index([effect])
+  @@map("member_permission_overrides")
 }
 
 model Invitation {
@@ -483,8 +535,6 @@ model Item {
   organizationId String        @db.Uuid
   categoryId     String?       @db.Uuid
   name           String
-  price          Decimal?      @db.Decimal(12, 2)
-  cost           Decimal?      @db.Decimal(12, 2)
   active         Boolean       @default(true)
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @default(now()) @updatedAt

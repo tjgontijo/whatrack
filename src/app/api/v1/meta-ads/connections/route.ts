@@ -1,33 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { auth } from '@/lib/auth/auth'
 import { prisma } from '@/lib/prisma'
 import { auditService } from '@/lib/audit.service'
-
-async function getSessionFromRequest(req: NextRequest) {
-  const headers = new Headers(req.headers)
-  if (!headers.get('cookie')) {
-    const cookieStore = await cookies()
-    const cookieHeader = cookieStore
-      .getAll()
-      .map((cookie) => `${cookie.name}=${cookie.value}`)
-      .join('; ')
-    if (cookieHeader) headers.set('cookie', cookieHeader)
-  }
-  return auth.api.getSession({ headers })
-}
+import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 
 export async function GET(req: NextRequest) {
-  const session = await getSessionFromRequest(req)
+  const access = await validatePermissionAccess(req, 'view:integrations')
   const { searchParams } = new URL(req.url)
-  const organizationId = searchParams.get('organizationId')
+  const requestedTeamId = searchParams.get('teamId') ?? searchParams.get('organizationId')
 
-  if (!session || !organizationId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!access.hasAccess || !access.teamId) {
+    return NextResponse.json({ error: access.error ?? 'Unauthorized' }, { status: 401 })
+  }
+
+  if (requestedTeamId && requestedTeamId !== access.teamId) {
+    return NextResponse.json({ error: 'Forbidden for requested team' }, { status: 403 })
   }
 
   const connections = await prisma.metaConnection.findMany({
-    where: { organizationId },
+    where: { organizationId: access.teamId },
     select: {
       id: true,
       fbUserId: true,
@@ -41,12 +31,12 @@ export async function GET(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  const session = await getSessionFromRequest(req)
+  const access = await validatePermissionAccess(req, 'manage:integrations')
   const { searchParams } = new URL(req.url)
   const id = searchParams.get('id')
 
-  if (!session || !id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!access.hasAccess || !access.teamId || !access.userId || !id) {
+    return NextResponse.json({ error: access.error ?? 'Unauthorized' }, { status: 401 })
   }
 
   const connection = await prisma.metaConnection.findUnique({
@@ -54,22 +44,24 @@ export async function DELETE(req: NextRequest) {
     select: { organizationId: true, fbUserId: true, fbUserName: true, status: true },
   })
 
+  if (!connection || connection.organizationId !== access.teamId) {
+    return NextResponse.json({ error: 'Connection not found' }, { status: 404 })
+  }
+
   await prisma.metaConnection.delete({ where: { id } })
 
-  if (connection) {
-    void auditService.log({
-      organizationId: connection.organizationId,
-      userId: session.user.id,
-      action: 'meta_ads.disconnected',
-      resourceType: 'meta_connection',
-      resourceId: id,
-      before: {
-        fbUserId: connection.fbUserId,
-        fbUserName: connection.fbUserName,
-        status: connection.status,
-      },
-    })
-  }
+  void auditService.log({
+    organizationId: connection.organizationId,
+    userId: access.userId,
+    action: 'meta_ads.disconnected',
+    resourceType: 'meta_connection',
+    resourceId: id,
+    before: {
+      fbUserId: connection.fbUserId,
+      fbUserName: connection.fbUserName,
+      status: connection.status,
+    },
+  })
 
   return NextResponse.json({ success: true })
 }

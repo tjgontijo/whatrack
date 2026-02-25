@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { toast } from 'sonner'
 import { authClient } from '@/lib/auth/auth-client'
+import { useOrganizationCompletion } from '@/hooks/use-organization-completion'
 
 export type OnboardingStatus = 'idle' | 'pending' | 'success'
 
@@ -16,6 +17,8 @@ export type OnboardingStatus = 'idle' | 'pending' | 'success'
  */
 export function useWhatsAppOnboarding(onSuccess?: () => void) {
   const { data: activeOrg } = authClient.useActiveOrganization()
+  const { isLoading: isCompletionLoading, isModuleBlocked, integrationBlockMessage } =
+    useOrganizationCompletion()
   const [status, setStatus] = useState<OnboardingStatus>('idle')
   const [error, setError] = useState<string | null>(null)
   const [sdkReady, setSdkReady] = useState(false)
@@ -40,6 +43,19 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
   }, [])
 
   const startOnboarding = useCallback(async () => {
+    if (isCompletionLoading) {
+      const loadingMessage = 'Validando dados da organização. Tente novamente em alguns segundos.'
+      setError(loadingMessage)
+      toast.error(loadingMessage)
+      return
+    }
+
+    if (isModuleBlocked('whatsapp')) {
+      setError(integrationBlockMessage)
+      toast.error(integrationBlockMessage)
+      return
+    }
+
     if (!activeOrg?.id) {
       setError('Organização não identificada. Faça login novamente.')
       return
@@ -119,7 +135,14 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
       setError(err instanceof Error ? err.message : 'Erro ao iniciar onboarding')
       clearState()
     }
-  }, [activeOrg?.id, onSuccess, clearState])
+  }, [
+    activeOrg?.id,
+    onSuccess,
+    clearState,
+    integrationBlockMessage,
+    isCompletionLoading,
+    isModuleBlocked,
+  ])
 
   return {
     status,

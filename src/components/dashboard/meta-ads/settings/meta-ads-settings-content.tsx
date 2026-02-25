@@ -27,6 +27,13 @@ import { useMetaAdsOnboarding } from '@/hooks/meta-ads/use-meta-ads-onboarding'
 import { MetaPixelsConfigArea } from './meta-pixels-config-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
+const META_ADS_TAB_IDS = {
+  adAccountsTrigger: 'meta-ads-tab-trigger-ad-accounts',
+  adAccountsContent: 'meta-ads-tab-content-ad-accounts',
+  pixelsTrigger: 'meta-ads-tab-trigger-pixels',
+  pixelsContent: 'meta-ads-tab-content-pixels',
+} as const
+
 interface MetaAdsSettingsContentProps {
   organizationId: string | undefined
   initialConnections?: any[]
@@ -128,17 +135,32 @@ export function MetaAdsSettingsContent({
         {/* Step 2: Tabs for Ad Accounts & Pixels */}
         <Tabs defaultValue="ad-accounts" className="mx-auto max-w-5xl">
           <TabsList className="mb-6 grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="ad-accounts" className="flex items-center gap-2">
+            <TabsTrigger
+              value="ad-accounts"
+              id={META_ADS_TAB_IDS.adAccountsTrigger}
+              aria-controls={META_ADS_TAB_IDS.adAccountsContent}
+              className="flex items-center gap-2"
+            >
               <Settings2 className="h-4 w-4" />
               Contas de Anúncios
             </TabsTrigger>
-            <TabsTrigger value="pixels" className="flex items-center gap-2">
+            <TabsTrigger
+              value="pixels"
+              id={META_ADS_TAB_IDS.pixelsTrigger}
+              aria-controls={META_ADS_TAB_IDS.pixelsContent}
+              className="flex items-center gap-2"
+            >
               <Database className="h-4 w-4" />
               Pixels (CAPI)
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="ad-accounts" className="space-y-8">
+          <TabsContent
+            value="ad-accounts"
+            id={META_ADS_TAB_IDS.adAccountsContent}
+            aria-labelledby={META_ADS_TAB_IDS.adAccountsTrigger}
+            className="space-y-8"
+          >
             {/* Step 1: Meta Connections (Now inside Ad Accounts tab) */}
             <section className="space-y-4">
               <div className="flex items-center justify-between">
@@ -322,7 +344,11 @@ export function MetaAdsSettingsContent({
             )}
           </TabsContent>
 
-          <TabsContent value="pixels">
+          <TabsContent
+            value="pixels"
+            id={META_ADS_TAB_IDS.pixelsContent}
+            aria-labelledby={META_ADS_TAB_IDS.pixelsTrigger}
+          >
             <MetaPixelsConfigArea organizationId={organizationId} initialPixels={initialPixels} />
           </TabsContent>
         </Tabs>

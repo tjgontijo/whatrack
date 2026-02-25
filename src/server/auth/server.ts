@@ -1,7 +1,7 @@
 import { cookies, headers as nextHeaders } from 'next/headers'
 import { auth } from '@/lib/auth/auth'
 import { prisma } from '@/lib/prisma'
-import { ORGANIZATION_HEADER } from '@/lib/constants'
+import { ORGANIZATION_HEADER, TEAM_HEADER } from '@/lib/constants'
 
 /**
  * Build headers with cookies for server-side auth calls
@@ -121,9 +121,8 @@ export async function getOrSyncUser(request?: Request) {
  * Resolve current organization id from header or active organization
  */
 export async function getCurrentOrganizationId(request?: Request): Promise<string | null> {
-  const headerOrgId = request
-    ? request.headers.get(ORGANIZATION_HEADER)
-    : (await nextHeaders()).get(ORGANIZATION_HEADER)
+  const headers = request?.headers ?? (await nextHeaders())
+  const headerOrgId = headers.get(TEAM_HEADER) ?? headers.get(ORGANIZATION_HEADER)
 
   if (headerOrgId) {
     return headerOrgId
@@ -131,6 +130,10 @@ export async function getCurrentOrganizationId(request?: Request): Promise<strin
 
   const session = await getServerSession(request)
   return session?.session?.activeOrganizationId ?? null
+}
+
+export async function getCurrentTeamId(request?: Request): Promise<string | null> {
+  return getCurrentOrganizationId(request)
 }
 
 /**

@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const access = await validateFullAccess(request)
+    const access = await validatePermissionAccess(request, 'manage:ai')
     if (!access.hasAccess || !access.userId || !access.organizationId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

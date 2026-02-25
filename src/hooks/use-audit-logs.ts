@@ -25,7 +25,7 @@ export interface AuditLogWithRelations extends OrgAuditLog {
     email: string
     image: string | null
   } | null
-  organization: {
+  organization?: {
     id: string
     name: string
     slug: string
@@ -44,18 +44,12 @@ interface AuditLogsInfiniteParams {
   startDate?: string
   endDate?: string
   resourceType?: string
-  organizationId?: string
   pageSize?: number
   enabled?: boolean
 }
 
 export interface AuditLogFiltersResponse {
   resourceTypes: string[]
-  organizations: Array<{
-    id: string
-    name: string
-    slug: string
-  }>
 }
 
 async function fetchAuditLogsPage(
@@ -75,9 +69,8 @@ async function fetchAuditLogsPage(
   }
 
   if (params.resourceType) query.set('resourceType', params.resourceType)
-  if (params.organizationId) query.set('organizationId', params.organizationId)
 
-  const response = await fetch(`/api/v1/system/audit-logs?${query.toString()}`, {
+  const response = await fetch(`/api/v1/organizations/me/audit-logs?${query.toString()}`, {
     cache: 'no-store',
   })
 
@@ -98,7 +91,7 @@ async function fetchAuditLogsPage(
 }
 
 async function fetchAuditLogFilters(): Promise<AuditLogFiltersResponse> {
-  const response = await fetch('/api/v1/system/audit-logs/filters', {
+  const response = await fetch('/api/v1/organizations/me/audit-logs/filters', {
     cache: 'no-store',
   })
 
@@ -116,21 +109,13 @@ export function useAuditLogsInfinite(params: AuditLogsInfiniteParams) {
       startDate: params.startDate?.trim() || undefined,
       endDate: params.endDate?.trim() || undefined,
       resourceType: params.resourceType?.trim() || undefined,
-      organizationId: params.organizationId?.trim() || undefined,
       pageSize: params.pageSize ?? 50,
     }),
-    [
-      params.periodPreset,
-      params.startDate,
-      params.endDate,
-      params.resourceType,
-      params.organizationId,
-      params.pageSize,
-    ]
+    [params.periodPreset, params.startDate, params.endDate, params.resourceType, params.pageSize]
   )
 
   const query = useInfiniteQuery<AuditLogsPageResponse>({
-    queryKey: ['system-audit-logs', normalizedParams],
+    queryKey: ['organization-audit-logs', normalizedParams],
     initialPageParam: 1,
     queryFn: ({ pageParam }) => fetchAuditLogsPage(Number(pageParam), normalizedParams),
     getNextPageParam: (lastPage, allPages) => {
@@ -160,7 +145,7 @@ export function useAuditLogsInfinite(params: AuditLogsInfiniteParams) {
 
 export function useAuditLogFilters(enabled = true) {
   return useQuery<AuditLogFiltersResponse>({
-    queryKey: ['system-audit-log-filters'],
+    queryKey: ['organization-audit-log-filters'],
     queryFn: fetchAuditLogFilters,
     staleTime: 5 * 60_000,
     refetchOnWindowFocus: false,
