@@ -56,7 +56,7 @@ function ResetPasswordForm() {
         },
         body: JSON.stringify({
           token,
-          password: values.password,
+          newPassword: values.password,
         }),
       })
 
