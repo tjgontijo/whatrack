@@ -4,6 +4,43 @@ import { metaAdAccountService } from '@/services/meta-ads/ad-account.service'
 import { getRedis } from '@/lib/redis'
 import { auditService } from '@/lib/audit.service'
 
+function successPopupResponse(req: NextRequest) {
+  const dashboardUrl = new URL('/dashboard/settings/meta-ads?status=success', req.url).toString()
+  const html = `<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Meta Ads conectado</title>
+  </head>
+  <body>
+    <script>
+      (function () {
+        try {
+          if (window.opener && !window.opener.closed) {
+            try {
+              window.opener.postMessage({ type: 'meta-ads-oauth-success' }, window.location.origin);
+            } catch (_) {}
+            window.close();
+            return;
+          }
+        } catch (_) {}
+
+        window.location.replace(${JSON.stringify(dashboardUrl)});
+      })();
+    </script>
+  </body>
+</html>`
+
+  return new Response(html, {
+    status: 200,
+    headers: {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Cache-Control': 'no-store',
+    },
+  })
+}
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const code = searchParams.get('code')
@@ -66,8 +103,8 @@ export async function GET(req: NextRequest) {
       after: { fbUserId: connection.fbUserId, fbUserName: connection.fbUserName },
     })
 
-    // 5. Redirect to success page (which closes the popup)
-    return NextResponse.redirect(new URL(`/auth/meta-ads/success`, req.url))
+    // 5. Return an auto-close page in the popup; fallback to dashboard when not in popup.
+    return successPopupResponse(req)
   } catch (error: any) {
     console.error('[MetaCallback] Error:', error?.response?.data || error.message)
     return NextResponse.redirect(
