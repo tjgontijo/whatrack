@@ -1,5 +1,6 @@
 import { generateMagicLinkEmail } from '@/services/mail/templates/MagicLinkEmail'
 import { generateOtpEmail } from '@/services/mail/templates/OtpEmail'
+import { generatePasswordResetEmail } from '@/services/mail/templates/PasswordResetEmail'
 import { resolveAppName } from '@/services/mail/templates/shared/app-name.server'
 
 import { DeliveryData, DeliveryType, EmailTemplate } from './types'
@@ -10,15 +11,14 @@ export type GetEmailTemplateParams = {
   data: DeliveryData
 }
 
-const buildOtpSubjectMap = (
-  appName: string
-): Record<Exclude<DeliveryType, 'magic-link'>, string> => ({
+type OtpDeliveryType = Extract<DeliveryType, 'otp' | 'email-verification'>
+
+const buildOtpSubjectMap = (appName: string): Record<OtpDeliveryType, string> => ({
   otp: `🔐 Seu código de acesso - ${appName}`,
   'email-verification': `🔐 Código de verificação - ${appName}`,
-  'password-reset': `🔐 Código para redefinir senha - ${appName}`,
 })
 
-const resolveOtpSubject = (type: Exclude<DeliveryType, 'magic-link'>): string => {
+const resolveOtpSubject = (type: OtpDeliveryType): string => {
   const appName = resolveAppName()
   const subjectMap = buildOtpSubjectMap(appName)
   return subjectMap[type]
@@ -38,6 +38,21 @@ export async function getEmailTemplate({
     }
 
     return generateMagicLinkEmail({ name, magicLink: url, expiresIn })
+  }
+
+  if (type === 'password-reset') {
+    const url = data.url
+    const expiresIn = data.expiresIn ?? 60
+
+    if (!url) {
+      throw new Error('URL é obrigatória para envio de redefinição de senha')
+    }
+
+    return generatePasswordResetEmail({
+      name,
+      resetLink: url,
+      expiresIn,
+    })
   }
 
   const otp = data.otp
