@@ -6,6 +6,8 @@ import { toast } from 'sonner'
 
 import { useAuthorization } from '@/hooks/use-authorization'
 import { applyCpfCnpjMask, stripCpfCnpj } from '@/lib/mask/cpf-cnpj'
+import { authClient } from '@/lib/auth/auth-client'
+import { getAuthErrorMessage } from '@/lib/auth/error-messages'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -150,10 +152,19 @@ export function MyAccountContent() {
         throw new Error('A confirmação da senha não confere')
       }
 
-      return fetchJson<{ success: boolean }>('/api/v1/me/account/password', {
-        method: 'PATCH',
-        body: JSON.stringify({ currentPassword, newPassword }),
+      const { error } = await authClient.changePassword({
+        currentPassword,
+        newPassword,
       })
+
+      if (error) {
+        throw new Error(
+          getAuthErrorMessage(
+            (error as any).code,
+            (error as any).message || 'Não foi possível alterar sua senha.'
+          )
+        )
+      }
     },
     onSuccess: () => {
       toast.success('Senha atualizada com sucesso')
