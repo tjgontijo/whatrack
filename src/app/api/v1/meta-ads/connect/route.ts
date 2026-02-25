@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
     JSON.stringify({ organizationId: access.organizationId, userId: access.userId })
   )
 
-  const scopes = ['ads_read', 'public_profile'].join(',')
+  const scopes = ['ads_read', 'ads_management', 'public_profile'].join(',')
   const authUrl = `https://www.facebook.com/v25.0/dialog/oauth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scopes}&state=${stateToken}&response_type=code`
 
   return NextResponse.redirect(authUrl)
