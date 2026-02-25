@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { MetaIcon } from '@/components/icons'
-import { TemplateMainShell, TemplateMainHeader } from '@/components/dashboard/leads'
+import { TemplateMainShell } from '@/components/dashboard/leads'
 import { useMetaAdsOnboarding } from '@/hooks/meta-ads/use-meta-ads-onboarding'
 import { MetaPixelsConfigArea } from './meta-pixels-config-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -114,11 +114,6 @@ export function MetaAdsSettingsContent({
 
   return (
     <TemplateMainShell className="flex h-screen flex-col overflow-hidden">
-      <TemplateMainHeader
-        title="Meta Ads Attribution"
-        subtitle="Gerencie suas conexões de anúncios e datasets de pixels"
-      />
-
       <div className="bg-muted/5 flex-1 overflow-y-auto p-6 lg:p-8">
         <Tabs defaultValue="ad-accounts" className="w-full gap-5">
           <TabsList variant="line" className="mb-1 w-full justify-start rounded-none border-b p-0">
@@ -246,9 +241,7 @@ export function MetaAdsSettingsContent({
                       <thead className="bg-muted/50 border-b text-xs uppercase">
                         <tr>
                           <th className="px-6 py-4 font-semibold">Conta</th>
-                          <th className="w-48 px-6 py-4 text-right font-semibold">
-                            Extrair Dados (ROI)?
-                          </th>
+                          <th className="w-48 px-6 py-4 text-right font-semibold">Status</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y">
