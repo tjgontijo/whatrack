@@ -19,7 +19,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
-import { WhatsAppChatService } from '@/services/whatsapp-chat.service'
+import { WhatsAppChatService } from '@/services/whatsapp/whatsapp-chat.service'
 import { verifyWebhookSignature } from '@/lib/whatsapp/webhook-signature'
 import { WebhookProcessor } from '@/services/whatsapp/webhook-processor'
 import { rateLimitMiddleware } from '@/lib/middleware/rate-limit.middleware'
