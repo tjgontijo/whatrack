@@ -38,7 +38,7 @@ import {
 } from '@/components/ui/sidebar'
 import { WhatsAppIcon, MetaIcon } from '@/components/icons'
 import { authClient, useSession } from '@/lib/auth/auth-client'
-import { AuthGuards } from '@/lib/auth/roles'
+import { isOwner } from '@/lib/auth/rbac/roles'
 import { UserDropdownMenu } from './user-dropdown-menu'
 
 // Icon mapping for dynamic nav items
@@ -103,8 +103,7 @@ export function SidebarClient({ navItems }: SidebarClientProps) {
     ['Users', 'Kanban', 'ShoppingBag', 'Package', 'Meta'].includes(item.icon)
   )
 
-  const isSuperAdmin = AuthGuards.isSuperAdmin(session?.user?.role)
-  const isSystemAdmin = AuthGuards.isSystemAdmin(session?.user?.role)
+  const isSuperAdmin = isOwner(session?.user?.role)
 
   const isWhatsAppActive = pathname.startsWith('/dashboard/settings/whatsapp')
 
@@ -290,21 +289,6 @@ export function SidebarClient({ navItems }: SidebarClientProps) {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-
-              {isSystemAdmin && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    asChild
-                    tooltip="Mastra Chat"
-                    isActive={pathname.startsWith('/dashboard/settings/ai-chat')}
-                  >
-                    <Link href="/dashboard/settings/ai-chat" onClick={handleNavClick}>
-                      <MessageSquare className="h-4 w-4" />
-                      <span>Mastra Chat</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
 
               {/* Audit Logs Settings */}
               <SidebarMenuItem>

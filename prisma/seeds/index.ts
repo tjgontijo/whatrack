@@ -3,7 +3,9 @@ import { PrismaClient } from '../generated/prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { seedLookupTables } from './seed_lookup_tables'
 import { seedTicketStages } from './seed_ticket_stages'
-import { seedAiAgents } from './seed_ai_agents'
+import { seedAgentSaleDetector } from './seed_agent_sale_detector'
+import { seedAgentLeadQualifier } from './seed_agent_lead_qualifier'
+import { seedAgentConversationSummarizer } from './seed_agent_conversation_summarizer'
 
 interface PgTableRow {
   tablename: string
@@ -90,7 +92,14 @@ export async function runSeed() {
 
     await seedLookupTables(prisma)
     await seedTicketStages(prisma)
-    await seedAiAgents(prisma)
+
+    // AI Agents — seeded per organization
+    const organizations = await prisma.organization.findMany()
+    for (const org of organizations) {
+      await seedAgentSaleDetector(prisma, org.id)
+      await seedAgentLeadQualifier(prisma, org.id)
+      await seedAgentConversationSummarizer(prisma, org.id)
+    }
 
     console.log('✅ Seed concluído com sucesso!')
   } catch (error) {

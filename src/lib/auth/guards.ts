@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from './auth'
-import { AuthGuards, Permission, UserRole, hasGlobalPermission, hasRequiredRole } from './roles'
+import { isOwner, hasPermission, Permission, RoleName } from './rbac/roles'
 
 export interface AuthenticatedUser {
   id: string
   email: string
-  role: UserRole
+  role: RoleName
   activeOrganizationId: string | null
   activeTeamId: string | null
 }
@@ -25,7 +25,7 @@ export async function requireAuth(request: NextRequest): Promise<AuthenticatedUs
   return {
     id: session.user.id,
     email: session.user.email,
-    role: session.user.role as UserRole,
+    role: session.user.role as RoleName,
     activeOrganizationId: session.session.activeOrganizationId || null,
     activeTeamId: session.session.activeOrganizationId || null,
   }
@@ -41,7 +41,7 @@ export async function requireSuperAdmin(
 
   if (user instanceof NextResponse) return user
 
-  if (!AuthGuards.isSuperAdmin(user.role)) {
+  if (!isOwner(user.role)) {
     return NextResponse.json({ error: 'Forbidden - Super Admin required' }, { status: 403 })
   }
 
@@ -59,7 +59,7 @@ export async function requirePermission(
 
   if (user instanceof NextResponse) return user
 
-  if (!hasGlobalPermission(user.role, permission)) {
+  if (!hasPermission(user.role, permission)) {
     return NextResponse.json(
       { error: `Forbidden - Missing permission: ${permission}` },
       { status: 403 }

@@ -1,6 +1,6 @@
 import Link from 'next/link'
-import { Header } from '@/components/home/Header'
-import { Footer } from '@/components/home/Footer'
+import { LandingHeader } from '@/components/landing/LandingHeader'
+import { LandingFooter } from '@/components/landing/LandingFooter'
 
 const sections = [
   {
@@ -110,7 +110,7 @@ const sections = [
 export default function TermsPage() {
   return (
     <div className="bg-background text-foreground flex min-h-screen flex-col">
-      <Header />
+      <LandingHeader />
 
       <main className="relative overflow-hidden">
         <div className="bg-primary/10 absolute -left-40 top-24 h-72 w-72 rounded-full blur-3xl" />
@@ -164,7 +164,7 @@ export default function TermsPage() {
         </div>
       </main>
 
-      <Footer />
+      <LandingFooter />
     </div>
   )
 }

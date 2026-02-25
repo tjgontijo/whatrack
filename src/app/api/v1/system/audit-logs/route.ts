@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import type { Prisma } from '@prisma/client'
 import { z } from 'zod'
 
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/db/prisma'
 import { requirePermission } from '@/lib/auth/guards'
 
 export const dynamic = 'force-dynamic'
@@ -126,7 +126,7 @@ function resolveDateRange(
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await requirePermission(request, 'system:read_logs')
+    const user = await requirePermission(request, 'view:audit')
     if (user instanceof NextResponse) return user
 
     const { searchParams } = new URL(request.url)

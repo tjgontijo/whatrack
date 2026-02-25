@@ -53,8 +53,8 @@ export default function ProfilePage() {
   const onSubmitProfile = async (data: z.infer<typeof profileSchema>) => {
     setIsLoadingProfile(true)
     try {
-      const response = await fetch('/api/v1/users/me', {
-        method: 'PUT',
+      const response = await fetch('/api/v1/me/account', {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       })

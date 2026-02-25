@@ -1,7 +1,6 @@
 import { Metadata } from 'next'
 import { MetaAdsCampaignsClient } from './client'
 import { TemplateMainShell, TemplateMainHeader } from '@/components/dashboard/leads'
-import { AuthGuards } from '@/lib/auth/roles'
 import { auth } from '@/lib/auth/auth'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
