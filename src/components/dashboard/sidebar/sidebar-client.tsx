@@ -104,6 +104,7 @@ export function SidebarClient({ navItems }: SidebarClientProps) {
   )
 
   const isSuperAdmin = AuthGuards.isSuperAdmin(session?.user?.role)
+  const isSystemAdmin = AuthGuards.isSystemAdmin(session?.user?.role)
 
   const isWhatsAppActive = pathname.startsWith('/dashboard/settings/whatsapp')
 
@@ -289,6 +290,21 @@ export function SidebarClient({ navItems }: SidebarClientProps) {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+
+              {isSystemAdmin && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    tooltip="Mastra Chat"
+                    isActive={pathname.startsWith('/dashboard/settings/ai-chat')}
+                  >
+                    <Link href="/dashboard/settings/ai-chat" onClick={handleNavClick}>
+                      <MessageSquare className="h-4 w-4" />
+                      <span>Mastra Chat</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
 
               {/* Audit Logs Settings */}
               <SidebarMenuItem>
