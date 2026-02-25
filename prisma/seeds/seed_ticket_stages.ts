@@ -1,5 +1,5 @@
 import type { PrismaClient } from '../generated/prisma/client'
-import { DEFAULT_TICKET_STAGES } from '../../src/config/ticket-stages'
+import { DEFAULT_TICKET_STAGES } from '../../src/lib/constants/ticket-stages'
 
 export async function seedTicketStages(prisma: PrismaClient) {
   console.log('Seeding ticket stages...')
