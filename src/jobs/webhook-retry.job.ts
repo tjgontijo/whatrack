@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { getRedis } from '@/lib/redis'
 import { verifyWebhookSignature } from '@/lib/whatsapp/webhook-signature'
 import { WebhookProcessor } from '@/services/whatsapp/webhook-processor'
-import { WhatsAppChatService } from '@/services/whatsapp-chat.service'
+import { WhatsAppChatService } from '@/services/whatsapp/whatsapp-chat.service'
 import { resendProvider } from '@/services/mail/resend'
 import { generateWebhookFailureAlertEmail } from '@/services/mail/templates/WebhookFailureAlertEmail'
 
