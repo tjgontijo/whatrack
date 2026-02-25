@@ -7,7 +7,7 @@ import { Building2, Loader2, UserRound, X } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { authClient } from '@/lib/auth/auth-client'
-import { useIsMobile } from '@/hooks/use-mobile'
+import { useIsMobile } from '@/hooks/ui/use-mobile'
 import { applyCpfCnpjMask, stripCpfCnpj } from '@/lib/mask/cpf-cnpj'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'

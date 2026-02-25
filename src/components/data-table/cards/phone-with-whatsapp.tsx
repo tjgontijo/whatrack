@@ -3,7 +3,7 @@
 import * as React from 'react'
 import Image from 'next/image'
 import { applyWhatsAppMask } from '@/lib/mask/phone-mask'
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils/utils'
 
 interface PhoneWithWhatsAppProps {
   phone: string | null | undefined

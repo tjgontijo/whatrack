@@ -11,7 +11,7 @@ import { CrudDataView, CrudEmptyState } from '@/components/dashboard/crud/crud-d
 import { CrudListView } from '@/components/dashboard/crud/crud-list-view'
 import { CrudCardView } from '@/components/dashboard/crud/crud-card-view'
 import { DeleteConfirmDialog } from '@/components/dashboard/crud/delete-confirm-dialog'
-import { useCrudInfiniteQuery } from '@/hooks/use-crud-infinite-query'
+import { useCrudInfiniteQuery } from '@/hooks/ui/use-crud-infinite-query'
 import {
   type CardConfig,
   type ColumnDef,

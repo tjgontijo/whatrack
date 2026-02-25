@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/db/prisma'
 import { metaAdAccountService } from '@/services/meta-ads/ad-account.service'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 

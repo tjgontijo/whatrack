@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
-import { auditService } from '@/lib/audit.service'
+import { prisma } from '@/lib/db/prisma'
+import { auditService } from '@/services/audit/audit.service'
 import { legacyOrganizationJson } from '@/server/http/legacy-organization'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 

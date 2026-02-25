@@ -12,7 +12,7 @@ import {
   type AuditLogWithRelations,
   useAuditLogFilters,
   useAuditLogsInfinite,
-} from '@/hooks/use-audit-logs'
+} from '@/hooks/audit/use-audit-logs'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'

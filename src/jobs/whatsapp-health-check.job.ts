@@ -1,8 +1,8 @@
-import { prisma } from '@/lib/prisma'
-import { TokenEncryption } from '@/lib/encryption'
+import { prisma } from '@/lib/db/prisma'
+import { TokenEncryption } from '@/lib/utils/encryption'
 import { whatsappCache } from '@/services/whatsapp/cache.service'
-import { CACHE_KEYS, CACHE_TTL } from '@/lib/cache-keys'
-import { getRedis } from '@/lib/redis'
+import { CACHE_KEYS, CACHE_TTL } from '@/lib/db/cache-keys'
+import { getRedis } from '@/lib/db/redis'
 
 type WhatsAppHealthStatus = 'unknown' | 'healthy' | 'warning' | 'error'
 

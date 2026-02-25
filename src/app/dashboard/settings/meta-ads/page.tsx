@@ -1,6 +1,6 @@
 import { headers } from 'next/headers'
 import { auth } from '@/lib/auth/auth'
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/db/prisma'
 import { MetaAdsSettingsContent } from '@/components/dashboard/meta-ads/settings/meta-ads-settings-content'
 
 export default async function MetaAdsSettingsPage() {

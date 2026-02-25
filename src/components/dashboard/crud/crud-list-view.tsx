@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { TableVirtuoso } from 'react-virtuoso'
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils/utils'
 import { ColumnDef, RowActions } from './types'
 
 interface CrudListViewProps<T> {

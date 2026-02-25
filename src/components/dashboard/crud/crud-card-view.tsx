@@ -1,7 +1,7 @@
 'use client'
 
 import { VirtuosoGrid } from 'react-virtuoso'
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils/utils'
 import { CardConfig, RowActions } from './types'
 
 interface CrudCardViewProps<T> {

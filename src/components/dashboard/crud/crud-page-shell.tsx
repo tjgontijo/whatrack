@@ -4,7 +4,7 @@ import React from 'react'
 import { Plus, Search, Filter, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { useIsMobile } from '@/hooks/use-mobile'
+import { useIsMobile } from '@/hooks/ui/use-mobile'
 import { ViewSwitcher } from './view-switcher'
 import { ViewType } from './types'
 import {

@@ -15,7 +15,7 @@ import {
 } from './data-table-card'
 import { PhoneWithWhatsApp } from './phone-with-whatsapp'
 import { formatCurrencyBRL, formatDateTime } from '@/lib/mask/formatters'
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils/utils'
 
 interface SaleCardProps {
   id: string

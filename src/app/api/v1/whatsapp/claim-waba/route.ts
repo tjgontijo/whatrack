@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/db/prisma'
 import { MetaCloudService } from '@/services/whatsapp/meta-cloud.service'
 import { encryptToken } from '@/lib/whatsapp/token-crypto'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'

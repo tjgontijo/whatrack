@@ -7,7 +7,7 @@
 import { NextResponse } from 'next/server'
 import { Prisma } from '@prisma/client'
 
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/db/prisma'
 import { getOrSyncUser } from '@/server/auth/server'
 import {
   normalizeOnboardingDocument,

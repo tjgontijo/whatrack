@@ -16,7 +16,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getJobTracker } from '@/lib/queue'
+import { getJobTracker } from '@/lib/db/queue'
 import { webhookRetryJob } from '@/jobs/webhook-retry.job'
 import { rateLimitMiddleware } from '@/lib/middleware/rate-limit.middleware'
 

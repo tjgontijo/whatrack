@@ -4,14 +4,14 @@ import { useQuery } from '@tanstack/react-query'
 
 import { Button } from '@/components/ui/button'
 import { TemplateMainShell, TemplateMainHeader, DataToolbar } from '@/components/dashboard/leads'
-import { useIsMobile } from '@/hooks/use-mobile'
-import { useOrganizationCompletion } from '@/hooks/use-organization-completion'
+import { useIsMobile } from '@/hooks/ui/use-mobile'
+import { useOrganizationCompletion } from '@/hooks/organization/use-organization-completion'
 import { whatsappApi } from '@/lib/whatsapp/client'
 import { useWhatsAppOnboarding } from '@/hooks/whatsapp/use-whatsapp-onboarding'
 import { InstanceCard } from '@/components/whatsapp/instance-card'
 import { EmbeddedSignupButton } from '@/components/whatsapp/embedded-signup-button'
 import { OrganizationIdentityDrawer } from '@/components/dashboard/organization-identity-drawer'
-import { INTEGRATION_IDENTITY_REQUIRED_MESSAGE } from '@/lib/constants'
+import { INTEGRATION_IDENTITY_REQUIRED_MESSAGE } from '@/lib/constants/http-headers'
 import type { WhatsAppPhoneNumber } from '@/types/whatsapp'
 
 export default function WhatsAppSettingsPage() {

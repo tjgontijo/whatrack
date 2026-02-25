@@ -5,7 +5,7 @@
  */
 
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/db/prisma'
 import { getOrSyncUser } from '@/server/auth/server'
 
 import { calculateMetrics } from '@/services/onboarding-metrics/metrics-calculator'

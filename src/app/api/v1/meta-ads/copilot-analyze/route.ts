@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/db/prisma'
 import { Agent } from '@mastra/core/agent'
 import { openai } from '@ai-sdk/openai'
 import { z } from 'zod'

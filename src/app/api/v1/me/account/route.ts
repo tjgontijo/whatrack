@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 
 import { auth } from '@/lib/auth/auth'
-import { auditService } from '@/lib/audit.service'
-import { prisma } from '@/lib/prisma'
+import { auditService } from '@/services/audit/audit.service'
+import { prisma } from '@/lib/db/prisma'
 
 const updateAccountSchema = z
   .object({

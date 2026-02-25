@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/db/prisma'
 
 export async function getConversionFunnel(organizationId: string, startDate: Date, endDate: Date) {
   // Query to get tickets by status

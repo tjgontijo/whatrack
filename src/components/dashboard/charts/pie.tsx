@@ -5,7 +5,7 @@ import type { ComponentType } from 'react'
 import type { ComputedDatum } from '@nivo/pie'
 import dynamic from 'next/dynamic'
 
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils/utils'
 import { formatCurrencyBRL } from '@/lib/mask/formatters'
 
 type PieComponentProps = {

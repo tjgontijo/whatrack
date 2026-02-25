@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { redirect } from 'next/navigation'
 
 import { Toaster } from '@/components/ui/sonner'
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/db/prisma'
 import { DashboardContent } from '@/components/dashboard/dashboard-content'
 import { DashboardHeader } from '@/components/dashboard/header'
 import { HeaderActionsProvider } from '@/components/dashboard/header-actions'

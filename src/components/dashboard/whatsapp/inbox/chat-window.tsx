@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { ChatItem, MessageListResponse } from './types'
 import { MessageBubble } from './message-bubble'
-import { ORGANIZATION_HEADER } from '@/lib/constants'
+import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 
 interface ChatWindowProps {
   chat: ChatItem

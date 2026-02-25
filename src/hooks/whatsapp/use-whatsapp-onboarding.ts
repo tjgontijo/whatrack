@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { toast } from 'sonner'
 import { authClient } from '@/lib/auth/auth-client'
-import { useOrganizationCompletion } from '@/hooks/use-organization-completion'
+import { useOrganizationCompletion } from '@/hooks/organization/use-organization-completion'
 
 export type OnboardingStatus = 'idle' | 'pending' | 'success'
 

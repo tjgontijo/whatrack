@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 
 import { ResponsiveFunnel } from '@nivo/funnel'
 
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils/utils'
 
 type FunnelStep = {
   label: string

@@ -4,7 +4,7 @@ import * as React from 'react'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils/utils'
 import { Button } from '@/components/ui/button'
 
 type TemplateMainHeaderProps = {

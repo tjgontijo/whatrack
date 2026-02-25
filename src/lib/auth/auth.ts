@@ -3,10 +3,10 @@ import { prismaAdapter } from 'better-auth/adapters/prisma'
 import { admin, organization } from 'better-auth/plugins'
 import { randomUUID } from 'crypto'
 
-import { prisma } from '../prisma'
+import { prisma } from '../db/prisma'
 import { requireEnv } from '../env/require-env.server'
 import { authDeliveryService } from '@/services/delivery/auth-delivery'
-import { auditService } from '../audit.service'
+import { auditService } from '../../services/audit/audit.service'
 
 const appBaseURL = requireEnv('BETTER_AUTH_URL')
 const betterAuthSecret = requireEnv('BETTER_AUTH_SECRET')

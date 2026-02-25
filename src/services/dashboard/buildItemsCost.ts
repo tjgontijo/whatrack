@@ -1,6 +1,6 @@
 import { Prisma } from '../../../prisma/generated/prisma/client'
 
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/db/prisma'
 
 export type ItemsCostResult = {
   cost: number

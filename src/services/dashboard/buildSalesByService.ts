@@ -1,5 +1,5 @@
 import type { Prisma } from '../../../prisma/generated/prisma/client'
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/db/prisma'
 import type { DateRange } from '@/lib/date/dateRange'
 
 export async function buildSalesByService(organizationId: string, dateRange?: DateRange) {

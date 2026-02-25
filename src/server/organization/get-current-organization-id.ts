@@ -1,8 +1,8 @@
 import 'server-only'
 
 import { headers, cookies } from 'next/headers'
-import { prisma } from '@/lib/prisma'
-import { ORGANIZATION_HEADER, ORGANIZATION_COOKIE } from '@/lib/constants'
+import { prisma } from '@/lib/db/prisma'
+import { ORGANIZATION_HEADER, ORGANIZATION_COOKIE } from '@/lib/constants/http-headers'
 
 /**
  * Resolve a organização ativa do usuário com prioridade:

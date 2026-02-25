@@ -2,13 +2,13 @@
 
 import * as React from 'react'
 import { ColumnDef, Row } from '@tanstack/react-table'
-import { useIsMobile } from '@/hooks/use-mobile'
-import { useDataTable } from '@/hooks/use-data-table'
+import { useIsMobile } from '@/hooks/ui/use-mobile'
+import { useDataTable } from '@/hooks/ui/use-data-table'
 import { DataTableView } from './data-table-view'
 import { DataTableCardList } from './data-table-card-list'
 import { DataTablePagination } from './data-table-pagination'
 import { DataTableEmptyState, DataTableErrorState } from './data-table-empty-state'
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils/utils'
 import { RefreshCw } from 'lucide-react'
 
 interface ResponsiveDataTableProps<TData> {

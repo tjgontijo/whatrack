@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import { MessageSquareOff } from 'lucide-react'
 
 import { authClient } from '@/lib/auth/auth-client'
-import { ORGANIZATION_HEADER } from '@/lib/constants'
+import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 import { useRealtime } from '@/hooks/whatsapp/use-realtime'
 import { ChatList } from '@/components/dashboard/whatsapp/inbox/chat-list'
 import { ChatWindow } from '@/components/dashboard/whatsapp/inbox/chat-window'

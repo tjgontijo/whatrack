@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { CheckCircle2, CircleDashed } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils/utils'
 
 interface StatusIconButtonProps {
   hasData: boolean

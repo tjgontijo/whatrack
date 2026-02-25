@@ -1,5 +1,5 @@
-import { prisma } from '@/lib/prisma'
-import { encryption } from '@/lib/encryption'
+import { prisma } from '@/lib/db/prisma'
+import { encryption } from '@/lib/utils/encryption'
 import axios from 'axios'
 
 function requireEnv(name: string): string {

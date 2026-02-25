@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 
-import { auditService } from '@/lib/audit.service'
+import { auditService } from '@/services/audit/audit.service'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import {
   assertCanDelegatePermissions,

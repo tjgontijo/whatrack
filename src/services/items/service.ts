@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client'
 
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/db/prisma'
 
 const MIN_PAGE_SIZE = 1
 const DEFAULT_PAGE_SIZE = 50

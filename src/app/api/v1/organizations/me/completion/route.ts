@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/db/prisma'
 import { getServerSession } from '@/server/auth/server'
 import { getOrganizationIdentityStatus } from '@/server/organization/is-identity-complete'
 

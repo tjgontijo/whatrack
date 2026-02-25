@@ -1,6 +1,6 @@
 'use client'
 
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils/utils'
 import { Separator } from '@/components/ui/separator'
 import { SectionWrapper, ShowcaseBox } from './shared'
 

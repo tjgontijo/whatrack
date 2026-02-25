@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/db/prisma'
 
 export async function getLeadActivity(organizationId: string) {
   const waitingLeads = await prisma.$queryRaw`

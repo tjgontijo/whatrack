@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { metaAccessTokenService } from '@/services/meta-ads/access-token.service'
 import { metaAdAccountService } from '@/services/meta-ads/ad-account.service'
-import { getRedis } from '@/lib/redis'
-import { auditService } from '@/lib/audit.service'
+import { getRedis } from '@/lib/db/redis'
+import { auditService } from '@/services/audit/audit.service'
 
 function successPopupResponse(req: NextRequest) {
   const dashboardUrl = new URL('/dashboard/settings/meta-ads?status=success', req.url).toString()

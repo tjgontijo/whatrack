@@ -1,8 +1,8 @@
 import { NextRequest } from 'next/server'
 
-import { auditService } from '@/lib/audit.service'
+import { auditService } from '@/services/audit/audit.service'
 import { requireEnv } from '@/lib/env/require-env.server'
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/db/prisma'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { legacyOrganizationJson } from '@/server/http/legacy-organization'
 import { getOrganizationRoleByKey } from '@/server/organization/organization-rbac.service'

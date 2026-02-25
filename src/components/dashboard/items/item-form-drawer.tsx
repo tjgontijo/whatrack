@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
-import { ORGANIZATION_HEADER } from '@/lib/constants'
+import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 import { authClient } from '@/lib/auth/auth-client'
 import { CrudEditDrawer } from '@/components/dashboard/crud'
 

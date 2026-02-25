@@ -8,7 +8,7 @@ import { CrudPageShell } from '@/components/dashboard/crud/crud-page-shell'
 import { CrudDataView, CrudEmptyState } from '@/components/dashboard/crud/crud-data-view'
 import { CrudListView } from '@/components/dashboard/crud/crud-list-view'
 import { CrudCardView } from '@/components/dashboard/crud/crud-card-view'
-import { useCrudInfiniteQuery } from '@/hooks/use-crud-infinite-query'
+import { useCrudInfiniteQuery } from '@/hooks/ui/use-crud-infinite-query'
 import { NewLeadDrawer } from '@/components/dashboard/leads/new-lead-drawer'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {

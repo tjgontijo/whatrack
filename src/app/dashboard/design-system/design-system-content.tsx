@@ -14,7 +14,7 @@ import {
   Bell,
   Kanban,
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils/utils'
 import { Separator } from '@/components/ui/separator'
 
 import { ColorsSection } from './sections/colors-section'

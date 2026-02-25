@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server'
-import { apiError } from '@/lib/api-response'
+import { apiError } from '@/lib/utils/api-response'
 import type { Prisma } from '@prisma/client'
 import { z } from 'zod'
 
-import { prisma } from '@/lib/prisma'
-import { getRedis } from '@/lib/redis'
+import { prisma } from '@/lib/db/prisma'
+import { getRedis } from '@/lib/db/redis'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 // Lead schema - simplified without ticket/conversation dependencies

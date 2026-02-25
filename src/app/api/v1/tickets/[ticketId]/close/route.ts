@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError } from '@/lib/api-response'
+import { apiError } from '@/lib/utils/api-response'
 import { revalidateTag } from 'next/cache'
 
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/db/prisma'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { closeTicketSchema } from '@/lib/validations/ticket-schemas'
 

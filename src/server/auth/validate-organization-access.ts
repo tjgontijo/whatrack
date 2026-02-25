@@ -1,9 +1,9 @@
 import { auth } from '@/lib/auth/auth'
-import { ORGANIZATION_HEADER, TEAM_HEADER } from '@/lib/constants'
+import { ORGANIZATION_HEADER, TEAM_HEADER } from '@/lib/constants/http-headers'
 import { getPermissionCandidates, isAdmin, isOwner, type Permission } from '@/lib/auth/rbac/roles'
 import { cookies } from 'next/headers'
 import { listEffectivePermissionsForUser } from '@/server/organization/organization-rbac.service'
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/db/prisma'
 import {
   INTEGRATION_IDENTITY_REQUIRED_MESSAGE,
   isOrganizationIdentityComplete,

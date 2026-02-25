@@ -1,8 +1,8 @@
 'use client'
 
 import * as React from 'react'
-import { cn } from '@/lib/utils'
-import { useIsMobile } from '@/hooks/use-mobile'
+import { cn } from '@/lib/utils/utils'
+import { useIsMobile } from '@/hooks/ui/use-mobile'
 
 interface ContentHeaderProps {
   children?: React.ReactNode

@@ -7,7 +7,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
 import { getPermissionLabel, getPlatformPermissions } from '@/lib/auth/rbac/roles'
-import { useAuthorization } from '@/hooks/use-authorization'
+import { useAuthorization } from '@/hooks/auth/use-authorization'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'

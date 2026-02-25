@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getRateLimiter } from '@/lib/rate-limit'
-import { prisma } from '@/lib/prisma'
+import { getRateLimiter } from '@/lib/utils/rate-limit'
+import { prisma } from '@/lib/db/prisma'
 
 /**
  * Rate Limit Configuration per endpoint

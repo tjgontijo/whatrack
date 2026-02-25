@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers'
 import { auth } from '@/lib/auth/auth'
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/db/prisma'
 
 /**
  * Get the current session on the server side

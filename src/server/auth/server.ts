@@ -1,7 +1,7 @@
 import { cookies, headers as nextHeaders } from 'next/headers'
 import { auth } from '@/lib/auth/auth'
-import { prisma } from '@/lib/prisma'
-import { ORGANIZATION_HEADER, TEAM_HEADER } from '@/lib/constants'
+import { prisma } from '@/lib/db/prisma'
+import { ORGANIZATION_HEADER, TEAM_HEADER } from '@/lib/constants/http-headers'
 
 /**
  * Build headers with cookies for server-side auth calls

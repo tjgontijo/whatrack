@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import type { Prisma } from '@prisma/client'
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/db/prisma'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 export const dynamic = 'force-dynamic'

@@ -47,7 +47,7 @@ function unauthorizedResponse(request: NextRequest) {
 }
 
 import { randomUUID } from 'crypto'
-import { requestContextStorage } from '@/lib/request-context'
+import { requestContextStorage } from '@/lib/utils/request-context'
 
 export function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname

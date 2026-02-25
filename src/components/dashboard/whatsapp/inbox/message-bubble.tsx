@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { Check, CheckCheck } from 'lucide-react'
 
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils/utils'
 import { Message } from './types'
 
 interface MessageBubbleProps {

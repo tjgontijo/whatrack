@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { flexRender, Header, Row } from '@tanstack/react-table'
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils/utils'
 
 interface DataTableViewProps<TData> {
   headers: Header<TData, unknown>[]

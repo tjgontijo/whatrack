@@ -1,6 +1,6 @@
 import 'server-only'
 
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/db/prisma'
 
 /**
  * Verifica se uma organização tem o onboarding completo ou foi pulado

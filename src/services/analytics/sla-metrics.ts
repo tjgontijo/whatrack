@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/db/prisma'
 
 export async function getSlaMetrics(organizationId: string, startDate: Date, endDate: Date) {
   const distribution = await prisma.$queryRaw`

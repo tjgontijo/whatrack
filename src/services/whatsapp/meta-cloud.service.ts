@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/db/prisma'
 import { resolveAccessToken } from '@/lib/whatsapp/token-crypto'
 
 const GRAPH_API_URL = 'https://graph.facebook.com'

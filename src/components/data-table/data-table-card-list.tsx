@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { Row } from '@tanstack/react-table'
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils/utils'
 
 interface DataTableCardListProps<TData> {
   rows: Row<TData>[]

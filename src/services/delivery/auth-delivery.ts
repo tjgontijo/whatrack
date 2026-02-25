@@ -1,6 +1,6 @@
 import { performance } from 'node:perf_hooks'
 
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/db/prisma'
 import { resendProvider } from '@/services/mail/resend'
 import { getEmailTemplate } from './get-email'
 import { AuthDeliveryPayload, AuthDeliveryResult } from './types'

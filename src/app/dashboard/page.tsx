@@ -19,7 +19,7 @@ import { DashboardMetricCard, DashboardMetricGrid } from '@/components/dashboard
 import { DashboardPieChart } from '@/components/dashboard/charts/pie'
 import { FunnelChart } from '@/components/dashboard/charts/funnel-chart'
 import { formatCurrencyBRL } from '@/lib/mask/formatters'
-import { ORGANIZATION_HEADER } from '@/lib/constants'
+import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 import { authClient } from '@/lib/auth/auth-client'
 import {
   dashboardSummaryResponseSchema,

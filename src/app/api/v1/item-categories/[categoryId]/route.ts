@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { Prisma } from '@prisma/client'
 
-import { prisma } from '@/lib/prisma'
-import { apiError } from '@/lib/api-response'
+import { prisma } from '@/lib/db/prisma'
+import { apiError } from '@/lib/utils/api-response'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 const updateCategorySchema = z.object({

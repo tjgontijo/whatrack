@@ -2,8 +2,8 @@
 
 import * as React from 'react'
 import { LayoutGrid, List, Kanban } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { useIsMobile } from '@/hooks/use-mobile'
+import { cn } from '@/lib/utils/utils'
+import { useIsMobile } from '@/hooks/ui/use-mobile'
 import { ViewType } from './types'
 
 type ViewSwitcherProps = {

@@ -7,10 +7,6 @@
     {
       "path": "/api/v1/jobs/webhook-retry",
       "schedule": "0 3 * * *"
-    },
-    {
-      "path": "/api/cron/ai-classifier",
-      "schedule": "0 3 * * *"
     }
   ]
 }

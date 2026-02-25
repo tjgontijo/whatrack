@@ -1,5 +1,5 @@
-import { prisma } from '@/lib/prisma'
-import { getRedis } from '@/lib/redis'
+import { prisma } from '@/lib/db/prisma'
+import { getRedis } from '@/lib/db/redis'
 import { verifyWebhookSignature } from '@/lib/whatsapp/webhook-signature'
 import { WebhookProcessor } from '@/services/whatsapp/webhook-processor'
 import { WhatsAppChatService } from '@/services/whatsapp/whatsapp-chat.service'

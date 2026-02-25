@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { getRedis } from '@/lib/redis'
+import { getRedis } from '@/lib/db/redis'
 
 const OAUTH_STATE_TTL_SECONDS = 600 // 10 minutes
 

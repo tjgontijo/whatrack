@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { MessageCircle } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils/utils'
 
 interface TemplatePreviewProps {
   templateName?: string

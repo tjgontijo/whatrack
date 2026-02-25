@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError } from '@/lib/api-response'
-import { prisma } from '@/lib/prisma'
+import { apiError } from '@/lib/utils/api-response'
+import { prisma } from '@/lib/db/prisma'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 export async function PATCH(

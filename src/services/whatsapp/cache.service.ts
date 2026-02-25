@@ -1,6 +1,6 @@
-import { getRedis, isRedisConnected } from '@/lib/redis'
-import { CACHE_KEYS, CACHE_TTL } from '@/lib/cache-keys'
-import { prisma } from '@/lib/prisma'
+import { getRedis, isRedisConnected } from '@/lib/db/redis'
+import { CACHE_KEYS, CACHE_TTL } from '@/lib/db/cache-keys'
+import { prisma } from '@/lib/db/prisma'
 
 /**
  * WhatsApp Cache Service

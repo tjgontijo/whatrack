@@ -13,7 +13,7 @@ import {
 } from './data-table-card'
 import { PhoneWithWhatsApp } from './phone-with-whatsapp'
 import { StatusIconButton } from './status-icon-button'
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils/utils'
 
 interface Lead {
   id: string

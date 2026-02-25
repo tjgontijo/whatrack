@@ -1,5 +1,5 @@
-import { prisma } from '@/lib/prisma'
-import { encryption } from '@/lib/encryption'
+import { prisma } from '@/lib/db/prisma'
+import { encryption } from '@/lib/utils/encryption'
 import { MetaCloudService } from '@/services/whatsapp/meta-cloud.service'
 
 const APP_URL = process.env.APP_URL

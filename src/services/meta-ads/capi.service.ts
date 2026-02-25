@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/db/prisma'
 import { metaAccessTokenService } from './access-token.service'
 import crypto from 'crypto'
 import axios from 'axios'

@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/db/prisma'
 import { whatsappCache } from '@/services/whatsapp/cache.service'
 import { whatsappAuditService } from '@/services/whatsapp/audit.service'
 

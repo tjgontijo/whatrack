@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/db/prisma'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

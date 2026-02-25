@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/db/prisma'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { dashboardSummaryResponseSchema } from '@/schemas/dashboard-summary'
 import { buildSalesWhere, resolveFiltersDateRange, type SummaryFilters } from '@/services/dashboard/buildFilters'

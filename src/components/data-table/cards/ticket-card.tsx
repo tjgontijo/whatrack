@@ -15,7 +15,7 @@ import {
 } from './data-table-card'
 import { PhoneWithWhatsApp } from './phone-with-whatsapp'
 import { formatDateTime } from '@/lib/mask/formatters'
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils/utils'
 
 interface TicketCardProps {
   id: string

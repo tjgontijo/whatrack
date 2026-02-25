@@ -3,7 +3,7 @@
  * Mantém as roles atualizadas automaticamente
  */
 
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/db/prisma'
 import { UserRoleType, getHighestRole } from './roles'
 
 /**
