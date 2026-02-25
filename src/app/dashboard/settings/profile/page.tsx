@@ -10,6 +10,8 @@ import { Input } from '@/components/ui/input'
 import { FormProvider as Form, Controller } from 'react-hook-form'
 import { Field, FieldLabel, FieldError } from '@/components/ui/field'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { authClient } from '@/lib/auth/auth-client'
+import { getAuthErrorMessage } from '@/lib/auth/error-messages'
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
@@ -70,21 +72,24 @@ export default function ProfilePage() {
   const onSubmitPassword = async (data: z.infer<typeof passwordSchema>) => {
     setIsLoadingPassword(true)
     try {
-      const response = await fetch('/api/v1/users/me/password', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          currentPassword: data.currentPassword,
-          newPassword: data.newPassword,
-        }),
+      const { error } = await authClient.changePassword({
+        currentPassword: data.currentPassword,
+        newPassword: data.newPassword,
       })
 
-      if (!response.ok) throw new Error('Erro ao alterar senha')
+      if (error) {
+        throw new Error(
+          getAuthErrorMessage(
+            (error as any).code,
+            (error as any).message || 'Erro ao alterar senha'
+          )
+        )
+      }
 
       toast.success('Senha alterada com sucesso')
       passwordForm.reset()
-    } catch {
-      toast.error('Erro ao alterar senha')
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Erro ao alterar senha')
     } finally {
       setIsLoadingPassword(false)
     }
