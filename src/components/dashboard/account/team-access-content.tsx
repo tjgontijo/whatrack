@@ -298,6 +298,20 @@ export function TeamAccessContent() {
     },
   })
 
+  const resendInvitationMutation = useMutation({
+    mutationFn: async (invitationId: string) =>
+      fetchJson(`/api/v1/organizations/me/invitations/${invitationId}/resend`, {
+        method: 'POST',
+      }),
+    onSuccess: () => {
+      toast.success('Convite reenviado com sucesso')
+      void queryClient.invalidateQueries({ queryKey: ['organizations', 'me', 'invitations'] })
+    },
+    onError: (error: Error) => {
+      toast.error(error.message)
+    },
+  })
+
   const saveRoleMutation = useMutation({
     mutationFn: async () => {
       if (!roleNameDraft.trim()) {
@@ -547,14 +561,24 @@ export function TeamAccessContent() {
                         {format(new Date(invitation.expiresAt), 'dd/MM/yyyy', { locale: ptBR })}
                       </p>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => deleteInvitationMutation.mutate(invitation.id)}
-                      disabled={deleteInvitationMutation.isPending}
-                    >
-                      Cancelar
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => resendInvitationMutation.mutate(invitation.id)}
+                        disabled={resendInvitationMutation.isPending || deleteInvitationMutation.isPending}
+                      >
+                        Reenviar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => deleteInvitationMutation.mutate(invitation.id)}
+                        disabled={deleteInvitationMutation.isPending || resendInvitationMutation.isPending}
+                      >
+                        Cancelar
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
