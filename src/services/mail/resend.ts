@@ -5,6 +5,16 @@ import { EmailPayload, EmailResponse, EmailProvider } from './types'
 
 const RESEND_API_KEY = requireEnv('RESEND_API_KEY')
 const RESEND_FROM = requireEnv('RESEND_FROM')
+const APP_NAME = requireEnv('APP_NAME')
+
+function resolveFromHeader(from: string, appName: string): string {
+  if (from.includes('<') && from.includes('>')) {
+    return from
+  }
+  return `${appName} <${from}>`
+}
+
+const RESEND_FROM_HEADER = resolveFromHeader(RESEND_FROM, APP_NAME)
 
 class ResendProvider implements EmailProvider {
   private client: Resend = new Resend(RESEND_API_KEY)
@@ -16,7 +26,7 @@ class ResendProvider implements EmailProvider {
   async send(payload: EmailPayload): Promise<EmailResponse> {
     try {
       const { data, error } = await this.client.emails.send({
-        from: RESEND_FROM,
+        from: RESEND_FROM_HEADER,
         to: payload.to,
         subject: payload.subject,
         html: payload.html || '',

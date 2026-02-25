@@ -122,7 +122,7 @@ export async function POST(
     }),
   ])
 
-  const acceptUrl = `${APP_URL}/sign-in?invitationId=${updatedInvitation.id}`
+  const acceptUrl = `${APP_URL}/accept-invitation/${updatedInvitation.id}`
 
   try {
     const emailContent = await generateInvitationEmail({

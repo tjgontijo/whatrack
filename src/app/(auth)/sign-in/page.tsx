@@ -1,6 +1,7 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import { useMemo } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -13,6 +14,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { authClient } from '@/lib/auth/auth-client'
 import { getAuthErrorMessage } from '@/lib/auth/error-messages'
+import { acceptOrganizationInvitation, buildInvitationQuery } from '@/lib/auth/invitation-client'
 
 const loginSchema = z.object({
   email: z.string().trim().min(1, 'Informe o seu email.').email('Email inválido.'),
@@ -26,6 +28,9 @@ type LoginFormValues = z.infer<typeof loginSchema>
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const invitationId = searchParams.get('invitationId')
+  const invitationQuery = useMemo(() => buildInvitationQuery(invitationId), [invitationId])
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -52,7 +57,17 @@ export default function LoginPage() {
       }
 
       if (data) {
-        toast.success('Login realizado com sucesso!')
+        if (invitationId) {
+          try {
+            await acceptOrganizationInvitation(invitationId)
+            toast.success('Login realizado e convite aceito com sucesso!')
+          } catch (acceptError) {
+            console.error('[login] erro ao aceitar convite', acceptError)
+            toast.error('Login realizado, mas não foi possível aceitar o convite.')
+          }
+        } else {
+          toast.success('Login realizado com sucesso!')
+        }
         router.push('/dashboard')
       }
     } catch (error) {
@@ -139,7 +154,7 @@ export default function LoginPage() {
       <div className="text-muted-foreground pt-4 text-center text-sm">
         Não tem uma conta?{' '}
         <Link
-          href="/sign-up"
+          href={`/sign-up${invitationQuery}`}
           className="text-foreground hover:text-primary font-bold tracking-wide transition-colors hover:underline"
         >
           Criar conta gratuita

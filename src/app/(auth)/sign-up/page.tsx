@@ -1,6 +1,7 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import { useMemo } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
@@ -13,9 +14,13 @@ import { Input } from '@/components/ui/input'
 import { authClient } from '@/lib/auth/auth-client'
 import { signUpSchema, type SignUpData } from '@/schemas/sign-up'
 import { getAuthErrorMessage } from '@/lib/auth/error-messages'
+import { acceptOrganizationInvitation, buildInvitationQuery } from '@/lib/auth/invitation-client'
 
 export default function SignUpPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const invitationId = searchParams.get('invitationId')
+  const invitationQuery = useMemo(() => buildInvitationQuery(invitationId), [invitationId])
 
   const form = useForm<SignUpData>({
     resolver: zodResolver(signUpSchema),
@@ -53,7 +58,18 @@ export default function SignUpPage() {
       // 2. Aguardar sincronização da session
       await new Promise((resolve) => setTimeout(resolve, 1000))
 
-      toast.success('Conta criada com sucesso!')
+      if (invitationId) {
+        try {
+          await acceptOrganizationInvitation(invitationId)
+          toast.success('Conta criada e convite aceito com sucesso!')
+        } catch (acceptError) {
+          console.error('[sign-up] erro ao aceitar convite', acceptError)
+          toast.error('Conta criada, mas não foi possível aceitar o convite.')
+        }
+      } else {
+        toast.success('Conta criada com sucesso!')
+      }
+
       router.push('/dashboard')
     } catch (error) {
       console.error('[sign-up] erro ao criar conta', error)
@@ -174,7 +190,7 @@ export default function SignUpPage() {
       <div className="text-muted-foreground border-border/50 border-t pt-2 text-center text-sm lg:pt-4">
         Já tem uma conta?{' '}
         <Link
-          href="/sign-in"
+          href={`/sign-in${invitationQuery}`}
           className="text-foreground hover:text-primary font-bold tracking-wide transition-colors hover:underline"
         >
           Fazer login

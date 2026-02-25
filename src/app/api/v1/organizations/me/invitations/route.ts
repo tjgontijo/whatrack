@@ -143,7 +143,7 @@ export async function POST(req: NextRequest) {
   ])
 
   // Send invitation email (failure does not revert invitation creation)
-  const acceptUrl = `${APP_URL}/sign-in?invitationId=${invitation.id}`
+  const acceptUrl = `${APP_URL}/accept-invitation/${invitation.id}`
 
   try {
     const inviterUser = await prisma.user.findUnique({

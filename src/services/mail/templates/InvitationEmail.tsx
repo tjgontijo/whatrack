@@ -34,13 +34,12 @@ export const InvitationEmail = ({
   return (
     <Html>
       <Head />
-      <Preview>
-        Você foi convidado para {organizationName} no {appName}
-      </Preview>
+      <Preview>{`Defina sua senha e entre em ${organizationName} no ${appName}.`}</Preview>
       <Body style={main}>
         <Container style={container}>
           <Section style={header}>
             <Text style={headerTitle}>{appName}</Text>
+            <Text style={headerSubtitle}>Convite de equipe</Text>
           </Section>
 
           <Section style={content}>
@@ -53,13 +52,25 @@ export const InvitationEmail = ({
               <strong>{organizationName}</strong> no {appName}.
             </Text>
 
+            <Section style={detailsBox}>
+              <Text style={detailsLine}>
+                <strong>Organização:</strong> {organizationName}
+              </Text>
+              <Text style={detailsLine}>
+                <strong>Convidado por:</strong> {inviterName}
+              </Text>
+              <Text style={detailsLine}>
+                <strong>Validade:</strong> {expiresInDays} dias
+              </Text>
+            </Section>
+
             <Section style={buttonContainer}>
               <Button style={button} href={acceptUrl}>
                 Aceitar Convite
               </Button>
             </Section>
 
-            <Text style={alternativeLink}>Ou copie e cole este link no seu navegador:</Text>
+            <Text style={alternativeLink}>Se preferir, copie e cole este link no navegador:</Text>
             <Link href={acceptUrl} style={linkStyle}>
               {acceptUrl}
             </Link>
@@ -75,6 +86,16 @@ export const InvitationEmail = ({
             </Section>
 
             <Hr style={hr} />
+
+            <Section style={supportBox}>
+              <Text style={supportTitle}>Precisa de ajuda?</Text>
+              <Text style={supportText}>
+                ✉️ E-mail:{' '}
+                <Link href="mailto:contato@whatrack.com" style={linkStyle}>
+                  contato@whatrack.com
+                </Link>
+              </Text>
+            </Section>
 
             <Text style={footer}>
               © {new Date().getFullYear()} {appName}. Todos os direitos reservados.
@@ -125,7 +146,7 @@ const container = {
 }
 
 const header = {
-  background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
+  background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
   padding: '40px 20px',
   textAlign: 'center' as const,
   borderRadius: '8px 8px 0 0',
@@ -136,6 +157,12 @@ const headerTitle = {
   margin: '0',
   fontSize: '28px',
   fontWeight: 'bold' as const,
+}
+
+const headerSubtitle = {
+  color: '#e9e7ff',
+  margin: '8px 0 0 0',
+  fontSize: '14px',
 }
 
 const content = {
@@ -159,13 +186,28 @@ const paragraph = {
   lineHeight: '1.6',
 }
 
+const detailsBox = {
+  background: '#f5f3ff',
+  border: '1px solid #ddd6fe',
+  borderRadius: '8px',
+  padding: '14px 16px',
+  margin: '20px 0 10px 0',
+}
+
+const detailsLine = {
+  fontSize: '14px',
+  color: '#312e81',
+  margin: '4px 0',
+  lineHeight: '1.45',
+}
+
 const buttonContainer = {
   textAlign: 'center' as const,
   margin: '32px 0',
 }
 
 const button = {
-  background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
+  background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
   color: '#ffffff',
   padding: '14px 40px',
   borderRadius: '6px',
@@ -183,7 +225,7 @@ const alternativeLink = {
 }
 
 const linkStyle = {
-  color: '#128C7E',
+  color: '#4f46e5',
   fontWeight: 'bold' as const,
   wordBreak: 'break-all' as const,
 }
@@ -205,6 +247,27 @@ const warningText = {
   fontSize: '14px',
   color: '#92400e',
   margin: '0',
+}
+
+const supportBox = {
+  background: '#eef2ff',
+  borderRadius: '6px',
+  padding: '16px',
+  margin: '24px 0',
+}
+
+const supportTitle = {
+  fontSize: '15px',
+  color: '#312e81',
+  fontWeight: 'bold' as const,
+  margin: '0 0 8px 0',
+}
+
+const supportText = {
+  fontSize: '13px',
+  color: '#4338ca',
+  margin: '4px 0',
+  lineHeight: '1.5',
 }
 
 const footer = {
