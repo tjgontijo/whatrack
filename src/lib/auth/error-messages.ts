@@ -21,6 +21,11 @@ export const authErrorMessages: Record<string, string> = {
   EMAIL_NOT_VERIFIED: 'Email não verificado. Verifique sua caixa de entrada.',
   ACCOUNT_LOCKED: 'Conta bloqueada. Tente novamente mais tarde.',
   TOO_MANY_REQUESTS: 'Muitas tentativas. Tente novamente em alguns minutos.',
+  INVALID_PASSWORD: 'Senha atual incorreta.',
+  PASSWORD_TOO_SHORT: 'A nova senha está muito curta.',
+  PASSWORD_TOO_LONG: 'A nova senha é muito longa.',
+  CREDENTIAL_ACCOUNT_NOT_FOUND: 'Esta conta não possui senha cadastrada.',
+  INVALID_TOKEN: 'Token inválido ou expirado.',
 
   // Generic errors
   INTERNAL_SERVER_ERROR: 'Erro no servidor. Tente novamente mais tarde.',
