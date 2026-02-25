@@ -34,7 +34,7 @@ export const InvitationEmail = ({
   return (
     <Html>
       <Head />
-      <Preview>{`Defina sua senha e entre em ${organizationName} no ${appName}.`}</Preview>
+      <Preview>{`Você foi convidado para ${organizationName} no ${appName}`}</Preview>
       <Body style={main}>
         <Container style={container}>
           <Section style={header}>
