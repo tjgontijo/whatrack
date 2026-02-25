@@ -212,6 +212,8 @@ CREATE TABLE "organization_profiles" (
     "leadsPerAttendant" DOUBLE PRECISION,
     "revenuePerAttendant" DOUBLE PRECISION,
     "ticketExpirationDays" INTEGER DEFAULT 30,
+    "aiCopilotInstructions" TEXT,
+    "aiCopilotActive" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -227,6 +229,43 @@ CREATE TABLE "member" (
     "createdAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "member_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "organization_roles" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "organizationId" UUID NOT NULL,
+    "key" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "isSystem" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "organization_roles_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "organization_role_permissions" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "organizationRoleId" UUID NOT NULL,
+    "permissionKey" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "organization_role_permissions_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "member_permission_overrides" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "memberId" UUID NOT NULL,
+    "permissionKey" TEXT NOT NULL,
+    "effect" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "member_permission_overrides_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -259,6 +298,9 @@ CREATE TABLE "leads" (
     "lastSyncedAt" TIMESTAMP(3),
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "deletedAt" TIMESTAMP(3),
+    "firstMessageAt" TIMESTAMP(3),
+    "totalTickets" INTEGER NOT NULL DEFAULT 0,
+    "lifetimeValue" DECIMAL(12,2) NOT NULL DEFAULT 0,
 
     CONSTRAINT "leads_pkey" PRIMARY KEY ("id")
 );
@@ -271,6 +313,13 @@ CREATE TABLE "conversations" (
     "instanceId" UUID NOT NULL,
     "metaConversationId" TEXT,
     "messagesCount" INTEGER NOT NULL DEFAULT 0,
+    "unreadCount" INTEGER NOT NULL DEFAULT 0,
+    "inboundMessagesCount" INTEGER NOT NULL DEFAULT 0,
+    "outboundMessagesCount" INTEGER NOT NULL DEFAULT 0,
+    "lastInboundAt" TIMESTAMP(3),
+    "lastOutboundAt" TIMESTAMP(3),
+    "avgResponseTimeSec" INTEGER,
+    "firstResponseTimeSec" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -292,6 +341,12 @@ CREATE TABLE "tickets" (
     "closedReason" TEXT,
     "createdBy" TEXT NOT NULL DEFAULT 'SYSTEM',
     "messagesCount" INTEGER NOT NULL DEFAULT 0,
+    "inboundMessagesCount" INTEGER NOT NULL DEFAULT 0,
+    "outboundMessagesCount" INTEGER NOT NULL DEFAULT 0,
+    "lastInboundAt" TIMESTAMP(3),
+    "lastOutboundAt" TIMESTAMP(3),
+    "firstResponseTimeSec" INTEGER,
+    "resolutionTimeSec" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "leadId" TEXT NOT NULL,
@@ -340,7 +395,7 @@ CREATE TABLE "sale_items" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "organizationId" UUID NOT NULL,
     "saleId" UUID NOT NULL,
-    "productId" UUID,
+    "itemId" UUID,
     "name" TEXT NOT NULL,
     "quantity" INTEGER NOT NULL DEFAULT 1,
     "unitPrice" DECIMAL(12,2) NOT NULL,
@@ -352,22 +407,20 @@ CREATE TABLE "sale_items" (
 );
 
 -- CreateTable
-CREATE TABLE "products" (
+CREATE TABLE "items" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "organizationId" UUID NOT NULL,
     "categoryId" UUID,
     "name" TEXT NOT NULL,
-    "price" DECIMAL(12,2),
-    "cost" DECIMAL(12,2),
     "active" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "products_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "items_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "product_categories" (
+CREATE TABLE "item_categories" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "organizationId" UUID NOT NULL,
     "name" TEXT NOT NULL,
@@ -375,7 +428,7 @@ CREATE TABLE "product_categories" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "product_categories_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "item_categories_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -604,12 +657,25 @@ CREATE TABLE "meta_ad_accounts" (
     "connectionId" UUID NOT NULL,
     "adAccountId" TEXT NOT NULL,
     "adAccountName" TEXT NOT NULL,
-    "pixelId" TEXT,
     "isActive" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "meta_ad_accounts_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "meta_pixels" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "organizationId" UUID NOT NULL,
+    "name" TEXT,
+    "pixelId" TEXT NOT NULL,
+    "capiToken" TEXT NOT NULL,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "meta_pixels_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -642,6 +708,133 @@ CREATE TABLE "meta_attribution_history" (
     "changedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "meta_attribution_history_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ai_conversion_approvals" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "organizationId" UUID NOT NULL,
+    "ticketId" UUID NOT NULL,
+    "eventName" TEXT NOT NULL,
+    "itemName" TEXT,
+    "dealValue" DECIMAL(12,2),
+    "confidence" DOUBLE PRECISION NOT NULL DEFAULT 1.0,
+    "reasoning" TEXT,
+    "status" TEXT NOT NULL DEFAULT 'PENDING',
+    "reviewedBy" UUID,
+    "reviewedAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ai_conversion_approvals_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ai_trigger_event_types" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "name" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ai_trigger_event_types_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ai_schema_field_types" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "name" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ai_schema_field_types_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ai_insight_action_statuses" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "name" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ai_insight_action_statuses_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ai_agents" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "organizationId" UUID NOT NULL,
+    "name" TEXT NOT NULL,
+    "icon" TEXT,
+    "systemPrompt" TEXT NOT NULL,
+    "model" TEXT NOT NULL DEFAULT 'llama-3.3-70b-versatile',
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ai_agents_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ai_triggers" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "agentId" UUID NOT NULL,
+    "eventType" TEXT NOT NULL DEFAULT 'TICKET_CLOSED',
+    "conditions" JSONB NOT NULL DEFAULT '{}',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ai_triggers_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ai_schema_fields" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "agentId" UUID NOT NULL,
+    "fieldName" TEXT NOT NULL,
+    "fieldType" TEXT NOT NULL DEFAULT 'STRING',
+    "description" TEXT NOT NULL,
+    "isRequired" BOOLEAN NOT NULL DEFAULT true,
+    "options" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ai_schema_fields_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ai_insights" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "organizationId" UUID NOT NULL,
+    "ticketId" UUID NOT NULL,
+    "agentId" UUID NOT NULL,
+    "payload" JSONB NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'SUGGESTION',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ai_insights_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "org_audit_logs" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "organizationId" UUID,
+    "userId" UUID,
+    "action" TEXT NOT NULL,
+    "resourceType" TEXT NOT NULL,
+    "resourceId" TEXT,
+    "before" JSONB,
+    "after" JSONB,
+    "ip" TEXT,
+    "userAgent" TEXT,
+    "requestId" TEXT,
+    "metadata" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "org_audit_logs_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -708,6 +901,42 @@ CREATE UNIQUE INDEX "organization_profiles_organizationId_key" ON "organization_
 CREATE UNIQUE INDEX "organization_profiles_cpf_key" ON "organization_profiles"("cpf");
 
 -- CreateIndex
+CREATE INDEX "member_organizationId_role_idx" ON "member"("organizationId", "role");
+
+-- CreateIndex
+CREATE INDEX "organization_roles_organizationId_idx" ON "organization_roles"("organizationId");
+
+-- CreateIndex
+CREATE INDEX "organization_roles_isSystem_idx" ON "organization_roles"("isSystem");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "organization_roles_organizationId_key_key" ON "organization_roles"("organizationId", "key");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "organization_roles_organizationId_name_key" ON "organization_roles"("organizationId", "name");
+
+-- CreateIndex
+CREATE INDEX "organization_role_permissions_organizationRoleId_idx" ON "organization_role_permissions"("organizationRoleId");
+
+-- CreateIndex
+CREATE INDEX "organization_role_permissions_permissionKey_idx" ON "organization_role_permissions"("permissionKey");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "organization_role_permissions_organizationRoleId_permission_key" ON "organization_role_permissions"("organizationRoleId", "permissionKey");
+
+-- CreateIndex
+CREATE INDEX "member_permission_overrides_memberId_idx" ON "member_permission_overrides"("memberId");
+
+-- CreateIndex
+CREATE INDEX "member_permission_overrides_permissionKey_idx" ON "member_permission_overrides"("permissionKey");
+
+-- CreateIndex
+CREATE INDEX "member_permission_overrides_effect_idx" ON "member_permission_overrides"("effect");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "member_permission_overrides_memberId_permissionKey_key" ON "member_permission_overrides"("memberId", "permissionKey");
+
+-- CreateIndex
 CREATE INDEX "leads_organizationId_idx" ON "leads"("organizationId");
 
 -- CreateIndex
@@ -762,25 +991,25 @@ CREATE INDEX "sale_items_organizationId_idx" ON "sale_items"("organizationId");
 CREATE INDEX "sale_items_saleId_idx" ON "sale_items"("saleId");
 
 -- CreateIndex
-CREATE INDEX "sale_items_productId_idx" ON "sale_items"("productId");
+CREATE INDEX "sale_items_itemId_idx" ON "sale_items"("itemId");
 
 -- CreateIndex
-CREATE INDEX "products_organizationId_idx" ON "products"("organizationId");
+CREATE INDEX "items_organizationId_idx" ON "items"("organizationId");
 
 -- CreateIndex
-CREATE INDEX "products_active_idx" ON "products"("active");
+CREATE INDEX "items_active_idx" ON "items"("active");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "products_organizationId_name_key" ON "products"("organizationId", "name");
+CREATE UNIQUE INDEX "items_organizationId_name_key" ON "items"("organizationId", "name");
 
 -- CreateIndex
-CREATE INDEX "product_categories_organizationId_idx" ON "product_categories"("organizationId");
+CREATE INDEX "item_categories_organizationId_idx" ON "item_categories"("organizationId");
 
 -- CreateIndex
-CREATE INDEX "product_categories_active_idx" ON "product_categories"("active");
+CREATE INDEX "item_categories_active_idx" ON "item_categories"("active");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "product_categories_organizationId_name_key" ON "product_categories"("organizationId", "name");
+CREATE UNIQUE INDEX "item_categories_organizationId_name_key" ON "item_categories"("organizationId", "name");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "organization_companies_organizationId_key" ON "organization_companies"("organizationId");
@@ -906,6 +1135,9 @@ CREATE UNIQUE INDEX "meta_connections_organizationId_fbUserId_key" ON "meta_conn
 CREATE UNIQUE INDEX "meta_ad_accounts_organizationId_adAccountId_key" ON "meta_ad_accounts"("organizationId", "adAccountId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "meta_pixels_organizationId_pixelId_key" ON "meta_pixels"("organizationId", "pixelId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "meta_conversion_events_eventId_key" ON "meta_conversion_events"("eventId");
 
 -- CreateIndex
@@ -917,8 +1149,59 @@ CREATE UNIQUE INDEX "meta_conversion_events_ticketId_eventName_key" ON "meta_con
 -- CreateIndex
 CREATE INDEX "meta_attribution_history_ticketId_idx" ON "meta_attribution_history"("ticketId");
 
--- AddForeignKey
-ALTER TABLE "user" ADD CONSTRAINT "user_role_fkey" FOREIGN KEY ("role") REFERENCES "user_roles"("name") ON DELETE RESTRICT ON UPDATE CASCADE;
+-- CreateIndex
+CREATE INDEX "ai_conversion_approvals_organizationId_idx" ON "ai_conversion_approvals"("organizationId");
+
+-- CreateIndex
+CREATE INDEX "ai_conversion_approvals_ticketId_idx" ON "ai_conversion_approvals"("ticketId");
+
+-- CreateIndex
+CREATE INDEX "ai_conversion_approvals_status_idx" ON "ai_conversion_approvals"("status");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ai_trigger_event_types_name_key" ON "ai_trigger_event_types"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ai_schema_field_types_name_key" ON "ai_schema_field_types"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ai_insight_action_statuses_name_key" ON "ai_insight_action_statuses"("name");
+
+-- CreateIndex
+CREATE INDEX "ai_agents_organizationId_idx" ON "ai_agents"("organizationId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ai_agents_organizationId_name_key" ON "ai_agents"("organizationId", "name");
+
+-- CreateIndex
+CREATE INDEX "ai_triggers_agentId_idx" ON "ai_triggers"("agentId");
+
+-- CreateIndex
+CREATE INDEX "ai_schema_fields_agentId_idx" ON "ai_schema_fields"("agentId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ai_schema_fields_agentId_fieldName_key" ON "ai_schema_fields"("agentId", "fieldName");
+
+-- CreateIndex
+CREATE INDEX "ai_insights_organizationId_idx" ON "ai_insights"("organizationId");
+
+-- CreateIndex
+CREATE INDEX "ai_insights_ticketId_idx" ON "ai_insights"("ticketId");
+
+-- CreateIndex
+CREATE INDEX "ai_insights_agentId_idx" ON "ai_insights"("agentId");
+
+-- CreateIndex
+CREATE INDEX "org_audit_logs_organizationId_idx" ON "org_audit_logs"("organizationId");
+
+-- CreateIndex
+CREATE INDEX "org_audit_logs_userId_idx" ON "org_audit_logs"("userId");
+
+-- CreateIndex
+CREATE INDEX "org_audit_logs_createdAt_idx" ON "org_audit_logs"("createdAt");
+
+-- CreateIndex
+CREATE INDEX "org_audit_logs_requestId_idx" ON "org_audit_logs"("requestId");
 
 -- AddForeignKey
 ALTER TABLE "session" ADD CONSTRAINT "session_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -940,6 +1223,15 @@ ALTER TABLE "member" ADD CONSTRAINT "member_organizationId_fkey" FOREIGN KEY ("o
 
 -- AddForeignKey
 ALTER TABLE "member" ADD CONSTRAINT "member_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "organization_roles" ADD CONSTRAINT "organization_roles_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "organization_role_permissions" ADD CONSTRAINT "organization_role_permissions_organizationRoleId_fkey" FOREIGN KEY ("organizationRoleId") REFERENCES "organization_roles"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "member_permission_overrides" ADD CONSTRAINT "member_permission_overrides_memberId_fkey" FOREIGN KEY ("memberId") REFERENCES "member"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "invitation" ADD CONSTRAINT "invitation_inviterId_fkey" FOREIGN KEY ("inviterId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -987,19 +1279,19 @@ ALTER TABLE "sales" ADD CONSTRAINT "sales_ticketId_fkey" FOREIGN KEY ("ticketId"
 ALTER TABLE "sale_items" ADD CONSTRAINT "sale_items_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "sale_items" ADD CONSTRAINT "sale_items_productId_fkey" FOREIGN KEY ("productId") REFERENCES "products"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "sale_items" ADD CONSTRAINT "sale_items_itemId_fkey" FOREIGN KEY ("itemId") REFERENCES "items"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "sale_items" ADD CONSTRAINT "sale_items_saleId_fkey" FOREIGN KEY ("saleId") REFERENCES "sales"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "products" ADD CONSTRAINT "products_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "product_categories"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "items" ADD CONSTRAINT "items_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "item_categories"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "products" ADD CONSTRAINT "products_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "items" ADD CONSTRAINT "items_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "product_categories" ADD CONSTRAINT "product_categories_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "item_categories" ADD CONSTRAINT "item_categories_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "organization_companies" ADD CONSTRAINT "organization_companies_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1068,7 +1360,49 @@ ALTER TABLE "meta_ad_accounts" ADD CONSTRAINT "meta_ad_accounts_connectionId_fke
 ALTER TABLE "meta_ad_accounts" ADD CONSTRAINT "meta_ad_accounts_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "meta_pixels" ADD CONSTRAINT "meta_pixels_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "meta_conversion_events" ADD CONSTRAINT "meta_conversion_events_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "meta_attribution_history" ADD CONSTRAINT "meta_attribution_history_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "tickets"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_conversion_approvals" ADD CONSTRAINT "ai_conversion_approvals_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_conversion_approvals" ADD CONSTRAINT "ai_conversion_approvals_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "tickets"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_agents" ADD CONSTRAINT "ai_agents_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_triggers" ADD CONSTRAINT "ai_triggers_agentId_fkey" FOREIGN KEY ("agentId") REFERENCES "ai_agents"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_triggers" ADD CONSTRAINT "ai_triggers_eventType_fkey" FOREIGN KEY ("eventType") REFERENCES "ai_trigger_event_types"("name") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_schema_fields" ADD CONSTRAINT "ai_schema_fields_agentId_fkey" FOREIGN KEY ("agentId") REFERENCES "ai_agents"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_schema_fields" ADD CONSTRAINT "ai_schema_fields_fieldType_fkey" FOREIGN KEY ("fieldType") REFERENCES "ai_schema_field_types"("name") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_insights" ADD CONSTRAINT "ai_insights_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_insights" ADD CONSTRAINT "ai_insights_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "tickets"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_insights" ADD CONSTRAINT "ai_insights_agentId_fkey" FOREIGN KEY ("agentId") REFERENCES "ai_agents"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_insights" ADD CONSTRAINT "ai_insights_status_fkey" FOREIGN KEY ("status") REFERENCES "ai_insight_action_statuses"("name") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "org_audit_logs" ADD CONSTRAINT "org_audit_logs_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "org_audit_logs" ADD CONSTRAINT "org_audit_logs_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
