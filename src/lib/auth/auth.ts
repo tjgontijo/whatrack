@@ -4,16 +4,16 @@ import { admin, organization } from 'better-auth/plugins'
 import { randomUUID } from 'crypto'
 
 import { prisma } from '../prisma'
-
-const appBaseURL =
-  process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL
-if (!appBaseURL) throw new Error('[Auth] BETTER_AUTH_URL environment variable is required')
-const OWNER_EMAIL = process.env.OWNER_EMAIL
-
+import { requireEnv } from '../env/require-env.server'
+import { authDeliveryService } from '@/services/delivery/auth-delivery'
 import { auditService } from '../audit.service'
 
+const appBaseURL = requireEnv('BETTER_AUTH_URL')
+const betterAuthSecret = requireEnv('BETTER_AUTH_SECRET')
+const OWNER_EMAIL = process.env.OWNER_EMAIL
+
 export const auth = betterAuth({
-  secret: process.env.BETTER_AUTH_SECRET,
+  secret: betterAuthSecret,
   baseURL: appBaseURL,
   basePath: '/api/v1/auth',
   trustHost: true,
@@ -39,6 +39,47 @@ export const auth = betterAuth({
     enabled: true,
     requireEmailVerification: false,
     autoSignIn: true,
+    sendResetPassword: async ({ user, url }) => {
+      console.info('[auth] request_password_reset', {
+        event: 'auth.request_password_reset',
+        userId: user.id,
+        email: user.email,
+      })
+
+      const result = await authDeliveryService.send({
+        email: user.email,
+        type: 'password-reset',
+        data: {
+          url,
+          name: user.name,
+          expiresIn: 60,
+        },
+      })
+
+      if (!result.success) {
+        console.error('[auth] request_password_reset_delivery_failed', {
+          event: 'auth.request_password_reset_delivery_failed',
+          userId: user.id,
+          email: user.email,
+          error: result.error,
+        })
+        throw new Error('Password reset email delivery failed')
+      }
+    },
+    onPasswordReset: async ({ user }) => {
+      console.info('[auth] reset_password', {
+        event: 'auth.reset_password',
+        userId: user.id,
+        email: user.email,
+      })
+
+      void auditService.log({
+        userId: user.id,
+        action: 'auth.password_reset',
+        resourceType: 'user',
+        resourceId: user.id,
+      })
+    },
   },
 
   plugins: [admin(), organization()],
@@ -76,6 +117,28 @@ export const auth = betterAuth({
             action: 'auth.login',
             resourceType: 'session',
             resourceId: session.id,
+          })
+        },
+      },
+    },
+    account: {
+      update: {
+        after: async (account, context) => {
+          if (account.providerId !== 'credential') return
+          if (context?.path !== '/change-password') return
+
+          console.info('[auth] change_password', {
+            event: 'auth.change_password',
+            userId: account.userId,
+            accountId: account.id,
+            path: context.path,
+          })
+
+          void auditService.log({
+            userId: account.userId,
+            action: 'auth.password_changed',
+            resourceType: 'user',
+            resourceId: account.userId,
           })
         },
       },
