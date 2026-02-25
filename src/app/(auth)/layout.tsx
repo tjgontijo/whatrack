@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import Image from 'next/image'
 import { Toaster } from '@/components/ui/sonner'
 import { Badge } from '@/components/ui/badge'
 
@@ -8,9 +9,12 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       {/* Left side: Premium Branding & Graphic */}
       <div className="relative hidden w-1/2 flex-col overflow-hidden lg:flex">
         {/* Background image */}
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: "url('/images/bg_sign.webp')" }}
+        <Image
+          src="/images/bg_sign.webp"
+          alt=""
+          fill
+          className="object-cover object-center"
+          priority
         />
         {/* Dark overlay */}
         <div className="absolute inset-0 bg-black/60" />
