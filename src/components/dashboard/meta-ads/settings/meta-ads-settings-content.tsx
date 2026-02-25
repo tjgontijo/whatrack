@@ -3,25 +3,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import { toast } from 'sonner'
-import {
-  Plus,
-  Trash2,
-  RefreshCw,
-  Settings2,
-  ShieldCheck,
-  AlertCircle,
-  ExternalLink,
-  CheckCircle2,
-  XCircle,
-  Database,
-} from 'lucide-react'
+import { Plus, Trash2, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
-import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { MetaIcon } from '@/components/icons'
-import Link from 'next/link'
 import { TemplateMainShell, TemplateMainHeader } from '@/components/dashboard/leads'
 import { useMetaAdsOnboarding } from '@/hooks/meta-ads/use-meta-ads-onboarding'
 import { MetaPixelsConfigArea } from './meta-pixels-config-area'
@@ -83,6 +70,7 @@ export function MetaAdsSettingsContent({
     enabled: !!organizationId,
     initialData: initialAdAccounts,
   })
+  const hasConnections = (connections?.length ?? 0) > 0
 
   const { startOnboarding, isPending: isConnecting } = useMetaAdsOnboarding(
     organizationId,
@@ -128,30 +116,27 @@ export function MetaAdsSettingsContent({
     <TemplateMainShell className="flex h-screen flex-col overflow-hidden">
       <TemplateMainHeader
         title="Meta Ads Attribution"
-        subtitle="Gerencie suas conexões de anúncios e configure o rastreamento CAPI"
+        subtitle="Gerencie suas conexões de anúncios e datasets de pixels"
       />
 
-      <div className="bg-muted/5 flex-1 space-y-8 overflow-y-auto p-6 lg:p-8">
-        {/* Step 2: Tabs for Ad Accounts & Pixels */}
-        <Tabs defaultValue="ad-accounts" className="mx-auto max-w-5xl">
-          <TabsList className="mb-6 grid w-full max-w-md grid-cols-2">
+      <div className="bg-muted/5 flex-1 overflow-y-auto p-6 lg:p-8">
+        <Tabs defaultValue="ad-accounts" className="w-full gap-5">
+          <TabsList variant="line" className="mb-1 w-full justify-start rounded-none border-b p-0">
             <TabsTrigger
               value="ad-accounts"
               id={META_ADS_TAB_IDS.adAccountsTrigger}
               aria-controls={META_ADS_TAB_IDS.adAccountsContent}
-              className="flex items-center gap-2"
+              className="flex-none rounded-none px-4"
             >
-              <Settings2 className="h-4 w-4" />
               Contas de Anúncios
             </TabsTrigger>
             <TabsTrigger
               value="pixels"
               id={META_ADS_TAB_IDS.pixelsTrigger}
               aria-controls={META_ADS_TAB_IDS.pixelsContent}
-              className="flex items-center gap-2"
+              className="flex-none rounded-none px-4"
             >
-              <Database className="h-4 w-4" />
-              Pixels (CAPI)
+              Pixels
             </TabsTrigger>
           </TabsList>
 
@@ -159,15 +144,10 @@ export function MetaAdsSettingsContent({
             value="ad-accounts"
             id={META_ADS_TAB_IDS.adAccountsContent}
             aria-labelledby={META_ADS_TAB_IDS.adAccountsTrigger}
-            className="space-y-8"
+            className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]"
           >
-            {/* Step 1: Meta Connections (Now inside Ad Accounts tab) */}
             <section className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="flex items-center gap-2 text-lg font-semibold">
-                  <ShieldCheck className="h-5 w-5 text-blue-500" />
-                  Perfis Conectados
-                </h2>
+              <div className="flex justify-end">
                 <Button
                   onClick={() => startOnboarding()}
                   disabled={isConnecting}
@@ -245,103 +225,92 @@ export function MetaAdsSettingsContent({
               </div>
             </section>
 
-            {/* Imported Ad Accounts List */}
-            {(connections?.length ?? 0) > 0 && (
-              <section className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="flex items-center gap-2 text-lg font-semibold">
-                    Contas de Anúncios Importadas
-                  </h2>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-2"
-                    onClick={() => syncMutation.mutate()}
-                    disabled={syncMutation.isPending}
-                  >
-                    <RefreshCw
-                      className={`h-4 w-4 ${syncMutation.isPending ? 'animate-spin' : ''}`}
-                    />
-                    Sincronizar Contas
-                  </Button>
-                </div>
+            <section className="space-y-4">
+              <div className="flex justify-end">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => syncMutation.mutate()}
+                  disabled={syncMutation.isPending || !hasConnections}
+                >
+                  <RefreshCw className={`h-4 w-4 ${syncMutation.isPending ? 'animate-spin' : ''}`} />
+                  Sincronizar Contas
+                </Button>
+              </div>
 
-                <Card>
-                  <CardContent className="p-0">
-                    <div className="relative overflow-x-auto">
-                      <table className="w-full text-left text-sm">
-                        <thead className="bg-muted/50 border-b text-xs uppercase">
+              <Card>
+                <CardContent className="p-0">
+                  <div className="relative overflow-x-auto">
+                    <table className="w-full text-left text-sm">
+                      <thead className="bg-muted/50 border-b text-xs uppercase">
+                        <tr>
+                          <th className="px-6 py-4 font-semibold">Conta</th>
+                          <th className="w-48 px-6 py-4 text-right font-semibold">
+                            Extrair Dados (ROI)?
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y">
+                        {loadingAccounts && (!adAccounts || adAccounts.length === 0) ? (
                           <tr>
-                            <th className="px-6 py-4 font-semibold">Conta</th>
-                            <th className="w-48 px-6 py-4 text-right font-semibold">
-                              Extrair Dados (ROI)?
-                            </th>
+                            <td colSpan={2} className="px-6 py-8 text-center">
+                              <RefreshCw className="text-muted-foreground/20 mx-auto h-6 w-6 animate-spin" />
+                            </td>
                           </tr>
-                        </thead>
-                        <tbody className="divide-y">
-                          {loadingAccounts && (!adAccounts || adAccounts.length === 0) ? (
-                            <tr>
-                              <td colSpan={2} className="px-6 py-8 text-center">
-                                <RefreshCw className="text-muted-foreground/20 mx-auto h-6 w-6 animate-spin" />
+                        ) : (adAccounts?.length ?? 0) > 0 ? (
+                          adAccounts?.map((acc: any) => (
+                            <tr
+                              key={acc.id}
+                              className={`hover:bg-muted/30 transition-colors ${acc.isActive ? 'bg-emerald-50/10' : ''}`}
+                            >
+                              <td className="px-6 py-4">
+                                <div className="text-foreground font-medium">{acc.adAccountName}</div>
+                                <div className="text-muted-foreground mt-0.5 flex items-center gap-2 text-[10px]">
+                                  <span>{acc.adAccountId}</span>
+                                  <Badge
+                                    variant={acc.isActive ? 'default' : 'outline'}
+                                    className={`h-4 px-1.5 text-[9px] font-normal ${acc.isActive ? 'bg-emerald-500 hover:bg-emerald-600' : ''}`}
+                                  >
+                                    {acc.isActive ? 'Ativa' : 'Inativa'}
+                                  </Badge>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 text-right">
+                                <div className="flex items-center justify-end gap-3">
+                                  <span
+                                    className={`text-xs font-medium ${acc.isActive ? 'text-emerald-600' : 'text-muted-foreground'}`}
+                                  >
+                                    {acc.isActive ? 'ON' : 'OFF'}
+                                  </span>
+                                  <Switch
+                                    checked={acc.isActive}
+                                    onCheckedChange={(val) =>
+                                      toggleMutation.mutate({ id: acc.id, isActive: val })
+                                    }
+                                    className={
+                                      acc.isActive ? 'data-[state=checked]:bg-emerald-500' : ''
+                                    }
+                                  />
+                                </div>
                               </td>
                             </tr>
-                          ) : (adAccounts?.length ?? 0) > 0 ? (
-                            adAccounts?.map((acc: any) => (
-                              <tr
-                                key={acc.id}
-                                className={`hover:bg-muted/30 transition-colors ${acc.isActive ? 'bg-emerald-50/10' : ''}`}
-                              >
-                                <td className="px-6 py-4">
-                                  <div className="text-foreground font-medium">
-                                    {acc.adAccountName}
-                                  </div>
-                                  <div className="text-muted-foreground mt-0.5 flex items-center gap-2 text-[10px]">
-                                    <span>{acc.adAccountId}</span>
-                                    <Badge
-                                      variant={acc.isActive ? 'default' : 'outline'}
-                                      className={`h-4 px-1.5 text-[9px] font-normal ${acc.isActive ? 'bg-emerald-500 hover:bg-emerald-600' : ''}`}
-                                    >
-                                      {acc.isActive ? 'Ativa' : 'Inativa'}
-                                    </Badge>
-                                  </div>
-                                </td>
-                                <td className="px-6 py-4 text-right">
-                                  <div className="flex items-center justify-end gap-3">
-                                    <span
-                                      className={`text-xs font-medium ${acc.isActive ? 'text-emerald-600' : 'text-muted-foreground'}`}
-                                    >
-                                      {acc.isActive ? 'ON' : 'OFF'}
-                                    </span>
-                                    <Switch
-                                      checked={acc.isActive}
-                                      onCheckedChange={(val) =>
-                                        toggleMutation.mutate({ id: acc.id, isActive: val })
-                                      }
-                                      className={
-                                        acc.isActive ? 'data-[state=checked]:bg-emerald-500' : ''
-                                      }
-                                    />
-                                  </div>
-                                </td>
-                              </tr>
-                            ))
-                          ) : (
-                            <tr>
-                              <td
-                                colSpan={2}
-                                className="text-muted-foreground px-6 py-12 text-center italic"
-                              >
-                                Nenhuma conta encontrada. Clique em Sincronizar.
-                              </td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  </CardContent>
-                </Card>
-              </section>
-            )}
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan={2} className="text-muted-foreground px-6 py-12 text-center italic">
+                              {hasConnections
+                                ? 'Nenhuma conta encontrada. Clique em Sincronizar.'
+                                : 'Conecte um perfil para importar contas de anúncios.'}
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+            </section>
           </TabsContent>
 
           <TabsContent

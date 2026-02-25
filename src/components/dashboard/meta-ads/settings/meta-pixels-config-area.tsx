@@ -4,20 +4,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import { toast } from 'sonner'
 import { useState } from 'react'
-import { Plus, Trash2, Key, Database, Pencil, RefreshCw } from 'lucide-react'
+import { Plus, Trash2, Database, Pencil, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from '@/components/ui/dialog'
+import { CrudEditDrawer } from '@/components/dashboard/crud/crud-edit-drawer'
 import { Label } from '@/components/ui/label'
 
 interface MetaPixelsConfigAreaProps {
@@ -79,6 +72,11 @@ export function MetaPixelsConfigArea({ organizationId, initialPixels }: MetaPixe
   }
 
   const handleSave = () => {
+    if (!formData.name || !formData.pixelId || !formData.capiToken) {
+      toast.error('Preencha todos os campos')
+      return
+    }
+
     if (editingPixel) {
       updateMutation.mutate({ id: editingPixel.id, data: formData })
     } else {
@@ -116,79 +114,59 @@ export function MetaPixelsConfigArea({ organizationId, initialPixels }: MetaPixe
   if (!organizationId) return null
 
   return (
-    <section className="mx-auto max-w-5xl space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="flex items-center gap-2 text-lg font-semibold">
-          <Database className="h-5 w-5 text-indigo-500" />
-          Meta Datasets (Pixels) para Conversions API
-        </h2>
+    <section className="w-full space-y-4">
+      <div className="flex justify-end">
         <Button size="sm" className="gap-2" onClick={handleOpenCreate}>
           <Plus className="h-4 w-4" />
           Adicionar Dataset
         </Button>
-
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {editingPixel ? 'Editar Dataset (Pixel)' : 'Adicionar Novo Dataset (Pixel)'}
-              </DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="meta_dataset_name">Nome de Identificação</Label>
-                <Input
-                  id="meta_dataset_name"
-                  name="meta_dataset_name"
-                  placeholder="Ex: Pixel Principal"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="meta_pixel_id_val">ID do Dataset (Meta Pixel)</Label>
-                <Input
-                  id="meta_pixel_id_val"
-                  name="meta_pixel_id_val"
-                  placeholder="Ex: 123456789012345"
-                  value={formData.pixelId}
-                  onChange={(e) => setFormData({ ...formData, pixelId: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="meta_capi_token_area">Token de Acesso (CAPI)</Label>
-                <Textarea
-                  id="meta_capi_token_area"
-                  name="meta_capi_token_area"
-                  placeholder="Cole o longo Token de Acesso da Conversions API gerado no Facebook..."
-                  value={formData.capiToken}
-                  onChange={(e) => setFormData({ ...formData, capiToken: e.target.value })}
-                  className="min-h-[120px] break-all font-mono text-xs"
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                Cancelar
-              </Button>
-              <Button
-                onClick={handleSave}
-                disabled={
-                  createMutation.isPending ||
-                  updateMutation.isPending ||
-                  !formData.name ||
-                  !formData.pixelId ||
-                  !formData.capiToken
-                }
-              >
-                {createMutation.isPending || updateMutation.isPending
-                  ? 'Salvando...'
-                  : 'Salvar Dataset'}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
+
+      <CrudEditDrawer
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        title={editingPixel ? 'Editar Dataset (Pixel)' : 'Adicionar Novo Dataset (Pixel)'}
+        icon={Database}
+        onSave={handleSave}
+        isSaving={createMutation.isPending || updateMutation.isPending}
+        saveLabel="Salvar Dataset"
+        desktopDirection="right"
+        maxWidth="max-w-2xl"
+      >
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="meta_dataset_name">Nome de Identificação</Label>
+            <Input
+              id="meta_dataset_name"
+              name="meta_dataset_name"
+              placeholder="Ex: Pixel Principal"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="meta_pixel_id_val">ID do Dataset (Meta Pixel)</Label>
+            <Input
+              id="meta_pixel_id_val"
+              name="meta_pixel_id_val"
+              placeholder="Ex: 123456789012345"
+              value={formData.pixelId}
+              onChange={(e) => setFormData({ ...formData, pixelId: e.target.value })}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="meta_capi_token_area">Token de Acesso</Label>
+            <Textarea
+              id="meta_capi_token_area"
+              name="meta_capi_token_area"
+              placeholder="Cole o token de acesso gerado no Meta Ads..."
+              value={formData.capiToken}
+              onChange={(e) => setFormData({ ...formData, capiToken: e.target.value })}
+              className="min-h-[120px] break-all font-mono text-xs"
+            />
+          </div>
+        </div>
+      </CrudEditDrawer>
 
       <Card>
         <CardContent className="p-0">
@@ -197,7 +175,7 @@ export function MetaPixelsConfigArea({ organizationId, initialPixels }: MetaPixe
               <thead className="bg-muted/50 border-b text-xs uppercase">
                 <tr>
                   <th className="w-64 px-6 py-4 font-semibold">Nome / ID do Pixel</th>
-                  <th className="px-6 py-4 font-semibold">Token de Acesso (CAPI)</th>
+                  <th className="px-6 py-4 font-semibold">Token de Acesso</th>
                   <th className="w-24 px-6 py-4 text-center font-semibold">Ativo?</th>
                   <th className="w-16 px-6 py-4 text-right font-semibold">Ações</th>
                 </tr>
@@ -271,8 +249,7 @@ export function MetaPixelsConfigArea({ organizationId, initialPixels }: MetaPixe
                 ) : (
                   <tr>
                     <td colSpan={4} className="text-muted-foreground px-6 py-12 text-center italic">
-                      Nenhum Dataset/Pixel conectado. Adicione um novo para enviar eventos de
-                      conversão (CAPI).
+                      Nenhum Dataset/Pixel conectado.
                     </td>
                   </tr>
                 )}
