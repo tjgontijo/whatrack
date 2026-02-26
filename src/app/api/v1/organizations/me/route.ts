@@ -8,11 +8,11 @@ import { validateFullAccess, validateOwnerAccess } from '@/server/auth/validate-
 import { legacyOrganizationJson } from '@/server/http/legacy-organization'
 import { listEffectivePermissions } from '@/server/organization/organization-rbac.service'
 import {
-  OrganizationDocumentType,
-  OrganizationType,
+  type DocumentType,
+  type IdentityType,
   normalizeDocumentNumber,
-  validateOrganizationIdentity,
-} from '@/server/organization/organization-document'
+  validateIdentityDocument,
+} from '@/lib/document/document-identity'
 
 const legacyUpdateSchema = z
   .object({
@@ -70,12 +70,12 @@ export async function GET(req: NextRequest) {
   const effective = await listEffectivePermissions(access.memberId)
   const cnpj = normalizeDocumentNumber(org.company?.cnpj)
   const cpf = normalizeDocumentNumber(org.profile?.cpf)
-  const organizationType: OrganizationType | null = cnpj
+  const organizationType: IdentityType | null = cnpj
     ? 'pessoa_juridica'
     : cpf
       ? 'pessoa_fisica'
       : null
-  const documentType: OrganizationDocumentType | null = cnpj ? 'cnpj' : cpf ? 'cpf' : null
+  const documentType: DocumentType | null = cnpj ? 'cnpj' : cpf ? 'cpf' : null
   const documentNumber = cnpj ?? cpf ?? null
 
   return legacyOrganizationJson(
@@ -144,25 +144,25 @@ export async function PUT(req: NextRequest) {
 
   const currentCnpj = normalizeDocumentNumber(current?.company?.cnpj)
   const currentCpf = normalizeDocumentNumber(current?.profile?.cpf)
-  const currentOrganizationType: OrganizationType | null = currentCnpj
+  const currentOrganizationType: IdentityType | null = currentCnpj
     ? 'pessoa_juridica'
     : currentCpf
       ? 'pessoa_fisica'
       : null
-  const currentDocumentType: OrganizationDocumentType | null = currentCnpj ? 'cnpj' : currentCpf ? 'cpf' : null
+  const currentDocumentType: DocumentType | null = currentCnpj ? 'cnpj' : currentCpf ? 'cpf' : null
   const currentDocumentNumber = currentCnpj ?? currentCpf ?? null
 
   const nextOrganizationType = (
     parsed.data.organizationType ?? parsed.data.teamType ?? currentOrganizationType
-  ) as OrganizationType | null | undefined
+  ) as IdentityType | null | undefined
   const nextDocumentType = (
     parsed.data.documentType === undefined ? currentDocumentType : parsed.data.documentType
-  ) as OrganizationDocumentType | null | undefined
+  ) as DocumentType | null | undefined
   const nextDocumentNumber =
     parsed.data.documentNumber === undefined ? currentDocumentNumber : parsed.data.documentNumber
 
-  const identityValidation = validateOrganizationIdentity({
-    organizationType: nextOrganizationType,
+  const identityValidation = validateIdentityDocument({
+    identityType: nextOrganizationType,
     documentType: nextDocumentType,
     documentNumber: nextDocumentNumber,
   })
@@ -324,12 +324,12 @@ export async function PUT(req: NextRequest) {
 
   const updatedCnpj = normalizeDocumentNumber(updatedOrganization.company?.cnpj)
   const updatedCpf = normalizeDocumentNumber(updatedOrganization.profile?.cpf)
-  const updatedOrganizationType: OrganizationType | null = updatedCnpj
+  const updatedOrganizationType: IdentityType | null = updatedCnpj
     ? 'pessoa_juridica'
     : updatedCpf
       ? 'pessoa_fisica'
       : null
-  const updatedDocumentType: OrganizationDocumentType | null = updatedCnpj ? 'cnpj' : updatedCpf ? 'cpf' : null
+  const updatedDocumentType: DocumentType | null = updatedCnpj ? 'cnpj' : updatedCpf ? 'cpf' : null
   const updatedDocumentNumber = updatedCnpj ?? updatedCpf ?? null
 
   void auditService.log({

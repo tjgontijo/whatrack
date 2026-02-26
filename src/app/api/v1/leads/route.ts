@@ -1,103 +1,11 @@
 import { NextResponse } from 'next/server'
 import { apiError } from '@/lib/utils/api-response'
-import type { Prisma } from '@prisma/client'
-import { z } from 'zod'
-
-import { prisma } from '@/lib/db/prisma'
-import { getRedis } from '@/lib/db/redis'
+import {
+  createLeadSchema,
+  leadsQuerySchema,
+} from '@/schemas/lead-schemas'
+import { createLead, LeadConflictError, listLeads } from '@/services/leads/lead.service'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
-
-// Lead schema - simplified without ticket/conversation dependencies
-const leadSchema = z.object({
-  id: z.string(),
-  name: z.string().nullable(),
-  phone: z.string().nullable(),
-  mail: z.string().nullable(),
-  waId: z.string().nullable(),
-  createdAt: z.date(),
-})
-
-const leadsResponseSchema = z.object({
-  items: z.array(leadSchema),
-  total: z.number().int().nonnegative(),
-  page: z.number().int().positive(),
-  pageSize: z.number().int().positive(),
-})
-
-type LeadPayload = z.infer<typeof leadsResponseSchema>
-
-const CACHE_TTL_SECONDS = 3
-
-const DATE_RANGE_PRESETS = [
-  'today',
-  'yesterday',
-  '3d',
-  '7d',
-  '15d',
-  '30d',
-  '60d',
-  '90d',
-  'thisMonth',
-  'lastMonth',
-] as const
-
-type DateRangePreset = (typeof DATE_RANGE_PRESETS)[number]
-
-function isDateRangePreset(value: string | null): value is DateRangePreset {
-  return Boolean(value && DATE_RANGE_PRESETS.includes(value as DateRangePreset))
-}
-
-function startOfDay(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0)
-}
-
-function endOfDay(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999)
-}
-
-function resolveDateRange(preset: DateRangePreset): { gte: Date; lte: Date } {
-  const now = new Date()
-  const todayStart = startOfDay(now)
-  const todayEnd = endOfDay(now)
-
-  if (preset === 'today') {
-    return { gte: todayStart, lte: todayEnd }
-  }
-
-  if (preset === 'yesterday') {
-    const start = new Date(todayStart)
-    const end = new Date(todayEnd)
-    start.setDate(start.getDate() - 1)
-    end.setDate(end.getDate() - 1)
-    return { gte: start, lte: end }
-  }
-
-  if (preset.endsWith('d')) {
-    const days = Number.parseInt(preset.replace('d', ''), 10)
-    const from = new Date(todayStart)
-    from.setDate(from.getDate() - (days - 1))
-    return { gte: from, lte: todayEnd }
-  }
-
-  if (preset === 'thisMonth') {
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-    return { gte: monthStart, lte: todayEnd }
-  }
-
-  // lastMonth
-  const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
-  const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 1)
-  prevMonthEnd.setMilliseconds(prevMonthEnd.getMilliseconds() - 1)
-
-  return { gte: prevMonthStart, lte: prevMonthEnd }
-}
-
-const createLeadSchema = z.object({
-  name: z.string().optional(),
-  phone: z.string().optional(),
-  mail: z.string().email().optional().or(z.literal('')),
-  waId: z.string().optional(),
-})
 
 export async function POST(req: Request) {
   const access = await validateFullAccess(req)
@@ -109,33 +17,23 @@ export async function POST(req: Request) {
   try {
     const body = await req.json()
     const validated = createLeadSchema.parse(body)
-
-    const lead = await prisma.lead.create({
-      data: {
-        organizationId,
-        name: validated.name,
-        phone: validated.phone,
-        mail: validated.mail || null,
-        waId: validated.waId,
-      },
+    const lead = await createLead({
+      organizationId,
+      input: validated,
     })
 
     return NextResponse.json(lead, { status: 201 })
   } catch (error) {
     console.error('[api/leads] POST error:', error)
 
-    // Handle Prisma unique constraint violations
-    if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
-      const meta = (error as { meta?: { target?: string[] } }).meta
-      const field = meta?.target?.[1]
-
-      if (field === 'phone') {
+    if (error instanceof LeadConflictError) {
+      if (error.field === 'phone') {
         return NextResponse.json(
           { error: 'Já existe um lead com este número de telefone nesta organização' },
           { status: 409 }
         )
       }
-      if (field === 'waId' || field === 'remote_jid') {
+      if (error.field === 'waId') {
         return NextResponse.json(
           { error: 'Já existe um lead com este ID do WhatsApp nesta organização' },
           { status: 409 }
@@ -160,13 +58,6 @@ export async function GET(req: Request) {
   const organizationId = access.organizationId
 
   const { searchParams } = new URL(req.url)
-
-  const leadsQuerySchema = z.object({
-    q: z.string().default(''),
-    page: z.coerce.number().int().min(1).default(1),
-    pageSize: z.coerce.number().int().min(1).max(100).default(20),
-    dateRange: z.string().optional(),
-  })
   const parsed = leadsQuerySchema.safeParse(Object.fromEntries(searchParams))
   if (!parsed.success) {
     return NextResponse.json(
@@ -174,81 +65,15 @@ export async function GET(req: Request) {
       { status: 400 }
     )
   }
-  const { q: rawQ, page, pageSize, dateRange: dateRangeValue } = parsed.data
-  const q = rawQ.trim()
-
-  const dateRangePreset = isDateRangePreset(dateRangeValue ?? null)
-    ? (dateRangeValue as DateRangePreset)
-    : undefined
-
-  const ors: Prisma.LeadWhereInput[] = []
-  if (q) {
-    const imode = 'insensitive' as Prisma.QueryMode
-    ors.push({ name: { contains: q, mode: imode } })
-    ors.push({ phone: { contains: q, mode: imode } })
-    ors.push({ mail: { contains: q, mode: imode } })
-    ors.push({ waId: { contains: q, mode: imode } })
-    const looksLikeUuid = /^[0-9a-fA-F-]{32,36}$/.test(q)
-    if (looksLikeUuid) ors.push({ id: q })
-  }
-
-  const filterConditions: Prisma.LeadWhereInput[] = []
-  if (ors.length) {
-    filterConditions.push({ OR: ors })
-  }
-
-  if (dateRangePreset) {
-    const range = resolveDateRange(dateRangePreset)
-    filterConditions.push({ createdAt: { gte: range.gte, lte: range.lte } })
-  }
-
-  const baseWhere: Prisma.LeadWhereInput = { organizationId }
-  let where: Prisma.LeadWhereInput = baseWhere
-  if (filterConditions.length === 1) {
-    where = { AND: [baseWhere, filterConditions[0]] }
-  } else if (filterConditions.length > 1) {
-    where = { AND: [baseWhere, ...filterConditions] }
-  }
 
   try {
-    const cacheKey = `leads:${JSON.stringify({ organizationId, q, page, pageSize, where })}`
-
-    // Try Redis cache first
-    try {
-      const redis = getRedis()
-      const cached = await redis.get(cacheKey)
-      if (cached) {
-        return NextResponse.json(JSON.parse(cached))
-      }
-    } catch {
-      // Redis unavailable — proceed without cache
-    }
-
-    const leads = await prisma.lead.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-      select: {
-        id: true,
-        name: true,
-        phone: true,
-        mail: true,
-        waId: true,
-        createdAt: true,
-      },
+    const payload = await listLeads({
+      organizationId,
+      q: parsed.data.q,
+      page: parsed.data.page,
+      pageSize: parsed.data.pageSize,
+      dateRange: parsed.data.dateRange,
     })
-
-    const total = await prisma.lead.count({ where })
-    const payload = leadsResponseSchema.parse({ items: leads, total, page, pageSize })
-
-    // Populate Redis cache (fire-and-forget)
-    try {
-      const redis = getRedis()
-      await redis.setex(cacheKey, CACHE_TTL_SECONDS, JSON.stringify(payload))
-    } catch {
-      // Redis unavailable — serve without caching
-    }
 
     return NextResponse.json(payload)
   } catch (error) {

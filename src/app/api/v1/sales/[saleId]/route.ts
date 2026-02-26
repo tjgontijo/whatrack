@@ -1,17 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/utils/api-response'
-import { z } from 'zod'
 import { revalidateTag } from 'next/cache'
-import { prisma } from '@/lib/db/prisma'
-import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
-const updateSaleSchema = z.object({
-  totalAmount: z.number().optional(),
-  profit: z.number().optional(),
-  discount: z.number().optional(),
-  status: z.enum(['pending', 'completed', 'cancelled']).optional(),
-  notes: z.string().optional(),
-})
+import { updateSaleSchema } from '@/schemas/sale-schemas'
+import { deleteSale, updateSale } from '@/services/sales/sale.service'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ saleId: string }> }) {
   const access = await validateFullAccess(req)
@@ -25,42 +18,16 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ sale
   try {
     const body = await req.json()
     const validated = updateSaleSchema.parse(body)
-
-    // Verify sale belongs to organization
-    const existing = await prisma.sale.findFirst({
-      where: {
-        id: saleId,
-        organizationId,
-      },
+    const updated = await updateSale({
+      organizationId,
+      saleId,
+      userId,
+      input: validated,
     })
-
-    if (!existing) {
+    if (!updated) {
       return NextResponse.json({ error: 'Venda não encontrada' }, { status: 404 })
     }
 
-    // Track status change
-    const statusChangedAt =
-      validated.status && validated.status !== existing.status
-        ? new Date()
-        : existing.statusChangedAt
-
-    const updated = await prisma.sale.update({
-      where: { id: saleId },
-      data: {
-        totalAmount: validated.totalAmount,
-        profit: validated.profit,
-        discount: validated.discount,
-        status: validated.status,
-        notes: validated.notes,
-        updatedBy: userId,
-        statusChangedAt,
-      },
-      include: {
-        items: true,
-      },
-    })
-
-    // Revalidar cache do dashboard após atualizar venda
     revalidateTag('dashboard-summary', 'max')
     revalidateTag(`org-${organizationId}`, 'max')
 
@@ -83,24 +50,14 @@ export async function DELETE(
   const { saleId } = await params
 
   try {
-    // Verify sale belongs to organization
-    const existing = await prisma.sale.findFirst({
-      where: {
-        id: saleId,
-        organizationId,
-      },
+    const deleted = await deleteSale({
+      organizationId,
+      saleId,
     })
-
-    if (!existing) {
+    if (!deleted) {
       return NextResponse.json({ error: 'Venda não encontrada' }, { status: 404 })
     }
 
-    // Delete sale and associated items (cascade)
-    await prisma.sale.delete({
-      where: { id: saleId },
-    })
-
-    // Revalidar cache do dashboard após deletar venda
     revalidateTag('dashboard-summary', 'max')
     revalidateTag(`org-${organizationId}`, 'max')
 

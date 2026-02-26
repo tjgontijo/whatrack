@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/utils/api-response'
-import { z } from 'zod'
-import { prisma } from '@/lib/db/prisma'
+
+import { updateLeadSchema } from '@/schemas/lead-schemas'
+import {
+  deleteLead,
+  getLeadById,
+  LeadConflictError,
+  updateLead,
+} from '@/services/leads/lead.service'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ leadId: string }> }) {
@@ -13,12 +19,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ lead
   const { leadId } = await params
 
   try {
-    const lead = await prisma.lead.findFirst({
-      where: {
-        id: leadId,
-        organizationId,
-      },
-    })
+    const lead = await getLeadById(organizationId, leadId)
 
     if (!lead) {
       return NextResponse.json({ error: 'Lead não encontrado' }, { status: 404 })
@@ -30,13 +31,6 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ lead
     return apiError('Falha ao buscar lead', 500, error)
   }
 }
-
-const updateLeadSchema = z.object({
-  name: z.string().optional(),
-  phone: z.string().optional(),
-  mail: z.string().email().optional().or(z.literal('')).nullable(),
-  waId: z.string().optional().nullable(),
-})
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ leadId: string }> }) {
   const access = await validateFullAccess(req)
@@ -50,44 +44,27 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ lead
     const body = await req.json()
     const validated = updateLeadSchema.parse(body)
 
-    // Verify lead belongs to organization
-    const existing = await prisma.lead.findFirst({
-      where: {
-        id: leadId,
-        organizationId,
-      },
+    const updated = await updateLead({
+      organizationId,
+      leadId,
+      input: validated,
     })
-
-    if (!existing) {
+    if (!updated) {
       return NextResponse.json({ error: 'Lead não encontrado' }, { status: 404 })
     }
-
-    const updated = await prisma.lead.update({
-      where: { id: leadId },
-      data: {
-        name: validated.name,
-        phone: validated.phone,
-        mail: validated.mail ?? undefined,
-        waId: validated.waId,
-      },
-    })
 
     return NextResponse.json(updated)
   } catch (error) {
     console.error('[api/leads/[leadId]] PUT error:', error)
 
-    // Handle Prisma unique constraint violations
-    if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
-      const meta = (error as { meta?: { target?: string[] } }).meta
-      const field = meta?.target?.[1]
-
-      if (field === 'phone') {
+    if (error instanceof LeadConflictError) {
+      if (error.field === 'phone') {
         return NextResponse.json(
           { error: 'Já existe um lead com este número de telefone nesta organização' },
           { status: 409 }
         )
       }
-      if (field === 'waId' || field === 'remote_jid') {
+      if (error.field === 'waId') {
         return NextResponse.json(
           { error: 'Já existe um lead com este ID do WhatsApp nesta organização' },
           { status: 409 }
@@ -111,21 +88,13 @@ export async function DELETE(
   const { leadId } = await params
 
   try {
-    // Verify lead belongs to organization
-    const existing = await prisma.lead.findFirst({
-      where: {
-        id: leadId,
-        organizationId,
-      },
+    const deleted = await deleteLead({
+      organizationId,
+      leadId,
     })
-
-    if (!existing) {
+    if (!deleted) {
       return NextResponse.json({ error: 'Lead não encontrado' }, { status: 404 })
     }
-
-    await prisma.lead.delete({
-      where: { id: leadId },
-    })
 
     return NextResponse.json({ success: true })
   } catch (error) {

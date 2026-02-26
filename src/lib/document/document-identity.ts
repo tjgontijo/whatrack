@@ -1,9 +1,9 @@
 import { validateCnpj } from '@/lib/mask/cnpj'
 
-export type OrganizationType = 'pessoa_fisica' | 'pessoa_juridica'
-export type OrganizationDocumentType = 'cpf' | 'cnpj'
+export type IdentityType = 'pessoa_fisica' | 'pessoa_juridica'
+export type DocumentType = 'cpf' | 'cnpj'
 
-const ORGANIZATION_TO_DOCUMENT: Record<OrganizationType, OrganizationDocumentType> = {
+const IDENTITY_TO_DOCUMENT: Record<IdentityType, DocumentType> = {
   pessoa_fisica: 'cpf',
   pessoa_juridica: 'cnpj',
 }
@@ -41,7 +41,7 @@ function validateCpf(cpf: string | null | undefined): boolean {
 }
 
 export function validateDocumentByType(
-  documentType: OrganizationDocumentType,
+  documentType: DocumentType,
   documentNumber: string | null | undefined
 ): boolean {
   const normalized = normalizeDocumentNumber(documentNumber)
@@ -54,37 +54,37 @@ export function validateDocumentByType(
   return validateCnpj(normalized)
 }
 
-export function validateOrganizationIdentity(input: {
-  organizationType: OrganizationType | null | undefined
-  documentType: OrganizationDocumentType | null | undefined
+export function validateIdentityDocument(input: {
+  identityType: IdentityType | null | undefined
+  documentType: DocumentType | null | undefined
   documentNumber: string | null | undefined
 }): { valid: true; normalizedDocument: string | null } | { valid: false; error: string } {
-  const { organizationType, documentType, documentNumber } = input
+  const { identityType, documentType, documentNumber } = input
   const normalizedDocument = normalizeDocumentNumber(documentNumber)
 
-  if (!organizationType && !documentType && !normalizedDocument) {
+  if (!identityType && !documentType && !normalizedDocument) {
     return { valid: true, normalizedDocument: null }
   }
 
-  if (!organizationType || !documentType) {
+  if (!identityType || !documentType) {
     return {
       valid: false,
-      error: 'organizationType e documentType são obrigatórios quando houver documento.',
+      error: 'identityType e documentType são obrigatórios quando houver documento.',
     }
   }
 
-  const expectedDocumentType = ORGANIZATION_TO_DOCUMENT[organizationType]
+  const expectedDocumentType = IDENTITY_TO_DOCUMENT[identityType]
   if (expectedDocumentType !== documentType) {
     return {
       valid: false,
-      error: `documentType inválido para ${organizationType}. Esperado: ${expectedDocumentType}.`,
+      error: `documentType inválido para ${identityType}. Esperado: ${expectedDocumentType}.`,
     }
   }
 
   if (!normalizedDocument) {
     return {
       valid: false,
-      error: 'documentNumber é obrigatório quando organizationType/documentType forem informados.',
+      error: 'documentNumber é obrigatório quando identityType/documentType forem informados.',
     }
   }
 

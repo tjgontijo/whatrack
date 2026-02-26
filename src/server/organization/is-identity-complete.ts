@@ -5,7 +5,7 @@ import { INTEGRATION_IDENTITY_REQUIRED_MESSAGE } from '@/lib/constants/http-head
 import {
   normalizeDocumentNumber,
   validateDocumentByType,
-} from '@/server/organization/organization-document'
+} from '@/lib/document/document-identity'
 
 export { INTEGRATION_IDENTITY_REQUIRED_MESSAGE }
 
