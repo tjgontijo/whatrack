@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db/prisma'
 import { auditService } from '@/services/audit/audit.service'
-import type { UpdateMeAccountInput } from '@/schemas/me-account-schemas'
+import type { UpdateMeAccountInput } from '@/schemas/me/me-account-schemas'
 
 export async function getMeAccount(userId: string) {
   return prisma.user.findUnique({

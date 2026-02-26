@@ -10,7 +10,7 @@ import {
   normalizeDocumentNumber,
   validateIdentityDocument,
 } from '@/lib/document/document-identity'
-import type { UpdateOrganizationInput } from '@/schemas/organization-schemas'
+import type { UpdateOrganizationInput } from '@/schemas/organizations/organization-schemas'
 
 type ServiceError = {
   error: string

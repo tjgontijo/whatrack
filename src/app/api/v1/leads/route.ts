@@ -3,7 +3,7 @@ import { apiError } from '@/lib/utils/api-response'
 import {
   createLeadSchema,
   leadsQuerySchema,
-} from '@/schemas/lead-schemas'
+} from '@/schemas/leads/lead-schemas'
 import { createLead, LeadConflictError, listLeads } from '@/services/leads/lead.service'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 

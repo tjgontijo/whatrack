@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { toRbacErrorResponse } from '@/server/organization/rbac-http'
-import { updateOrganizationMemberOverridesSchema } from '@/schemas/organization-member-schemas'
+import { updateOrganizationMemberOverridesSchema } from '@/schemas/organizations/organization-member-schemas'
 import {
   getOrganizationMemberPermissionOverrides,
   updateOrganizationMemberPermissionOverrides,

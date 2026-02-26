@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
-import { reorderTicketStageSchema } from '@/schemas/ticket-stage-schemas'
+import { reorderTicketStageSchema } from '@/schemas/tickets/ticket-stage-schemas'
 import { reorderTicketStages } from '@/services/ticket-stages/ticket-stage.service'
 
 export async function PUT(req: Request) {

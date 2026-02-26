@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
-import { updateOrganizationAiSettingsSchema } from '@/schemas/organization-schemas'
+import { updateOrganizationAiSettingsSchema } from '@/schemas/organizations/organization-schemas'
 import {
   getOrganizationAiSettings,
   updateOrganizationAiSettings,

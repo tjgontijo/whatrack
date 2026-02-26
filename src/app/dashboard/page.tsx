@@ -24,7 +24,7 @@ import { authClient } from '@/lib/auth/auth-client'
 import {
   dashboardSummaryResponseSchema,
   type DashboardSummaryResponse,
-} from '@/schemas/dashboard-summary'
+} from '@/schemas/dashboard/dashboard-summary'
 
 const NO_TRAFFIC_SOURCE_VALUE = '__no-source__'
 

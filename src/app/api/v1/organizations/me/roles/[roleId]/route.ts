@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { toRbacErrorResponse } from '@/server/organization/rbac-http'
-import { updateOrganizationRoleSchema } from '@/schemas/organization-role-schemas'
+import { updateOrganizationRoleSchema } from '@/schemas/organizations/organization-role-schemas'
 import {
   deleteOrganizationRoleWithAudit,
   updateOrganizationRoleWithAudit,

@@ -7,7 +7,7 @@
 import { NextResponse } from 'next/server'
 
 import { getOrSyncUser } from '@/server/auth/server'
-import { updateOrganizationByIdSchema } from '@/schemas/organization-schemas'
+import { updateOrganizationByIdSchema } from '@/schemas/organizations/organization-schemas'
 import { updateOrganizationById } from '@/services/organizations/organization-management.service'
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {

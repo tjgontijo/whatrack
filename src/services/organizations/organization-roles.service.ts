@@ -13,7 +13,7 @@ import {
 import type {
   CreateOrganizationRoleInput,
   UpdateOrganizationRoleInput,
-} from '@/schemas/organization-role-schemas'
+} from '@/schemas/organizations/organization-role-schemas'
 
 type ServiceError = {
   error: string

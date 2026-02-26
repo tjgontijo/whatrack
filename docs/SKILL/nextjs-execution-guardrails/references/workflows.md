@@ -7,15 +7,16 @@
 3. Mapear modulos impactados em `src/` e definir estrategia de menor diff.
 4. Definir teste(s) do comportamento esperado antes da entrega e preparar criacao/ajuste durante a implementacao.
 5. Implementar por camadas na ordem: schema → service → route → UI.
-6. Schema: criar ou atualizar em `src/schemas/[dominio]-schemas.ts`.
-7. Service: implementar logica de negocio, queries e cache em `src/services/[dominio]/`.
-8. Route: apenas autenticar, validar (com schema importado), delegar ao service, responder.
-9. UI: componentes em `src/components/dashboard/[dominio]/`; usar `"use client"` so se necessario.
-10. Cobrir casos principais e limites (erro, vazio, permissao, fallback).
-11. Escrever ou atualizar testes para comportamento novo.
-12. Executar obrigatoriamente os testes criados/atualizados antes da entrega.
-13. Rodar validacao proporcional ao impacto.
-14. Entregar resumo com arquivos alterados, testes executados e riscos.
+6. Em todas as camadas de dominio, respeitar `src/<camada>/<dominio>/...` (evitar arquivos flat na raiz da camada).
+7. Schema: criar ou atualizar em `src/schemas/[dominio]/[recurso]-schemas.ts`.
+8. Service: implementar logica de negocio, queries e cache em `src/services/[dominio]/`.
+9. Route: apenas autenticar, validar (com schema importado), delegar ao service, responder.
+10. UI: componentes em `src/components/dashboard/[dominio]/`; usar `"use client"` so se necessario e sem `useEffect`/`useLayoutEffect`.
+11. Cobrir casos principais e limites (erro, vazio, permissao, fallback).
+12. Escrever ou atualizar testes para comportamento novo.
+13. Executar obrigatoriamente os testes criados/atualizados antes da entrega.
+14. Rodar validacao proporcional ao impacto.
+15. Entregar resumo com arquivos alterados, testes executados e riscos.
 
 ## Workflow: Bugfix
 
@@ -32,22 +33,23 @@
 ## Workflow: Endpoint/API
 
 1. Definir contrato: entrada (query params ou body), saida e codigos de erro esperados.
-2. Criar schema Zod em `src/schemas/[dominio]-schemas.ts` (nao inline na route).
-3. Criar ou atualizar service em `src/services/[dominio]/[recurso].service.ts` com a logica.
-4. Criar route em `src/app/api/v1/[recurso]/route.ts` seguindo a anatomia:
+2. Aplicar convencao de dominio em todas as camadas tocadas (`src/<camada>/<dominio>/...`).
+3. Criar schema Zod em `src/schemas/[dominio]/[recurso]-schemas.ts` (nao inline na route).
+4. Criar ou atualizar service em `src/services/[dominio]/[recurso].service.ts` com a logica.
+5. Criar route em `src/app/api/v1/[recurso]/route.ts` seguindo a anatomia:
    ```
    autenticar → validar com schema importado → delegar ao service → retornar HTTP
    ```
-5. Usar `validatePermissionAccess` para rotas com RBAC; `validateFullAccess` para rotas abertas a membros.
-6. Nao adicionar helper de data, filtro ou cache dentro da route.
-7. Decidir cache no service: por padrao sem cache manual; usar Redis somente quando houver evidencia de necessidade.
-8. Padronizar status codes: 200 GET, 201 POST, 204 DELETE, 400 validacao, 403 acesso, 404 nao encontrado, 409 conflito, 500 erro interno.
-9. Usar `apiError()` de `src/lib/utils/api-response.ts` para erros — nao criar `NextResponse.json({ error })` manual.
-10. Usar `revalidateTag` na route apos mutacoes bem-sucedidas (POST/PATCH/DELETE).
-11. Cobrir caminho feliz e falhas esperadas em teste.
-12. Executar obrigatoriamente os testes criados/atualizados antes da entrega.
-13. Se houver interceptacao/autorizacao no nivel de framework, alterar `src/proxy.ts` (nao `src/middleware.ts`).
-14. Confirmar impacto em consumidores existentes.
+6. Usar `validatePermissionAccess` para rotas com RBAC; `validateFullAccess` para rotas abertas a membros.
+7. Nao adicionar helper de data, filtro ou cache dentro da route.
+8. Decidir cache no service: por padrao sem cache manual; usar Redis somente quando houver evidencia de necessidade.
+9. Padronizar status codes: 200 GET, 201 POST, 204 DELETE, 400 validacao, 403 acesso, 404 nao encontrado, 409 conflito, 500 erro interno.
+10. Usar `apiError()` de `src/lib/utils/api-response.ts` para erros — nao criar `NextResponse.json({ error })` manual.
+11. Usar `revalidateTag` na route apos mutacoes bem-sucedidas (POST/PATCH/DELETE).
+12. Cobrir caminho feliz e falhas esperadas em teste.
+13. Executar obrigatoriamente os testes criados/atualizados antes da entrega.
+14. Se houver interceptacao/autorizacao no nivel de framework, alterar `src/proxy.ts` (nao `src/middleware.ts`).
+15. Confirmar impacto em consumidores existentes.
 
 ## Workflow: Prisma e Dados
 
@@ -75,4 +77,6 @@
 7. Garantir que ha teste criado ou atualizado para confirmar ausencia de regressao.
 8. Executar obrigatoriamente os testes criados/atualizados antes da entrega.
 9. Evitar combinar refactor com mudanca funcional nao solicitada.
-10. Entregar com justificativa tecnica curta e verificavel.
+10. Em cleanup estrutural, executar `rg -n "legacy|teamType|teamId|x-team-id|manage:team_" src` e garantir resultado vazio.
+11. Se houver qualquer ocorrencia de compatibilidade legada no `src/`, bloquear entrega ate remover.
+12. Entregar com justificativa tecnica curta e verificavel.

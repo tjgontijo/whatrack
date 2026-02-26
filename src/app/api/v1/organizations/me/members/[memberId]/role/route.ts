@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server'
 
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { organizationJson } from '@/server/http/organization-json'
-import { updateOrganizationMemberRoleSchema } from '@/schemas/organization-member-schemas'
+import { updateOrganizationMemberRoleSchema } from '@/schemas/organizations/organization-member-schemas'
 import { updateOrganizationMemberRole } from '@/services/organizations/organization-members.service'
 
 export async function PATCH(

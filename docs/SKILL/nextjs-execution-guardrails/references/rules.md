@@ -9,10 +9,15 @@
 ## Arquitetura
 
 - Priorizar componentes server por padrao; usar `"use client"` somente quando necessario.
+- Proibido introduzir `useEffect`/`useLayoutEffect` em codigo da aplicacao (`src/`).
+- `useEffect` e considerado anti-padrao neste projeto para fluxo de dados/orquestracao de tela; entrega deve ser bloqueada se houver introducao.
+- Para efeitos de dados/fluxo, usar Server Components, Server Actions e composicao de props.
 - Handlers de API devem ser enxutos: autenticar, validar, delegar, responder. Nada mais.
 - Toda logica de negocio, query Prisma e cache pertencem a `src/services/` ou `src/server/`.
+- Padrao estrutural global: para codigo de dominio, usar sempre `src/<camada>/<dominio>/...` em todas as camadas aplicaveis (`app/api/v1`, `services`, `server`, `schemas`, `hooks`, `types`, `components/dashboard`).
+- Proibido criar arquivo de dominio em formato flat na raiz da camada (ex: `src/services/foo.service.ts`, `src/types/foo.ts`, `src/schemas/foo-schemas.ts`).
 - Reutilizar utilitarios existentes em `src/lib/`, `src/hooks/`, `src/schemas/` antes de criar novos.
-- Schemas Zod novos sempre em `src/schemas/[dominio]-schemas.ts` — unico local permitido.
+- Schemas Zod novos sempre em `src/schemas/[dominio]/` — unico local permitido.
 - Evitar duplicacao de regras de negocio; centralizar em servicos.
 
 ## Compartilhamento entre dominios (anti-gambiarra)
@@ -21,6 +26,13 @@
 - Quando a regra for comum a 2+ dominios, extrair para modulo neutro em `src/lib/` (utilitario puro) ou `src/services/shared/` (regra de negocio).
 - Consumidores devem depender do modulo neutro diretamente; evitar camadas intermediarias sem valor funcional.
 - Antes de entregar, verificar se a nomenclatura do modulo compartilhado e generica (nao acoplada a um dominio especifico).
+- Em projeto greenfield sem clientes ativos, nao manter compatibilidade legada por alias/fallback (`legacy*`, `team*`, headers antigos, parametros duplicados).
+
+## Politica Anti-Legado (regra de bloqueio)
+
+- Regra inegociavel: este projeto nao deve carregar compatibilidade com contratos legados no `src/`.
+- Proibido manter aliases/fallbacks de compatibilidade (ex: `legacy*`, `team*`, `x-team-id`, `teamId`, `teamType`, `manage:team_*`).
+- Se houver ocorrencia desses padroes no `src/`, a entrega deve ser bloqueada ate a remocao.
 
 ## Higiene de codigo (anti-lixo)
 
@@ -29,6 +41,7 @@
 - Proibido manter codigo morto comentado ou aliases de compatibilidade sem consumidor real.
 - Em mudanca estrutural, executar checagem de higiene antes da entrega:
   - referencias antigas removidas via `rg` nos caminhos afetados.
+  - compatibilidade obsoleta removida no codigo da aplicacao via `rg -n "legacy|teamType|teamId|x-team-id|manage:team_" src`.
   - diretorios vazios removidos via `find src -type d -empty`.
 
 ## Anatomia de Route (regra critica)
@@ -59,22 +72,22 @@ Cada handler de route deve seguir exatamente esta estrutura, nesta ordem:
 | Tipo                    | Padrao                        | Exemplo                          |
 |-------------------------|-------------------------------|----------------------------------|
 | Route handler           | `route.ts`                    | `src/app/api/v1/leads/route.ts`  |
-| Service                 | `[dominio].service.ts`        | `lead.service.ts`                |
-| Scheduler               | `[dominio].scheduler.ts`      | `ai-classifier.scheduler.ts`     |
+| Service                 | `[recurso].service.ts`        | `src/services/leads/lead.service.ts` |
+| Scheduler               | `[recurso].scheduler.ts`      | `src/services/ai/ai-classifier.scheduler.ts` |
 | Handler (webhook/event) | `[tipo].handler.ts`           | `message.handler.ts`             |
-| Schema Zod              | `[dominio]-schemas.ts`        | `ticket-schemas.ts`              |
-| Hook React              | `use-[dominio].ts`            | `use-organization.ts`            |
+| Schema Zod              | `[recurso]-schemas.ts`        | `ticket/ticket-schemas.ts`       |
+| Hook React              | `use-[recurso].ts`            | `src/hooks/organizations/use-organization.ts` |
 | Componente de pagina    | `kebab-case.tsx`              | `client-leads-table.tsx`         |
 | Componente landing      | `PascalCase.tsx`              | `LandingHero.tsx`                |
 | Utilitario puro         | `[funcao].ts`                 | `date-range.ts`                  |
-| Constante               | `[dominio].ts`                | `ticket-statuses.ts`             |
+| Tipo/Constante de dominio | `[recurso].ts`              | `src/types/tickets/ticket-statuses.ts` |
 
 ### Diretorios e co-localizacao
 
 - Componentes de dashboard: sempre em `src/components/dashboard/[dominio]/`.
 - Componentes co-localizados na page (especificos de rota): aceitos em `src/app/dashboard/[rota]/components/` apenas se o componente nao for reutilizado em outro lugar.
-- Tipos compartilhados de dominio: `src/types/[dominio].ts`.
-- Schemas de validacao: `src/schemas/[dominio]-schemas.ts`.
+- Tipos compartilhados de dominio: `src/types/[dominio]/[recurso].ts`.
+- Schemas de validacao: `src/schemas/[dominio]/[recurso]-schemas.ts`.
 
 ## Convencao Next.js
 
@@ -88,7 +101,7 @@ Cada handler de route deve seguir exatamente esta estrutura, nesta ordem:
 - Schemas Zod obrigatorios para todo input de API (body e query params).
 - Declarar tipos de retorno explicitamente em funcoes de service.
 - Inferir tipos de schemas Zod com `z.infer<typeof schema>` ao inves de redeclarar manualmente.
-- Schemas Zod ficam exclusivamente em `src/schemas/[dominio]-schemas.ts` — nunca inline em routes, services ou componentes.
+- Schemas Zod ficam exclusivamente em `src/schemas/[dominio]/` — nunca inline em routes, services ou componentes.
 - Nao implementar OpenAPI/Swagger neste projeto Next.js — a API publica migrara para Fastify (monorepo futuro), que tem suporte nativo via `@fastify/swagger`. Os schemas Zod em `src/schemas/` serao reaproveitados na migracao.
 
 ## Dados e Prisma

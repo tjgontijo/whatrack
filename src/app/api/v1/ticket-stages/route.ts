@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 
 import { validateFullAccess, validatePermissionAccess } from '@/server/auth/validate-organization-access'
-import { createTicketStageSchema } from '@/schemas/ticket-stage-schemas'
+import { createTicketStageSchema } from '@/schemas/tickets/ticket-stage-schemas'
 import { createTicketStage, listTicketStages } from '@/services/ticket-stages/ticket-stage.service'
 
 export async function GET(req: Request) {

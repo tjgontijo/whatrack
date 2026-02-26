@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { auth } from '@/lib/auth/auth'
-import { changeMeAccountPasswordSchema } from '@/schemas/me-account-schemas'
+import { changeMeAccountPasswordSchema } from '@/schemas/me/me-account-schemas'
 
 function errorMessageFromUnknown(error: unknown): string {
   if (error && typeof error === 'object') {

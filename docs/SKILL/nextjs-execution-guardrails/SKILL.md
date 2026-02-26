@@ -7,6 +7,24 @@ description: Entregar tarefas neste projeto Next.js + TypeScript + Prisma com qu
 
 Executar tarefas com processo consistente e baixo retrabalho.
 
+## Politica Anti-Legado (Inegociavel)
+
+- Este projeto e greenfield: nao implementar compatibilidade legada.
+- Proibido criar ou manter alias/fallback de contratos antigos no `src/` (ex: `legacy*`, `team*`, `x-team-id`, `teamId`, `teamType`, `manage:team_*`).
+- Em mudancas estruturais, a entrega so e aceita com ausencia desses padroes no `src/`.
+
+## Convencao Estrutural (Transversal)
+
+- Para codigo de dominio, usar sempre `src/<camada>/<dominio>/...`.
+- Esta regra vale para `app/api/v1`, `services`, `server`, `schemas`, `hooks`, `types` e `components/dashboard`.
+- Arquivo flat na raiz da camada e permitido apenas para codigo compartilhado/transversal.
+
+## Politica React (Inegociavel)
+
+- Proibido introduzir `useEffect` ou `useLayoutEffect` no `src/`.
+- Nao usar effects para fetch, sincronizacao de estado derivado, bootstrap de tela ou orquestracao de fluxo.
+- Preferir Server Components, Server Actions, props derivadas e handlers explicitos de evento.
+
 ## Fluxo Obrigatorio
 
 1. Ler `references/rules.md` antes de editar qualquer arquivo.
@@ -33,6 +51,7 @@ Concluir somente quando:
 - Nenhuma logica de negocio, query Prisma ou schema Zod foi adicionado dentro de uma route.
 - Regras compartilhadas entre dominios foram centralizadas em modulo neutro (sem alias entre dominios).
 - Nao restaram arquivos obsoletos, codigo morto ou diretorios vazios apos o refactor.
+- Nao existe compatibilidade legada ativa no `src/` (sem alias/fallback de contratos antigos).
 - Existe teste novo ou atualizado para o comportamento alterado.
 - O teste criado/atualizado foi executado antes da entrega e o comando foi reportado no resumo final.
 - Nao existem TODOs temporarios sem alinhamento.

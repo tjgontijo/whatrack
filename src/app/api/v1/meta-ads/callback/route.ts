@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { metaAccessTokenService } from '@/services/meta-ads/access-token.service'
-import { metaAdAccountService } from '@/services/meta-ads/ad-account.service'
-import { getRedis } from '@/lib/db/redis'
-import { auditService } from '@/services/audit/audit.service'
+
+import { completeMetaAdsOAuthCallback } from '@/services/meta-ads/meta-oauth.service'
 
 function successPopupResponse(req: NextRequest) {
   const dashboardUrl = new URL('/dashboard/settings/meta-ads?status=success', req.url).toString()
@@ -52,63 +50,13 @@ export async function GET(req: NextRequest) {
     )
   }
 
-  // Validate and consume the OAuth state token from Redis (single-use, CSRF protection)
-  const redis = getRedis()
-  const stateKey = `oauth_state:${stateToken}`
-  const stateRaw = await redis.get(stateKey)
+  const result = await completeMetaAdsOAuthCallback(code, stateToken)
 
-  if (!stateRaw) {
-    console.error('[MetaCallback] Invalid or expired OAuth state token')
+  if (!result.success) {
     return NextResponse.redirect(
-      new URL('/dashboard/settings/meta-ads?error=meta_auth_invalid_state', req.url)
+      new URL(`/dashboard/settings/meta-ads?error=${result.reason}`, req.url)
     )
   }
 
-  // Delete immediately — single-use token
-  await redis.del(stateKey)
-
-  let organizationId: string
-  let userId: string
-  try {
-    const stateData = JSON.parse(stateRaw) as { organizationId: string; userId: string }
-    organizationId = stateData.organizationId
-    userId = stateData.userId
-  } catch {
-    console.error('[MetaCallback] Failed to parse OAuth state data')
-    return NextResponse.redirect(
-      new URL('/dashboard/settings/meta-ads?error=meta_auth_failed', req.url)
-    )
-  }
-
-  try {
-    // 1. Exchange code for short-lived token
-    const shortLivedToken = await metaAccessTokenService.getShortLivedToken(code)
-
-    // 2. Exchange for long-lived, debug token, and save connection
-    const connection = await metaAccessTokenService.upsertConnection(
-      organizationId,
-      shortLivedToken
-    )
-
-    // 3. Initial sync of ad accounts
-    await metaAdAccountService.syncAdAccounts(connection.id)
-
-    // 4. Audit log
-    void auditService.log({
-      organizationId,
-      userId,
-      action: 'meta_ads.connected',
-      resourceType: 'meta_connection',
-      resourceId: connection.id,
-      after: { fbUserId: connection.fbUserId, fbUserName: connection.fbUserName },
-    })
-
-    // 5. Return an auto-close page in the popup; fallback to dashboard when not in popup.
-    return successPopupResponse(req)
-  } catch (error: any) {
-    console.error('[MetaCallback] Error:', error?.response?.data || error.message)
-    return NextResponse.redirect(
-      new URL('/dashboard/settings/meta-ads?error=meta_callback_error', req.url)
-    )
-  }
+  return successPopupResponse(req)
 }

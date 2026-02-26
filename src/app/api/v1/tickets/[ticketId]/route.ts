@@ -3,7 +3,7 @@ import { apiError } from '@/lib/utils/api-response'
 import { revalidateTag } from 'next/cache'
 
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
-import { updateTicketSchema } from '@/schemas/ticket-schemas'
+import { updateTicketSchema } from '@/schemas/tickets/ticket-schemas'
 import { getTicketById, updateTicketAndTrackCapi } from '@/services/tickets/ticket.service'
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ ticketId: string }> }) {

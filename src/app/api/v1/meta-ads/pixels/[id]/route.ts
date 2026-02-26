@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { prisma } from '@/lib/db/prisma'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
+import { deleteMetaPixel, updateMetaPixel } from '@/services/meta-ads/meta-pixel.service'
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const access = await validatePermissionAccess(req, 'manage:integrations')
@@ -9,38 +9,27 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     return NextResponse.json({ error: access.error ?? 'Unauthorized' }, { status: 401 })
   }
 
-  const { id } = await params
-
-  const existing = await prisma.metaPixel.findFirst({
-    where: {
-      id,
-      organizationId: access.organizationId,
-    },
-    select: { id: true },
-  })
-
-  if (!existing) {
-    return NextResponse.json({ error: 'Pixel not found' }, { status: 404 })
-  }
-
   try {
+    const { id } = await params
     const body = await req.json()
-    const { isActive, name, pixelId, capiToken } = body
 
-    const data: Record<string, unknown> = {}
-    if (typeof isActive === 'boolean') data.isActive = isActive
-    if (typeof name !== 'undefined') data.name = name
-    if (typeof pixelId !== 'undefined') data.pixelId = pixelId
-    if (typeof capiToken !== 'undefined') data.capiToken = capiToken
-
-    const updated = await prisma.metaPixel.update({
-      where: { id: existing.id },
-      data,
+    const result = await updateMetaPixel({
+      organizationId: access.organizationId,
+      routeId: id,
+      isActive: body.isActive,
+      name: body.name,
+      pixelId: body.pixelId,
+      capiToken: body.capiToken,
     })
 
-    return NextResponse.json(updated)
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    if ('error' in result) {
+      return NextResponse.json({ error: result.error }, { status: result.status })
+    }
+
+    return NextResponse.json(result.data)
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Failed to update pixel'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
 
@@ -50,27 +39,21 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     return NextResponse.json({ error: access.error ?? 'Unauthorized' }, { status: 401 })
   }
 
-  const { id } = await params
-
-  const existing = await prisma.metaPixel.findFirst({
-    where: {
-      id,
-      organizationId: access.organizationId,
-    },
-    select: { id: true },
-  })
-
-  if (!existing) {
-    return NextResponse.json({ error: 'Pixel not found' }, { status: 404 })
-  }
-
   try {
-    await prisma.metaPixel.delete({
-      where: { id: existing.id },
+    const { id } = await params
+
+    const result = await deleteMetaPixel({
+      organizationId: access.organizationId,
+      routeId: id,
     })
 
+    if ('error' in result) {
+      return NextResponse.json({ error: result.error }, { status: result.status })
+    }
+
     return NextResponse.json({ success: true })
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Failed to delete pixel'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

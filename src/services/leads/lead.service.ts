@@ -7,7 +7,7 @@ import {
   type LeadsQueryInput,
   leadsResponseSchema,
   type UpdateLeadInput,
-} from '@/schemas/lead-schemas'
+} from '@/schemas/leads/lead-schemas'
 
 type LeadConflictField = 'phone' | 'waId' | 'unknown'
 

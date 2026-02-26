@@ -1,14 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
+
+import { lookupCnpjSchema } from '@/schemas/company/company-schemas'
 import { fetchCnpjData, ReceitaWsError } from '@/services/company/receitaws'
 import { getOrSyncUser } from '@/server/auth/server'
-import { lookupCnpjSchema } from '../schemas'
 
-/**
- * GET /api/v1/company/lookup
- *
- * Busca dados de empresa pelo CNPJ na API ReceitaWS
- * Query params: cnpj (obrigatório)
- */
 export async function GET(request: NextRequest) {
   const user = await getOrSyncUser(request)
   if (!user) {
@@ -16,10 +11,8 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const searchParams = request.nextUrl.searchParams
-    const cnpj = searchParams.get('cnpj')
+    const cnpj = request.nextUrl.searchParams.get('cnpj')
 
-    // Validação
     const parsed = lookupCnpjSchema.safeParse({ cnpj })
     if (!parsed.success) {
       return NextResponse.json(
@@ -31,9 +24,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Busca dados na ReceitaWS
     const companyData = await fetchCnpjData(parsed.data.cnpj)
-
     return NextResponse.json(companyData)
   } catch (error) {
     console.error('[api/v1/company/lookup] GET error:', error)

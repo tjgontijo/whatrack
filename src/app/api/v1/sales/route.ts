@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { apiError } from '@/lib/utils/api-response'
 import { revalidateTag } from 'next/cache'
 
-import { createSaleSchema, salesQuerySchema } from '@/schemas/sale-schemas'
+import { createSaleSchema, salesQuerySchema } from '@/schemas/sales/sale-schemas'
 import { createSale, listSales } from '@/services/sales/sale.service'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 

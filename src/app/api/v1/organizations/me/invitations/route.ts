@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server'
 
 import { organizationJson } from '@/server/http/organization-json'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
-import { createOrganizationInvitationSchema } from '@/schemas/organization-invitation-schemas'
+import { createOrganizationInvitationSchema } from '@/schemas/organizations/organization-invitation-schemas'
 import {
   createOrganizationInvitation,
   listOrganizationPendingInvitations,

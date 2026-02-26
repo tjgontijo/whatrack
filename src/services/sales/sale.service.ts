@@ -7,7 +7,7 @@ import {
   type SalesQueryInput,
   salesResponseSchema,
   type UpdateSaleInput,
-} from '@/schemas/sale-schemas'
+} from '@/schemas/sales/sale-schemas'
 
 const saleItemSelect = {
   id: true,

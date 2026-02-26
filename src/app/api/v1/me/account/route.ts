@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { auth } from '@/lib/auth/auth'
-import { updateMeAccountSchema } from '@/schemas/me-account-schemas'
+import { updateMeAccountSchema } from '@/schemas/me/me-account-schemas'
 import { getMeAccount, updateMeAccount } from '@/services/me/me-account.service'
 
 export async function GET(request: NextRequest) {

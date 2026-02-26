@@ -1,51 +1,17 @@
-import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/db/prisma'
-
-export const dynamic = 'force-dynamic'
+import { NextRequest, NextResponse } from 'next/server'
 
 import { requireSuperAdmin } from '@/lib/auth/guards'
-import { NextRequest } from 'next/server'
+import { listSystemWebhookLogs } from '@/services/system/system-webhook-log.service'
+
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
     const user = await requireSuperAdmin(request)
-
     if (user instanceof NextResponse) return user
 
-    const [logs, distinctEventTypes] = await Promise.all([
-      prisma.whatsAppWebhookLog.findMany({
-        include: {
-          organization: {
-            select: {
-              name: true,
-              whatsappConfig: {
-                select: {
-                  phoneId: true,
-                },
-              },
-            },
-          },
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-        take: 50,
-      }),
-      prisma.whatsAppWebhookLog.findMany({
-        distinct: ['eventType'],
-        select: {
-          eventType: true,
-        },
-        where: {
-          eventType: { not: null },
-        },
-      }),
-    ])
-
-    return NextResponse.json({
-      logs,
-      eventTypes: distinctEventTypes.map((e) => e.eventType),
-    })
+    const response = await listSystemWebhookLogs()
+    return NextResponse.json(response)
   } catch (error) {
     console.error('[whatsapp/webhook/logs] Error:', error)
     return NextResponse.json({ error: 'Failed to fetch logs' }, { status: 500 })

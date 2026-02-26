@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/utils/api-response'
 import { revalidateTag } from 'next/cache'
 
-import { updateSaleSchema } from '@/schemas/sale-schemas'
+import { updateSaleSchema } from '@/schemas/sales/sale-schemas'
 import { deleteSale, updateSale } from '@/services/sales/sale.service'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 

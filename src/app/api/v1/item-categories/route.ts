@@ -4,7 +4,7 @@ import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import {
   createItemCategorySchema,
   itemCategoryListQuerySchema,
-} from '@/schemas/item-category-schemas'
+} from '@/schemas/items/item-category-schemas'
 import {
   createItemCategory,
   listItemCategories,

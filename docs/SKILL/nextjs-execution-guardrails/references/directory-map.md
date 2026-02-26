@@ -3,6 +3,12 @@
 Referencia canonica de onde cada tipo de arquivo pertence neste projeto.
 Consultar antes de criar qualquer arquivo novo.
 
+## Convencao transversal (obrigatoria)
+
+- Para codigo de dominio, usar sempre `src/<camada>/<dominio>/...`.
+- Essa regra vale para todas as camadas aplicaveis: `src/app/api/v1/`, `src/services/`, `src/server/`, `src/schemas/`, `src/hooks/`, `src/types/` e `src/components/dashboard/`.
+- Arquivo flat na raiz da camada e aceito apenas para codigo realmente compartilhado/transversal.
+
 ## src/app/api/v1/[recurso]/
 
 **Responsabilidade:** Route handlers HTTP — apenas autenticacao, validacao, delegacao e resposta.
@@ -12,6 +18,7 @@ Consultar antes de criar qualquer arquivo novo.
 - `[id]/[acao]/route.ts` — acoes especificas (ex: `close/route.ts`, `approve/route.ts`)
 
 **Nao pertence aqui:** schemas Zod, queries Prisma, helpers, cache, logica de negocio.
+**Convencao de dominio:** preferir `src/app/api/v1/[dominio]/.../route.ts` (evitar concentrar multiplos dominios no mesmo path).
 
 ---
 
@@ -23,6 +30,7 @@ Consultar antes de criar qualquer arquivo novo.
 - `[recurso].scheduler.ts` — jobs agendados (ex: `ai-classifier.scheduler.ts`)
 - `handlers/[tipo].handler.ts` — handlers de eventos/webhooks (ex: `message.handler.ts`)
 - `index.ts` — re-exportacoes publicas do dominio, quando necessario
+**Convencao de dominio:** nao criar service de dominio direto em `src/services/*.ts`; manter sempre dentro de `src/services/[dominio]/`.
 
 **Convencao:** tipos de entrada/saida declarados no topo do arquivo com `interface` ou `type`.
 **Proibido:** `any` em parametros ou retornos de funcoes exportadas.
@@ -36,7 +44,8 @@ Consultar antes de criar qualquer arquivo novo.
 
 - `src/server/auth/` — validacao de sessao e acesso (`validate-organization-access.ts`, `server-session.ts`)
 - `src/server/organization/` — RBAC, membership, permissoes (`organization-rbac.service.ts`)
-- `src/server/team/` — documentos de equipe
+- `src/server/` nao deve conter aliases de dominio legado (`team-*` chamando `organization-*`).
+**Convencao de dominio:** para codigo de dominio, nao criar arquivo flat em `src/server/*.ts`; usar `src/server/[dominio]/`.
 
 **Diferenca critica entre src/server/ e src/services/:**
 
@@ -56,7 +65,7 @@ Consultar antes de criar qualquer arquivo novo.
 
 **Responsabilidade:** Unico local para todos os schemas Zod do projeto.
 
-- `[dominio]-schemas.ts` — schemas de input/output de API e regras de validacao de dominio (ex: `ticket-schemas.ts`, `lead-schemas.ts`)
+- `[dominio]/[recurso]-schemas.ts` — schemas de input/output de API e regras de validacao de dominio (ex: `ticket/ticket-schemas.ts`, `lead/lead-schemas.ts`)
 - Schemas de query params, body, response e entidades ficam todos aqui.
 
 **Proibido:** schemas Zod inline em routes, services ou componentes. Se nao existe o arquivo, criar em `src/schemas/`.
@@ -91,6 +100,7 @@ Consultar antes de criar qualquer arquivo novo.
 - `src/hooks/[dominio]/use-[recurso].ts` — hook de dominio (ex: `use-organization.ts`)
 - `src/hooks/ui/use-[funcionalidade].ts` — hooks de UI genericos (ex: `use-data-table.ts`)
 - `src/hooks/auth/use-[funcionalidade].ts` — hooks de autenticacao client-side
+**Convencao de dominio:** hook de dominio sempre dentro de `src/hooks/[dominio]/`.
 
 ---
 
@@ -98,9 +108,10 @@ Consultar antes de criar qualquer arquivo novo.
 
 **Responsabilidade:** Tipos TypeScript compartilhados que nao sao schemas Zod.
 
-- `[dominio].ts` — tipos de dominio (ex: `whatsapp.ts`)
+- `[dominio]/[recurso].ts` — tipos de dominio (ex: `whatsapp/instance.ts`, `tickets/status.ts`)
 
 **Quando usar aqui vs inferir do Prisma ou Zod:** usar `src/types/` para tipos que representam contratos entre camadas que nao vem diretamente de um schema.
+**Convencao de dominio:** evitar criar tipo de dominio flat em `src/types/*.ts`.
 
 ---
 
@@ -119,6 +130,7 @@ Consultar antes de criar qualquer arquivo novo.
 **Regra de co-localizacao:**
 - Componente reutilizavel em 2+ lugares → `src/components/dashboard/[dominio]/`
 - Componente exclusivo de uma rota → `src/app/dashboard/[rota]/components/` (aceito)
+**Convencao de dominio:** componente de feature deve nascer dentro do dominio correspondente.
 
 ---
 
@@ -148,8 +160,8 @@ Consultar antes de criar qualquer arquivo novo.
 E uma funcao pura sem acesso a DB?          → src/lib/[categoria]/
 E logica de negocio ou query Prisma?        → src/services/[dominio]/
 E autenticacao ou autorizacao de servidor?  → src/server/[dominio]/
-E qualquer schema Zod?                      → src/schemas/[dominio]-schemas.ts
-E um tipo TypeScript puro (sem Zod)?        → src/types/[dominio].ts
+E qualquer schema Zod?                      → src/schemas/[dominio]/[recurso]-schemas.ts
+E um tipo TypeScript puro (sem Zod)?        → src/types/[dominio]/[recurso].ts
 E um React hook?                            → src/hooks/[dominio]/
 E um componente React?                      → src/components/dashboard/[dominio]/
 ```

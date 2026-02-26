@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db/prisma'
+
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
+import { rejectAiInsight } from '@/services/ai/ai-insight-query.service'
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -10,27 +11,13 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     }
 
     const insightId = (await params).id
-    const insight = await prisma.aiInsight.findUnique({
-      where: { id: insightId },
-    })
+    const result = await rejectAiInsight(access.organizationId, insightId)
 
-    if (!insight || insight.organizationId !== access.organizationId) {
-      return NextResponse.json({ error: 'Insight não encontrado' }, { status: 404 })
+    if ('error' in result) {
+      return NextResponse.json({ error: result.error }, { status: result.status })
     }
 
-    if (insight.status !== 'SUGGESTION') {
-      return NextResponse.json({ error: 'Este insight já foi resolvido' }, { status: 400 })
-    }
-
-    // Process the rejection
-    await prisma.aiInsight.update({
-      where: { id: insight.id },
-      data: {
-        status: 'DISMISSED',
-      },
-    })
-
-    return NextResponse.json({ success: true, message: 'Insight descartado (falso positivo).' })
+    return NextResponse.json(result.data)
   } catch (error) {
     console.error('[Reject AI Insight] Error:', error)
     return NextResponse.json({ error: 'Erro interno ao descartar insight' }, { status: 500 })

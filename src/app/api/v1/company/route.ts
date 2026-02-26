@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { prisma } from '@/lib/db/prisma'
-import { stripCnpj } from '@/lib/mask/cnpj'
-import { saveCompanySchema } from './schemas'
 
-/**
- * GET /api/v1/company
- *
- * Retorna dados da empresa vinculada à organização do usuário
- */
+import { saveCompanySchema } from '@/schemas/company/company-schemas'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import {
+  getOrganizationCompany,
+  saveOrganizationCompany,
+} from '@/services/company/company.service'
+
 export async function GET(request: NextRequest) {
   const access = await validateFullAccess(request)
   if (!access.hasAccess || !access.organizationId) {
@@ -16,9 +14,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const company = await prisma.organizationCompany.findUnique({
-      where: { organizationId: access.organizationId },
-    })
+    const company = await getOrganizationCompany(access.organizationId)
 
     if (!company) {
       return NextResponse.json({ error: 'Dados da empresa não encontrados' }, { status: 404 })
@@ -31,12 +27,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-/**
- * POST /api/v1/company
- *
- * Salva dados da empresa vinculada à organização do usuário
- * Requer checkbox de autorização (authorized: true)
- */
 export async function POST(request: NextRequest) {
   const access = await validateFullAccess(request)
   if (!access.hasAccess || !access.organizationId || !access.userId) {
@@ -44,10 +34,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const body = await request.json()
-
-    // Validação
-    const parsed = saveCompanySchema.safeParse(body)
+    const parsed = saveCompanySchema.safeParse(await request.json())
     if (!parsed.success) {
       return NextResponse.json(
         {
@@ -58,93 +45,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const data = parsed.data
-    const cleanCnpj = stripCnpj(data.cnpj)
-
-    // Verifica se já existe empresa para esta organização
-    const existing = await prisma.organizationCompany.findUnique({
-      where: { organizationId: access.organizationId },
+    const result = await saveOrganizationCompany({
+      organizationId: access.organizationId,
+      userId: access.userId,
+      input: parsed.data,
     })
 
-    if (existing) {
-      // Atualiza empresa existente
-      const updated = await prisma.organizationCompany.update({
-        where: { organizationId: access.organizationId },
-        data: {
-          cnpj: cleanCnpj,
-          razaoSocial: data.razaoSocial,
-          nomeFantasia: data.nomeFantasia,
-          cnaeCode: data.cnaeCode,
-          cnaeDescription: data.cnaeDescription,
-          municipio: data.municipio,
-          uf: data.uf,
-          tipo: data.tipo,
-          porte: data.porte,
-          naturezaJuridica: data.naturezaJuridica,
-          capitalSocial: data.capitalSocial,
-          situacao: data.situacao,
-          dataAbertura: data.dataAbertura,
-          dataSituacao: data.dataSituacao,
-          simplesOptante: data.simplesOptante ?? false,
-          simeiOptante: data.simeiOptante ?? false,
-          logradouro: data.logradouro,
-          numero: data.numero,
-          complemento: data.complemento,
-          bairro: data.bairro,
-          cep: data.cep,
-          email: data.email || null,
-          telefone: data.telefone,
-          qsa: data.qsa,
-          atividadesSecundarias: data.atividadesSecundarias,
-          authorizedByUserId: access.userId,
-          authorizedAt: new Date(),
-          fetchedAt: new Date(),
-        },
-      })
-
-      return NextResponse.json(updated, { status: 200 })
-    }
-
-    // Cria nova empresa
-    const company = await prisma.organizationCompany.create({
-      data: {
-        organizationId: access.organizationId,
-        cnpj: cleanCnpj,
-        razaoSocial: data.razaoSocial,
-        nomeFantasia: data.nomeFantasia,
-        cnaeCode: data.cnaeCode,
-        cnaeDescription: data.cnaeDescription,
-        municipio: data.municipio,
-        uf: data.uf,
-        tipo: data.tipo,
-        porte: data.porte,
-        naturezaJuridica: data.naturezaJuridica,
-        capitalSocial: data.capitalSocial,
-        situacao: data.situacao,
-        dataAbertura: data.dataAbertura,
-        dataSituacao: data.dataSituacao,
-        simplesOptante: data.simplesOptante ?? false,
-        simeiOptante: data.simeiOptante ?? false,
-        logradouro: data.logradouro,
-        numero: data.numero,
-        complemento: data.complemento,
-        bairro: data.bairro,
-        cep: data.cep,
-        email: data.email || null,
-        telefone: data.telefone,
-        qsa: data.qsa,
-        atividadesSecundarias: data.atividadesSecundarias,
-        authorizedByUserId: access.userId,
-        authorizedAt: new Date(),
-        fetchedAt: new Date(),
-      },
-    })
-
-    return NextResponse.json(company, { status: 201 })
+    return NextResponse.json(result.data, { status: result.status })
   } catch (error) {
     console.error('[api/v1/company] POST error:', error)
 
-    // Erro de constraint única (CNPJ já existe em outra org)
     if (error instanceof Error && error.message.includes('Unique constraint')) {
       return NextResponse.json(
         { error: 'Este CNPJ já está vinculado a outra organização' },

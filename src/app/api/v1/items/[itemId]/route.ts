@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/utils/api-response'
 
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { updateItemSchema } from '@/schemas/item-schemas'
+import { updateItemSchema } from '@/schemas/items/item-schemas'
 import { deleteItem, getItemById, updateItem } from '@/services/items/item.service'
 
 export async function GET(

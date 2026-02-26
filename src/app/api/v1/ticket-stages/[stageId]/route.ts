@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
-import { updateTicketStageSchema } from '@/schemas/ticket-stage-schemas'
+import { updateTicketStageSchema } from '@/schemas/tickets/ticket-stage-schemas'
 import { deleteTicketStage, updateTicketStage } from '@/services/ticket-stages/ticket-stage.service'
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ stageId: string }> }) {

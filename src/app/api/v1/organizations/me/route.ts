@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server'
 
 import { validateFullAccess, validateOwnerAccess } from '@/server/auth/validate-organization-access'
 import { organizationJson } from '@/server/http/organization-json'
-import { updateOrganizationSchema } from '@/schemas/organization-schemas'
+import { updateOrganizationSchema } from '@/schemas/organizations/organization-schemas'
 import { getOrganizationMe, updateOrganizationMe } from '@/services/organizations/organization.service'
 
 export async function GET(req: NextRequest) {

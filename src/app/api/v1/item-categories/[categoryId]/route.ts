@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { apiError } from '@/lib/utils/api-response'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { updateItemCategorySchema } from '@/schemas/item-category-schemas'
+import { updateItemCategorySchema } from '@/schemas/items/item-category-schemas'
 import {
   deleteItemCategory,
   getItemCategoryById,

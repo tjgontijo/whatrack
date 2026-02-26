@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db/prisma'
+
+import { updateAiAgentSchema } from '@/schemas/ai/ai-schemas'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
+import {
+  deleteAiAgent,
+  getAiAgentById,
+  updateAiAgent,
+} from '@/services/ai/ai-agent.service'
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -10,16 +16,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const agent = await prisma.aiAgent.findUnique({
-      where: {
-        id,
-        organizationId: access.organizationId,
-      },
-      include: {
-        triggers: true,
-        schemaFields: true,
-      },
-    })
+    const agent = await getAiAgentById(access.organizationId, id)
 
     if (!agent) {
       return NextResponse.json({ error: 'Agente não encontrado' }, { status: 404 })
@@ -40,54 +37,21 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const body = await request.json()
-    const { name, icon, systemPrompt, model, isActive, triggers, schemaFields } = body
-
-    // Verify ownership
-    const existing = await prisma.aiAgent.findUnique({
-      where: { id, organizationId: access.organizationId },
-    })
-
-    if (!existing) {
-      return NextResponse.json({ error: 'Agente não encontrado' }, { status: 404 })
+    const parsed = updateAiAgentSchema.safeParse(await request.json())
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: parsed.error.flatten() },
+        { status: 400 }
+      )
     }
 
-    const updatedAgent = await prisma.aiAgent.update({
-      where: { id },
-      data: {
-        name,
-        icon,
-        systemPrompt,
-        model,
-        isActive,
-        // Triggers and SchemaFields will be fully replaced
-        triggers: {
-          deleteMany: {},
-          create:
-            triggers?.map((t: any) => ({
-              eventType: t.eventType,
-              conditions: t.conditions || {},
-            })) || [],
-        },
-        schemaFields: {
-          deleteMany: {},
-          create:
-            schemaFields?.map((f: any) => ({
-              fieldName: f.fieldName,
-              fieldType: f.fieldType,
-              description: f.description,
-              isRequired: f.isRequired ?? true,
-              options: f.options || null,
-            })) || [],
-        },
-      },
-      include: {
-        triggers: true,
-        schemaFields: true,
-      },
-    })
+    const result = await updateAiAgent(access.organizationId, id, parsed.data)
 
-    return NextResponse.json({ agent: updatedAgent })
+    if ('error' in result) {
+      return NextResponse.json({ error: result.error }, { status: result.status })
+    }
+
+    return NextResponse.json({ agent: result.data })
   } catch (error) {
     console.error('[PATCH ai-agent]', error)
     return NextResponse.json({ error: 'Erro ao atualizar agente' }, { status: 500 })
@@ -105,17 +69,10 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const existing = await prisma.aiAgent.findUnique({
-      where: { id, organizationId: access.organizationId },
-    })
-
-    if (!existing) {
-      return NextResponse.json({ error: 'Agente não encontrado' }, { status: 404 })
+    const result = await deleteAiAgent(access.organizationId, id)
+    if ('error' in result) {
+      return NextResponse.json({ error: result.error }, { status: result.status })
     }
-
-    await prisma.aiAgent.delete({
-      where: { id },
-    })
 
     return NextResponse.json({ message: 'Agente removido com sucesso' })
   } catch (error) {

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db/prisma'
-import { metaAdAccountService } from '@/services/meta-ads/ad-account.service'
+
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import { listMetaAdAccounts } from '@/services/meta-ads/meta-account-query.service'
 
 export async function GET(req: NextRequest) {
   const access = await validateFullAccess(req)
@@ -10,22 +10,12 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: access.error || 'Unauthorized' }, { status: 401 })
   }
 
-  const { searchParams } = new URL(req.url)
-  const sync = searchParams.get('sync') === 'true'
-
-  if (sync) {
-    const connections = await prisma.metaConnection.findMany({
-      where: { organizationId: access.organizationId, status: 'ACTIVE' },
-    })
-    for (const conn of connections) {
-      await metaAdAccountService.syncAdAccounts(conn.id)
-    }
+  try {
+    const sync = new URL(req.url).searchParams.get('sync') === 'true'
+    const accounts = await listMetaAdAccounts({ organizationId: access.organizationId, sync })
+    return NextResponse.json(accounts)
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Failed to list ad accounts'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
-
-  const accounts = await prisma.metaAdAccount.findMany({
-    where: { organizationId: access.organizationId },
-    orderBy: { adAccountName: 'asc' },
-  })
-
-  return NextResponse.json(accounts)
 }

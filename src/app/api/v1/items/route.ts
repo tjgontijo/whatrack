@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { createItemSchema, itemListQuerySchema } from '@/schemas/item-schemas'
+import { createItemSchema, itemListQuerySchema } from '@/schemas/items/item-schemas'
 import { createItem, listItems, type ListItemsParams } from '@/services/items/item.service'
 
 export async function GET(request: Request) {

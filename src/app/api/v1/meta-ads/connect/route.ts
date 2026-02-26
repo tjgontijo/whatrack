@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { randomUUID } from 'crypto'
-import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { getRedis } from '@/lib/db/redis'
 
-const OAUTH_STATE_TTL_SECONDS = 600 // 10 minutes
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import { buildMetaAdsAuthorizeUrl } from '@/services/meta-ads/meta-oauth.service'
+import { createMetaOAuthState } from '@/services/meta-ads/meta-oauth-state.service'
 
 export async function GET(req: NextRequest) {
   const access = await validateFullAccess(req)
@@ -21,18 +20,16 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
   }
 
-  // Generate a random, single-use state token to prevent CSRF attacks.
-  // Store { organizationId, userId } in Redis with a TTL of 10 minutes.
-  const stateToken = randomUUID()
-  const redis = getRedis()
-  await redis.setex(
-    `oauth_state:${stateToken}`,
-    OAUTH_STATE_TTL_SECONDS,
-    JSON.stringify({ organizationId: access.organizationId, userId: access.userId })
-  )
+  const stateToken = await createMetaOAuthState({
+    organizationId: access.organizationId,
+    userId: access.userId,
+  })
 
-  const scopes = ['ads_read', 'ads_management', 'public_profile'].join(',')
-  const authUrl = `https://www.facebook.com/v25.0/dialog/oauth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scopes}&state=${stateToken}&response_type=code`
+  const authUrl = buildMetaAdsAuthorizeUrl({
+    clientId,
+    redirectUri,
+    stateToken,
+  })
 
   return NextResponse.redirect(authUrl)
 }

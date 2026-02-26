@@ -12,9 +12,26 @@ import { Field, FieldLabel, FieldError } from '@/components/ui/field'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { authClient } from '@/lib/auth/auth-client'
-import { signUpSchema, type SignUpData } from '@/schemas/sign-up'
+import { signUpSchema, type SignUpData } from '@/schemas/auth/sign-up'
 import { getAuthErrorMessage } from '@/lib/auth/error-messages'
 import { acceptOrganizationInvitation, buildInvitationQuery } from '@/lib/auth/invitation-client'
+
+type SignUpErrorShape = {
+  code?: string
+  message?: string
+}
+
+function normalizeSignUpError(error: unknown): SignUpErrorShape {
+  if (!error || typeof error !== 'object') {
+    return {}
+  }
+
+  const candidate = error as { code?: unknown; message?: unknown }
+  return {
+    code: typeof candidate.code === 'string' ? candidate.code : undefined,
+    message: typeof candidate.message === 'string' ? candidate.message : undefined,
+  }
+}
 
 export default function SignUpPage() {
   const router = useRouter()
@@ -42,9 +59,10 @@ export default function SignUpPage() {
       })
 
       if (signUpError) {
+        const normalizedSignUpError = normalizeSignUpError(signUpError)
         const errorMessage = getAuthErrorMessage(
-          (signUpError as any)?.code,
-          (signUpError as any)?.message || 'Não foi possível criar sua conta.'
+          normalizedSignUpError.code,
+          normalizedSignUpError.message || 'Não foi possível criar sua conta.'
         )
         toast.error(errorMessage)
         return

@@ -8,7 +8,7 @@ import { NextResponse } from 'next/server'
 import { Prisma } from '@prisma/client'
 
 import { getOrSyncUser } from '@/server/auth/server'
-import { organizationOnboardingSchema } from '@/schemas/organization-onboarding'
+import { organizationOnboardingSchema } from '@/schemas/organizations/organization-onboarding'
 import { createOrganizationFromOnboarding } from '@/services/organizations/organization-management.service'
 
 export async function POST(request: Request) {

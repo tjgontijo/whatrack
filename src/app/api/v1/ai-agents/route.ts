@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db/prisma'
-import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 
-// GET /api/v1/ai-agents
-// List all AI Agents for the active organization
+import { createAiAgentSchema } from '@/schemas/ai/ai-schemas'
+import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
+import { createAiAgent, listAiAgents } from '@/services/ai/ai-agent.service'
+
 export async function GET(request: NextRequest) {
   try {
     const access = await validatePermissionAccess(request, 'view:ai')
@@ -11,15 +11,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const agents = await prisma.aiAgent.findMany({
-      where: { organizationId: access.organizationId },
-      include: {
-        triggers: true,
-        schemaFields: true,
-      },
-      orderBy: { createdAt: 'desc' },
-    })
-
+    const agents = await listAiAgents(access.organizationId)
     return NextResponse.json({ agents })
   } catch (error) {
     console.error('[GET ai-agents]', error)
@@ -27,8 +19,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/v1/ai-agents
-// Create a new AI Agent with its triggers and schema fields
 export async function POST(request: NextRequest) {
   try {
     const access = await validatePermissionAccess(request, 'manage:ai')
@@ -36,41 +26,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const body = await request.json()
-    const { name, icon, systemPrompt, model, isActive, triggers, schemaFields } = body
+    const parsed = createAiAgentSchema.safeParse(await request.json())
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: parsed.error.flatten() },
+        { status: 400 }
+      )
+    }
 
-    const agent = await prisma.aiAgent.create({
-      data: {
-        organizationId: access.organizationId,
-        name,
-        icon,
-        systemPrompt,
-        model: model || 'llama-3.3-70b-versatile',
-        isActive: isActive ?? true,
-        triggers: {
-          create:
-            triggers?.map((t: any) => ({
-              eventType: t.eventType,
-              conditions: t.conditions || {},
-            })) || [],
-        },
-        schemaFields: {
-          create:
-            schemaFields?.map((f: any) => ({
-              fieldName: f.fieldName,
-              fieldType: f.fieldType,
-              description: f.description,
-              isRequired: f.isRequired ?? true,
-              options: f.options || null,
-            })) || [],
-        },
-      },
-      include: {
-        triggers: true,
-        schemaFields: true,
-      },
-    })
-
+    const agent = await createAiAgent(access.organizationId, parsed.data)
     return NextResponse.json({ agent }, { status: 201 })
   } catch (error) {
     console.error('[POST ai-agents]', error)

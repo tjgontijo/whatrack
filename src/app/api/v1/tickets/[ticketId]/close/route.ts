@@ -3,7 +3,7 @@ import { apiError } from '@/lib/utils/api-response'
 import { revalidateTag } from 'next/cache'
 
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
-import { closeTicketSchema } from '@/schemas/ticket-schemas'
+import { closeTicketSchema } from '@/schemas/tickets/ticket-schemas'
 import { closeTicket } from '@/services/tickets/ticket.service'
 
 // POST /api/v1/tickets/:id/close - Close ticket (won/lost)

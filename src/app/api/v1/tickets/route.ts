@@ -4,7 +4,7 @@ import { revalidateTag } from 'next/cache'
 
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { isDateRangePreset, resolveDateRange } from '@/lib/date/dateRange'
-import { ticketsQuerySchema, createTicketSchema } from '@/schemas/ticket-schemas'
+import { ticketsQuerySchema, createTicketSchema } from '@/schemas/tickets/ticket-schemas'
 import { listTickets, createTicket } from '@/services/tickets/ticket.service'
 
 export async function GET(req: Request) {

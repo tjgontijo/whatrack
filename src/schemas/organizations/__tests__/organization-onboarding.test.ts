@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { organizationOnboardingSchema } from '@/schemas/organization-onboarding'
+import { organizationOnboardingSchema } from '@/schemas/organizations/organization-onboarding'
 
 describe('organizationOnboardingSchema', () => {
   it('validates individual payload with cpf', () => {
