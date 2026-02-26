@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import AnalyticsDashboard from './components/AnalyticsDashboard'
+import AnalyticsDashboard from './components/analytics-dashboard'
 
 export const metadata = {
   title: 'WhaTrack | Analytics',

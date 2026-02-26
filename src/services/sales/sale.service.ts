@@ -1,7 +1,7 @@
 import type { Prisma } from '@prisma/client'
 
 import { prisma } from '@/lib/db/prisma'
-import { isDateRangePreset, resolveDateRange } from '@/lib/date/dateRange'
+import { isDateRangePreset, resolveDateRange } from '@/lib/date/date-range'
 import {
   type CreateSaleInput,
   type SalesQueryInput,

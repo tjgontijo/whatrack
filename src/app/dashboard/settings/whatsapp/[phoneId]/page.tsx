@@ -2,7 +2,7 @@
 
 import React, { Suspense } from 'react'
 import { InstanceDetail } from '@/components/dashboard/whatsapp/instance-detail'
-import { SuspenseLoader } from '@/components/shared/SuspenseLoader'
+import { SuspenseLoader } from '@/components/shared/suspense-loader'
 
 interface PageProps {
   params: Promise<{ phoneId: string }>

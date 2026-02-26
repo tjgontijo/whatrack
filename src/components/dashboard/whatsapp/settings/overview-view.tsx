@@ -23,7 +23,7 @@ import { toast } from 'sonner'
 import Link from 'next/link'
 import { parsePhoneNumberFromString } from 'libphonenumber-js'
 import * as Flags from 'country-flag-icons/react/3x2'
-import type { WhatsAppPhoneNumber } from '@/types/whatsapp'
+import type { WhatsAppPhoneNumber } from '@/types/whatsapp/whatsapp'
 
 interface OverviewViewProps {
   phone: WhatsAppPhoneNumber

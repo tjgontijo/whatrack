@@ -1,7 +1,7 @@
 import type { Prisma } from '../../../prisma/generated/prisma/client'
 
-import type { DateRange } from '@/lib/date/dateRange'
-import { isDateRangePreset, resolveDateRange } from '@/lib/date/dateRange'
+import type { DateRange } from '@/lib/date/date-range'
+import { isDateRangePreset, resolveDateRange } from '@/lib/date/date-range'
 
 export const NO_TRAFFIC_SOURCE_VALUE = '__no-source__'
 

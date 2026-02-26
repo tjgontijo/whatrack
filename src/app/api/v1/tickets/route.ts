@@ -3,7 +3,7 @@ import { apiError } from '@/lib/utils/api-response'
 import { revalidateTag } from 'next/cache'
 
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
-import { isDateRangePreset, resolveDateRange } from '@/lib/date/dateRange'
+import { isDateRangePreset, resolveDateRange } from '@/lib/date/date-range'
 import { ticketsQuerySchema, createTicketSchema } from '@/schemas/tickets/ticket-schemas'
 import { listTickets, createTicket } from '@/services/tickets/ticket.service'
 

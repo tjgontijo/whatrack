@@ -1,11 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import ConversionFunnel from './ConversionFunnel'
-import SlaOverview from './SlaOverview'
-import HeatmapHours from './HeatmapHours'
-import EfficiencyChart from './EfficiencyChart'
-import LeadActivity from './LeadActivity'
+import ConversionFunnel from './conversion-funnel'
+import SlaOverview from './sla-overview'
+import HeatmapHours from './heatmap-hours'
+import EfficiencyChart from './efficiency-chart'
+import LeadActivity from './lead-activity'
 
 export default function AnalyticsDashboard() {
   const [dateRange, setDateRange] = useState({

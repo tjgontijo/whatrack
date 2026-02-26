@@ -5,14 +5,14 @@ import {
   buildSalesWhere,
   resolveFiltersDateRange,
   type SummaryFilters,
-} from '@/services/dashboard/buildFilters'
-import { buildFinancialSummary } from '@/services/dashboard/buildFinancialSummary'
-import { buildSalesByService } from '@/services/dashboard/buildSalesByService'
-import { buildFunnel } from '@/services/dashboard/buildFunnel'
-import { buildOriginsSummary } from '@/services/dashboard/buildOrigins'
-import { buildPaidCampaignsSummary } from '@/services/dashboard/buildPaidCampaigns'
-import { buildItemFilters } from '@/services/dashboard/buildItemFilters'
-import { buildItemsCost } from '@/services/dashboard/buildItemsCost'
+} from '@/services/dashboard/build-filters'
+import { buildFinancialSummary } from '@/services/dashboard/build-financial-summary'
+import { buildSalesByService } from '@/services/dashboard/build-sales-by-service'
+import { buildFunnel } from '@/services/dashboard/build-funnel'
+import { buildOriginsSummary } from '@/services/dashboard/build-origins'
+import { buildPaidCampaignsSummary } from '@/services/dashboard/build-paid-campaigns'
+import { buildItemFilters } from '@/services/dashboard/build-item-filters'
+import { buildItemsCost } from '@/services/dashboard/build-items-cost'
 
 export async function getDashboardSummary(
   organizationId: string,

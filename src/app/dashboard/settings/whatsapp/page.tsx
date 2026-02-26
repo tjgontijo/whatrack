@@ -12,7 +12,7 @@ import { InstanceCard } from '@/components/dashboard/whatsapp/instance-card'
 import { EmbeddedSignupButton } from '@/components/dashboard/whatsapp/embedded-signup-button'
 import { OrganizationIdentityDrawer } from '@/components/dashboard/organization/organization-identity-drawer'
 import { INTEGRATION_IDENTITY_REQUIRED_MESSAGE } from '@/lib/constants/http-headers'
-import type { WhatsAppPhoneNumber } from '@/types/whatsapp'
+import type { WhatsAppPhoneNumber } from '@/types/whatsapp/whatsapp'
 
 export default function WhatsAppSettingsPage() {
   const isMobile = useIsMobile()

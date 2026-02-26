@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import type { WhatsAppPhoneNumber } from '@/types/whatsapp'
+import type { WhatsAppPhoneNumber } from '@/types/whatsapp/whatsapp'
 
 interface ProfileViewProps {
   phone: WhatsAppPhoneNumber

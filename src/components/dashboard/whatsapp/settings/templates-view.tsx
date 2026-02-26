@@ -31,7 +31,7 @@ import {
   type RowActions,
 } from '@/components/dashboard/crud'
 import { CrudDataView } from './crud-data-view-wrapper'
-import type { WhatsAppPhoneNumber, WhatsAppTemplate } from '@/types/whatsapp'
+import type { WhatsAppPhoneNumber, WhatsAppTemplate } from '@/types/whatsapp/whatsapp'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { TemplateEditorForm } from '@/components/dashboard/whatsapp/template-editor/template-editor-form'
 

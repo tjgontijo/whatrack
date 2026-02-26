@@ -5,7 +5,7 @@ import type {
   WhatsAppBusinessProfile,
   WhatsAppAccountInfo,
   WhatsAppMessage,
-} from '@/types/whatsapp'
+} from '@/types/whatsapp/whatsapp'
 
 const API_VERSION = process.env.META_API_VERSION
 const GRAPH_API_URL = `https://graph.facebook.com/${API_VERSION}`

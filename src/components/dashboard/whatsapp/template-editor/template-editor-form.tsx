@@ -23,7 +23,7 @@ import { Badge } from '@/components/ui/badge'
 import { Info, HelpCircle, Layout } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { TemplatePreview } from './template-preview'
-import type { WhatsAppTemplate } from '@/types/whatsapp'
+import type { WhatsAppTemplate } from '@/types/whatsapp/whatsapp'
 
 const templateSchema = z.object({
   name: z

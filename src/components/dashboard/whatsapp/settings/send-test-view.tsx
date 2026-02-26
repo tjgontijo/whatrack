@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { toast } from 'sonner'
-import type { WhatsAppPhoneNumber, WhatsAppTemplate } from '@/types/whatsapp'
+import type { WhatsAppPhoneNumber, WhatsAppTemplate } from '@/types/whatsapp/whatsapp'
 
 interface SendTestViewProps {
   phone: WhatsAppPhoneNumber

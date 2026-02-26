@@ -1,6 +1,6 @@
 import type { Prisma } from '../../../prisma/generated/prisma/client'
 import { prisma } from '@/lib/db/prisma'
-import type { DateRange } from '@/lib/date/dateRange'
+import type { DateRange } from '@/lib/date/date-range'
 
 export async function buildSalesByService(organizationId: string, dateRange?: DateRange) {
   const where: Prisma.SaleWhereInput = { organizationId, status: 'completed' }
