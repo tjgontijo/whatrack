@@ -1,11 +1,21 @@
 'use client'
 
+import { Building2 } from 'lucide-react'
+import { PageShell, PageHeader, PageContent } from '@/components/dashboard/layout'
 import { CompanyDataSection } from '@/components/dashboard/settings/company-data-section'
 
 export default function OrganizationSettingsPage() {
   return (
-    <div className="space-y-6">
-      <CompanyDataSection />
-    </div>
+    <PageShell maxWidth="3xl">
+      <PageHeader
+        title="Organização"
+        description="Gerencie os dados da sua empresa e configurações fiscais"
+        icon={Building2}
+      />
+
+      <PageContent>
+        <CompanyDataSection />
+      </PageContent>
+    </PageShell>
   )
 }

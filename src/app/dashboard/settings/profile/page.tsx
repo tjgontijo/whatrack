@@ -5,11 +5,13 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
+import { User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { FormProvider as Form, Controller } from 'react-hook-form'
 import { Field, FieldLabel, FieldError } from '@/components/ui/field'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
+import { PageShell, PageHeader, PageContent } from '@/components/dashboard/layout'
 import { authClient } from '@/lib/auth/auth-client'
 import { getAuthErrorMessage } from '@/lib/auth/error-messages'
 
@@ -96,9 +98,16 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="divide-border space-y-8 divide-y">
-      {/* Profile Section */}
-      <div className="grid grid-cols-1 gap-6 pt-8 first:pt-0 md:grid-cols-3">
+    <PageShell maxWidth="3xl">
+      <PageHeader
+        title="Meu Perfil"
+        description="Gerencie suas informações pessoais e segurança da conta"
+        icon={User}
+      />
+
+      <PageContent className="divide-border space-y-8 divide-y">
+        {/* Profile Section */}
+        <div className="grid grid-cols-1 gap-6 pt-8 first:pt-0 md:grid-cols-3">
         <div className="md:col-span-1">
           <h3 className="text-lg font-medium leading-none">Informações Pessoais</h3>
           <p className="text-muted-foreground mt-2 text-sm">
@@ -223,6 +232,7 @@ export default function ProfilePage() {
           </Card>
         </div>
       </div>
-    </div>
+      </PageContent>
+    </PageShell>
   )
 }

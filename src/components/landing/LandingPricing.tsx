@@ -1,8 +1,12 @@
+'use client'
+
 import Link from 'next/link'
-import { CheckCircle2 } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { LandingVariant } from './types'
+import { motion } from 'motion/react'
+import { useInView } from 'motion/react'
+import { useRef } from 'react'
 
 interface Plan {
   name: string
@@ -74,10 +78,12 @@ interface LandingPricingProps {
 }
 
 export function LandingPricing({ variant = 'generic' }: LandingPricingProps) {
-  // Customize headline based on variant
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: '-100px' })
+
   const headlines: Record<LandingVariant, { title: string; subtitle: string }> = {
     generic: {
-      title: 'Escolha seu plano e teste por 7 dias',
+      title: 'Investimento que se paga sozinho',
       subtitle:
         'Comece grátis hoje. Se em 7 dias você não ver claramente de onde vêm suas vendas, cancele com um clique.',
     },
@@ -100,77 +106,176 @@ export function LandingPricing({ variant = 'generic' }: LandingPricingProps) {
   return (
     <section
       id="planos"
-      className="from-background to-card relative bg-gradient-to-b py-24 sm:py-32"
+      ref={ref}
+      className="relative overflow-hidden bg-zinc-950 py-32 text-white"
     >
-      <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-0">
-        <div className="mb-16 space-y-4 text-center">
-          <Badge
-            variant="secondary"
-            className="bg-primary/10 text-primary mx-auto px-3 py-1 text-xs font-bold uppercase tracking-wider"
-          >
-            Planos & Preços
-          </Badge>
-          <h2 className="text-foreground text-4xl font-extrabold tracking-tight sm:text-5xl">
+      {/* Sophisticated gradient background */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute left-0 top-0 h-full w-1/3 bg-gradient-to-br from-emerald-500/10 via-transparent to-transparent" />
+        <div className="absolute right-0 top-1/2 h-full w-1/3 -translate-y-1/2 bg-gradient-to-bl from-amber-500/10 via-transparent to-transparent" />
+
+        {/* Grid pattern */}
+        <svg className="h-full w-full opacity-20" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern
+              id="pricing-grid"
+              width="32"
+              height="32"
+              patternUnits="userSpaceOnUse"
+            >
+              <path
+                d="M 32 0 L 0 0 0 32"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="0.5"
+                className="text-zinc-800"
+              />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#pricing-grid)" />
+        </svg>
+      </div>
+
+      <div className="relative mx-auto max-w-[1400px] px-6 sm:px-8 lg:px-12">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          className="mb-20 text-center"
+        >
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-4 py-2 backdrop-blur-sm">
+            <div className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
+            <span className="text-sm font-semibold uppercase tracking-wider text-emerald-400">
+              Planos & Preços
+            </span>
+          </div>
+
+          <h2 className="mx-auto mb-6 max-w-4xl font-geist text-5xl font-bold leading-tight tracking-tight sm:text-6xl">
             {headline.title}
           </h2>
-          <p className="text-muted-foreground mx-auto mt-4 max-w-2xl text-lg">
+
+          <p className="mx-auto max-w-2xl text-xl leading-relaxed text-zinc-400">
             {headline.subtitle}
           </p>
-        </div>
+        </motion.div>
 
-        <div className="grid gap-8 sm:grid-cols-3 lg:gap-6">
-          {plans.map((plan) => (
-            <div
+        {/* Pricing cards */}
+        <div className="grid gap-8 lg:grid-cols-3">
+          {plans.map((plan, i) => (
+            <motion.div
               key={plan.name}
-              className={`relative flex flex-col rounded-2xl border p-8 transition ${
+              initial={{ opacity: 0, y: 40 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{
+                delay: 0.2 + i * 0.1,
+                duration: 0.8,
+                ease: [0.22, 1, 0.36, 1],
+              }}
+              className={`group relative overflow-hidden rounded-3xl transition-all ${
                 plan.highlighted
-                  ? 'border-primary from-primary/10 to-card ring-primary/20 bg-gradient-to-br shadow-xl ring-1'
-                  : 'border-border bg-card shadow-sm hover:shadow-md'
+                  ? 'bg-gradient-to-b from-emerald-950/50 to-zinc-900 ring-2 ring-emerald-500/50'
+                  : 'bg-zinc-900/50 ring-1 ring-zinc-800 hover:ring-zinc-700'
               }`}
             >
+              {/* Glow effect for highlighted plan */}
               {plan.highlighted && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                  <Badge className="bg-primary text-primary-foreground">Mais escolhido</Badge>
+                <>
+                  <div className="pointer-events-none absolute -top-40 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-emerald-500/20 blur-3xl" />
+                  <div className="absolute -top-px left-1/2 h-px w-1/2 -translate-x-1/2 bg-gradient-to-r from-transparent via-emerald-500 to-transparent" />
+                </>
+              )}
+
+              {/* Badge for highlighted plan */}
+              {plan.highlighted && (
+                <div className="absolute right-6 top-6">
+                  <div className="rounded-full bg-emerald-500 px-3 py-1 text-xs font-bold text-white">
+                    Mais escolhido
+                  </div>
                 </div>
               )}
 
-              <div className="mb-6 space-y-2">
-                <h3 className="text-foreground text-2xl font-bold">{plan.name}</h3>
-                <p className="text-muted-foreground text-sm font-medium">{plan.subtitle}</p>
-                <p className="text-muted-foreground text-sm">{plan.description}</p>
-              </div>
+              <div className="relative p-8 lg:p-10">
+                {/* Plan header */}
+                <div className="mb-8">
+                  <h3 className="mb-2 font-geist text-2xl font-bold">{plan.name}</h3>
+                  <p className="mb-1 text-sm font-medium text-zinc-400">{plan.subtitle}</p>
+                  <p className="text-sm text-zinc-500">{plan.description}</p>
+                </div>
 
-              <div className="mb-6 space-y-1">
-                <div className="flex items-baseline gap-1">
-                  <span className="text-muted-foreground text-sm">{plan.price}</span>
-                  <span className="text-foreground text-3xl font-bold">{plan.priceValue}</span>
-                  <span className="text-muted-foreground text-sm">{plan.pricePeriod}</span>
+                {/* Pricing */}
+                <div className="mb-8">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-lg text-zinc-400">{plan.price}</span>
+                    <span className="font-geist text-5xl font-bold tracking-tight">
+                      {plan.priceValue}
+                    </span>
+                    <span className="text-lg text-zinc-400">{plan.pricePeriod}</span>
+                  </div>
+                </div>
+
+                {/* CTA Button */}
+                <Button
+                  className={`mb-8 h-12 w-full rounded-xl font-semibold transition-all ${
+                    plan.highlighted
+                      ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/40'
+                      : 'border border-zinc-700 bg-zinc-800 text-white hover:bg-zinc-700'
+                  }`}
+                  asChild
+                >
+                  <Link href="/sign-up">{plan.cta}</Link>
+                </Button>
+
+                {/* Features */}
+                <div className="space-y-4">
+                  <div className="mb-4 h-px bg-gradient-to-r from-transparent via-zinc-800 to-transparent" />
+
+                  {plan.features.map((feature, idx) => (
+                    <motion.div
+                      key={feature}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={isInView ? { opacity: 1, x: 0 } : {}}
+                      transition={{
+                        delay: 0.4 + i * 0.1 + idx * 0.05,
+                        duration: 0.5,
+                      }}
+                      className="flex items-start gap-3"
+                    >
+                      <div
+                        className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full ${
+                          plan.highlighted
+                            ? 'bg-emerald-500/20'
+                            : 'bg-zinc-800'
+                        }`}
+                      >
+                        <Check
+                          className={`h-3.5 w-3.5 ${
+                            plan.highlighted ? 'text-emerald-400' : 'text-zinc-400'
+                          }`}
+                        />
+                      </div>
+                      <span className="text-sm leading-relaxed text-zinc-300">
+                        {feature}
+                      </span>
+                    </motion.div>
+                  ))}
                 </div>
               </div>
-
-              <div className="mb-8 flex-1 space-y-3">
-                {plan.features.map((feature) => (
-                  <div key={feature} className="flex items-start gap-3">
-                    <CheckCircle2 className="text-success mt-0.5 h-5 w-5 flex-shrink-0" />
-                    <span className="text-muted-foreground text-sm">{feature}</span>
-                  </div>
-                ))}
-              </div>
-
-              <Button
-                className={`h-12 w-full text-sm font-semibold tracking-wide ${
-                  plan.highlighted
-                    ? 'shadow-primary/30 shadow-lg transition-transform hover:-translate-y-0.5'
-                    : ''
-                }`}
-                variant={plan.highlighted ? 'default' : 'outline'}
-                asChild
-              >
-                <Link href="/sign-up">{plan.cta}</Link>
-              </Button>
-            </div>
+            </motion.div>
           ))}
         </div>
+
+        {/* Trust badge */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.8, duration: 0.8 }}
+          className="mt-16 text-center"
+        >
+          <p className="text-sm text-zinc-500">
+            Mais de 500 empresas já rastreiam suas vendas com WhaTrack
+          </p>
+        </motion.div>
       </div>
     </section>
   )

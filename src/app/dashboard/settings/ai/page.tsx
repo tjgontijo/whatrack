@@ -15,6 +15,8 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { PageShell, PageHeader, PageContent } from '@/components/dashboard/layout'
+import { LoadingCard, EmptyState } from '@/components/dashboard/states'
 
 export default function AiAgentsPage() {
   const queryClient = useQueryClient()
@@ -50,41 +52,44 @@ export default function AiAgentsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8 p-6">
-      <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-        <div>
-          <h1 className="mb-2 flex items-center gap-2 text-2xl font-bold tracking-tight">
-            <Sparkles className="text-primary h-6 w-6" /> IA Copilot Studio
-          </h1>
-          <p className="text-muted-foreground">
-            Crie múltiplos agentes para interagir e auferir insights preciosos das suas conversas.
-          </p>
-        </div>
-        <Button asChild className="gap-2">
-          <Link href="/dashboard/settings/ai/new">
-            <Plus className="h-4 w-4" /> Novo Agente
-          </Link>
-        </Button>
-      </div>
-
-      {isLoading ? (
-        <div className="grid grid-cols-1 gap-6 opacity-50 md:grid-cols-2 lg:grid-cols-3">
-          <Card className="flex h-48 items-center justify-center">Carregando...</Card>
-        </div>
-      ) : agents.length === 0 ? (
-        <Card className="flex flex-col items-center justify-center border-dashed p-12 text-center">
-          <Bot className="text-muted-foreground mb-4 h-12 w-12 opacity-50" />
-          <CardTitle className="mb-2">Nenhum Agente Criado</CardTitle>
-          <CardDescription className="mx-auto mb-6 max-w-md">
-            Você ainda não possui copilotos configurados. Que tal criar um Auditor de Vendas ou um
-            Analista de Qualidade agora mesmo?
-          </CardDescription>
-          <Button asChild>
-            <Link href="/dashboard/settings/ai/new">Criar Meu Primeiro Agente</Link>
+    <PageShell>
+      <PageHeader
+        title="IA Copilot Studio"
+        description="Crie múltiplos agentes para interagir e auferir insights preciosos das suas conversas."
+        icon={Sparkles}
+        actions={
+          <Button asChild className="gap-2">
+            <Link href="/dashboard/settings/ai/new">
+              <Plus className="h-4 w-4" /> Novo Agente
+            </Link>
           </Button>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        }
+      />
+
+      <PageContent>
+        {isLoading && (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <LoadingCard />
+            <LoadingCard />
+            <LoadingCard />
+          </div>
+        )}
+
+        {!isLoading && agents.length === 0 && (
+          <EmptyState
+            icon={Bot}
+            title="Nenhum Agente Criado"
+            description="Você ainda não possui copilotos configurados. Que tal criar um Auditor de Vendas ou um Analista de Qualidade agora mesmo?"
+            action={
+              <Button asChild>
+                <Link href="/dashboard/settings/ai/new">Criar Meu Primeiro Agente</Link>
+              </Button>
+            }
+          />
+        )}
+
+        {!isLoading && agents.length > 0 && (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {agents.map((agent: any) => (
             <Card key={agent.id} className="flex flex-col">
               <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
@@ -132,8 +137,9 @@ export default function AiAgentsPage() {
               </CardFooter>
             </Card>
           ))}
-        </div>
-      )}
-    </div>
+          </div>
+        )}
+      </PageContent>
+    </PageShell>
   )
 }

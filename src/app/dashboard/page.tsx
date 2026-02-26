@@ -3,18 +3,12 @@
 import * as React from 'react'
 import { z } from 'zod'
 import { useQuery } from '@tanstack/react-query'
+import { BarChart3, RefreshCw, SlidersHorizontal } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
-import { HeaderActions } from '@/components/dashboard/layout/header-actions'
-import { RefreshCw, SlidersHorizontal } from 'lucide-react'
+import { PageShell, PageHeader, PageContent } from '@/components/dashboard/layout'
+import { FilterSelect } from '@/components/dashboard/filters'
 import { DashboardMetricCard, DashboardMetricGrid } from '@/components/dashboard/charts/card'
 import { DashboardPieChart } from '@/components/dashboard/charts/pie'
 import { FunnelChart } from '@/components/dashboard/charts/funnel-chart'
@@ -102,16 +96,10 @@ export default function DashboardPage() {
       const json = await response.json()
       return dashboardSummaryResponseSchema.parse(json)
     },
-    // Cache por 2 minutos - dados do dashboard não mudam com tanta frequência
     staleTime: 2 * 60 * 1000,
   })
 
-  const handleApplyFilters = React.useCallback(() => {
-    void refetch()
-  }, [refetch])
-
   const pieData = data?.salesByService ?? []
-
   const itemFilters = data?.itemFilters
 
   const itemCategoryOptions = React.useMemo<FilterOption[]>(() => {
@@ -181,71 +169,77 @@ export default function DashboardPage() {
   }, [data?.trafficSources, filters.trafficSource])
 
   return (
-    <>
-      <HeaderActions>
-        <Button variant="ghost" size="sm" onClick={handleApplyFilters}>
-          <RefreshCw className="h-4 w-4" />
-        </Button>
-
-        {/* Mobile Filters Button */}
-        <Sheet open={isFilterSheetOpen} onOpenChange={setIsFilterSheetOpen}>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="sm" className="md:hidden">
-              <SlidersHorizontal className="h-4 w-4" />
+    <PageShell>
+      <PageHeader
+        title="Visão Geral"
+        description="Acompanhe suas métricas em tempo real"
+        icon={BarChart3}
+        actions={
+          <>
+            <Button variant="ghost" size="sm" onClick={() => void refetch()}>
+              <RefreshCw className="h-4 w-4" />
             </Button>
-          </SheetTrigger>
-          <SheetContent side="bottom" className="h-auto max-h-[85vh] overflow-y-auto px-4 py-6">
-            <SheetHeader className="mb-8">
-              <SheetTitle>Filtros</SheetTitle>
-            </SheetHeader>
-            <div className="space-y-8">
-              <FilterSelect
-                label="Período"
-                value={filters.period}
-                options={periodOptions}
-                onValueChange={(value) => handleFilterChange('period', value)}
-              />
-              <FilterSelect
-                label="Tipo de tráfego"
-                value={filters.trafficType}
-                options={trafficTypeOptions}
-                onValueChange={(value) => handleFilterChange('trafficType', value)}
-              />
-              <FilterSelect
-                label="Fonte de tráfego"
-                value={filters.trafficSource}
-                options={trafficSourceOptions}
-                onValueChange={(value) => handleFilterChange('trafficSource', value)}
-              />
-              <FilterSelect
-                label="Categoria de item"
-                value={filters.itemCategory}
-                options={itemCategoryOptions}
-                onValueChange={(value) => {
-                  handleFilterChange('itemCategory', value)
-                  // sempre que a categoria mudar, resetamos o item para 'any'
-                  handleFilterChange('item', 'any')
-                }}
-              />
-              <FilterSelect
-                label="Item"
-                value={filters.item}
-                options={itemOptions}
-                onValueChange={(value) => handleFilterChange('item', value)}
-                disabled={filters.itemCategory === 'any'}
-              />
-              <Button onClick={() => setIsFilterSheetOpen(false)} className="mt-6 w-full">
-                Aplicar Filtros
-              </Button>
-            </div>
-          </SheetContent>
-        </Sheet>
-      </HeaderActions>
 
-      <div className="space-y-8" data-testid="dashboard-page">
+            {/* Mobile Filters Button */}
+            <Sheet open={isFilterSheetOpen} onOpenChange={setIsFilterSheetOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="sm" className="md:hidden">
+                  <SlidersHorizontal className="h-4 w-4" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="bottom" className="h-auto max-h-[85vh] overflow-y-auto px-4 py-6">
+                <SheetHeader className="mb-8">
+                  <SheetTitle>Filtros</SheetTitle>
+                </SheetHeader>
+                <div className="space-y-8">
+                  <FilterSelect
+                    label="Período"
+                    value={filters.period}
+                    options={periodOptions}
+                    onValueChange={(value) => handleFilterChange('period', value)}
+                  />
+                  <FilterSelect
+                    label="Tipo de tráfego"
+                    value={filters.trafficType}
+                    options={trafficTypeOptions}
+                    onValueChange={(value) => handleFilterChange('trafficType', value)}
+                  />
+                  <FilterSelect
+                    label="Fonte de tráfego"
+                    value={filters.trafficSource}
+                    options={trafficSourceOptions}
+                    onValueChange={(value) => handleFilterChange('trafficSource', value)}
+                  />
+                  <FilterSelect
+                    label="Categoria de item"
+                    value={filters.itemCategory}
+                    options={itemCategoryOptions}
+                    onValueChange={(value) => {
+                      handleFilterChange('itemCategory', value)
+                      handleFilterChange('item', 'any')
+                    }}
+                  />
+                  <FilterSelect
+                    label="Item"
+                    value={filters.item}
+                    options={itemOptions}
+                    onValueChange={(value) => handleFilterChange('item', value)}
+                    disabled={filters.itemCategory === 'any'}
+                  />
+                  <Button onClick={() => setIsFilterSheetOpen(false)} className="mt-6 w-full">
+                    Aplicar Filtros
+                  </Button>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </>
+        }
+      />
+
+      <PageContent className="space-y-6">
         {/* Desktop Filters */}
         <section
-          className="border-border/60 bg-card hidden rounded-2xl border p-6 shadow-sm md:block"
+          className="border-border/60 bg-card hidden rounded-lg border p-6 shadow-sm md:block"
           data-testid="dashboard-filters"
         >
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
@@ -273,7 +267,6 @@ export default function DashboardPage() {
               options={itemCategoryOptions}
               onValueChange={(value) => {
                 handleFilterChange('itemCategory', value)
-                // sempre que a categoria mudar, resetamos o item para 'any'
                 handleFilterChange('item', 'any')
               }}
             />
@@ -287,7 +280,7 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        <section className="border-border/60 bg-card rounded-2xl border p-6 shadow-sm">
+        <section className="border-border/60 bg-card rounded-lg border p-6 shadow-sm">
           <DashboardMetricGrid>
             <DashboardMetricCard
               title="Faturamento"
@@ -309,7 +302,7 @@ export default function DashboardPage() {
               value={<span>{formatCurrencyBRL(data?.grossProfit ?? 0)}</span>}
               isLoading={isFetching}
             />
-            <div className="border-border/50 bg-card rounded-3xl border p-6 shadow-sm backdrop-blur-sm transition hover:-translate-y-0.5 hover:shadow-md md:col-span-1 md:row-span-3 xl:col-span-1 xl:row-span-3">
+            <div className="border-border/50 bg-card rounded-lg border p-6 shadow-sm backdrop-blur-sm transition hover:-translate-y-0.5 hover:shadow-md md:col-span-1 md:row-span-3 xl:col-span-1 xl:row-span-3">
               <header className="flex items-center justify-between">
                 <h3 className="text-muted-foreground text-sm font-semibold">
                   Distribuição de vendas por serviço
@@ -375,37 +368,7 @@ export default function DashboardPage() {
             </div>
           </DashboardMetricGrid>
         </section>
-      </div>
-    </>
-  )
-}
-
-type FilterSelectProps = {
-  label: string
-  value: string
-  options: FilterOption[]
-  onValueChange: (value: string) => void
-  disabled?: boolean
-}
-
-function FilterSelect({ label, value, options, onValueChange, disabled }: FilterSelectProps) {
-  return (
-    <div className="w-full space-y-2">
-      <label className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
-        {label}
-      </label>
-      <Select value={value} onValueChange={onValueChange} disabled={disabled}>
-        <SelectTrigger className="border-border/80 bg-muted/20 h-12 w-full items-center justify-between rounded-xl px-3 disabled:cursor-not-allowed disabled:opacity-60">
-          <SelectValue placeholder="Selecionar" />
-        </SelectTrigger>
-        <SelectContent className="w-[var(--radix-select-trigger-width)]">
-          {options.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
-              {option.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
+      </PageContent>
+    </PageShell>
   )
 }

@@ -1,8 +1,10 @@
+'use client'
+
 import Link from 'next/link'
-import { ArrowRight, CheckCircle2 } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { ArrowRight, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { LandingContent } from './types'
+import { motion } from 'motion/react'
 
 interface LandingHeroProps {
   content: LandingContent['hero']
@@ -10,123 +12,237 @@ interface LandingHeroProps {
 
 export function LandingHero({ content }: LandingHeroProps) {
   return (
-    <section className="bg-background text-foreground relative overflow-hidden pb-20 pt-32 lg:pb-32 lg:pt-48">
-      {/* Background elements */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="bg-primary/10 absolute -top-40 left-1/2 h-[600px] w-[800px] -translate-x-1/2 rounded-full blur-[120px]" />
+    <section className="relative min-h-[90vh] overflow-hidden bg-[#0a0a0a] text-white">
+      {/* Sophisticated gradient mesh background */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute left-0 top-0 h-[800px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br from-emerald-500/20 via-emerald-600/10 to-transparent blur-3xl" />
+        <div className="absolute bottom-0 right-0 h-[600px] w-[600px] translate-x-1/3 translate-y-1/3 rounded-full bg-gradient-to-tl from-amber-500/15 via-amber-600/5 to-transparent blur-3xl" />
+        <div className="absolute left-1/2 top-1/2 h-[400px] w-[400px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-r from-emerald-500/10 to-amber-500/10 blur-3xl" />
+
+        {/* Subtle grain texture */}
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii43NSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIi8+PGZlQ29sb3JNYXRyaXggdHlwZT0ic2F0dXJhdGUiIHZhbHVlcz0iMCIvPjwvZmlsdGVyPjxwYXRoIGQ9Ik0wIDBoMzAwdjMwMEgweiIgZmlsdGVyPSJ1cmwoI2EpIiBvcGFjaXR5PSIuMDUiLz48L3N2Zz4=')] opacity-50" />
       </div>
 
-      <div className="relative mx-auto flex w-full max-w-6xl flex-col items-center px-6 text-center sm:px-8">
-        <Badge
-          variant="secondary"
-          className="bg-primary/10 text-primary border-primary/20 mb-8 w-fit px-4 py-1.5 text-sm font-semibold uppercase tracking-widest"
+      <div className="relative mx-auto grid max-w-[1400px] grid-cols-1 gap-16 px-6 pb-24 pt-32 sm:px-8 lg:grid-cols-2 lg:gap-24 lg:px-12 lg:pt-40">
+        {/* Left column - Content */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          className="flex flex-col justify-center"
         >
-          {content.badge}
-        </Badge>
-
-        <h1 className="text-foreground max-w-4xl text-5xl font-extrabold !leading-[1.1] tracking-tight sm:text-6xl xl:text-7xl">
-          {content.headline} <span className="text-primary">{content.highlightedText}</span>
-        </h1>
-
-        <p className="text-muted-foreground mt-8 max-w-3xl text-xl leading-relaxed sm:text-2xl">
-          {content.subheadline}
-        </p>
-
-        <div className="mt-10 flex w-full max-w-md flex-col justify-center gap-4 sm:max-w-none sm:flex-row sm:gap-6">
-          <Button
-            size="lg"
-            className="shadow-primary/20 hover:shadow-primary/40 h-14 px-8 text-lg font-bold shadow-xl transition-all hover:-translate-y-1"
-            asChild
+          {/* Badge */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
+            className="mb-8 inline-flex w-fit items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-4 py-2 backdrop-blur-sm"
           >
-            <Link href="/sign-up">
-              {content.ctaPrimary}
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
-          </Button>
-          <Button
-            size="lg"
-            variant="outline"
-            className="h-14 border-2 px-8 text-lg font-bold"
-            asChild
+            <Sparkles className="h-4 w-4 text-emerald-400" />
+            <span className="text-sm font-medium tracking-wide text-emerald-100">
+              {content.badge}
+            </span>
+          </motion.div>
+
+          {/* Headline */}
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            className="mb-6 font-geist text-5xl font-bold leading-[1.1] tracking-tight sm:text-6xl lg:text-7xl"
           >
-            <Link href="#como-funciona">{content.ctaSecondary}</Link>
-          </Button>
-        </div>
+            {content.headline}{' '}
+            <span className="bg-gradient-to-r from-emerald-400 to-amber-400 bg-clip-text text-transparent">
+              {content.highlightedText}
+            </span>
+          </motion.h1>
 
-        <div className="text-muted-foreground mt-12 flex flex-col items-center gap-6 text-sm font-medium sm:flex-row">
-          {content.highlights.map((highlight) => (
-            <div key={highlight} className="flex items-center gap-2">
-              <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-emerald-500" />
-              <span>{highlight}</span>
-            </div>
-          ))}
-        </div>
+          {/* Subheadline */}
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.8 }}
+            className="mb-10 text-lg leading-relaxed text-zinc-300 sm:text-xl lg:text-2xl"
+          >
+            {content.subheadline}
+          </motion.p>
 
-        {/* Hero Mockup or Abstract Dashboard preview */}
-        <div className="relative mt-20 w-full">
-          <div className="from-primary/30 absolute -inset-1 rounded-2xl bg-gradient-to-b to-transparent blur-lg" />
-          <div className="border-border/50 bg-card relative flex flex-col overflow-hidden rounded-2xl border shadow-2xl">
-            <div className="border-border/50 bg-muted/30 flex h-12 items-center gap-2 border-b px-4">
-              <div className="bg-destructive/80 h-3 w-3 rounded-full" />
-              <div className="h-3 w-3 rounded-full bg-amber-400" />
-              <div className="h-3 w-3 rounded-full bg-emerald-400" />
-            </div>
-            <div className="from-background to-muted/20 flex h-[300px] w-full items-center justify-center bg-gradient-to-br p-8 sm:h-[400px]">
-              {/* Abstract placeholder for the dashboard map/funnel */}
-              <div className="grid h-full w-full max-w-4xl grid-cols-1 gap-6 opacity-80 md:grid-cols-3">
-                <div className="bg-card border-border/40 flex h-full flex-col gap-4 rounded-xl border p-6 shadow-sm">
-                  <div className="bg-muted h-4 w-1/3 rounded-full" />
-                  <div className="flex h-8 w-2/3 items-center rounded-md bg-emerald-500/10 px-3 font-mono font-bold text-emerald-600">
-                    R$ 14.500
-                  </div>
-                  <div className="border-border flex flex-1 items-end gap-2 rounded-lg border border-dashed p-2">
-                    <div className="bg-primary/20 h-1/3 w-full rounded-sm" />
-                    <div className="bg-primary/40 h-2/3 w-full rounded-sm" />
-                    <div className="bg-primary h-full w-full rounded-sm shadow-[0_0_15px_rgba(var(--primary),0.5)]" />
-                  </div>
-                </div>
-                <div className="bg-card border-border/40 hidden h-full flex-col gap-4 rounded-xl border p-6 shadow-sm md:flex">
-                  <div className="bg-muted h-4 w-1/2 rounded-full" />
-                  <div className="mt-4 space-y-3">
-                    {[1, 2, 3, 4].map((i) => (
-                      <div key={i} className="flex items-center gap-3">
-                        <div className="bg-muted h-8 w-8 shrink-0 rounded-full" />
-                        <div className="bg-muted/50 h-3 flex-1 rounded-full" />
+          {/* CTAs */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.8 }}
+            className="flex flex-col gap-4 sm:flex-row sm:gap-6"
+          >
+            <Button
+              size="lg"
+              className="group h-14 bg-gradient-to-r from-emerald-500 to-emerald-600 px-8 text-base font-semibold text-white shadow-lg shadow-emerald-500/25 transition-all hover:shadow-xl hover:shadow-emerald-500/40"
+              asChild
+            >
+              <Link href="/sign-up">
+                {content.ctaPrimary}
+                <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+              </Link>
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="h-14 border-zinc-700 bg-zinc-900/50 px-8 text-base font-semibold text-white backdrop-blur-sm transition-all hover:border-zinc-600 hover:bg-zinc-800/50"
+              asChild
+            >
+              <Link href="#como-funciona">{content.ctaSecondary}</Link>
+            </Button>
+          </motion.div>
+
+          {/* Highlights */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7, duration: 0.8 }}
+            className="mt-12 flex flex-wrap gap-6 text-sm text-zinc-400"
+          >
+            {content.highlights.map((highlight, i) => (
+              <motion.div
+                key={highlight}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.8 + i * 0.1, duration: 0.5 }}
+                className="flex items-center gap-2"
+              >
+                <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                <span className="font-medium">{highlight}</span>
+              </motion.div>
+            ))}
+          </motion.div>
+        </motion.div>
+
+        {/* Right column - Premium Dashboard Visualization */}
+        <motion.div
+          initial={{ opacity: 0, x: 40 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.4, duration: 1, ease: [0.22, 1, 0.36, 1] }}
+          className="relative flex items-center justify-center lg:justify-end"
+        >
+          {/* Glow effect behind dashboard */}
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-amber-500/20 blur-3xl" />
+
+          {/* Dashboard mockup */}
+          <div className="relative w-full max-w-2xl">
+            {/* Window chrome */}
+            <div className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/80 shadow-2xl backdrop-blur-xl">
+              {/* Top bar */}
+              <div className="flex h-12 items-center gap-2 border-b border-zinc-800 bg-zinc-900/90 px-4">
+                <div className="h-3 w-3 rounded-full bg-red-500/80" />
+                <div className="h-3 w-3 rounded-full bg-amber-500/80" />
+                <div className="h-3 w-3 rounded-full bg-emerald-500/80" />
+              </div>
+
+              {/* Dashboard content */}
+              <div className="bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-950 p-8">
+                {/* Stats cards */}
+                <div className="mb-6 grid grid-cols-3 gap-4">
+                  {[
+                    { label: 'ROI', value: '847%', color: 'emerald' },
+                    { label: 'Vendas', value: '142', color: 'amber' },
+                    { label: 'CAC', value: 'R$ 24', color: 'blue' },
+                  ].map((stat, i) => (
+                    <motion.div
+                      key={stat.label}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 1 + i * 0.1, duration: 0.5 }}
+                      className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4"
+                    >
+                      <div className="mb-2 text-xs font-medium text-zinc-500">
+                        {stat.label}
                       </div>
+                      <div
+                        className={`font-mono text-2xl font-bold ${
+                          stat.color === 'emerald'
+                            ? 'text-emerald-400'
+                            : stat.color === 'amber'
+                              ? 'text-amber-400'
+                              : 'text-blue-400'
+                        }`}
+                      >
+                        {stat.value}
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+
+                {/* Chart visualization */}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 1.3, duration: 0.8 }}
+                  className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6"
+                >
+                  <div className="mb-4 flex items-center justify-between">
+                    <div className="text-sm font-semibold text-zinc-200">
+                      Receita por Campanha
+                    </div>
+                    <div className="text-xs text-zinc-500">Últimos 7 dias</div>
+                  </div>
+
+                  {/* Bar chart */}
+                  <div className="flex h-32 items-end gap-2">
+                    {[0.3, 0.6, 0.4, 0.8, 0.5, 1, 0.7].map((height, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ height: 0 }}
+                        animate={{ height: `${height * 100}%` }}
+                        transition={{
+                          delay: 1.5 + i * 0.05,
+                          duration: 0.6,
+                          ease: [0.22, 1, 0.36, 1],
+                        }}
+                        className="flex-1 rounded-t-lg bg-gradient-to-t from-emerald-600 to-emerald-400"
+                        style={{
+                          boxShadow: '0 -4px 20px rgba(16, 185, 129, 0.3)',
+                        }}
+                      />
                     ))}
                   </div>
-                </div>
-                <div className="bg-card border-border/40 hidden h-full flex-col gap-4 rounded-xl border p-6 shadow-sm md:flex">
-                  <div className="bg-muted h-4 w-1/3 rounded-full" />
-                  <div className="flex h-full items-center justify-center">
-                    <div className="relative h-32 w-32">
-                      <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90 transform">
-                        <circle
-                          cx="50"
-                          cy="50"
-                          r="40"
-                          className="stroke-muted fill-none stroke-[8] opacity-20"
-                        />
-                        <circle
-                          cx="50"
-                          cy="50"
-                          r="40"
-                          className="stroke-primary fill-none stroke-[8]"
-                          strokeDasharray="251"
-                          strokeDashoffset="60"
-                        />
-                      </svg>
-                      <div className="text-foreground absolute inset-0 flex items-center justify-center text-2xl font-bold">
-                        76%
-                      </div>
-                    </div>
+                </motion.div>
+
+                {/* Revenue indicator */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 2, duration: 0.6 }}
+                  className="mt-6 flex items-center justify-between rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4"
+                >
+                  <div className="text-sm font-medium text-zinc-300">
+                    Receita Total
                   </div>
-                </div>
+                  <div className="font-mono text-xl font-bold text-emerald-400">
+                    R$ 87.420
+                  </div>
+                </motion.div>
               </div>
             </div>
+
+            {/* Floating badge */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ delay: 2.2, duration: 0.6 }}
+              className="absolute -bottom-4 -left-4 rounded-full border border-emerald-500/20 bg-zinc-900/90 px-6 py-3 backdrop-blur-xl"
+            >
+              <div className="flex items-center gap-3">
+                <div className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
+                <span className="text-sm font-semibold text-white">
+                  Dados em tempo real
+                </span>
+              </div>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
       </div>
+
+      {/* Bottom gradient fade */}
+      <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white via-white/50 to-transparent dark:from-zinc-950 dark:via-zinc-950/50" />
     </section>
   )
 }

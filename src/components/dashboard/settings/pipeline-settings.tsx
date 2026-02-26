@@ -42,7 +42,8 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { DeleteConfirmDialog } from '@/components/dashboard/crud/delete-confirm-dialog'
-import { TemplateMainShell, TemplateMainHeader } from '@/components/dashboard/leads'
+import { PageShell, PageHeader, PageContent } from '@/components/dashboard/layout'
+import { LoadingPage, EmptyState } from '@/components/dashboard/states'
 
 const PRESET_COLORS = [
   '#6366f1',
@@ -402,10 +403,11 @@ export function PipelineSettings() {
   const isSaving = createMutation.isPending || updateMutation.isPending
 
   return (
-    <TemplateMainShell className="flex h-full flex-col overflow-hidden">
-      <TemplateMainHeader
+    <PageShell maxWidth="3xl">
+      <PageHeader
         title="Pipeline"
-        subtitle="Gerencie as fases do seu funil de tickets"
+        description="Gerencie as fases do seu funil de tickets"
+        icon={Kanban}
         actions={
           <Button
             onClick={() => {
@@ -421,13 +423,10 @@ export function PipelineSettings() {
         }
       />
 
-      {/* Content */}
-      <div className="bg-muted/5 flex-1 overflow-y-auto p-6">
-        {isLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
-          </div>
-        ) : (
+      <PageContent>
+        {isLoading && <LoadingPage message="Carregando fases..." />}
+
+        {!isLoading && (
           <div className="mx-auto max-w-xl space-y-2">
             <p className="text-muted-foreground mb-4 text-xs font-semibold uppercase tracking-widest">
               {stages.length} fase{stages.length !== 1 ? 's' : ''} — arraste para reordenar
@@ -457,19 +456,15 @@ export function PipelineSettings() {
             </DndContext>
 
             {stages.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-16 text-center">
-                <div className="bg-muted mb-3 flex h-12 w-12 items-center justify-center rounded-xl">
-                  <Kanban className="text-muted-foreground h-6 w-6" />
-                </div>
-                <p className="text-muted-foreground font-bold">Nenhuma fase configurada</p>
-                <p className="text-muted-foreground/60 mt-1 text-xs">
-                  Clique em &quot;Adicionar Fase&quot; para começar
-                </p>
-              </div>
+              <EmptyState
+                icon={Kanban}
+                title="Nenhuma fase configurada"
+                description='Clique em "Adicionar Fase" para começar'
+              />
             )}
           </div>
         )}
-      </div>
+      </PageContent>
 
       <StageDialog
         open={dialogOpen}
@@ -481,6 +476,6 @@ export function PipelineSettings() {
         onSave={handleSave}
         isSaving={isSaving}
       />
-    </TemplateMainShell>
+    </PageShell>
   )
 }

@@ -1,38 +1,44 @@
+'use client'
+
 import Link from 'next/link'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { LandingVariant } from './types'
+import { motion } from 'motion/react'
+import { useState, useEffect } from 'react'
 
 interface LandingHeaderProps {
   variant?: LandingVariant
 }
 
-const navLinks = [
-  { label: 'Como funciona', href: '#como-funciona' },
-  { label: 'Planos', href: '#planos' },
-]
+export function LandingHeader({ variant: _variant = 'generic' }: LandingHeaderProps) {
+  const [scrolled, setScrolled] = useState(false)
 
-const variantLinks: Record<LandingVariant, { label: string; href: string }[]> = {
-  generic: [
-    { label: 'Para Agências', href: '/solucoes/agencias' },
-    { label: 'Para Lançadores', href: '/solucoes/lancamentos' },
-    { label: 'Para Empresas', href: '/solucoes/empresas' },
-  ],
-  agencias: [],
-  lancadores: [],
-  empresas: [],
-}
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20)
+    }
 
-export function LandingHeader({ variant = 'generic' }: LandingHeaderProps) {
-  const extraLinks = variantLinks[variant]
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   return (
-    <header className="border-border/40 bg-background/80 text-foreground supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 border-b backdrop-blur-md">
-      <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-4 sm:px-8 lg:px-0">
+    <motion.header
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      className={`fixed left-0 right-0 top-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? 'border-b border-zinc-200/50 bg-white/80 shadow-sm backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-950/80'
+          : 'border-b border-transparent bg-transparent'
+      }`}
+    >
+      <div className="mx-auto flex w-full max-w-[1400px] items-center justify-between px-6 py-4 sm:px-8 lg:px-12">
         {/* Logo */}
         <Link
           href="/"
-          className="flex flex-shrink-0 items-center gap-3 transition-opacity hover:opacity-80"
+          className="group flex flex-shrink-0 items-center gap-3 transition-opacity hover:opacity-80"
         >
           <Image
             src="/images/logo_transparent.png"
@@ -40,52 +46,33 @@ export function LandingHeader({ variant = 'generic' }: LandingHeaderProps) {
             width={120}
             height={40}
             priority
-            className="h-7 w-auto object-contain drop-shadow-sm"
+            className={`h-8 w-auto object-contain transition-all duration-300 group-hover:scale-105 ${
+              scrolled ? 'brightness-0 dark:brightness-100' : 'brightness-100'
+            }`}
           />
         </Link>
 
-        {/* Navigation */}
-        <nav className="text-muted-foreground hidden items-center gap-8 text-sm font-medium md:flex">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="hover:text-primary tracking-wide transition-colors"
-            >
-              {link.label}
-            </Link>
-          ))}
-          {extraLinks.length > 0 && (
-            <div className="border-border flex items-center gap-6 border-l pl-6">
-              {extraLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="hover:text-primary tracking-wide transition-colors"
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </div>
-          )}
-        </nav>
-
         {/* Action Buttons */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <Link
             href="/sign-in"
-            className="text-muted-foreground hover:text-foreground hidden text-sm font-semibold transition-colors sm:block"
+            className={`hidden text-sm font-semibold transition-colors sm:block ${
+              scrolled
+                ? 'text-zinc-700 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white'
+                : 'text-white/90 hover:text-white'
+            }`}
           >
             Entrar
           </Link>
+
           <Button
-            className="shadow-primary/20 hover:shadow-primary/40 h-10 px-5 font-bold shadow-sm transition-all hover:-translate-y-0.5"
+            className="h-10 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 px-6 font-semibold text-white shadow-md shadow-emerald-500/25 transition-all hover:shadow-lg hover:shadow-emerald-500/40"
             asChild
           >
             <Link href="/sign-up">Testar Grátis</Link>
           </Button>
         </div>
       </div>
-    </header>
+    </motion.header>
   )
 }

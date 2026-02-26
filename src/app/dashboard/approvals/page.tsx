@@ -2,16 +2,17 @@
 
 import React from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Check, X, Sparkles, MessageSquare, Megaphone, Inbox } from 'lucide-react'
+import { Check, X, Sparkles, MessageSquare } from 'lucide-react'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
+import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
-import { RefreshCw } from 'lucide-react'
+import { PageShell, PageHeader, PageContent } from '@/components/dashboard/layout'
+import { LoadingPage, EmptyState } from '@/components/dashboard/states'
 
 export default function ApprovalsPage() {
   const queryClient = useQueryClient()
@@ -64,38 +65,27 @@ export default function ApprovalsPage() {
     }).format(Number(value))
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex min-h-[400px] flex-col items-center justify-center gap-3">
-        <RefreshCw className="text-primary/40 h-8 w-8 animate-spin" />
-        <p className="text-muted-foreground text-sm font-medium">Analizando sugestões da IA...</p>
-      </div>
-    )
-  }
-
   return (
-    <div className="mx-auto max-w-5xl space-y-6 p-6">
-      <div>
-        <h1 className="mb-2 flex items-center gap-2 text-2xl font-bold tracking-tight">
-          <Sparkles className="text-primary h-6 w-6" /> Aprovações do Copilot IA
-        </h1>
-        <p className="text-muted-foreground">
-          O Mastra AI lê as conversas, detecta as vendas e deixa pré-pronto aqui. Apenas clique em
-          Aprovar para nutrir o Pixel do Meta Ads.
-        </p>
-      </div>
+    <PageShell maxWidth="5xl">
+      <PageHeader
+        title="Aprovações do Copilot IA"
+        description="O Mastra AI lê as conversas, detecta as vendas e deixa pré-pronto aqui. Apenas clique em Aprovar para nutrir o Pixel do Meta Ads."
+        icon={Sparkles}
+      />
 
-      {insights?.length === 0 ? (
-        <div className="bg-muted/20 rounded-lg border border-dashed py-20 text-center">
-          <Inbox className="text-muted-foreground mx-auto mb-4 h-10 w-10 opacity-50" />
-          <h3 className="text-foreground text-lg font-medium">Nenhuma sugestão por enquanto</h3>
-          <p className="text-muted-foreground mx-auto mt-2 max-w-sm">
-            Sua IA está analisando conversas novas. Sugestões de aprovação vão aparecer aqui.
-          </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {insights?.map((approval: any) => {
+      <PageContent>
+        {isLoading && <LoadingPage message="Analizando sugestões da IA..." />}
+
+        {!isLoading && insights?.length === 0 && (
+          <EmptyState
+            title="Nenhuma sugestão por enquanto"
+            description="Sua IA está analisando conversas novas. Sugestões de aprovação vão aparecer aqui."
+          />
+        )}
+
+        {!isLoading && insights && insights.length > 0 && (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {insights.map((approval: any) => {
             const lead = approval.ticket?.conversation?.lead
             const confidencePercent = (approval.confidence * 100).toFixed(0)
 
@@ -174,9 +164,10 @@ export default function ApprovalsPage() {
                 </CardFooter>
               </Card>
             )
-          })}
-        </div>
-      )}
-    </div>
+            })}
+          </div>
+        )}
+      </PageContent>
+    </PageShell>
   )
 }
