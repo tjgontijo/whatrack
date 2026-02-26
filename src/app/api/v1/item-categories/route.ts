@@ -1,23 +1,15 @@
 import { NextResponse } from 'next/server'
-import { z } from 'zod'
 
-import {
-  listItemCategories,
-  createItemCategory,
-  type ListItemCategoriesParams,
-} from '@/services/items/service'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
-
-const getParamsSchema = z.object({
-  search: z.string().optional(),
-  status: z.enum(['active', 'inactive']).optional(),
-  page: z.coerce.number().optional(),
-  pageSize: z.coerce.number().optional(),
-})
-
-const createSchema = z.object({
-  name: z.string().min(1),
-})
+import {
+  createItemCategorySchema,
+  itemCategoryListQuerySchema,
+} from '@/schemas/item-category-schemas'
+import {
+  createItemCategory,
+  listItemCategories,
+  type ListItemCategoriesParams,
+} from '@/services/item-categories/item-category.service'
 
 export async function GET(request: Request) {
   try {
@@ -28,7 +20,7 @@ export async function GET(request: Request) {
     const organizationId = access.organizationId
 
     const searchParams = new URL(request.url).searchParams
-    const parsed = getParamsSchema.safeParse({
+    const parsed = itemCategoryListQuerySchema.safeParse({
       search: searchParams.get('search') ?? undefined,
       status: searchParams.get('status') ?? undefined,
       page: searchParams.get('page') ?? undefined,
@@ -47,8 +39,7 @@ export async function GET(request: Request) {
       pageSize: parsed.data.pageSize,
     }
 
-    const response = await listItemCategories(payload)
-    return NextResponse.json(response)
+    return NextResponse.json(await listItemCategories(payload))
   } catch (error) {
     console.error('[api/item-categories] GET error', error)
     return NextResponse.json({ error: 'Failed to load categories' }, { status: 500 })
@@ -64,7 +55,7 @@ export async function POST(request: Request) {
     const organizationId = access.organizationId
 
     const json = await request.json()
-    const parsed = createSchema.safeParse(json)
+    const parsed = createItemCategorySchema.safeParse(json)
 
     if (!parsed.success) {
       return NextResponse.json(

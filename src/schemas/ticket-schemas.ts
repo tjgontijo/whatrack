@@ -1,7 +1,7 @@
 import { z } from 'zod'
+
 import { TICKET_STATUSES } from '@/lib/constants/ticket-statuses'
 
-// Query parameter validation for GET /api/v1/tickets
 export const ticketsQuerySchema = z.object({
   q: z.string().optional(),
   status: z.enum(TICKET_STATUSES).optional(),
@@ -20,7 +20,6 @@ export const ticketsQuerySchema = z.object({
     .default(20),
 })
 
-// POST /api/v1/tickets - Manual ticket creation
 export const createTicketSchema = z.object({
   conversationId: z.string().uuid('ID de conversa inválido'),
   stageId: z.string().uuid('ID de estágio inválido').optional(),
@@ -29,16 +28,19 @@ export const createTicketSchema = z.object({
   notes: z.string().max(1000, 'Notas muito longas').optional(),
 })
 
-// PATCH /api/v1/tickets/:id - Update ticket
 export const updateTicketSchema = z.object({
   stageId: z.string().uuid('ID de estágio inválido').optional(),
   assigneeId: z.string().uuid('ID de atribuído inválido').optional().nullable(),
   dealValue: z.number().nonnegative('Deal value não pode ser negativo').optional().nullable(),
 })
 
-// POST /api/v1/tickets/:id/close - Close ticket
 export const closeTicketSchema = z.object({
   reason: z.enum(['won', 'lost'] as const),
   closedReason: z.string().max(500, 'Motivo de fechamento muito longo').optional(),
   dealValue: z.number().nonnegative('Deal value não pode ser negativo').optional().nullable(),
 })
+
+export type TicketsQueryInput = z.infer<typeof ticketsQuerySchema>
+export type CreateTicketInput = z.infer<typeof createTicketSchema>
+export type UpdateTicketInput = z.infer<typeof updateTicketSchema>
+export type CloseTicketInput = z.infer<typeof closeTicketSchema>

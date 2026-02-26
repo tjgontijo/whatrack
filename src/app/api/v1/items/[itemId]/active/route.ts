@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/utils/api-response'
-import { prisma } from '@/lib/db/prisma'
+
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import { toggleItemActive } from '@/services/items/item.service'
 
 export async function PATCH(
   req: NextRequest,
@@ -15,25 +16,14 @@ export async function PATCH(
   const { itemId } = await params
 
   try {
-    // Verify item belongs to organization
-    const existing = await prisma.item.findFirst({
-      where: {
-        id: itemId,
-        organizationId,
-      },
+    const updated = await toggleItemActive({
+      organizationId,
+      itemId,
     })
 
-    if (!existing) {
-      return NextResponse.json({ error: 'Item não encontrado' }, { status: 404 })
+    if ('error' in updated) {
+      return NextResponse.json({ error: updated.error }, { status: updated.status })
     }
-
-    // Toggle active status
-    const updated = await prisma.item.update({
-      where: { id: itemId },
-      data: {
-        active: !existing.active,
-      },
-    })
 
     return NextResponse.json(updated)
   } catch (error) {

@@ -1,8 +1,8 @@
-import type { Prisma } from '@prisma/client'
-import { prisma } from '@/lib/db/prisma'
-import { getDefaultTicketStage } from './ensure-ticket-stages'
+import { Prisma } from '@prisma/client'
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+import { prisma } from '@/lib/db/prisma'
+import { metaCapiService } from '@/services/meta-ads/capi.service'
+import { getDefaultTicketStage } from './ensure-ticket-stages'
 
 export interface TicketListParams {
   organizationId: string
@@ -35,7 +35,129 @@ export interface UpdateTicketParams {
   dealValue?: number | null
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+export interface CloseTicketParams {
+  organizationId: string
+  ticketId: string
+  reason: 'won' | 'lost'
+  closedReason?: string
+  dealValue?: number | null
+}
+
+type TicketServiceError = {
+  error: string
+  status: 404 | 409
+}
+
+const ticketListSelect = Prisma.validator<Prisma.TicketSelect>()({
+  id: true,
+  status: true,
+  windowOpen: true,
+  windowExpiresAt: true,
+  dealValue: true,
+  messagesCount: true,
+  createdAt: true,
+  conversation: {
+    select: {
+      lead: {
+        select: { id: true, name: true, phone: true, pushName: true },
+      },
+    },
+  },
+  stage: { select: { id: true, name: true, color: true } },
+  assignee: { select: { id: true, name: true } },
+  tracking: { select: { utmSource: true, sourceType: true, ctwaclid: true } },
+  messages: {
+    select: { timestamp: true },
+    orderBy: { timestamp: 'desc' as const },
+    take: 1,
+  },
+  _count: { select: { sales: true } },
+})
+
+type TicketListRecord = Prisma.TicketGetPayload<{ select: typeof ticketListSelect }>
+
+const ticketSummarySelect = Prisma.validator<Prisma.TicketSelect>()({
+  id: true,
+  status: true,
+  windowOpen: true,
+  windowExpiresAt: true,
+  dealValue: true,
+  messagesCount: true,
+  createdAt: true,
+  updatedAt: true,
+  conversation: {
+    select: {
+      lead: {
+        select: { id: true, name: true, phone: true, pushName: true },
+      },
+    },
+  },
+  stage: { select: { id: true, name: true, color: true } },
+  assignee: { select: { id: true, name: true } },
+  tracking: { select: { utmSource: true, sourceType: true, ctwaclid: true } },
+})
+
+type TicketSummaryRecord = Prisma.TicketGetPayload<{ select: typeof ticketSummarySelect }>
+
+const ticketCloseSelect = Prisma.validator<Prisma.TicketSelect>()({
+  ...ticketSummarySelect,
+  closedAt: true,
+  closedReason: true,
+  _count: { select: { sales: true } },
+})
+
+type TicketCloseRecord = Prisma.TicketGetPayload<{ select: typeof ticketCloseSelect }>
+
+const ticketDetailsSelect = Prisma.validator<Prisma.TicketSelect>()({
+  id: true,
+  status: true,
+  windowOpen: true,
+  windowExpiresAt: true,
+  dealValue: true,
+  closedAt: true,
+  closedReason: true,
+  createdAt: true,
+  updatedAt: true,
+  conversation: {
+    select: {
+      lead: {
+        select: {
+          id: true,
+          name: true,
+          phone: true,
+          pushName: true,
+          profilePicUrl: true,
+          waId: true,
+        },
+      },
+    },
+  },
+  stage: { select: { id: true, name: true, color: true, order: true, isClosed: true } },
+  assignee: { select: { id: true, name: true, email: true, image: true } },
+  tracking: {
+    select: {
+      utmSource: true,
+      utmMedium: true,
+      utmCampaign: true,
+      sourceType: true,
+      ctwaclid: true,
+      referrerUrl: true,
+      landingPage: true,
+    },
+  },
+  messages: {
+    select: { id: true, body: true, type: true, direction: true, timestamp: true },
+    orderBy: { timestamp: 'desc' as const },
+    take: 10,
+  },
+  sales: {
+    select: { id: true, totalAmount: true, status: true, createdAt: true },
+    orderBy: { createdAt: 'desc' as const },
+  },
+  _count: { select: { messages: true, sales: true } },
+})
+
+type TicketDetailsRecord = Prisma.TicketGetPayload<{ select: typeof ticketDetailsSelect }>
 
 function buildWhereFilters(params: TicketListParams): Prisma.TicketWhereInput {
   const filters: Prisma.TicketWhereInput[] = []
@@ -89,7 +211,7 @@ function buildWhereFilters(params: TicketListParams): Prisma.TicketWhereInput {
   return { AND: [base, ...filters] }
 }
 
-function formatTicketItem(ticket: any) {
+function mapTicketListItem(ticket: TicketListRecord) {
   return {
     id: ticket.id,
     lead: {
@@ -102,10 +224,10 @@ function formatTicketItem(ticket: any) {
     assignee: ticket.assignee,
     tracking: ticket.tracking
       ? {
-        utmSource: ticket.tracking.utmSource ?? null,
-        sourceType: ticket.tracking.sourceType ?? null,
-        ctwaclid: ticket.tracking.ctwaclid ?? null,
-      }
+          utmSource: ticket.tracking.utmSource ?? null,
+          sourceType: ticket.tracking.sourceType ?? null,
+          ctwaclid: ticket.tracking.ctwaclid ?? null,
+        }
       : null,
     status: ticket.status,
     windowOpen: ticket.windowOpen,
@@ -120,7 +242,82 @@ function formatTicketItem(ticket: any) {
   }
 }
 
-// ─── Service Methods ───────────────────────────────────────────────────────────
+function mapTicketSummary(ticket: TicketSummaryRecord) {
+  return {
+    id: ticket.id,
+    lead: ticket.conversation.lead,
+    stage: ticket.stage,
+    assignee: ticket.assignee,
+    tracking: ticket.tracking,
+    status: ticket.status,
+    windowOpen: ticket.windowOpen,
+    windowExpiresAt: ticket.windowExpiresAt?.toISOString() || null,
+    dealValue: ticket.dealValue ? Number(ticket.dealValue) : null,
+    messagesCount: ticket.messagesCount,
+    createdAt: ticket.createdAt.toISOString(),
+    updatedAt: ticket.updatedAt.toISOString(),
+  }
+}
+
+function mapClosedTicket(ticket: TicketCloseRecord) {
+  return {
+    id: ticket.id,
+    lead: ticket.conversation.lead,
+    stage: ticket.stage,
+    assignee: ticket.assignee,
+    tracking: ticket.tracking,
+    status: ticket.status,
+    windowOpen: ticket.windowOpen,
+    windowExpiresAt: ticket.windowExpiresAt?.toISOString() || null,
+    dealValue: ticket.dealValue ? Number(ticket.dealValue) : null,
+    closedAt: ticket.closedAt?.toISOString() || null,
+    closedReason: ticket.closedReason,
+    messagesCount: ticket.messagesCount,
+    salesCount: ticket._count.sales,
+    createdAt: ticket.createdAt.toISOString(),
+    updatedAt: ticket.updatedAt.toISOString(),
+  }
+}
+
+function getCapiEventForStage(stageName: string): 'LeadSubmitted' | 'Purchase' | null {
+  const name = stageName.toLowerCase()
+  if (name.includes('qualificado') || name.includes('qualified')) return 'LeadSubmitted'
+  if (
+    name.includes('venda') ||
+    name.includes('pago') ||
+    name.includes('ganho') ||
+    name.includes('won')
+  ) {
+    return 'Purchase'
+  }
+  return null
+}
+
+function triggerStageCapiEvent(input: {
+  ticketId: string
+  stageId?: string
+  previousStageId: string
+  stageName: string
+  dealValue: number | null
+}) {
+  if (!input.stageId || input.stageId === input.previousStageId) {
+    return
+  }
+
+  const eventName = getCapiEventForStage(input.stageName)
+  if (!eventName) {
+    return
+  }
+
+  metaCapiService
+    .sendEvent(input.ticketId, eventName, {
+      eventId: `${eventName.toLowerCase()}-${input.ticketId}`,
+      value: input.dealValue ?? undefined,
+    })
+    .catch((error) =>
+      console.error(`[CAPI] Fire-and-forget failed for ticket ${input.ticketId}`, error)
+    )
+}
 
 export async function listTickets(params: TicketListParams) {
   const where = buildWhereFilters(params)
@@ -137,31 +334,7 @@ export async function listTickets(params: TicketListParams) {
         orderBy: { createdAt: 'desc' },
         skip: (params.page - 1) * params.pageSize,
         take: params.pageSize,
-        select: {
-          id: true,
-          status: true,
-          windowOpen: true,
-          windowExpiresAt: true,
-          dealValue: true,
-          messagesCount: true,
-          createdAt: true,
-          conversation: {
-            select: {
-              lead: {
-                select: { id: true, name: true, phone: true, pushName: true },
-              },
-            },
-          },
-          stage: { select: { id: true, name: true, color: true } },
-          assignee: { select: { id: true, name: true } },
-          tracking: { select: { utmSource: true, sourceType: true, ctwaclid: true } },
-          messages: {
-            select: { timestamp: true },
-            orderBy: { timestamp: 'desc' },
-            take: 1,
-          },
-          _count: { select: { sales: true } },
-        },
+        select: ticketListSelect,
       }),
       prisma.ticket.count({ where: whereWithStatus }),
       prisma.ticket.count({ where: { AND: [statsWhere, { status: 'open' }] } }),
@@ -174,7 +347,7 @@ export async function listTickets(params: TicketListParams) {
     ])
 
   return {
-    items: tickets.map(formatTicketItem),
+    items: tickets.map(mapTicketListItem),
     total,
     stats: {
       open: openCount,
@@ -188,70 +361,34 @@ export async function listTickets(params: TicketListParams) {
 export async function getTicketById(ticketId: string, organizationId: string) {
   const ticket = await prisma.ticket.findFirst({
     where: { id: ticketId, organizationId },
-    include: {
-      conversation: {
-        include: {
-          lead: {
-            select: {
-              id: true,
-              name: true,
-              phone: true,
-              pushName: true,
-              profilePicUrl: true,
-              waId: true,
-            },
-          },
-        },
-      },
-      stage: { select: { id: true, name: true, color: true, order: true, isClosed: true } },
-      assignee: { select: { id: true, name: true, email: true, image: true } },
-      tracking: {
-        select: {
-          utmSource: true,
-          utmMedium: true,
-          utmCampaign: true,
-          sourceType: true,
-          ctwaclid: true,
-          referrerUrl: true,
-          landingPage: true,
-        },
-      },
-      messages: {
-        select: { id: true, body: true, type: true, direction: true, timestamp: true },
-        orderBy: { timestamp: 'desc' },
-        take: 10,
-      },
-      sales: {
-        select: { id: true, totalAmount: true, status: true, createdAt: true },
-        orderBy: { createdAt: 'desc' },
-      },
-      _count: { select: { messages: true, sales: true } },
-    },
+    select: ticketDetailsSelect,
   })
 
   if (!ticket) return null
 
+  const details: TicketDetailsRecord = ticket
+
   return {
-    id: ticket.id,
-    lead: ticket.conversation.lead,
-    stage: ticket.stage,
-    assignee: ticket.assignee,
-    tracking: ticket.tracking || null,
-    status: ticket.status,
-    windowOpen: ticket.windowOpen,
-    windowExpiresAt: ticket.windowExpiresAt?.toISOString() || null,
-    dealValue: ticket.dealValue ? Number(ticket.dealValue) : null,
-    closedAt: ticket.closedAt?.toISOString() || null,
-    closedReason: ticket.closedReason,
-    messagesCount: ticket._count.messages,
-    salesCount: ticket._count.sales,
-    createdAt: ticket.createdAt.toISOString(),
-    updatedAt: ticket.updatedAt.toISOString(),
-    recentMessages: ticket.messages.map((msg) => ({
-      ...msg,
-      timestamp: msg.timestamp.toISOString(),
+    id: details.id,
+    lead: details.conversation.lead,
+    stage: details.stage,
+    assignee: details.assignee,
+    tracking: details.tracking || null,
+    status: details.status,
+    windowOpen: details.windowOpen,
+    windowExpiresAt: details.windowExpiresAt?.toISOString() || null,
+    dealValue: details.dealValue ? Number(details.dealValue) : null,
+    closedAt: details.closedAt?.toISOString() || null,
+    closedReason: details.closedReason,
+    messagesCount: details._count.messages,
+    salesCount: details._count.sales,
+    createdAt: details.createdAt.toISOString(),
+    updatedAt: details.updatedAt.toISOString(),
+    recentMessages: details.messages.map((message) => ({
+      ...message,
+      timestamp: message.timestamp.toISOString(),
     })),
-    sales: ticket.sales.map((sale) => ({
+    sales: details.sales.map((sale) => ({
       ...sale,
       totalAmount: sale.totalAmount ? Number(sale.totalAmount) : null,
       createdAt: sale.createdAt.toISOString(),
@@ -262,16 +399,15 @@ export async function getTicketById(ticketId: string, organizationId: string) {
 export async function createTicket(params: CreateTicketParams) {
   const { organizationId, conversationId, stageId, assigneeId, dealValue, createdBy } = params
 
-  // Verify conversation exists and belongs to organization
   const conversation = await prisma.conversation.findFirst({
     where: { id: conversationId, organizationId },
-    include: { lead: true },
+    select: { leadId: true },
   })
   if (!conversation) return { error: 'Conversa não encontrada', status: 404 as const }
 
-  // Check for existing open ticket
   const existing = await prisma.ticket.findFirst({
     where: { conversationId, status: 'open' },
+    select: { id: true },
   })
   if (existing) {
     return {
@@ -281,32 +417,34 @@ export async function createTicket(params: CreateTicketParams) {
     }
   }
 
-  // Resolve stage
-  let targetStageId = stageId
-  if (!targetStageId) {
+  const requestedStageId = stageId ?? undefined
+  let targetStageId: string
+  if (!requestedStageId) {
     const defaultStage = await getDefaultTicketStage(prisma, organizationId)
     targetStageId = defaultStage.id
   } else {
     const stage = await prisma.ticketStage.findFirst({
-      where: { id: targetStageId, organizationId },
+      where: { id: requestedStageId, organizationId },
+      select: { id: true },
     })
     if (!stage) return { error: 'Estágio não encontrado', status: 404 as const }
+    targetStageId = requestedStageId
   }
 
-  // Validate assignee
   if (assigneeId) {
     const assignee = await prisma.member.findFirst({
       where: { userId: assigneeId, organizationId },
+      select: { userId: true },
     })
     if (!assignee) return { error: 'Atribuído não encontrado', status: 404 as const }
   }
 
-  const ticket: any = await prisma.ticket.create({
+  const ticket = await prisma.ticket.create({
     data: {
       organizationId,
       leadId: conversation.leadId,
       conversationId,
-      stageId: targetStageId!,
+      stageId: targetStageId,
       assigneeId: assigneeId || null,
       dealValue,
       status: 'open',
@@ -316,31 +454,24 @@ export async function createTicket(params: CreateTicketParams) {
       source: 'api',
       originatedFrom: 'existing',
     },
-    include: {
-      conversation: {
-        include: {
-          lead: { select: { id: true, name: true, phone: true, pushName: true } },
-        },
-      },
-      stage: { select: { id: true, name: true, color: true } },
-      assignee: { select: { id: true, name: true } },
-      tracking: true,
-    },
+    select: ticketSummarySelect,
   })
+
+  const summary = mapTicketSummary(ticket)
 
   return {
     data: {
-      id: ticket.id,
-      lead: ticket.conversation.lead,
-      stage: ticket.stage,
-      assignee: ticket.assignee,
-      tracking: ticket.tracking,
-      status: ticket.status,
-      windowOpen: ticket.windowOpen,
-      windowExpiresAt: ticket.windowExpiresAt?.toISOString() || null,
-      dealValue: ticket.dealValue ? Number(ticket.dealValue) : null,
-      messagesCount: ticket.messagesCount,
-      createdAt: ticket.createdAt.toISOString(),
+      id: summary.id,
+      lead: summary.lead,
+      stage: summary.stage,
+      assignee: summary.assignee,
+      tracking: summary.tracking,
+      status: summary.status,
+      windowOpen: summary.windowOpen,
+      windowExpiresAt: summary.windowExpiresAt,
+      dealValue: summary.dealValue,
+      messagesCount: summary.messagesCount,
+      createdAt: summary.createdAt,
     },
     status: 201 as const,
   }
@@ -351,6 +482,7 @@ export async function updateTicket(params: UpdateTicketParams) {
 
   const existing = await prisma.ticket.findFirst({
     where: { id: ticketId, organizationId },
+    select: { stageId: true, status: true },
   })
   if (!existing) return { error: 'Ticket não encontrado', status: 404 as const }
   if (existing.status !== 'open') {
@@ -358,13 +490,17 @@ export async function updateTicket(params: UpdateTicketParams) {
   }
 
   if (stageId) {
-    const stage = await prisma.ticketStage.findFirst({ where: { id: stageId, organizationId } })
+    const stage = await prisma.ticketStage.findFirst({
+      where: { id: stageId, organizationId },
+      select: { id: true },
+    })
     if (!stage) return { error: 'Estágio não encontrado', status: 404 as const }
   }
 
   if (assigneeId !== undefined && assigneeId !== null) {
     const assignee = await prisma.member.findFirst({
       where: { userId: assigneeId, organizationId },
+      select: { userId: true },
     })
     if (!assignee) return { error: 'Atribuído não encontrado', status: 404 as const }
   }
@@ -376,34 +512,91 @@ export async function updateTicket(params: UpdateTicketParams) {
       ...(assigneeId !== undefined && { assigneeId }),
       ...(dealValue !== undefined && { dealValue }),
     },
-    include: {
-      conversation: {
-        include: {
-          lead: { select: { id: true, name: true, phone: true, pushName: true } },
-        },
-      },
-      stage: { select: { id: true, name: true, color: true } },
-      assignee: { select: { id: true, name: true } },
-      tracking: true,
-    },
+    select: ticketSummarySelect,
   })
 
   return {
-    data: {
-      id: updated.id,
-      lead: updated.conversation.lead,
-      stage: updated.stage,
-      assignee: updated.assignee,
-      tracking: updated.tracking,
-      status: updated.status,
-      windowOpen: updated.windowOpen,
-      windowExpiresAt: updated.windowExpiresAt?.toISOString() || null,
-      dealValue: updated.dealValue ? Number(updated.dealValue) : null,
-      messagesCount: updated.messagesCount,
-      createdAt: updated.createdAt.toISOString(),
-      updatedAt: updated.updatedAt.toISOString(),
-    },
+    data: mapTicketSummary(updated),
     previousStageId: existing.stageId,
+    status: 200 as const,
+  }
+}
+
+export async function updateTicketAndTrackCapi(params: UpdateTicketParams) {
+  const result = await updateTicket(params)
+  if ('error' in result) {
+    return result
+  }
+
+  triggerStageCapiEvent({
+    ticketId: params.ticketId,
+    stageId: params.stageId,
+    previousStageId: result.previousStageId,
+    stageName: result.data.stage.name,
+    dealValue: result.data.dealValue,
+  })
+
+  return result
+}
+
+export async function closeTicket(params: CloseTicketParams) {
+  const existing = await prisma.ticket.findFirst({
+    where: { id: params.ticketId, organizationId: params.organizationId },
+    select: { id: true, status: true, createdAt: true, leadId: true },
+  })
+
+  if (!existing) {
+    return { error: 'Ticket não encontrado', status: 404 as const }
+  }
+
+  if (existing.status !== 'open') {
+    return {
+      error: 'Ticket já está fechado',
+      currentStatus: existing.status,
+      status: 409 as const,
+    }
+  }
+
+  const newStatus = params.reason === 'won' ? 'closed_won' : 'closed_lost'
+
+  const closed = await prisma.$transaction(async (tx) => {
+    const now = new Date()
+    const resolutionTimeSec = Math.floor((now.getTime() - existing.createdAt.getTime()) / 1000)
+
+    const updatedTicket = await tx.ticket.update({
+      where: { id: params.ticketId },
+      data: {
+        status: newStatus,
+        closedAt: now,
+        closedReason: params.closedReason,
+        resolutionTimeSec,
+        ...(params.dealValue !== undefined && { dealValue: params.dealValue }),
+      },
+      select: ticketCloseSelect,
+    })
+
+    if (newStatus === 'closed_won' && typeof params.dealValue === 'number' && params.dealValue > 0) {
+      await tx.lead.update({
+        where: { id: existing.leadId },
+        data: {
+          lifetimeValue: { increment: params.dealValue },
+          totalTickets: { increment: 1 },
+        },
+      })
+    } else {
+      await tx.lead.update({
+        where: { id: existing.leadId },
+        data: {
+          totalTickets: { increment: 1 },
+        },
+      })
+    }
+
+    return updatedTicket
+  })
+
+  return {
+    data: mapClosedTicket(closed),
     status: 200 as const,
   }
 }

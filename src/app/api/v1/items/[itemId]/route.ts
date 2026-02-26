@@ -1,14 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/utils/api-response'
-import { z } from 'zod'
-import { prisma } from '@/lib/db/prisma'
-import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
-const updateItemSchema = z.object({
-  name: z.string().min(1).optional(),
-  categoryId: z.string().nullable().optional(),
-  active: z.boolean().optional(),
-})
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import { updateItemSchema } from '@/schemas/item-schemas'
+import { deleteItem, getItemById, updateItem } from '@/services/items/item.service'
 
 export async function GET(
   req: NextRequest,
@@ -22,21 +17,7 @@ export async function GET(
   const { itemId } = await params
 
   try {
-    const item = await prisma.item.findFirst({
-      where: {
-        id: itemId,
-        organizationId,
-      },
-      include: {
-        category: true,
-        _count: {
-          select: {
-            saleItems: true,
-          },
-        },
-      },
-    })
-
+    const item = await getItemById({ organizationId, itemId })
     if (!item) {
       return NextResponse.json({ error: 'Item não encontrado' }, { status: 404 })
     }
@@ -63,26 +44,17 @@ export async function PUT(
     const body = await req.json()
     const validated = updateItemSchema.parse(body)
 
-    // Verify item belongs to organization
-    const existing = await prisma.item.findFirst({
-      where: {
-        id: itemId,
-        organizationId,
-      },
+    const updated = await updateItem({
+      organizationId,
+      itemId,
+      name: validated.name,
+      categoryId: validated.categoryId,
+      active: validated.active,
     })
 
-    if (!existing) {
-      return NextResponse.json({ error: 'Item não encontrado' }, { status: 404 })
+    if ('error' in updated) {
+      return NextResponse.json({ error: updated.error }, { status: updated.status })
     }
-
-    const updated = await prisma.item.update({
-      where: { id: itemId },
-      data: {
-        name: validated.name,
-        categoryId: validated.categoryId,
-        active: validated.active,
-      },
-    })
 
     return NextResponse.json(updated)
   } catch (error) {
@@ -103,45 +75,16 @@ export async function DELETE(
   const { itemId } = await params
 
   try {
-    // Verify item belongs to organization
-    const existing = await prisma.item.findFirst({
-      where: {
-        id: itemId,
-        organizationId,
-      },
-      include: {
-        _count: {
-          select: {
-            saleItems: true,
-          },
-        },
-      },
+    const result = await deleteItem({
+      organizationId,
+      itemId,
     })
 
-    if (!existing) {
-      return NextResponse.json({ error: 'Item não encontrado' }, { status: 404 })
+    if ('error' in result) {
+      return NextResponse.json({ error: result.error }, { status: result.status })
     }
 
-    // Check if item is used in sales
-    if (existing._count.saleItems > 0) {
-      // Soft delete: set active to false instead of hard delete
-      await prisma.item.update({
-        where: { id: itemId },
-        data: { active: false },
-      })
-
-      return NextResponse.json({
-        success: true,
-        message: 'Item desativado (está sendo usado em vendas)',
-      })
-    }
-
-    // Hard delete if not used
-    await prisma.item.delete({
-      where: { id: itemId },
-    })
-
-    return NextResponse.json({ success: true })
+    return NextResponse.json(result)
   } catch (error) {
     console.error('[api/items/[itemId]] DELETE error:', error)
     return apiError('Falha ao deletar item', 500, error)

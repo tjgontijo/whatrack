@@ -3,22 +3,8 @@ import { apiError } from '@/lib/utils/api-response'
 import { revalidateTag } from 'next/cache'
 
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
-import { updateTicketSchema } from '@/lib/validations/ticket-schemas'
-import { metaCapiService } from '@/services/meta-ads/capi.service'
-import { getTicketById, updateTicket } from '@/services/tickets/ticket.service'
-
-function getCapiEventForStage(stageName: string): 'LeadSubmitted' | 'Purchase' | null {
-  const name = stageName.toLowerCase()
-  if (name.includes('qualificado') || name.includes('qualified')) return 'LeadSubmitted'
-  if (
-    name.includes('venda') ||
-    name.includes('pago') ||
-    name.includes('ganho') ||
-    name.includes('won')
-  )
-    return 'Purchase'
-  return null
-}
+import { updateTicketSchema } from '@/schemas/ticket-schemas'
+import { getTicketById, updateTicketAndTrackCapi } from '@/services/tickets/ticket.service'
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ ticketId: string }> }) {
   const access = await validatePermissionAccess(req, 'view:tickets')
@@ -61,7 +47,7 @@ export async function PATCH(
       )
     }
 
-    const result = await updateTicket({
+    const result = await updateTicketAndTrackCapi({
       organizationId: access.organizationId,
       ticketId,
       stageId: parsed.data.stageId,
@@ -71,21 +57,6 @@ export async function PATCH(
 
     if ('error' in result) {
       return NextResponse.json({ error: result.error }, { status: result.status })
-    }
-
-    // CAPI Trigger: send conversion event if stage changed
-    if (parsed.data.stageId && parsed.data.stageId !== result.previousStageId) {
-      const eventName = getCapiEventForStage(result.data.stage.name)
-      if (eventName) {
-        metaCapiService
-          .sendEvent(ticketId, eventName, {
-            eventId: `${eventName.toLowerCase()}-${ticketId}`,
-            value: result.data.dealValue ?? undefined,
-          })
-          .catch((err) =>
-            console.error(`[CAPI] Fire-and-forget failed for ticket ${ticketId}`, err)
-          )
-      }
     }
 
     await revalidateTag(`org-${access.organizationId}`, 'max')

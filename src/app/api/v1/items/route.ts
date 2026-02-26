@@ -1,21 +1,8 @@
 import { NextResponse } from 'next/server'
-import { z } from 'zod'
 
-import { listItems, createItem, type ListItemsParams } from '@/services/items/service'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
-
-const getParamsSchema = z.object({
-  search: z.string().optional(),
-  status: z.enum(['active', 'inactive']).optional(),
-  categoryId: z.string().optional(),
-  page: z.coerce.number().optional(),
-  pageSize: z.coerce.number().optional(),
-})
-
-const createSchema = z.object({
-  name: z.string().min(1),
-  categoryId: z.string().optional(),
-})
+import { createItemSchema, itemListQuerySchema } from '@/schemas/item-schemas'
+import { createItem, listItems, type ListItemsParams } from '@/services/items/item.service'
 
 export async function GET(request: Request) {
   try {
@@ -26,7 +13,7 @@ export async function GET(request: Request) {
     const organizationId = access.organizationId
 
     const searchParams = new URL(request.url).searchParams
-    const parsed = getParamsSchema.safeParse({
+    const parsed = itemListQuerySchema.safeParse({
       search: searchParams.get('search') ?? undefined,
       status: searchParams.get('status') ?? undefined,
       categoryId: searchParams.get('categoryId') ?? undefined,
@@ -47,8 +34,7 @@ export async function GET(request: Request) {
       pageSize: parsed.data.pageSize,
     }
 
-    const response = await listItems(payload)
-    return NextResponse.json(response)
+    return NextResponse.json(await listItems(payload))
   } catch (error) {
     console.error('[api/items] GET error', error)
     return NextResponse.json({ error: 'Failed to load items' }, { status: 500 })
@@ -64,7 +50,7 @@ export async function POST(request: Request) {
     const organizationId = access.organizationId
 
     const json = await request.json()
-    const parsed = createSchema.safeParse(json)
+    const parsed = createItemSchema.safeParse(json)
 
     if (!parsed.success) {
       return NextResponse.json(

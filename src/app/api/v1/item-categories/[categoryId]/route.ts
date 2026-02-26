@@ -1,15 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
-import { Prisma } from '@prisma/client'
 
-import { prisma } from '@/lib/db/prisma'
 import { apiError } from '@/lib/utils/api-response'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
-
-const updateCategorySchema = z.object({
-  name: z.string().min(1).optional(),
-  active: z.boolean().optional(),
-})
+import { updateItemCategorySchema } from '@/schemas/item-category-schemas'
+import {
+  deleteItemCategory,
+  getItemCategoryById,
+  updateItemCategory,
+} from '@/services/item-categories/item-category.service'
 
 export async function GET(
   req: NextRequest,
@@ -23,20 +21,7 @@ export async function GET(
   const { categoryId } = await params
 
   try {
-    const category = await prisma.itemCategory.findFirst({
-      where: {
-        id: categoryId,
-        organizationId,
-      },
-      include: {
-        _count: {
-          select: {
-            items: true,
-          },
-        },
-      },
-    })
-
+    const category = await getItemCategoryById({ organizationId, categoryId })
     if (!category) {
       return NextResponse.json({ error: 'Categoria não encontrada' }, { status: 404 })
     }
@@ -68,46 +53,21 @@ export async function PUT(
 
   try {
     const body = await req.json()
-    const validated = updateCategorySchema.parse(body)
+    const validated = updateItemCategorySchema.parse(body)
 
-    const existing = await prisma.itemCategory.findFirst({
-      where: {
-        id: categoryId,
-        organizationId,
-      },
+    const updated = await updateItemCategory({
+      organizationId,
+      categoryId,
+      name: validated.name,
+      active: validated.active,
     })
 
-    if (!existing) {
-      return NextResponse.json({ error: 'Categoria não encontrada' }, { status: 404 })
+    if ('error' in updated) {
+      return NextResponse.json({ error: updated.error }, { status: updated.status })
     }
 
-    const updated = await prisma.itemCategory.update({
-      where: { id: categoryId },
-      data: {
-        name: validated.name?.trim(),
-        active: validated.active,
-      },
-      include: {
-        _count: {
-          select: {
-            items: true,
-          },
-        },
-      },
-    })
-
-    return NextResponse.json({
-      id: updated.id,
-      name: updated.name,
-      active: updated.active,
-      itemsCount: updated._count.items,
-      createdAt: updated.createdAt.toISOString(),
-      updatedAt: updated.updatedAt.toISOString(),
-    })
+    return NextResponse.json(updated)
   } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-      return NextResponse.json({ error: 'Já existe uma categoria com este nome' }, { status: 409 })
-    }
     console.error('[api/item-categories/[categoryId]] PUT error:', error)
     return apiError('Falha ao atualizar categoria', 500, error)
   }
@@ -125,41 +85,16 @@ export async function DELETE(
   const { categoryId } = await params
 
   try {
-    const existing = await prisma.itemCategory.findFirst({
-      where: {
-        id: categoryId,
-        organizationId,
-      },
-      include: {
-        _count: {
-          select: {
-            items: true,
-          },
-        },
-      },
+    const result = await deleteItemCategory({
+      organizationId,
+      categoryId,
     })
 
-    if (!existing) {
-      return NextResponse.json({ error: 'Categoria não encontrada' }, { status: 404 })
+    if ('error' in result) {
+      return NextResponse.json({ error: result.error }, { status: result.status })
     }
 
-    if (existing._count.items > 0) {
-      await prisma.itemCategory.update({
-        where: { id: categoryId },
-        data: { active: false },
-      })
-
-      return NextResponse.json({
-        success: true,
-        message: 'Categoria desativada (há itens vinculados)',
-      })
-    }
-
-    await prisma.itemCategory.delete({
-      where: { id: categoryId },
-    })
-
-    return NextResponse.json({ success: true })
+    return NextResponse.json(result)
   } catch (error) {
     console.error('[api/item-categories/[categoryId]] DELETE error:', error)
     return apiError('Falha ao excluir categoria', 500, error)

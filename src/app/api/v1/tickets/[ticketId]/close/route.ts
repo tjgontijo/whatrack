@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/utils/api-response'
 import { revalidateTag } from 'next/cache'
 
-import { prisma } from '@/lib/db/prisma'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
-import { closeTicketSchema } from '@/lib/validations/ticket-schemas'
+import { closeTicketSchema } from '@/schemas/ticket-schemas'
+import { closeTicket } from '@/services/tickets/ticket.service'
 
 // POST /api/v1/tickets/:id/close - Close ticket (won/lost)
 export async function POST(
@@ -33,126 +33,28 @@ export async function POST(
       )
     }
 
-    const { reason, closedReason, dealValue } = parsed.data
-
-    // Verify ticket exists and belongs to organization
-    const existing = await prisma.ticket.findFirst({
-      where: {
-        id: ticketId,
-        organizationId,
-      },
+    const result = await closeTicket({
+      organizationId,
+      ticketId,
+      reason: parsed.data.reason,
+      closedReason: parsed.data.closedReason,
+      dealValue: parsed.data.dealValue,
     })
 
-    if (!existing) {
-      return NextResponse.json({ error: 'Ticket não encontrado' }, { status: 404 })
-    }
-
-    // Prevent closing already closed tickets
-    if (existing.status !== 'open') {
+    if ('error' in result) {
       return NextResponse.json(
         {
-          error: 'Ticket já está fechado',
-          currentStatus: existing.status,
+          error: result.error,
+          ...('currentStatus' in result ? { currentStatus: result.currentStatus } : {}),
         },
-        { status: 409 }
+        { status: result.status }
       )
-    }
-
-    const newStatus = reason === 'won' ? 'closed_won' : 'closed_lost'
-
-    // Close ticket using transaction
-    const closed = await prisma.$transaction(async (tx) => {
-      const now = new Date()
-      const resolutionTimeSec = Math.floor((now.getTime() - existing.createdAt.getTime()) / 1000)
-
-      const updatedTicket = await tx.ticket.update({
-        where: { id: ticketId },
-        data: {
-          status: newStatus,
-          closedAt: now,
-          closedReason,
-          resolutionTimeSec,
-          ...(dealValue !== undefined && { dealValue }),
-        },
-        include: {
-          conversation: {
-            include: {
-              lead: {
-                select: {
-                  id: true,
-                  name: true,
-                  phone: true,
-                  pushName: true,
-                },
-              },
-            },
-          },
-          stage: {
-            select: {
-              id: true,
-              name: true,
-              color: true,
-            },
-          },
-          assignee: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-          tracking: true,
-          _count: {
-            select: {
-              sales: true,
-            },
-          },
-        },
-      })
-
-      // Update Lead lifetime value and tickets count
-      if (newStatus === 'closed_won' && typeof dealValue === 'number' && dealValue > 0) {
-        await tx.lead.update({
-          where: { id: existing.leadId },
-          data: {
-            lifetimeValue: { increment: dealValue },
-            totalTickets: { increment: 1 },
-          },
-        })
-      } else {
-        await tx.lead.update({
-          where: { id: existing.leadId },
-          data: {
-            totalTickets: { increment: 1 },
-          },
-        })
-      }
-
-      return updatedTicket
-    })
-
-    // Format response
-    const response = {
-      id: closed.id,
-      lead: closed.conversation.lead,
-      stage: closed.stage,
-      assignee: closed.assignee,
-      tracking: closed.tracking,
-      status: closed.status,
-      windowOpen: closed.windowOpen,
-      windowExpiresAt: closed.windowExpiresAt?.toISOString() || null,
-      dealValue: closed.dealValue ? Number(closed.dealValue) : null,
-      closedAt: closed.closedAt?.toISOString() || null,
-      closedReason: closed.closedReason,
-      messagesCount: closed.messagesCount,
-      salesCount: closed._count.sales,
-      createdAt: closed.createdAt.toISOString(),
-      updatedAt: closed.updatedAt.toISOString(),
     }
 
     // Revalidate cache
     await revalidateTag(`org-${organizationId}`, 'max')
 
-    return NextResponse.json(response)
+    return NextResponse.json(result.data)
   } catch (error) {
     console.error('[api/tickets/[ticketId]/close] POST error:', error)
     return apiError('Falha ao fechar ticket', 500, error)

@@ -3,41 +3,9 @@ import { apiError } from '@/lib/utils/api-response'
 import { revalidateTag } from 'next/cache'
 
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
-import { ticketsQuerySchema, createTicketSchema } from '@/lib/validations/ticket-schemas'
+import { isDateRangePreset, resolveDateRange } from '@/lib/date/dateRange'
+import { ticketsQuerySchema, createTicketSchema } from '@/schemas/ticket-schemas'
 import { listTickets, createTicket } from '@/services/tickets/ticket.service'
-
-const DATE_RANGE_PRESETS = ['today', '7d', '30d', 'thisMonth'] as const
-type DateRangePreset = (typeof DATE_RANGE_PRESETS)[number]
-
-function isDateRangePreset(value: string | null | undefined): value is DateRangePreset {
-  return Boolean(value && DATE_RANGE_PRESETS.includes(value as DateRangePreset))
-}
-
-function startOfDay(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0)
-}
-
-function endOfDay(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999)
-}
-
-function resolveDateRange(preset: DateRangePreset): { gte: Date; lte: Date } {
-  const now = new Date()
-  const todayStart = startOfDay(now)
-  const todayEnd = endOfDay(now)
-
-  if (preset === 'today') return { gte: todayStart, lte: todayEnd }
-
-  if (preset.endsWith('d')) {
-    const days = Number.parseInt(preset.replace('d', ''), 10)
-    const from = new Date(todayStart)
-    from.setDate(from.getDate() - (days - 1))
-    return { gte: from, lte: todayEnd }
-  }
-
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-  return { gte: monthStart, lte: todayEnd }
-}
 
 export async function GET(req: Request) {
   const access = await validatePermissionAccess(req, 'view:tickets')

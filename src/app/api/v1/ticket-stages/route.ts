@@ -1,15 +1,9 @@
 import { NextResponse } from 'next/server'
-import { z } from 'zod'
-import { prisma } from '@/lib/db/prisma'
+
 import { validateFullAccess, validatePermissionAccess } from '@/server/auth/validate-organization-access'
+import { createTicketStageSchema } from '@/schemas/ticket-stage-schemas'
+import { createTicketStage, listTicketStages } from '@/services/ticket-stages/ticket-stage.service'
 
-const createStageSchema = z.object({
-  name: z.string().min(1).max(60),
-  color: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Cor inválida (use formato hex #RRGGBB)'),
-  order: z.number().int().nonnegative().optional(),
-})
-
-// GET /api/v1/ticket-stages — list stages for org (order ASC)
 export async function GET(req: Request) {
   const access = await validateFullAccess(req)
   if (!access.hasAccess || !access.organizationId) {
@@ -17,41 +11,22 @@ export async function GET(req: Request) {
   }
 
   try {
-    const stages = await prisma.ticketStage.findMany({
-      where: { organizationId: access.organizationId },
-      orderBy: { order: 'asc' },
-      select: {
-        id: true,
-        name: true,
-        color: true,
-        order: true,
-        isDefault: true,
-        isClosed: true,
-        _count: { select: { tickets: true } },
-      },
-    })
-
-    return NextResponse.json({
-      items: stages.map((s) => ({ ...s, ticketsCount: s._count.tickets })),
-    })
+    return NextResponse.json(await listTicketStages(access.organizationId))
   } catch (error) {
     console.error('[ticket-stages] GET error:', error)
     return NextResponse.json({ error: 'Falha ao buscar fases' }, { status: 500 })
   }
 }
 
-// POST /api/v1/ticket-stages — create stage
 export async function POST(req: Request) {
   const access = await validatePermissionAccess(req, 'manage:tickets')
   if (!access.hasAccess || !access.organizationId) {
     return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
   }
 
-  const organizationId = access.organizationId
-
   try {
     const body = await req.json()
-    const parsed = createStageSchema.safeParse(body)
+    const parsed = createTicketStageSchema.safeParse(body)
     if (!parsed.success) {
       return NextResponse.json(
         { error: 'Dados inválidos', details: parsed.error.flatten() },
@@ -59,30 +34,18 @@ export async function POST(req: Request) {
       )
     }
 
-    const { name, color, order: providedOrder } = parsed.data
-
-    // Check name uniqueness
-    const existing = await prisma.ticketStage.findFirst({ where: { organizationId, name } })
-    if (existing) {
-      return NextResponse.json({ error: 'Já existe uma fase com esse nome' }, { status: 409 })
-    }
-
-    // Calculate order if not provided
-    let order = providedOrder
-    if (order === undefined) {
-      const maxOrder = await prisma.ticketStage.aggregate({
-        where: { organizationId },
-        _max: { order: true },
-      })
-      order = (maxOrder._max.order ?? -1) + 1
-    }
-
-    const stage = await prisma.ticketStage.create({
-      data: { organizationId, name, color, order },
-      select: { id: true, name: true, color: true, order: true, isDefault: true, isClosed: true },
+    const result = await createTicketStage({
+      organizationId: access.organizationId,
+      name: parsed.data.name,
+      color: parsed.data.color,
+      order: parsed.data.order,
     })
 
-    return NextResponse.json(stage, { status: 201 })
+    if ('error' in result) {
+      return NextResponse.json({ error: result.error }, { status: result.status })
+    }
+
+    return NextResponse.json(result, { status: 201 })
   } catch (error) {
     console.error('[ticket-stages] POST error:', error)
     return NextResponse.json({ error: 'Falha ao criar fase' }, { status: 500 })
