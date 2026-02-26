@@ -36,7 +36,7 @@ import {
   SidebarRail,
   useSidebar,
 } from '@/components/ui/sidebar'
-import { WhatsAppIcon, MetaIcon } from '@/components/icons'
+import { WhatsAppIcon, MetaIcon } from '@/components/shared/icons'
 import { authClient, useSession } from '@/lib/auth/auth-client'
 import { isOwner } from '@/lib/auth/rbac/roles'
 import { UserDropdownMenu } from './user-dropdown-menu'

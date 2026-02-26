@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+import { apiError } from '@/lib/utils/api-response'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import {
   deleteMetaConnection,
@@ -12,11 +13,11 @@ export async function GET(req: NextRequest) {
   const requestedOrganizationId = searchParams.get('organizationId')
 
   if (!access.hasAccess || !access.organizationId) {
-    return NextResponse.json({ error: access.error ?? 'Unauthorized' }, { status: 401 })
+    return apiError(access.error ?? 'Unauthorized', 401)
   }
 
   if (requestedOrganizationId && requestedOrganizationId !== access.organizationId) {
-    return NextResponse.json({ error: 'Forbidden for requested organization' }, { status: 403 })
+    return apiError('Forbidden for requested organization', 403)
   }
 
   const connections = await listMetaConnections(access.organizationId)
@@ -28,7 +29,7 @@ export async function DELETE(req: NextRequest) {
   const id = new URL(req.url).searchParams.get('id')
 
   if (!access.hasAccess || !access.organizationId || !access.userId || !id) {
-    return NextResponse.json({ error: access.error ?? 'Unauthorized' }, { status: 401 })
+    return apiError(access.error ?? 'Unauthorized', 401)
   }
 
   const result = await deleteMetaConnection({
@@ -38,7 +39,7 @@ export async function DELETE(req: NextRequest) {
   })
 
   if ('error' in result) {
-    return NextResponse.json({ error: result.error }, { status: result.status })
+    return apiError(result.error, result.status)
   }
 
   return NextResponse.json({ success: true })

@@ -88,8 +88,24 @@ export class MetaAdAccountService {
         organizationId,
         isActive: true,
       },
-      include: {
-        connection: true,
+      select: {
+        id: true,
+        organizationId: true,
+        connectionId: true,
+        adAccountId: true,
+        adAccountName: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+        connection: {
+          select: {
+            id: true,
+            fbUserId: true,
+            fbUserName: true,
+            status: true,
+            updatedAt: true,
+          },
+        },
       },
     })
   }

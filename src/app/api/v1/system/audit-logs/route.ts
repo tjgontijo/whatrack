@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { requirePermission } from '@/lib/auth/guards'
+import { apiError } from '@/lib/utils/api-response'
 import { systemAuditLogsQuerySchema } from '@/schemas/system/system-schemas'
 import { listSystemAuditLogs } from '@/services/system/system-audit-log.service'
 
@@ -16,20 +17,17 @@ export async function GET(request: NextRequest) {
     )
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: 'Parâmetros inválidos', details: parsed.error.flatten() },
-        { status: 400 }
-      )
+      return apiError('Parâmetros inválidos', 400, undefined, { details: parsed.error.flatten() })
     }
 
     const result = await listSystemAuditLogs(parsed.data)
     if ('error' in result) {
-      return NextResponse.json({ error: result.error }, { status: result.status })
+      return apiError(result.error, result.status)
     }
 
     return NextResponse.json(result.data)
   } catch (error) {
     console.error('[system/audit-logs] Error:', error)
-    return NextResponse.json({ error: 'Failed to fetch audit logs' }, { status: 500 })
+    return apiError('Failed to fetch audit logs', 500, error)
   }
 }

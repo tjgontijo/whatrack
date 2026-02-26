@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+import { apiError } from '@/lib/utils/api-response'
 import { whatsappChatMessagesQuerySchema } from '@/schemas/whatsapp/whatsapp-schemas'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { listWhatsAppChatMessages } from '@/services/whatsapp/whatsapp-chat-query.service'
@@ -12,7 +13,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ leadI
 
     const access = await validateFullAccess(request)
     if (!access.hasAccess || !access.organizationId) {
-      return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
+      return apiError(access.error ?? 'Acesso negado', 403)
     }
 
     const parsedQuery = whatsappChatMessagesQuerySchema.safeParse(
@@ -20,10 +21,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ leadI
     )
 
     if (!parsedQuery.success) {
-      return NextResponse.json(
-        { error: 'Parâmetros inválidos', details: parsedQuery.error.flatten() },
-        { status: 400 }
-      )
+      return apiError('Parâmetros inválidos', 400, undefined, { details: parsedQuery.error.flatten() })
     }
 
     const result = await listWhatsAppChatMessages({
@@ -34,12 +32,12 @@ export async function GET(request: NextRequest, props: { params: Promise<{ leadI
     })
 
     if ('error' in result) {
-      return NextResponse.json({ error: result.error }, { status: result.status })
+      return apiError(result.error, result.status)
     }
 
     return NextResponse.json(result.data)
   } catch (error) {
     console.error('[api/whatsapp/chats/messages] GET error:', error)
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+    return apiError('Internal Server Error', 500, error)
   }
 }

@@ -26,10 +26,10 @@ type Account = {
   phone: string | null
 }
 
-type Team = {
+type OrganizationProfile = {
   id: string
   name: string
-  teamType: 'pessoa_fisica' | 'pessoa_juridica' | null
+  organizationType: 'pessoa_fisica' | 'pessoa_juridica' | null
   documentType: 'cpf' | 'cnpj' | null
   documentNumber: string | null
 }
@@ -63,8 +63,8 @@ export function MyAccountContent() {
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
 
-  const [teamName, setTeamName] = useState('')
-  const [teamType, setTeamType] = useState<'pessoa_fisica' | 'pessoa_juridica' | ''>('')
+  const [organizationName, setOrganizationName] = useState('')
+  const [organizationType, setOrganizationType] = useState<'pessoa_fisica' | 'pessoa_juridica' | ''>('')
   const [documentNumber, setDocumentNumber] = useState('')
 
   const { data: account } = useQuery({
@@ -72,9 +72,9 @@ export function MyAccountContent() {
     queryFn: () => fetchJson<Account>('/api/v1/me/account'),
   })
 
-  const { data: team } = useQuery({
+  const { data: organization } = useQuery({
     queryKey: ['organizations', 'me'],
-    queryFn: () => fetchJson<Team>('/api/v1/organizations/me'),
+    queryFn: () => fetchJson<OrganizationProfile>('/api/v1/organizations/me'),
   })
 
   useEffect(() => {
@@ -85,39 +85,39 @@ export function MyAccountContent() {
   }, [account])
 
   useEffect(() => {
-    if (!team) return
-    setTeamName(team.name || '')
-    setTeamType(team.teamType || '')
-    setDocumentNumber(applyCpfCnpjMask(team.documentNumber || '', team.documentType))
-  }, [team])
+    if (!organization) return
+    setOrganizationName(organization.name || '')
+    setOrganizationType(organization.organizationType || '')
+    setDocumentNumber(applyCpfCnpjMask(organization.documentNumber || '', organization.documentType))
+  }, [organization])
 
-  const canManageTeamSettings = authorization.isOwner
+  const canManageOrganizationSettings = authorization.isOwner
 
   const selectedDocumentType = useMemo(() => {
-    if (teamType === 'pessoa_fisica') return 'cpf'
-    if (teamType === 'pessoa_juridica') return 'cnpj'
+    if (organizationType === 'pessoa_fisica') return 'cpf'
+    if (organizationType === 'pessoa_juridica') return 'cnpj'
     return null
-  }, [teamType])
+  }, [organizationType])
 
   const documentInputMaxLength = selectedDocumentType === 'cnpj' ? 18 : 14
 
   const accountNameLabel = useMemo(() => {
-    if (teamType === 'pessoa_fisica') return 'Nome completo'
-    if (teamType === 'pessoa_juridica') return 'Razão social / Nome fantasia'
+    if (organizationType === 'pessoa_fisica') return 'Nome completo'
+    if (organizationType === 'pessoa_juridica') return 'Razão social / Nome fantasia'
     return 'Nome da conta'
-  }, [teamType])
+  }, [organizationType])
 
   const documentLabel = useMemo(() => {
-    if (teamType === 'pessoa_fisica') return 'CPF'
-    if (teamType === 'pessoa_juridica') return 'CNPJ'
+    if (organizationType === 'pessoa_fisica') return 'CPF'
+    if (organizationType === 'pessoa_juridica') return 'CNPJ'
     return 'Documento'
-  }, [teamType])
+  }, [organizationType])
 
   const documentPlaceholder = useMemo(() => {
-    if (teamType === 'pessoa_juridica') return 'Informe o CNPJ'
-    if (teamType === 'pessoa_fisica') return 'Informe o CPF'
+    if (organizationType === 'pessoa_juridica') return 'Informe o CNPJ'
+    if (organizationType === 'pessoa_fisica') return 'Informe o CPF'
     return 'Selecione PF ou PJ para informar o documento'
-  }, [teamType])
+  }, [organizationType])
 
   const updateProfileMutation = useMutation({
     mutationFn: async () =>
@@ -177,13 +177,13 @@ export function MyAccountContent() {
     },
   })
 
-  const updateTeamMutation = useMutation({
+  const updateOrganizationMutation = useMutation({
     mutationFn: async () =>
-      fetchJson<Team>('/api/v1/organizations/me', {
+      fetchJson<OrganizationProfile>('/api/v1/organizations/me', {
         method: 'PATCH',
         body: JSON.stringify({
-          name: teamName,
-          teamType: teamType || null,
+          name: organizationName,
+          organizationType: organizationType || null,
           documentType: selectedDocumentType,
           documentNumber: documentNumber ? stripCpfCnpj(documentNumber) : null,
         }),
@@ -284,18 +284,18 @@ export function MyAccountContent() {
         <CardContent className="grid gap-4">
           <div className="grid gap-2">
             <label className="text-sm font-medium">{accountNameLabel}</label>
-            <Input value={teamName} onChange={(event) => setTeamName(event.target.value)} />
+            <Input value={organizationName} onChange={(event) => setOrganizationName(event.target.value)} />
           </div>
 
           <div className="grid gap-2 md:w-[320px]">
             <label className="text-sm font-medium">Tipo da conta</label>
             <Select
-              value={teamType}
+              value={organizationType}
               onValueChange={(value: 'pessoa_fisica' | 'pessoa_juridica') => {
-                if (value !== teamType) {
+                if (value !== organizationType) {
                   setDocumentNumber('')
                 }
-                setTeamType(value)
+                setOrganizationType(value)
               }}
             >
               <SelectTrigger>
@@ -308,7 +308,7 @@ export function MyAccountContent() {
             </Select>
           </div>
 
-          {teamType ? (
+          {organizationType ? (
             <div className="grid gap-2 md:w-[420px]">
               <label className="text-sm font-medium">{documentLabel}</label>
               <Input
@@ -328,12 +328,12 @@ export function MyAccountContent() {
 
           <div>
             <Button
-              onClick={() => updateTeamMutation.mutate()}
-              disabled={!canManageTeamSettings || updateTeamMutation.isPending}
+              onClick={() => updateOrganizationMutation.mutate()}
+              disabled={!canManageOrganizationSettings || updateOrganizationMutation.isPending}
             >
-              {updateTeamMutation.isPending ? 'Salvando...' : 'Salvar detalhes da conta'}
+              {updateOrganizationMutation.isPending ? 'Salvando...' : 'Salvar detalhes da conta'}
             </Button>
-            {!canManageTeamSettings && (
+            {!canManageOrganizationSettings && (
               <p className="text-muted-foreground mt-2 text-xs">
                 Somente owner pode alterar os detalhes estruturais da conta.
               </p>

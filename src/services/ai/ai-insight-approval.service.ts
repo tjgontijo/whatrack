@@ -25,7 +25,13 @@ type AiInsightPayload = {
 export async function approveAiInsight(params: ApproveAiInsightParams) {
   const insight = await prisma.aiInsight.findUnique({
     where: { id: params.insightId },
-    include: { ticket: true },
+    select: {
+      id: true,
+      organizationId: true,
+      ticketId: true,
+      payload: true,
+      status: true,
+    },
   })
 
   if (!insight || insight.organizationId !== params.organizationId) {

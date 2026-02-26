@@ -7,6 +7,7 @@
 import { NextResponse } from 'next/server'
 import { Prisma } from '@prisma/client'
 
+import { apiError } from '@/lib/utils/api-response'
 import { getOrSyncUser } from '@/server/auth/server'
 import { organizationOnboardingSchema } from '@/schemas/organizations/organization-onboarding'
 import { createOrganizationFromOnboarding } from '@/services/organizations/organization-management.service'
@@ -16,16 +17,13 @@ export async function POST(request: Request) {
     const user = await getOrSyncUser(request)
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return apiError('Unauthorized', 401)
     }
 
     const body = await request.json().catch(() => null)
     const parsed = organizationOnboardingSchema.safeParse(body)
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: 'Dados inválidos', details: parsed.error.flatten() },
-        { status: 400 }
-      )
+      return apiError('Dados inválidos', 400, undefined, { details: parsed.error.flatten() })
     }
 
     const result = await createOrganizationFromOnboarding({
@@ -34,25 +32,21 @@ export async function POST(request: Request) {
     })
 
     if ('error' in result) {
-      return NextResponse.json(
-        {
-          error: result.error,
-          ...(result.organizationId ? { organizationId: result.organizationId } : {}),
-        },
-        { status: result.status }
+      return apiError(
+        result.error,
+        result.status,
+        undefined,
+        result.organizationId ? { organizationId: result.organizationId } : undefined
       )
     }
 
     return NextResponse.json(result, { status: 201 })
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-      return NextResponse.json(
-        { error: 'Documento já cadastrado em outra organização.' },
-        { status: 409 }
-      )
+      return apiError('Documento já cadastrado em outra organização.', 409)
     }
 
     console.error('Failed to create organization:', error)
-    return NextResponse.json({ error: 'Failed to create organization' }, { status: 500 })
+    return apiError('Failed to create organization', 500, error)
   }
 }

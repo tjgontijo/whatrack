@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
-import { HeaderActions } from '@/components/dashboard/header-actions'
+import { HeaderActions } from '@/components/dashboard/layout/header-actions'
 import { RefreshCw, SlidersHorizontal } from 'lucide-react'
 import { DashboardMetricCard, DashboardMetricGrid } from '@/components/dashboard/charts/card'
 import { DashboardPieChart } from '@/components/dashboard/charts/pie'

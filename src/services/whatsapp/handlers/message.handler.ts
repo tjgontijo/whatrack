@@ -102,9 +102,17 @@ export async function messageHandler(
   // Find Config + Organization Profile (for expiration rules)
   const config = await prisma.whatsAppConfig.findUnique({
     where: { phoneId: phoneNumberId },
-    include: {
+    select: {
+      id: true,
+      organizationId: true,
       organization: {
-        include: { profile: true },
+        select: {
+          profile: {
+            select: {
+              ticketExpirationDays: true,
+            },
+          },
+        },
       },
     },
   })

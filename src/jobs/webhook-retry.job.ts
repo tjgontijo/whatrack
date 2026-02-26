@@ -1,8 +1,6 @@
 import { prisma } from '@/lib/db/prisma'
 import { getRedis } from '@/lib/db/redis'
-import { verifyWebhookSignature } from '@/lib/whatsapp/webhook-signature'
 import { WebhookProcessor } from '@/services/whatsapp/webhook-processor'
-import { WhatsAppChatService } from '@/services/whatsapp/whatsapp-chat.service'
 import { resendProvider } from '@/services/mail/resend'
 import { generateWebhookFailureAlertEmail } from '@/services/mail/templates/WebhookFailureAlertEmail'
 
@@ -126,87 +124,9 @@ export async function webhookRetryJob(job: any): Promise<void> {
           `[WebhookRetryJob] Retrying webhook ${log.id} (attempt ${log.retryCount + 1}/3)`
         )
 
-        try {
-          // Retry with WebhookProcessor (v2 events)
-          const processor = new WebhookProcessor()
-          await processor.process(log.payload)
+        const processor = new WebhookProcessor()
+        await processor.process(log.payload)
 
-          // If we get here, processing succeeded
-          await prisma.whatsAppWebhookLog.update({
-            where: { id: log.id },
-            data: {
-              processed: true,
-              processedAt: new Date(),
-            },
-          })
-
-          console.log(`[WebhookRetryJob] Successfully retried webhook ${log.id}`)
-          successCount++
-          continue
-        } catch (processorError) {
-          console.warn(
-            `[WebhookRetryJob] Processor failed for ${log.id}:`,
-            processorError instanceof Error ? processorError.message : 'Unknown error'
-          )
-          // Fall through to legacy processing
-        }
-
-        // Fallback: Retry legacy message processing
-        if (!log.payload || typeof log.payload !== 'object') {
-          throw new Error('Invalid webhook payload')
-        }
-
-        const payload = log.payload as any
-        const changes = payload.entry?.[0]?.changes?.[0]
-        const value = changes?.value
-        const metadata = value?.metadata
-        const phoneId = metadata?.phone_number_id
-        const wabaId = payload.entry?.[0]?.id
-
-        let instanceId: string | null = null
-
-        if (phoneId || wabaId) {
-          const config = await prisma.whatsAppConfig.findFirst({
-            where: {
-              OR: [
-                phoneId ? { phoneId: phoneId } : null,
-                wabaId ? { wabaId: wabaId } : null,
-              ].filter((cond): cond is { phoneId: string } | { wabaId: string } => cond !== null),
-            },
-            select: { id: true },
-          })
-
-          instanceId = config?.id ?? null
-        }
-
-        // Process messages
-        if (value?.messages && instanceId) {
-          for (const msg of value.messages) {
-            try {
-              const contactProfile = value.contacts?.find((c: any) => c.wa_id === msg.from)
-              await WhatsAppChatService.processIncomingMessage(
-                instanceId,
-                msg,
-                contactProfile ? { name: contactProfile.profile.name } : undefined
-              )
-            } catch (err) {
-              console.warn('[WebhookRetryJob] Error processing message:', msg.id, err)
-            }
-          }
-        }
-
-        // Process statuses
-        if (value?.statuses && instanceId) {
-          for (const status of value.statuses) {
-            try {
-              await WhatsAppChatService.processStatusUpdate(instanceId, status)
-            } catch (err) {
-              console.warn('[WebhookRetryJob] Error processing status:', status.id, err)
-            }
-          }
-        }
-
-        // Mark as processed since we tried both processors
         await prisma.whatsAppWebhookLog.update({
           where: { id: log.id },
           data: {
@@ -215,7 +135,7 @@ export async function webhookRetryJob(job: any): Promise<void> {
           },
         })
 
-        console.log(`[WebhookRetryJob] Successfully processed webhook ${log.id} via legacy`)
+        console.log(`[WebhookRetryJob] Successfully retried webhook ${log.id}`)
         successCount++
       } catch (error) {
         console.error(`[WebhookRetryJob] Error retrying webhook ${log.id}:`, error)

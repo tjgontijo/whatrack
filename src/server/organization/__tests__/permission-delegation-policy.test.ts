@@ -11,27 +11,27 @@ describe('permission delegation policy', () => {
     const ownerCatalog = getDelegatablePermissionCatalog('owner')
     const adminCatalog = getDelegatablePermissionCatalog('admin')
 
-    expect(ownerCatalog).toContain('manage:team_settings')
-    expect(adminCatalog).toContain('manage:team_settings')
+    expect(ownerCatalog).toContain('manage:organization')
+    expect(adminCatalog).toContain('manage:organization')
   })
 
   it('restringe permissoes sensiveis para usuario sem papel global privilegiado', () => {
     const userCatalog = getDelegatablePermissionCatalog('user')
 
-    expect(userCatalog).not.toContain('manage:team_settings')
+    expect(userCatalog).not.toContain('manage:organization')
     expect(userCatalog).not.toContain('manage:integrations')
     expect(userCatalog).toContain('view:dashboard')
   })
 
   it('bloqueia delegacao de permissao sensivel para usuario comum do saas', () => {
     expect(() =>
-      assertCanDelegatePermissions('user', ['view:dashboard', 'manage:team_settings'])
+      assertCanDelegatePermissions('user', ['view:dashboard', 'manage:organization'])
     ).toThrow(OrganizationRbacError)
   })
 
   it('permite delegacao quando papel global eh owner/admin', () => {
     expect(() =>
-      assertCanDelegatePermissions('owner', ['manage:team_settings', 'manage:integrations'])
+      assertCanDelegatePermissions('owner', ['manage:organization', 'manage:integrations'])
     ).not.toThrow()
   })
 })

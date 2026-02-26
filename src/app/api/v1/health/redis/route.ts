@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 
+import { apiError } from '@/lib/utils/api-response'
 import { fetchRedisHealthStatus } from '@/services/system/redis-health.service'
 
 export const dynamic = 'force-dynamic'
@@ -10,13 +11,11 @@ export async function GET() {
     return NextResponse.json(payload)
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown error'
-    return NextResponse.json(
-      {
-        error: 'Redis health check failed',
-        message,
-        timestamp: new Date().toISOString(),
-      },
-      { status: 500 }
+    return apiError(
+      'Redis health check failed',
+      500,
+      undefined,
+      { message, timestamp: new Date().toISOString() }
     )
   }
 }

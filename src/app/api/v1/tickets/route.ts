@@ -10,7 +10,7 @@ import { listTickets, createTicket } from '@/services/tickets/ticket.service'
 export async function GET(req: Request) {
   const access = await validatePermissionAccess(req, 'view:tickets')
   if (!access.hasAccess || !access.organizationId) {
-    return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
+    return apiError(access.error ?? 'Acesso negado', 403)
   }
 
   const { searchParams } = new URL(req.url)
@@ -28,10 +28,7 @@ export async function GET(req: Request) {
   })
 
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Parâmetros inválidos', details: parsed.error.flatten() },
-      { status: 400 }
-    )
+    return apiError('Parâmetros inválidos', 400, undefined, { details: parsed.error.flatten() })
   }
 
   const {
@@ -72,17 +69,14 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const access = await validatePermissionAccess(req, 'manage:tickets')
   if (!access.hasAccess || !access.organizationId) {
-    return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
+    return apiError(access.error ?? 'Acesso negado', 403)
   }
 
   try {
     const body = await req.json()
     const parsed = createTicketSchema.safeParse(body)
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: 'Dados inválidos', details: parsed.error.flatten() },
-        { status: 400 }
-      )
+      return apiError('Dados inválidos', 400, undefined, { details: parsed.error.flatten() })
     }
 
     const result = await createTicket({
@@ -95,10 +89,7 @@ export async function POST(req: Request) {
     })
 
     if ('error' in result) {
-      return NextResponse.json(
-        { error: result.error, ...('ticketId' in result ? { ticketId: result.ticketId } : {}) },
-        { status: result.status }
-      )
+      return apiError(result.error, result.status, undefined, 'ticketId' in result ? { ticketId: result.ticketId } : undefined)
     }
 
     await revalidateTag(`org-${access.organizationId}`, 'max')

@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+import { apiError } from '@/lib/utils/api-response'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { deleteMetaPixel, updateMetaPixel } from '@/services/meta-ads/meta-pixel.service'
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const access = await validatePermissionAccess(req, 'manage:integrations')
   if (!access.hasAccess || !access.organizationId) {
-    return NextResponse.json({ error: access.error ?? 'Unauthorized' }, { status: 401 })
+    return apiError(access.error ?? 'Unauthorized', 401)
   }
 
   try {
@@ -23,20 +24,20 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     })
 
     if ('error' in result) {
-      return NextResponse.json({ error: result.error }, { status: result.status })
+      return apiError(result.error, result.status)
     }
 
     return NextResponse.json(result.data)
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to update pixel'
-    return NextResponse.json({ error: message }, { status: 500 })
+    return apiError(message, 500, error)
   }
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const access = await validatePermissionAccess(req, 'manage:integrations')
   if (!access.hasAccess || !access.organizationId) {
-    return NextResponse.json({ error: access.error ?? 'Unauthorized' }, { status: 401 })
+    return apiError(access.error ?? 'Unauthorized', 401)
   }
 
   try {
@@ -48,12 +49,12 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     })
 
     if ('error' in result) {
-      return NextResponse.json({ error: result.error }, { status: result.status })
+      return apiError(result.error, result.status)
     }
 
     return NextResponse.json({ success: true })
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to delete pixel'
-    return NextResponse.json({ error: message }, { status: 500 })
+    return apiError(message, 500, error)
   }
 }

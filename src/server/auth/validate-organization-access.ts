@@ -1,14 +1,15 @@
-import { auth } from '@/lib/auth/auth'
-import { ORGANIZATION_HEADER, TEAM_HEADER } from '@/lib/constants/http-headers'
-import { getPermissionCandidates, isAdmin, isOwner, type Permission } from '@/lib/auth/rbac/roles'
 import { cookies } from 'next/headers'
-import { listEffectivePermissionsForUser } from '@/server/organization/organization-rbac.service'
+
+import { auth } from '@/lib/auth/auth'
+import { getPermissionCandidates, isAdmin, isOwner, type Permission } from '@/lib/auth/rbac/roles'
 import { prisma } from '@/lib/db/prisma'
+import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 import {
   INTEGRATION_IDENTITY_REQUIRED_MESSAGE,
   isOrganizationIdentityComplete,
   requiresIdentityForIntegrationPath,
 } from '@/server/organization/is-identity-complete'
+import { listEffectivePermissionsForUser } from '@/server/organization/organization-rbac.service'
 
 async function getSessionFromRequest(request: Request) {
   const headers = new Headers(request.headers)
@@ -34,20 +35,15 @@ interface ValidationResult {
   memberId?: string
 }
 
-/**
- * Valida se um usuário tem acesso a uma organização específica
- * Verifica se o usuário é membro da organização
- */
-export async function validateTeamAccess(
+export async function validateOrganizationAccess(
   userId: string,
-  teamId: string
+  organizationId: string
 ): Promise<ValidationResult> {
   try {
-    // Team access is backed by the current organization membership table.
     const member = await prisma.member.findFirst({
       where: {
         userId,
-        organizationId: teamId,
+        organizationId,
       },
       select: {
         id: true,
@@ -58,13 +54,13 @@ export async function validateTeamAccess(
     if (!member) {
       return {
         hasAccess: false,
-        error: 'Usuário não é membro desta equipe',
+        error: 'Usuário não é membro desta organização',
       }
     }
 
     return { hasAccess: true, role: member.role, memberId: member.id }
   } catch (error) {
-    console.error('[validateTeamAccess] Erro:', error)
+    console.error('[validateOrganizationAccess] Erro:', error)
     return {
       hasAccess: false,
       error: 'Erro ao validar acesso',
@@ -72,69 +68,26 @@ export async function validateTeamAccess(
   }
 }
 
-/**
- * Backward-compatible alias.
- */
-export async function validateOrganizationAccess(
-  userId: string,
-  organizationId: string
-): Promise<ValidationResult> {
-  return validateTeamAccess(userId, organizationId)
-}
-
-/**
- * Extracts active team id from headers.
- * Accepts canonical x-team-id and legacy x-organization-id.
- */
-export function extractTeamId(request: Request): string | null {
-  const fromHeaders = request.headers.get(TEAM_HEADER) ?? request.headers.get(ORGANIZATION_HEADER)
+export function extractOrganizationId(request: Request): string | null {
+  const fromHeaders = request.headers.get(ORGANIZATION_HEADER)
   if (fromHeaders) return fromHeaders
 
   try {
     const url = new URL(request.url)
-    return url.searchParams.get('teamId') ?? url.searchParams.get('organizationId')
+    return url.searchParams.get('organizationId')
   } catch {
     return null
   }
 }
 
-/**
- * Backward-compatible alias for legacy callers.
- */
-export function extractOrganizationId(request: Request): string | null {
-  return extractTeamId(request)
-}
-
 interface FullAccessResult {
   hasAccess: boolean
   userId?: string
-  teamId?: string
   organizationId?: string
   role?: string
   memberId?: string
   globalRole?: string
   error?: string
-}
-
-function withLegacyIds(input: {
-  hasAccess: boolean
-  userId?: string
-  teamId?: string
-  role?: string
-  memberId?: string
-  globalRole?: string
-  error?: string
-}): FullAccessResult {
-  return {
-    hasAccess: input.hasAccess,
-    userId: input.userId,
-    teamId: input.teamId,
-    organizationId: input.teamId,
-    role: input.role,
-    memberId: input.memberId,
-    globalRole: input.globalRole,
-    error: input.error,
-  }
 }
 
 function ensureArray<T>(value: T | T[] | undefined): T[] {
@@ -150,10 +103,6 @@ function getRequestPathname(request: Request): string {
   }
 }
 
-/**
- * Team-first authorization entrypoint.
- * Validates session + active team membership + optional permission checks.
- */
 export async function validateTenantAccess(
   request: Request,
   requiredPermissions?: Permission | Permission[]
@@ -162,41 +111,42 @@ export async function validateTenantAccess(
     const session = await getSessionFromRequest(request)
 
     if (!session) {
-      return withLegacyIds({
+      return {
         hasAccess: false,
         error: 'Usuário não autenticado',
-      })
+      }
     }
 
     const userId = session.user.id
     const globalRole = session.user.role ?? undefined
-    const teamId = session.session?.activeOrganizationId ?? extractTeamId(request) ?? undefined
+    const organizationId =
+      session.session?.activeOrganizationId ?? extractOrganizationId(request) ?? undefined
 
-    if (!teamId) {
-      return withLegacyIds({
+    if (!organizationId) {
+      return {
         hasAccess: false,
         userId,
-        error: 'Equipe não especificada',
-      })
+        error: 'Organização não especificada',
+      }
     }
 
-    const validation = await validateTeamAccess(userId, teamId)
+    const validation = await validateOrganizationAccess(userId, organizationId)
 
     if (!validation.hasAccess || !validation.role) {
-      return withLegacyIds({
+      return {
         hasAccess: false,
         userId,
-        teamId,
+        organizationId,
         memberId: validation.memberId,
         error: validation.error,
-      })
+      }
     }
 
     const permissions = ensureArray(requiredPermissions)
     if (permissions.length > 0) {
       const effective = await listEffectivePermissionsForUser({
         userId,
-        organizationId: teamId,
+        organizationId,
       })
 
       const effectiveSet = new Set(effective?.effectivePermissions ?? [])
@@ -210,62 +160,55 @@ export async function validateTenantAccess(
       })
 
       if (missing.length > 0) {
-        return withLegacyIds({
+        return {
           hasAccess: false,
           userId,
-          teamId,
+          organizationId,
           role: validation.role,
           memberId: validation.memberId,
           globalRole,
           error: `Permissão insuficiente (${missing.join(', ')})`,
-        })
+        }
       }
     }
 
     const pathname = getRequestPathname(request)
     if (requiresIdentityForIntegrationPath(pathname)) {
-      const identityComplete = await isOrganizationIdentityComplete(teamId)
+      const identityComplete = await isOrganizationIdentityComplete(organizationId)
       if (!identityComplete) {
-        return withLegacyIds({
+        return {
           hasAccess: false,
           userId,
-          teamId,
+          organizationId,
           role: validation.role,
           memberId: validation.memberId,
           globalRole,
           error: INTEGRATION_IDENTITY_REQUIRED_MESSAGE,
-        })
+        }
       }
     }
 
-    return withLegacyIds({
+    return {
       hasAccess: true,
       userId,
-      teamId,
+      organizationId,
       role: validation.role,
       memberId: validation.memberId,
       globalRole,
-    })
+    }
   } catch (error) {
     console.error('[validateTenantAccess] Erro ao validar sessão:', error)
-    return withLegacyIds({
+    return {
       hasAccess: false,
       error: 'Erro ao validar acesso',
-    })
+    }
   }
 }
 
-/**
- * Valida acesso completo: usuário autenticado + membro da organização
- * Retorna também o role do membro para verificações de permissão
- */
 export async function validateFullAccess(request: Request): Promise<FullAccessResult> {
   return validateTenantAccess(request)
 }
 
-/**
- * Valida acesso completo + permissões de tenant.
- */
 export async function validatePermissionAccess(
   request: Request,
   requiredPermissions: Permission | Permission[]
@@ -273,10 +216,6 @@ export async function validatePermissionAccess(
   return validateTenantAccess(request, requiredPermissions)
 }
 
-/**
- * Valida acesso de administrador: usuário autenticado + membro com role owner ou admin
- * Usado para rotas que requerem privilégios administrativos (billing, settings, etc)
- */
 export async function validateAdminAccess(request: Request): Promise<FullAccessResult> {
   const access = await validateTenantAccess(request)
 
@@ -294,10 +233,6 @@ export async function validateAdminAccess(request: Request): Promise<FullAccessR
   return access
 }
 
-/**
- * Valida acesso de proprietário: usuário autenticado + membro com role owner
- * Usado para rotas que requerem privilégios máximos (delete org, transfer ownership, etc)
- */
 export async function validateOwnerAccess(request: Request): Promise<FullAccessResult> {
   const access = await validateTenantAccess(request)
 

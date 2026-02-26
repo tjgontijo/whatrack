@@ -1,6 +1,6 @@
 ---
 name: nextjs-execution-guardrails
-description: Entregar tarefas neste projeto Next.js + TypeScript + Prisma com qualidade previsivel e baixa supervisao. Usar quando implementar feature, corrigir bug, criar ou alterar endpoint, refatorar modulos, ajustar validacoes, ou escrever testes em `src/` para manter padroes de arquitetura, regras de codigo e workflow de entrega.
+description: Entregar tarefas em projetos Next.js + TypeScript + Prisma com qualidade previsivel e baixa supervisao. Usar quando implementar feature, corrigir bug, criar ou alterar endpoint, refatorar modulos, ajustar validacoes, ou escrever testes em `src/` para manter padroes de arquitetura, regras de codigo e workflow de entrega.
 ---
 
 # Next.js Execution Guardrails
@@ -9,14 +9,17 @@ Executar tarefas com processo consistente e baixo retrabalho.
 
 ## Politica Anti-Legado (Inegociavel)
 
-- Este projeto e greenfield: nao implementar compatibilidade legada.
-- Proibido criar ou manter alias/fallback de contratos antigos no `src/` (ex: `legacy*`, `team*`, `x-team-id`, `teamId`, `teamType`, `manage:team_*`).
-- Em mudancas estruturais, a entrega so e aceita com ausencia desses padroes no `src/`.
+- O projeto e greenfield: nao implementar compatibilidade legada.
+- Proibido criar ou manter aliases/fallbacks de contratos antigos no `src/`.
+- Em mudancas estruturais, a entrega so e aceita com ausencia de compatibilidade legada ativa no `src/`.
 
 ## Convencao Estrutural (Transversal)
 
 - Para codigo de dominio, usar sempre `src/<camada>/<dominio>/...`.
-- Esta regra vale para `app/api/v1`, `services`, `server`, `schemas`, `hooks`, `types` e `components/dashboard`.
+- Esta regra vale para `app/api/`, `services`, `server`, `schemas`, `hooks`, `types` e `components/dashboard`.
+- Componentes de feature do dashboard devem ficar sempre em `src/components/dashboard/[dominio]/...`.
+- `src/components/` na raiz deve conter apenas componentes compartilhados/transversais (`ui`, `data-table`, `landing`, `onboarding` e utilitarios globais).
+- Proibido criar novo diretorio de dominio de dashboard fora de `src/components/dashboard/`.
 - Arquivo flat na raiz da camada e permitido apenas para codigo compartilhado/transversal.
 
 ## Politica React (Inegociavel)

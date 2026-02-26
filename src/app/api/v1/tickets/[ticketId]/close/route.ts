@@ -13,7 +13,7 @@ export async function POST(
 ) {
   const access = await validatePermissionAccess(req, 'manage:tickets')
   if (!access.hasAccess || !access.organizationId) {
-    return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
+    return apiError(access.error ?? 'Acesso negado', 403)
   }
 
   const organizationId = access.organizationId
@@ -24,13 +24,7 @@ export async function POST(
     const parsed = closeTicketSchema.safeParse(body)
 
     if (!parsed.success) {
-      return NextResponse.json(
-        {
-          error: 'Dados inválidos',
-          details: parsed.error.flatten(),
-        },
-        { status: 400 }
-      )
+      return apiError('Dados inválidos', 400, undefined, { details: parsed.error.flatten() })
     }
 
     const result = await closeTicket({
@@ -42,12 +36,11 @@ export async function POST(
     })
 
     if ('error' in result) {
-      return NextResponse.json(
-        {
-          error: result.error,
-          ...('currentStatus' in result ? { currentStatus: result.currentStatus } : {}),
-        },
-        { status: result.status }
+      return apiError(
+        result.error,
+        result.status,
+        undefined,
+        'currentStatus' in result ? { currentStatus: result.currentStatus } : undefined
       )
     }
 

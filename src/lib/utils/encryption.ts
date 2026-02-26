@@ -6,8 +6,7 @@ const algorithm = 'aes-256-gcm'
  * Token Encryption Service
  * Encrypts/decrypts tokens using AES-256-GCM with key versioning for rotation support.
  *
- * Format (new): v{N}:{iv}:{authTag}:{ciphertext}
- * Format (legacy, treated as v1): {iv}:{authTag}:{ciphertext}
+ * Format: v{N}:{iv}:{authTag}:{ciphertext}
  *
  * Key configuration:
  *   TOKEN_ENCRYPTION_KEY          — The current active key (64-char hex)
@@ -48,7 +47,7 @@ export class TokenEncryption {
       }
     }
 
-    // Fallback: load TOKEN_ENCRYPTION_KEY as v1 (backwards compatibility)
+    // Default key source when ENCRYPTION_KEYS is not provided.
     if (!this.keys.has('v1')) {
       const keyHex = process.env.TOKEN_ENCRYPTION_KEY
       if (!keyHex || keyHex.length !== 64) {
@@ -84,28 +83,15 @@ export class TokenEncryption {
   }
 
   /**
-   * Decrypt ciphertext. Supports:
-   * - New format: v{N}:{iv}:{authTag}:{ciphertext}
-   * - Legacy format: {iv}:{authTag}:{ciphertext} (treated as v1)
+   * Decrypt ciphertext in format: v{N}:{iv}:{authTag}:{ciphertext}
    */
   decrypt(ciphertext: string): string {
     const parts = ciphertext.split(':')
 
-    let version: string
-    let ivHex: string
-    let authTagHex: string
-    let encrypted: string
-
-    // Detect format: versioned (4 parts starting with "v\d") vs legacy (3 parts)
-    if (parts.length === 4 && /^v\d+$/.test(parts[0])) {
-      ;[version, ivHex, authTagHex, encrypted] = parts
-    } else if (parts.length === 3) {
-      // Legacy format — treat as v1
-      version = 'v1'
-      ;[ivHex, authTagHex, encrypted] = parts
-    } else {
+    if (parts.length !== 4 || !/^v\d+$/.test(parts[0])) {
       throw new Error('Invalid ciphertext format')
     }
+    const [version, ivHex, authTagHex, encrypted] = parts
 
     const key = this.keys.get(version)
     if (!key) {
@@ -129,8 +115,10 @@ export class TokenEncryption {
    */
   getVersion(ciphertext: string): string {
     const parts = ciphertext.split(':')
-    if (parts.length === 4 && /^v\d+$/.test(parts[0])) return parts[0]
-    return 'v1' // legacy
+    if (parts.length !== 4 || !/^v\d+$/.test(parts[0])) {
+      throw new Error('Invalid ciphertext format')
+    }
+    return parts[0]
   }
 
   /**

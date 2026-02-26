@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+import { apiError } from '@/lib/utils/api-response'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { toggleMetaAdAccount } from '@/services/meta-ads/meta-account-query.service'
 
@@ -8,7 +9,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const { id } = await params
 
   if (!access.hasAccess || !access.organizationId) {
-    return NextResponse.json({ error: access.error ?? 'Unauthorized' }, { status: 401 })
+    return apiError(access.error ?? 'Unauthorized', 401)
   }
 
   const body = await req.json()
@@ -25,7 +26,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   })
 
   if ('error' in result) {
-    return NextResponse.json({ error: result.error }, { status: result.status })
+    return apiError(result.error, result.status)
   }
 
   return NextResponse.json(result.data)

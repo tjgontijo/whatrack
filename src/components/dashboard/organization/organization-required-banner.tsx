@@ -2,7 +2,7 @@
 
 import { AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { OrganizationIdentityDrawer } from '@/components/dashboard/organization-identity-drawer'
+import { OrganizationIdentityDrawer } from '@/components/dashboard/organization/organization-identity-drawer'
 
 type OrganizationRequiredBannerProps = {
   hasOrganization: boolean

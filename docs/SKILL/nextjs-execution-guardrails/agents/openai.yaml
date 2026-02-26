@@ -15,6 +15,7 @@ instructions: |
   - Helpers puros (data, filtros, formatacao) ficam em src/lib/ — nunca na route.
   - Cache (Redis ou memoria) fica no service — nunca na route.
   - Proibido alias/wrapper entre dominios para reaproveitar regra; extrair logica compartilhada para modulo neutro.
+  - Projeto greenfield: proibido compatibilidade legada no src (sem `legacy*`, `team*`, `x-team-id`, `teamId`, `teamType`, `manage:team_*`).
   - Proibido `any` em services e funcoes de dominio critico.
   - Nunca criar src/middleware.ts — usar src/proxy.ts para interceptacao.
   - Nao adicionar verificacao de role manual apos validatePermissionAccess.

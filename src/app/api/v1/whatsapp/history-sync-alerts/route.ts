@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/utils/api-response'
 import { historySyncAlertsService } from '@/services/whatsapp/history-sync-alerts.service'
 
 /**
@@ -17,11 +18,11 @@ export async function POST(req: NextRequest) {
 
     if (!expectedToken) {
       console.error('[HistorySyncAlertsAPI] HISTORY_SYNC_ALERT_TOKEN não configurado')
-      return NextResponse.json({ error: 'Alert token not configured' }, { status: 500 })
+      return apiError('Alert token not configured', 500)
     }
 
     if (authHeader !== `Bearer ${expectedToken}`) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return apiError('Unauthorized', 401)
     }
 
     // Executar verificações periódicas
@@ -38,7 +39,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error('[HistorySyncAlertsAPI] Error running alerts check', error)
 
-    return NextResponse.json({ error: 'Failed to run alerts check' }, { status: 500 })
+    return apiError('Failed to run alerts check', 500, error)
   }
 }
 
@@ -59,7 +60,7 @@ export async function GET(req: NextRequest) {
       const expectedToken = process.env.HISTORY_SYNC_ALERT_TOKEN
 
       if (authHeader !== `Bearer ${expectedToken}`) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        return apiError('Unauthorized', 401)
       }
 
       await historySyncAlertsService.runPeriodicChecks()
@@ -100,6 +101,6 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     console.error('[HistorySyncAlertsAPI] Error checking status', error)
 
-    return NextResponse.json({ error: 'Failed to check status' }, { status: 500 })
+    return apiError('Failed to check status', 500, error)
   }
 }

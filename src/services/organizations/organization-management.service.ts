@@ -207,7 +207,15 @@ export async function getOrCreateCurrentOrganization(input: {
 }) {
   const member = await prisma.member.findFirst({
     where: { userId: input.user.id },
-    include: { organization: true },
+    select: {
+      organization: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+        },
+      },
+    },
   })
 
   if (!member) {

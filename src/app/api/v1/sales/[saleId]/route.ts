@@ -9,7 +9,7 @@ import { validateFullAccess } from '@/server/auth/validate-organization-access'
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ saleId: string }> }) {
   const access = await validateFullAccess(req)
   if (!access.hasAccess || !access.organizationId) {
-    return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
+    return apiError(access.error ?? 'Acesso negado', 403)
   }
   const organizationId = access.organizationId
   const userId = access.userId
@@ -25,7 +25,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ sale
       input: validated,
     })
     if (!updated) {
-      return NextResponse.json({ error: 'Venda não encontrada' }, { status: 404 })
+      return apiError('Venda não encontrada', 404)
     }
 
     revalidateTag('dashboard-summary', 'max')
@@ -44,7 +44,7 @@ export async function DELETE(
 ) {
   const access = await validateFullAccess(req)
   if (!access.hasAccess || !access.organizationId) {
-    return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
+    return apiError(access.error ?? 'Acesso negado', 403)
   }
   const organizationId = access.organizationId
   const { saleId } = await params
@@ -55,7 +55,7 @@ export async function DELETE(
       saleId,
     })
     if (!deleted) {
-      return NextResponse.json({ error: 'Venda não encontrada' }, { status: 404 })
+      return apiError('Venda não encontrada', 404)
     }
 
     revalidateTag('dashboard-summary', 'max')

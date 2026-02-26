@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+import { apiError } from '@/lib/utils/api-response'
 import { saveCompanySchema } from '@/schemas/company/company-schemas'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import {
@@ -10,39 +11,33 @@ import {
 export async function GET(request: NextRequest) {
   const access = await validateFullAccess(request)
   if (!access.hasAccess || !access.organizationId) {
-    return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
+    return apiError(access.error ?? 'Acesso negado', 403)
   }
 
   try {
     const company = await getOrganizationCompany(access.organizationId)
 
     if (!company) {
-      return NextResponse.json({ error: 'Dados da empresa não encontrados' }, { status: 404 })
+      return apiError('Dados da empresa não encontrados', 404)
     }
 
     return NextResponse.json(company)
   } catch (error) {
     console.error('[api/v1/company] GET error:', error)
-    return NextResponse.json({ error: 'Erro ao buscar dados da empresa' }, { status: 500 })
+    return apiError('Erro ao buscar dados da empresa', 500, error)
   }
 }
 
 export async function POST(request: NextRequest) {
   const access = await validateFullAccess(request)
   if (!access.hasAccess || !access.organizationId || !access.userId) {
-    return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
+    return apiError(access.error ?? 'Acesso negado', 403)
   }
 
   try {
     const parsed = saveCompanySchema.safeParse(await request.json())
     if (!parsed.success) {
-      return NextResponse.json(
-        {
-          error: 'Dados inválidos',
-          details: parsed.error.flatten(),
-        },
-        { status: 400 }
-      )
+      return apiError('Dados inválidos', 400, undefined, { details: parsed.error.flatten() })
     }
 
     const result = await saveOrganizationCompany({
@@ -56,12 +51,9 @@ export async function POST(request: NextRequest) {
     console.error('[api/v1/company] POST error:', error)
 
     if (error instanceof Error && error.message.includes('Unique constraint')) {
-      return NextResponse.json(
-        { error: 'Este CNPJ já está vinculado a outra organização' },
-        { status: 409 }
-      )
+      return apiError('Este CNPJ já está vinculado a outra organização', 409, error)
     }
 
-    return NextResponse.json({ error: 'Erro ao salvar dados da empresa' }, { status: 500 })
+    return apiError('Erro ao salvar dados da empresa', 500, error)
   }
 }

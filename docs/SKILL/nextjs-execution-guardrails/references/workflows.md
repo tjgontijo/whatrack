@@ -36,19 +36,19 @@
 2. Aplicar convencao de dominio em todas as camadas tocadas (`src/<camada>/<dominio>/...`).
 3. Criar schema Zod em `src/schemas/[dominio]/[recurso]-schemas.ts` (nao inline na route).
 4. Criar ou atualizar service em `src/services/[dominio]/[recurso].service.ts` com a logica.
-5. Criar route em `src/app/api/v1/[recurso]/route.ts` seguindo a anatomia:
+5. Criar route em `src/app/api/[versao]/[recurso]/route.ts` seguindo a anatomia:
    ```
    autenticar → validar com schema importado → delegar ao service → retornar HTTP
    ```
-6. Usar `validatePermissionAccess` para rotas com RBAC; `validateFullAccess` para rotas abertas a membros.
+6. Usar guard de permissao granular (RBAC) para rotas que exigem permissao especifica; guard de membership simples para rotas abertas a membros autenticados.
 7. Nao adicionar helper de data, filtro ou cache dentro da route.
-8. Decidir cache no service: por padrao sem cache manual; usar Redis somente quando houver evidencia de necessidade.
+8. Decidir cache no service: por padrao sem cache manual; usar cache externo (Redis ou similar) somente quando houver evidencia de necessidade.
 9. Padronizar status codes: 200 GET, 201 POST, 204 DELETE, 400 validacao, 403 acesso, 404 nao encontrado, 409 conflito, 500 erro interno.
-10. Usar `apiError()` de `src/lib/utils/api-response.ts` para erros — nao criar `NextResponse.json({ error })` manual.
+10. Usar o utilitario centralizado de resposta de erro do projeto — nao criar `NextResponse.json({ error })` manual em cada handler.
 11. Usar `revalidateTag` na route apos mutacoes bem-sucedidas (POST/PATCH/DELETE).
 12. Cobrir caminho feliz e falhas esperadas em teste.
 13. Executar obrigatoriamente os testes criados/atualizados antes da entrega.
-14. Se houver interceptacao/autorizacao no nivel de framework, alterar `src/proxy.ts` (nao `src/middleware.ts`).
+14. Se houver interceptacao/autorizacao no nivel de framework, alterar o arquivo de proxy/middleware do projeto (verificar `directory-map.md` para o arquivo correto).
 15. Confirmar impacto em consumidores existentes.
 
 ## Workflow: Prisma e Dados
@@ -63,7 +63,7 @@
 8. Validar leitura/escrita com casos reais e limites (null, vazio, conflito).
 9. Criar ou atualizar teste para o comportamento de persistencia alterado.
 10. Executar obrigatoriamente os testes criados/atualizados antes da entrega.
-11. Rodar `npm run test:prisma` quando houver impacto em persistencia.
+11. Rodar suite de testes de persistencia do projeto quando houver impacto em schema.
 12. Registrar riscos de migracao, compatibilidade e rollback quando houver.
 
 ## Workflow: Refactor Seguro
@@ -77,6 +77,6 @@
 7. Garantir que ha teste criado ou atualizado para confirmar ausencia de regressao.
 8. Executar obrigatoriamente os testes criados/atualizados antes da entrega.
 9. Evitar combinar refactor com mudanca funcional nao solicitada.
-10. Em cleanup estrutural, executar `rg -n "legacy|teamType|teamId|x-team-id|manage:team_" src` e garantir resultado vazio.
-11. Se houver qualquer ocorrencia de compatibilidade legada no `src/`, bloquear entrega ate remover.
+10. Em cleanup estrutural, verificar se restam aliases/wrappers entre dominios sem valor funcional e remover.
+11. Garantir ausencia de arquivos obsoletos, diretorios vazios e codigo morto apos o cleanup.
 12. Entregar com justificativa tecnica curta e verificavel.

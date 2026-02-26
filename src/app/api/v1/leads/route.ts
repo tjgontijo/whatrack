@@ -10,7 +10,7 @@ import { validateFullAccess } from '@/server/auth/validate-organization-access'
 export async function POST(req: Request) {
   const access = await validateFullAccess(req)
   if (!access.hasAccess || !access.organizationId) {
-    return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
+    return apiError(access.error ?? 'Acesso negado', 403)
   }
   const organizationId = access.organizationId
 
@@ -28,22 +28,13 @@ export async function POST(req: Request) {
 
     if (error instanceof LeadConflictError) {
       if (error.field === 'phone') {
-        return NextResponse.json(
-          { error: 'Já existe um lead com este número de telefone nesta organização' },
-          { status: 409 }
-        )
+        return apiError('Já existe um lead com este número de telefone nesta organização', 409)
       }
       if (error.field === 'waId') {
-        return NextResponse.json(
-          { error: 'Já existe um lead com este ID do WhatsApp nesta organização' },
-          { status: 409 }
-        )
+        return apiError('Já existe um lead com este ID do WhatsApp nesta organização', 409)
       }
 
-      return NextResponse.json(
-        { error: 'Já existe um lead com estas informações' },
-        { status: 409 }
-      )
+      return apiError('Já existe um lead com estas informações', 409)
     }
 
     return apiError('Falha ao criar lead', 500, error)
@@ -53,17 +44,14 @@ export async function POST(req: Request) {
 export async function GET(req: Request) {
   const access = await validateFullAccess(req)
   if (!access.hasAccess || !access.organizationId) {
-    return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
+    return apiError(access.error ?? 'Acesso negado', 403)
   }
   const organizationId = access.organizationId
 
   const { searchParams } = new URL(req.url)
   const parsed = leadsQuerySchema.safeParse(Object.fromEntries(searchParams))
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Parâmetros inválidos', details: parsed.error.flatten() },
-      { status: 400 }
-    )
+    return apiError('Parâmetros inválidos', 400, undefined, { details: parsed.error.flatten() })
   }
 
   try {

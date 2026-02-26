@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 
+import { apiError } from '@/lib/utils/api-response'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { createItemSchema, itemListQuerySchema } from '@/schemas/items/item-schemas'
 import { createItem, listItems, type ListItemsParams } from '@/services/items/item.service'
@@ -8,7 +9,7 @@ export async function GET(request: Request) {
   try {
     const access = await validateFullAccess(request)
     if (!access.hasAccess || !access.organizationId) {
-      return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
+      return apiError(access.error ?? 'Acesso negado', 403)
     }
     const organizationId = access.organizationId
 
@@ -22,7 +23,7 @@ export async function GET(request: Request) {
     })
 
     if (!parsed.success) {
-      return NextResponse.json({ error: 'Invalid query params' }, { status: 400 })
+      return apiError('Invalid query params', 400)
     }
 
     const payload: ListItemsParams = {
@@ -37,7 +38,7 @@ export async function GET(request: Request) {
     return NextResponse.json(await listItems(payload))
   } catch (error) {
     console.error('[api/items] GET error', error)
-    return NextResponse.json({ error: 'Failed to load items' }, { status: 500 })
+    return apiError('Failed to load items', 500, error)
   }
 }
 
@@ -45,7 +46,7 @@ export async function POST(request: Request) {
   try {
     const access = await validateFullAccess(request)
     if (!access.hasAccess || !access.organizationId) {
-      return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
+      return apiError(access.error ?? 'Acesso negado', 403)
     }
     const organizationId = access.organizationId
 
@@ -53,10 +54,7 @@ export async function POST(request: Request) {
     const parsed = createItemSchema.safeParse(json)
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: 'Invalid payload', details: parsed.error.flatten() },
-        { status: 400 }
-      )
+      return apiError('Invalid payload', 400, undefined, { details: parsed.error.flatten() })
     }
 
     const result = await createItem({
@@ -68,6 +66,6 @@ export async function POST(request: Request) {
     return NextResponse.json(result, { status: 201 })
   } catch (error) {
     console.error('[api/items] POST error', error)
-    return NextResponse.json({ error: 'Failed to create item' }, { status: 500 })
+    return apiError('Failed to create item', 500, error)
   }
 }

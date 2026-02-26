@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 
+import { apiError } from '@/lib/utils/api-response'
 import {
   metaCopilotAnalyzeRequestSchema,
   type MetaCopilotAnalyzeRequestInput,
@@ -11,22 +12,19 @@ export async function POST(req: Request) {
   try {
     const access = await validatePermissionAccess(req, 'manage:ai')
     if (!access.hasAccess || !access.organizationId) {
-      return NextResponse.json({ error: access.error ?? 'Unauthorized' }, { status: 401 })
+      return apiError(access.error ?? 'Unauthorized', 401)
     }
 
     const parsed = metaCopilotAnalyzeRequestSchema.safeParse(await req.json())
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: 'Missing required fields', details: parsed.error.flatten() },
-        { status: 400 }
-      )
+      return apiError('Missing required fields', 400, undefined, { details: parsed.error.flatten() })
     }
 
     const payload: MetaCopilotAnalyzeRequestInput = parsed.data
     const scopedOrganizationId = payload.organizationId ?? access.organizationId
 
     if (scopedOrganizationId !== access.organizationId) {
-      return NextResponse.json({ error: 'Forbidden for requested organization' }, { status: 403 })
+      return apiError('Forbidden for requested organization', 403)
     }
 
     const result = await runMetaCopilotAnalysis({
@@ -35,13 +33,7 @@ export async function POST(req: Request) {
     })
 
     if ('error' in result) {
-      return NextResponse.json(
-        {
-          error: result.error,
-          ...(result.detail ? { detail: result.detail } : {}),
-        },
-        { status: result.status }
-      )
+      return apiError(result.error, result.status, result.detail)
     }
 
     return NextResponse.json(result.data)
@@ -52,12 +44,6 @@ export async function POST(req: Request) {
       console.error('[Copilot] Stack:', error.stack)
     }
 
-    return NextResponse.json(
-      {
-        error: 'Internal server error analyzing campaign',
-        detail: process.env.NODE_ENV === 'development' ? detail : undefined,
-      },
-      { status: 500 }
-    )
+    return apiError('Internal server error analyzing campaign', 500, detail)
   }
 }

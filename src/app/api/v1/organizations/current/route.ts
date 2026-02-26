@@ -6,6 +6,7 @@
 
 import { NextResponse } from 'next/server'
 
+import { apiError } from '@/lib/utils/api-response'
 import { getOrSyncUser } from '@/server/auth/server'
 import { getOrCreateCurrentOrganization } from '@/services/organizations/organization-management.service'
 
@@ -14,12 +15,12 @@ export async function GET(request: Request) {
     const user = await getOrSyncUser(request)
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return apiError('Unauthorized', 401)
     }
 
     return NextResponse.json(await getOrCreateCurrentOrganization({ user }), { status: 200 })
   } catch (error) {
     console.error('Failed to get current organization:', error)
-    return NextResponse.json({ error: 'Failed to get organization' }, { status: 500 })
+    return apiError('Failed to get organization', 500, error)
   }
 }

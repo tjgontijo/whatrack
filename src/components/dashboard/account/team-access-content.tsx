@@ -146,7 +146,7 @@ export function TeamAccessContent() {
   })
 
   const canManageTeamOps =
-    authorization.can('manage:team_members') && (authorization.isOwner || authorization.isAdmin)
+    authorization.can('manage:members') && (authorization.isOwner || authorization.isAdmin)
   const canManageRoles = authorization.isOwner
   const canManageMemberPermissions = authorization.isOwner
 

@@ -10,8 +10,9 @@ export type Permission =
   | 'view:integrations'
   | 'manage:integrations'
   | 'view:audit'
-  | 'manage:team_members'
-  | 'manage:team_settings'
+  | 'manage:members'
+  | 'manage:organization'
+  | 'manage:settings'
   | 'view:leads'
   | 'manage:leads'
   | 'view:tickets'
@@ -22,9 +23,6 @@ export type Permission =
   | 'manage:items'
   | 'view:meta'
   | 'manage:meta'
-  | 'manage:members'
-  | 'manage:organization'
-  | 'manage:settings'
 
 type RoleDefinition = {
   name: RoleName
@@ -54,8 +52,9 @@ const ROLE_DEFINITIONS: RoleDefinition[] = [
       'view:integrations',
       'manage:integrations',
       'view:audit',
-      'manage:team_members',
-      'manage:team_settings',
+      'manage:members',
+      'manage:organization',
+      'manage:settings',
       'view:leads',
       'manage:leads',
       'view:tickets',
@@ -66,9 +65,6 @@ const ROLE_DEFINITIONS: RoleDefinition[] = [
       'manage:items',
       'view:meta',
       'manage:meta',
-      'manage:members',
-      'manage:organization',
-      'manage:settings',
     ],
   },
   {
@@ -87,7 +83,7 @@ const ROLE_DEFINITIONS: RoleDefinition[] = [
       'view:integrations',
       'manage:integrations',
       'view:audit',
-      'manage:team_members',
+      'manage:members',
       'view:leads',
       'manage:leads',
       'view:tickets',
@@ -98,7 +94,6 @@ const ROLE_DEFINITIONS: RoleDefinition[] = [
       'manage:items',
       'view:meta',
       'manage:meta',
-      'manage:members',
     ],
   },
   {
@@ -122,19 +117,7 @@ const ROLE_DEFINITIONS: RoleDefinition[] = [
 
 const ROLE_PRIORITY: RoleName[] = ['owner', 'admin', 'user']
 
-const PERMISSION_ALIASES: Partial<Record<Permission, Permission[]>> = {
-  'manage:members': ['manage:team_members'],
-  'manage:organization': ['manage:team_settings'],
-  'manage:settings': ['manage:team_settings'],
-  'view:meta': ['view:campaigns'],
-  'manage:meta': ['manage:campaigns'],
-}
-
-const HIDDEN_PLATFORM_PERMISSIONS: Permission[] = [
-  'manage:members',
-  'manage:organization',
-  'manage:settings',
-]
+const HIDDEN_PLATFORM_PERMISSIONS: Permission[] = []
 
 const ALL_PLATFORM_PERMISSIONS: Permission[] = Array.from(
   new Set(
@@ -156,8 +139,9 @@ const PERMISSION_LABELS: Record<Permission, string> = {
   'view:integrations': 'Visualizar Integrações',
   'manage:integrations': 'Gerenciar Integrações',
   'view:audit': 'Visualizar Auditoria',
-  'manage:team_members': 'Gerenciar Membros da Equipe',
-  'manage:team_settings': 'Gerenciar Configurações da Equipe',
+  'manage:members': 'Gerenciar Membros',
+  'manage:organization': 'Gerenciar Organização',
+  'manage:settings': 'Gerenciar Configurações',
   'view:leads': 'Visualizar Leads',
   'manage:leads': 'Gerenciar Leads',
   'view:tickets': 'Visualizar Tickets',
@@ -168,9 +152,6 @@ const PERMISSION_LABELS: Record<Permission, string> = {
   'manage:items': 'Gerenciar Itens',
   'view:meta': 'Visualizar Meta Ads',
   'manage:meta': 'Gerenciar Meta Ads',
-  'manage:members': 'Gerenciar Membros (Legado)',
-  'manage:organization': 'Gerenciar Organização (Legado)',
-  'manage:settings': 'Gerenciar Configurações (Legado)',
 }
 
 function normalizeRole(role: string | null | undefined): RoleName | null {
@@ -178,17 +159,8 @@ function normalizeRole(role: string | null | undefined): RoleName | null {
   return normalized ?? null
 }
 
-function resolvePermissionAliases(permission: Permission): Permission[] {
-  const direct = PERMISSION_ALIASES[permission] ?? []
-  const reverse = (Object.entries(PERMISSION_ALIASES) as Array<[Permission, Permission[]]>)
-    .filter(([, aliases]) => aliases.includes(permission))
-    .map(([legacyPermission]) => legacyPermission)
-
-  return [...new Set([permission, ...direct, ...reverse])]
-}
-
 export function getPermissionCandidates(permission: Permission): Permission[] {
-  return resolvePermissionAliases(permission)
+  return [permission]
 }
 
 export function isSystemRoleKey(value: string | null | undefined): value is RoleName {
@@ -205,7 +177,9 @@ export function getPlatformPermissions(options?: { includeHidden?: boolean }): P
     return [...ALL_PLATFORM_PERMISSIONS]
   }
 
-  return ALL_PLATFORM_PERMISSIONS.filter((permission) => !HIDDEN_PLATFORM_PERMISSIONS.includes(permission))
+  return ALL_PLATFORM_PERMISSIONS.filter(
+    (permission) => !HIDDEN_PLATFORM_PERMISSIONS.includes(permission)
+  )
 }
 
 export function getPermissionLabel(permission: Permission | string): string {
@@ -232,16 +206,12 @@ export function isAdmin(userRole: string | null | undefined): boolean {
   return normalized === 'admin' || normalized === 'owner'
 }
 
-export function hasPermission(
-  userRole: string | null | undefined,
-  permission: Permission
-): boolean {
+export function hasPermission(userRole: string | null | undefined, permission: Permission): boolean {
   const normalized = normalizeRole(userRole)
   if (!normalized) return false
   const roleDefinition = ROLE_DEFINITIONS.find((definition) => definition.name === normalized)
-  const permissionCandidates = resolvePermissionAliases(permission)
 
-  return permissionCandidates.some((candidate) => roleDefinition?.permissions.includes(candidate))
+  return roleDefinition?.permissions.includes(permission) ?? false
 }
 
 export function hasAnyPermission(

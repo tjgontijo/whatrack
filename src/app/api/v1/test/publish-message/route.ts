@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/utils/api-response'
 import { publishToCentrifugo } from '@/lib/centrifugo/server'
 
 /**
@@ -14,7 +15,7 @@ export async function POST(request: NextRequest) {
     const { channel, data } = await request.json()
 
     if (!channel || !data) {
-      return NextResponse.json({ error: 'Missing channel or data' }, { status: 400 })
+      return apiError('Missing channel or data', 400)
     }
 
     console.log(`[Test] Publishing to ${channel}:`, data)
@@ -22,7 +23,7 @@ export async function POST(request: NextRequest) {
     const success = await publishToCentrifugo(channel, data)
 
     if (!success) {
-      return NextResponse.json({ error: 'Failed to publish to Centrifugo' }, { status: 500 })
+      return apiError('Failed to publish to Centrifugo', 500)
     }
 
     return NextResponse.json({
@@ -33,6 +34,6 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('[Test] Publish error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return apiError('Internal server error', 500, error)
   }
 }

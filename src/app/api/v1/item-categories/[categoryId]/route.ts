@@ -15,7 +15,7 @@ export async function GET(
 ) {
   const access = await validateFullAccess(req)
   if (!access.hasAccess || !access.organizationId) {
-    return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
+    return apiError(access.error ?? 'Acesso negado', 403)
   }
   const organizationId = access.organizationId
   const { categoryId } = await params
@@ -23,7 +23,7 @@ export async function GET(
   try {
     const category = await getItemCategoryById({ organizationId, categoryId })
     if (!category) {
-      return NextResponse.json({ error: 'Categoria não encontrada' }, { status: 404 })
+      return apiError('Categoria não encontrada', 404)
     }
 
     return NextResponse.json({
@@ -46,7 +46,7 @@ export async function PUT(
 ) {
   const access = await validateFullAccess(req)
   if (!access.hasAccess || !access.organizationId) {
-    return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
+    return apiError(access.error ?? 'Acesso negado', 403)
   }
   const organizationId = access.organizationId
   const { categoryId } = await params
@@ -63,7 +63,7 @@ export async function PUT(
     })
 
     if ('error' in updated) {
-      return NextResponse.json({ error: updated.error }, { status: updated.status })
+      return apiError(updated.error, updated.status)
     }
 
     return NextResponse.json(updated)
@@ -79,7 +79,7 @@ export async function DELETE(
 ) {
   const access = await validateFullAccess(req)
   if (!access.hasAccess || !access.organizationId) {
-    return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
+    return apiError(access.error ?? 'Acesso negado', 403)
   }
   const organizationId = access.organizationId
   const { categoryId } = await params
@@ -91,7 +91,7 @@ export async function DELETE(
     })
 
     if ('error' in result) {
-      return NextResponse.json({ error: result.error }, { status: result.status })
+      return apiError(result.error, result.status)
     }
 
     return NextResponse.json(result)

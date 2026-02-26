@@ -13,7 +13,6 @@ import type { Permission } from '@/lib/auth/rbac/roles'
 type OrganizationAccessResponse = {
   id: string
   organizationId: string
-  teamId?: string
   currentUserRole: string
   currentUserPermissions?: string[]
 }

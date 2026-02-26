@@ -171,7 +171,7 @@ export function OrganizationIdentityDrawer({
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            teamType: entityType === 'company' ? 'pessoa_juridica' : 'pessoa_fisica',
+            organizationType: entityType === 'company' ? 'pessoa_juridica' : 'pessoa_fisica',
             documentType,
             documentNumber: normalizedDocument,
           }),

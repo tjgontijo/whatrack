@@ -8,7 +8,7 @@
  *
  * Environment variables required:
  *   DATABASE_URL                  — PostgreSQL connection string
- *   TOKEN_ENCRYPTION_KEY          — Legacy v1 key (64-char hex)
+ *   TOKEN_ENCRYPTION_KEY          — v1 key (64-char hex)
  *   ENCRYPTION_KEYS               — JSON with all key versions: {"v1":"hex...","v2":"hex..."}
  *   ENCRYPTION_CURRENT_VERSION    — Target version for re-encryption (e.g. "v2")
  *

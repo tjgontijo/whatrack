@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { apiError } from '@/lib/utils/api-response'
 import { MetaCloudService } from '@/services/whatsapp/meta-cloud.service'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
@@ -8,18 +9,13 @@ export async function GET(request: Request) {
   try {
     const access = await validateFullAccess(request)
     if (!access.hasAccess || !access.organizationId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return apiError('Unauthorized', 401)
     }
 
     const config = await MetaCloudService.getConfig(access.organizationId)
 
     if (!config || !config.wabaId) {
-      return NextResponse.json(
-        {
-          error: 'WhatsApp not configured for this organization',
-        },
-        { status: 404 }
-      )
+      return apiError('WhatsApp not configured for this organization', 404)
     }
 
     const templates = await MetaCloudService.getTemplates({
@@ -28,12 +24,10 @@ export async function GET(request: Request) {
     })
 
     return NextResponse.json({ templates })
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Failed to fetch templates'
     console.error('[API] Get Templates Error:', error)
-    return NextResponse.json(
-      { error: error.message || 'Failed to fetch templates' },
-      { status: 500 }
-    )
+    return apiError(message, 500, error)
   }
 }
 
@@ -41,7 +35,7 @@ export async function POST(request: Request) {
   try {
     const access = await validateFullAccess(request)
     if (!access.hasAccess || !access.organizationId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return apiError('Unauthorized', 401)
     }
 
     const body = await request.json()
@@ -50,12 +44,7 @@ export async function POST(request: Request) {
     console.log('[API] RECEBIDA REQUISIÇÃO PARA CRIAR TEMPLATE:', JSON.stringify(body, null, 2))
 
     if (!config || !config.wabaId) {
-      return NextResponse.json(
-        {
-          error: 'WhatsApp not configured for this organization',
-        },
-        { status: 404 }
-      )
+      return apiError('WhatsApp not configured for this organization', 404)
     }
 
     const result = await MetaCloudService.createTemplate({
@@ -65,12 +54,10 @@ export async function POST(request: Request) {
     })
 
     return NextResponse.json(result)
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Failed to create template'
     console.error('[API] Create Template Error:', error)
-    return NextResponse.json(
-      { error: error.message || 'Failed to create template' },
-      { status: 500 }
-    )
+    return apiError(message, 500, error)
   }
 }
 
@@ -78,29 +65,24 @@ export async function PUT(request: Request) {
   try {
     const access = await validateFullAccess(request)
     if (!access.hasAccess || !access.organizationId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return apiError('Unauthorized', 401)
     }
 
     const body = await request.json()
     const { templateId, components } = body
 
     if (!templateId) {
-      return NextResponse.json({ error: 'Template ID is required' }, { status: 400 })
+      return apiError('Template ID is required', 400)
     }
 
     if (!components || !Array.isArray(components)) {
-      return NextResponse.json({ error: 'Components array is required' }, { status: 400 })
+      return apiError('Components array is required', 400)
     }
 
     const config = await MetaCloudService.getConfig(access.organizationId)
 
     if (!config || !config.wabaId) {
-      return NextResponse.json(
-        {
-          error: 'WhatsApp not configured for this organization',
-        },
-        { status: 404 }
-      )
+      return apiError('WhatsApp not configured for this organization', 404)
     }
 
     console.log('[API] RECEBIDA REQUISIÇÃO PARA EDITAR TEMPLATE:', JSON.stringify(body, null, 2))
@@ -112,9 +94,10 @@ export async function PUT(request: Request) {
     })
 
     return NextResponse.json(result)
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Failed to edit template'
     console.error('[API] Edit Template Error:', error)
-    return NextResponse.json({ error: error.message || 'Failed to edit template' }, { status: 500 })
+    return apiError(message, 500, error)
   }
 }
 
@@ -122,25 +105,20 @@ export async function DELETE(request: Request) {
   try {
     const access = await validateFullAccess(request)
     if (!access.hasAccess || !access.organizationId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return apiError('Unauthorized', 401)
     }
 
     const { searchParams } = new URL(request.url)
     const name = searchParams.get('name')
 
     if (!name) {
-      return NextResponse.json({ error: 'Template name is required' }, { status: 400 })
+      return apiError('Template name is required', 400)
     }
 
     const config = await MetaCloudService.getConfig(access.organizationId)
 
     if (!config || !config.wabaId) {
-      return NextResponse.json(
-        {
-          error: 'WhatsApp not configured for this organization',
-        },
-        { status: 404 }
-      )
+      return apiError('WhatsApp not configured for this organization', 404)
     }
 
     const result = await MetaCloudService.deleteTemplate({
@@ -150,11 +128,9 @@ export async function DELETE(request: Request) {
     })
 
     return NextResponse.json(result)
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Failed to delete template'
     console.error('[API] Delete Template Error:', error)
-    return NextResponse.json(
-      { error: error.message || 'Failed to delete template' },
-      { status: 500 }
-    )
+    return apiError(message, 500, error)
   }
 }

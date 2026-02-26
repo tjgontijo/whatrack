@@ -11,8 +11,6 @@ const BLOCKED_FOR_NON_PLATFORM_ADMIN: Permission[] = [
   'manage:integrations',
   'manage:meta',
   'manage:whatsapp',
-  'manage:team_members',
-  'manage:team_settings',
   'manage:members',
   'manage:organization',
   'manage:settings',

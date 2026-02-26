@@ -11,7 +11,7 @@ export async function GET(
 ) {
   const access = await validateFullAccess(req)
   if (!access.hasAccess || !access.organizationId) {
-    return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
+    return apiError(access.error ?? 'Acesso negado', 403)
   }
   const organizationId = access.organizationId
   const { itemId } = await params
@@ -19,7 +19,7 @@ export async function GET(
   try {
     const item = await getItemById({ organizationId, itemId })
     if (!item) {
-      return NextResponse.json({ error: 'Item não encontrado' }, { status: 404 })
+      return apiError('Item não encontrado', 404)
     }
 
     return NextResponse.json(item)
@@ -35,7 +35,7 @@ export async function PUT(
 ) {
   const access = await validateFullAccess(req)
   if (!access.hasAccess || !access.organizationId) {
-    return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
+    return apiError(access.error ?? 'Acesso negado', 403)
   }
   const organizationId = access.organizationId
   const { itemId } = await params
@@ -53,7 +53,7 @@ export async function PUT(
     })
 
     if ('error' in updated) {
-      return NextResponse.json({ error: updated.error }, { status: updated.status })
+      return apiError(updated.error, updated.status)
     }
 
     return NextResponse.json(updated)
@@ -69,7 +69,7 @@ export async function DELETE(
 ) {
   const access = await validateFullAccess(req)
   if (!access.hasAccess || !access.organizationId) {
-    return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
+    return apiError(access.error ?? 'Acesso negado', 403)
   }
   const organizationId = access.organizationId
   const { itemId } = await params
@@ -81,7 +81,7 @@ export async function DELETE(
     })
 
     if ('error' in result) {
-      return NextResponse.json({ error: result.error }, { status: result.status })
+      return apiError(result.error, result.status)
     }
 
     return NextResponse.json(result)

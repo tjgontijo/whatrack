@@ -3,13 +3,45 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db/prisma'
 import type { CreateAiAgentInput, UpdateAiAgentInput } from '@/schemas/ai/ai-schemas'
 
+const aiTriggerSelect = {
+  id: true,
+  agentId: true,
+  eventType: true,
+  conditions: true,
+  createdAt: true,
+  updatedAt: true,
+} satisfies Prisma.AiTriggerSelect
+
+const aiSchemaFieldSelect = {
+  id: true,
+  agentId: true,
+  fieldName: true,
+  fieldType: true,
+  description: true,
+  isRequired: true,
+  options: true,
+  createdAt: true,
+  updatedAt: true,
+} satisfies Prisma.AiSchemaFieldSelect
+
+const aiAgentSelect = {
+  id: true,
+  organizationId: true,
+  name: true,
+  icon: true,
+  systemPrompt: true,
+  model: true,
+  isActive: true,
+  createdAt: true,
+  updatedAt: true,
+  triggers: { select: aiTriggerSelect },
+  schemaFields: { select: aiSchemaFieldSelect },
+} satisfies Prisma.AiAgentSelect
+
 export async function listAiAgents(organizationId: string) {
   return prisma.aiAgent.findMany({
     where: { organizationId },
-    include: {
-      triggers: true,
-      schemaFields: true,
-    },
+    select: aiAgentSelect,
     orderBy: { createdAt: 'desc' },
   })
 }
@@ -46,10 +78,7 @@ export async function createAiAgent(organizationId: string, input: CreateAiAgent
           })) || [],
       },
     },
-    include: {
-      triggers: true,
-      schemaFields: true,
-    },
+    select: aiAgentSelect,
   })
 }
 
@@ -59,10 +88,7 @@ export async function getAiAgentById(organizationId: string, agentId: string) {
       id: agentId,
       organizationId,
     },
-    include: {
-      triggers: true,
-      schemaFields: true,
-    },
+    select: aiAgentSelect,
   })
 }
 
@@ -116,10 +142,7 @@ export async function updateAiAgent(
           })) || [],
       },
     },
-    include: {
-      triggers: true,
-      schemaFields: true,
-    },
+    select: aiAgentSelect,
   })
 
   return { data: updated }

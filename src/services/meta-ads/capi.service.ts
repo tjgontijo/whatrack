@@ -26,17 +26,37 @@ export class MetaCapiService {
   ) {
     const ticket = await prisma.ticket.findUnique({
       where: { id: ticketId },
-      include: {
+      select: {
+        id: true,
+        organizationId: true,
         organization: {
-          include: {
-            metaConnections: { where: { status: 'ACTIVE' }, take: 1 },
+          select: {
             metaPixels: {
+              select: {
+                pixelId: true,
+                capiToken: true,
+              },
               where: { isActive: true },
             },
           },
         },
-        conversation: { include: { lead: true } },
-        tracking: true,
+        conversation: {
+          select: {
+            lead: {
+              select: {
+                id: true,
+                phone: true,
+              },
+            },
+          },
+        },
+        tracking: {
+          select: {
+            ctwaclid: true,
+            landingPage: true,
+            metaAdId: true,
+          },
+        },
       },
     })
 

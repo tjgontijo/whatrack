@@ -9,7 +9,7 @@ import { validateFullAccess } from '@/server/auth/validate-organization-access'
 export async function POST(req: Request) {
   const access = await validateFullAccess(req)
   if (!access.hasAccess || !access.organizationId) {
-    return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
+    return apiError(access.error ?? 'Acesso negado', 403)
   }
   const organizationId = access.organizationId
   const userId = access.userId
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
 export async function GET(req: Request) {
   const access = await validateFullAccess(req)
   if (!access.hasAccess || !access.organizationId) {
-    return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
+    return apiError(access.error ?? 'Acesso negado', 403)
   }
   const organizationId = access.organizationId
 
@@ -44,10 +44,7 @@ export async function GET(req: Request) {
 
   const parsed = salesQuerySchema.safeParse(Object.fromEntries(searchParams))
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Parâmetros inválidos', details: parsed.error.flatten() },
-      { status: 400 }
-    )
+    return apiError('Parâmetros inválidos', 400, undefined, { details: parsed.error.flatten() })
   }
 
   try {

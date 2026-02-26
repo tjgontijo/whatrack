@@ -12,6 +12,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/utils/api-response'
 import { getJobTracker } from '@/lib/db/queue'
 import { drainDueClassifications } from '@/services/ai/ai-classifier.scheduler'
 import { dispatchAiEvent } from '@/services/ai/ai-execution.service'
@@ -24,7 +25,7 @@ const CRON_SECRET = process.env.CRON_SECRET
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
   if (!CRON_SECRET || authHeader !== `Bearer ${CRON_SECRET}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return apiError('Unauthorized', 401)
   }
 
   const jobTracker = getJobTracker()

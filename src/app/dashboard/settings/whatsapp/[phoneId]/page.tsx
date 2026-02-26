@@ -1,8 +1,8 @@
 'use client'
 
 import React, { Suspense } from 'react'
-import { InstanceDetail } from '@/components/whatsapp/instance-detail'
-import { SuspenseLoader } from '@/components/SuspenseLoader'
+import { InstanceDetail } from '@/components/dashboard/whatsapp/instance-detail'
+import { SuspenseLoader } from '@/components/shared/SuspenseLoader'
 
 interface PageProps {
   params: Promise<{ phoneId: string }>

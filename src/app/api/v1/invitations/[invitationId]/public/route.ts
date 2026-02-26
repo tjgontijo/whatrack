@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 
+import { apiError } from '@/lib/utils/api-response'
 import { getPublicInvitation } from '@/services/organizations/organization-invitations.service'
 
 export async function GET(
@@ -10,7 +11,7 @@ export async function GET(
   const result = await getPublicInvitation(invitationId)
 
   if ('error' in result) {
-    return NextResponse.json({ error: result.error }, { status: result.status })
+    return apiError(result.error, result.status)
   }
 
   return NextResponse.json(result, { status: 200 })

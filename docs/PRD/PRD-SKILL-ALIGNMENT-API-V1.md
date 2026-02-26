@@ -106,9 +106,10 @@ Todos os dominios acima estao com:
 
 ### 4.1 Pendencias nao estruturais (ainda faltam)
 
-1. Executar suite completa de fase/programa (`npm run test`, `npm run build`) para fechamento do ciclo.
-2. Hardening global restante (padronizacao de `apiError()`, auditoria final de `select` e revisao de handlers).
-3. Consolidar cobertura de testes dos services extraidos por dominio.
+1. Fechar `npm run build` com Turbopack em ambiente sem restricao de processo/rede (no sandbox atual ocorre `Operation not permitted`).
+2. Hardening global de `apiError()` concluido nas rotas restantes: **0 ocorrencias** de `NextResponse.json({ error ... })` em `src/app/api/v1`.
+3. Auditoria de `select` explicito concluida nos services remanescentes: **0 ocorrencias** de `include: { ...: true }` em `src/services`.
+4. Cobertura de testes consolidada para services extraidos por dominio com novos testes em `ai`, `meta-ads` e `whatsapp`.
 
 ---
 
@@ -123,17 +124,22 @@ Todos os dominios acima estao com:
 
 ### 5.2 Fechamento de Validacao de Programa
 
-1. Executar `npm run lint` (ja verde neste ciclo).
-2. Executar `npm run test` completo.
-3. Executar `npm run build`.
-4. Reexecutar gates estruturais (Prisma/Zod/cache/legacy/diretorios vazios) para garantir regressao zero.
+1. `npm run lint`: **verde**.
+2. `npm run test`: **verde** (24 arquivos / 60 testes).
+3. `npx tsc --noEmit`: **verde**.
+4. `npm run build` (Turbopack): **falha no sandbox** por restricao de ambiente (`Operation not permitted`).
+5. `npx next build --webpack` (fallback de validacao): **verde**.
+6. Gates estruturais (Prisma/Zod/cache/legacy/diretorios vazios): **todos zerados**.
 
-### 5.3 Hardening Final
+### 5.3 Hardening Final (concluido em 2026-02-26)
 
-1. Padronizar erros com `apiError()` nas routes que ainda retornam erro manual.
-2. Revisar `select` explicito em services novos para evitar excesso de dados.
-3. Revisar handlers para garantir ausencia de verificacao manual redundante de role/permissao quando guard ja cobre.
-4. Consolidar cobertura de testes dos services extraidos por dominio.
+1. Padronizacao `apiError()` concluida de forma global nas routes da API v1, incluindo os 37 arquivos pendentes.
+2. Scanner de validacao confirma **0** ocorrencias de `NextResponse.json({ error ... })` em handlers de route.
+3. Auditoria de `select` explicito concluida nos services remanescentes (`organization-management`, `meta-ads`, `ai-insight-query`, `whatsapp/history-sync-alerts`) com **0** `include` aberto por `true`.
+4. Cobertura automatizada adicionada para services extraidos por dominio:
+   - `src/services/ai/__tests__/ai-insight-query.service.test.ts`
+   - `src/services/meta-ads/__tests__/ad-enrichment.service.test.ts`
+   - `src/services/whatsapp/__tests__/history-sync-alerts.service.test.ts`
 
 ---
 

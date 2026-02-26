@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 
+import { apiError } from '@/lib/utils/api-response'
 import { MetaCloudService } from '@/services/whatsapp/meta-cloud.service'
 import { whatsappSendTemplateSchema } from '@/schemas/whatsapp/whatsapp-schemas'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
@@ -10,26 +11,18 @@ export async function POST(request: Request) {
   try {
     const access = await validateFullAccess(request)
     if (!access.hasAccess || !access.organizationId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return apiError('Unauthorized', 401)
     }
 
     const parsed = whatsappSendTemplateSchema.safeParse(await request.json())
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: 'Payload inválido', details: parsed.error.flatten() },
-        { status: 400 }
-      )
+      return apiError('Payload inválido', 400, undefined, { details: parsed.error.flatten() })
     }
 
     const config = await MetaCloudService.getConfig(access.organizationId)
 
     if (!config || !config.phoneId) {
-      return NextResponse.json(
-        {
-          error: 'WhatsApp not configured for this organization',
-        },
-        { status: 404 }
-      )
+      return apiError('WhatsApp not configured for this organization', 404)
     }
 
     const result = await MetaCloudService.sendTemplate({
@@ -43,6 +36,6 @@ export async function POST(request: Request) {
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to send message'
     console.error('[API] Send Template Error:', error)
-    return NextResponse.json({ error: message }, { status: 500 })
+    return apiError(message, 500, error)
   }
 }

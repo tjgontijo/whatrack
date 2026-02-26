@@ -13,7 +13,7 @@ interface SyncAlert {
   timestamp: Date
   configId: string
   organizationId: string
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 }
 
 export class HistorySyncAlertsService {
@@ -32,9 +32,6 @@ export class HistorySyncAlertsService {
           historySyncStartedAt: {
             lt: cutoffTime,
           },
-        },
-        include: {
-          organization: true,
         },
       })
 

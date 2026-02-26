@@ -9,39 +9,32 @@
 ## Arquitetura
 
 - Priorizar componentes server por padrao; usar `"use client"` somente quando necessario.
-- Proibido introduzir `useEffect`/`useLayoutEffect` em codigo da aplicacao (`src/`).
-- `useEffect` e considerado anti-padrao neste projeto para fluxo de dados/orquestracao de tela; entrega deve ser bloqueada se houver introducao.
+- Proibido introduzir `useEffect`/`useLayoutEffect` para fluxo de dados, orquestracao de tela ou sincronizacao de estado derivado.
 - Para efeitos de dados/fluxo, usar Server Components, Server Actions e composicao de props.
 - Handlers de API devem ser enxutos: autenticar, validar, delegar, responder. Nada mais.
 - Toda logica de negocio, query Prisma e cache pertencem a `src/services/` ou `src/server/`.
-- Padrao estrutural global: para codigo de dominio, usar sempre `src/<camada>/<dominio>/...` em todas as camadas aplicaveis (`app/api/v1`, `services`, `server`, `schemas`, `hooks`, `types`, `components/dashboard`).
-- Proibido criar arquivo de dominio em formato flat na raiz da camada (ex: `src/services/foo.service.ts`, `src/types/foo.ts`, `src/schemas/foo-schemas.ts`).
+- Padrao estrutural global: para codigo de dominio, usar sempre `src/<camada>/<dominio>/...` em todas as camadas aplicaveis.
+- Proibido criar arquivo de dominio em formato flat na raiz da camada (ex: `src/services/foo.service.ts`).
+- Em componentes React, feature de dashboard deve viver em `src/components/dashboard/[dominio]/...`.
+- Proibido criar pasta de dominio de dashboard direto em `src/components/<dominio>/...`.
 - Reutilizar utilitarios existentes em `src/lib/`, `src/hooks/`, `src/schemas/` antes de criar novos.
 - Schemas Zod novos sempre em `src/schemas/[dominio]/` — unico local permitido.
 - Evitar duplicacao de regras de negocio; centralizar em servicos.
 
-## Compartilhamento entre dominios (anti-gambiarra)
+## Compartilhamento entre dominios
 
-- Proibido criar wrapper/alias entre dominios apenas para reaproveitar regra (ex: `team-*` chamando `organization-*`).
-- Quando a regra for comum a 2+ dominios, extrair para modulo neutro em `src/lib/` (utilitario puro) ou `src/services/shared/` (regra de negocio).
+- Proibido criar wrappers/aliases entre dominios apenas para reaproveitar regra.
+- Quando a logica for comum a 2+ dominios, extrair para modulo neutro em `src/lib/` (utilitario puro) ou `src/services/shared/` (regra de negocio).
 - Consumidores devem depender do modulo neutro diretamente; evitar camadas intermediarias sem valor funcional.
-- Antes de entregar, verificar se a nomenclatura do modulo compartilhado e generica (nao acoplada a um dominio especifico).
-- Em projeto greenfield sem clientes ativos, nao manter compatibilidade legada por alias/fallback (`legacy*`, `team*`, headers antigos, parametros duplicados).
+- Proibido criar wrappers sem valor funcional sobre utilitarios existentes (ex: funcao que apenas encapsula `NextResponse.json()` sem adicionar logica).
 
-## Politica Anti-Legado (regra de bloqueio)
+## Higiene de codigo
 
-- Regra inegociavel: este projeto nao deve carregar compatibilidade com contratos legados no `src/`.
-- Proibido manter aliases/fallbacks de compatibilidade (ex: `legacy*`, `team*`, `x-team-id`, `teamId`, `teamType`, `manage:team_*`).
-- Se houver ocorrencia desses padroes no `src/`, a entrega deve ser bloqueada ate a remocao.
-
-## Higiene de codigo (anti-lixo)
-
-- Entrega bloqueada se restarem arquivos obsoletos apos refactor (modulos antigos, wrappers temporarios, testes antigos sem uso).
+- Entrega bloqueada se restarem arquivos obsoletos apos refactor (modulos antigos, wrappers sem consumidor real, testes sem uso).
 - Entrega bloqueada se restarem diretorios vazios apos mover/remover arquivos.
-- Proibido manter codigo morto comentado ou aliases de compatibilidade sem consumidor real.
-- Em mudanca estrutural, executar checagem de higiene antes da entrega:
-  - referencias antigas removidas via `rg` nos caminhos afetados.
-  - compatibilidade obsoleta removida no codigo da aplicacao via `rg -n "legacy|teamType|teamId|x-team-id|manage:team_" src`.
+- Proibido manter codigo morto comentado sem justificativa.
+- Em mudanca estrutural, verificar antes da entrega:
+  - referencias antigas removidas nos caminhos afetados.
   - diretorios vazios removidos via `find src -type d -empty`.
 
 ## Anatomia de Route (regra critica)
@@ -49,7 +42,7 @@
 Cada handler de route deve seguir exatamente esta estrutura, nesta ordem:
 
 ```
-1. Autenticacao/autorizacao  → validatePermissionAccess() ou validateFullAccess()
+1. Autenticacao/autorizacao  → guard de acesso importado de src/server/
 2. Parse de parametros       → schema.safeParse() com schema importado de src/schemas/
 3. Delegacao ao servico      → await recursoService.metodo(params)
 4. Resposta HTTP             → NextResponse.json() | apiError()
@@ -57,11 +50,11 @@ Cada handler de route deve seguir exatamente esta estrutura, nesta ordem:
 
 **O que NUNCA deve estar dentro de uma route:**
 - Schemas Zod declarados inline (definir em `src/schemas/`)
-- Queries Prisma diretas (delegar para service, exceto acesso trivial de 1 campo sem logica)
+- Queries Prisma diretas (delegar para service)
 - Funcoes helper (datas, filtros, formatacao) — mover para `src/lib/`
 - Logica de cache (mover para o service)
-- Verificacoes de role manual apos `validatePermissionAccess` (confiar no guard)
-- `serialize()`, `Map` de cache ou qualquer estado compartilhado entre requests
+- Verificacoes de role manual apos o guard de acesso
+- Estado compartilhado entre requests (Map, filas, variaveis de modulo)
 
 **Tamanho esperado por handler:** ~30-50 linhas. Se ultrapassar, ha logica fora do lugar.
 
@@ -69,29 +62,31 @@ Cada handler de route deve seguir exatamente esta estrutura, nesta ordem:
 
 ### Arquivos
 
-| Tipo                    | Padrao                        | Exemplo                          |
-|-------------------------|-------------------------------|----------------------------------|
-| Route handler           | `route.ts`                    | `src/app/api/v1/leads/route.ts`  |
-| Service                 | `[recurso].service.ts`        | `src/services/leads/lead.service.ts` |
-| Scheduler               | `[recurso].scheduler.ts`      | `src/services/ai/ai-classifier.scheduler.ts` |
-| Handler (webhook/event) | `[tipo].handler.ts`           | `message.handler.ts`             |
-| Schema Zod              | `[recurso]-schemas.ts`        | `ticket/ticket-schemas.ts`       |
-| Hook React              | `use-[recurso].ts`            | `src/hooks/organizations/use-organization.ts` |
-| Componente de pagina    | `kebab-case.tsx`              | `client-leads-table.tsx`         |
-| Componente landing      | `PascalCase.tsx`              | `LandingHero.tsx`                |
-| Utilitario puro         | `[funcao].ts`                 | `date-range.ts`                  |
-| Tipo/Constante de dominio | `[recurso].ts`              | `src/types/tickets/ticket-statuses.ts` |
+| Tipo                      | Padrao                   | Exemplo                                              |
+|---------------------------|--------------------------|------------------------------------------------------|
+| Route handler             | `route.ts`               | `src/app/api/v1/leads/route.ts`                      |
+| Service                   | `[recurso].service.ts`   | `src/services/leads/lead.service.ts`                 |
+| Scheduler                 | `[recurso].scheduler.ts` | `src/services/ai/ai.scheduler.ts`                    |
+| Handler (webhook/evento)  | `[tipo].handler.ts`      | `src/services/whatsapp/handlers/message.handler.ts`  |
+| Schema Zod                | `[recurso]-schemas.ts`   | `src/schemas/tickets/ticket-schemas.ts`              |
+| Hook React                | `use-[recurso].ts`       | `src/hooks/organizations/use-organization.ts`        |
+| Componente dashboard      | `kebab-case.tsx`         | `client-leads-table.tsx`                             |
+| Componente landing        | `PascalCase.tsx`         | `LandingHero.tsx`                                    |
+| Utilitario puro           | `[funcao].ts`            | `src/lib/date/date-range.ts`                         |
+| Tipo TypeScript           | `[recurso].ts`           | `src/types/tickets/ticket.ts`                        |
 
 ### Diretorios e co-localizacao
 
 - Componentes de dashboard: sempre em `src/components/dashboard/[dominio]/`.
-- Componentes co-localizados na page (especificos de rota): aceitos em `src/app/dashboard/[rota]/components/` apenas se o componente nao for reutilizado em outro lugar.
-- Tipos compartilhados de dominio: `src/types/[dominio]/[recurso].ts`.
-- Schemas de validacao: `src/schemas/[dominio]/[recurso]-schemas.ts`.
+- Nao criar `src/components/<dominio>/` para dominio do dashboard; mover para `src/components/dashboard/[dominio]/`.
+- `src/components/` raiz deve ser reservado para compartilhados/transversais (ex: `ui`, `data-table`, `landing`, `onboarding` e utilitarios globais).
+- Componentes exclusivos de uma rota: aceitos em `src/app/dashboard/[rota]/components/` se nao reutilizados.
+- Tipos compartilhados: `src/types/[dominio]/[recurso].ts`.
+- Schemas Zod: `src/schemas/[dominio]/[recurso]-schemas.ts`.
 
 ## Convencao Next.js
 
-- Usar `src/proxy.ts` para interceptacao de requests no lugar de middleware.
+- Usar `src/proxy.ts` para interceptacao de requests no nivel de framework.
 - Nunca criar `src/middleware.ts` neste projeto.
 - Se o pedido mencionar "middleware", interpretar como alteracao em `src/proxy.ts`.
 
@@ -106,8 +101,8 @@ Cada handler de route deve seguir exatamente esta estrutura, nesta ordem:
 
 ## Dados e Prisma
 
-- Queries Prisma pertencem exclusivamente a services (`src/services/`) ou server utils (`src/server/`).
-- Nunca query inline em route handler (exceto acesso de 1 campo sem logica condicional).
+- Queries Prisma pertencem exclusivamente a `src/services/` ou `src/server/`.
+- Nunca query inline em route handler.
 - Usar `prisma.$transaction` quando multiplas operacoes precisam ser atomicas.
 - Evitar `include` aberto; sempre usar `select` para limitar campos retornados.
 - Quando tocar em persistencia, validar tambem cenarios de erro e dados vazios.
@@ -115,17 +110,17 @@ Cada handler de route deve seguir exatamente esta estrutura, nesta ordem:
 ## Cache
 
 - Padrao global: nao implementar cache manual em route.
-- Cache Redis: implementar no service, nunca na route, e apenas quando houver evidencia de gargalo.
-- Cache em memoria (Map): proibido em routes e em modulo de escopo global de server (risco de leak entre requests em serverless).
-- Em listagens novas, o padrao inicial e sem cache manual; adicionar cache somente com justificativa tecnica.
-- Usar `revalidateTag` no route apos mutacoes, nunca dentro do service.
+- Cache (Redis ou similar): implementar no service, nunca na route, apenas quando houver evidencia de necessidade.
+- Cache em memoria (Map, variaveis de modulo): proibido em routes e em escopo global de server.
+- Usar `revalidateTag` na route apos mutacoes, nunca dentro do service.
 
 ## Autorizacao
 
-- Usar sempre `validatePermissionAccess(req, 'permissao:recurso')` para rotas com RBAC granular.
-- Usar `validateFullAccess(req)` para rotas que exigem apenas autenticacao + membership.
-- Usar `validateAdminAccess(req)` para rotas restritas a owner/admin — nao redeclarar essa logica no handler.
-- Nao adicionar verificacoes de role manual apos o guard: confiar no retorno `hasAccess`.
+- Usar guards de acesso importados de `src/server/auth/` — nunca replicar logica de verificacao inline.
+- Usar guard com permissao granular (RBAC) para rotas que exigem permissao especifica.
+- Usar guard de membership simples para rotas abertas a qualquer membro autenticado.
+- Usar guard de admin/owner para rotas administrativas — nao redeclarar essa logica no handler.
+- Nao adicionar verificacoes de role manual apos o guard: confiar no retorno de acesso.
 
 ## UI e UX
 
@@ -135,14 +130,14 @@ Cada handler de route deve seguir exatamente esta estrutura, nesta ordem:
 
 ## Testes e validacao
 
-- Regra obrigatoria de entrega: toda tarefa que altera comportamento deve criar ou atualizar pelo menos um teste automatizado.
-- O teste criado/atualizado deve ser executado antes da entrega (entrega bloqueada sem execucao de teste).
+- Regra obrigatoria: toda tarefa que altera comportamento deve criar ou atualizar pelo menos um teste.
+- O teste criado/atualizado deve ser executado antes da entrega.
 - Priorizar testes direcionados aos modulos impactados.
 - Rodar validacoes proporcionais ao risco:
   - Mudanca pequena: testes direcionados.
   - Mudanca media: `npm run lint` + testes direcionados.
   - Mudanca ampla/estrutural: `npm run lint`, `npm run test`, `npm run build`.
-  - Mudanca com impacto em Prisma: adicionar `npm run test:prisma` (complementar, nao substituto).
+  - Mudanca com impacto em Prisma: adicionar `npm run test:prisma`.
 - Se nao rodar algum comando relevante, explicitar motivo no resultado final.
 
 ## Resposta final

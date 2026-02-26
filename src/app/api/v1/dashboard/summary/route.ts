@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 
+import { apiError } from '@/lib/utils/api-response'
 import { dashboardSummaryQuerySchema } from '@/schemas/dashboard/dashboard-schemas'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { getDashboardSummary } from '@/services/dashboard/dashboard-summary.service'
@@ -7,7 +8,7 @@ import { getDashboardSummary } from '@/services/dashboard/dashboard-summary.serv
 export async function GET(request: Request) {
   const access = await validateFullAccess(request)
   if (!access.hasAccess || !access.organizationId) {
-    return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
+    return apiError(access.error ?? 'Acesso negado', 403)
   }
 
   const parsed = dashboardSummaryQuerySchema.safeParse(
@@ -15,10 +16,7 @@ export async function GET(request: Request) {
   )
 
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Parâmetros inválidos', details: parsed.error.flatten() },
-      { status: 400 }
-    )
+    return apiError('Parâmetros inválidos', 400, undefined, { details: parsed.error.flatten() })
   }
 
   try {
@@ -26,6 +24,6 @@ export async function GET(request: Request) {
     return NextResponse.json(payload)
   } catch (error) {
     console.error('[api/dashboard/summary] GET error:', error)
-    return NextResponse.json({ error: 'Falha ao gerar resumo' }, { status: 500 })
+    return apiError('Falha ao gerar resumo', 500, error)
   }
 }

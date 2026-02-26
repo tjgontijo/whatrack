@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+import { apiError } from '@/lib/utils/api-response'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { updateTicketStageSchema } from '@/schemas/tickets/ticket-stage-schemas'
 import { deleteTicketStage, updateTicketStage } from '@/services/ticket-stages/ticket-stage.service'
@@ -7,17 +8,14 @@ import { deleteTicketStage, updateTicketStage } from '@/services/ticket-stages/t
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ stageId: string }> }) {
   const access = await validatePermissionAccess(req, 'manage:tickets')
   if (!access.hasAccess || !access.organizationId) {
-    return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
+    return apiError(access.error ?? 'Acesso negado', 403)
   }
 
   try {
     const body = await req.json()
     const parsed = updateTicketStageSchema.safeParse(body)
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: 'Dados inválidos', details: parsed.error.flatten() },
-        { status: 400 }
-      )
+      return apiError('Dados inválidos', 400, undefined, { details: parsed.error.flatten() })
     }
 
     const { stageId } = await params
@@ -31,13 +29,13 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ stag
     })
 
     if ('error' in result) {
-      return NextResponse.json({ error: result.error }, { status: result.status })
+      return apiError(result.error, result.status)
     }
 
     return NextResponse.json(result)
   } catch (error) {
     console.error('[ticket-stages/[stageId]] PUT error:', error)
-    return NextResponse.json({ error: 'Falha ao atualizar fase' }, { status: 500 })
+    return apiError('Falha ao atualizar fase', 500, error)
   }
 }
 
@@ -47,7 +45,7 @@ export async function DELETE(
 ) {
   const access = await validatePermissionAccess(req, 'manage:tickets')
   if (!access.hasAccess || !access.organizationId) {
-    return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
+    return apiError(access.error ?? 'Acesso negado', 403)
   }
 
   try {
@@ -58,12 +56,12 @@ export async function DELETE(
     })
 
     if ('error' in result) {
-      return NextResponse.json({ error: result.error }, { status: result.status })
+      return apiError(result.error, result.status)
     }
 
     return NextResponse.json(result)
   } catch (error) {
     console.error('[ticket-stages/[stageId]] DELETE error:', error)
-    return NextResponse.json({ error: 'Falha ao excluir fase' }, { status: 500 })
+    return apiError('Falha ao excluir fase', 500, error)
   }
 }

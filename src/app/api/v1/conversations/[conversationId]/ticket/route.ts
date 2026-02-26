@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+import { apiError } from '@/lib/utils/api-response'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { getConversationOpenTicket } from '@/services/conversations/conversation-ticket.service'
 
@@ -11,7 +12,7 @@ export async function GET(
     const access = await validatePermissionAccess(request, 'view:tickets')
 
     if (!access.hasAccess || !access.organizationId) {
-      return NextResponse.json({ error: access.error || 'Unauthorized' }, { status: 401 })
+      return apiError(access.error || 'Unauthorized', 401)
     }
 
     const { conversationId } = await params
@@ -21,12 +22,12 @@ export async function GET(
     })
 
     if ('error' in result) {
-      return NextResponse.json({ error: result.error }, { status: result.status })
+      return apiError(result.error, result.status)
     }
 
     return NextResponse.json(result.data, { status: result.status })
   } catch (error) {
     console.error('[Conversation Ticket] Error:', error)
-    return NextResponse.json({ error: 'Failed to fetch ticket' }, { status: 500 })
+    return apiError('Failed to fetch ticket', 500, error)
   }
 }

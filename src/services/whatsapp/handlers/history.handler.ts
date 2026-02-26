@@ -47,7 +47,11 @@ export async function historyHandler(payload: any): Promise<void> {
   // Find WhatsAppConfig by phoneNumberId
   const config = await prisma.whatsAppConfig.findUnique({
     where: { phoneId: phoneNumberId },
-    include: { organization: true },
+    select: {
+      id: true,
+      organizationId: true,
+      historySyncStartedAt: true,
+    },
   })
 
   if (!config) {

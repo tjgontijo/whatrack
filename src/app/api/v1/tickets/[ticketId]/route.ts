@@ -9,7 +9,7 @@ import { getTicketById, updateTicketAndTrackCapi } from '@/services/tickets/tick
 export async function GET(req: NextRequest, { params }: { params: Promise<{ ticketId: string }> }) {
   const access = await validatePermissionAccess(req, 'view:tickets')
   if (!access.hasAccess || !access.organizationId) {
-    return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
+    return apiError(access.error ?? 'Acesso negado', 403)
   }
 
   const { ticketId } = await params
@@ -17,7 +17,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ tick
   try {
     const ticket = await getTicketById(ticketId, access.organizationId)
     if (!ticket) {
-      return NextResponse.json({ error: 'Ticket não encontrado' }, { status: 404 })
+      return apiError('Ticket não encontrado', 404)
     }
     return NextResponse.json(ticket)
   } catch (error) {
@@ -32,7 +32,7 @@ export async function PATCH(
 ) {
   const access = await validatePermissionAccess(req, 'manage:tickets')
   if (!access.hasAccess || !access.organizationId) {
-    return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
+    return apiError(access.error ?? 'Acesso negado', 403)
   }
 
   const { ticketId } = await params
@@ -41,10 +41,7 @@ export async function PATCH(
     const body = await req.json()
     const parsed = updateTicketSchema.safeParse(body)
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: 'Dados inválidos', details: parsed.error.flatten() },
-        { status: 400 }
-      )
+      return apiError('Dados inválidos', 400, undefined, { details: parsed.error.flatten() })
     }
 
     const result = await updateTicketAndTrackCapi({
@@ -56,7 +53,7 @@ export async function PATCH(
     })
 
     if ('error' in result) {
-      return NextResponse.json({ error: result.error }, { status: result.status })
+      return apiError(result.error, result.status)
     }
 
     await revalidateTag(`org-${access.organizationId}`, 'max')

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createHmac } from 'crypto'
+import { apiError } from '@/lib/utils/api-response'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { rateLimitMiddleware } from '@/lib/utils/rate-limit.middleware'
 
@@ -25,14 +26,14 @@ export async function GET(request: NextRequest) {
     const access = await validateFullAccess(request)
 
     if (!access.hasAccess || !access.userId || !access.organizationId) {
-      return NextResponse.json({ error: access.error || 'Unauthorized' }, { status: 401 })
+      return apiError(access.error || 'Unauthorized', 401)
     }
 
     const secret = process.env.CENTRIFUGO_TOKEN_HMAC_SECRET_KEY
 
     if (!secret) {
       console.error('[Centrifugo] CENTRIFUGO_TOKEN_HMAC_SECRET_KEY not configured')
-      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
+      return apiError('Server configuration error', 500)
     }
 
     // Generate JWT token with user and organization context
@@ -61,6 +62,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ token }, { status: 200 })
   } catch (error) {
     console.error('[Centrifugo] Token generation error:', error)
-    return NextResponse.json({ error: 'Failed to generate token' }, { status: 500 })
+    return apiError('Failed to generate token', 500, error)
   }
 }

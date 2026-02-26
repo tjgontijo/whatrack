@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+import { apiError } from '@/lib/utils/api-response'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { buildMetaAdsAuthorizeUrl } from '@/services/meta-ads/meta-oauth.service'
 import { createMetaOAuthState } from '@/services/meta-ads/meta-oauth-state.service'
@@ -8,7 +9,7 @@ export async function GET(req: NextRequest) {
   const access = await validateFullAccess(req)
 
   if (!access.hasAccess || !access.organizationId || !access.userId) {
-    return NextResponse.json({ error: access.error || 'Unauthorized' }, { status: 401 })
+    return apiError(access.error || 'Unauthorized', 401)
   }
 
   const clientId = process.env.META_ADS_APP_ID
@@ -17,7 +18,7 @@ export async function GET(req: NextRequest) {
 
   if (!clientId) {
     console.error('[MetaAdsConnect] META_ADS_APP_ID not configured')
-    return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
+    return apiError('Server configuration error', 500)
   }
 
   const stateToken = await createMetaOAuthState({

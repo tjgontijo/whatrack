@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 
+import { apiError } from '@/lib/utils/api-response'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import {
   createItemCategorySchema,
@@ -15,7 +16,7 @@ export async function GET(request: Request) {
   try {
     const access = await validateFullAccess(request)
     if (!access.hasAccess || !access.organizationId) {
-      return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
+      return apiError(access.error ?? 'Acesso negado', 403)
     }
     const organizationId = access.organizationId
 
@@ -28,7 +29,7 @@ export async function GET(request: Request) {
     })
 
     if (!parsed.success) {
-      return NextResponse.json({ error: 'Invalid query params' }, { status: 400 })
+      return apiError('Invalid query params', 400)
     }
 
     const payload: ListItemCategoriesParams = {
@@ -42,7 +43,7 @@ export async function GET(request: Request) {
     return NextResponse.json(await listItemCategories(payload))
   } catch (error) {
     console.error('[api/item-categories] GET error', error)
-    return NextResponse.json({ error: 'Failed to load categories' }, { status: 500 })
+    return apiError('Failed to load categories', 500, error)
   }
 }
 
@@ -50,7 +51,7 @@ export async function POST(request: Request) {
   try {
     const access = await validateFullAccess(request)
     if (!access.hasAccess || !access.organizationId) {
-      return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
+      return apiError(access.error ?? 'Acesso negado', 403)
     }
     const organizationId = access.organizationId
 
@@ -58,10 +59,7 @@ export async function POST(request: Request) {
     const parsed = createItemCategorySchema.safeParse(json)
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: 'Invalid payload', details: parsed.error.flatten() },
-        { status: 400 }
-      )
+      return apiError('Invalid payload', 400, undefined, { details: parsed.error.flatten() })
     }
 
     const result = await createItemCategory({
@@ -72,6 +70,6 @@ export async function POST(request: Request) {
     return NextResponse.json(result, { status: 201 })
   } catch (error) {
     console.error('[api/item-categories] POST error', error)
-    return NextResponse.json({ error: 'Failed to create category' }, { status: 500 })
+    return apiError('Failed to create category', 500, error)
   }
 }

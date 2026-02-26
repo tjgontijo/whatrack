@@ -33,7 +33,7 @@ import {
 import { CrudDataView } from './crud-data-view-wrapper'
 import type { WhatsAppPhoneNumber, WhatsAppTemplate } from '@/types/whatsapp'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { TemplateEditorForm } from '@/components/whatsapp/template-editor/template-editor-form'
+import { TemplateEditorForm } from '@/components/dashboard/whatsapp/template-editor/template-editor-form'
 
 interface TemplatesViewProps {
   phone: WhatsAppPhoneNumber

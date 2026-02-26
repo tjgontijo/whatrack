@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+import { apiError } from '@/lib/utils/api-response'
 import { campaignsQuerySchema } from '@/schemas/meta-ads/meta-ads-schemas'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { metaCampaignsService } from '@/services/meta-ads/campaigns.service'
@@ -7,20 +8,17 @@ import { metaCampaignsService } from '@/services/meta-ads/campaigns.service'
 export async function GET(req: NextRequest) {
   const access = await validatePermissionAccess(req, 'view:campaigns')
   if (!access.hasAccess || !access.organizationId) {
-    return NextResponse.json({ error: access.error ?? 'Unauthorized' }, { status: 401 })
+    return apiError(access.error ?? 'Unauthorized', 401)
   }
 
   const parsed = campaignsQuerySchema.safeParse(Object.fromEntries(new URL(req.url).searchParams))
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Parâmetros inválidos', details: parsed.error.flatten() },
-      { status: 400 }
-    )
+    return apiError('Parâmetros inválidos', 400, undefined, { details: parsed.error.flatten() })
   }
 
   const scopedOrganizationId = parsed.data.organizationId ?? access.organizationId
   if (scopedOrganizationId !== access.organizationId) {
-    return NextResponse.json({ error: 'Forbidden for requested organization' }, { status: 403 })
+    return apiError('Forbidden for requested organization', 403)
   }
 
   try {
@@ -33,9 +31,6 @@ export async function GET(req: NextRequest) {
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown error'
     console.error('[Meta Campaigns API]', message)
-    return NextResponse.json(
-      { error: 'Failed to fetch campaigns', details: message },
-      { status: 500 }
-    )
+    return apiError('Failed to fetch campaigns', 500, message)
   }
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+import { apiError } from '@/lib/utils/api-response'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { rejectAiInsight } from '@/services/ai/ai-insight-query.service'
 
@@ -7,19 +8,19 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   try {
     const access = await validatePermissionAccess(request, 'manage:ai')
     if (!access.hasAccess || !access.userId || !access.organizationId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return apiError('Unauthorized', 401)
     }
 
     const insightId = (await params).id
     const result = await rejectAiInsight(access.organizationId, insightId)
 
     if ('error' in result) {
-      return NextResponse.json({ error: result.error }, { status: result.status })
+      return apiError(result.error, result.status)
     }
 
     return NextResponse.json(result.data)
   } catch (error) {
     console.error('[Reject AI Insight] Error:', error)
-    return NextResponse.json({ error: 'Erro interno ao descartar insight' }, { status: 500 })
+    return apiError('Erro interno ao descartar insight', 500, error)
   }
 }

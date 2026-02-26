@@ -13,7 +13,7 @@ import { validateFullAccess } from '@/server/auth/validate-organization-access'
 export async function GET(req: NextRequest, { params }: { params: Promise<{ leadId: string }> }) {
   const access = await validateFullAccess(req)
   if (!access.hasAccess || !access.organizationId) {
-    return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
+    return apiError(access.error ?? 'Acesso negado', 403)
   }
   const organizationId = access.organizationId
   const { leadId } = await params
@@ -22,7 +22,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ lead
     const lead = await getLeadById(organizationId, leadId)
 
     if (!lead) {
-      return NextResponse.json({ error: 'Lead não encontrado' }, { status: 404 })
+      return apiError('Lead não encontrado', 404)
     }
 
     return NextResponse.json(lead)
@@ -35,7 +35,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ lead
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ leadId: string }> }) {
   const access = await validateFullAccess(req)
   if (!access.hasAccess || !access.organizationId) {
-    return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
+    return apiError(access.error ?? 'Acesso negado', 403)
   }
   const organizationId = access.organizationId
   const { leadId } = await params
@@ -50,7 +50,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ lead
       input: validated,
     })
     if (!updated) {
-      return NextResponse.json({ error: 'Lead não encontrado' }, { status: 404 })
+      return apiError('Lead não encontrado', 404)
     }
 
     return NextResponse.json(updated)
@@ -59,16 +59,10 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ lead
 
     if (error instanceof LeadConflictError) {
       if (error.field === 'phone') {
-        return NextResponse.json(
-          { error: 'Já existe um lead com este número de telefone nesta organização' },
-          { status: 409 }
-        )
+        return apiError('Já existe um lead com este número de telefone nesta organização', 409)
       }
       if (error.field === 'waId') {
-        return NextResponse.json(
-          { error: 'Já existe um lead com este ID do WhatsApp nesta organização' },
-          { status: 409 }
-        )
+        return apiError('Já existe um lead com este ID do WhatsApp nesta organização', 409)
       }
     }
 
@@ -82,7 +76,7 @@ export async function DELETE(
 ) {
   const access = await validateFullAccess(req)
   if (!access.hasAccess || !access.organizationId) {
-    return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
+    return apiError(access.error ?? 'Acesso negado', 403)
   }
   const organizationId = access.organizationId
   const { leadId } = await params
@@ -93,7 +87,7 @@ export async function DELETE(
       leadId,
     })
     if (!deleted) {
-      return NextResponse.json({ error: 'Lead não encontrado' }, { status: 404 })
+      return apiError('Lead não encontrado', 404)
     }
 
     return NextResponse.json({ success: true })

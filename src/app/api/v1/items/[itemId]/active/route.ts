@@ -10,7 +10,7 @@ export async function PATCH(
 ) {
   const access = await validateFullAccess(req)
   if (!access.hasAccess || !access.organizationId) {
-    return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
+    return apiError(access.error ?? 'Acesso negado', 403)
   }
   const organizationId = access.organizationId
   const { itemId } = await params
@@ -22,7 +22,7 @@ export async function PATCH(
     })
 
     if ('error' in updated) {
-      return NextResponse.json({ error: updated.error }, { status: updated.status })
+      return apiError(updated.error, updated.status)
     }
 
     return NextResponse.json(updated)

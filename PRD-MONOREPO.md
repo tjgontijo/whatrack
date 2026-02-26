@@ -212,8 +212,8 @@ apps/api/
 ### Estratégia de Cutover e Rollback (Zero Downtime)
 - [ ] Introduzir feature flag `API_BACKEND_TARGET=next|hono` no `apps/web` para trocar backend sem redeploy estrutural
 - [ ] Fazer migração de rotas por domínio com fallback imediato para Next API routes
-- [ ] Manter dual-run do Mastra por janela curta (`AI_RUNTIME_TARGET=legacy|mastra`) até validar paridade dos insights
-- [ ] Definir rollback por fase: rollback = voltar flag para `next`/`legacy` + redeploy do app chamador
+- [ ] Manter dual-run do Mastra por janela curta (`AI_RUNTIME_TARGET=previous|mastra`) até validar paridade dos insights
+- [ ] Definir rollback por fase: rollback = voltar flag para `next`/`previous` + redeploy do app chamador
 - [ ] Validar SLOs por fase (taxa de erro, latência p95, sucesso de autenticação) antes de avançar
 
 ---
@@ -733,7 +733,7 @@ Esperado: `200`.
 ### 14.12 Rollback operacional (5 minutos)
 
 1. Voltar flag `API_BACKEND_TARGET=next` no `apps/web` (se aplicável).
-2. Voltar flag `AI_RUNTIME_TARGET=legacy` no serviço chamador.
+2. Voltar flag `AI_RUNTIME_TARGET=previous` no serviço chamador.
 3. Redeploy do `apps/web`/`apps/api`.
 4. Revalidar login, rota crítica e geração de insight.
 5. Manter `apps/mastra` isolado enquanto investiga incidente.

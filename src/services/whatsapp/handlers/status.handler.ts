@@ -56,7 +56,11 @@ export async function statusHandler(payload: any): Promise<void> {
       // Find message by wamid
       const message = await prisma.message.findUnique({
         where: { wamid },
-        include: { conversation: true },
+        select: {
+          id: true,
+          conversationId: true,
+          status: true,
+        },
       })
 
       if (!message) {

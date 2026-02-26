@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+import { apiError } from '@/lib/utils/api-response'
 import { getServerSession } from '@/server/auth/server'
 import { getOrganizationCompletion } from '@/services/organizations/organization.service'
 
 export async function GET(request: NextRequest) {
   const session = await getServerSession(request)
   if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return apiError('Unauthorized', 401)
   }
 
   const completion = await getOrganizationCompletion({

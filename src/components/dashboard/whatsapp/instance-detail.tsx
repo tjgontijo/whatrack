@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge'
 import { parsePhoneNumberFromString } from 'libphonenumber-js'
 import * as Flags from 'country-flag-icons/react/3x2'
 
-import { OverviewView } from '@/components/whatsapp/settings/overview-view'
+import { OverviewView } from '@/components/dashboard/whatsapp/settings/overview-view'
 
 interface InstanceDetailProps {
   phoneId: string

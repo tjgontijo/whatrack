@@ -6,6 +6,7 @@
 
 import { NextResponse } from 'next/server'
 
+import { apiError } from '@/lib/utils/api-response'
 import { getOrSyncUser } from '@/server/auth/server'
 import { updateOrganizationByIdSchema } from '@/schemas/organizations/organization-schemas'
 import { updateOrganizationById } from '@/services/organizations/organization-management.service'
@@ -15,17 +16,14 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     const user = await getOrSyncUser(request)
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return apiError('Unauthorized', 401)
     }
 
     const { id: organizationId } = await params
     const rawBody = await request.json().catch(() => null)
     const parsed = updateOrganizationByIdSchema.safeParse(rawBody)
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: 'Dados inválidos', details: parsed.error.flatten() },
-        { status: 400 }
-      )
+      return apiError('Dados inválidos', 400, undefined, { details: parsed.error.flatten() })
     }
 
     const result = await updateOrganizationById({
@@ -35,12 +33,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     })
 
     if ('error' in result) {
-      return NextResponse.json({ error: result.error }, { status: result.status })
+      return apiError(result.error, result.status)
     }
 
     return NextResponse.json(result, { status: 200 })
   } catch (error) {
     console.error('Failed to update organization:', error)
-    return NextResponse.json({ error: 'Failed to update organization' }, { status: 500 })
+    return apiError('Failed to update organization', 500, error)
   }
 }

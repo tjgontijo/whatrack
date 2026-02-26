@@ -9,14 +9,25 @@ export async function listAiInsights(organizationId: string, status: string) {
         status: 'open',
       },
     },
-    include: {
+    select: {
+      id: true,
+      organizationId: true,
+      ticketId: true,
+      status: true,
+      payload: true,
+      createdAt: true,
+      updatedAt: true,
       agent: {
         select: { name: true, icon: true },
       },
       ticket: {
-        include: {
+        select: {
+          id: true,
+          conversationId: true,
+          status: true,
           conversation: {
-            include: {
+            select: {
+              id: true,
               lead: {
                 select: { name: true, phone: true, profilePicUrl: true },
               },

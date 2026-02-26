@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+import { apiError } from '@/lib/utils/api-response'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { createMetaPixel, listMetaPixels } from '@/services/meta-ads/meta-pixel.service'
 
@@ -8,11 +9,11 @@ export async function GET(req: NextRequest) {
   const requestedOrganizationId = new URL(req.url).searchParams.get('organizationId')
 
   if (!access.hasAccess || !access.organizationId) {
-    return NextResponse.json({ error: access.error ?? 'Unauthorized' }, { status: 401 })
+    return apiError(access.error ?? 'Unauthorized', 401)
   }
 
   if (requestedOrganizationId && requestedOrganizationId !== access.organizationId) {
-    return NextResponse.json({ error: 'Forbidden for requested organization' }, { status: 403 })
+    return apiError('Forbidden for requested organization', 403)
   }
 
   const pixels = await listMetaPixels(access.organizationId)
@@ -23,7 +24,7 @@ export async function POST(req: NextRequest) {
   const access = await validatePermissionAccess(req, 'manage:integrations')
 
   if (!access.hasAccess || !access.organizationId) {
-    return NextResponse.json({ error: access.error ?? 'Unauthorized' }, { status: 401 })
+    return apiError(access.error ?? 'Unauthorized', 401)
   }
 
   try {
@@ -31,11 +32,11 @@ export async function POST(req: NextRequest) {
     const scopedOrganizationId = body.organizationId ?? access.organizationId
 
     if (!scopedOrganizationId) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+      return apiError('Missing required fields', 400)
     }
 
     if (scopedOrganizationId !== access.organizationId) {
-      return NextResponse.json({ error: 'Forbidden for requested organization' }, { status: 403 })
+      return apiError('Forbidden for requested organization', 403)
     }
 
     const pixel = await createMetaPixel({
@@ -48,6 +49,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(pixel)
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to create pixel'
-    return NextResponse.json({ error: message }, { status: 500 })
+    return apiError(message, 500, error)
   }
 }

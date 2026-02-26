@@ -97,7 +97,21 @@ export async function dispatchAiEvent(
         isActive: true,
         triggers: { some: { eventType } },
       },
-      include: { schemaFields: true },
+      select: {
+        id: true,
+        name: true,
+        systemPrompt: true,
+        model: true,
+        schemaFields: {
+          select: {
+            fieldName: true,
+            fieldType: true,
+            description: true,
+            isRequired: true,
+            options: true,
+          },
+        },
+      },
     })
 
     if (agents.length === 0) return 0
@@ -106,10 +120,16 @@ export async function dispatchAiEvent(
 
     const ticket = await prisma.ticket.findUnique({
       where: { id: ticketId },
-      include: {
+      select: {
+        id: true,
+        organizationId: true,
         conversation: {
-          include: {
+          select: {
             messages: {
+              select: {
+                direction: true,
+                body: true,
+              },
               orderBy: { timestamp: 'desc' },
               take: messageLimit,
             },

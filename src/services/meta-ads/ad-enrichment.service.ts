@@ -8,6 +8,16 @@ function requireEnv(name: string): string {
   return value
 }
 
+function resolveEnrichmentErrorMessage(error: unknown): string {
+  if (axios.isAxiosError(error)) {
+    const data = error.response?.data as { error?: { message?: string } } | undefined
+    return data?.error?.message ?? error.message
+  }
+
+  if (error instanceof Error) return error.message
+  return 'Erro desconhecido'
+}
+
 export class MetaAdEnrichmentService {
   /**
    * Enrich Ticket Tracking with Ad names and hierarchy
@@ -15,11 +25,20 @@ export class MetaAdEnrichmentService {
   async enrichTicket(ticketId: string) {
     const tracking = await prisma.ticketTracking.findUnique({
       where: { ticketId },
-      include: {
+      select: {
+        metaAdId: true,
+        metaEnrichmentStatus: true,
         ticket: {
-          include: {
+          select: {
+            organizationId: true,
             organization: {
-              include: { metaConnections: { where: { status: 'ACTIVE' }, take: 1 } },
+              select: {
+                metaConnections: {
+                  where: { status: 'ACTIVE' },
+                  take: 1,
+                  select: { id: true },
+                },
+              },
             },
           },
         },
@@ -71,17 +90,19 @@ export class MetaAdEnrichmentService {
       })
 
       console.log(`[Enrichment] Successfully enriched ticket ${ticketId} with Ad "${adData.name}"`)
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = resolveEnrichmentErrorMessage(error)
+
       console.error(
         `[Enrichment] Error enriching ticket ${ticketId}:`,
-        error?.response?.data || error.message
+        axios.isAxiosError(error) ? error.response?.data : message
       )
 
       await prisma.ticketTracking.update({
         where: { ticketId },
         data: {
           metaEnrichmentStatus: 'FAILED',
-          metaEnrichmentError: error?.response?.data?.error?.message || error.message,
+          metaEnrichmentError: message,
           lastEnrichmentAt: new Date(),
         },
       })

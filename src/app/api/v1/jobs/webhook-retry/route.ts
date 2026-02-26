@@ -16,6 +16,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/utils/api-response'
 import { getJobTracker } from '@/lib/db/queue'
 import { webhookRetryJob } from '@/jobs/webhook-retry.job'
 import { rateLimitMiddleware } from '@/lib/utils/rate-limit.middleware'
@@ -40,7 +41,7 @@ export async function GET(request: NextRequest) {
 
     if (!CRON_SECRET || authHeader !== `Bearer ${CRON_SECRET}`) {
       console.error('[WebhookRetryAPI] Invalid or missing CRON_SECRET')
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return apiError('Unauthorized', 401)
     }
 
     // Acquire distributed lock to prevent concurrent executions
@@ -76,12 +77,6 @@ export async function GET(request: NextRequest) {
     }
   } catch (error) {
     console.error('[WebhookRetryAPI] Error:', error)
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    )
+    return apiError(error instanceof Error ? error.message : 'Unknown error', 500, error)
   }
 }

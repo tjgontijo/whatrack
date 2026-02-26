@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+import { apiError } from '@/lib/utils/api-response'
 import { rateLimitMiddleware } from '@/lib/utils/rate-limit.middleware'
 import {
   processWhatsAppWebhookPayload,
@@ -19,7 +20,7 @@ export async function GET(request: Request) {
   })
 
   if (!parsed.success) {
-    return NextResponse.json({ error: 'Verification failed' }, { status: 403 })
+    return apiError('Verification failed', 403)
   }
 
   if (parsed.data['hub.verify_token'] === VERIFY_TOKEN) {
@@ -29,7 +30,7 @@ export async function GET(request: Request) {
     })
   }
 
-  return NextResponse.json({ error: 'Verification failed' }, { status: 403 })
+  return apiError('Verification failed', 403)
 }
 
 export async function POST(request: NextRequest) {

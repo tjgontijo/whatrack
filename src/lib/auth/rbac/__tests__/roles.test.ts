@@ -3,16 +3,15 @@ import { describe, expect, it } from 'vitest'
 import { hasPermission } from '@/lib/auth/rbac/roles'
 
 describe('tenant RBAC permissions', () => {
-  it('grants canonical team permissions for owner/admin', () => {
-    expect(hasPermission('owner', 'manage:team_settings')).toBe(true)
-    expect(hasPermission('admin', 'manage:team_members')).toBe(true)
-    expect(hasPermission('admin', 'manage:team_settings')).toBe(false)
-  })
-
-  it('supports legacy permission aliases during migration', () => {
+  it('grants canonical organization permissions for owner/admin', () => {
     expect(hasPermission('owner', 'manage:organization')).toBe(true)
     expect(hasPermission('admin', 'manage:members')).toBe(true)
-    expect(hasPermission('admin', 'manage:team_members')).toBe(true)
+    expect(hasPermission('admin', 'manage:organization')).toBe(false)
+  })
+
+  it('does not grant unknown permissions', () => {
+    expect(hasPermission('owner', 'manage:unknown' as any)).toBe(false)
+    expect(hasPermission('admin', 'manage:unknown' as any)).toBe(false)
   })
 
   it('denies unknown roles by default', () => {

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 
+import { apiError } from '@/lib/utils/api-response'
 import { runAiClassifierCron } from '@/services/ai/ai-classifier-cron.service'
 
 export const dynamic = 'force-dynamic'
@@ -10,7 +11,7 @@ export async function GET(request: Request) {
   const cronSecret = process.env.CRON_SECRET
 
   if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return apiError('Unauthorized', 401)
   }
 
   try {
@@ -24,6 +25,6 @@ export async function GET(request: Request) {
     })
   } catch (error) {
     console.error('[Cron AI Copilot] Fatal error:', error)
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+    return apiError('Internal Server Error', 500, error)
   }
 }

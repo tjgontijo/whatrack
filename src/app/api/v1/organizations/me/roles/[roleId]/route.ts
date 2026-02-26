@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+import { apiError } from '@/lib/utils/api-response'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { toRbacErrorResponse } from '@/server/organization/rbac-http'
 import { updateOrganizationRoleSchema } from '@/schemas/organizations/organization-role-schemas'
@@ -14,16 +15,13 @@ export async function PATCH(
 ) {
   const access = await validatePermissionAccess(request, 'manage:members')
   if (!access.hasAccess || !access.organizationId || !access.userId || !access.role) {
-    return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
+    return apiError(access.error ?? 'Acesso negado', 403)
   }
 
   const body = await request.json().catch(() => null)
   const parsed = updateOrganizationRoleSchema.safeParse(body)
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Dados inválidos', details: parsed.error.flatten() },
-      { status: 400 }
-    )
+    return apiError('Dados inválidos', 400, undefined, { details: parsed.error.flatten() })
   }
 
   const { roleId } = await params
@@ -39,7 +37,7 @@ export async function PATCH(
     })
 
     if ('error' in result) {
-      return NextResponse.json({ error: result.error }, { status: result.status })
+      return apiError(result.error, result.status)
     }
 
     return NextResponse.json(result)
@@ -54,7 +52,7 @@ export async function DELETE(
 ) {
   const access = await validatePermissionAccess(request, 'manage:members')
   if (!access.hasAccess || !access.organizationId || !access.userId || !access.role) {
-    return NextResponse.json({ error: access.error ?? 'Acesso negado' }, { status: 403 })
+    return apiError(access.error ?? 'Acesso negado', 403)
   }
 
   const { roleId } = await params
@@ -68,7 +66,7 @@ export async function DELETE(
     })
 
     if ('error' in result) {
-      return NextResponse.json({ error: result.error }, { status: result.status })
+      return apiError(result.error, result.status)
     }
 
     return NextResponse.json(result)
