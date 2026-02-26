@@ -1,41 +1,17 @@
 import { NextResponse } from 'next/server'
 
-import { prisma } from '@/lib/db/prisma'
+import { getPublicInvitation } from '@/services/organizations/organization-invitations.service'
 
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ invitationId: string }> }
 ) {
   const { invitationId } = await params
+  const result = await getPublicInvitation(invitationId)
 
-  const invitation = await prisma.invitation.findUnique({
-    where: { id: invitationId },
-    select: {
-      id: true,
-      email: true,
-      role: true,
-      status: true,
-      expiresAt: true,
-      organization: {
-        select: {
-          name: true,
-        },
-      },
-    },
-  })
-
-  if (!invitation || invitation.status !== 'pending' || invitation.expiresAt <= new Date()) {
-    return NextResponse.json({ error: 'Invitation not found.' }, { status: 404 })
+  if ('error' in result) {
+    return NextResponse.json({ error: result.error }, { status: result.status })
   }
 
-  return NextResponse.json(
-    {
-      id: invitation.id,
-      email: invitation.email,
-      role: invitation.role || 'user',
-      expiresAt: invitation.expiresAt,
-      organizationName: invitation.organization.name,
-    },
-    { status: 200 }
-  )
+  return NextResponse.json(result, { status: 200 })
 }

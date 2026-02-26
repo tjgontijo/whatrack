@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db/prisma'
+
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
+import { updateOrganizationAiSettingsSchema } from '@/schemas/organization-schemas'
+import {
+  getOrganizationAiSettings,
+  updateOrganizationAiSettings,
+} from '@/services/organizations/organization-management.service'
 
 export async function GET(request: NextRequest) {
   try {
@@ -9,15 +14,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const profile = await prisma.organizationProfile.findUnique({
-      where: { organizationId: access.organizationId },
-      select: { aiCopilotActive: true, aiCopilotInstructions: true },
-    })
-
-    return NextResponse.json({
-      aiCopilotActive: profile?.aiCopilotActive ?? true,
-      aiCopilotInstructions: profile?.aiCopilotInstructions || '',
-    })
+    return NextResponse.json(await getOrganizationAiSettings(access.organizationId))
   } catch (error) {
     console.error('[GET ai-settings] Error:', error)
     return NextResponse.json({ error: 'Erro ao buscar configurações de IA' }, { status: 500 })
@@ -31,28 +28,21 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const body = await request.json()
-    const { aiCopilotActive, aiCopilotInstructions } = body
+    const body = await request.json().catch(() => null)
+    const parsed = updateOrganizationAiSettingsSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: parsed.error.flatten() },
+        { status: 400 }
+      )
+    }
 
-    const profile = await prisma.organizationProfile.upsert({
-      where: { organizationId: access.organizationId },
-      update: {
-        aiCopilotActive,
-        aiCopilotInstructions,
-      },
-      create: {
+    return NextResponse.json(
+      await updateOrganizationAiSettings({
         organizationId: access.organizationId,
-        aiCopilotActive,
-        aiCopilotInstructions,
-        onboardingStatus: 'completed',
-      },
-    })
-
-    return NextResponse.json({
-      success: true,
-      aiCopilotActive: profile.aiCopilotActive,
-      aiCopilotInstructions: profile.aiCopilotInstructions,
-    })
+        data: parsed.data,
+      })
+    )
   } catch (error) {
     console.error('[PATCH ai-settings] Error:', error)
     return NextResponse.json({ error: 'Erro ao salvar configurações de IA' }, { status: 500 })
