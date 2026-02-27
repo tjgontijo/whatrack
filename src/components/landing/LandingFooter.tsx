@@ -16,13 +16,20 @@ export function LandingFooter() {
               href="/"
               className="group inline-flex items-center gap-2 transition hover:opacity-80"
             >
-              <Image
-                src="/images/logo_transparent.png"
-                alt="WhaTrack"
-                width={120}
-                height={40}
-                className="h-8 w-auto object-contain transition-transform group-hover:scale-105"
-              />
+              <div className="relative h-8 w-32">
+                <Image
+                  src="/images/logo/logo_transparent_light_horizontal.png"
+                  alt="WhaTrack"
+                  fill
+                  className="object-contain transition-transform group-hover:scale-105 dark:hidden"
+                />
+                <Image
+                  src="/images/logo/logo_transparent_dark_horizontal.png"
+                  alt="WhaTrack"
+                  fill
+                  className="hidden object-contain transition-transform group-hover:scale-105 dark:block"
+                />
+              </div>
             </Link>
 
             <p className="max-w-sm text-base leading-relaxed text-zinc-600 dark:text-zinc-400">

@@ -23,7 +23,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
           <div>
             <div className="mb-12">
               <img
-                src="/images/logo_transparent.png"
+                src="/images/logo/logo_transparent_dark_horizontal.png"
                 alt="Whatrack"
                 className="h-9 w-auto opacity-90 transition-opacity hover:opacity-100"
               />
@@ -82,9 +82,9 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       <div className="bg-background relative flex flex-1 flex-col justify-center p-6 sm:p-12">
         <div className="absolute left-8 top-8 lg:hidden">
           <img
-            src="/images/logo_transparent.png"
+            src="/images/logo/logo_transparent_light_horizontal.png"
             alt="Whatrack"
-            className="h-8 w-auto brightness-0 dark:brightness-100"
+            className="h-8 w-auto"
           />
         </div>
         <div className="mx-auto w-full max-w-[420px]">{children}</div>

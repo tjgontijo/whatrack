@@ -122,7 +122,7 @@ export function SidebarClient({ navItems }: SidebarClientProps) {
                 {/* Square logo (32x32) when collapsed */}
                 <div className="bg-primary text-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
                   <Image
-                    src="/images/transparent_icon_white.png"
+                    src="/images/logo/logo_simble_dark_square.png"
                     alt="Whatrack"
                     width={20}
                     height={20}

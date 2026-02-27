@@ -28,11 +28,10 @@ export function LandingHeader({ variant: _variant = 'generic' }: LandingHeaderPr
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-      className={`fixed left-0 right-0 top-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? 'border-b border-zinc-200/50 bg-white/80 shadow-sm backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-950/80'
-          : 'border-b border-transparent bg-transparent'
-      }`}
+      className={`fixed left-0 right-0 top-0 z-50 transition-all duration-300 ${scrolled
+        ? 'border-b border-zinc-200/50 bg-white/80 shadow-sm backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-950/80'
+        : 'border-b border-transparent bg-transparent'
+        }`}
     >
       <div className="mx-auto flex w-full max-w-[1400px] items-center justify-between px-6 py-4 sm:px-8 lg:px-12">
         {/* Logo */}
@@ -41,14 +40,16 @@ export function LandingHeader({ variant: _variant = 'generic' }: LandingHeaderPr
           className="group flex flex-shrink-0 items-center gap-3 transition-opacity hover:opacity-80"
         >
           <Image
-            src="/images/logo_transparent.png"
+            src={
+              scrolled
+                ? '/images/logo/logo_transparent_light_horizontal.png'
+                : '/images/logo/logo_transparent_dark_horizontal.png'
+            }
             alt="WhaTrack"
-            width={120}
-            height={40}
+            width={150}
+            height={50}
             priority
-            className={`h-8 w-auto object-contain transition-all duration-300 group-hover:scale-105 ${
-              scrolled ? 'brightness-0 dark:brightness-100' : 'brightness-100'
-            }`}
+            className="h-10 w-auto object-contain transition-all duration-300 group-hover:scale-105"
           />
         </Link>
 
@@ -56,11 +57,10 @@ export function LandingHeader({ variant: _variant = 'generic' }: LandingHeaderPr
         <div className="flex items-center gap-3">
           <Link
             href="/sign-in"
-            className={`hidden text-sm font-semibold transition-colors sm:block ${
-              scrolled
-                ? 'text-zinc-700 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white'
-                : 'text-white/90 hover:text-white'
-            }`}
+            className={`hidden text-sm font-semibold transition-colors sm:block ${scrolled
+              ? 'text-zinc-700 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white'
+              : 'text-white/90 hover:text-white'
+              }`}
           >
             Entrar
           </Link>
