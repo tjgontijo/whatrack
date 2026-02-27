@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
+import { BarChart3 } from 'lucide-react'
+import { PageShell, PageHeader, PageContent } from '@/components/dashboard/layout'
 import { MetaAdsCampaignsClient } from './client'
-import { TemplateMainShell, TemplateMainHeader } from '@/components/dashboard/leads'
 import { auth } from '@/lib/auth/auth'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
@@ -20,14 +21,16 @@ export default async function MetaAdsCampaignsPage() {
   }
 
   return (
-    <TemplateMainShell className="flex min-w-0 flex-col bg-[#FAFAFA]">
-      <TemplateMainHeader
+    <PageShell>
+      <PageHeader
         title="Campanhas do Meta"
-        subtitle="Acompanhamento e dados detalhados das suas campanhas ativas"
+        description="Acompanhamento e dados detalhados das suas campanhas ativas"
+        icon={BarChart3}
       />
-      <div className="w-full min-w-0 flex-1 p-4 md:p-8">
+
+      <PageContent>
         <MetaAdsCampaignsClient />
-      </div>
-    </TemplateMainShell>
+      </PageContent>
+    </PageShell>
   )
 }

@@ -79,12 +79,12 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       </div>
 
       {/* Right side: Auth Form Content */}
-      <div className="relative flex flex-1 flex-col justify-center bg-white p-6 sm:p-12">
+      <div className="bg-background relative flex flex-1 flex-col justify-center p-6 sm:p-12">
         <div className="absolute left-8 top-8 lg:hidden">
           <img
             src="/images/logo_transparent.png"
             alt="Whatrack"
-            className="h-8 w-auto mix-blend-multiply dark:mix-blend-screen"
+            className="h-8 w-auto brightness-0 dark:brightness-100"
           />
         </div>
         <div className="mx-auto w-full max-w-[420px]">{children}</div>

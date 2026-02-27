@@ -1,20 +1,24 @@
 'use client'
 
 import React, { Suspense } from 'react'
+import { PageShell, PageContent } from '@/components/dashboard/layout'
+import { LoadingPage } from '@/components/dashboard/states'
 import { InstanceDetail } from '@/components/dashboard/whatsapp/instance-detail'
-import { SuspenseLoader } from '@/components/shared/suspense-loader'
 
 interface PageProps {
   params: Promise<{ phoneId: string }>
 }
 
 export default function InstancePage({ params }: PageProps) {
-  // No Next.js 15/16, params é uma Promise que deve ser usada com React.use()
   const resolvedParams = React.use(params)
 
   return (
-    <Suspense fallback={<SuspenseLoader />}>
-      <InstanceDetail phoneId={resolvedParams.phoneId} />
-    </Suspense>
+    <PageShell>
+      <PageContent>
+        <Suspense fallback={<LoadingPage message="Carregando instância..." />}>
+          <InstanceDetail phoneId={resolvedParams.phoneId} />
+        </Suspense>
+      </PageContent>
+    </PageShell>
   )
 }

@@ -2,10 +2,8 @@
 
 import { BarChart3, TrendingUp, DollarSign, Target, RefreshCw, AlertCircle } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-import { TemplateMainShell, TemplateMainHeader } from '@/components/dashboard/leads'
 
 interface MetaROIContentProps {
   roiData: { accountSummary: any[]; campaigns: any[] } | undefined
@@ -33,25 +31,7 @@ export function MetaROIContent({
   }))
 
   return (
-    <TemplateMainShell className="flex h-screen flex-col overflow-hidden">
-      <TemplateMainHeader
-        title="Dashboard ROI Meta Ads"
-        subtitle="Analise o retorno sobre o investimento de suas campanhas Click-to-WhatsApp"
-        actions={
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-2"
-            onClick={onRefresh}
-            disabled={isRefetching || isLoading}
-          >
-            <RefreshCw className={`h-4 w-4 ${isRefetching || isLoading ? 'animate-spin' : ''}`} />
-            Atualizar Dados
-          </Button>
-        }
-      />
-
-      <div className="bg-muted/5 flex-1 space-y-6 overflow-y-auto p-6 lg:p-8">
+    <div className="space-y-6">
         {/* KPI Grid */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           <Card className="border-blue-100 bg-gradient-to-br from-blue-50 to-white">
@@ -229,7 +209,6 @@ export function MetaROIContent({
             </p>
           </div>
         )}
-      </div>
-    </TemplateMainShell>
+    </div>
   )
 }

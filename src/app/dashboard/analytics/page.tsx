@@ -1,4 +1,7 @@
 import { Suspense } from 'react'
+import { BarChart3 } from 'lucide-react'
+import { PageShell, PageHeader, PageContent } from '@/components/dashboard/layout'
+import { LoadingPage } from '@/components/dashboard/states'
 import AnalyticsDashboard from './components/analytics-dashboard'
 
 export const metadata = {
@@ -8,17 +11,18 @@ export const metadata = {
 
 export default function AnalyticsPage() {
   return (
-    <div className="bg-background/50 flex h-full w-full flex-col gap-6 p-6">
-      <div className="flex flex-col">
-        <h1 className="text-foreground text-3xl font-bold tracking-tight">Analytics</h1>
-        <p className="text-muted-foreground mt-1 text-sm">
-          Visão geral do desempenho da sua equipe no WhatsApp.
-        </p>
-      </div>
+    <PageShell>
+      <PageHeader
+        title="Analytics"
+        description="Visão geral do desempenho da sua equipe no WhatsApp."
+        icon={BarChart3}
+      />
 
-      <Suspense fallback={<div className="bg-muted h-96 w-full animate-pulse rounded-xl"></div>}>
-        <AnalyticsDashboard />
-      </Suspense>
-    </div>
+      <PageContent>
+        <Suspense fallback={<LoadingPage message="Carregando analytics..." />}>
+          <AnalyticsDashboard />
+        </Suspense>
+      </PageContent>
+    </PageShell>
   )
 }
