@@ -58,7 +58,7 @@ export function LandingSolution({ content }: LandingSolutionProps) {
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-20 text-center"
+          className="mb-10 text-center sm:mb-20"
         >
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 dark:border-emerald-900/50 dark:bg-emerald-950/30">
             <Sparkles className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
@@ -67,7 +67,7 @@ export function LandingSolution({ content }: LandingSolutionProps) {
             </span>
           </div>
 
-          <h2 className="mx-auto mb-6 max-w-4xl font-geist text-5xl font-bold leading-tight tracking-tight text-zinc-900 dark:text-white sm:text-6xl">
+          <h2 className="mx-auto mb-6 max-w-4xl font-geist text-3xl font-bold leading-tight tracking-tight text-zinc-900 dark:text-white sm:text-5xl lg:text-6xl">
             {content.headline}{' '}
             <span className="bg-gradient-to-r from-emerald-600 via-emerald-500 to-amber-500 bg-clip-text text-transparent">
               {content.highlightedText}
@@ -80,7 +80,7 @@ export function LandingSolution({ content }: LandingSolutionProps) {
         </motion.div>
 
         {/* Bento grid - Asymmetric layout */}
-        <div className="grid gap-6 md:grid-cols-6 lg:gap-8">
+        <div className="grid gap-4 sm:gap-6 md:grid-cols-6 lg:gap-8">
           {content.cards.map((card, i) => {
             const Icon = iconMap[card.icon]
             const isLarge = card.size === 'large'
@@ -147,7 +147,7 @@ export function LandingSolution({ content }: LandingSolutionProps) {
                   duration: 0.8,
                   ease: [0.22, 1, 0.36, 1],
                 }}
-                className={`group relative overflow-hidden rounded-3xl border backdrop-blur-sm transition-all hover:-translate-y-2 hover:shadow-2xl ${gridClass} ${colors.border} ${colors.bg} ${isLarge ? 'p-10 lg:p-12' : 'p-8'}`}
+                className={`group relative overflow-hidden rounded-3xl border backdrop-blur-sm transition-all hover:-translate-y-2 hover:shadow-2xl ${gridClass} ${colors.border} ${colors.bg} ${isLarge ? 'p-8 lg:p-12' : 'p-6 sm:p-8'}`}
               >
                 {/* Gradient glow on hover */}
                 <div

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-const PUBLIC_ROUTES = ['/', '/pricing', '/privacy', '/terms']
+const PUBLIC_ROUTES = ['/', '/pricing', '/privacy', '/terms', '/solucoes']
 const AUTH_ROUTES = ['/sign-in', '/sign-up', '/forgot-password', '/reset-password', '/accept-invitation']
 
 const PUBLIC_API_PREFIXES = [

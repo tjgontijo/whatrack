@@ -19,7 +19,7 @@ export function LandingCTA({ content }: LandingCTAProps) {
   return (
     <section
       ref={ref}
-      className="relative overflow-hidden bg-gradient-to-br from-emerald-600 via-emerald-500 to-amber-500 py-32"
+      className="relative overflow-hidden bg-gradient-to-br from-emerald-600 via-emerald-500 to-amber-500 py-16 sm:py-32"
     >
       {/* Sophisticated background elements */}
       <div className="pointer-events-none absolute inset-0">
@@ -69,7 +69,7 @@ export function LandingCTA({ content }: LandingCTAProps) {
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.2, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-6 font-geist text-5xl font-bold leading-tight tracking-tight text-white sm:text-6xl lg:text-7xl"
+          className="mb-6 font-geist text-3xl font-bold leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl xl:text-7xl"
         >
           {content.headline}
         </motion.h2>
@@ -79,7 +79,7 @@ export function LandingCTA({ content }: LandingCTAProps) {
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.3, duration: 0.8 }}
-          className="mx-auto mb-12 max-w-3xl text-xl leading-relaxed text-white/90 sm:text-2xl"
+          className="mx-auto mb-10 max-w-3xl text-lg leading-relaxed text-white/90 sm:mb-12 sm:text-2xl"
         >
           {content.subheadline}
         </motion.p>
@@ -93,7 +93,7 @@ export function LandingCTA({ content }: LandingCTAProps) {
         >
           <Button
             size="lg"
-            className="group h-16 bg-white px-10 text-lg font-bold text-emerald-600 shadow-lg shadow-black/20 transition-all hover:bg-white hover:shadow-xl hover:shadow-black/30"
+            className="group h-14 bg-white px-8 text-base font-bold text-emerald-600 shadow-lg shadow-black/20 transition-all hover:bg-zinc-100 hover:shadow-xl hover:shadow-black/30"
             asChild
           >
             <Link href="/sign-up">
@@ -105,43 +105,56 @@ export function LandingCTA({ content }: LandingCTAProps) {
           <Button
             size="lg"
             variant="outline"
-            className="h-16 border-white/30 bg-white/10 px-10 text-lg font-bold text-white backdrop-blur-sm transition-all hover:bg-white/20 hover:border-white/50"
+            className="h-14 border-white/30 bg-white/10 px-8 text-base font-bold text-white backdrop-blur-sm transition-all hover:border-white/50 hover:bg-white/20"
             asChild
           >
             <Link href="#planos">{content.ctaSecondary}</Link>
           </Button>
         </motion.div>
 
-        {/* Microcopy */}
-        <motion.p
+        {/* Scrolling Trust Indicators (Hero pattern) */}
+        <motion.div
           initial={{ opacity: 0 }}
           animate={isInView ? { opacity: 1 } : {}}
           transition={{ delay: 0.6, duration: 0.8 }}
-          className="mt-8 text-sm font-medium text-white/80"
+          className="group relative mt-12 flex overflow-hidden"
         >
-          {content.microcopy}
-        </motion.p>
-
-        {/* Trust indicators */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ delay: 0.7, duration: 0.8 }}
-          className="mt-12 flex flex-wrap items-center justify-center gap-8 text-white/60"
-        >
-          {['✓ Sem cartão de crédito', '✓ 7 dias grátis', '✓ Cancele quando quiser'].map(
-            (item, i) => (
-              <motion.div
-                key={item}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={isInView ? { opacity: 1, scale: 1 } : {}}
-                transition={{ delay: 0.8 + i * 0.1, duration: 0.5 }}
-                className="flex items-center gap-2 text-sm font-semibold"
+          <motion.div
+            animate={{
+              x: [0, -100 + "%"],
+            }}
+            transition={{
+              x: {
+                repeat: Infinity,
+                repeatType: "loop",
+                duration: 20,
+                ease: "linear",
+              },
+            }}
+            className="flex flex-shrink-0 items-center gap-12 pr-12 text-sm text-white/80"
+          >
+            {[
+              'Sem cartão de crédito',
+              '7 dias grátis',
+              'Cancele quando quiser',
+              'Setup em 5 minutos',
+              'API Oficial do WhatsApp',
+            ].concat([
+              'Sem cartão de crédito',
+              '7 dias grátis',
+              'Cancele quando quiser',
+              'Setup em 5 minutos',
+              'API Oficial do WhatsApp',
+            ]).map((item, i) => (
+              <div
+                key={`${item}-${i}`}
+                className="flex flex-shrink-0 items-center gap-2"
               >
-                <span>{item}</span>
-              </motion.div>
-            ),
-          )}
+                <div className="h-1.5 w-1.5 rounded-full bg-white" />
+                <span className="font-medium whitespace-nowrap">{item}</span>
+              </div>
+            ))}
+          </motion.div>
         </motion.div>
       </div>
     </section>

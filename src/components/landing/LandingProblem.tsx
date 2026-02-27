@@ -51,7 +51,7 @@ export function LandingProblem({ content }: LandingProblemProps) {
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-20 max-w-3xl"
+          className="mb-10 max-w-3xl"
         >
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-4 py-2 dark:border-red-900/50 dark:bg-red-950/30">
             <div className="h-2 w-2 rounded-full bg-red-500" />
@@ -60,7 +60,7 @@ export function LandingProblem({ content }: LandingProblemProps) {
             </span>
           </div>
 
-          <h2 className="mb-6 font-geist text-5xl font-bold leading-tight tracking-tight text-zinc-900 dark:text-white sm:text-6xl">
+          <h2 className="mb-6 font-geist text-3xl font-bold leading-tight tracking-tight text-zinc-900 dark:text-white sm:text-5xl">
             {content.headline}{' '}
             <span className="bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
               {content.highlightedText}
@@ -73,7 +73,7 @@ export function LandingProblem({ content }: LandingProblemProps) {
         </motion.div>
 
         {/* Problems grid - Asymmetric bento layout */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
           {content.problems.map((problem, i) => {
             const Icon = iconMap[problem.icon]
             const isLarge = i === 0 || i === 3
@@ -93,9 +93,8 @@ export function LandingProblem({ content }: LandingProblemProps) {
               >
                 {/* Gradient accent */}
                 <div
-                  className={`pointer-events-none absolute ${
-                    i % 2 === 0 ? 'right-0 top-0' : 'bottom-0 left-0'
-                  } h-32 w-32 bg-gradient-to-br from-red-500/10 via-orange-500/10 to-transparent blur-2xl transition-transform group-hover:scale-150`}
+                  className={`pointer-events-none absolute ${i % 2 === 0 ? 'right-0 top-0' : 'bottom-0 left-0'
+                    } h-32 w-32 bg-gradient-to-br from-red-500/10 via-orange-500/10 to-transparent blur-2xl transition-transform group-hover:scale-150`}
                 />
 
                 {/* Icon */}

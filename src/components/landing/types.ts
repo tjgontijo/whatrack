@@ -62,8 +62,8 @@ export const LANDING_CONTENT: Record<LandingVariant, LandingContent> = {
     variant: 'generic',
     hero: {
       badge: 'Rastreamento real de vendas no WhatsApp',
-      headline: 'O Meta não sabe quem comprou no WhatsApp do seu cliente.',
-      highlightedText: 'E a culpa cai em você.',
+      headline: 'O Meta não sabe quem comprou no seu WhatsApp.',
+      highlightedText: 'E você perde vendas com isso.',
       subheadline:
         'O WhaTrack conecta cada conversa à campanha que gerou o clique e devolve eventos como o de Lead e Purchase pro Meta Ads via API de conversão. O algoritmo para de otimizar pra curioso e começa a entregar para compradores reais.',
       ctaPrimary: 'Testar grátis por 7 dias',
@@ -76,7 +76,7 @@ export const LANDING_CONTENT: Record<LandingVariant, LandingContent> = {
     },
     problem: {
       badge: 'O PROBLEMA',
-      headline: 'Seu cliente vende pelo WhatsApp, mas você e a Meta',
+      headline: 'Você vende pelo WhatsApp, mas você e a Meta',
       highlightedText: 'não recebem dado nenhum de volta.',
       subheadline:
         'Entre o clique no anúncio e a venda na conversa, existe um buraco negro. Você otimiza campanha sem saber o que realmente vendeu. Você só sabe que o lead chegou.',
@@ -85,7 +85,7 @@ export const LANDING_CONTENT: Record<LandingVariant, LandingContent> = {
           icon: 'message',
           title: 'Vendas invisíveis',
           description:
-            'A venda acontece dentro da conversa do cliente. Mas o Meta só enxerga o clique. Sem evento de purchase, o algoritmo nunca aprende quem realmente compra, e você nunca sabe qual campanha gerou resultado.',
+            'A venda acontece dentro do WhatsApp. Mas o Meta só enxerga o clique. Sem evento de purchase, o algoritmo nunca aprende quem realmente compra, e você nunca sabe qual campanha gerou resultado.',
         },
         {
           icon: 'trending',
@@ -95,32 +95,32 @@ export const LANDING_CONTENT: Record<LandingVariant, LandingContent> = {
         },
         {
           icon: 'users',
-          title: 'Comercial do cliente afogado em lead frio',
+          title: 'Seu comercial afogado em leads frios',
           description:
-            'Leads sem qualificação entopem o WhatsApp do seu cliente. O comercial dele gasta energia com quem nunca ia comprar e esfria quem tinha potencial real. Aí vem a mensagem: "Só chega curioso."',
+            'Leads sem qualificação entopem o seu WhatsApp. O seu comercial gasta energia com quem nunca ia comprar e esfria quem tinha potencial real. Aí vem a sensação: "Só chega curioso."',
         },
         {
           icon: 'alert',
           title: 'Decisões no escuro',
           description:
-            'Qual criativo gerou venda? Qual campanha trouxe comprador? O problema é o tráfego que você roda ou o atendimento do cliente? Sem dado, cada decisão é um chute, e cada reunião vira discussão.',
+            'Qual criativo gerou venda? Qual campanha trouxe comprador? O problema é o tráfego que você roda ou o atendimento? Sem dado, cada decisão é um chute e você queima dinheiro sem saber.',
         },
       ],
       closingText:
-        'Antes eu dependia do cliente me mandar planilha pra saber se vendeu. Agora abro o painel e sei exatamente qual campanha gerou cada venda.',
+        'Antes eu dependia de planilhas manuais para saber se vendeu. Agora abro o painel e sei exatamente qual campanha gerou cada venda.',
     },
     solution: {
       badge: 'A SOLUÇÃO',
       headline: 'Fechamos o ciclo entre o anúncio e a',
-      highlightedText: 'venda do seu cliente.',
+      highlightedText: 'sua venda real.',
       subheadline:
-        'O que acontece dentro do WhatsApp do cliente agora vira dado estruturado e volta pro Meta como evento real pra você otimizar campanha.',
+        'O que acontece dentro do seu WhatsApp agora vira dado estruturado e volta pro Meta como evento real pra você otimizar suas campanhas.',
       cards: [
         {
           icon: 'check',
           title: 'Cada venda conectada à sua campanha',
           description:
-            'O WhaTrack captura o identificador oficial do Meta e conecta cada conversa do WhatsApp do cliente à campanha, conjunto e criativo que você rodou. Você vê exatamente qual anúncio gerou cada venda.',
+            'O WhaTrack captura o identificador oficial do Meta e conecta cada conversa do seu WhatsApp à campanha, conjunto e criativo que você rodou. Você vê exatamente qual anúncio gerou cada venda.',
           size: 'large',
           color: 'primary',
         },
@@ -136,7 +136,7 @@ export const LANDING_CONTENT: Record<LandingVariant, LandingContent> = {
           icon: 'chart',
           title: 'Relatório com dado de venda real',
           description:
-            'Sem depender de planilha que o cliente nunca manda, nem de CRM que o comercial dele não preenche. O painel mostra campanha, lead, venda e tempo de resposta. Tudo automático. Você abre e apresenta.',
+            'Sem depender de planilhas manuais ou CRMs que ninguém preenche. O painel mostra campanha, lead, venda e tempo de resposta. Tudo automático. Você abre e toma decisões com base em dados.',
           size: 'medium',
           color: 'amber',
         },
@@ -144,7 +144,7 @@ export const LANDING_CONTENT: Record<LandingVariant, LandingContent> = {
           icon: 'shield',
           title: 'IA que separa comprador de curioso',
           description:
-            'O Copilot analisa cada conversa do cliente em tempo real. Identifica intenção, objeção e estágio do lead. Só dispara evento de Lead quando o contato é qualificado de verdade. O Meta aprende com dado limpo.',
+            'O Copilot analisa cada conversa em tempo real. Identifica intenção, objeção e estágio do lead. Só dispara evento de Lead quando o contato é qualificado de verdade. O Meta aprende com dado limpo.',
           size: 'large',
           color: 'emerald',
         },
@@ -155,13 +155,13 @@ export const LANDING_CONTENT: Record<LandingVariant, LandingContent> = {
       headline: 'Funcionando em 5 minutos.',
       highlightedText: 'Sem código.',
       subheadline:
-        'Você conecta as contas do cliente e o WhaTrack faz o resto. Não precisa de desenvolvedor, não precisa mudar o processo de ninguém.',
+        'Você conecta as suas contas e o WhaTrack faz o resto. Não precisa de desenvolvedor, não precisa mudar o seu processo.',
       steps: [
         {
           icon: 'plug',
-          title: 'Conecte o Meta Ads e o WhatsApp do cliente',
+          title: 'Conecte o Meta Ads e seu WhatsApp Business',
           description:
-            'Integração direta com a conta de anúncios e o WhatsApp Business. Leva menos de 5 minutos por cliente. Zero configuração técnica.',
+            'Integração direta com a conta de anúncios e o seu WhatsApp. Leva menos de 5 minutos para configurar. Zero configuração técnica.',
         },
         {
           icon: 'database',
@@ -173,14 +173,14 @@ export const LANDING_CONTENT: Record<LandingVariant, LandingContent> = {
           icon: 'trending',
           title: 'Você vê o que realmente vende',
           description:
-            'Abra o painel e veja: qual campanha gerou venda, qual criativo converte, quanto tempo o comercial do cliente demora pra responder. Dado real. Não achismo.',
+            'Abra o painel e veja: qual campanha gerou venda, qual criativo converte, quanto tempo o time comercial demora pra responder. Dado real. Não achismo.',
         },
       ],
     },
     cta: {
       headline: '"Lead ruim" nunca mais sem resposta.',
       subheadline:
-        'Conecte em 5 minutos. Veja de onde vêm as vendas do seu cliente e prove com dado, não com argumento.',
+        'Conecte em 5 minutos. Veja de onde vêm as suas vendas e prove resultados com dados, não com argumentos.',
       ctaPrimary: 'Testar grátis por 7 dias',
       ctaSecondary: 'Falar com o time',
       microcopy: '7 dias grátis · Sem cartão · Setup em 5 minutos',

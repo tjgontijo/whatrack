@@ -33,7 +33,7 @@ export function LandingHeader({ variant: _variant = 'generic' }: LandingHeaderPr
         : 'border-b border-transparent bg-transparent'
         }`}
     >
-      <div className="mx-auto flex w-full max-w-[1400px] items-center justify-between px-6 py-4 sm:px-8 lg:px-12">
+      <div className="mx-auto flex w-full max-w-[1400px] items-center justify-between px-4 py-4 sm:px-8 lg:px-12">
         {/* Logo */}
         <Link
           href="/"
@@ -49,7 +49,7 @@ export function LandingHeader({ variant: _variant = 'generic' }: LandingHeaderPr
             width={150}
             height={50}
             priority
-            className="h-10 w-auto object-contain transition-all duration-300 group-hover:scale-105"
+            className="h-8 w-auto object-contain transition-all duration-300 group-hover:scale-105 sm:h-10"
           />
         </Link>
 
@@ -66,7 +66,8 @@ export function LandingHeader({ variant: _variant = 'generic' }: LandingHeaderPr
           </Link>
 
           <Button
-            className="h-10 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 px-6 font-semibold text-white shadow-md shadow-emerald-500/25 transition-all hover:shadow-lg hover:shadow-emerald-500/40"
+            size="sm"
+            className="h-9 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 px-4 font-semibold text-white shadow-md shadow-emerald-500/25 transition-all hover:shadow-lg hover:shadow-emerald-500/40 sm:h-10 sm:px-6"
             asChild
           >
             <Link href="/sign-up">Testar Grátis</Link>

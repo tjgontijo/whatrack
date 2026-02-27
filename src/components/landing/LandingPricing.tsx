@@ -38,14 +38,14 @@ const plans: Plan[] = [
     highlighted: false,
   },
   {
-    name: 'Agência',
-    subtitle: 'Para agências e times de vendas',
+    name: 'Profissional',
+    subtitle: 'Para negócios em escala e times de vendas',
     description: 'Automação completa e múltiplas conexões.',
     price: 'R$',
     priceValue: '297',
     pricePeriod: '/mês',
     features: [
-      'Tudo do Essencial',
+      'Tudo do Solo',
       'Até 3 números de WhatsApp',
       'Relatórios de ROI em tempo real',
       'Múltiplas contas de anúncio',
@@ -56,7 +56,7 @@ const plans: Plan[] = [
   },
   {
     name: 'Operação',
-    subtitle: 'Múltiplos clientes ou alto volume',
+    subtitle: 'Para operações de alto volume',
     description: 'Para quem gerencia operações maiores.',
     price: 'R$',
     priceValue: '497',
@@ -142,7 +142,7 @@ export function LandingPricing({ variant = 'generic' }: LandingPricingProps) {
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-20 text-center"
+          className="mb-12 text-center sm:mb-20"
         >
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-4 py-2 backdrop-blur-sm">
             <div className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
@@ -151,7 +151,7 @@ export function LandingPricing({ variant = 'generic' }: LandingPricingProps) {
             </span>
           </div>
 
-          <h2 className="mx-auto mb-6 max-w-4xl font-geist text-5xl font-bold leading-tight tracking-tight sm:text-6xl">
+          <h2 className="mx-auto mb-6 max-w-4xl font-geist text-3xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
             {headline.title}
           </h2>
 
@@ -194,7 +194,7 @@ export function LandingPricing({ variant = 'generic' }: LandingPricingProps) {
                 </div>
               )}
 
-              <div className="relative p-8 lg:p-10">
+              <div className="relative p-6 sm:p-8 lg:p-10">
                 {/* Plan header */}
                 <div className="mb-8">
                   <h3 className="mb-2 font-geist text-2xl font-bold">{plan.name}</h3>

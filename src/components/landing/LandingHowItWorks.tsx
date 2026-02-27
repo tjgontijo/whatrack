@@ -39,7 +39,7 @@ export function LandingHowItWorks({ content }: LandingHowItWorksProps) {
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-20 text-center"
+          className="mb-12 text-center sm:mb-20"
         >
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2 dark:border-zinc-800 dark:bg-zinc-900">
             <div className="h-2 w-2 rounded-full bg-emerald-500" />
@@ -48,7 +48,7 @@ export function LandingHowItWorks({ content }: LandingHowItWorksProps) {
             </span>
           </div>
 
-          <h2 className="mx-auto mb-6 max-w-4xl font-geist text-5xl font-bold leading-tight tracking-tight text-zinc-900 dark:text-white sm:text-6xl">
+          <h2 className="mx-auto mb-6 max-w-4xl font-geist text-3xl font-bold leading-tight tracking-tight text-zinc-900 dark:text-white sm:text-5xl lg:text-6xl">
             {content.headline}{' '}
             <span className="bg-gradient-to-r from-emerald-600 to-amber-600 bg-clip-text text-transparent">
               {content.highlightedText}
@@ -67,7 +67,7 @@ export function LandingHowItWorks({ content }: LandingHowItWorksProps) {
             <div className="h-full w-full bg-gradient-to-r from-emerald-500/20 via-amber-500/20 to-emerald-500/20" />
           </div>
 
-          <div className="grid gap-12 lg:grid-cols-3 lg:gap-8">
+          <div className="grid gap-6 sm:gap-8 lg:grid-cols-3">
             {content.steps.map((step, index) => {
               const Icon = iconMap[step.icon]
               const stepNumber = String(index + 1).padStart(2, '0')
@@ -85,28 +85,26 @@ export function LandingHowItWorks({ content }: LandingHowItWorksProps) {
                   className="group relative"
                 >
                   {/* Step card */}
-                  <div className="relative rounded-3xl border border-zinc-200 bg-white p-8 shadow-sm transition-all hover:-translate-y-2 hover:shadow-xl dark:border-zinc-800 dark:bg-zinc-900 lg:p-10">
+                  <div className="relative rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-2 hover:shadow-xl dark:border-zinc-800 dark:bg-zinc-900 sm:p-8 lg:p-10">
                     {/* Gradient accent */}
                     <div
-                      className={`pointer-events-none absolute right-0 top-0 h-40 w-40 bg-gradient-to-bl opacity-0 blur-3xl transition-opacity group-hover:opacity-100 ${
-                        index === 0
+                      className={`pointer-events-none absolute right-0 top-0 h-40 w-40 bg-gradient-to-bl opacity-0 blur-3xl transition-opacity group-hover:opacity-100 ${index === 0
                           ? 'from-emerald-500/30'
                           : index === 1
                             ? 'from-amber-500/30'
                             : 'from-emerald-500/30'
-                      } to-transparent`}
+                        } to-transparent`}
                     />
 
                     {/* Icon and step number */}
                     <div className="relative mb-8 flex items-center justify-between">
                       <div
-                        className={`flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br shadow-lg ${
-                          index === 0
+                        className={`flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br shadow-lg ${index === 0
                             ? 'from-emerald-500 to-emerald-600 shadow-emerald-500/25'
                             : index === 1
                               ? 'from-amber-500 to-amber-600 shadow-amber-500/25'
                               : 'from-emerald-600 to-teal-600 shadow-emerald-500/25'
-                        }`}
+                          }`}
                       >
                         <Icon className="h-8 w-8 text-white" />
                       </div>
@@ -130,11 +128,10 @@ export function LandingHowItWorks({ content }: LandingHowItWorksProps) {
                       {[...Array(3)].map((_, i) => (
                         <div
                           key={i}
-                          className={`h-1 flex-1 rounded-full transition-all ${
-                            i <= index
+                          className={`h-1 flex-1 rounded-full transition-all ${i <= index
                               ? 'bg-emerald-500'
                               : 'bg-zinc-200 dark:bg-zinc-800'
-                          }`}
+                            }`}
                         />
                       ))}
                     </div>

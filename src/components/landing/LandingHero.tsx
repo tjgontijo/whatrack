@@ -49,7 +49,7 @@ export function LandingHero({ content }: LandingHeroProps) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            className="mb-6 font-geist text-5xl font-bold leading-[1.1] tracking-tight sm:text-6xl lg:text-7xl"
+            className="mb-6 font-geist text-4xl font-bold leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl xl:text-7xl"
           >
             {content.headline}{' '}
             <span className="bg-gradient-to-r from-emerald-400 to-amber-400 bg-clip-text text-transparent">
@@ -62,7 +62,7 @@ export function LandingHero({ content }: LandingHeroProps) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.8 }}
-            className="mb-10 text-lg leading-relaxed text-zinc-300 sm:text-xl lg:text-2xl"
+            className="mb-10 text-base leading-relaxed text-zinc-300 sm:text-lg lg:text-xl xl:text-2xl"
           >
             {content.subheadline}
           </motion.p>
@@ -99,20 +99,32 @@ export function LandingHero({ content }: LandingHeroProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.7, duration: 0.8 }}
-            className="mt-12 flex flex-wrap gap-6 text-sm text-zinc-400"
+            className="group relative mt-12 flex overflow-hidden"
           >
-            {content.highlights.map((highlight, i) => (
-              <motion.div
-                key={highlight}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.8 + i * 0.1, duration: 0.5 }}
-                className="flex items-center gap-2"
-              >
-                <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                <span className="font-medium">{highlight}</span>
-              </motion.div>
-            ))}
+            <motion.div
+              animate={{
+                x: [0, -100 + "%"],
+              }}
+              transition={{
+                x: {
+                  repeat: Infinity,
+                  repeatType: "loop",
+                  duration: 25,
+                  ease: "linear",
+                },
+              }}
+              className="flex flex-shrink-0 items-center gap-12 pr-12 text-sm text-zinc-400"
+            >
+              {[...content.highlights, ...content.highlights].map((highlight, i) => (
+                <div
+                  key={`${highlight}-${i}`}
+                  className="flex flex-shrink-0 items-center gap-2"
+                >
+                  <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                  <span className="font-medium whitespace-nowrap">{highlight}</span>
+                </div>
+              ))}
+            </motion.div>
           </motion.div>
         </motion.div>
 
@@ -138,11 +150,11 @@ export function LandingHero({ content }: LandingHeroProps) {
               </div>
 
               {/* Dashboard content */}
-              <div className="bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-950 p-8">
+              <div className="bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-950 p-4 sm:p-8">
                 {/* Stats cards */}
-                <div className="mb-6 grid grid-cols-3 gap-4">
+                <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
                   {[
-                    { label: 'ROI', value: '847%', color: 'emerald' },
+                    { label: 'ROAS', value: '12.4', color: 'emerald' },
                     { label: 'Vendas', value: '142', color: 'amber' },
                     { label: 'CAC', value: 'R$ 24', color: 'blue' },
                   ].map((stat, i) => (
@@ -151,19 +163,18 @@ export function LandingHero({ content }: LandingHeroProps) {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 1 + i * 0.1, duration: 0.5 }}
-                      className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4"
+                      className={`rounded-xl border border-zinc-800 bg-zinc-900/50 p-3 sm:p-4 ${i === 2 ? 'col-span-2 sm:col-span-1' : ''}`}
                     >
                       <div className="mb-2 text-xs font-medium text-zinc-500">
                         {stat.label}
                       </div>
                       <div
-                        className={`font-mono text-2xl font-bold ${
-                          stat.color === 'emerald'
-                            ? 'text-emerald-400'
-                            : stat.color === 'amber'
-                              ? 'text-amber-400'
-                              : 'text-blue-400'
-                        }`}
+                        className={`font-mono text-lg font-bold sm:text-2xl ${stat.color === 'emerald'
+                          ? 'text-emerald-400'
+                          : stat.color === 'amber'
+                            ? 'text-amber-400'
+                            : 'text-blue-400'
+                          }`}
                       >
                         {stat.value}
                       </div>
