@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { apiError } from '@/lib/utils/api-response'
-import { aiResourceIdParamSchema, updateAiAgentSchema } from '@/schemas/ai/ai-schemas'
+import { aiResourceIdParamSchema, updateAiSkillSchema } from '@/schemas/ai/ai-schemas'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
-import {
-  deleteAiAgent,
-  getAiAgentById,
-  updateAiAgent,
-} from '@/services/ai/ai-agent.service'
+import { deleteAiSkill, getAiSkillById, updateAiSkill } from '@/services/ai/ai-skill.service'
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -21,17 +17,16 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return apiError('Dados inválidos', 400, undefined, { details: parsedParams.error.flatten() })
     }
 
-    const { id } = parsedParams.data
-    const agent = await getAiAgentById(access.organizationId, id)
-
-    if (!agent) {
-      return apiError('Agente não encontrado', 404)
+    const { id: skillId } = parsedParams.data
+    const skill = await getAiSkillById(access.organizationId, skillId)
+    if (!skill) {
+      return apiError('Skill não encontrada', 404)
     }
 
-    return NextResponse.json({ agent })
+    return NextResponse.json({ skill })
   } catch (error) {
-    console.error('[GET ai-agent]', error)
-    return apiError('Erro ao buscar agente', 500, error)
+    console.error('[GET ai-skill]', error)
+    return apiError('Erro ao buscar skill', 500, error)
   }
 }
 
@@ -47,22 +42,21 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       return apiError('Dados inválidos', 400, undefined, { details: parsedParams.error.flatten() })
     }
 
-    const parsed = updateAiAgentSchema.safeParse(await request.json())
+    const parsed = updateAiSkillSchema.safeParse(await request.json())
     if (!parsed.success) {
       return apiError('Dados inválidos', 400, undefined, { details: parsed.error.flatten() })
     }
 
-    const { id } = parsedParams.data
-    const result = await updateAiAgent(access.organizationId, id, parsed.data)
-
+    const { id: skillId } = parsedParams.data
+    const result = await updateAiSkill(access.organizationId, skillId, parsed.data)
     if ('error' in result) {
       return apiError(result.error, result.status)
     }
 
-    return NextResponse.json({ agent: result.data })
+    return NextResponse.json({ skill: result.data })
   } catch (error) {
-    console.error('[PATCH ai-agent]', error)
-    return apiError('Erro ao atualizar agente', 500, error)
+    console.error('[PATCH ai-skill]', error)
+    return apiError('Erro ao atualizar skill', 500, error)
   }
 }
 
@@ -81,15 +75,15 @@ export async function DELETE(
       return apiError('Dados inválidos', 400, undefined, { details: parsedParams.error.flatten() })
     }
 
-    const { id } = parsedParams.data
-    const result = await deleteAiAgent(access.organizationId, id)
+    const { id: skillId } = parsedParams.data
+    const result = await deleteAiSkill(access.organizationId, skillId)
     if ('error' in result) {
       return apiError(result.error, result.status)
     }
 
-    return NextResponse.json({ message: 'Agente removido com sucesso' })
+    return NextResponse.json({ message: 'Skill removida com sucesso' })
   } catch (error) {
-    console.error('[DELETE ai-agent]', error)
-    return apiError('Erro ao remover agente', 500, error)
+    console.error('[DELETE ai-skill]', error)
+    return apiError('Erro ao remover skill', 500, error)
   }
 }

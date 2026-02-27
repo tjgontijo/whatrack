@@ -1,19 +1,18 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   ChevronLeft,
   Plus,
   Save,
   Trash2,
   Bot,
-  Play,
-  Pause,
-  Search,
   Target,
-  Tags,
   FileOutput,
+  Puzzle,
+  Loader2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -38,96 +37,92 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
+import { AgentSkillBindings } from '@/components/dashboard/ai/agent-skill-bindings'
+import { AI_SKILLS_QUERY_KEY } from '@/hooks/ai/use-ai-skills'
+import type { AiSkill } from '@/types/ai/ai-skill'
+import type { AiAgentSkillBinding, FormSkillBinding } from '@/types/ai/ai-agent-skill'
 
-export default function AiAgentBuilder() {
+// ---------- Types ----------
+
+interface AgentData {
+  id: string
+  name: string
+  leanPrompt: string
+  model: string
+  isActive: boolean
+  triggers: { eventType: string; conditions: Record<string, unknown> }[]
+  schemaFields: {
+    fieldName: string
+    fieldType: string
+    description: string
+    isRequired: boolean
+    options?: unknown
+  }[]
+  skillBindings: AiAgentSkillBinding[]
+}
+
+// ---------- AgentBuilderForm ----------
+
+interface AgentBuilderFormProps {
+  agent: AgentData | null
+  allSkills: AiSkill[]
+  isNew: boolean
+}
+
+function AgentBuilderForm({ agent, allSkills, isNew }: AgentBuilderFormProps) {
   const router = useRouter()
-  const params = useParams()
-  const id = Array.isArray(params.id) ? params.id[0] : params.id
-  const isNew = id === 'new'
+  const queryClient = useQueryClient()
 
-  // Form State
-  const [name, setName] = useState('')
-  const [systemPrompt, setSystemPrompt] = useState('')
-  const [model, setModel] = useState('llama-3.3-70b-versatile')
-  const [isActive, setIsActive] = useState(true)
-
-  // Triggers State
-  const [triggers, setTriggers] = useState<any[]>([])
-
-  // Schema Fields State
-  const [schemaFields, setSchemaFields] = useState<any[]>([])
-
-  const [isLoading, setIsLoading] = useState(!isNew)
+  const [name, setName] = useState(agent?.name ?? '')
+  const [leanPrompt, setLeanPrompt] = useState(agent?.leanPrompt ?? '')
+  const [model, setModel] = useState(agent?.model ?? 'llama-3.3-70b-versatile')
+  const [isActive, setIsActive] = useState(agent?.isActive ?? true)
+  const [triggers, setTriggers] = useState<{ eventType: string; conditions: Record<string, unknown> }[]>(
+    agent?.triggers ?? [],
+  )
+  const [schemaFields, setSchemaFields] = useState<
+    { fieldName: string; fieldType: string; description: string; isRequired: boolean; options?: unknown }[]
+  >(agent?.schemaFields ?? [])
+  const [skillBindings, setSkillBindings] = useState<FormSkillBinding[]>(
+    agent?.skillBindings?.map((b) => ({
+      skillId: b.skillId,
+      sortOrder: b.sortOrder,
+      isActive: b.isActive,
+      skill: b.skill,
+    })) ?? [],
+  )
   const [isSaving, setIsSaving] = useState(false)
 
-  useEffect(() => {
-    if (!isNew) {
-      fetchAgent()
-    }
-  }, [isNew])
-
-  const fetchAgent = async () => {
-    setIsLoading(true)
-    try {
-      const res = await fetch(`/api/v1/ai-agents/${id}`)
-      if (!res.ok) throw new Error()
-      const data = await res.json()
-      const agent = data.agent
-
-      setName(agent.name)
-      setSystemPrompt(agent.systemPrompt)
-      setModel(agent.model)
-      setIsActive(agent.isActive)
-      setTriggers(agent.triggers || [])
-      setSchemaFields(agent.schemaFields || [])
-    } catch {
-      toast.error('Erro ao carregar o agente.')
-      router.push('/dashboard/settings/ai')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleAddTrigger = () => {
+  function handleAddTrigger() {
     setTriggers([...triggers, { eventType: 'TICKET_WON', conditions: {} }])
   }
 
-  const handleUpdateTrigger = (index: number, val: string) => {
-    const t = [...triggers]
-    t[index].eventType = val
-    setTriggers(t)
+  function handleUpdateTrigger(index: number, val: string) {
+    setTriggers(triggers.map((t, i) => (i === index ? { ...t, eventType: val } : t)))
   }
 
-  const handleRemoveTrigger = (index: number) => {
+  function handleRemoveTrigger(index: number) {
     setTriggers(triggers.filter((_, i) => i !== index))
   }
 
-  const handleAddField = () => {
+  function handleAddField() {
     setSchemaFields([
       ...schemaFields,
       { fieldName: '', fieldType: 'STRING', description: '', isRequired: true },
     ])
   }
 
-  const handleUpdateField = (index: number, key: string, val: any) => {
-    const f = [...schemaFields]
-    f[index][key] = val
-    setSchemaFields(f)
+  function handleUpdateField(index: number, key: string, val: unknown) {
+    setSchemaFields(schemaFields.map((f, i) => (i === index ? { ...f, [key]: val } : f)))
   }
 
-  const handleRemoveField = (index: number) => {
+  function handleRemoveField(index: number) {
     setSchemaFields(schemaFields.filter((_, i) => i !== index))
   }
 
-  const handleSave = async () => {
-    // Validation
-    if (
-      !name.trim() ||
-      !systemPrompt.trim() ||
-      triggers.length === 0 ||
-      schemaFields.length === 0
-    ) {
-      toast.error('Preencha Nome, Prompt, e adicione pelo menos um Trigger e um Schema Field.')
+  async function handleSave() {
+    if (!name.trim() || !leanPrompt.trim() || triggers.length === 0 || schemaFields.length === 0) {
+      toast.error('Preencha Nome, Prompt Enxuto, e adicione pelo menos um Trigger e um Schema Field.')
       return
     }
 
@@ -136,15 +131,20 @@ export default function AiAgentBuilder() {
 
     const payload = {
       name,
-      systemPrompt,
+      leanPrompt,
       model,
       isActive,
       triggers,
       schemaFields,
+      skillBindings: skillBindings.map(({ skillId, sortOrder, isActive: sa }) => ({
+        skillId,
+        sortOrder,
+        isActive: sa,
+      })),
     }
 
     try {
-      const url = isNew ? '/api/v1/ai-agents' : `/api/v1/ai-agents/${id}`
+      const url = isNew ? '/api/v1/ai-agents' : `/api/v1/ai-agents/${agent?.id}`
       const method = isNew ? 'POST' : 'PATCH'
 
       const res = await fetch(url, {
@@ -155,6 +155,7 @@ export default function AiAgentBuilder() {
 
       if (!res.ok) throw new Error()
       toast.success('Agente salvo com sucesso!', { id: toastId })
+      queryClient.invalidateQueries({ queryKey: ['ai-agents'] })
       router.push('/dashboard/settings/ai')
     } catch {
       toast.error('Falha ao salvar agente.', { id: toastId })
@@ -162,8 +163,6 @@ export default function AiAgentBuilder() {
       setIsSaving(false)
     }
   }
-
-  if (isLoading) return <div className="p-8">Carregando Studio...</div>
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-6">
@@ -188,13 +187,18 @@ export default function AiAgentBuilder() {
             <Switch checked={isActive} onCheckedChange={setIsActive} />
           </div>
           <Button onClick={handleSave} disabled={isSaving}>
-            <Save className="mr-2 h-4 w-4" /> {isSaving ? 'Salvando...' : 'Salvar Agent'}
+            {isSaving ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="mr-2 h-4 w-4" />
+            )}
+            {isSaving ? 'Salvando...' : 'Salvar Agente'}
           </Button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-        {/* 1. Nome e Cérebro */}
+        {/* 1. Identidade e Cérebro */}
         <Card className="md:col-span-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
@@ -212,12 +216,15 @@ export default function AiAgentBuilder() {
               />
             </div>
             <div className="space-y-2">
-              <Label>System Prompt (Persona e Regras)</Label>
+              <Label>Prompt Enxuto</Label>
+              <p className="text-muted-foreground text-xs">
+                Identidade e foco do agente. Regras comportamentais transversais ficam nas Skills.
+              </p>
               <Textarea
                 className="min-h-[160px] resize-none whitespace-pre-wrap font-mono text-sm leading-relaxed"
                 placeholder="Você é o inspetor de vendas. Analise o chat. Se o cliente falar que pagou via PIX ou boleto, classifique como SALE."
-                value={systemPrompt}
-                onChange={(e) => setSystemPrompt(e.target.value)}
+                value={leanPrompt}
+                onChange={(e) => setLeanPrompt(e.target.value)}
               />
             </div>
             <div className="space-y-2">
@@ -230,9 +237,7 @@ export default function AiAgentBuilder() {
                   <SelectItem value="llama-3.3-70b-versatile">
                     LLaMA 3.3 (70B) - Groq Rápido
                   </SelectItem>
-                  <SelectItem value="gpt-4o-mini" disabled>
-                    GPT-4o Mini (Em breve)
-                  </SelectItem>
+                  <SelectItem value="openai/gpt-4o-mini">GPT-4o Mini - OpenAI</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -300,7 +305,7 @@ export default function AiAgentBuilder() {
           </CardFooter>
         </Card>
 
-        {/* 3. Output Schema (Zod) */}
+        {/* 3. Output Schema */}
         <Card className="md:col-span-3">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
@@ -333,11 +338,7 @@ export default function AiAgentBuilder() {
                     placeholder="Ex: dealValue"
                     value={field.fieldName}
                     onChange={(e) =>
-                      handleUpdateField(
-                        idx,
-                        'fieldName',
-                        e.target.value.replace(/[^a-zA-Z0-9_]/g, '')
-                      )
+                      handleUpdateField(idx, 'fieldName', e.target.value.replace(/[^a-zA-Z0-9_]/g, ''))
                     }
                   />
                 </div>
@@ -389,7 +390,78 @@ export default function AiAgentBuilder() {
             </Button>
           </CardFooter>
         </Card>
+
+        {/* 4. Skills Vinculadas */}
+        <Card className="md:col-span-3">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Puzzle className="text-primary h-5 w-5" /> Skills Vinculadas
+            </CardTitle>
+            <CardDescription>
+              Combine blocos de instrução para compor o comportamento completo do agente.
+            </CardDescription>
+          </CardHeader>
+          <AgentSkillBindings
+            allSkills={allSkills}
+            value={skillBindings}
+            onChange={setSkillBindings}
+          />
+        </Card>
       </div>
     </div>
+  )
+}
+
+// ---------- Page shell (data fetching) ----------
+
+export default function AiAgentBuilderPage() {
+  const params = useParams()
+  const router = useRouter()
+  const id = Array.isArray(params.id) ? params.id[0] : params.id
+  const isNew = id === 'new'
+
+  const { data: agentData, isLoading: agentLoading } = useQuery({
+    queryKey: ['ai-agents', id],
+    queryFn: async (): Promise<AgentData> => {
+      const res = await fetch(`/api/v1/ai-agents/${id}`)
+      if (!res.ok) throw new Error('Agente não encontrado.')
+      const data = await res.json()
+      return data.agent
+    },
+    enabled: !isNew,
+    retry: false,
+    throwOnError: () => {
+      router.push('/dashboard/settings/ai')
+      return false
+    },
+  })
+
+  const { data: skillsData, isLoading: skillsLoading } = useQuery({
+    queryKey: AI_SKILLS_QUERY_KEY,
+    queryFn: async (): Promise<AiSkill[]> => {
+      const res = await fetch('/api/v1/ai-skills')
+      if (!res.ok) throw new Error('Erro ao carregar skills.')
+      const data = await res.json()
+      return data.skills ?? []
+    },
+  })
+
+  const isLoading = (!isNew && agentLoading) || skillsLoading
+
+  if (isLoading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
+      </div>
+    )
+  }
+
+  return (
+    <AgentBuilderForm
+      key={agentData?.id ?? 'new'}
+      agent={agentData ?? null}
+      allSkills={skillsData ?? []}
+      isNew={isNew}
+    />
   )
 }

@@ -6,6 +6,7 @@ import { seedTicketStages } from './seed_ticket_stages'
 import { seedAgentSaleDetector } from './seed_agent_sale_detector'
 import { seedAgentLeadQualifier } from './seed_agent_lead_qualifier'
 import { seedAgentConversationSummarizer } from './seed_agent_conversation_summarizer'
+import { seedSharedCoreSkills } from './seed_skills_shared_core'
 
 interface PgTableRow {
   tablename: string
@@ -99,6 +100,7 @@ export async function runSeed() {
       await seedAgentSaleDetector(prisma, org.id)
       await seedAgentLeadQualifier(prisma, org.id)
       await seedAgentConversationSummarizer(prisma, org.id)
+      await seedSharedCoreSkills(prisma, org.id)
     }
 
     console.log('✅ Seed concluído com sucesso!')

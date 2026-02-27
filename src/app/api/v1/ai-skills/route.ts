@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { apiError } from '@/lib/utils/api-response'
-import { createAiAgentSchema } from '@/schemas/ai/ai-schemas'
+import { createAiSkillSchema } from '@/schemas/ai/ai-schemas'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
-import { createAiAgent, listAiAgents } from '@/services/ai/ai-agent.service'
+import { createAiSkill, listAiSkills } from '@/services/ai/ai-skill.service'
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,11 +12,11 @@ export async function GET(request: NextRequest) {
       return apiError('Unauthorized', 401)
     }
 
-    const agents = await listAiAgents(access.organizationId)
-    return NextResponse.json({ agents })
+    const skills = await listAiSkills(access.organizationId)
+    return NextResponse.json({ skills })
   } catch (error) {
-    console.error('[GET ai-agents]', error)
-    return apiError('Erro ao buscar agentes', 500, error)
+    console.error('[GET ai-skills]', error)
+    return apiError('Erro ao buscar skills', 500, error)
   }
 }
 
@@ -27,19 +27,19 @@ export async function POST(request: NextRequest) {
       return apiError('Unauthorized', 401)
     }
 
-    const parsed = createAiAgentSchema.safeParse(await request.json())
+    const parsed = createAiSkillSchema.safeParse(await request.json())
     if (!parsed.success) {
       return apiError('Dados inválidos', 400, undefined, { details: parsed.error.flatten() })
     }
 
-    const result = await createAiAgent(access.organizationId, parsed.data)
+    const result = await createAiSkill(access.organizationId, parsed.data)
     if ('error' in result) {
       return apiError(result.error, result.status)
     }
 
-    return NextResponse.json({ agent: result.data }, { status: 201 })
+    return NextResponse.json({ skill: result.data }, { status: 201 })
   } catch (error) {
-    console.error('[POST ai-agents]', error)
-    return apiError('Erro ao criar agente', 500, error)
+    console.error('[POST ai-skills]', error)
+    return apiError('Erro ao criar skill', 500, error)
   }
 }

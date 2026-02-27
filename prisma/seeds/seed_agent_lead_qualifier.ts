@@ -3,7 +3,12 @@ import type { PrismaClient } from '../generated/prisma/client'
 const AGENT = {
   name: 'Qualificador de Lead',
   icon: 'UserCheck',
-  systemPrompt: `Você é um qualificador de leads para conversas de WhatsApp.
+  leanPrompt:
+    'Você é um qualificador de leads para conversas de WhatsApp. Responda seguindo estritamente o schema.',
+  domainSkill: {
+    slug: 'qualificador-lead-dominio',
+    name: 'Qualificador de Lead - Domínio',
+    content: `Você é um qualificador de leads para conversas de WhatsApp.
 
 Classifique o potencial de conversão do lead:
 - HOT: necessidade clara, urgência ou sinal de decisão iminente ("quero fechar", "quando posso começar", "tem disponibilidade essa semana").
@@ -15,6 +20,7 @@ Extraia também:
 - nextAction: próxima ação concreta para o atendente (ex: "Enviar tabela de preços", "Propor demonstração").
 - reasoning: 1 frase com o comportamento do cliente que justifica a temperatura.
 - confidence: 0.0–1.0.`,
+  },
   model: 'openai/gpt-4o-mini',
   triggers: [
     {
@@ -68,14 +74,14 @@ export async function seedAgentLeadQualifier(prisma: PrismaClient, organizationI
     },
     update: {
       icon: AGENT.icon,
-      systemPrompt: AGENT.systemPrompt,
+      leanPrompt: AGENT.leanPrompt,
       model: AGENT.model,
     },
     create: {
       organizationId,
       name: AGENT.name,
       icon: AGENT.icon,
-      systemPrompt: AGENT.systemPrompt,
+      leanPrompt: AGENT.leanPrompt,
       model: AGENT.model,
       isActive: false,
     },
@@ -109,4 +115,49 @@ export async function seedAgentLeadQualifier(prisma: PrismaClient, organizationI
       },
     })
   }
+
+  const domainSkill = await prisma.aiSkill.upsert({
+    where: {
+      organizationId_slug: {
+        organizationId,
+        slug: AGENT.domainSkill.slug,
+      },
+    },
+    update: {
+      name: AGENT.domainSkill.name,
+      content: AGENT.domainSkill.content,
+      kind: 'AGENT',
+      source: 'SYSTEM',
+      isActive: true,
+    },
+    create: {
+      organizationId,
+      slug: AGENT.domainSkill.slug,
+      name: AGENT.domainSkill.name,
+      content: AGENT.domainSkill.content,
+      kind: 'AGENT',
+      source: 'SYSTEM',
+      isActive: true,
+    },
+    select: { id: true },
+  })
+
+  await prisma.aiAgentSkill.upsert({
+    where: {
+      agentId_skillId: {
+        agentId: agentRecord.id,
+        skillId: domainSkill.id,
+      },
+    },
+    update: {
+      sortOrder: 200,
+      isActive: true,
+    },
+    create: {
+      agentId: agentRecord.id,
+      skillId: domainSkill.id,
+      sortOrder: 200,
+      isActive: true,
+    },
+  })
 }

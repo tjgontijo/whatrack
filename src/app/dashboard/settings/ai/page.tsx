@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { Sparkles, Plus, Edit2, Trash2, Bot } from 'lucide-react'
+import { Sparkles, Plus, Edit2, Trash2, Bot, Puzzle } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   Card,
@@ -58,11 +58,18 @@ export default function AiAgentsPage() {
         description="Crie múltiplos agentes para interagir e auferir insights preciosos das suas conversas."
         icon={Sparkles}
         actions={
-          <Button asChild className="gap-2">
-            <Link href="/dashboard/settings/ai/new">
-              <Plus className="h-4 w-4" /> Novo Agente
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" asChild className="gap-2">
+              <Link href="/dashboard/settings/ai/skills">
+                <Puzzle className="h-4 w-4" /> Skills
+              </Link>
+            </Button>
+            <Button asChild className="gap-2">
+              <Link href="/dashboard/settings/ai/new">
+                <Plus className="h-4 w-4" /> Novo Agente
+              </Link>
+            </Button>
+          </div>
         }
       />
 
@@ -110,13 +117,16 @@ export default function AiAgentsPage() {
                 </div>
               </CardHeader>
               <CardContent className="flex-1 py-4">
-                <p className="text-muted-foreground line-clamp-3 text-sm">{agent.systemPrompt}</p>
+                <p className="text-muted-foreground line-clamp-3 text-sm">{agent.leanPrompt}</p>
                 <div className="mt-4 flex flex-wrap gap-2">
                   <Badge variant="outline" className="text-[10px] uppercase">
                     {agent.triggers?.length || 0} Triggers
                   </Badge>
                   <Badge variant="outline" className="text-[10px] uppercase">
                     {agent.schemaFields?.length || 0} Campos
+                  </Badge>
+                  <Badge variant="outline" className="text-[10px] uppercase">
+                    {agent.skillBindings?.length || 0} Skills
                   </Badge>
                 </div>
               </CardContent>

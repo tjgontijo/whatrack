@@ -768,13 +768,43 @@ CREATE TABLE "ai_agents" (
     "organizationId" UUID NOT NULL,
     "name" TEXT NOT NULL,
     "icon" TEXT,
-    "systemPrompt" TEXT NOT NULL,
+    "leanPrompt" TEXT NOT NULL,
     "model" TEXT NOT NULL DEFAULT 'llama-3.3-70b-versatile',
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "ai_agents_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ai_skills" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "organizationId" UUID NOT NULL,
+    "slug" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "content" TEXT NOT NULL,
+    "kind" TEXT NOT NULL DEFAULT 'SHARED',
+    "source" TEXT NOT NULL DEFAULT 'CUSTOM',
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ai_skills_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ai_agent_skills" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "agentId" UUID NOT NULL,
+    "skillId" UUID NOT NULL,
+    "sortOrder" INTEGER NOT NULL DEFAULT 100,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ai_agent_skills_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -1174,6 +1204,18 @@ CREATE INDEX "ai_agents_organizationId_idx" ON "ai_agents"("organizationId");
 CREATE UNIQUE INDEX "ai_agents_organizationId_name_key" ON "ai_agents"("organizationId", "name");
 
 -- CreateIndex
+CREATE INDEX "ai_skills_organizationId_source_kind_idx" ON "ai_skills"("organizationId", "source", "kind");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ai_skills_organizationId_slug_key" ON "ai_skills"("organizationId", "slug");
+
+-- CreateIndex
+CREATE INDEX "ai_agent_skills_agentId_sortOrder_idx" ON "ai_agent_skills"("agentId", "sortOrder");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ai_agent_skills_agentId_skillId_key" ON "ai_agent_skills"("agentId", "skillId");
+
+-- CreateIndex
 CREATE INDEX "ai_triggers_agentId_idx" ON "ai_triggers"("agentId");
 
 -- CreateIndex
@@ -1376,6 +1418,15 @@ ALTER TABLE "ai_conversion_approvals" ADD CONSTRAINT "ai_conversion_approvals_ti
 
 -- AddForeignKey
 ALTER TABLE "ai_agents" ADD CONSTRAINT "ai_agents_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_skills" ADD CONSTRAINT "ai_skills_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_agent_skills" ADD CONSTRAINT "ai_agent_skills_agentId_fkey" FOREIGN KEY ("agentId") REFERENCES "ai_agents"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_agent_skills" ADD CONSTRAINT "ai_agent_skills_skillId_fkey" FOREIGN KEY ("skillId") REFERENCES "ai_skills"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ai_triggers" ADD CONSTRAINT "ai_triggers_agentId_fkey" FOREIGN KEY ("agentId") REFERENCES "ai_agents"("id") ON DELETE CASCADE ON UPDATE CASCADE;

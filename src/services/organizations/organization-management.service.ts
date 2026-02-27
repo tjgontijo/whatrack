@@ -2,6 +2,7 @@ import { Prisma } from '@prisma/client'
 
 import { prisma } from '@/lib/db/prisma'
 import { calculateMetrics } from '@/services/onboarding-metrics/metrics-calculator'
+import { ensureCoreSkillsForOrganization } from '@/services/ai/ai-skill-provisioning.service'
 import {
   normalizeOnboardingDocument,
   type OrganizationOnboardingInput,
@@ -191,6 +192,8 @@ export async function createOrganizationFromOnboarding(input: {
       })
     }
 
+    await ensureCoreSkillsForOrganization(tx, createdOrganization.id)
+
     return createdOrganization
   })
 
@@ -223,21 +226,27 @@ export async function getOrCreateCurrentOrganization(input: {
       input.user.name?.trim() || (input.user.email?.split('@')[0] ?? '').trim() || 'Minha organizacao'
     const slug = await generateUniqueSlug(fallbackName)
 
-    const organization = await prisma.organization.create({
-      data: {
-        name: fallbackName,
-        slug,
-        createdAt: new Date(),
-      },
-    })
+    const organization = await prisma.$transaction(async (tx) => {
+      const createdOrganization = await tx.organization.create({
+        data: {
+          name: fallbackName,
+          slug,
+          createdAt: new Date(),
+        },
+      })
 
-    await prisma.member.create({
-      data: {
-        organizationId: organization.id,
-        userId: input.user.id,
-        role: 'owner',
-        createdAt: new Date(),
-      },
+      await tx.member.create({
+        data: {
+          organizationId: createdOrganization.id,
+          userId: input.user.id,
+          role: 'owner',
+          createdAt: new Date(),
+        },
+      })
+
+      await ensureCoreSkillsForOrganization(tx, createdOrganization.id)
+
+      return createdOrganization
     })
 
     return {

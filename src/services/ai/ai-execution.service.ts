@@ -1,4 +1,5 @@
 import { Agent } from '@mastra/core/agent'
+import { Prisma } from '@prisma/client'
 import { z } from 'zod'
 import { prisma } from '@/lib/db/prisma'
 import { publishToCentrifugo } from '@/lib/centrifugo/server'
@@ -10,14 +11,14 @@ type AgentSchemaRow = {
   fieldType: string
   description: string
   isRequired: boolean
-  options: any
+  options: unknown
 }
 
 // Values considered "no signal" — suppress insight creation to keep DB clean.
 // Each agent may have a different field name for this concept.
 const NEUTRAL_VALUES = new Set(['NEUTRAL', 'COLD', 'SUPPORT'])
 
-function isNeutralResult(data: Record<string, any>): boolean {
+function isNeutralResult(data: Record<string, unknown>): boolean {
   for (const value of Object.values(data)) {
     if (typeof value === 'string' && NEUTRAL_VALUES.has(value)) return true
   }
@@ -33,10 +34,10 @@ function resolveModel(modelId: string) {
 }
 
 function buildDynamicZodSchema(fields: AgentSchemaRow[]) {
-  const shape: Record<string, any> = {}
+  const shape: Record<string, z.ZodTypeAny> = {}
 
   for (const field of fields) {
-    let zodType: any
+    let zodType: z.ZodTypeAny
 
     switch (field.fieldType) {
       case 'STRING':
@@ -100,7 +101,7 @@ export async function dispatchAiEvent(
       select: {
         id: true,
         name: true,
-        systemPrompt: true,
+        leanPrompt: true,
         model: true,
         schemaFields: {
           select: {
@@ -109,6 +110,20 @@ export async function dispatchAiEvent(
             description: true,
             isRequired: true,
             options: true,
+          },
+        },
+        skillBindings: {
+          where: {
+            isActive: true,
+            skill: { isActive: true },
+          },
+          orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+          select: {
+            skill: {
+              select: {
+                content: true,
+              },
+            },
           },
         },
       },
@@ -165,11 +180,18 @@ export async function dispatchAiEvent(
       console.log(`[AI] Running "${agentDef.name}" on ticket ${ticketId} (${messageLimit} msgs)`)
 
       const dynamicSchema = buildDynamicZodSchema(agentDef.schemaFields)
+      const promptParts = [agentDef.leanPrompt.trim()]
+      for (const binding of agentDef.skillBindings) {
+        const content = binding.skill.content.trim()
+        if (content.length > 0) {
+          promptParts.push(content)
+        }
+      }
 
       const mastraAgent = new Agent({
         name: agentDef.name,
         id: agentDef.id,
-        instructions: agentDef.systemPrompt,
+        instructions: promptParts.join('\n\n'),
         model: resolveModel(agentDef.model),
       })
 
@@ -178,11 +200,11 @@ export async function dispatchAiEvent(
         `[HISTÓRICO — ${history.split('\n').length} mensagens]\n${history}`
 
       try {
-        const result = (await mastraAgent.generate(fullPrompt, {
+        const result = await mastraAgent.generate(fullPrompt, {
           structuredOutput: { schema: dynamicSchema },
-        })) as any
+        })
 
-        const data = result.object
+        const data = result.object as Record<string, unknown> | undefined
 
         if (!data || Object.keys(data).length === 0) continue
 
@@ -196,7 +218,7 @@ export async function dispatchAiEvent(
             organizationId: ticket.organizationId,
             ticketId: ticket.id,
             agentId: agentDef.id,
-            payload: data,
+            payload: data as Prisma.InputJsonValue,
             status: 'SUGGESTION',
           },
         })

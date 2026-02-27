@@ -239,6 +239,7 @@ model Organization {
   // AI Platform Relations
   aiAgents   AiAgent[]
   aiInsights AiInsight[]
+  aiSkills   AiSkill[]
 
   // Audit
   orgAuditLogs       OrgAuditLog[]
@@ -982,7 +983,7 @@ model AiAgent {
   organizationId String   @db.Uuid
   name           String
   icon           String?
-  systemPrompt   String   @db.Text
+  leanPrompt     String   @db.Text
   model          String   @default("llama-3.3-70b-versatile")
   isActive       Boolean  @default(true)
   createdAt      DateTime @default(now())
@@ -992,10 +993,49 @@ model AiAgent {
   triggers     AiTrigger[]
   schemaFields AiSchemaField[]
   insights     AiInsight[]
+  skillBindings AiAgentSkill[]
 
   @@unique([organizationId, name])
   @@index([organizationId])
   @@map("ai_agents")
+}
+
+model AiSkill {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String   @db.Uuid
+  slug           String
+  name           String
+  description    String?
+  content        String   @db.Text
+  kind           String   @default("SHARED") // SHARED | AGENT
+  source         String   @default("CUSTOM") // SYSTEM | CUSTOM
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  bindings     AiAgentSkill[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId, source, kind])
+  @@map("ai_skills")
+}
+
+model AiAgentSkill {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  agentId   String   @db.Uuid
+  skillId   String   @db.Uuid
+  sortOrder Int      @default(100)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  agent AiAgent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  skill AiSkill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([agentId, skillId])
+  @@index([agentId, sortOrder])
+  @@map("ai_agent_skills")
 }
 
 model AiTrigger {
