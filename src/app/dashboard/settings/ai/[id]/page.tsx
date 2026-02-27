@@ -405,6 +405,7 @@ function AgentBuilderForm({ agent, allSkills, isNew }: AgentBuilderFormProps) {
             allSkills={allSkills}
             value={skillBindings}
             onChange={setSkillBindings}
+            agentId={agent?.id}
           />
         </Card>
       </div>

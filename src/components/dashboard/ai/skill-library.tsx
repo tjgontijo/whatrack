@@ -162,6 +162,7 @@ export function SkillLibrary({ skills }: SkillLibraryProps) {
   return (
     <>
       <SkillForm
+        key={editingSkill?.id ?? 'new'}
         open={formOpen}
         onOpenChange={setFormOpen}
         skill={editingSkill}

@@ -61,128 +61,129 @@ export const LANDING_CONTENT: Record<LandingVariant, LandingContent> = {
   generic: {
     variant: 'generic',
     hero: {
-      badge: 'Rastreamento inteligente de vendas',
-      headline: 'Saiba exatamente quais anúncios trazem',
-      highlightedText: 'vendas de verdade.',
+      badge: 'Rastreamento real de vendas no WhatsApp',
+      headline: 'O Meta não sabe quem comprou no WhatsApp do seu cliente.',
+      highlightedText: 'E a culpa cai em você.',
       subheadline:
-        'O WhaTrack conecta seus anúncios às vendas no WhatsApp. Você vê qual campanha vendeu, quanto vendeu, e para de jogar dinheiro fora.',
+        'O WhaTrack conecta cada conversa à campanha que gerou o clique e devolve eventos como o de Lead e Purchase pro Meta Ads via API de conversão. O algoritmo para de otimizar pra curioso e começa a entregar para compradores reais.',
       ctaPrimary: 'Testar grátis por 7 dias',
       ctaSecondary: 'Ver como funciona',
       highlights: [
-        'Conecta em 5 minutos, sem programador',
-        'Veja o ROI real de cada campanha',
-        'Relatório pronto para cliente ou sócio',
+        'API Oficial do WhatsApp',
+        'API de Conversão',
+        'Insights de Campanhas',
       ],
     },
     problem: {
-      badge: 'O problema',
-      headline: 'O dinheiro entra pelo WhatsApp, mas você',
-      highlightedText: 'não sabe de onde veio.',
+      badge: 'O PROBLEMA',
+      headline: 'Seu cliente vende pelo WhatsApp, mas você e a Meta',
+      highlightedText: 'não recebem dado nenhum de volta.',
       subheadline:
-        'Sem rastrear de ponta a ponta, você queima margem escalando as campanhas erradas.',
+        'Entre o clique no anúncio e a venda na conversa, existe um buraco negro. Você otimiza campanha sem saber o que realmente vendeu. Você só sabe que o lead chegou.',
       problems: [
         {
           icon: 'message',
           title: 'Vendas invisíveis',
           description:
-            'Seu time fecha negócios todo dia pelo WhatsApp, mas você não consegue provar qual anúncio trouxe cada venda.',
+            'A venda acontece dentro da conversa do cliente. Mas o Meta só enxerga o clique. Sem evento de purchase, o algoritmo nunca aprende quem realmente compra, e você nunca sabe qual campanha gerou resultado.',
         },
         {
           icon: 'trending',
-          title: 'CPA subindo todo mês',
+          title: 'Algoritmo alimentado com lixo',
           description:
-            'Sem saber quem realmente comprou, o algoritmo não aprende a encontrar compradores. Resultado: você paga cada vez mais caro por lead.',
+            'Sem sinal de venda, o Meta otimiza pro único dado que tem: quem manda "Qual o valor?". Você investe pra atrair comprador e o algoritmo entrega curioso. O CPA sobe e você não sabe por quê.',
         },
         {
           icon: 'users',
-          title: 'Tempo perdido com lead frio',
+          title: 'Comercial do cliente afogado em lead frio',
           description:
-            'Sua equipe atende 50 pessoas e fecha 3. Sem saber quem está pronto para comprar, você perde tempo com quem nunca vai fechar.',
+            'Leads sem qualificação entopem o WhatsApp do seu cliente. O comercial dele gasta energia com quem nunca ia comprar e esfria quem tinha potencial real. Aí vem a mensagem: "Só chega curioso."',
         },
         {
           icon: 'alert',
           title: 'Decisões no escuro',
           description:
-            'Escalar ou pausar? Trocar criativo ou público? Sem dados reais, toda decisão é um chute caro.',
+            'Qual criativo gerou venda? Qual campanha trouxe comprador? O problema é o tráfego que você roda ou o atendimento do cliente? Sem dado, cada decisão é um chute, e cada reunião vira discussão.',
         },
       ],
       closingText:
-        'Se você já ficou até tarde montando relatório manualmente, ou perdeu um cliente porque não conseguiu provar resultado, você não está sozinho.',
+        'Antes eu dependia do cliente me mandar planilha pra saber se vendeu. Agora abro o painel e sei exatamente qual campanha gerou cada venda.',
     },
     solution: {
-      badge: 'A solução',
-      headline: 'Conectamos cada anúncio a',
-      highlightedText: 'cada venda.',
-      subheadline: 'O que antes era invisível agora é seu maior diferencial competitivo.',
+      badge: 'A SOLUÇÃO',
+      headline: 'Fechamos o ciclo entre o anúncio e a',
+      highlightedText: 'venda do seu cliente.',
+      subheadline:
+        'O que acontece dentro do WhatsApp do cliente agora vira dado estruturado e volta pro Meta como evento real pra você otimizar campanha.',
       cards: [
         {
           icon: 'check',
-          title: 'Veja de onde vem cada venda',
+          title: 'Cada venda conectada à sua campanha',
           description:
-            'O WhaTrack rastreia automaticamente quando alguém clica no seu anúncio e depois compra pelo WhatsApp. Você vê qual campanha vendeu, qual anúncio vendeu, quanto vendeu.',
+            'O WhaTrack captura o identificador oficial do Meta e conecta cada conversa do WhatsApp do cliente à campanha, conjunto e criativo que você rodou. Você vê exatamente qual anúncio gerou cada venda.',
           size: 'large',
           color: 'primary',
         },
         {
           icon: 'zap',
-          title: 'Seu anúncio fica mais inteligente',
+          title: 'O algoritmo aprende quem compra de verdade',
           description:
-            'Quando uma venda acontece, o WhaTrack avisa o Meta automaticamente. O algoritmo aprende quem realmente compra e encontra mais pessoas parecidas.',
+            'Eventos de Lead qualificado e Purchase são enviados ao Meta via API de Conversão. O algoritmo para de otimizar pra curioso e começa a buscar perfil de comprador real. Suas campanhas melhoram sozinhas.',
           size: 'medium',
           color: 'purple',
         },
         {
           icon: 'chart',
-          title: 'Relatório pronto em 1 clique',
+          title: 'Relatório com dado de venda real',
           description:
-            'Chega de planilha. Veja quanto investiu, quantas vendas fechou, e qual o retorno de cada campanha. Tudo atualizado em tempo real.',
+            'Sem depender de planilha que o cliente nunca manda, nem de CRM que o comercial dele não preenche. O painel mostra campanha, lead, venda e tempo de resposta. Tudo automático. Você abre e apresenta.',
           size: 'medium',
           color: 'amber',
         },
         {
           icon: 'shield',
-          title: 'IA que identifica compradores',
+          title: 'IA que separa comprador de curioso',
           description:
-            'Nosso assistente analisa as conversas silenciosamente e identifica quem está quente para fechar. Você prioriza os leads certos.',
+            'O Copilot analisa cada conversa do cliente em tempo real. Identifica intenção, objeção e estágio do lead. Só dispara evento de Lead quando o contato é qualificado de verdade. O Meta aprende com dado limpo.',
           size: 'large',
           color: 'emerald',
         },
       ],
     },
     howItWorks: {
-      badge: 'Como funciona',
+      badge: 'COMO FUNCIONA',
       headline: 'Funcionando em 5 minutos.',
       highlightedText: 'Sem código.',
       subheadline:
-        'Conecte suas contas e veja os dados aparecendo. Não precisa de programador nem de equipe de TI.',
+        'Você conecta as contas do cliente e o WhaTrack faz o resto. Não precisa de desenvolvedor, não precisa mudar o processo de ninguém.',
       steps: [
         {
           icon: 'plug',
-          title: 'Conecte suas contas',
+          title: 'Conecte o Meta Ads e o WhatsApp do cliente',
           description:
-            'Faça login com seu Meta e conecte seu WhatsApp Business. Leva 5 minutos, é só clicar.',
+            'Integração direta com a conta de anúncios e o WhatsApp Business. Leva menos de 5 minutos por cliente. Zero configuração técnica.',
         },
         {
           icon: 'database',
-          title: 'O WhaTrack rastreia tudo',
+          title: 'O WhaTrack rastreia e qualifica',
           description:
-            'A partir desse momento, cada conversa no WhatsApp é ligada ao anúncio que a trouxe. Automaticamente.',
+            'Cada conversa é automaticamente conectada à campanha de origem. Nosso copilot analisa o processo de venda em tempo real e dispara eventos qualificados pro Meta.',
         },
         {
           icon: 'trending',
-          title: 'Veja os resultados',
+          title: 'Você vê o que realmente vende',
           description:
-            'Abra o painel e veja qual campanha está vendendo de verdade. O Meta aprende junto e encontra mais compradores.',
+            'Abra o painel e veja: qual campanha gerou venda, qual criativo converte, quanto tempo o comercial do cliente demora pra responder. Dado real. Não achismo.',
         },
       ],
     },
     cta: {
-      headline: 'Você está a 5 minutos de saber de onde vêm suas vendas.',
+      headline: '"Lead ruim" nunca mais sem resposta.',
       subheadline:
-        'Conecte agora, veja os dados aparecendo hoje. Se não gostar em 7 dias, cancele sem pagar nada.',
-      ctaPrimary: 'Começar teste grátis',
-      ctaSecondary: 'Ver planos',
-      microcopy: 'Configuração em 5 min · Sem cartão para testar · Cancela com 1 clique',
+        'Conecte em 5 minutos. Veja de onde vêm as vendas do seu cliente e prove com dado, não com argumento.',
+      ctaPrimary: 'Testar grátis por 7 dias',
+      ctaSecondary: 'Falar com o time',
+      microcopy: '7 dias grátis · Sem cartão · Setup em 5 minutos',
     },
   },
 

@@ -22,7 +22,7 @@ interface Plan {
 
 const plans: Plan[] = [
   {
-    name: 'Essencial',
+    name: 'Solo',
     subtitle: 'Até 500 conversas/mês',
     description: 'Para começar a rastrear suas vendas com clareza.',
     price: 'R$',
@@ -38,7 +38,7 @@ const plans: Plan[] = [
     highlighted: false,
   },
   {
-    name: 'Profissional',
+    name: 'Agência',
     subtitle: 'Para agências e times de vendas',
     description: 'Automação completa e múltiplas conexões.',
     price: 'R$',
@@ -83,9 +83,9 @@ export function LandingPricing({ variant = 'generic' }: LandingPricingProps) {
 
   const headlines: Record<LandingVariant, { title: string; subtitle: string }> = {
     generic: {
-      title: 'Investimento que se paga sozinho',
+      title: 'Se paga na primeira venda que você consegue rastrear.',
       subtitle:
-        'Comece grátis hoje. Se em 7 dias você não ver claramente de onde vêm suas vendas, cancele com um clique.',
+        'Comece grátis por 7 dias. Veja o resultado antes de decidir. Sem fidelidade, cancele quando quiser.',
     },
     agencias: {
       title: 'Planos para sua agência',
@@ -172,11 +172,10 @@ export function LandingPricing({ variant = 'generic' }: LandingPricingProps) {
                 duration: 0.8,
                 ease: [0.22, 1, 0.36, 1],
               }}
-              className={`group relative overflow-hidden rounded-3xl transition-all ${
-                plan.highlighted
-                  ? 'bg-gradient-to-b from-emerald-950/50 to-zinc-900 ring-2 ring-emerald-500/50'
-                  : 'bg-zinc-900/50 ring-1 ring-zinc-800 hover:ring-zinc-700'
-              }`}
+              className={`group relative overflow-hidden rounded-3xl transition-all ${plan.highlighted
+                ? 'bg-gradient-to-b from-emerald-950/50 to-zinc-900 ring-2 ring-emerald-500/50'
+                : 'bg-zinc-900/50 ring-1 ring-zinc-800 hover:ring-zinc-700'
+                }`}
             >
               {/* Glow effect for highlighted plan */}
               {plan.highlighted && (
@@ -216,11 +215,10 @@ export function LandingPricing({ variant = 'generic' }: LandingPricingProps) {
 
                 {/* CTA Button */}
                 <Button
-                  className={`mb-8 h-12 w-full rounded-xl font-semibold transition-all ${
-                    plan.highlighted
-                      ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/40'
-                      : 'border border-zinc-700 bg-zinc-800 text-white hover:bg-zinc-700'
-                  }`}
+                  className={`mb-8 h-12 w-full rounded-xl font-semibold transition-all ${plan.highlighted
+                    ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/40'
+                    : 'border border-zinc-700 bg-zinc-800 text-white hover:bg-zinc-700'
+                    }`}
                   asChild
                 >
                   <Link href="/sign-up">{plan.cta}</Link>
@@ -242,16 +240,14 @@ export function LandingPricing({ variant = 'generic' }: LandingPricingProps) {
                       className="flex items-start gap-3"
                     >
                       <div
-                        className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full ${
-                          plan.highlighted
-                            ? 'bg-emerald-500/20'
-                            : 'bg-zinc-800'
-                        }`}
+                        className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full ${plan.highlighted
+                          ? 'bg-emerald-500/20'
+                          : 'bg-zinc-800'
+                          }`}
                       >
                         <Check
-                          className={`h-3.5 w-3.5 ${
-                            plan.highlighted ? 'text-emerald-400' : 'text-zinc-400'
-                          }`}
+                          className={`h-3.5 w-3.5 ${plan.highlighted ? 'text-emerald-400' : 'text-zinc-400'
+                            }`}
                         />
                       </div>
                       <span className="text-sm leading-relaxed text-zinc-300">

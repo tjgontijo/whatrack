@@ -93,7 +93,7 @@ export function LandingCTA({ content }: LandingCTAProps) {
         >
           <Button
             size="lg"
-            className="group h-16 bg-white px-10 text-lg font-bold text-emerald-600 shadow-2xl shadow-black/20 transition-all hover:-translate-y-1 hover:shadow-3xl"
+            className="group h-16 bg-white px-10 text-lg font-bold text-emerald-600 shadow-lg shadow-black/20 transition-all hover:bg-white hover:shadow-xl hover:shadow-black/30"
             asChild
           >
             <Link href="/sign-up">
@@ -105,7 +105,7 @@ export function LandingCTA({ content }: LandingCTAProps) {
           <Button
             size="lg"
             variant="outline"
-            className="h-16 border-2 border-white/30 bg-white/10 px-10 text-lg font-bold text-white backdrop-blur-sm transition-all hover:bg-white/20"
+            className="h-16 border-white/30 bg-white/10 px-10 text-lg font-bold text-white backdrop-blur-sm transition-all hover:bg-white/20 hover:border-white/50"
             asChild
           >
             <Link href="#planos">{content.ctaSecondary}</Link>

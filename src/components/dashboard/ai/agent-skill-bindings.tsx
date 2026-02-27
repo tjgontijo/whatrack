@@ -1,6 +1,5 @@
 'use client'
 
-import React from 'react'
 import {
   DndContext,
   PointerSensor,
@@ -30,6 +29,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Separator } from '@/components/ui/separator'
+import { useUpdateAgentSkillBindings } from '@/hooks/ai/use-agent-skill-bindings'
 import type { AiSkill } from '@/types/ai/ai-skill'
 import type { FormSkillBinding } from '@/types/ai/ai-agent-skill'
 
@@ -173,12 +173,15 @@ interface AgentSkillBindingsProps {
   allSkills: AiSkill[]
   value: FormSkillBinding[]
   onChange: (bindings: FormSkillBinding[]) => void
+  /** Quando presente (modo edição), salva sortOrder automaticamente após cada reordenação. */
+  agentId?: string
 }
 
-export function AgentSkillBindings({ allSkills, value, onChange }: AgentSkillBindingsProps) {
+export function AgentSkillBindings({ allSkills, value, onChange, agentId }: AgentSkillBindingsProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
   )
+  const autoSave = useUpdateAgentSkillBindings(agentId ?? '')
 
   const systemBindings = value.filter((b) => b.skill.source === 'SYSTEM')
   const customBindings = value.filter((b) => b.skill.source === 'CUSTOM')
@@ -217,7 +220,14 @@ export function AgentSkillBindings({ allSkills, value, onChange }: AgentSkillBin
       sortOrder: 100 + i * 10,
     }))
 
-    onChange([...systemBindings, ...reordered])
+    const next = [...systemBindings, ...reordered]
+    onChange(next)
+
+    if (agentId) {
+      autoSave.mutate(
+        next.map(({ skillId, sortOrder, isActive }) => ({ skillId, sortOrder, isActive })),
+      )
+    }
   }
 
   return (
