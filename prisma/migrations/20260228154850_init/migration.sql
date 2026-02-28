@@ -867,6 +867,85 @@ CREATE TABLE "org_audit_logs" (
     CONSTRAINT "org_audit_logs_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "billing_subscriptions" (
+    "id" TEXT NOT NULL,
+    "organizationId" UUID NOT NULL,
+    "provider" TEXT NOT NULL,
+    "providerCustomerId" TEXT NOT NULL,
+    "providerSubscriptionId" TEXT,
+    "planType" TEXT NOT NULL,
+    "eventLimitPerMonth" INTEGER NOT NULL,
+    "overagePricePerEvent" DECIMAL(6,2) NOT NULL,
+    "billingCycleStartDate" TIMESTAMP(3) NOT NULL,
+    "billingCycleEndDate" TIMESTAMP(3) NOT NULL,
+    "nextResetDate" TIMESTAMP(3) NOT NULL,
+    "eventsUsedInCurrentCycle" INTEGER NOT NULL DEFAULT 0,
+    "status" TEXT NOT NULL DEFAULT 'active',
+    "canceledAtPeriodEnd" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "canceledAt" TIMESTAMP(3),
+
+    CONSTRAINT "billing_subscriptions_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "billing_event_usages" (
+    "id" TEXT NOT NULL,
+    "subscriptionId" TEXT NOT NULL,
+    "eventType" TEXT NOT NULL,
+    "eventCount" INTEGER NOT NULL DEFAULT 1,
+    "chargedAmount" DECIMAL(10,2) NOT NULL,
+    "billingCycle" TEXT NOT NULL,
+    "recordedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "billing_event_usages_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "billing_webhook_logs" (
+    "id" TEXT NOT NULL,
+    "provider" TEXT NOT NULL,
+    "eventType" TEXT NOT NULL,
+    "payload" JSONB NOT NULL,
+    "eventId" TEXT,
+    "isProcessed" BOOLEAN NOT NULL DEFAULT false,
+    "processingError" TEXT,
+    "processedAt" TIMESTAMP(3),
+    "retryCount" INTEGER NOT NULL DEFAULT 0,
+    "lastRetryAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "billing_webhook_logs_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "billing_plan_templates" (
+    "id" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "eventLimitPerMonth" INTEGER NOT NULL,
+    "overagePricePerEvent" DECIMAL(6,2) NOT NULL,
+    "monthlyPrice" DECIMAL(8,2) NOT NULL,
+    "maxWhatsAppNumbers" INTEGER NOT NULL DEFAULT 1,
+    "maxAdAccounts" INTEGER NOT NULL DEFAULT 1,
+    "maxTeamMembers" INTEGER NOT NULL DEFAULT 1,
+    "supportLevel" TEXT NOT NULL DEFAULT 'email',
+    "abacatepayProductId" TEXT,
+    "polarProductId" TEXT,
+    "asaasProductId" TEXT,
+    "stripeProductId" TEXT,
+    "stripePriceId" TEXT,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "billing_plan_templates_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "user_roles_name_key" ON "user_roles"("name");
 
@@ -1245,6 +1324,51 @@ CREATE INDEX "org_audit_logs_createdAt_idx" ON "org_audit_logs"("createdAt");
 -- CreateIndex
 CREATE INDEX "org_audit_logs_requestId_idx" ON "org_audit_logs"("requestId");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "billing_subscriptions_providerCustomerId_key" ON "billing_subscriptions"("providerCustomerId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "billing_subscriptions_providerSubscriptionId_key" ON "billing_subscriptions"("providerSubscriptionId");
+
+-- CreateIndex
+CREATE INDEX "billing_subscriptions_status_idx" ON "billing_subscriptions"("status");
+
+-- CreateIndex
+CREATE INDEX "billing_subscriptions_nextResetDate_idx" ON "billing_subscriptions"("nextResetDate");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "billing_subscriptions_organizationId_key" ON "billing_subscriptions"("organizationId");
+
+-- CreateIndex
+CREATE INDEX "billing_event_usages_subscriptionId_idx" ON "billing_event_usages"("subscriptionId");
+
+-- CreateIndex
+CREATE INDEX "billing_event_usages_billingCycle_idx" ON "billing_event_usages"("billingCycle");
+
+-- CreateIndex
+CREATE INDEX "billing_event_usages_eventType_idx" ON "billing_event_usages"("eventType");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "billing_webhook_logs_eventId_key" ON "billing_webhook_logs"("eventId");
+
+-- CreateIndex
+CREATE INDEX "billing_webhook_logs_isProcessed_idx" ON "billing_webhook_logs"("isProcessed");
+
+-- CreateIndex
+CREATE INDEX "billing_webhook_logs_provider_idx" ON "billing_webhook_logs"("provider");
+
+-- CreateIndex
+CREATE INDEX "billing_webhook_logs_createdAt_idx" ON "billing_webhook_logs"("createdAt");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "billing_plan_templates_slug_key" ON "billing_plan_templates"("slug");
+
+-- CreateIndex
+CREATE INDEX "billing_plan_templates_slug_idx" ON "billing_plan_templates"("slug");
+
+-- CreateIndex
+CREATE INDEX "billing_plan_templates_isActive_idx" ON "billing_plan_templates"("isActive");
+
 -- AddForeignKey
 ALTER TABLE "session" ADD CONSTRAINT "session_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -1457,3 +1581,9 @@ ALTER TABLE "org_audit_logs" ADD CONSTRAINT "org_audit_logs_organizationId_fkey"
 
 -- AddForeignKey
 ALTER TABLE "org_audit_logs" ADD CONSTRAINT "org_audit_logs_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "billing_subscriptions" ADD CONSTRAINT "billing_subscriptions_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "billing_event_usages" ADD CONSTRAINT "billing_event_usages_subscriptionId_fkey" FOREIGN KEY ("subscriptionId") REFERENCES "billing_subscriptions"("id") ON DELETE CASCADE ON UPDATE CASCADE;

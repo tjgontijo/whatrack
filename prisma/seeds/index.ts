@@ -7,6 +7,7 @@ import { seedAgentSaleDetector } from './seed_agent_sale_detector'
 import { seedAgentLeadQualifier } from './seed_agent_lead_qualifier'
 import { seedAgentConversationSummarizer } from './seed_agent_conversation_summarizer'
 import { seedSharedCoreSkills } from './seed_skills_shared_core'
+import { seedBillingPlans } from './seed_billing_plans'
 
 interface PgTableRow {
   tablename: string
@@ -93,6 +94,7 @@ export async function runSeed() {
 
     await seedLookupTables(prisma)
     await seedTicketStages(prisma)
+    await seedBillingPlans(prisma)
 
     // AI Agents — seeded per organization
     const organizations = await prisma.organization.findMany()

@@ -16,59 +16,77 @@ interface Plan {
   priceValue: string
   pricePeriod: string
   features: string[]
+  overage?: {
+    metric: string
+    price: string
+  }
+  additionals?: string[]
   cta: string
   highlighted: boolean
 }
 
 const plans: Plan[] = [
   {
-    name: 'Solo',
-    subtitle: 'Até 500 conversas/mês',
+    name: 'Starter',
+    subtitle: 'Até 100 eventos/mês',
     description: 'Para começar a rastrear suas vendas com clareza.',
+    price: 'R$',
+    priceValue: '97',
+    pricePeriod: '/mês',
+    features: [
+      'Rastreamento de leads e purchases',
+      '1 número de WhatsApp',
+      '1 conta de anúncio',
+      'Relatórios de vendas por campanha',
+      'API de Conversão ativada',
+    ],
+    overage: {
+      metric: 'por evento extra',
+      price: 'R$ 0,25',
+    },
+    cta: 'Começar agora',
+    highlighted: false,
+  },
+  {
+    name: 'Pro',
+    subtitle: 'Até 500 eventos/mês',
+    description: 'Para agências e operações em escala.',
     price: 'R$',
     priceValue: '197',
     pricePeriod: '/mês',
     features: [
-      'Veja de onde vem cada lead',
-      '1 número de WhatsApp conectado',
-      'Relatórios de vendas por campanha',
-      'Assistente IA que identifica compradores',
-    ],
-    cta: 'Começar grátis',
-    highlighted: false,
-  },
-  {
-    name: 'Profissional',
-    subtitle: 'Para negócios em escala e times de vendas',
-    description: 'Automação completa e múltiplas conexões.',
-    price: 'R$',
-    priceValue: '297',
-    pricePeriod: '/mês',
-    features: [
-      'Tudo do Solo',
-      'Até 3 números de WhatsApp',
+      'Tudo do Starter',
+      '2 números de WhatsApp',
+      '2 contas de anúncio',
+      'Copilot IA avançado',
+      'Múltiplos membros da equipe',
       'Relatórios de ROI em tempo real',
-      'Múltiplas contas de anúncio',
-      'Dados de venda enviados pro Meta',
     ],
-    cta: 'Começar grátis',
+    overage: {
+      metric: 'por evento extra',
+      price: 'R$ 0,18',
+    },
+    additionals: ['Números WhatsApp adicionais: R$ 69/mês'],
+    cta: 'Começar agora',
     highlighted: true,
   },
   {
-    name: 'Operação',
-    subtitle: 'Para operações de alto volume',
-    description: 'Para quem gerencia operações maiores.',
-    price: 'R$',
-    priceValue: '497',
-    pricePeriod: '/mês',
+    name: 'Agency',
+    subtitle: 'A partir de 10 WhatsApps',
+    description: 'Para agências e operações complexas.',
+    price: 'Sob',
+    priceValue: 'consulta',
+    pricePeriod: '',
     features: [
-      'Tudo do Profissional',
-      'WhatsApp ilimitado',
-      'Contas de anúncio ilimitadas',
-      'Suporte prioritário via WhatsApp',
-      'Integrações personalizadas',
+      'Tudo do Pro com customizações',
+      'Múltiplos números de WhatsApp',
+      'Contas de anúncio custom',
+      'Agentes IA personalizados',
+      'Suporte dedicado',
+      'SLA garantido',
+      'Integrações custom',
     ],
-    cta: 'Começar grátis',
+    cta: 'Falar com time',
     highlighted: false,
   },
 ]
@@ -88,11 +106,11 @@ export function LandingPricing({ variant = 'generic' }: LandingPricingProps) {
         'Comece grátis por 7 dias. Veja o resultado antes de decidir. Sem fidelidade, cancele quando quiser.',
     },
     agencias: {
-      title: 'Planos para sua agência',
+      title: 'Basic',
       subtitle: 'Gerencie múltiplos clientes em um único painel. Teste grátis por 7 dias.',
     },
     lancadores: {
-      title: 'Planos para seu lançamento',
+      title: 'Business',
       subtitle: 'ROI em tempo real durante o carrinho aberto. Teste grátis por 7 dias.',
     },
     empresas: {
@@ -204,13 +222,30 @@ export function LandingPricing({ variant = 'generic' }: LandingPricingProps) {
 
                 {/* Pricing */}
                 <div className="mb-8">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-lg text-zinc-400">{plan.price}</span>
-                    <span className="font-geist text-5xl font-bold tracking-tight">
-                      {plan.priceValue}
-                    </span>
-                    <span className="text-lg text-zinc-400">{plan.pricePeriod}</span>
-                  </div>
+                  {plan.name === 'Agency' ? (
+                    <div className="flex items-baseline gap-1">
+                      <span className="font-geist text-3xl font-bold tracking-tight text-emerald-400">
+                        {plan.price} {plan.priceValue}
+                      </span>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-baseline gap-2">
+                        {plan.price && <span className="text-lg text-zinc-400">{plan.price}</span>}
+                        <span className="font-geist text-5xl font-bold tracking-tight">
+                          {plan.priceValue}
+                        </span>
+                        {plan.pricePeriod && <span className="text-lg text-zinc-400">{plan.pricePeriod}</span>}
+                      </div>
+
+                      {/* Overage pricing */}
+                      {plan.overage && (
+                        <div className="mt-3 text-sm text-zinc-400">
+                          <span>{plan.overage.price} {plan.overage.metric}</span>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
 
                 {/* CTA Button */}
@@ -256,6 +291,17 @@ export function LandingPricing({ variant = 'generic' }: LandingPricingProps) {
                     </motion.div>
                   ))}
                 </div>
+
+                {/* Adicionais */}
+                {plan.additionals && plan.additionals.length > 0 && (
+                  <div className="mt-6 space-y-2 rounded-lg border border-zinc-800 bg-zinc-900/50 p-3">
+                    {plan.additionals.map((additional, idx) => (
+                      <p key={idx} className="text-xs text-zinc-400">
+                        <span className="font-medium text-zinc-300">•</span> {additional}
+                      </p>
+                    ))}
+                  </div>
+                )}
               </div>
             </motion.div>
           ))}

@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+          cache: true
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Lint PR title
+        run: |
+          echo "${{ github.event.pull_request.title }}" | bunx commitlint
+
+      - name: Lint commits
+        run: bunx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }}
+
+      - name: Lint code (Biome)
+        run: bun run biome:check
+
+      - name: Type check
+        run: bunx tsc -b --noEmit
+
+      - name: Run tests
+        run: bun run test
+
+      # Skip this for now
+      # - name: Build packages
+      #   run: bun run build

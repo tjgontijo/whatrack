@@ -89,11 +89,11 @@ export function LandingCTA({ content }: LandingCTAProps) {
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.4, duration: 0.8 }}
-          className="flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-6"
+          className="mx-auto flex max-w-sm flex-col gap-4 sm:max-w-2xl sm:flex-row sm:gap-6"
         >
           <Button
             size="lg"
-            className="group h-14 rounded-full bg-white px-12 text-base font-bold text-emerald-600 shadow-lg shadow-black/20 transition-all hover:bg-zinc-100 hover:shadow-xl hover:shadow-black/30 sm:min-w-[240px]"
+            className="group h-14 w-full bg-white px-8 text-base font-bold text-emerald-600 shadow-lg shadow-black/20 transition-all hover:bg-zinc-100 hover:shadow-xl hover:shadow-black/30 sm:flex-1"
             asChild
           >
             <Link href="/sign-up">
@@ -105,7 +105,7 @@ export function LandingCTA({ content }: LandingCTAProps) {
           <Button
             size="lg"
             variant="outline"
-            className="h-14 rounded-full border-white/30 bg-white/10 px-12 text-base font-bold text-white backdrop-blur-sm transition-all hover:border-white/50 hover:bg-white/20 sm:min-w-[240px]"
+            className="h-14 w-full border-white/30 bg-white/10 px-8 text-base font-bold text-white backdrop-blur-sm transition-all hover:border-white/50 hover:bg-white/20 sm:flex-1"
             asChild
           >
             <Link href="#planos">{content.ctaSecondary}</Link>

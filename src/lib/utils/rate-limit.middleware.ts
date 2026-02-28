@@ -66,6 +66,30 @@ export const DEFAULT_RATE_LIMITS: Record<string, RateLimitConfig> = {
     burst: { limit: 5, windowSeconds: 60 }, // 5 per minute
   },
 
+  // Billing webhooks: High-volume from payment provider
+  '/api/v1/billing/webhook': {
+    enabled: true,
+    ip: { limit: 500, windowSeconds: 3600 }, // 500 per hour
+    org: { limit: 2000, windowSeconds: 3600 }, // 2000 per hour
+    burst: { limit: 50, windowSeconds: 60 }, // 50 per minute
+  },
+
+  // Billing checkout: Authenticated user action
+  '/api/v1/billing/checkout': {
+    enabled: true,
+    ip: { limit: 50, windowSeconds: 3600 }, // 50 per hour
+    org: { limit: 200, windowSeconds: 3600 }, // 200 per hour
+    burst: { limit: 5, windowSeconds: 60 }, // 5 per minute
+  },
+
+  // Billing events: High-volume from app events
+  '/api/v1/billing/events': {
+    enabled: true,
+    ip: { limit: 10000, windowSeconds: 3600 }, // 10000 per hour (app-driven)
+    org: { limit: 50000, windowSeconds: 3600 }, // 50000 per hour (app-driven)
+    burst: { limit: 500, windowSeconds: 60 }, // 500 per minute
+  },
+
   // Default for unmapped endpoints
   default: {
     enabled: true,
