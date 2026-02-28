@@ -67,9 +67,6 @@ const envSchema = z.object({
   // Payment — Billing (AbacatePay) — Subscription Recurring Credit Card
   ABACATEPAY_SECRET_KEY: z.string().min(1, 'ABACATEPAY_SECRET_KEY is required'),
   ABACATEPAY_WEBHOOK_SECRET: z.string().min(1, 'ABACATEPAY_WEBHOOK_SECRET is required'),
-
-  // Public env vars (AbacatePay public key for frontend)
-  NEXT_PUBLIC_ABACATEPAY_PUBLIC_KEY: z.string().min(1, 'NEXT_PUBLIC_ABACATEPAY_PUBLIC_KEY is required'),
 })
 
 export type Env = z.infer<typeof envSchema>
