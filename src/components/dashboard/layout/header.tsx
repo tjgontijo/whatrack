@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/breadcrumb'
 import { Separator } from '@/components/ui/separator'
 import { HeaderActionsSlot } from './header-actions'
+import { OrganizationStatusBadge } from '@/components/dashboard/organization/organization-status-badge'
 
 // Route labels mapping (excluding /dashboard prefix)
 const ROUTE_LABELS: Record<string, string> = {
@@ -88,7 +89,12 @@ function generateBreadcrumbs(pathname: string): BreadcrumbItemData[] {
   return breadcrumbs
 }
 
-export function DashboardHeader() {
+type DashboardHeaderProps = {
+  hasOrganization?: boolean
+  identityComplete?: boolean
+}
+
+export function DashboardHeader({ hasOrganization, identityComplete }: DashboardHeaderProps) {
   const pathname = usePathname()
   const breadcrumbs = generateBreadcrumbs(pathname)
 
@@ -126,6 +132,12 @@ export function DashboardHeader() {
       </Breadcrumb>
 
       <div className="ml-auto flex items-center gap-2">
+        {hasOrganization !== undefined && identityComplete !== undefined && (
+          <OrganizationStatusBadge
+            hasOrganization={hasOrganization}
+            identityComplete={identityComplete}
+          />
+        )}
         <HeaderActionsSlot />
       </div>
     </header>
