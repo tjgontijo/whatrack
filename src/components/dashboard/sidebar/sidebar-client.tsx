@@ -73,12 +73,15 @@ type NavItem = {
 type SidebarClientProps = {
   navItems: NavItem[]
   navigationLabel: string
+  session?: any
 }
 
-export function SidebarClient({ navItems }: SidebarClientProps) {
+export function SidebarClient({ navItems, session: initialSession }: SidebarClientProps) {
   const pathname = usePathname()
   const { isMobile, setOpenMobile } = useSidebar()
-  const { data: session } = useSession()
+  const { data: clientSession } = useSession()
+  const session = initialSession || clientSession
+
   const { data: activeOrg } = authClient.useActiveOrganization()
   const { data: organizations } = authClient.useListOrganizations()
 

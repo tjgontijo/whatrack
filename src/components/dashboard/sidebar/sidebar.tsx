@@ -6,7 +6,7 @@ type NavItem = {
   icon: string
 }
 
-export function DashboardSidebar() {
+export function DashboardSidebar({ session }: { session?: any }) {
   const navItems: NavItem[] = [
     { title: 'Visão Geral', href: '/dashboard', icon: 'LayoutDashboard' },
     { title: 'Analytics', href: '/dashboard/analytics', icon: 'BarChart3' },
@@ -20,5 +20,5 @@ export function DashboardSidebar() {
     { title: 'Meta Ads', href: '/dashboard/meta-ads/campaigns', icon: 'Meta' },
   ]
 
-  return <SidebarClient navItems={navItems} navigationLabel="Navegação" />
+  return <SidebarClient navItems={navItems} navigationLabel="Navegação" session={session} />
 }

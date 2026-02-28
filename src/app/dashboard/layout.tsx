@@ -64,7 +64,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     <HeaderActionsProvider>
       <SidebarProvider>
         <div className="bg-background flex min-h-screen w-full">
-          <DashboardSidebar />
+          <DashboardSidebar session={session} />
 
           <SidebarInset className="min-w-0">
             <DashboardHeader hasOrganization={hasOrganization} identityComplete={identityComplete} />
