@@ -1,8 +1,8 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-
-import { INTEGRATION_IDENTITY_REQUIRED_MESSAGE } from '@/lib/constants/http-headers'
+import { INTEGRATION_IDENTITY_REQUIRED_MESSAGE, ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
+import { useOrganization } from '@/hooks/organization/use-organization'
 
 export type OrganizationCompletionResponse = {
   hasOrganization: boolean
@@ -12,9 +12,12 @@ export type OrganizationCompletionResponse = {
 
 type IntegrationModule = 'whatsapp' | 'metaAds'
 
-async function fetchOrganizationCompletion(): Promise<OrganizationCompletionResponse> {
+async function fetchOrganizationCompletion(orgId: string): Promise<OrganizationCompletionResponse> {
   const response = await fetch('/api/v1/organizations/me/completion', {
     method: 'GET',
+    headers: {
+      [ORGANIZATION_HEADER]: orgId,
+    },
     credentials: 'include',
     cache: 'no-store',
   })
@@ -27,12 +30,16 @@ async function fetchOrganizationCompletion(): Promise<OrganizationCompletionResp
 }
 
 export function useOrganizationCompletion() {
+  const { data: org } = useOrganization()
+
   const query = useQuery({
-    queryKey: ['organizations', 'me', 'completion'],
-    queryFn: fetchOrganizationCompletion,
-    staleTime: 30_000,
-    refetchOnWindowFocus: true,
-    retry: false,
+    queryKey: ['organizations', 'me', 'completion', org?.id],
+    queryFn: () => fetchOrganizationCompletion(org!.id),
+    staleTime: 5 * 60 * 1000, // 5 minutos (evitar chamadas redundantes)
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 1,
+    enabled: !!org?.id,
   })
 
   const isModuleBlocked = (module: IntegrationModule) => {

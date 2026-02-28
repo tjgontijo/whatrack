@@ -9,6 +9,8 @@ import {
   isOwner,
 } from '@/lib/auth/rbac/roles'
 import type { Permission } from '@/lib/auth/rbac/roles'
+import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
+import { useOrganization } from '@/hooks/organization/use-organization'
 
 type OrganizationAccessResponse = {
   id: string
@@ -17,8 +19,13 @@ type OrganizationAccessResponse = {
   currentUserPermissions?: string[]
 }
 
-async function fetchOrganizationAccess(): Promise<OrganizationAccessResponse> {
-  const response = await fetch('/api/v1/organizations/me', { cache: 'no-store' })
+async function fetchOrganizationAccess(orgId: string): Promise<OrganizationAccessResponse> {
+  const response = await fetch('/api/v1/organizations/me', {
+    cache: 'no-store',
+    headers: {
+      [ORGANIZATION_HEADER]: orgId,
+    },
+  })
   if (!response.ok) {
     throw new Error('Falha ao carregar permissões da organização')
   }
@@ -26,11 +33,15 @@ async function fetchOrganizationAccess(): Promise<OrganizationAccessResponse> {
 }
 
 export function useAuthorization() {
+  const { data: org } = useOrganization()
+
   const query = useQuery({
-    queryKey: ['organizations', 'me', 'authorization'],
-    queryFn: fetchOrganizationAccess,
-    staleTime: 60_000,
+    queryKey: ['organizations', 'me', 'authorization', org?.id],
+    queryFn: () => fetchOrganizationAccess(org!.id),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
+    enabled: !!org?.id,
   })
 
   const role = query.data?.currentUserRole

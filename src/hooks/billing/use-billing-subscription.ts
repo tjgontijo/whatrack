@@ -1,4 +1,6 @@
-import { useState, useCallback, useEffect } from 'react'
+'use client'
+
+import { useQuery } from '@tanstack/react-query'
 import type { SubscriptionResponse, UsageResponse } from '@/schemas/billing/billing-schemas'
 import { useOrganization } from '@/hooks/organization/use-organization'
 import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
@@ -8,76 +10,55 @@ interface UseBillingSubscriptionReturn {
   usage: UsageResponse | null
   isLoading: boolean
   error: Error | null
-  refetch: () => Promise<void>
+  refetch: () => void
 }
 
 /**
- * Hook para fetch de subscription + usage do billing
- * Reutiliza dados via Promise.all para evitar waterfalls
+ * Fetch subscription + usage data
+ */
+async function fetchBillingData(orgId: string): Promise<{ subscription: SubscriptionResponse | null; usage: UsageResponse | null }> {
+  const headers = {
+    [ORGANIZATION_HEADER]: orgId,
+  }
+
+  const [subRes, usageRes] = await Promise.all([
+    fetch('/api/v1/billing/subscription', { headers }),
+    fetch('/api/v1/billing/usage', { headers }),
+  ])
+
+  // If subscription returns 404, it's expected (no subscription yet)
+  if (subRes.status === 404) {
+    return { subscription: null, usage: null }
+  }
+
+  if (!subRes.ok || !usageRes.ok) {
+    throw new Error(`Billing fetch failed: sub=${subRes.status}, usage=${usageRes.status}`)
+  }
+
+  const [subData, usageData] = await Promise.all([subRes.json(), usageRes.json()])
+  return { subscription: subData, usage: usageData }
+}
+
+/**
+ * Hook centralizado com cache (TanStack Query) para evitar múltiplas chamadas redundantes.
  */
 export function useBillingSubscription(): UseBillingSubscriptionReturn {
   const { data: org } = useOrganization()
-  const [subscription, setSubscription] = useState<SubscriptionResponse | null>(null)
-  const [usage, setUsage] = useState<UsageResponse | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<Error | null>(null)
 
-  const fetchData = useCallback(async () => {
-    try {
-      if (!org?.id) {
-        setIsLoading(false)
-        return
-      }
-
-      setIsLoading(true)
-      setError(null)
-
-      const headers = {
-        [ORGANIZATION_HEADER]: org.id,
-      }
-
-      // Fetch ambos em paralelo
-      const [subRes, usageRes] = await Promise.all([
-        fetch('/api/v1/billing/subscription', { headers }),
-        fetch('/api/v1/billing/usage', { headers }),
-      ])
-
-      // Checar erros HTTP
-      if (!subRes.ok || !usageRes.ok) {
-        // Se subscription retorna 404, é esperado (sem subscription ainda)
-        if (subRes.status === 404) {
-          setSubscription(null)
-          setUsage(null)
-          setIsLoading(false)
-          return
-        }
-
-        throw new Error(`HTTP ${subRes.status || usageRes.status}`)
-      }
-
-      const [subData, usageData] = await Promise.all([subRes.json(), usageRes.json()])
-
-      setSubscription(subData)
-      setUsage(usageData)
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Unknown error'))
-      setSubscription(null)
-      setUsage(null)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [])
-
-  // Fetch inicial
-  useEffect(() => {
-    fetchData()
-  }, [fetchData])
+  const query = useQuery({
+    queryKey: ['billing', 'subscription-usage', org?.id],
+    queryFn: () => fetchBillingData(org!.id),
+    enabled: !!org?.id,
+    staleTime: 5 * 60 * 1000, // 5 min de cache
+    gcTime: 10 * 60 * 1000,
+    retry: 1,
+  })
 
   return {
-    subscription,
-    usage,
-    isLoading,
-    error,
-    refetch: fetchData,
+    subscription: query.data?.subscription ?? null,
+    usage: query.data?.usage ?? null,
+    isLoading: query.isLoading && !!org?.id,
+    error: query.error as Error | null,
+    refetch: () => query.refetch(),
   }
 }

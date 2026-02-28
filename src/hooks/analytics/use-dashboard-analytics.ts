@@ -1,6 +1,8 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
+import { useOrganization } from '@/hooks/organization/use-organization'
+import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 
 interface VolumeDataPoint {
   date: string
@@ -60,16 +62,24 @@ interface AgentsAnalyticsResponse {
 
 export type Period = '7d' | '30d' | '90d'
 
-async function fetchDashboardAnalytics(period: Period): Promise<DashboardAnalyticsResponse> {
-  const response = await fetch(`/api/v1/dashboard/analytics?period=${period}`)
+async function fetchDashboardAnalytics(period: Period, orgId: string): Promise<DashboardAnalyticsResponse> {
+  const response = await fetch(`/api/v1/dashboard/analytics?period=${period}`, {
+    headers: {
+      [ORGANIZATION_HEADER]: orgId,
+    },
+  })
   if (!response.ok) {
     throw new Error('Failed to fetch dashboard analytics')
   }
   return response.json()
 }
 
-async function fetchAgentsAnalytics(period: Period): Promise<AgentsAnalyticsResponse> {
-  const response = await fetch(`/api/v1/dashboard/analytics/agents?period=${period}`)
+async function fetchAgentsAnalytics(period: Period, orgId: string): Promise<AgentsAnalyticsResponse> {
+  const response = await fetch(`/api/v1/dashboard/analytics/agents?period=${period}`, {
+    headers: {
+      [ORGANIZATION_HEADER]: orgId,
+    },
+  })
   if (!response.ok) {
     throw new Error('Failed to fetch agents analytics')
   }
@@ -77,18 +87,28 @@ async function fetchAgentsAnalytics(period: Period): Promise<AgentsAnalyticsResp
 }
 
 export function useDashboardAnalytics(period: Period = '7d') {
+  const { data: org } = useOrganization()
+
   return useQuery<DashboardAnalyticsResponse>({
-    queryKey: ['dashboard', 'analytics', period],
-    queryFn: () => fetchDashboardAnalytics(period),
+    queryKey: ['dashboard', 'analytics', period, org?.id],
+    queryFn: () => fetchDashboardAnalytics(period, org!.id),
     staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    enabled: !!org?.id,
   })
 }
 
 export function useAgentsAnalytics(period: Period = '7d') {
+  const { data: org } = useOrganization()
+
   return useQuery<AgentsAnalyticsResponse>({
-    queryKey: ['dashboard', 'analytics', 'agents', period],
-    queryFn: () => fetchAgentsAnalytics(period),
+    queryKey: ['dashboard', 'analytics', 'agents', period, org?.id],
+    queryFn: () => fetchAgentsAnalytics(period, org!.id),
     staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    enabled: !!org?.id,
   })
 }
 
