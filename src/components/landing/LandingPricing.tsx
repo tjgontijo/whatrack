@@ -1,12 +1,15 @@
 'use client'
 
-import Link from 'next/link'
-import { Check } from 'lucide-react'
+import { Check, Loader2, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { LandingVariant } from './types'
 import { motion } from 'motion/react'
 import { useInView } from 'motion/react'
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
+import { useSession } from '@/lib/auth/auth-client'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
+import { useOrganization } from '@/hooks/organization/use-organization'
 
 interface Plan {
   name: string
@@ -93,6 +96,83 @@ const plans: Plan[] = [
 
 interface LandingPricingProps {
   variant?: LandingVariant
+}
+
+type CheckoutState = 'idle' | 'loading' | 'error'
+
+interface CheckoutButtonProps {
+  plan: Plan
+}
+
+function CheckoutButton({ plan }: CheckoutButtonProps) {
+  const [state, setState] = useState<CheckoutState>('idle')
+  const { data: session } = useSession()
+  const { data: org } = useOrganization()
+  const router = useRouter()
+
+  async function handleCheckout() {
+    // Não autenticado — redirecionar para login
+    if (!session?.user) {
+      router.push(`/sign-up?next=${encodeURIComponent(window.location.href)}`)
+      return
+    }
+
+    // Sem organização ativa
+    if (!org?.id) {
+      toast.error('Selecione uma organização antes de continuar')
+      return
+    }
+
+    // Agency plan — abrir contato
+    if (plan.name === 'Agency') {
+      window.location.href = 'mailto:contato@whatrack.com?subject=Plano Agency - WhaTrack'
+      return
+    }
+
+    setState('loading')
+
+    try {
+      // Redirecionar para o endpoint de checkout
+      const params = new URLSearchParams({
+        planType: plan.name.toLowerCase(),
+      })
+
+      window.location.href = `/api/v1/billing/checkout?${params.toString()}`
+    } catch (error) {
+      setState('error')
+      toast.error('Erro ao processar checkout. Tente novamente.')
+      setTimeout(() => setState('idle'), 3000)
+    }
+  }
+
+  const isLoading = state === 'loading'
+  const isError = state === 'error'
+
+  return (
+    <Button
+      onClick={handleCheckout}
+      disabled={isLoading}
+      className={`h-12 w-full rounded-xl font-semibold transition-all ${
+        plan.highlighted
+          ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/40 disabled:opacity-70'
+          : 'border border-zinc-700 bg-zinc-800 text-white hover:bg-zinc-700 disabled:opacity-70'
+      } ${isError ? 'ring-2 ring-red-500/50' : ''}`}
+    >
+      {isLoading ? (
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Aguarde...
+        </>
+      ) : isError ? (
+        <>
+          <AlertCircle className="mr-2 h-4 w-4" />
+          Tentar novamente
+        </>
+      ) : (
+        plan.cta
+      )}
+    </Button>
+  )
 }
 
 export function LandingPricing({ variant = 'generic' }: LandingPricingProps) {
@@ -249,15 +329,9 @@ export function LandingPricing({ variant = 'generic' }: LandingPricingProps) {
                 </div>
 
                 {/* CTA Button */}
-                <Button
-                  className={`mb-8 h-12 w-full rounded-xl font-semibold transition-all ${plan.highlighted
-                    ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/40'
-                    : 'border border-zinc-700 bg-zinc-800 text-white hover:bg-zinc-700'
-                    }`}
-                  asChild
-                >
-                  <Link href="/sign-up">{plan.cta}</Link>
-                </Button>
+                <div className="mb-8">
+                  <CheckoutButton plan={plan} />
+                </div>
 
                 {/* Features */}
                 <div className="space-y-4">
