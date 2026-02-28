@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getRateLimiter } from '@/lib/utils/rate-limit'
 import { prisma } from '@/lib/db/prisma'
+import { auth } from '@/lib/auth/auth'
+import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 
 /**
  * Rate Limit Configuration per endpoint
@@ -79,7 +81,7 @@ export const DEFAULT_RATE_LIMITS: Record<string, RateLimitConfig> = {
     enabled: true,
     ip: { limit: 50, windowSeconds: 3600 }, // 50 per hour
     org: { limit: 200, windowSeconds: 3600 }, // 200 per hour
-    burst: { limit: 5, windowSeconds: 60 }, // 5 per minute
+    burst: { limit: 15, windowSeconds: 60 }, // 15 per minute (increased from 5)
   },
 
   // Billing events: High-volume from app events
@@ -138,12 +140,22 @@ export async function getOrganizationId(request: NextRequest): Promise<string | 
   const orgIdParam = url.searchParams.get('orgId') || url.searchParams.get('organizationId')
   if (orgIdParam) return orgIdParam
 
-  // Try header
-  const orgIdHeader = request.headers.get('x-org-id')
+  // Try header (use the central constant)
+  const orgIdHeader = request.headers.get(ORGANIZATION_HEADER)
   if (orgIdHeader) return orgIdHeader
 
-  // TODO: Extract from session if available
-  // This would require parsing the session cookie and getting org from database
+  // Try to extract from session
+  try {
+    const session = await auth.api.getSession({
+      headers: request.headers,
+    })
+
+    const activeOrgId = (session?.session as { activeOrganizationId?: string })?.activeOrganizationId
+    if (activeOrgId) return activeOrgId
+  } catch (error) {
+    // If auth fails here, just continue (maybe it's a public endpoint or auth will be checked later)
+    console.debug('[RateLimit] Could not get session for org identification:', error)
+  }
 
   return null
 }
@@ -221,7 +233,10 @@ export async function rateLimitMiddleware(
     const { current, limit, retryAfter, resetAt } = exceeded.result
 
     console.warn(
-      `[RateLimit] ${exceeded.name.toUpperCase()} exceeded - IP: ${clientIp}, Org: ${orgId || 'N/A'}, Current: ${current}/${limit}`
+      `[RateLimit] ${exceeded.name.toUpperCase()} limit hit on ${request.method} ${endpoint} - ` +
+      `IP: ${clientIp}, Org: ${orgId || 'N/A'}, ` +
+      `Current: ${current}, Limit: ${limit}, ` +
+      `Reset: ${resetAt.toISOString()}, RetryAfter: ${retryAfter}s`
     )
 
     // Return 429 Too Many Requests
