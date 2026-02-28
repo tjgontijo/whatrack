@@ -18,6 +18,7 @@ export function DashboardSidebar() {
     { title: 'Itens', href: '/dashboard/items', icon: 'Package' },
     { title: 'Categorias', href: '/dashboard/item-categories', icon: 'Package' },
     { title: 'Meta Ads', href: '/dashboard/meta-ads/campaigns', icon: 'Meta' },
+    { title: 'Billing', href: '/dashboard/billing', icon: 'CreditCard' },
   ]
 
   return <SidebarClient navItems={navItems} navigationLabel="Navegação" />
