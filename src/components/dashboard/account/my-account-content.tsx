@@ -18,6 +18,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { useOrganization } from '@/hooks/organization/use-organization'
+import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 
 type Account = {
   id: string
@@ -52,6 +54,8 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
 }
 
 export function MyAccountContent() {
+  const { data: org } = useOrganization()
+  const organizationId = org?.id
   const queryClient = useQueryClient()
   const authorization = useAuthorization()
 
@@ -73,8 +77,13 @@ export function MyAccountContent() {
   })
 
   const { data: organization } = useQuery({
-    queryKey: ['organizations', 'me'],
-    queryFn: () => fetchJson<OrganizationProfile>('/api/v1/organizations/me'),
+    queryKey: ['organizations', 'me', organizationId],
+    queryFn: () => fetchJson<OrganizationProfile>('/api/v1/organizations/me', {
+      headers: {
+        [ORGANIZATION_HEADER]: organizationId ?? '',
+      }
+    }),
+    enabled: !!organizationId,
   })
 
   useEffect(() => {
@@ -181,6 +190,9 @@ export function MyAccountContent() {
     mutationFn: async () =>
       fetchJson<OrganizationProfile>('/api/v1/organizations/me', {
         method: 'PATCH',
+        headers: {
+          [ORGANIZATION_HEADER]: organizationId ?? '',
+        },
         body: JSON.stringify({
           name: organizationName,
           organizationType: organizationType || null,

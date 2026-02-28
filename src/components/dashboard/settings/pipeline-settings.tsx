@@ -29,6 +29,8 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 
+import { useOrganization } from '@/hooks/organization/use-organization'
+import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -281,6 +283,8 @@ function StageDialog({
 }
 
 export function PipelineSettings() {
+  const { data: org } = useOrganization()
+  const organizationId = org?.id
   const queryClient = useQueryClient()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingStage, setEditingStage] = useState<Stage | null>(null)
@@ -289,12 +293,17 @@ export function PipelineSettings() {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
 
   const { data, isLoading } = useQuery<{ items: Stage[] }>({
-    queryKey: ['ticket-stages'],
+    queryKey: ['ticket-stages', organizationId],
     queryFn: async () => {
-      const res = await fetch('/api/v1/ticket-stages')
+      const res = await fetch('/api/v1/ticket-stages', {
+        headers: {
+          [ORGANIZATION_HEADER]: organizationId ?? '',
+        }
+      })
       if (!res.ok) throw new Error('Falha ao carregar fases')
       return res.json()
     },
+    enabled: !!organizationId,
   })
 
   const stages = localOrder ?? data?.items ?? []
@@ -303,7 +312,10 @@ export function PipelineSettings() {
     mutationFn: async (body: StageFormData) => {
       const res = await fetch('/api/v1/ticket-stages', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          [ORGANIZATION_HEADER]: organizationId ?? '',
+        },
         body: JSON.stringify(body),
       })
       if (!res.ok) {
@@ -325,7 +337,10 @@ export function PipelineSettings() {
     mutationFn: async ({ id, ...body }: StageFormData & { id: string }) => {
       const res = await fetch(`/api/v1/ticket-stages/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          [ORGANIZATION_HEADER]: organizationId ?? '',
+        },
         body: JSON.stringify(body),
       })
       if (!res.ok) {
@@ -346,7 +361,12 @@ export function PipelineSettings() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`/api/v1/ticket-stages/${id}`, { method: 'DELETE' })
+      const res = await fetch(`/api/v1/ticket-stages/${id}`, {
+        method: 'DELETE',
+        headers: {
+          [ORGANIZATION_HEADER]: organizationId ?? '',
+        }
+      })
       if (!res.ok) {
         const err = await res.json()
         throw new Error(err.error ?? 'Falha ao excluir fase')
@@ -364,7 +384,10 @@ export function PipelineSettings() {
     mutationFn: async (orderedIds: string[]) => {
       const res = await fetch('/api/v1/ticket-stages/reorder', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          [ORGANIZATION_HEADER]: organizationId ?? '',
+        },
         body: JSON.stringify({ orderedIds }),
       })
       if (!res.ok) throw new Error('Falha ao reordenar fases')
