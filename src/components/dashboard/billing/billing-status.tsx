@@ -54,29 +54,8 @@ export function BillingStatus() {
   }
 
   if (error || !subscription) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6 sm:p-8"
-      >
-        <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h3 className="text-lg font-semibold text-white">Nenhuma assinatura ativa</h3>
-            <p className="mt-1 text-sm text-zinc-400">
-              Escolha um plano para começar a rastrear suas vendas.
-            </p>
-          </div>
-
-          <Button
-            asChild
-            className="rounded-lg bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 font-semibold text-white shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/40"
-          >
-            <a href="/#planos">Ver planos</a>
-          </Button>
-        </div>
-      </motion.div>
-    )
+    // Component gerenciado por BillingPageContent
+    return null
   }
 
   const status = subscription.status as SubscriptionStatusValue

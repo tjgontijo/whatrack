@@ -132,12 +132,25 @@ function CheckoutButton({ plan }: CheckoutButtonProps) {
     setState('loading')
 
     try {
-      // Redirecionar para o endpoint de checkout
-      const params = new URLSearchParams({
-        planType: plan.name.toLowerCase(),
+      // Fazer requisição para criar checkout
+      const response = await fetch('/api/v1/billing/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          planType: plan.name.toLowerCase(),
+        }),
       })
 
-      window.location.href = `/api/v1/billing/checkout?${params.toString()}`
+      if (!response.ok) {
+        throw new Error('Erro ao criar checkout')
+      }
+
+      const data = await response.json()
+
+      // Redirecionar para o checkout (AbacatePay irá redirecionar)
+      if (data.url) {
+        window.location.href = data.url
+      }
     } catch (error) {
       setState('error')
       toast.error('Erro ao processar checkout. Tente novamente.')

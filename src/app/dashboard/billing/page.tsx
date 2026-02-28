@@ -5,7 +5,9 @@ import { PageHeader } from '@/components/dashboard/layout/page-header'
 import { PageContent } from '@/components/dashboard/layout/page-content'
 import { BillingStatus } from '@/components/dashboard/billing/billing-status'
 import { UsageProgress } from '@/components/dashboard/billing/usage-progress'
+import { PlanSelector } from '@/components/dashboard/billing/plan-selector'
 import { BillingPageSkeleton } from '@/components/dashboard/billing/billing-page-skeleton'
+import { BillingPageContent } from '@/components/dashboard/billing/billing-page-content'
 
 export const metadata = {
   title: 'Billing | WhaTrack',
@@ -23,8 +25,7 @@ export default function BillingPage() {
 
       <PageContent>
         <Suspense fallback={<BillingPageSkeleton />}>
-          <BillingStatus />
-          <UsageProgress />
+          <BillingPageContent />
         </Suspense>
       </PageContent>
     </PageShell>
