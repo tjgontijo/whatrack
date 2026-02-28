@@ -203,6 +203,27 @@ export function SidebarClient({ navItems }: SidebarClientProps) {
           </SidebarGroupContent>
         </SidebarGroup>
 
+        {/* Account & Billing section */}
+        <SidebarGroup>
+          <SidebarGroupLabel>Conta</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  tooltip="Billing"
+                  isActive={pathname === '/dashboard/billing'}
+                >
+                  <Link href="/dashboard/billing" onClick={handleNavClick}>
+                    <CreditCard className="h-4 w-4" />
+                    <span>Billing</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
         {/* Config section */}
         <SidebarGroup>
           <SidebarGroupLabel>Configurações</SidebarGroupLabel>
