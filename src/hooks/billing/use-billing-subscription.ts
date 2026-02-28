@@ -1,5 +1,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import type { SubscriptionResponse, UsageResponse } from '@/schemas/billing/billing-schemas'
+import { useOrganization } from '@/hooks/organization/use-organization'
+import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 
 interface UseBillingSubscriptionReturn {
   subscription: SubscriptionResponse | null
@@ -14,6 +16,7 @@ interface UseBillingSubscriptionReturn {
  * Reutiliza dados via Promise.all para evitar waterfalls
  */
 export function useBillingSubscription(): UseBillingSubscriptionReturn {
+  const { data: org } = useOrganization()
   const [subscription, setSubscription] = useState<SubscriptionResponse | null>(null)
   const [usage, setUsage] = useState<UsageResponse | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -21,13 +24,22 @@ export function useBillingSubscription(): UseBillingSubscriptionReturn {
 
   const fetchData = useCallback(async () => {
     try {
+      if (!org?.id) {
+        setIsLoading(false)
+        return
+      }
+
       setIsLoading(true)
       setError(null)
 
+      const headers = {
+        [ORGANIZATION_HEADER]: org.id,
+      }
+
       // Fetch ambos em paralelo
       const [subRes, usageRes] = await Promise.all([
-        fetch('/api/v1/billing/subscription'),
-        fetch('/api/v1/billing/usage'),
+        fetch('/api/v1/billing/subscription', { headers }),
+        fetch('/api/v1/billing/usage', { headers }),
       ])
 
       // Checar erros HTTP

@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Loader2 } from 'lucide-react'
+import { ORGANIZATION_COOKIE } from '@/lib/constants/http-headers'
 
 /**
  * Garante que haja uma organização ativa:
@@ -31,12 +32,21 @@ export function OrganizationSelectorGate() {
   // Auto select when there is exactly one organization
   useEffect(() => {
     if (!session || loadingActive || loadingList) return
-    if (activeOrg) return
+    if (activeOrg) {
+      // Ensure cookie is in sync with activeOrg
+      document.cookie = `${ORGANIZATION_COOKIE}=${activeOrg.id}; path=/; max-age=31536000; SameSite=Lax`
+      return
+    }
+
     if (orgs.length === 1) {
       setIsSetting(true)
+      const orgId = orgs[0].id
       authClient.organization
-        .setActive({ organizationId: orgs[0].id })
-        .then(() => refetch())
+        .setActive({ organizationId: orgId })
+        .then(() => {
+          document.cookie = `${ORGANIZATION_COOKIE}=${orgId}; path=/; max-age=31536000; SameSite=Lax`
+          refetch()
+        })
         .catch(() => toast.error('Falha ao selecionar organização'))
         .finally(() => setIsSetting(false))
     }
@@ -54,6 +64,7 @@ export function OrganizationSelectorGate() {
     setIsSetting(true)
     try {
       await authClient.organization.setActive({ organizationId: selectedId })
+      document.cookie = `${ORGANIZATION_COOKIE}=${selectedId}; path=/; max-age=31536000; SameSite=Lax`
       toast.success('Organização selecionada')
       refetch()
     } catch (error) {
