@@ -10,6 +10,13 @@ import { useSession } from '@/lib/auth/auth-client'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { useOrganization } from '@/hooks/organization/use-organization'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 
 interface Plan {
   name: string
@@ -106,14 +113,15 @@ interface CheckoutButtonProps {
 
 function CheckoutButton({ plan }: CheckoutButtonProps) {
   const [state, setState] = useState<CheckoutState>('idle')
+  const [showAuthDialog, setShowAuthDialog] = useState(false)
   const { data: session } = useSession()
   const { data: org } = useOrganization()
   const router = useRouter()
 
   async function handleCheckout() {
-    // Não autenticado — redirecionar para login
+    // Não autenticado — mostrar diálogo de autenticação
     if (!session?.user) {
-      router.push(`/sign-up?next=${encodeURIComponent(window.location.href)}`)
+      setShowAuthDialog(true)
       return
     }
 
@@ -158,33 +166,79 @@ function CheckoutButton({ plan }: CheckoutButtonProps) {
     }
   }
 
+  function handleSignIn() {
+    setShowAuthDialog(false)
+    router.push(`/sign-in?next=${encodeURIComponent('/dashboard/billing')}`)
+  }
+
+  function handleSignUp() {
+    setShowAuthDialog(false)
+    router.push(`/sign-up?next=${encodeURIComponent('/dashboard/billing')}`)
+  }
+
   const isLoading = state === 'loading'
   const isError = state === 'error'
 
   return (
-    <Button
-      onClick={handleCheckout}
-      disabled={isLoading}
-      className={`h-12 w-full rounded-xl font-semibold transition-all ${
-        plan.highlighted
-          ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/40 disabled:opacity-70'
-          : 'border border-zinc-700 bg-zinc-800 text-white hover:bg-zinc-700 disabled:opacity-70'
-      } ${isError ? 'ring-2 ring-red-500/50' : ''}`}
-    >
-      {isLoading ? (
-        <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Aguarde...
-        </>
-      ) : isError ? (
-        <>
-          <AlertCircle className="mr-2 h-4 w-4" />
-          Tentar novamente
-        </>
-      ) : (
-        plan.cta
-      )}
-    </Button>
+    <>
+      <Button
+        onClick={handleCheckout}
+        disabled={isLoading}
+        className={`h-12 w-full rounded-xl font-semibold transition-all ${
+          plan.highlighted
+            ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/40 disabled:opacity-70'
+            : 'border border-zinc-700 bg-zinc-800 text-white hover:bg-zinc-700 disabled:opacity-70'
+        } ${isError ? 'ring-2 ring-red-500/50' : ''}`}
+      >
+        {isLoading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Aguarde...
+          </>
+        ) : isError ? (
+          <>
+            <AlertCircle className="mr-2 h-4 w-4" />
+            Tentar novamente
+          </>
+        ) : (
+          plan.cta
+        )}
+      </Button>
+
+      <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
+        <DialogContent showCloseButton className="border-zinc-800 bg-zinc-900">
+          <DialogHeader>
+            <DialogTitle className="text-white">
+              Assinar plano {plan.name}
+            </DialogTitle>
+            <DialogDescription className="text-zinc-400">
+              Escolha como você deseja continuar
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <Button
+              onClick={handleSignIn}
+              variant="outline"
+              className="h-11 w-full border-zinc-700 bg-zinc-800 text-white hover:bg-zinc-700"
+            >
+              Entrar na minha conta
+            </Button>
+
+            <Button
+              onClick={handleSignUp}
+              className="h-11 w-full bg-gradient-to-r from-emerald-500 to-emerald-600 text-white hover:from-emerald-600 hover:to-emerald-700"
+            >
+              Criar uma conta
+            </Button>
+          </div>
+
+          <p className="text-center text-xs text-zinc-500">
+            Você será direcionado para selecionar seu plano após o login ou registro.
+          </p>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
 
