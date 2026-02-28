@@ -3,20 +3,32 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import type { AiSkill } from '@/types/ai/ai-skill'
+import { useOrganization } from '@/hooks/organization/use-organization'
+import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 
 export const AI_SKILLS_QUERY_KEY = ['ai-skills'] as const
 
-async function fetchSkills(): Promise<AiSkill[]> {
-  const res = await fetch('/api/v1/ai-skills')
+async function fetchSkills(orgId: string): Promise<AiSkill[]> {
+  const res = await fetch('/api/v1/ai-skills', {
+    headers: {
+      [ORGANIZATION_HEADER]: orgId,
+    },
+  })
   if (!res.ok) throw new Error('Erro ao carregar skills.')
   const data = await res.json()
   return data.skills ?? []
 }
 
 export function useAiSkills() {
+  const { data: org } = useOrganization()
+
   return useQuery({
-    queryKey: AI_SKILLS_QUERY_KEY,
-    queryFn: fetchSkills,
+    queryKey: [...AI_SKILLS_QUERY_KEY, org?.id],
+    queryFn: () => fetchSkills(org!.id),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    enabled: !!org?.id,
   })
 }
 
@@ -31,9 +43,17 @@ export function useCreateAiSkill() {
       content: string
       kind: 'SHARED' | 'AGENT'
     }): Promise<AiSkill> => {
+      const orgId = document.cookie
+        .split('; ')
+        .find((row) => row.startsWith(`${ORGANIZATION_HEADER}=`))
+        ?.split('=')[1]
+
       const res = await fetch('/api/v1/ai-skills', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(orgId ? { [ORGANIZATION_HEADER]: orgId } : {}),
+        },
         body: JSON.stringify(input),
       })
       if (!res.ok) {

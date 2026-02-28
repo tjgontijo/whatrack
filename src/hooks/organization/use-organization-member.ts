@@ -6,6 +6,8 @@
  */
 import { useQuery } from '@tanstack/react-query'
 import { isOwner, isAdmin, type RoleName } from '@/lib/auth/rbac/roles'
+import { useOrganization } from '@/hooks/organization/use-organization'
+import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 
 interface OrganizationMember {
   id: string
@@ -30,9 +32,12 @@ export const organizationMemberKeys = {
   active: () => [...organizationMemberKeys.all, 'active'] as const,
 }
 
-async function fetchActiveMember(): Promise<OrganizationMember | null> {
+async function fetchActiveMember(orgId: string): Promise<OrganizationMember | null> {
   const response = await fetch('/api/v1/auth/organization/get-active-member', {
     method: 'GET',
+    headers: {
+      [ORGANIZATION_HEADER]: orgId,
+    },
     credentials: 'include',
   })
 
@@ -47,12 +52,15 @@ async function fetchActiveMember(): Promise<OrganizationMember | null> {
 }
 
 export function useOrganizationMember(): UseOrganizationMemberReturn {
+  const { data: org } = useOrganization()
+
   const { data, isLoading, error } = useQuery({
-    queryKey: organizationMemberKeys.active(),
-    queryFn: fetchActiveMember,
-    staleTime: 5 * 60 * 1000, // 5 minutos
-    gcTime: 10 * 60 * 1000, // 10 minutos
+    queryKey: [...organizationMemberKeys.active(), org?.id],
+    queryFn: () => fetchActiveMember(org!.id),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
+    enabled: !!org?.id,
   })
 
   const role = data?.role ?? null
