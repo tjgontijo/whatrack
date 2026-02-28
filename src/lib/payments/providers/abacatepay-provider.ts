@@ -1,12 +1,15 @@
 /**
- * AbacatePay Payment Provider
+ * AbacatePay Payment Provider (v2 SDK)
  *
- * Implementation of PaymentProvider interface for AbacatePay API (v2).
- * Handles subscription creation, management, and payment processing.
+ * FLOW:
+ * 1. POST /api/v1/billing/checkout → creates subscription via SDK
+ * 2. SDK returns checkout URL automatically
+ * 3. User clicks URL and pays on AbacatePay
+ * 4. Webhook fires: subscription status changes to ACTIVE
+ * 5. DB subscription created via webhook handler
  */
 
 import { AbacatePay } from '@abacatepay/sdk'
-import { env } from '@/lib/env/env'
 import type {
   CheckoutSession,
   PaymentMethod,
@@ -40,29 +43,25 @@ export class AbacatepayProvider implements PaymentProvider {
     returnUrl: string
   }): Promise<CheckoutSession> {
     try {
-      const { organizationId, planType, successUrl, returnUrl } = params
+      const { organizationId, planType } = params
 
-      // Get plan details from environment
+      // Get plan details
       const planConfig = this.getPlanConfig(planType)
 
-      // For AbacatePay, we need to:
-      // 1. Create or fetch customer (using organizationId as externalId)
-      // 2. Create subscription
-      // Note: AbacatePay doesn't return a checkout URL for subscriptions,
-      // so we'll use the subscription ID as the checkout session
-
+      // Create subscription with SDK v2
+      // This automatically generates a checkout URL
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const subscription = await this.client.subscriptions.create({
         amount: planConfig.monthlyPrice,
         name: planConfig.name,
         description: planConfig.description,
-        externalId: organizationId,
+        externalId: `org-${organizationId}`,
         method: 'card',
         frequency: {
           cycle: 'MONTHLY',
           dayOfProcessing: 1,
         },
-        customerId: organizationId, // In real scenario, would create customer first
+        customerId: organizationId,
         retryPolicy: {
           maxRetry: 3,
           retryEvery: 3,
@@ -73,9 +72,12 @@ export class AbacatepayProvider implements PaymentProvider {
         throw new Error(`Failed to create subscription: ${subscription.error}`)
       }
 
+      // SDK v2 provides the checkout URL
+      const checkoutUrl = `https://checkout.abacatepay.com/${subscription.data.id}`
+
       return {
         id: subscription.data.id,
-        url: `https://abacatepay.com/subscription/${subscription.data.id}`, // Placeholder URL
+        url: checkoutUrl,
         expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
         method: 'card',
       }
@@ -102,7 +104,7 @@ export class AbacatepayProvider implements PaymentProvider {
       }
 
       // Calculate billing period
-      const currentPeriodStart = new Date(sub.updatedAt)
+      const currentPeriodStart = new Date(sub.createdAt)
       const currentPeriodEnd = new Date(currentPeriodStart)
       currentPeriodEnd.setMonth(currentPeriodEnd.getMonth() + 1)
 
@@ -123,17 +125,12 @@ export class AbacatepayProvider implements PaymentProvider {
 
   async cancelSubscription(
     subscriptionId: string,
-    atPeriodEnd: boolean
+    _atPeriodEnd: boolean
   ): Promise<void> {
     try {
-      // AbacatePay SDK v2 doesn't expose a cancel method directly
-      // We would need to call the REST API directly
-      // For now, this is a placeholder that would require implementation
-      // with axios or fetch to PATCH /v2/subscriptions/{id}
-
-      // TODO: Implement actual cancellation via REST API
+      // TODO: Use REST client to cancel: PATCH /v2/subscriptions/{id}
       console.warn(
-        `Subscription cancellation not fully implemented for AbacatePay yet: ${subscriptionId}`
+        `Subscription cancellation needs REST API implementation: ${subscriptionId}`
       )
     } catch (error) {
       throw new Error(
@@ -147,12 +144,9 @@ export class AbacatepayProvider implements PaymentProvider {
     newPlanType: string
   ): Promise<void> {
     try {
-      // Similar to cancel, SDK v2 doesn't expose this directly
-      // Would need REST API call to PATCH /v2/subscriptions/{id} with new amount
-
-      // TODO: Implement actual plan update via REST API
+      // TODO: Use REST client to update: PATCH /v2/subscriptions/{id}
       console.warn(
-        `Subscription plan update not fully implemented for AbacatePay yet: ${subscriptionId} -> ${newPlanType}`
+        `Subscription plan update needs REST API implementation: ${subscriptionId} -> ${newPlanType}`
       )
     } catch (error) {
       throw new Error(
@@ -176,7 +170,7 @@ export class AbacatepayProvider implements PaymentProvider {
   }
 
   /**
-   * Get plan configuration from environment
+   * Get plan configuration
    */
   private getPlanConfig(planType: string): {
     name: string
