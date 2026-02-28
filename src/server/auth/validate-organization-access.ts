@@ -3,7 +3,7 @@ import { cookies } from 'next/headers'
 import { auth } from '@/lib/auth/auth'
 import { getPermissionCandidates, isAdmin, isOwner, type Permission } from '@/lib/auth/rbac/roles'
 import { prisma } from '@/lib/db/prisma'
-import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
+import { ORGANIZATION_COOKIE, ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 import {
   INTEGRATION_IDENTITY_REQUIRED_MESSAGE,
   isOrganizationIdentityComplete,
@@ -69,15 +69,27 @@ export async function validateOrganizationAccess(
 }
 
 export function extractOrganizationId(request: Request): string | null {
+  // 1. Check Header
   const fromHeaders = request.headers.get(ORGANIZATION_HEADER)
   if (fromHeaders) return fromHeaders
 
+  // 2. Check Search Params
   try {
     const url = new URL(request.url)
-    return url.searchParams.get('organizationId')
-  } catch {
-    return null
-  }
+    const fromParams = url.searchParams.get('organizationId') || url.searchParams.get('orgId')
+    if (fromParams) return fromParams
+  } catch { }
+
+  // 3. Check Cookie (last resort)
+  try {
+    const cookieHeader = request.headers.get('cookie')
+    if (cookieHeader) {
+      const match = cookieHeader.match(new RegExp(`${ORGANIZATION_COOKIE}=([^;]+)`))
+      if (match) return match[1]
+    }
+  } catch { }
+
+  return null
 }
 
 interface FullAccessResult {
@@ -122,7 +134,10 @@ export async function validateTenantAccess(
     const organizationId =
       session.session?.activeOrganizationId ?? extractOrganizationId(request) ?? undefined
 
+    console.debug(`[validateTenantAccess] User: ${userId}, GlobalRole: ${globalRole}, OrgID: ${organizationId}`)
+
     if (!organizationId) {
+      console.warn(`[validateTenantAccess] No organization ID found in session or request for user ${userId}`)
       return {
         hasAccess: false,
         userId,
@@ -131,6 +146,7 @@ export async function validateTenantAccess(
     }
 
     const validation = await validateOrganizationAccess(userId, organizationId)
+    console.debug(`[validateTenantAccess] Validation result:`, validation)
 
     if (!validation.hasAccess || !validation.role) {
       return {

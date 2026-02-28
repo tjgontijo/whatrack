@@ -17,6 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 
 interface Plan {
   name: string
@@ -143,7 +144,10 @@ function CheckoutButton({ plan }: CheckoutButtonProps) {
       // Fazer requisição para criar checkout
       const response = await fetch('/api/v1/billing/checkout', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          [ORGANIZATION_HEADER]: org.id,
+        },
         body: JSON.stringify({
           planType: plan.name.toLowerCase(),
         }),
@@ -184,11 +188,10 @@ function CheckoutButton({ plan }: CheckoutButtonProps) {
       <Button
         onClick={handleCheckout}
         disabled={isLoading}
-        className={`h-12 w-full rounded-xl font-semibold transition-all ${
-          plan.highlighted
+        className={`h-12 w-full rounded-xl font-semibold transition-all ${plan.highlighted
             ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/40 disabled:opacity-70'
             : 'border border-zinc-700 bg-zinc-800 text-white hover:bg-zinc-700 disabled:opacity-70'
-        } ${isError ? 'ring-2 ring-red-500/50' : ''}`}
+          } ${isError ? 'ring-2 ring-red-500/50' : ''}`}
       >
         {isLoading ? (
           <>

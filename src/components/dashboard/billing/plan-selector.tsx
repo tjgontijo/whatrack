@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button'
 import { motion } from 'motion/react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils/utils'
+import { useOrganization } from '@/hooks/organization/use-organization'
+import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 
 interface Plan {
   id: string
@@ -86,6 +88,7 @@ interface PlanSelectorProps {
 }
 
 export function PlanSelector({ onClose: _ }: PlanSelectorProps) {
+  const { data: org } = useOrganization()
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
   const [state, setState] = useState<CheckoutState>('idle')
 
@@ -100,9 +103,18 @@ export function PlanSelector({ onClose: _ }: PlanSelectorProps) {
     setState('loading')
 
     try {
+      if (!org?.id) {
+        toast.error('Selecione uma organização primeiro')
+        setState('idle')
+        return
+      }
+
       const response = await fetch('/api/v1/billing/checkout', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          [ORGANIZATION_HEADER]: org.id,
+        },
         body: JSON.stringify({ planType: plan.id }),
       })
 
@@ -205,7 +217,7 @@ export function PlanSelector({ onClose: _ }: PlanSelectorProps) {
                   className={cn(
                     'mb-4 w-full',
                     plan.highlighted &&
-                      'bg-primary text-primary-foreground hover:bg-primary/90',
+                    'bg-primary text-primary-foreground hover:bg-primary/90',
                   )}
                 >
                   {isLoadingThis ? (
