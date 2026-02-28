@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useEffect } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import {
   Select,
   SelectContent,
@@ -9,15 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-
-interface Instance {
-  id: string
-  displayPhone: string
-  verifiedName: string
-  status: string
-  wabaId: string | null
-  lastWebhookAt: string | null
-}
+import { useWhatsAppInstances } from '@/hooks/whatsapp/use-whatsapp-instances'
 
 interface InstanceSelectorProps {
   selectedInstanceId: string | null
@@ -33,17 +24,7 @@ interface InstanceSelectorProps {
  * Default: "Todas as instâncias" (show all)
  */
 export function InstanceSelector({ selectedInstanceId, onInstanceChange }: InstanceSelectorProps) {
-  // Fetch list of connected instances
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['whatsapp-instances'],
-    queryFn: async () => {
-      const response = await fetch('/api/v1/whatsapp/instances')
-      if (!response.ok) throw new Error('Failed to fetch instances')
-      return response.json() as Promise<{ items: Instance[] }>
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: 2,
-  })
+  const { data, isLoading, error } = useWhatsAppInstances()
 
   const instances = data?.items || []
 

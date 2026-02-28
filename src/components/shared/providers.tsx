@@ -13,17 +13,18 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            // Cache por 30 minutos - melhor para real-time via Centrifugo
-            // Dados só refetch se explicitamente invalidados pelo real-time
-            staleTime: 30 * 60 * 1000,
-            // Manter dados em cache por 1 hora após ficarem "stale"
-            gcTime: 60 * 60 * 1000,
-            // Não refetch automaticamente ao focar janela (evita requisições desnecessárias)
+            // Cache por 5 minutos por padrão - reduz ruído de rede
+            staleTime: 5 * 60 * 1000,
+            // Manter dados em cache por 10 minutos após ficarem "stale"
+            gcTime: 10 * 60 * 1000,
+            // Não refetch automaticamente ao focar janela (reduz ruído drástico ao mudar abas)
             refetchOnWindowFocus: false,
             // Retry apenas 1 vez em caso de erro
             retry: 1,
             // Não refetch ao montar se dados ainda são "fresh"
             refetchOnMount: false,
+            // Desativar refetch ao reconectar se não for crítico
+            refetchOnReconnect: false,
           },
         },
       })

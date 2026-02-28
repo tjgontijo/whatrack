@@ -122,11 +122,11 @@ export function useAuditLogsInfinite(params: AuditLogsInfiniteParams) {
       const loaded = allPages.reduce((acc, page) => acc + page.data.length, 0)
       return loaded < lastPage.total ? allPages.length + 1 : undefined
     },
-    staleTime: 60_000,
+    staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     retry: 0,
-    enabled: params.enabled ?? true,
+    enabled: (params.enabled ?? true),
   })
 
   const logs = useMemo(
