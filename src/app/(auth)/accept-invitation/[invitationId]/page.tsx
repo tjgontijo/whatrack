@@ -89,7 +89,6 @@ export default function AcceptInvitationPage() {
 
         const response = await fetch(`/api/v1/invitations/${encodeURIComponent(invitationId)}/public`, {
           method: 'GET',
-          cache: 'no-store',
         })
 
         if (!response.ok) {
@@ -155,7 +154,6 @@ export default function AcceptInvitationPage() {
         return
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 1000))
       await acceptOrganizationInvitation(invitationId)
 
       toast.success('Conta criada e convite aceito com sucesso!')

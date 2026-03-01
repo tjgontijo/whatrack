@@ -2,6 +2,9 @@
 
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
+import { useOrganization } from '@/hooks/organization/use-organization'
+import { apiFetch } from '@/lib/api-client'
+
 
 interface ApiPage<T> {
   items: T[]
@@ -36,38 +39,41 @@ export function useCrudInfiniteQuery<T>({
   filters = {},
   enabled = true,
 }: UseCrudInfiniteQueryOptions): UseCrudInfiniteQueryResult<T> {
+  const { data: org } = useOrganization()
+  const organizationId = org?.id
+
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, refetch } =
     useInfiniteQuery<ApiPage<T>>({
-      queryKey: [...queryKey, pageSize, filters],
+      queryKey: [...queryKey, organizationId, pageSize, filters],
       queryFn: async ({ pageParam }) => {
-        const url = new URL(endpoint, window.location.origin)
-        url.searchParams.set('page', String(pageParam ?? 1))
-        url.searchParams.set('pageSize', String(pageSize))
+        const queryParams = new URLSearchParams()
+        queryParams.set('page', String(pageParam ?? 1))
+        queryParams.set('pageSize', String(pageSize))
 
         for (const [key, value] of Object.entries(filters)) {
           if (value !== undefined && value !== null && value !== '') {
-            url.searchParams.set(key, String(value))
+            queryParams.set(key, String(value))
           }
         }
 
-        const res = await fetch(url.toString(), { cache: 'no-store' })
-        if (!res.ok) throw new Error(`Failed to fetch ${endpoint}`)
-        return res.json() as Promise<ApiPage<T>>
+        const data = await apiFetch(`${endpoint}?${queryParams.toString()}`, {
+          orgId: organizationId,
+        })
+        return data as ApiPage<T>
       },
       initialPageParam: 1,
       getNextPageParam: (lastPage, allPages) => {
         const loaded = allPages.reduce((acc, p) => acc + p.items.length, 0)
         return loaded < lastPage.total ? allPages.length + 1 : undefined
       },
-      staleTime: 10_000,
+      staleTime: 60_000,
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
       retry: 0,
-      enabled,
+      enabled: enabled && !!organizationId,
     })
 
   const flatData = useMemo(() => data?.pages.flatMap((page) => page.items) ?? [], [data])
-
   const total = data?.pages[0]?.total ?? 0
 
   return {
@@ -81,3 +87,4 @@ export function useCrudInfiniteQuery<T>({
     refetch,
   }
 }
+

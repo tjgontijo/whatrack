@@ -3,6 +3,9 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import type { OrgAuditLog } from '@prisma/client'
+import { useOrganization } from '@/hooks/organization/use-organization'
+import { apiFetch } from '@/lib/api-client'
+
 
 export const AUDIT_LOG_PERIOD_PRESETS = [
   'today',
@@ -52,9 +55,12 @@ export interface AuditLogFiltersResponse {
   resourceTypes: string[]
 }
 
+
+
 async function fetchAuditLogsPage(
   page: number,
-  params: Omit<AuditLogsInfiniteParams, 'enabled'>
+  params: Omit<AuditLogsInfiniteParams, 'enabled'>,
+  orgId: string
 ): Promise<AuditLogsPageResponse> {
   const query = new URLSearchParams()
   query.set('page', String(page))
@@ -70,39 +76,26 @@ async function fetchAuditLogsPage(
 
   if (params.resourceType) query.set('resourceType', params.resourceType)
 
-  const response = await fetch(`/api/v1/organizations/me/audit-logs?${query.toString()}`, {
-    cache: 'no-store',
+  const data = await apiFetch(`/api/v1/organizations/me/audit-logs?${query.toString()}`, {
+    orgId,
   })
 
-  if (!response.ok) {
-    let message = 'Falha ao buscar audit logs'
-
-    try {
-      const body = (await response.json()) as { error?: string }
-      if (body?.error) message = body.error
-    } catch {
-      // Ignore parse errors and keep fallback message.
-    }
-
-    throw new Error(message)
-  }
-
-  return response.json() as Promise<AuditLogsPageResponse>
+  return data as AuditLogsPageResponse
 }
 
-async function fetchAuditLogFilters(): Promise<AuditLogFiltersResponse> {
-  const response = await fetch('/api/v1/organizations/me/audit-logs/filters', {
-    cache: 'no-store',
+async function fetchAuditLogFilters(orgId: string): Promise<AuditLogFiltersResponse> {
+  const data = await apiFetch('/api/v1/organizations/me/audit-logs/filters', {
+    orgId,
   })
 
-  if (!response.ok) {
-    throw new Error('Falha ao carregar filtros de audit logs')
-  }
-
-  return response.json() as Promise<AuditLogFiltersResponse>
+  return data as AuditLogFiltersResponse
 }
+
 
 export function useAuditLogsInfinite(params: AuditLogsInfiniteParams) {
+  const { data: org } = useOrganization()
+  const orgId = org?.id
+
   const normalizedParams = useMemo(
     () => ({
       periodPreset: params.periodPreset ?? '7d',
@@ -115,9 +108,9 @@ export function useAuditLogsInfinite(params: AuditLogsInfiniteParams) {
   )
 
   const query = useInfiniteQuery<AuditLogsPageResponse>({
-    queryKey: ['organization-audit-logs', normalizedParams],
+    queryKey: ['organization-audit-logs', normalizedParams, orgId],
     initialPageParam: 1,
-    queryFn: ({ pageParam }) => fetchAuditLogsPage(Number(pageParam), normalizedParams),
+    queryFn: ({ pageParam }) => fetchAuditLogsPage(Number(pageParam), normalizedParams, orgId!),
     getNextPageParam: (lastPage, allPages) => {
       const loaded = allPages.reduce((acc, page) => acc + page.data.length, 0)
       return loaded < lastPage.total ? allPages.length + 1 : undefined
@@ -126,7 +119,7 @@ export function useAuditLogsInfinite(params: AuditLogsInfiniteParams) {
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     retry: 0,
-    enabled: (params.enabled ?? true),
+    enabled: !!orgId && (params.enabled ?? true),
   })
 
   const logs = useMemo(
@@ -144,13 +137,16 @@ export function useAuditLogsInfinite(params: AuditLogsInfiniteParams) {
 }
 
 export function useAuditLogFilters(enabled = true) {
+  const { data: org } = useOrganization()
+  const orgId = org?.id
+
   return useQuery<AuditLogFiltersResponse>({
-    queryKey: ['organization-audit-log-filters'],
-    queryFn: fetchAuditLogFilters,
+    queryKey: ['organization-audit-log-filters', orgId],
+    queryFn: () => fetchAuditLogFilters(orgId!),
     staleTime: 5 * 60_000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     retry: 0,
-    enabled,
+    enabled: !!orgId && enabled,
   })
 }

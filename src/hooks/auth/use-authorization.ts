@@ -9,8 +9,9 @@ import {
   isOwner,
 } from '@/lib/auth/rbac/roles'
 import type { Permission } from '@/lib/auth/rbac/roles'
-import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 import { useOrganization } from '@/hooks/organization/use-organization'
+import { apiFetch } from '@/lib/api-client'
+
 
 type OrganizationAccessResponse = {
   id: string
@@ -19,18 +20,15 @@ type OrganizationAccessResponse = {
   currentUserPermissions?: string[]
 }
 
+
+
 async function fetchOrganizationAccess(orgId: string): Promise<OrganizationAccessResponse> {
-  const response = await fetch('/api/v1/organizations/me', {
-    cache: 'no-store',
-    headers: {
-      [ORGANIZATION_HEADER]: orgId,
-    },
+  const data = await apiFetch('/api/v1/organizations/me', {
+    orgId,
   })
-  if (!response.ok) {
-    throw new Error('Falha ao carregar permissões da organização')
-  }
-  return response.json() as Promise<OrganizationAccessResponse>
+  return data as OrganizationAccessResponse
 }
+
 
 export function useAuthorization() {
   const { data: org } = useOrganization()

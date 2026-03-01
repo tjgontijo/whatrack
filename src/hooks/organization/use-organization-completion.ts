@@ -19,7 +19,6 @@ async function fetchOrganizationCompletion(orgId: string): Promise<OrganizationC
       [ORGANIZATION_HEADER]: orgId,
     },
     credentials: 'include',
-    cache: 'no-store',
   })
 
   if (!response.ok) {
