@@ -27,6 +27,7 @@ import {
   ArrowUpRight,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { apiFetch } from '@/lib/api-client'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -107,13 +108,20 @@ export function TicketPanel({ conversationId, organizationId, chat }: TicketPane
   const [showAiApproval, setShowAiApproval] = useState(true)
   const queryClient = useQueryClient()
 
+
+
   const { data, isLoading, error } = useQuery({
-    queryKey: ['conversation-ticket', conversationId],
+    queryKey: ['conversation-ticket', conversationId, organizationId],
     queryFn: async () => {
-      const response = await fetch(`/api/v1/conversations/${conversationId}/ticket`)
-      if (response.status === 404) return null
-      if (!response.ok) throw new Error('Failed to fetch ticket')
-      return response.json() as Promise<TicketResponse>
+      try {
+        const data = await apiFetch(`/api/v1/conversations/${conversationId}/ticket`, {
+          orgId: organizationId,
+        })
+        return data as TicketResponse
+      } catch (err) {
+        if (err instanceof Error && err.message.includes('404')) return null
+        throw err
+      }
     },
     staleTime: 30 * 1000,
     retry: 1,
@@ -123,24 +131,28 @@ export function TicketPanel({ conversationId, organizationId, chat }: TicketPane
 
   // Use the same tickets data, or fetch the ai_approval directly
   const { data: insightsData } = useQuery({
-    queryKey: ['ai-insights', ticket?.id],
+    queryKey: ['ai-insights', ticket?.id, organizationId],
     queryFn: async () => {
-      const res = await fetch(`/api/v1/ai-insights?status=SUGGESTION`)
-      if (!res.ok) return { items: [] }
-      return res.json()
+      const data = await apiFetch(`/api/v1/ai-insights?status=SUGGESTION`, {
+        orgId: organizationId,
+      })
+      return (data as any) || { items: [] }
     },
     enabled: !!ticket?.id,
   })
+
 
   const currentInsight = insightsData?.items?.find((a: any) => a.ticketId === ticket?.id)
 
   const { data: stagesData } = useQuery({
     queryKey: ['ticket-stages', organizationId],
     queryFn: async () => {
-      const res = await fetch(`/api/v1/ticket-stages`)
-      if (!res.ok) return { items: [] }
-      return res.json()
+      const data = await apiFetch(`/api/v1/ticket-stages`, {
+        orgId: organizationId,
+      })
+      return (data as any) || { items: [] }
     },
+
     enabled: !!organizationId,
   })
   const stages = stagesData?.items || []
@@ -149,12 +161,15 @@ export function TicketPanel({ conversationId, organizationId, chat }: TicketPane
     try {
       if (!ticket) return
       const toastId = toast.loading('Movendo ticket...')
-      const res = await fetch(`/api/v1/tickets/${ticket.id}`, {
+      await apiFetch(`/api/v1/tickets/${ticket.id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({ stageId: newStageId }),
+        orgId: organizationId,
       })
-      if (!res.ok) throw new Error()
+
       toast.success('Etapa atualizada!', { id: toastId })
       queryClient.invalidateQueries({ queryKey: ['conversation-ticket', conversationId] })
     } catch {
@@ -330,10 +345,11 @@ export function TicketPanel({ conversationId, organizationId, chat }: TicketPane
                   onClick={async () => {
                     const loadingToast = toast.loading('Aplicando sugestão...')
                     try {
-                      const res = await fetch(`/api/v1/ai-insights/${currentInsight.id}/approve`, {
+                      await apiFetch(`/api/v1/ai-insights/${currentInsight.id}/approve`, {
                         method: 'PATCH',
+                        orgId: organizationId,
                       })
-                      if (!res.ok) throw new Error()
+
                       toast.success('Ticket atualizado com sucesso e CAPI acionado.', {
                         id: loadingToast,
                       })
@@ -355,13 +371,15 @@ export function TicketPanel({ conversationId, organizationId, chat }: TicketPane
                   className="px-3"
                   onClick={async () => {
                     try {
-                      await fetch(`/api/v1/ai-insights/${currentInsight.id}/reject`, {
+                      await apiFetch(`/api/v1/ai-insights/${currentInsight.id}/reject`, {
                         method: 'PATCH',
+                        orgId: organizationId,
                       })
+
                       toast.info('Sugestão rejeitada.')
                       setShowAiApproval(false)
                       queryClient.invalidateQueries({ queryKey: ['ai-insights'] })
-                    } catch {}
+                    } catch { }
                   }}
                 >
                   <X className="text-muted-foreground h-3.5 w-3.5" />
