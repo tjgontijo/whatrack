@@ -15,6 +15,7 @@ export async function apiFetch(url: string, options: FetchOptions = {}) {
     const response = await fetch(url, {
         ...rest,
         headers,
+        credentials: 'include', // Include cookies in cross-origin requests
     })
 
     if (!response.ok) {
