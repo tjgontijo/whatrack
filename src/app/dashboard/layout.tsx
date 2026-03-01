@@ -7,6 +7,7 @@ import { DashboardContent } from '@/components/dashboard/layout/dashboard-conten
 import { DashboardHeader } from '@/components/dashboard/layout/header'
 import { HeaderActionsProvider } from '@/components/dashboard/layout/header-actions'
 import { OrganizationSelectorGate } from '@/components/dashboard/organization/organization-selector'
+import { OnboardingDialog } from '@/components/dashboard/organization/onboarding-dialog'
 import { DashboardSidebar } from '@/components/dashboard/sidebar/sidebar'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { getServerSession } from '@/server/auth/server-session'
@@ -77,6 +78,8 @@ export default async function DashboardLayout({ children }: { children: ReactNod
                 </div>
               </DashboardContent>
             </main>
+
+            <OnboardingDialog open={!hasOrganization} />
           </SidebarInset>
         </div>
 

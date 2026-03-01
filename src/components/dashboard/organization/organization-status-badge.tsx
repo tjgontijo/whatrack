@@ -24,7 +24,7 @@ export function OrganizationStatusBadge({
     hasOrganization,
     identityComplete,
 }: OrganizationStatusBadgeProps) {
-    if (hasOrganization && identityComplete) {
+    if (!hasOrganization || identityComplete) {
         return null
     }
 

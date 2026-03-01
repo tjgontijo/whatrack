@@ -1,4 +1,5 @@
 import { Prisma } from '@prisma/client'
+import { nanoid } from 'nanoid'
 
 import { prisma } from '@/lib/db/prisma'
 import { calculateMetrics } from '@/services/onboarding-metrics/metrics-calculator'
@@ -30,25 +31,8 @@ async function ensureOnboardingStatuses() {
   )
 }
 
-async function generateUniqueSlug(name: string, options?: { excludeOrgId?: string }): Promise<string> {
-  const baseSlug = name
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-
-  const normalizedBase = baseSlug || 'organization'
-  const existing = await prisma.organization.findFirst({
-    where: {
-      slug: normalizedBase,
-      ...(options?.excludeOrgId ? { id: { not: options.excludeOrgId } } : {}),
-    },
-    select: { id: true },
-  })
-
-  if (!existing) return normalizedBase
-  return `${normalizedBase}-${Math.random().toString(36).slice(2, 8)}`
+function generateUniqueSlug(): string {
+  return `org-${nanoid(10)}`
 }
 
 function parseOptionalDate(value?: string | null): Date | null {
@@ -112,7 +96,7 @@ export async function createOrganizationFromOnboarding(input: {
     companyName: companyData?.nomeFantasia,
     legalName: companyData?.razaoSocial,
   })
-  const slug = await generateUniqueSlug(organizationName)
+  const slug = generateUniqueSlug()
 
   if (input.data.entityType === 'company') {
     const uf = companyData?.uf?.trim().toUpperCase() ?? ''
@@ -224,7 +208,7 @@ export async function getOrCreateCurrentOrganization(input: {
   if (!member) {
     const fallbackName =
       input.user.name?.trim() || (input.user.email?.split('@')[0] ?? '').trim() || 'Minha organizacao'
-    const slug = await generateUniqueSlug(fallbackName)
+    const slug = generateUniqueSlug()
 
     const organization = await prisma.$transaction(async (tx) => {
       const createdOrganization = await tx.organization.create({
@@ -305,17 +289,11 @@ export async function updateOrganizationById(input: {
     })
   }
 
-  let newSlug: string | undefined
-  if (body.companyName) {
-    newSlug = await generateUniqueSlug(body.companyName, { excludeOrgId: input.organizationId })
-  }
-
   const organization = await prisma.organization.update({
     where: { id: input.organizationId },
     data: {
       ...(body.name && { name: body.name }),
       ...(body.companyName && { name: body.companyName }),
-      ...(newSlug && { slug: newSlug }),
     },
   })
 
