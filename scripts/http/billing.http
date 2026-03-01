@@ -1,6 +1,6 @@
 @baseUrl = http://localhost:3000
-@orgId = 9d31236f-24f1-46fd-ae49-00aefb92b405
-@sessionToken = 3Yq4NdrbSJHOaAmBT9SDx7uZwOBZKl1W.na6jcDcIKzAmR8UoTwVLcWavDBaPfW88cKAjIEM17L4=
+@orgId = xw
+@sessionToken =
 
 ### Test GET /api/v1/billing/subscription (COM COOKIE)
 GET {{baseUrl}}/api/v1/billing/subscription
