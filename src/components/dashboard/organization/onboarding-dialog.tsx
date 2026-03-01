@@ -10,7 +10,8 @@ import { authClient } from '@/lib/auth/auth-client'
 import { apiFetch } from '@/lib/api-client'
 import { applyCpfCnpjMask, stripCpfCnpj } from '@/lib/mask/cpf-cnpj'
 import { validateDocumentByType } from '@/lib/document/document-identity'
-import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -154,8 +155,11 @@ export function OnboardingDialog({ open }: OnboardingDialogProps) {
         /* bloqueante — não fecha */
       }}
     >
+      <DialogTitle asChild>
+        <VisuallyHidden>Cadastro de Organização</VisuallyHidden>
+      </DialogTitle>
       <DialogContent
-        className="w-full max-w-md gap-0 overflow-hidden p-0"
+        className="w-full max-w-lg gap-0 overflow-hidden p-0"
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
         showCloseButton={false}
