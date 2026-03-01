@@ -13,24 +13,30 @@ import { logger } from '@/lib/utils/logger'
 /**
  * Webhook event types from payment providers
  */
-export type PaymentWebhookEvent = 'billing.paid' | 'subscription.created' | 'subscription.cancelled' | 'payment.failed'
+export type PaymentWebhookEvent = 'billing.paid' | 'pix.paid' | 'pix.expired'
 
 /**
- * Webhook payload structure (AbacatePay v2)
+ * Webhook payload structure (AbacatePay v1 API)
  */
 export interface WebhookData {
   type: PaymentWebhookEvent
   data: {
     billing?: {
       id: string
-      externalId: string
+      status: string
       amount: number
-      status: string
+      products?: Array<{
+        externalId: string
+        name: string
+      }>
+      customer?: {
+        id: string
+      }
     }
-    subscription?: {
+    pixQrCode?: {
       id: string
-      externalId: string
       status: string
+      amount: number
     }
   }
   id: string
@@ -111,16 +117,13 @@ export async function handlePaymentWebhook(
         await handleBillingPaid(payload.data)
         break
 
-      case 'subscription.created':
-        await handleSubscriptionCreated(payload.data)
+      case 'pix.paid':
+        await handlePixPaid(payload.data)
         break
 
-      case 'subscription.cancelled':
-        await handleSubscriptionCancelled(payload.data)
-        break
-
-      case 'payment.failed':
-        await handlePaymentFailed(payload.data)
+      case 'pix.expired':
+        // PIX expired, no action needed
+        logger.info(`[Handler/Webhook] PIX expired: ${payload.id}`)
         break
 
       default:
@@ -164,29 +167,41 @@ export async function handlePaymentWebhook(
 
 /**
  * Handle billing.paid event (payment received)
- * May be from subscription charge or one-time checkout
+ * Extracts organizationId from product externalId (format: org-{organizationId})
  */
 async function handleBillingPaid(data: WebhookData['data']): Promise<void> {
   if (!data.billing) {
     throw new Error('Missing billing data in webhook')
   }
 
-  const { id: billingId, externalId, status } = data.billing
+  const { id: billingId, status } = data.billing
 
-  // Find subscription by externalId (organizationId)
+  // Extract organizationId from product externalId
+  let organizationId: string | undefined
+  if (data.billing.products && data.billing.products.length > 0) {
+    const externalId = data.billing.products[0].externalId
+    // Format: org-{organizationId}
+    if (externalId.startsWith('org-')) {
+      organizationId = externalId.slice(4) // Remove 'org-' prefix
+    }
+  }
+
+  if (!organizationId) {
+    logger.warn(`Cannot extract organizationId from billing: ${billingId}`)
+    return
+  }
+
+  // Find subscription by organizationId
   const subscription = await prisma.billingSubscription.findUnique({
-    where: { organizationId: externalId },
+    where: { organizationId },
   })
 
   if (!subscription) {
-    logger.warn(`No subscription found for externalId: ${externalId}`)
+    logger.warn(`No subscription found for organizationId: ${organizationId}`)
     return
   }
 
   // Payment received - ensure subscription is active
-  // (providerBillingId is not stored, we only track subscriptions)
-
-  // Update subscription status if payment marks it as needing status change
   if (status === 'PAID') {
     // Ensure subscription is active
     if (subscription.status !== 'active') {
@@ -196,102 +211,22 @@ async function handleBillingPaid(data: WebhookData['data']): Promise<void> {
 }
 
 /**
- * Handle subscription.created event
- * Confirms subscription was created on provider side
+ * Handle pix.paid event (PIX payment received)
+ * Similar to billing.paid but for PIX QR codes
  */
-async function handleSubscriptionCreated(data: WebhookData['data']): Promise<void> {
-  if (!data.subscription) {
-    throw new Error('Missing subscription data in webhook')
+async function handlePixPaid(data: WebhookData['data']): Promise<void> {
+  if (!data.pixQrCode) {
+    throw new Error('Missing pixQrCode data in webhook')
   }
 
-  const { id: providerSubId, externalId, status } = data.subscription
-
-  // Find subscription by externalId
-  const subscription = await prisma.billingSubscription.findUnique({
-    where: { organizationId: externalId },
-  })
-
-  if (!subscription) {
-    logger.warn(`No subscription found for externalId: ${externalId}`)
-    return
-  }
-
-  // Update provider subscription ID
-  await prisma.billingSubscription.update({
-    where: { id: subscription.id },
-    data: {
-      providerSubscriptionId: providerSubId,
-      // Map provider status to our status
-      status: mapProviderStatus(status),
-    },
-  })
+  logger.info(
+    { pixId: data.pixQrCode.id, amount: data.pixQrCode.amount },
+    '[Handler/Webhook] PIX payment received'
+  )
+  // Note: PIX payments via standalone QR codes are not directly linked to subscriptions
+  // This is mainly for informational logging
 }
 
-/**
- * Handle subscription.cancelled event
- */
-async function handleSubscriptionCancelled(data: WebhookData['data']): Promise<void> {
-  if (!data.subscription) {
-    throw new Error('Missing subscription data in webhook')
-  }
-
-  const { externalId } = data.subscription
-
-  // Find subscription by externalId
-  const subscription = await prisma.billingSubscription.findUnique({
-    where: { organizationId: externalId },
-  })
-
-  if (!subscription) {
-    logger.warn(`No subscription found for externalId: ${externalId}`)
-    return
-  }
-
-  // Mark as canceled
-  await updateSubscriptionStatus(subscription.id, 'canceled')
-}
-
-/**
- * Handle payment.failed event
- */
-async function handlePaymentFailed(data: WebhookData['data']): Promise<void> {
-  if (!data.billing && !data.subscription) {
-    throw new Error('Missing billing or subscription data in webhook')
-  }
-
-  const externalId = data.billing?.externalId || data.subscription?.externalId
-
-  if (!externalId) {
-    throw new Error('Missing externalId in webhook data')
-  }
-
-  // Find subscription by externalId
-  const subscription = await prisma.billingSubscription.findUnique({
-    where: { organizationId: externalId },
-  })
-
-  if (!subscription) {
-    logger.warn(`No subscription found for externalId: ${externalId}`)
-    return
-  }
-
-  // Mark as past_due
-  await updateSubscriptionStatus(subscription.id, 'past_due')
-}
-
-/**
- * Map provider status to internal status
- */
-function mapProviderStatus(providerStatus: string): string {
-  const map: Record<string, string> = {
-    ACTIVE: 'active',
-    PENDING: 'paused',
-    CANCELLED: 'canceled',
-    EXPIRED: 'canceled',
-    FAILED: 'past_due',
-  }
-  return map[providerStatus] ?? 'past_due'
-}
 
 /**
  * Create a new webhook log entry

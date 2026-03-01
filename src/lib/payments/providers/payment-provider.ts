@@ -108,6 +108,9 @@ export interface PaymentProvider {
     paymentMethod?: PaymentMethod
     successUrl: string
     returnUrl: string
+    userEmail?: string
+    userName?: string
+    userPhone?: string
   }): Promise<CheckoutSession>
 
   /**

@@ -1128,7 +1128,7 @@ model OrgAuditLog {
 // ============================================
 
 model BillingSubscription {
-  id             String @id @default(cuid())
+  id             String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   organizationId String @db.Uuid
 
   // Provider (agnóstico)
@@ -1167,8 +1167,8 @@ model BillingSubscription {
 }
 
 model BillingEventUsage {
-  id             String @id @default(cuid())
-  subscriptionId String
+  id             String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  subscriptionId String @db.Uuid
 
   eventType    String  // 'lead_qualified' | 'purchase_confirmed' | custom_slug
   eventCount   Int     @default(1)
@@ -1188,7 +1188,7 @@ model BillingEventUsage {
 }
 
 model BillingWebhookLog {
-  id String @id @default(cuid())
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
 
   provider    String  // 'abacatepay' | 'polar' | 'asaas' | 'stripe'
   eventType   String  // 'subscription.created' | 'charge.paid' | etc
@@ -1211,7 +1211,7 @@ model BillingWebhookLog {
 }
 
 model BillingPlanTemplate {
-  id String @id @default(cuid())
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
 
   slug        String  @unique  // 'starter' | 'pro' | 'agency'
   name        String

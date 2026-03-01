@@ -15,6 +15,9 @@ export interface CreateCheckoutSessionParams {
   planType: PlanType
   successUrl: string
   returnUrl: string
+  userEmail?: string
+  userName?: string
+  userPhone?: string
 }
 
 /**
@@ -43,6 +46,9 @@ export async function createCheckoutSessionWithProvider(
       planType,
       successUrl,
       returnUrl,
+      userEmail: params.userEmail,
+      userName: params.userName,
+      userPhone: params.userPhone,
     })
 
     return {

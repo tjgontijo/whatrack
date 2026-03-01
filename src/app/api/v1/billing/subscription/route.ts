@@ -44,10 +44,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json(response, { status: 200 })
   } catch (error) {
     if (error instanceof SubscriptionNotFoundError) {
-      return NextResponse.json(
-        { error: 'No active subscription found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ subscription: null }, { status: 200 })
     }
 
     logger.error({ err: error }, 'Subscription fetch error')

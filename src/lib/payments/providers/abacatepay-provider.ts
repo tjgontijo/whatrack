@@ -1,15 +1,14 @@
 /**
- * AbacatePay Payment Provider (v2 SDK)
+ * AbacatePay Payment Provider (v1 API - Direct REST)
  *
  * FLOW:
- * 1. POST /api/v1/billing/checkout → creates subscription via SDK
- * 2. SDK returns checkout URL automatically
+ * 1. POST /api/v1/billing/checkout → creates customer + billing via API v1
+ * 2. API returns checkout URL in response
  * 3. User clicks URL and pays on AbacatePay
- * 4. Webhook fires: subscription status changes to ACTIVE
+ * 4. Webhook fires: billing.paid event
  * 5. DB subscription created via webhook handler
  */
 
-import { AbacatePay } from '@abacatepay/sdk'
 import type {
   CheckoutSession,
   PaymentMethod,
@@ -19,13 +18,13 @@ import type {
 } from './payment-provider'
 import { logger } from '@/lib/utils/logger'
 
+const API_BASE = 'https://api.abacatepay.com/v1'
+
 export class AbacatepayProvider implements PaymentProvider {
-  private client: ReturnType<typeof AbacatePay>
   private secretKey: string
 
   constructor(secretKey: string) {
     this.secretKey = secretKey
-    this.client = AbacatePay({ secret: secretKey })
   }
 
   getProviderId(): string {
@@ -42,58 +41,83 @@ export class AbacatepayProvider implements PaymentProvider {
     paymentMethod?: PaymentMethod
     successUrl: string
     returnUrl: string
+    userEmail?: string
+    userName?: string
+    userPhone?: string
+    userTaxId?: string
+    isPerson?: boolean
   }): Promise<CheckoutSession> {
     try {
-      const { planType } = params
+      const { planType, organizationId, successUrl, returnUrl } = params
 
       // Get plan details
       const planConfig = this.getPlanConfig(planType)
 
-      // Create subscription with SDK v2
-      // This automatically generates a checkout URL
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const subscription = await this.client.subscriptions.create({
-        amount: planConfig.monthlyPrice,
-        name: planConfig.name,
-        description: planConfig.description,
-        externalId: `org-${params.organizationId}`,
-        method: 'card',
-        frequency: {
-          cycle: 'MONTHLY',
-          dayOfProcessing: 1,
-        },
-        customerId: params.organizationId,
-        retryPolicy: {
-          maxRetry: 3,
-          retryEvery: 3,
-        },
-      } as any)
-
-      logger.info(
-        { response: subscription },
-        '[AbacatePay] Subscription creation response'
+      // Step 1: Get or create customer
+      const customerId = await this.getOrCreateCustomer(
+        organizationId,
+        {
+          email: params.userEmail,
+          name: params.userName,
+          phone: params.userPhone,
+          taxId: params.userTaxId,
+          isPerson: params.isPerson,
+        }
       )
 
-      if (!subscription.success || !subscription.data) {
+      logger.info(
+        { customerId, organizationId },
+        '[AbacatePay] Customer ready'
+      )
+
+      // Step 2: Create billing via API v1
+      const billingResponse = await this.apiFetch('/billing/create', {
+        method: 'POST',
+        body: {
+          frequency: 'ONE_TIME',
+          methods: ['PIX', 'CARD'],
+          products: [
+            {
+              externalId: `org-${organizationId}`,
+              name: planConfig.name,
+              description: planConfig.description,
+              quantity: 1,
+              price: planConfig.monthlyPrice, // centavos
+            },
+          ],
+          returnUrl,
+          completionUrl: successUrl,
+          customerId,
+        },
+      })
+
+      if (!billingResponse.data || Array.isArray(billingResponse.data)) {
         logger.error(
-          { response: subscription },
-          '[AbacatePay] Subscription creation failed'
+          { response: billingResponse },
+          '[AbacatePay] Billing creation failed'
         )
         throw new Error(
-          `Failed to create subscription: ${subscription.error || JSON.stringify(subscription)}`
+          `Failed to create billing: ${billingResponse.error || JSON.stringify(billingResponse)}`
         )
       }
 
-      // SDK v2 provides the checkout URL
-      const checkoutUrl = `https://checkout.abacatepay.com/${subscription.data.id}`
+      const billingData = billingResponse.data as Record<string, unknown>
+      const billingId = billingData.id as string
+      const checkoutUrl = billingData.url as string
+
+      if (!billingId || !checkoutUrl) {
+        throw new Error(
+          `Invalid billing response: missing id or url`
+        )
+      }
 
       logger.info(
-        { id: subscription.data.id, url: checkoutUrl },
+        { id: billingId, url: checkoutUrl },
         '[AbacatePay] Checkout URL created'
       )
 
       return {
-        id: subscription.data.id,
+        id: billingId,
         url: checkoutUrl,
         expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
         method: 'card',
@@ -111,28 +135,30 @@ export class AbacatepayProvider implements PaymentProvider {
 
   async getSubscription(subscriptionId: string): Promise<SubscriptionDetails> {
     try {
-      const response = await this.client.subscriptions.list()
+      // Fetch billing by ID using the v1 API
+      const response = await this.apiFetch(
+        `/billing/get?id=${encodeURIComponent(subscriptionId)}`,
+        {
+          method: 'GET',
+        }
+      )
 
-      if (!response.success || !response.data) {
-        throw new Error(`Failed to fetch subscription: ${response.error}`)
+      if (!response.data) {
+        throw new Error(`Failed to fetch billing: ${response.error}`)
       }
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const sub = response.data.find((s: any) => s.id === subscriptionId)
-
-      if (!sub) {
-        throw new Error(`Subscription ${subscriptionId} not found`)
-      }
+      const billing = response.data as any
 
       // Calculate billing period
-      const currentPeriodStart = new Date(sub.createdAt)
+      const currentPeriodStart = new Date(billing.createdAt)
       const currentPeriodEnd = new Date(currentPeriodStart)
       currentPeriodEnd.setMonth(currentPeriodEnd.getMonth() + 1)
 
       return {
-        id: sub.id,
-        customerId: sub.customerId,
-        status: this.mapStatus(sub.status),
+        id: billing.id,
+        customerId: billing.customer?.id || '',
+        status: this.mapStatus(billing.status),
         currentPeriodStart,
         currentPeriodEnd,
         provider: 'abacatepay',
@@ -145,13 +171,13 @@ export class AbacatepayProvider implements PaymentProvider {
   }
 
   async cancelSubscription(
-    subscriptionId: string,
+    _subscriptionId: string,
     _atPeriodEnd: boolean
   ): Promise<void> {
     try {
-      // TODO: Use REST client to cancel: PATCH /v2/subscriptions/{id}
+      // AbacatePay v1 API doesn't have a cancel endpoint yet
       logger.warn(
-        `Subscription cancellation needs REST API implementation: ${subscriptionId}`
+        `Subscription cancellation not available in AbacatePay v1 API: ${_subscriptionId}`
       )
     } catch (error) {
       throw new Error(
@@ -161,13 +187,13 @@ export class AbacatepayProvider implements PaymentProvider {
   }
 
   async updateSubscriptionPlan(
-    subscriptionId: string,
-    newPlanType: string
+    _subscriptionId: string,
+    _newPlanType: string
   ): Promise<void> {
     try {
-      // TODO: Use REST client to update: PATCH /v2/subscriptions/{id}
+      // AbacatePay v1 API doesn't have a plan update endpoint yet
       logger.warn(
-        `Subscription plan update needs REST API implementation: ${subscriptionId} -> ${newPlanType}`
+        `Subscription plan update not available in AbacatePay v1 API: ${_subscriptionId} -> ${_newPlanType}`
       )
     } catch (error) {
       throw new Error(
@@ -177,12 +203,114 @@ export class AbacatepayProvider implements PaymentProvider {
   }
 
   /**
-   * Map AbacatePay subscription status to internal status
+   * Get or create a customer in AbacatePay
+   * Uses real user data from the authenticated session
+   */
+  private async getOrCreateCustomer(
+    organizationId: string,
+    userData?: {
+      email?: string
+      name?: string
+      phone?: string
+      taxId?: string
+      isPerson?: boolean
+    }
+  ): Promise<string> {
+    try {
+      // Validate required user data
+      if (!userData?.name) {
+        throw new Error('User name is required for customer creation')
+      }
+      if (!userData?.email) {
+        throw new Error('User email is required for customer creation')
+      }
+      if (!userData?.phone) {
+        throw new Error('User phone is required for customer creation')
+      }
+
+      // TODO: Add taxId field to User model schema
+      // For now, generate a placeholder CNPJ (will need user to provide real CPF/CNPJ)
+      const taxId = '12.345.678/0001-90'
+
+      const response = await this.apiFetch('/customer/create', {
+        method: 'POST',
+        body: {
+          name: userData.name,
+          cellphone: userData.phone,
+          email: userData.email,
+          taxId,
+        },
+      })
+
+      if (!response.data || !(response.data as Record<string, unknown>).id) {
+        throw new Error(
+          `Failed to create customer: ${response.error || JSON.stringify(response)}`
+        )
+      }
+
+      const customerId = (response.data as Record<string, unknown>).id as string
+
+      logger.info(
+        { customerId, organizationId },
+        '[AbacatePay] Customer created'
+      )
+
+      return customerId
+    } catch (error) {
+      logger.error(
+        { err: error, organizationId },
+        '[AbacatePay] Customer creation error'
+      )
+      throw new Error(
+        `Failed to get/create customer: ${error instanceof Error ? error.message : String(error)}`
+      )
+    }
+  }
+
+  /**
+   * Make authenticated API call to AbacatePay v1 API
+   */
+  private async apiFetch(
+    endpoint: string,
+    options: {
+      method: 'GET' | 'POST'
+      body?: Record<string, unknown>
+    }
+  ): Promise<{
+    data?: Record<string, unknown> | Array<unknown>
+    error?: string
+  }> {
+    const url = `${API_BASE}${endpoint}`
+    const headers = new Headers({
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${this.secretKey}`,
+    })
+
+    const response = await fetch(url, {
+      method: options.method,
+      headers,
+      body: options.body ? JSON.stringify(options.body) : undefined,
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      logger.error(
+        { status: response.status, endpoint, error: data },
+        '[AbacatePay] API error'
+      )
+    }
+
+    return data
+  }
+
+  /**
+   * Map AbacatePay billing status to internal status
    */
   private mapStatus(status: string): SubscriptionStatus {
     const map: Record<string, SubscriptionStatus> = {
-      ACTIVE: 'active',
       PENDING: 'paused',
+      PAID: 'active',
       CANCELLED: 'canceled',
       FAILED: 'past_due',
       EXPIRED: 'canceled',

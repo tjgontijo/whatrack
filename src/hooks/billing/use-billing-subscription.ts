@@ -5,7 +5,6 @@ import type { SubscriptionResponse, UsageResponse } from '@/schemas/billing/bill
 import { useOrganization } from '@/hooks/organization/use-organization'
 import { apiFetch } from '@/lib/api-client'
 
-
 interface UseBillingSubscriptionReturn {
   subscription: SubscriptionResponse | null
   usage: UsageResponse | null
@@ -14,29 +13,21 @@ interface UseBillingSubscriptionReturn {
   refetch: () => void
 }
 
-/**
- * Fetch subscription + usage data
- */
+async function fetchBillingData(
+  orgId: string
+): Promise<{ subscription: SubscriptionResponse | null; usage: UsageResponse | null }> {
+  const [subData, usageData] = await Promise.all([
+    apiFetch('/api/v1/billing/subscription', { orgId }),
+    apiFetch('/api/v1/billing/usage', { orgId }),
+  ])
 
+  // Quando não há subscription, a API retorna { subscription: null }
+  // Quando há, retorna o objeto diretamente (sem wrapper)
+  const subscription = 'subscription' in subData ? subData.subscription : (subData as SubscriptionResponse)
+  const usage = 'usage' in usageData ? usageData.usage : (usageData as UsageResponse)
 
-async function fetchBillingData(orgId: string): Promise<{ subscription: SubscriptionResponse | null; usage: UsageResponse | null }> {
-  try {
-    const [subData, usageData] = await Promise.all([
-      apiFetch('/api/v1/billing/subscription', { orgId }),
-      apiFetch('/api/v1/billing/usage', { orgId }),
-    ])
-    return {
-      subscription: subData as SubscriptionResponse,
-      usage: usageData as UsageResponse
-    }
-  } catch (err) {
-    if (err instanceof Error && err.message.includes('404')) {
-      return { subscription: null, usage: null }
-    }
-    throw err
-  }
+  return { subscription, usage }
 }
-
 
 /**
  * Hook centralizado com cache (TanStack Query) para evitar múltiplas chamadas redundantes.
@@ -44,19 +35,11 @@ async function fetchBillingData(orgId: string): Promise<{ subscription: Subscrip
 export function useBillingSubscription(): UseBillingSubscriptionReturn {
   const { data: org, isLoading: orgLoading } = useOrganization()
 
-  // Debug: log org state
-  if (typeof window !== 'undefined') {
-    console.debug('[useBillingSubscription] org:', org, 'orgLoading:', orgLoading)
-  }
-
   const query = useQuery({
     queryKey: ['billing', 'subscription-usage', org?.id],
-    queryFn: () => {
-      console.debug('[useBillingSubscription] Fetching with orgId:', org?.id)
-      return fetchBillingData(org!.id)
-    },
+    queryFn: () => fetchBillingData(org!.id),
     enabled: !!org?.id,
-    staleTime: 5 * 60 * 1000, // 5 min de cache
+    staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     retry: 1,
   })
