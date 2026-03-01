@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { useState } from 'react'
+import { useState, useDeferredValue, useMemo, useCallback } from 'react'
 import { Users } from 'lucide-react'
 
 import { CrudPageShell } from '@/components/dashboard/crud/crud-page-shell'
@@ -115,24 +115,17 @@ export default function ClientLeadsTable() {
   const [dateRange, setDateRange] = useState<string>('7d')
   const [isNewLeadDrawerOpen, setIsNewLeadDrawerOpen] = useState(false)
 
-  const [debouncedSearch, setDebouncedSearch] = React.useState('')
-  const debounceRef = React.useRef<NodeJS.Timeout>(null)
+  const deferredSearch = useDeferredValue(searchInput)
 
-  const handleSearchChange = React.useCallback((value: string) => {
-    setSearchInput(value)
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(() => {
-      setDebouncedSearch(value.length >= 3 ? value.trim() : '')
-    }, 400)
-  }, [])
+  const filters = useMemo(() => {
+    const search = deferredSearch.trim()
+    const hasSearch = search.length >= 3
 
-  const filters = React.useMemo(
-    () => ({
-      ...(debouncedSearch ? { q: debouncedSearch } : {}),
+    return {
+      ...(hasSearch ? { q: search } : {}),
       ...(dateRange ? { dateRange } : {}),
-    }),
-    [debouncedSearch, dateRange]
-  )
+    }
+  }, [deferredSearch, dateRange])
 
   const { data, total, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
     useCrudInfiniteQuery<Lead>({
@@ -172,7 +165,7 @@ export default function ClientLeadsTable() {
         setView={setView}
         enabledViews={['list', 'cards']}
         searchInput={searchInput}
-        onSearchChange={handleSearchChange}
+        onSearchChange={setSearchInput}
         searchPlaceholder="Buscar por nome, telefone..."
         totalItems={total}
         isFetchingMore={isFetchingNextPage}

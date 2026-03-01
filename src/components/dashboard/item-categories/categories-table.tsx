@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { useState } from 'react'
+import { useState, useDeferredValue, useMemo, useCallback } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { MoreHorizontal, Pencil, Tag, Trash2, Power, PowerOff } from 'lucide-react'
 import { toast } from 'sonner'
@@ -25,6 +25,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
+import { useOrganization } from '@/hooks/organization/use-organization'
+import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 import {
   Select,
   SelectContent,
@@ -33,6 +35,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 
+import { apiFetch } from '@/lib/api-client'
 import { CategoryFormDrawer, type CategoryFormData } from './category-form-drawer'
 
 type Category = {
@@ -106,6 +109,8 @@ const cardConfig: CardConfig<Category> = {
 
 export function CategoriesTable() {
   const queryClient = useQueryClient()
+  const { data: org } = useOrganization()
+  const organizationId = org?.id
   const [view, setView] = useState<ViewType>('list')
   const [searchInput, setSearchInput] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
@@ -113,24 +118,17 @@ export function CategoriesTable() {
   const [editingCategory, setEditingCategory] = useState<CategoryFormData | null>(null)
   const [deletingCategory, setDeletingCategory] = useState<Category | null>(null)
 
-  const [debouncedSearch, setDebouncedSearch] = React.useState('')
-  const debounceRef = React.useRef<NodeJS.Timeout>(null)
+  const deferredSearch = useDeferredValue(searchInput)
 
-  const handleSearchChange = React.useCallback((value: string) => {
-    setSearchInput(value)
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(() => {
-      setDebouncedSearch(value.length >= 2 ? value.trim() : '')
-    }, 400)
-  }, [])
+  const filters = useMemo(() => {
+    const search = deferredSearch.trim()
+    const hasSearch = search.length >= 2
 
-  const filters = React.useMemo(
-    () => ({
-      ...(debouncedSearch ? { search: debouncedSearch } : {}),
+    return {
+      ...(hasSearch ? { search } : {}),
       ...(statusFilter !== 'all' ? { status: statusFilter } : {}),
-    }),
-    [debouncedSearch, statusFilter]
-  )
+    }
+  }, [deferredSearch, statusFilter])
 
   const { data, total, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, refetch } =
     useCrudInfiniteQuery<Category>({
@@ -146,18 +144,18 @@ export function CategoriesTable() {
     void refetch()
   }, [queryClient, refetch])
 
+
+
   const toggleMutation = useMutation({
     mutationFn: async (category: Category) => {
-      const response = await fetch(`/api/v1/item-categories/${category.id}`, {
+      return apiFetch(`/api/v1/item-categories/${category.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({ active: !category.active }),
+        orgId: organizationId,
       })
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({}))
-        throw new Error(error?.error ?? 'Falha ao alterar status da categoria')
-      }
-      return response.json()
     },
     onSuccess: (_, category) => {
       toast.success(category.active ? 'Categoria desativada' : 'Categoria ativada')
@@ -170,16 +168,12 @@ export function CategoriesTable() {
 
   const deleteMutation = useMutation({
     mutationFn: async (categoryId: string) => {
-      const response = await fetch(`/api/v1/item-categories/${categoryId}`, {
+      return apiFetch(`/api/v1/item-categories/${categoryId}`, {
         method: 'DELETE',
+        orgId: organizationId,
       })
-      const body = await response.json().catch(() => ({}))
-      if (!response.ok) {
-        throw new Error(body?.error ?? 'Falha ao excluir categoria')
-      }
-      return body as { message?: string }
     },
-    onSuccess: (payload) => {
+    onSuccess: (payload: any) => {
       setDeletingCategory(null)
       toast.success(payload.message ?? 'Categoria excluída')
       refreshAll()
@@ -188,6 +182,7 @@ export function CategoriesTable() {
       toast.error(error.message)
     },
   })
+
 
   const rowActions: RowActions<Category> = {
     customActions: (category) => (
@@ -263,7 +258,7 @@ export function CategoriesTable() {
         setView={setView}
         enabledViews={['list', 'cards']}
         searchInput={searchInput}
-        onSearchChange={handleSearchChange}
+        onSearchChange={setSearchInput}
         searchPlaceholder="Buscar categoria..."
         totalItems={total}
         isFetchingMore={isFetchingNextPage}

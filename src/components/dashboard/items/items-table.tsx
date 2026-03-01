@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { useState } from 'react'
+import { useState, useDeferredValue, useMemo, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Package2, Tag } from 'lucide-react'
 
@@ -27,8 +27,9 @@ import {
 import { Badge } from '@/components/ui/badge'
 
 import { ItemFormDrawer } from './item-form-drawer'
-import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
-import { authClient } from '@/lib/auth/auth-client'
+import { apiFetch } from '@/lib/api-client'
+import { useOrganization } from '@/hooks/organization/use-organization'
+
 
 type Item = {
   id: string
@@ -92,8 +93,8 @@ const cardConfig: CardConfig<Item> = {
 }
 
 export function ItemsTable() {
-  const { data: activeOrg } = authClient.useActiveOrganization()
-  const organizationId = activeOrg?.id
+  const { data: org } = useOrganization()
+  const organizationId = org?.id
 
   const [view, setView] = useState<ViewType>('list')
   const [searchInput, setSearchInput] = useState('')
@@ -101,25 +102,23 @@ export function ItemsTable() {
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
   const [isItemFormDrawerOpen, setIsItemFormDrawerOpen] = useState(false)
 
-  const [debouncedSearch, setDebouncedSearch] = React.useState('')
-  const debounceRef = React.useRef<NodeJS.Timeout>(null)
+  const deferredSearch = useDeferredValue(searchInput)
 
-  const handleSearchChange = React.useCallback((value: string) => {
-    setSearchInput(value)
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(() => {
-      setDebouncedSearch(value.length >= 2 ? value.trim() : '')
-    }, 400)
-  }, [])
+  const filters = useMemo(
+    () => {
+      const search = deferredSearch.trim()
+      const hasSearch = search.length >= 2
 
-  const filters = React.useMemo(
-    () => ({
-      ...(debouncedSearch ? { search: debouncedSearch } : {}),
-      ...(status !== 'all' ? { status } : {}),
-      ...(categoryFilter !== 'all' ? { categoryId: categoryFilter } : {}),
-    }),
-    [debouncedSearch, status, categoryFilter]
+      return {
+        ...(hasSearch ? { search } : {}),
+        ...(status !== 'all' ? { status } : {}),
+        ...(categoryFilter !== 'all' ? { categoryId: categoryFilter } : {}),
+      }
+    },
+    [deferredSearch, status, categoryFilter]
   )
+
+
 
   const categoriesQuery = useQuery({
     queryKey: ['item-categories', organizationId],
@@ -127,12 +126,12 @@ export function ItemsTable() {
       const url = new URL('/api/v1/item-categories', window.location.origin)
       url.searchParams.set('status', 'active')
       url.searchParams.set('pageSize', '200')
-      const response = await fetch(url.toString(), {
-        headers: { [ORGANIZATION_HEADER]: organizationId! },
+      const data = await apiFetch(url.toString(), {
+        orgId: organizationId,
       })
-      if (!response.ok) throw new Error('Não foi possível carregar categorias')
-      return ((await response.json()) as CategoryResponse).items
+      return (data as CategoryResponse).items
     },
+
     staleTime: 60_000,
     enabled: !!organizationId,
   })
@@ -197,7 +196,7 @@ export function ItemsTable() {
         setView={setView}
         enabledViews={['list', 'cards']}
         searchInput={searchInput}
-        onSearchChange={handleSearchChange}
+        onSearchChange={setSearchInput}
         searchPlaceholder="Buscar itens..."
         totalItems={total}
         isFetchingMore={isFetchingNextPage}

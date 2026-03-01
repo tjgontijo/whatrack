@@ -258,23 +258,18 @@ export default function TicketsPage() {
   const [statusFilter, setStatusFilter] = useState('all')
   const [dateRange, setDateRange] = useState('all')
 
-  // Debounced search
-  const [debouncedSearch, setDebouncedSearch] = React.useState('')
-  React.useEffect(() => {
-    const handle = setTimeout(() => {
-      setDebouncedSearch(searchInput.length >= 3 ? searchInput.trim() : '')
-    }, 400)
-    return () => clearTimeout(handle)
-  }, [searchInput])
+  const deferredSearch = React.useDeferredValue(searchInput)
 
-  const filters = React.useMemo(
-    () => ({
-      ...(debouncedSearch ? { q: debouncedSearch } : {}),
+  const filters = React.useMemo(() => {
+    const search = deferredSearch.trim()
+    const hasSearch = search.length >= 3
+
+    return {
+      ...(hasSearch ? { q: search } : {}),
       ...(statusFilter !== 'all' ? { status: statusFilter } : {}),
       ...(dateRange !== 'all' ? { dateRange } : {}),
-    }),
-    [debouncedSearch, statusFilter, dateRange]
-  )
+    }
+  }, [deferredSearch, statusFilter, dateRange])
 
   const {
     data: tickets,
