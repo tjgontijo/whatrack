@@ -10,7 +10,7 @@ import { authClient } from '@/lib/auth/auth-client'
 import { apiFetch } from '@/lib/api-client'
 import { applyCpfCnpjMask, stripCpfCnpj } from '@/lib/mask/cpf-cnpj'
 import { validateDocumentByType } from '@/lib/document/document-identity'
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -158,6 +158,9 @@ export function OnboardingDialog({ open }: OnboardingDialogProps) {
       <DialogTitle asChild>
         <VisuallyHidden>Cadastro de Organização</VisuallyHidden>
       </DialogTitle>
+      <DialogDescription asChild>
+        <VisuallyHidden>Complete o cadastro da sua organização com os dados fiscal</VisuallyHidden>
+      </DialogDescription>
       <DialogContent
         className="w-full max-w-lg gap-0 overflow-hidden p-0"
         onInteractOutside={(e) => e.preventDefault()}
@@ -256,6 +259,12 @@ export function OnboardingDialog({ open }: OnboardingDialogProps) {
                   id="cpf"
                   value={cpf}
                   onChange={(e) => setCpf(applyCpfCnpjMask(e.target.value, 'cpf'))}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && canSubmitPf && !isSubmitting) {
+                      e.preventDefault()
+                      handleSubmit('individual')
+                    }
+                  }}
                   placeholder="000.000.000-00"
                   maxLength={14}
                   disabled={isSubmitting}
@@ -308,6 +317,12 @@ export function OnboardingDialog({ open }: OnboardingDialogProps) {
                     id="cnpj"
                     value={cnpj}
                     onChange={(e) => handleCnpjChange(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && canSubmitPj && !isSubmitting) {
+                        e.preventDefault()
+                        handleSubmit('company')
+                      }
+                    }}
                     placeholder="00.000.000/0000-00"
                     maxLength={18}
                     disabled={isSubmitting}
