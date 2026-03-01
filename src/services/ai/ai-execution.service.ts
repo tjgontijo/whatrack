@@ -1,5 +1,5 @@
 import { Agent } from '@mastra/core/agent'
-import { Prisma } from '@prisma/client'
+import { Prisma } from '@db/client'
 import { z } from 'zod'
 import { prisma } from '@/lib/db/prisma'
 import { publishToCentrifugo } from '@/lib/centrifugo/server'

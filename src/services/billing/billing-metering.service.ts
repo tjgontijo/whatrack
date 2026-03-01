@@ -8,7 +8,7 @@
  */
 
 import { prisma } from '@/lib/db/prisma'
-import { Prisma } from '@prisma/client'
+import { Prisma } from '@db/client'
 import { BILLING_CYCLE_DAYS, PLAN_LIMITS } from '@/lib/payments/metering-constants'
 import type { EventType } from '@/types/billing/billing'
 

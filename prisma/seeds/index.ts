@@ -1,5 +1,5 @@
 import 'dotenv/config'
-import { PrismaClient } from '../generated/prisma/client'
+import { PrismaClient } from '@db/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { seedLookupTables } from './seed_lookup_tables'
 import { seedTicketStages } from './seed_ticket_stages'

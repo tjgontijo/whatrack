@@ -1,4 +1,4 @@
-import type { PrismaClient } from '../generated/prisma/client'
+import type { PrismaClient } from '@db/client'
 
 const userRoles = [
   { name: 'owner', description: 'Super admin com acesso total ao sistema.' },

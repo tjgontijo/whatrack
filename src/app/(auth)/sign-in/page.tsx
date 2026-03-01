@@ -118,6 +118,9 @@ export default function LoginPage() {
             name="password"
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
+                <div className="flex items-center justify-between">
+                  <FieldLabel htmlFor={field.name}>Senha</FieldLabel>
+                </div>
                 <Input
                   id={field.name}
                   type="password"
@@ -127,8 +130,7 @@ export default function LoginPage() {
                   disabled={isSubmitting}
                   {...field}
                 />
-                <div className="flex items-center justify-between">
-                  <FieldLabel htmlFor={field.name}>Senha</FieldLabel>
+                <div className="flex items-center justify-end">
                   <Link
                     href="/forgot-password"
                     className="text-primary hover:text-primary/80 text-sm font-medium transition-colors hover:underline"

@@ -181,4 +181,4 @@ export async function resetBillingCycle(
 }
 
 // Re-export Prisma for type safety
-import { Prisma } from '@prisma/client'
+import { Prisma } from '@db/client'

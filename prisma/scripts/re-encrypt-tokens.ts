@@ -15,8 +15,8 @@
  * This script is idempotent — tokens already on the current version are skipped.
  */
 
-import { PrismaClient } from '../../prisma/generated/prisma'
-import { encryption } from '../../src/lib/encryption'
+import { PrismaClient } from '@db'
+import { encryption } from '@/lib/encryption'
 
 const prisma = new PrismaClient()
 

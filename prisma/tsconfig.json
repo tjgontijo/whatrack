@@ -2,7 +2,10 @@
   "compilerOptions": {
     "target": "es2019",
     "module": "commonjs",
-    "lib": ["es2019", "esnext.asynciterable"],
+    "lib": [
+      "es2019",
+      "esnext.asynciterable"
+    ],
     "moduleResolution": "node",
     "outDir": "./dist",
     "esModuleInterop": true,
@@ -11,12 +14,26 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["../src/*"]
+      "@/*": [
+        "../src/*"
+      ],
+      "@db": [
+        "./generated/prisma/index"
+      ],
+      "@db/*": [
+        "./generated/prisma/*"
+      ]
     },
     "resolveJsonModule": true,
     "declaration": true,
     "jsx": "react-jsx"
   },
-  "include": ["seeds/**/*", "*.ts"],
-  "exclude": ["node_modules"]
+  "include": [
+    "seeds/**/*",
+    "scripts/**/*",
+    "*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

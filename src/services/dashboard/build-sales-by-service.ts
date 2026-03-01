@@ -1,4 +1,4 @@
-import type { Prisma } from '../../../prisma/generated/prisma/client'
+import type { Prisma } from '@db/client'
 import { prisma } from '@/lib/db/prisma'
 import type { DateRange } from '@/lib/date/date-range'
 
