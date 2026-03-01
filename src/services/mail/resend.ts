@@ -2,6 +2,7 @@
 import { Resend } from 'resend'
 import { requireEnv } from '@/lib/env/require-env.server'
 import { EmailPayload, EmailResponse, EmailProvider } from './types'
+import { logger } from '@/lib/utils/logger'
 
 const RESEND_API_KEY = requireEnv('RESEND_API_KEY')
 const RESEND_FROM = requireEnv('RESEND_FROM')
@@ -43,7 +44,7 @@ class ResendProvider implements EmailProvider {
         provider: 'resend',
       }
     } catch (error) {
-      console.error('[Resend] Erro ao enviar email:', error)
+      logger.error({ err: error }, '[Resend] Erro ao enviar email')
       return {
         success: false,
         provider: 'resend',

@@ -4,6 +4,7 @@ import { apiError } from '@/lib/utils/api-response'
 import { whatsappChatMessagesQuerySchema } from '@/schemas/whatsapp/whatsapp-schemas'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { listWhatsAppChatMessages } from '@/services/whatsapp/whatsapp-chat-query.service'
+import { logger } from '@/lib/utils/logger'
 
 export const dynamic = 'force-dynamic'
 
@@ -37,7 +38,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ leadI
 
     return NextResponse.json(result.data)
   } catch (error) {
-    console.error('[api/whatsapp/chats/messages] GET error:', error)
+    logger.error({ err: error }, '[api/whatsapp/chats/messages] GET error')
     return apiError('Internal Server Error', 500, error)
   }
 }

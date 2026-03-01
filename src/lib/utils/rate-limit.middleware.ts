@@ -3,6 +3,7 @@ import { getRateLimiter } from '@/lib/utils/rate-limit'
 import { prisma } from '@/lib/db/prisma'
 import { auth } from '@/lib/auth/auth'
 import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
+import { logger } from '@/lib/utils/logger'
 
 /**
  * Rate Limit Configuration per endpoint
@@ -154,7 +155,7 @@ export async function getOrganizationId(request: NextRequest): Promise<string | 
     if (activeOrgId) return activeOrgId
   } catch (error) {
     // If auth fails here, just continue (maybe it's a public endpoint or auth will be checked later)
-    console.debug('[RateLimit] Could not get session for org identification:', error)
+    logger.debug({ context: error }, '[RateLimit] Could not get session for org identification')
   }
 
   return null
@@ -232,7 +233,7 @@ export async function rateLimitMiddleware(
   if (exceeded) {
     const { current, limit, retryAfter, resetAt } = exceeded.result
 
-    console.warn(
+    logger.warn(
       `[RateLimit] ${exceeded.name.toUpperCase()} limit hit on ${request.method} ${endpoint} - ` +
       `IP: ${clientIp}, Org: ${orgId || 'N/A'}, ` +
       `Current: ${current}, Limit: ${limit}, ` +
@@ -300,7 +301,7 @@ export async function getOrganizationRateLimitConfig(
     // TODO: Add tier field to Organization and implement tier-based scaling
     return baseConfig
   } catch (error) {
-    console.error('[RateLimit] Error fetching org config:', error)
+    logger.error({ err: error }, '[RateLimit] Error fetching org config')
     return baseConfig
   }
 }

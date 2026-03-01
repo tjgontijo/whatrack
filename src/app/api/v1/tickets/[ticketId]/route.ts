@@ -5,6 +5,7 @@ import { revalidateTag } from 'next/cache'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { updateTicketSchema } from '@/schemas/tickets/ticket-schemas'
 import { getTicketById, updateTicketAndTrackCapi } from '@/services/tickets/ticket.service'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ ticketId: string }> }) {
   const access = await validatePermissionAccess(req, 'view:tickets')
@@ -21,7 +22,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ tick
     }
     return NextResponse.json(ticket)
   } catch (error) {
-    console.error('[api/tickets/[ticketId]] GET error:', error)
+    logger.error({ err: error }, '[api/tickets/[ticketId]] GET error')
     return apiError('Falha ao buscar ticket', 500, error)
   }
 }
@@ -59,7 +60,7 @@ export async function PATCH(
     await revalidateTag(`org-${access.organizationId}`, 'max')
     return NextResponse.json(result.data)
   } catch (error) {
-    console.error('[api/tickets/[ticketId]] PATCH error:', error)
+    logger.error({ err: error }, '[api/tickets/[ticketId]] PATCH error')
     return apiError('Falha ao atualizar ticket', 500, error)
   }
 }

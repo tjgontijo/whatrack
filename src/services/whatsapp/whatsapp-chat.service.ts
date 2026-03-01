@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db/prisma'
 import { getDefaultTicketStage } from '@/services/tickets/ensure-ticket-stages'
+import { logger } from '@/lib/utils/logger'
 
 const WINDOW_MS = 24 * 60 * 60 * 1000
 
@@ -219,7 +220,7 @@ export class WhatsAppChatService {
 
       return message
     } catch (error) {
-      console.error('[WhatsAppChatService] Error processing incoming message:', error)
+      logger.error({ err: error }, '[WhatsAppChatService] Error processing incoming message')
       // We log but maybe don't rethrow to avoid crashing the whole webhook if one message fails?
       // But if we throw, maybe we can retry?
       // Let's rethrow
@@ -345,7 +346,7 @@ export class WhatsAppChatService {
 
       return created
     } catch (error) {
-      console.error('[WhatsAppChatService] Error processing message echo:', error)
+      logger.error({ err: error }, '[WhatsAppChatService] Error processing message echo')
       throw error
     }
   }
@@ -386,7 +387,7 @@ export class WhatsAppChatService {
         })
       }
     } catch (error) {
-      console.error('[WhatsAppChatService] Error processing status update:', error)
+      logger.error({ err: error }, '[WhatsAppChatService] Error processing status update')
     }
   }
 }

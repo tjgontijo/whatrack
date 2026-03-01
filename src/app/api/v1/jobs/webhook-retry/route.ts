@@ -20,6 +20,7 @@ import { apiError } from '@/lib/utils/api-response'
 import { getJobTracker } from '@/lib/db/queue'
 import { webhookRetryJob } from '@/jobs/webhook-retry.job'
 import { rateLimitMiddleware } from '@/lib/utils/rate-limit.middleware'
+import { logger } from '@/lib/utils/logger'
 
 const CRON_SECRET = process.env.CRON_SECRET
 if (!CRON_SECRET) {
@@ -40,7 +41,7 @@ export async function GET(request: NextRequest) {
     const authHeader = request.headers.get('authorization')
 
     if (!CRON_SECRET || authHeader !== `Bearer ${CRON_SECRET}`) {
-      console.error('[WebhookRetryAPI] Invalid or missing CRON_SECRET')
+      logger.error('[WebhookRetryAPI] Invalid or missing CRON_SECRET')
       return apiError('Unauthorized', 401)
     }
 
@@ -48,7 +49,7 @@ export async function GET(request: NextRequest) {
     const jobId = await jobTracker.acquireLock('webhook-retry')
 
     if (!jobId) {
-      console.warn('[WebhookRetryAPI] Job already running, skipping')
+      logger.warn('[WebhookRetryAPI] Job already running, skipping')
       return NextResponse.json(
         {
           success: false,
@@ -58,13 +59,13 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    console.log(`[WebhookRetryAPI] Starting job ${jobId}`)
+    logger.info(`[WebhookRetryAPI] Starting job ${jobId}`)
 
     try {
       // Execute webhook retry job
       await webhookRetryJob({ id: jobId })
 
-      console.log(`[WebhookRetryAPI] Job ${jobId} completed successfully`)
+      logger.info(`[WebhookRetryAPI] Job ${jobId} completed successfully`)
 
       return NextResponse.json({
         success: true,
@@ -76,7 +77,7 @@ export async function GET(request: NextRequest) {
       await jobTracker.releaseLock('webhook-retry', jobId)
     }
   } catch (error) {
-    console.error('[WebhookRetryAPI] Error:', error)
+    logger.error({ err: error }, '[WebhookRetryAPI] Error')
     return apiError(error instanceof Error ? error.message : 'Unknown error', 500, error)
   }
 }

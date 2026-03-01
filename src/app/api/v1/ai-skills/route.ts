@@ -4,6 +4,7 @@ import { apiError } from '@/lib/utils/api-response'
 import { createAiSkillSchema } from '@/schemas/ai/ai-schemas'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { createAiSkill, listAiSkills } from '@/services/ai/ai-skill.service'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
     const skills = await listAiSkills(access.organizationId)
     return NextResponse.json({ skills })
   } catch (error) {
-    console.error('[GET ai-skills]', error)
+    logger.error({ err: error }, '[GET ai-skills]')
     return apiError('Erro ao buscar skills', 500, error)
   }
 }
@@ -39,7 +40,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ skill: result.data }, { status: 201 })
   } catch (error) {
-    console.error('[POST ai-skills]', error)
+    logger.error({ err: error }, '[POST ai-skills]')
     return apiError('Erro ao criar skill', 500, error)
   }
 }

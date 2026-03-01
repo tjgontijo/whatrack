@@ -5,6 +5,7 @@ import { prisma } from '@/lib/db/prisma'
 import { publishToCentrifugo } from '@/lib/centrifugo/server'
 import { groq } from '@ai-sdk/groq'
 import { openai } from '@ai-sdk/openai'
+import { logger } from '@/lib/utils/logger'
 
 type AgentSchemaRow = {
   fieldName: string
@@ -173,11 +174,11 @@ export async function dispatchAiEvent(
       })
 
       if (recentInsight) {
-        console.log(`[AI] Agent "${agentDef.name}" ran recently on ticket ${ticketId} — skipping`)
+        logger.info(`[AI] Agent "${agentDef.name}" ran recently on ticket ${ticketId} — skipping`)
         continue
       }
 
-      console.log(`[AI] Running "${agentDef.name}" on ticket ${ticketId} (${messageLimit} msgs)`)
+      logger.info(`[AI] Running "${agentDef.name}" on ticket ${ticketId} (${messageLimit} msgs)`)
 
       const dynamicSchema = buildDynamicZodSchema(agentDef.schemaFields)
       const promptParts = [agentDef.leanPrompt.trim()]
@@ -209,7 +210,7 @@ export async function dispatchAiEvent(
         if (!data || Object.keys(data).length === 0) continue
 
         if (isNeutralResult(data)) {
-          console.log(`[AI] "${agentDef.name}" returned neutral signal — skipping`)
+          logger.info(`[AI] "${agentDef.name}" returned neutral signal — skipping`)
           continue
         }
 
@@ -233,13 +234,13 @@ export async function dispatchAiEvent(
 
         executedCount++
       } catch (err) {
-        console.error(`[AI] "${agentDef.name}" failed on ticket ${ticketId}:`, err)
+        logger.error({ err: err }, `[AI] "${agentDef.name}" failed on ticket ${ticketId}`)
       }
     }
 
     return executedCount
   } catch (error) {
-    console.error(`[AI] dispatchAiEvent error — event=${eventType} ticket=${ticketId}:`, error)
+    logger.error({ err: error }, `[AI] dispatchAiEvent error — event=${eventType} ticket=${ticketId}`)
     return 0
   }
 }

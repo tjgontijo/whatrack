@@ -9,6 +9,7 @@ import {
   updateLead,
 } from '@/services/leads/lead.service'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ leadId: string }> }) {
   const access = await validateFullAccess(req)
@@ -27,7 +28,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ lead
 
     return NextResponse.json(lead)
   } catch (error) {
-    console.error('[api/leads/[leadId]] GET error:', error)
+    logger.error({ err: error }, '[api/leads/[leadId]] GET error')
     return apiError('Falha ao buscar lead', 500, error)
   }
 }
@@ -55,7 +56,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ lead
 
     return NextResponse.json(updated)
   } catch (error) {
-    console.error('[api/leads/[leadId]] PUT error:', error)
+    logger.error({ err: error }, '[api/leads/[leadId]] PUT error')
 
     if (error instanceof LeadConflictError) {
       if (error.field === 'phone') {
@@ -92,7 +93,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('[api/leads/[leadId]] DELETE error:', error)
+    logger.error({ err: error }, '[api/leads/[leadId]] DELETE error')
     return apiError('Falha ao deletar lead', 500, error)
   }
 }

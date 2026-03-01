@@ -4,6 +4,7 @@ import { apiError } from '@/lib/utils/api-response'
 import { campaignsQuerySchema } from '@/schemas/meta-ads/meta-ads-schemas'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { metaCampaignsService } from '@/services/meta-ads/campaigns.service'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET(req: NextRequest) {
   const access = await validatePermissionAccess(req, 'view:campaigns')
@@ -30,7 +31,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(campaigns)
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown error'
-    console.error('[Meta Campaigns API]', message)
+    logger.error({ err: message }, '[Meta Campaigns API]')
     return apiError('Failed to fetch campaigns', 500, message)
   }
 }

@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { usageResponseSchema } from '@/schemas/billing/billing-schemas'
 import { getEventUsageForCycle, NoActiveSubscriptionError } from '@/services/billing/billing-metering.service'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   // Auth check
@@ -41,7 +42,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       )
     }
 
-    console.error('Usage fetch error:', error)
+    logger.error({ err: error }, 'Usage fetch error')
     return NextResponse.json(
       { error: 'Failed to fetch usage' },
       { status: 500 }

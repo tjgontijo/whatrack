@@ -5,6 +5,7 @@ import { revalidateTag } from 'next/cache'
 import { createSaleSchema, salesQuerySchema } from '@/schemas/sales/sale-schemas'
 import { createSale, listSales } from '@/services/sales/sale.service'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import { logger } from '@/lib/utils/logger'
 
 export async function POST(req: Request) {
   const access = await validateFullAccess(req)
@@ -28,7 +29,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(sale, { status: 201 })
   } catch (error) {
-    console.error('[api/sales] POST error:', error)
+    logger.error({ err: error }, '[api/sales] POST error')
     return apiError('Falha ao criar venda', 500, error)
   }
 }
@@ -59,7 +60,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json(payload)
   } catch (error) {
-    console.error('[api/sales] GET error:', error)
+    logger.error({ err: error }, '[api/sales] GET error')
     return apiError('Failed to fetch sales', 500, error)
   }
 }

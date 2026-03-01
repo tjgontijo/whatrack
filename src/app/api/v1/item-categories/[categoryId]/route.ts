@@ -8,6 +8,7 @@ import {
   getItemCategoryById,
   updateItemCategory,
 } from '@/services/item-categories/item-category.service'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET(
   req: NextRequest,
@@ -35,7 +36,7 @@ export async function GET(
       updatedAt: category.updatedAt.toISOString(),
     })
   } catch (error) {
-    console.error('[api/item-categories/[categoryId]] GET error:', error)
+    logger.error({ err: error }, '[api/item-categories/[categoryId]] GET error')
     return apiError('Falha ao buscar categoria', 500, error)
   }
 }
@@ -68,7 +69,7 @@ export async function PUT(
 
     return NextResponse.json(updated)
   } catch (error) {
-    console.error('[api/item-categories/[categoryId]] PUT error:', error)
+    logger.error({ err: error }, '[api/item-categories/[categoryId]] PUT error')
     return apiError('Falha ao atualizar categoria', 500, error)
   }
 }
@@ -96,7 +97,7 @@ export async function DELETE(
 
     return NextResponse.json(result)
   } catch (error) {
-    console.error('[api/item-categories/[categoryId]] DELETE error:', error)
+    logger.error({ err: error }, '[api/item-categories/[categoryId]] DELETE error')
     return apiError('Falha ao excluir categoria', 500, error)
   }
 }

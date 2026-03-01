@@ -3,6 +3,7 @@ import { apiError } from '@/lib/utils/api-response'
 
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { toggleItemActive } from '@/services/items/item.service'
+import { logger } from '@/lib/utils/logger'
 
 export async function PATCH(
   req: NextRequest,
@@ -27,7 +28,7 @@ export async function PATCH(
 
     return NextResponse.json(updated)
   } catch (error) {
-    console.error('[api/items/[itemId]/active] PATCH error:', error)
+    logger.error({ err: error }, '[api/items/[itemId]/active] PATCH error')
     return apiError('Falha ao alterar status do item', 500, error)
   }
 }

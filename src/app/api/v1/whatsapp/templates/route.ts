@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { apiError } from '@/lib/utils/api-response'
 import { MetaCloudService } from '@/services/whatsapp/meta-cloud.service'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import { logger } from '@/lib/utils/logger'
 
 export const dynamic = 'force-dynamic'
 
@@ -26,7 +27,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ templates })
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to fetch templates'
-    console.error('[API] Get Templates Error:', error)
+    logger.error({ err: error }, '[API] Get Templates Error')
     return apiError(message, 500, error)
   }
 }
@@ -41,8 +42,6 @@ export async function POST(request: Request) {
     const body = await request.json()
     const config = await MetaCloudService.getConfig(access.organizationId)
 
-    console.log('[API] RECEBIDA REQUISIÇÃO PARA CRIAR TEMPLATE:', JSON.stringify(body, null, 2))
-
     if (!config || !config.wabaId) {
       return apiError('WhatsApp not configured for this organization', 404)
     }
@@ -56,7 +55,7 @@ export async function POST(request: Request) {
     return NextResponse.json(result)
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to create template'
-    console.error('[API] Create Template Error:', error)
+    logger.error({ err: error }, '[API] Create Template Error')
     return apiError(message, 500, error)
   }
 }
@@ -85,8 +84,6 @@ export async function PUT(request: Request) {
       return apiError('WhatsApp not configured for this organization', 404)
     }
 
-    console.log('[API] RECEBIDA REQUISIÇÃO PARA EDITAR TEMPLATE:', JSON.stringify(body, null, 2))
-
     const result = await MetaCloudService.editTemplate({
       templateId,
       components,
@@ -96,7 +93,7 @@ export async function PUT(request: Request) {
     return NextResponse.json(result)
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to edit template'
-    console.error('[API] Edit Template Error:', error)
+    logger.error({ err: error }, '[API] Edit Template Error')
     return apiError(message, 500, error)
   }
 }
@@ -130,7 +127,7 @@ export async function DELETE(request: Request) {
     return NextResponse.json(result)
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to delete template'
-    console.error('[API] Delete Template Error:', error)
+    logger.error({ err: error }, '[API] Delete Template Error')
     return apiError(message, 500, error)
   }
 }

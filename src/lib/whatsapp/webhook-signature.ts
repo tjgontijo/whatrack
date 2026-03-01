@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from 'crypto'
+import { logger } from '@/lib/utils/logger'
 
 /**
  * Verifies the X-Hub-Signature-256 header sent by Meta on webhook POST requests.
@@ -12,19 +13,19 @@ export function verifyWebhookSignature(rawBody: string, signatureHeader: string 
   const appSecret = process.env.META_APP_SECRET
 
   if (!appSecret) {
-    console.error('[WebhookSignature] META_APP_SECRET not configured')
+    logger.error('[WebhookSignature] META_APP_SECRET not configured')
     return false
   }
 
   if (!signatureHeader) {
-    console.error('[WebhookSignature] No X-Hub-Signature-256 header present')
+    logger.error('[WebhookSignature] No X-Hub-Signature-256 header present')
     return false
   }
 
   // Header format: "sha256=<hex>"
   const expectedPrefix = 'sha256='
   if (!signatureHeader.startsWith(expectedPrefix)) {
-    console.error('[WebhookSignature] Invalid signature format (missing sha256= prefix)')
+    logger.error('[WebhookSignature] Invalid signature format (missing sha256= prefix)')
     return false
   }
 
@@ -39,13 +40,13 @@ export function verifyWebhookSignature(rawBody: string, signatureHeader: string 
     const computedBuffer = Buffer.from(computedSignature, 'hex')
 
     if (receivedBuffer.length !== computedBuffer.length) {
-      console.error('[WebhookSignature] Signature length mismatch')
+      logger.error('[WebhookSignature] Signature length mismatch')
       return false
     }
 
     return timingSafeEqual(receivedBuffer, computedBuffer)
   } catch (error) {
-    console.error('[WebhookSignature] Error comparing signatures:', error)
+    logger.error({ err: error }, '[WebhookSignature] Error comparing signatures')
     return false
   }
 }

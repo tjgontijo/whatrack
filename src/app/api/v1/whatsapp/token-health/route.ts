@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import { apiError } from '@/lib/utils/api-response'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { checkWhatsAppTokenHealth } from '@/services/whatsapp/whatsapp-config.service'
+import { logger } from '@/lib/utils/logger'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,7 +22,7 @@ export async function GET(request: Request) {
     return NextResponse.json(result.data)
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to check token health'
-    console.error('[API] Token Health Error:', error)
+    logger.error({ err: error }, '[API] Token Health Error')
     return apiError(message, 500, error)
   }
 }

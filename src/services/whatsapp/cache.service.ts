@@ -1,6 +1,7 @@
 import { getRedis, isRedisConnected } from '@/lib/db/redis'
 import { CACHE_KEYS, CACHE_TTL } from '@/lib/db/cache-keys'
 import { prisma } from '@/lib/db/prisma'
+import { logger } from '@/lib/utils/logger'
 
 /**
  * WhatsApp Cache Service
@@ -35,7 +36,7 @@ class WhatsAppCacheService {
       if (isRedisConnected()) {
         const cached = await this.redis.get(cacheKey)
         if (cached) {
-          console.log('[Cache] Onboarding hit (Redis)', trackingCode)
+          logger.info({ context: trackingCode }, '[Cache] Onboarding hit (Redis)')
           return JSON.parse(cached)
         }
       }
@@ -51,12 +52,12 @@ class WhatsAppCacheService {
       }
 
       if (onboarding) {
-        console.log('[Cache] Onboarding hit (DB)', trackingCode)
+        logger.info({ context: trackingCode }, '[Cache] Onboarding hit (DB)')
       }
 
       return onboarding
     } catch (error) {
-      console.error('[Cache] Error getting onboarding:', error)
+      logger.error({ err: error }, '[Cache] Error getting onboarding')
       // Graceful degradation: fall back to DB without Redis
       return await prisma.whatsAppOnboarding.findUnique({
         where: { trackingCode },
@@ -75,7 +76,7 @@ class WhatsAppCacheService {
       if (isRedisConnected()) {
         const cached = await this.redis.get(cacheKey)
         if (cached) {
-          console.log('[Cache] Connection hit (Redis)', organizationId, wabaId)
+          logger.info({ context: organizationId, wabaId }, '[Cache] Connection hit (Redis)')
           return JSON.parse(cached)
         }
       }
@@ -93,12 +94,12 @@ class WhatsAppCacheService {
       }
 
       if (connection) {
-        console.log('[Cache] Connection hit (DB)', organizationId, wabaId)
+        logger.info({ context: organizationId, wabaId }, '[Cache] Connection hit (DB)')
       }
 
       return connection
     } catch (error) {
-      console.error('[Cache] Error getting connection:', error)
+      logger.error({ err: error }, '[Cache] Error getting connection')
       return await prisma.whatsAppConnection.findUnique({
         where: {
           organizationId_wabaId: { organizationId, wabaId },
@@ -116,10 +117,10 @@ class WhatsAppCacheService {
     try {
       if (isRedisConnected()) {
         await this.redis.setex(cacheKey, CACHE_TTL.ONBOARDING, JSON.stringify(data))
-        console.log('[Cache] Onboarding cached', trackingCode)
+        logger.info({ context: trackingCode }, '[Cache] Onboarding cached')
       }
     } catch (error) {
-      console.error('[Cache] Error caching onboarding:', error)
+      logger.error({ err: error }, '[Cache] Error caching onboarding')
       // Non-fatal: continue without Redis
     }
   }
@@ -133,10 +134,10 @@ class WhatsAppCacheService {
     try {
       if (isRedisConnected()) {
         await this.redis.setex(cacheKey, CACHE_TTL.CONNECTION, JSON.stringify(data))
-        console.log('[Cache] Connection cached', organizationId, wabaId)
+        logger.info({ context: organizationId, wabaId }, '[Cache] Connection cached')
       }
     } catch (error) {
-      console.error('[Cache] Error caching connection:', error)
+      logger.error({ err: error }, '[Cache] Error caching connection')
     }
   }
 
@@ -149,10 +150,10 @@ class WhatsAppCacheService {
     try {
       if (isRedisConnected()) {
         await this.redis.del(cacheKey)
-        console.log('[Cache] Onboarding invalidated', trackingCode)
+        logger.info({ context: trackingCode }, '[Cache] Onboarding invalidated')
       }
     } catch (error) {
-      console.error('[Cache] Error invalidating onboarding:', error)
+      logger.error({ err: error }, '[Cache] Error invalidating onboarding')
     }
   }
 
@@ -165,10 +166,10 @@ class WhatsAppCacheService {
     try {
       if (isRedisConnected()) {
         await this.redis.del(cacheKey)
-        console.log('[Cache] Connection invalidated', organizationId, wabaId)
+        logger.info({ context: organizationId, wabaId }, '[Cache] Connection invalidated')
       }
     } catch (error) {
-      console.error('[Cache] Error invalidating connection:', error)
+      logger.error({ err: error }, '[Cache] Error invalidating connection')
     }
   }
 
@@ -191,7 +192,7 @@ class WhatsAppCacheService {
 
       return connections
     } catch (error) {
-      console.error('[Cache] Error getting organization connections:', error)
+      logger.error({ err: error }, '[Cache] Error getting organization connections')
       return []
     }
   }

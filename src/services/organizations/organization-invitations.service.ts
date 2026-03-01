@@ -6,6 +6,7 @@ import { generateInvitationEmail } from '@/services/mail/templates/InvitationEma
 import { getOrganizationRoleByKey } from '@/server/organization/organization-rbac.service'
 import { assertCanDelegatePermissions } from '@/server/organization/permission-delegation-policy'
 import type { CreateOrganizationInvitationInput } from '@/schemas/organizations/organization-invitation-schemas'
+import { logger } from '@/lib/utils/logger'
 
 const APP_URL = requireEnv('APP_URL')
 
@@ -130,7 +131,7 @@ export async function createOrganizationInvitation(input: {
       text: emailContent.text,
     })
   } catch (emailError) {
-    console.error('[Invitations] Failed to send invitation email:', emailError)
+    logger.error({ err: emailError }, '[Invitations] Failed to send invitation email')
   }
 
   void auditService.log({
@@ -329,7 +330,7 @@ export async function resendOrganizationInvitation(input: {
       throw sendResult.error || new Error('Falha ao enviar o convite')
     }
   } catch (error) {
-    console.error('[Invitations] Failed to resend invitation email:', error)
+    logger.error({ err: error }, '[Invitations] Failed to resend invitation email')
     return { error: 'Não foi possível reenviar o convite no momento.', status: 502 as const }
   }
 

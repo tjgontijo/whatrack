@@ -10,6 +10,7 @@ import {
   requiresIdentityForIntegrationPath,
 } from '@/server/organization/is-identity-complete'
 import { listEffectivePermissionsForUser } from '@/server/organization/organization-rbac.service'
+import { logger } from '@/lib/utils/logger'
 
 async function getSessionFromRequest(request: Request) {
   const headers = new Headers(request.headers)
@@ -60,7 +61,7 @@ export async function validateOrganizationAccess(
 
     return { hasAccess: true, role: member.role, memberId: member.id }
   } catch (error) {
-    console.error('[validateOrganizationAccess] Erro:', error)
+    logger.error({ err: error }, '[validateOrganizationAccess] Erro')
     return {
       hasAccess: false,
       error: 'Erro ao validar acesso',
@@ -134,10 +135,10 @@ export async function validateTenantAccess(
     const organizationId =
       session.session?.activeOrganizationId ?? extractOrganizationId(request) ?? undefined
 
-    console.debug(`[validateTenantAccess] User: ${userId}, GlobalRole: ${globalRole}, OrgID: ${organizationId}`)
+    logger.debug(`[validateTenantAccess] User: ${userId}, GlobalRole: ${globalRole}, OrgID: ${organizationId}`)
 
     if (!organizationId) {
-      console.warn(`[validateTenantAccess] No organization ID found in session or request for user ${userId}`)
+      logger.warn(`[validateTenantAccess] No organization ID found in session or request for user ${userId}`)
       return {
         hasAccess: false,
         userId,
@@ -146,7 +147,7 @@ export async function validateTenantAccess(
     }
 
     const validation = await validateOrganizationAccess(userId, organizationId)
-    console.debug(`[validateTenantAccess] Validation result:`, validation)
+    logger.debug({ context: validation }, '[validateTenantAccess] Validation result')
 
     if (!validation.hasAccess || !validation.role) {
       return {
@@ -213,7 +214,7 @@ export async function validateTenantAccess(
       globalRole,
     }
   } catch (error) {
-    console.error('[validateTenantAccess] Erro ao validar sessão:', error)
+    logger.error({ err: error }, '[validateTenantAccess] Erro ao validar sessão')
     return {
       hasAccess: false,
       error: 'Erro ao validar acesso',

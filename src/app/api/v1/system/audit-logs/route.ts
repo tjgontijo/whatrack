@@ -4,6 +4,7 @@ import { requirePermission } from '@/lib/auth/guards'
 import { apiError } from '@/lib/utils/api-response'
 import { systemAuditLogsQuerySchema } from '@/schemas/system/system-schemas'
 import { listSystemAuditLogs } from '@/services/system/system-audit-log.service'
+import { logger } from '@/lib/utils/logger'
 
 export const dynamic = 'force-dynamic'
 
@@ -27,7 +28,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(result.data)
   } catch (error) {
-    console.error('[system/audit-logs] Error:', error)
+    logger.error({ err: error }, '[system/audit-logs] Error')
     return apiError('Failed to fetch audit logs', 500, error)
   }
 }

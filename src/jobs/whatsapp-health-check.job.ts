@@ -3,6 +3,7 @@ import { TokenEncryption } from '@/lib/utils/encryption'
 import { whatsappCache } from '@/services/whatsapp/cache.service'
 import { CACHE_KEYS, CACHE_TTL } from '@/lib/db/cache-keys'
 import { getRedis } from '@/lib/db/redis'
+import { logger } from '@/lib/utils/logger'
 
 type WhatsAppHealthStatus = 'unknown' | 'healthy' | 'warning' | 'error'
 
@@ -29,7 +30,7 @@ interface HealthStatus {
 }
 
 export async function whatsappHealthCheckJob(job: any): Promise<void> {
-  console.log('[HealthCheckJob] Starting WhatsApp token health check')
+  logger.info('[HealthCheckJob] Starting WhatsApp token health check')
 
   try {
     // Get all active connections
@@ -40,7 +41,7 @@ export async function whatsappHealthCheckJob(job: any): Promise<void> {
       },
     })
 
-    console.log(`[HealthCheckJob] Found ${connections.length} active connections`)
+    logger.info(`[HealthCheckJob] Found ${connections.length} active connections`)
 
     let healthyCount = 0
     let warningCount = 0
@@ -56,7 +57,7 @@ export async function whatsappHealthCheckJob(job: any): Promise<void> {
         const cached = await redis.get(cacheKey)
         if (cached) {
           health = JSON.parse(cached)
-          console.log(`[HealthCheckJob] Using cached health for ${connection.wabaId}`)
+          logger.info(`[HealthCheckJob] Using cached health for ${connection.wabaId}`)
         } else {
           // Get latest from DB
           health = await prisma.whatsAppHealth.findFirst({
@@ -71,7 +72,7 @@ export async function whatsappHealthCheckJob(job: any): Promise<void> {
         const isStale = now.getTime() - lastCheckTime > 24 * 60 * 60 * 1000 // 24 hours
 
         if (!health || isStale) {
-          console.log(`[HealthCheckJob] Validating token for ${connection.wabaId}`)
+          logger.info(`[HealthCheckJob] Validating token for ${connection.wabaId}`)
 
           // Get current token from config
           const config = await prisma.whatsAppConfig.findFirst({
@@ -79,7 +80,7 @@ export async function whatsappHealthCheckJob(job: any): Promise<void> {
           })
 
           if (!config || !config.accessToken) {
-            console.warn(`[HealthCheckJob] No token found for ${connection.wabaId}`)
+            logger.warn(`[HealthCheckJob] No token found for ${connection.wabaId}`)
             health = {
               status: 'error' as WhatsAppHealthStatus,
               tokenValid: false,
@@ -100,7 +101,7 @@ export async function whatsappHealthCheckJob(job: any): Promise<void> {
 
               if (response.ok) {
                 const data = await response.json()
-                console.log(`[HealthCheckJob] Token valid for ${connection.wabaId}`)
+                logger.info(`[HealthCheckJob] Token valid for ${connection.wabaId}`)
                 health = {
                   status: 'healthy' as WhatsAppHealthStatus,
                   tokenValid: true,
@@ -113,7 +114,7 @@ export async function whatsappHealthCheckJob(job: any): Promise<void> {
                 const error = await response.json()
                 const errorMsg = error.error?.message || 'Unknown error'
 
-                console.warn(`[HealthCheckJob] Token invalid for ${connection.wabaId}: ${errorMsg}`)
+                logger.warn(`[HealthCheckJob] Token invalid for ${connection.wabaId}: ${errorMsg}`)
 
                 // Check if token expired or revoked
                 const isExpired =
@@ -135,10 +136,7 @@ export async function whatsappHealthCheckJob(job: any): Promise<void> {
                 }
               }
             } catch (err) {
-              console.error(
-                `[HealthCheckJob] Error validating token for ${connection.wabaId}:`,
-                err
-              )
+              logger.error({ err }, `[HealthCheckJob] Error validating token for ${connection.wabaId}`)
               health = {
                 status: 'error' as WhatsAppHealthStatus,
                 tokenValid: false,
@@ -176,21 +174,21 @@ export async function whatsappHealthCheckJob(job: any): Promise<void> {
 
           // Alert if error
           if (health.status === 'error') {
-            console.warn(`[HealthCheckJob] ALERT: Connection ${connection.wabaId} is unhealthy`)
+            logger.warn(`[HealthCheckJob] ALERT: Connection ${connection.wabaId} is unhealthy`)
             // TODO: Send notification to organization admin
           }
         }
       } catch (error) {
-        console.error(`[HealthCheckJob] Error processing connection ${connection.wabaId}:`, error)
+        logger.error({ err: error }, `[HealthCheckJob] Error processing connection ${connection.wabaId}`)
         errorCount++
       }
     }
 
-    console.log(
+    logger.info(
       `[HealthCheckJob] Completed: ${healthyCount} healthy, ${warningCount} warning, ${errorCount} error`
     )
   } catch (error) {
-    console.error('[HealthCheckJob] Fatal error:', error)
+    logger.error({ err: error }, '[HealthCheckJob] Fatal error')
     throw error
   }
 }

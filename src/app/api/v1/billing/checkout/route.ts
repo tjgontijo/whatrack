@@ -11,6 +11,7 @@ import { checkoutRequestSchema, checkoutResponseSchema } from '@/schemas/billing
 import { rateLimitMiddleware } from '@/lib/utils/rate-limit.middleware'
 import { ensurePaymentProviders } from '@/lib/payments/init'
 import { createCheckoutSessionWithProvider } from '@/services/billing/billing-checkout.service'
+import { logger } from '@/lib/utils/logger'
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   // Rate limit check
@@ -42,7 +43,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const returnUrl = `${origin}/billing`
 
     // Create checkout session
-    console.log('[API/Checkout] Creating session for org:', auth.organizationId, 'plan:', validated.planType)
     const checkoutSession = await createCheckoutSessionWithProvider({
       organizationId: auth.organizationId,
       planType: validated.planType,
@@ -56,10 +56,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       provider: checkoutSession.provider,
     })
 
-    console.log('[API/Checkout] Session created successfully. Redirect URL:', response.url)
+    logger.info({ context: response.url }, '[API/Checkout] Session created successfully. Redirect URL')
     return NextResponse.json(response, { status: 200 })
   } catch (error) {
-    console.error('Checkout creation error:', error)
+    logger.error({ err: error }, 'Checkout creation error')
 
     if (error instanceof SyntaxError) {
       return NextResponse.json(

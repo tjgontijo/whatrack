@@ -17,6 +17,7 @@ import type {
   SubscriptionDetails,
   SubscriptionStatus,
 } from './payment-provider'
+import { logger } from '@/lib/utils/logger'
 
 export class AbacatepayProvider implements PaymentProvider {
   private client: ReturnType<typeof AbacatePay>
@@ -51,12 +52,6 @@ export class AbacatepayProvider implements PaymentProvider {
       // Create subscription with SDK v2
       // This automatically generates a checkout URL
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      console.log('[AbacatePay] Creating subscription with config:', {
-        amount: planConfig.monthlyPrice,
-        name: planConfig.name,
-        externalId: `org-${organizationId}`,
-      })
-
       const subscription = await this.client.subscriptions.create({
         amount: planConfig.monthlyPrice,
         name: planConfig.name,
@@ -74,15 +69,12 @@ export class AbacatepayProvider implements PaymentProvider {
         },
       } as any)
 
-      console.log('[AbacatePay] SDK Response:', JSON.stringify(subscription, null, 2))
-
       if (!subscription.success || !subscription.data) {
         throw new Error(`Failed to create subscription: ${subscription.error}`)
       }
 
       // SDK v2 provides the checkout URL
       const checkoutUrl = `https://checkout.abacatepay.com/${subscription.data.id}`
-      console.log('[AbacatePay] Generated Checkout URL:', checkoutUrl)
 
       return {
         id: subscription.data.id,
@@ -138,7 +130,7 @@ export class AbacatepayProvider implements PaymentProvider {
   ): Promise<void> {
     try {
       // TODO: Use REST client to cancel: PATCH /v2/subscriptions/{id}
-      console.warn(
+      logger.warn(
         `Subscription cancellation needs REST API implementation: ${subscriptionId}`
       )
     } catch (error) {
@@ -154,7 +146,7 @@ export class AbacatepayProvider implements PaymentProvider {
   ): Promise<void> {
     try {
       // TODO: Use REST client to update: PATCH /v2/subscriptions/{id}
-      console.warn(
+      logger.warn(
         `Subscription plan update needs REST API implementation: ${subscriptionId} -> ${newPlanType}`
       )
     } catch (error) {

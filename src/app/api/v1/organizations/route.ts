@@ -11,6 +11,7 @@ import { apiError } from '@/lib/utils/api-response'
 import { getOrSyncUser } from '@/server/auth/server'
 import { organizationOnboardingSchema } from '@/schemas/organizations/organization-onboarding'
 import { createOrganizationFromOnboarding } from '@/services/organizations/organization-management.service'
+import { logger } from '@/lib/utils/logger'
 
 export async function POST(request: Request) {
   try {
@@ -46,7 +47,7 @@ export async function POST(request: Request) {
       return apiError('Documento já cadastrado em outra organização.', 409)
     }
 
-    console.error('Failed to create organization:', error)
+    logger.error({ err: error }, 'Failed to create organization')
     return apiError('Failed to create organization', 500, error)
   }
 }

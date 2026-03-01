@@ -3,6 +3,7 @@ import 'server-only'
 import { headers, cookies } from 'next/headers'
 import { prisma } from '@/lib/db/prisma'
 import { ORGANIZATION_HEADER, ORGANIZATION_COOKIE } from '@/lib/constants/http-headers'
+import { logger } from '@/lib/utils/logger'
 
 /**
  * Resolve a organização ativa do usuário com prioridade:
@@ -38,7 +39,7 @@ export async function getCurrentOrganizationId(userId: string): Promise<string |
 
     return membership?.organizationId ?? null
   } catch (error) {
-    console.error('[getCurrentOrganizationId] Erro ao resolver organização:', error)
+    logger.error({ err: error }, '[getCurrentOrganizationId] Erro ao resolver organização')
     return null
   }
 }

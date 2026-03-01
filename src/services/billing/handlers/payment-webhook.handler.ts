@@ -8,6 +8,7 @@
 import { prisma } from '@/lib/db/prisma'
 import type { WebhookPayload } from '@/lib/payments/providers/payment-provider'
 import { updateSubscriptionStatus } from '../billing-subscription.service'
+import { logger } from '@/lib/utils/logger'
 
 /**
  * Webhook event types from payment providers
@@ -104,7 +105,7 @@ export async function handlePaymentWebhook(
 
   try {
     // Process based on event type
-    console.log(`[Handler/Webhook] Dispatching event: ${eventType}`)
+    logger.info(`[Handler/Webhook] Dispatching event: ${eventType}`)
     switch (eventType) {
       case 'billing.paid':
         await handleBillingPaid(payload.data)
@@ -123,7 +124,7 @@ export async function handlePaymentWebhook(
         break
 
       default:
-        console.warn(`[Handler/Webhook] Received unhandled event type: ${eventType}`)
+        logger.warn(`[Handler/Webhook] Received unhandled event type: ${eventType}`)
         throw new Error(`Unknown webhook event type: ${eventType}`)
     }
 
@@ -136,7 +137,7 @@ export async function handlePaymentWebhook(
       },
     })
 
-    console.log(`[Handler/Webhook] Successfully processed ${eventType} for eventId: ${eventId}`)
+    logger.info(`[Handler/Webhook] Successfully processed ${eventType} for eventId: ${eventId}`)
 
     return {
       processed: true,
@@ -145,7 +146,7 @@ export async function handlePaymentWebhook(
     }
   } catch (error) {
     // Log the error but don't throw
-    console.error(`[Handler/Webhook] Error processing webhook ${eventId}:`, error)
+    logger.error({ err: error }, `[Handler/Webhook] Error processing webhook ${eventId}`)
 
     // Mark as attempted (but not fully processed)
     await prisma.billingWebhookLog.update({
@@ -178,7 +179,7 @@ async function handleBillingPaid(data: WebhookData['data']): Promise<void> {
   })
 
   if (!subscription) {
-    console.warn(`No subscription found for externalId: ${externalId}`)
+    logger.warn(`No subscription found for externalId: ${externalId}`)
     return
   }
 
@@ -211,7 +212,7 @@ async function handleSubscriptionCreated(data: WebhookData['data']): Promise<voi
   })
 
   if (!subscription) {
-    console.warn(`No subscription found for externalId: ${externalId}`)
+    logger.warn(`No subscription found for externalId: ${externalId}`)
     return
   }
 
@@ -242,7 +243,7 @@ async function handleSubscriptionCancelled(data: WebhookData['data']): Promise<v
   })
 
   if (!subscription) {
-    console.warn(`No subscription found for externalId: ${externalId}`)
+    logger.warn(`No subscription found for externalId: ${externalId}`)
     return
   }
 
@@ -270,7 +271,7 @@ async function handlePaymentFailed(data: WebhookData['data']): Promise<void> {
   })
 
   if (!subscription) {
-    console.warn(`No subscription found for externalId: ${externalId}`)
+    logger.warn(`No subscription found for externalId: ${externalId}`)
     return
   }
 

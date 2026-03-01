@@ -1,6 +1,7 @@
 import 'server-only'
 
 import { prisma } from '@/lib/db/prisma'
+import { logger } from '@/lib/utils/logger'
 
 /**
  * Verifica se uma organização tem o onboarding completo ou foi pulado
@@ -22,7 +23,7 @@ export async function isOrganizationComplete(organizationId: string): Promise<bo
     const status = organization?.profile?.onboardingStatus
     return status === 'completed' || status === 'skipped'
   } catch (error) {
-    console.error('[isOrganizationComplete] Erro ao verificar organização:', error)
+    logger.error({ err: error }, '[isOrganizationComplete] Erro ao verificar organização')
     return false
   }
 }

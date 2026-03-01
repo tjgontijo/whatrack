@@ -4,6 +4,7 @@ import { apiError } from '@/lib/utils/api-response'
 import { lookupCnpjSchema } from '@/schemas/company/company-schemas'
 import { fetchCnpjData, ReceitaWsError } from '@/services/company/receitaws'
 import { getOrSyncUser } from '@/server/auth/server'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET(request: NextRequest) {
   const user = await getOrSyncUser(request)
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
     const companyData = await fetchCnpjData(parsed.data.cnpj)
     return NextResponse.json(companyData)
   } catch (error) {
-    console.error('[api/v1/company/lookup] GET error:', error)
+    logger.error({ err: error }, '[api/v1/company/lookup] GET error')
 
     if (error instanceof ReceitaWsError) {
       const statusMap: Record<string, number> = {

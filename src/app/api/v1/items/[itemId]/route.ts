@@ -4,6 +4,7 @@ import { apiError } from '@/lib/utils/api-response'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { updateItemSchema } from '@/schemas/items/item-schemas'
 import { deleteItem, getItemById, updateItem } from '@/services/items/item.service'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET(
   req: NextRequest,
@@ -24,7 +25,7 @@ export async function GET(
 
     return NextResponse.json(item)
   } catch (error) {
-    console.error('[api/items/[itemId]] GET error:', error)
+    logger.error({ err: error }, '[api/items/[itemId]] GET error')
     return apiError('Falha ao buscar item', 500, error)
   }
 }
@@ -58,7 +59,7 @@ export async function PUT(
 
     return NextResponse.json(updated)
   } catch (error) {
-    console.error('[api/items/[itemId]] PUT error:', error)
+    logger.error({ err: error }, '[api/items/[itemId]] PUT error')
     return apiError('Falha ao atualizar item', 500, error)
   }
 }
@@ -86,7 +87,7 @@ export async function DELETE(
 
     return NextResponse.json(result)
   } catch (error) {
-    console.error('[api/items/[itemId]] DELETE error:', error)
+    logger.error({ err: error }, '[api/items/[itemId]] DELETE error')
     return apiError('Falha ao deletar item', 500, error)
   }
 }

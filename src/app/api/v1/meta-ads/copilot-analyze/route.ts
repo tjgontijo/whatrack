@@ -7,6 +7,7 @@ import {
 } from '@/schemas/meta-ads/meta-ads-schemas'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { runMetaCopilotAnalysis } from '@/services/meta-ads/meta-copilot-analysis.service'
+import { logger } from '@/lib/utils/logger'
 
 export async function POST(req: Request) {
   try {
@@ -39,9 +40,9 @@ export async function POST(req: Request) {
     return NextResponse.json(result.data)
   } catch (error: unknown) {
     const detail = error instanceof Error ? error.message : String(error)
-    console.error('[Copilot] Analysis Error:', detail)
+    logger.error({ err: detail }, '[Copilot] Analysis Error')
     if (error instanceof Error && error.stack) {
-      console.error('[Copilot] Stack:', error.stack)
+      logger.error({ err: error.stack }, '[Copilot] Stack')
     }
 
     return apiError('Internal server error analyzing campaign', 500, detail)

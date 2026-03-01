@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { apiError } from '@/lib/utils/api-response'
 import { MetaCloudService } from '@/services/whatsapp/meta-cloud.service'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import { logger } from '@/lib/utils/logger'
 
 export const dynamic = 'force-dynamic'
 
@@ -40,7 +41,7 @@ export async function POST(request: Request) {
 
     // PASSO 1: Registrar o número
     const registerUrl = `${GRAPH_API_URL}/${API_VERSION}/${config.phoneId}/register`
-    console.log('[Activate] Registering phone:', registerUrl)
+    logger.info({ context: registerUrl }, '[Activate] Registering phone')
 
     try {
       const registerResponse = await fetch(registerUrl, {
@@ -62,17 +63,17 @@ export async function POST(request: Request) {
       }
 
       if (!registerResponse.ok) {
-        console.error('[Activate] Register error:', registerData)
+        logger.error({ err: registerData }, '[Activate] Register error')
       }
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Unknown error'
-      console.error('[Activate] Register exception:', message)
+      logger.error({ err: message }, '[Activate] Register exception')
       results.register.data = { error: message }
     }
 
     // PASSO 2: Assinar o App
     const subscribeUrl = `${GRAPH_API_URL}/${API_VERSION}/${config.wabaId}/subscribed_apps`
-    console.log('[Activate] Subscribing app:', subscribeUrl)
+    logger.info({ context: subscribeUrl }, '[Activate] Subscribing app')
 
     try {
       const subscribeResponse = await fetch(subscribeUrl, {
@@ -90,11 +91,11 @@ export async function POST(request: Request) {
       }
 
       if (!subscribeResponse.ok) {
-        console.error('[Activate] Subscribe error:', subscribeData)
+        logger.error({ err: subscribeData }, '[Activate] Subscribe error')
       }
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Unknown error'
-      console.error('[Activate] Subscribe exception:', message)
+      logger.error({ err: message }, '[Activate] Subscribe exception')
       results.subscribe.data = { error: message }
     }
 
@@ -109,7 +110,7 @@ export async function POST(request: Request) {
     })
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to activate number'
-    console.error('[API] Activate Error:', error)
+    logger.error({ err: error }, '[API] Activate Error')
     return apiError(message, 500, error)
   }
 }

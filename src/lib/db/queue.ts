@@ -15,6 +15,7 @@
  */
 
 import { getRedis } from '@/lib/db/redis'
+import { logger } from '@/lib/utils/logger'
 
 export type JobType = 'whatsapp-health-check' | 'webhook-retry' | 'ai-classifier'
 
@@ -49,14 +50,14 @@ class JobTracker {
       const result = await this.redis.set(lockKey, jobId, 'EX', this.LOCK_TTL, 'NX')
 
       if (result === 'OK') {
-        console.log(`[JobTracker] Acquired lock for ${jobType}`)
+        logger.info(`[JobTracker] Acquired lock for ${jobType}`)
         return jobId
       }
 
-      console.log(`[JobTracker] Could not acquire lock for ${jobType}`)
+      logger.info(`[JobTracker] Could not acquire lock for ${jobType}`)
       return null
     } catch (error) {
-      console.error(`[JobTracker] Error acquiring lock:`, error)
+      logger.error({ err: error }, `[JobTracker] Error acquiring lock`)
       return null
     }
   }
@@ -72,10 +73,10 @@ class JobTracker {
       const currentJobId = await this.redis.get(lockKey)
       if (currentJobId === jobId) {
         await this.redis.del(lockKey)
-        console.log(`[JobTracker] Released lock for ${jobType}`)
+        logger.info(`[JobTracker] Released lock for ${jobType}`)
       }
     } catch (error) {
-      console.error(`[JobTracker] Error releasing lock:`, error)
+      logger.error({ err: error }, `[JobTracker] Error releasing lock`)
     }
   }
 
@@ -89,7 +90,7 @@ class JobTracker {
       const locked = await this.redis.exists(lockKey)
       return locked === 1
     } catch (error) {
-      console.error(`[JobTracker] Error checking lock:`, error)
+      logger.error({ err: error }, `[JobTracker] Error checking lock`)
       return false
     }
   }

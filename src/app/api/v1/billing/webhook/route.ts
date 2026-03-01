@@ -10,6 +10,7 @@ import crypto from 'crypto'
 import { env } from '@/lib/env/env'
 import { rateLimitMiddleware } from '@/lib/utils/rate-limit.middleware'
 import { handlePaymentWebhook } from '@/services/billing/handlers/payment-webhook.handler'
+import { logger } from '@/lib/utils/logger'
 
 /**
  * Validate webhook signature using HMAC-SHA256
@@ -35,7 +36,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Get signature from header
     const signature = request.headers.get('x-signature') || request.headers.get('authorization')
     if (!signature) {
-      console.warn('Webhook received without signature')
+      logger.warn('Webhook received without signature')
       return NextResponse.json(
         { error: 'Missing signature' },
         { status: 401 }
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // Validate signature
     if (!validateWebhookSignature(body, signature)) {
-      console.warn('Webhook signature validation failed')
+      logger.warn('Webhook signature validation failed')
       return NextResponse.json(
         { error: 'Invalid signature' },
         { status: 401 }
@@ -60,10 +61,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     // Process webhook
-    console.log(`[Webhook/AbacatePay] Processing event type: ${payload.type}, id: ${payload.id}`)
+    logger.info(`[Webhook/AbacatePay] Processing event type: ${payload.type}, id: ${payload.id}`)
     const result = await handlePaymentWebhook(payload, 'abacatepay')
 
-    console.log('[Webhook/AbacatePay] Processing result:', result)
+    logger.info({ context: result }, '[Webhook/AbacatePay] Processing result')
 
     if (!result.processed) {
       // Idempotent success - already processed or expired
@@ -78,7 +79,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       { status: 200 }
     )
   } catch (error) {
-    console.error('Webhook processing error:', error)
+    logger.error({ err: error }, 'Webhook processing error')
 
     if (error instanceof SyntaxError) {
       return NextResponse.json(

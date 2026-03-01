@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/db/prisma'
 import { metaAccessTokenService } from './access-token.service'
 import axios from 'axios'
+import { logger } from '@/lib/utils/logger'
 
 function requireEnv(name: string): string {
   const value = process.env[name]
@@ -151,7 +152,7 @@ export class MetaCampaignsService {
             })
           }
         } catch (error: any) {
-          console.error(
+          logger.error(
             `[Campaigns Service] Error fetching for account ${acc.adAccountId}:`,
             error?.response?.data || error.message
           )

@@ -4,6 +4,7 @@ import { apiError } from '@/lib/utils/api-response'
 import { MetaCloudService } from '@/services/whatsapp/meta-cloud.service'
 import { whatsappSendTemplateSchema } from '@/schemas/whatsapp/whatsapp-schemas'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import { logger } from '@/lib/utils/logger'
 
 export const dynamic = 'force-dynamic'
 
@@ -35,7 +36,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, result })
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to send message'
-    console.error('[API] Send Template Error:', error)
+    logger.error({ err: error }, '[API] Send Template Error')
     return apiError(message, 500, error)
   }
 }

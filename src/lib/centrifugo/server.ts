@@ -1,3 +1,5 @@
+import { logger } from '@/lib/utils/logger'
+
 export async function publishToCentrifugo(channel: string, data: any) {
   const url = `${process.env.CENTRIFUGO_URL}/api/publish`
 
@@ -16,15 +18,15 @@ export async function publishToCentrifugo(channel: string, data: any) {
 
     if (!response.ok) {
       const responseText = await response.text()
-      console.error(
+      logger.error(
         `[Centrifugo] Publish failed: ${response.status} ${response.statusText} - ${responseText}`
       )
       return false
     }
-    console.log(`[Centrifugo] Published to channel: ${channel}`)
+    logger.info(`[Centrifugo] Published to channel: ${channel}`)
     return true
   } catch (error) {
-    console.error('[Centrifugo] Publish error:', error)
+    logger.error({ err: error }, '[Centrifugo] Publish error')
     return false
   }
 }

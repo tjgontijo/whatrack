@@ -2,6 +2,7 @@ import { cookies, headers as nextHeaders } from 'next/headers'
 import { auth } from '@/lib/auth/auth'
 import { prisma } from '@/lib/db/prisma'
 import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
+import { logger } from '@/lib/utils/logger'
 
 /**
  * Build headers with cookies for server-side auth calls
@@ -58,7 +59,7 @@ export async function getServerSession(request?: Request) {
 
       // Se a session não existe no banco, limpar o cookie e retornar null
       if (!sessionExists) {
-        console.warn(`[auth] Session ${session.session.id} not found in database, clearing cookie`)
+        logger.warn(`[auth] Session ${session.session.id} not found in database, clearing cookie`)
         const cookieStore = await cookies()
         // Expirar o cookie definindo maxAge como 0
         cookieStore.set('better-auth.session_token', '', {
@@ -95,7 +96,7 @@ export async function getServerSession(request?: Request) {
 
     return session
   } catch (error) {
-    console.error('[auth] Failed to get server session', error)
+    logger.error({ err: error }, '[auth] Failed to get server session')
     return null
   }
 }
@@ -107,11 +108,11 @@ export async function getOrSyncUser(request?: Request) {
   const session = await getServerSession(request)
 
   if (!session?.user) {
-    console.warn('[getOrSyncUser] No session or user found', {
+    logger.warn({ context: {
       hasSession: !!session,
       hasUser: !!session?.user,
       sessionId: session?.session?.id,
-    })
+    } }, '[getOrSyncUser] No session or user found')
   }
 
   return session?.user ?? null

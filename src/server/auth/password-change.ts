@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { auth } from '@/lib/auth/auth'
 import { changeMeAccountPasswordSchema } from '@/schemas/me/me-account-schemas'
+import { logger } from '@/lib/utils/logger'
 
 function errorMessageFromUnknown(error: unknown): string {
   if (error && typeof error === 'object') {
@@ -49,7 +50,7 @@ export async function handlePasswordChange(request: NextRequest): Promise<NextRe
       token: result?.token ?? null,
     })
   } catch (error) {
-    console.error('[password-change] failed', error)
+    logger.error({ err: error }, '[password-change] failed')
     return NextResponse.json(
       { error: errorMessageFromUnknown(error) },
       { status: errorStatusFromUnknown(error) }

@@ -10,6 +10,7 @@ import { apiError } from '@/lib/utils/api-response'
 import { getOrSyncUser } from '@/server/auth/server'
 import { updateOrganizationByIdSchema } from '@/schemas/organizations/organization-schemas'
 import { updateOrganizationById } from '@/services/organizations/organization-management.service'
+import { logger } from '@/lib/utils/logger'
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -38,7 +39,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
     return NextResponse.json(result, { status: 200 })
   } catch (error) {
-    console.error('Failed to update organization:', error)
+    logger.error({ err: error }, 'Failed to update organization')
     return apiError('Failed to update organization', 500, error)
   }
 }

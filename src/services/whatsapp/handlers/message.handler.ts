@@ -3,6 +3,7 @@ import { getDefaultTicketStage } from '@/services/tickets/ensure-ticket-stages'
 import { publishToCentrifugo } from '@/lib/centrifugo/server'
 import { metaAdEnrichmentService } from '@/services/meta-ads/ad-enrichment.service'
 import { enqueueForClassification } from '@/services/ai/ai-classifier.scheduler'
+import { logger } from '@/lib/utils/logger'
 
 const WINDOW_MS = 24 * 60 * 60 * 1000
 const DEFAULT_EXPIRATION_DAYS = 30
@@ -88,7 +89,7 @@ export async function messageHandler(
   const messagesArray = isEcho ? value?.message_echoes : value?.messages
 
   if (!messagesArray || !Array.isArray(messagesArray)) {
-    console.warn(`[MessageHandler] No ${isEcho ? 'message_echoes' : 'messages'} found in payload`)
+    logger.warn(`[MessageHandler] No ${isEcho ? 'message_echoes' : 'messages'} found in payload`)
     return
   }
 
@@ -121,7 +122,7 @@ export async function messageHandler(
     throw new Error(`WhatsAppConfig not found for phoneId: ${phoneNumberId}`)
   }
 
-  console.log(`[MessageHandler] Processing for Organization: ${config.organizationId}`)
+  logger.info(`[MessageHandler] Processing for Organization: ${config.organizationId}`)
 
   const defaultStage = await getDefaultTicketStage(prisma, config.organizationId)
   const expirationDays =
@@ -227,7 +228,7 @@ export async function messageHandler(
           // Only expire if it's an INBOUND message that would restart the conversation flow
           // If it's just an echo, we usually keep the ticket open unless specific rules apply
           if (!isEcho && daysSinceCreation > expirationDays) {
-            console.log(
+            logger.info(
               `[MessageHandler] Ticket ${ticket.id} expired (${daysSinceCreation.toFixed(1)} days). Closing.`
             )
 
@@ -407,11 +408,7 @@ export async function messageHandler(
                 metaAdEnrichmentService
                   .enrichTicket(ticket.id)
                   .catch((err) =>
-                    console.error(
-                      `[Enrichment] Fire-and-forget failed for ticket ${ticket.id}`,
-                      err
-                    )
-                  )
+                    logger.error({ err }, `[Enrichment] Fire-and-forget failed for ticket ${ticket.id}`))
               }
             } else {
               // Update Existing Tracking (Last-Touch)
@@ -446,11 +443,7 @@ export async function messageHandler(
                 metaAdEnrichmentService
                   .enrichTicket(ticket.id)
                   .catch((err) =>
-                    console.error(
-                      `[Enrichment] Update enrichment failed for ticket ${ticket.id}`,
-                      err
-                    )
-                  )
+                    logger.error({ err }, `[Enrichment] Update enrichment failed for ticket ${ticket.id}`))
               }
             }
           }
@@ -476,14 +469,14 @@ export async function messageHandler(
         // Fire-and-forget: enqueue resets the debounce timer on every new message
         if (!isEcho && ticket.messagesCount >= 3) {
           enqueueForClassification(ticket.id, config.organizationId).catch((err) =>
-            console.error('[MessageHandler] Failed to enqueue AI classification', err),
+            logger.error({ err: err }, '[MessageHandler] Failed to enqueue AI classification'),
           )
         }
       })
       // END TRANSACTION
       // ----------------------------------------------------------------------
     } catch (error) {
-      console.error('[MessageHandler] Error processing message', error)
+      logger.error({ err: error }, '[MessageHandler] Error processing message')
       // Continue to next message if one fails
     }
   }
@@ -494,12 +487,12 @@ export async function messageHandler(
     data: { lastWebhookAt: new Date() },
   })
 
-  console.log(`[MessageHandler] Processed ${successCount}/${messagesArray.length} messages`)
+  logger.info(`[MessageHandler] Processed ${successCount}/${messagesArray.length} messages`)
 
   // Publish events
   for (const event of eventsToPublish) {
     publishToCentrifugo(event.channel, event.data).catch((err) =>
-      console.error('[MessageHandler] Centrifugo publish failed', err)
+      logger.error({ err: err }, '[MessageHandler] Centrifugo publish failed')
     )
   }
 }

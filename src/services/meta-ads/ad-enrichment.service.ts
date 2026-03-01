@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/db/prisma'
 import { metaAccessTokenService } from './access-token.service'
 import axios from 'axios'
+import { logger } from '@/lib/utils/logger'
 
 function requireEnv(name: string): string {
   const value = process.env[name]
@@ -52,7 +53,7 @@ export class MetaAdEnrichmentService {
     // (In a more complex setup, we'd find the one that has access to this specific ad)
     const connection = tracking.ticket.organization.metaConnections[0]
     if (!connection) {
-      console.warn(
+      logger.warn(
         `[Enrichment] No active Meta connection for organization ${tracking.ticket.organizationId}`
       )
       return
@@ -89,14 +90,11 @@ export class MetaAdEnrichmentService {
         },
       })
 
-      console.log(`[Enrichment] Successfully enriched ticket ${ticketId} with Ad "${adData.name}"`)
+      logger.info(`[Enrichment] Successfully enriched ticket ${ticketId} with Ad "${adData.name}"`)
     } catch (error: unknown) {
       const message = resolveEnrichmentErrorMessage(error)
 
-      console.error(
-        `[Enrichment] Error enriching ticket ${ticketId}:`,
-        axios.isAxiosError(error) ? error.response?.data : message
-      )
+      logger.error({ err: error, context: axios.isAxiosError(error) ? error.response?.data : message }, `[Enrichment] Error enriching ticket ${ticketId}`)
 
       await prisma.ticketTracking.update({
         where: { ticketId },

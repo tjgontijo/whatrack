@@ -6,6 +6,7 @@ import { validatePermissionAccess } from '@/server/auth/validate-organization-ac
 import { isDateRangePreset, resolveDateRange } from '@/lib/date/date-range'
 import { ticketsQuerySchema, createTicketSchema } from '@/schemas/tickets/ticket-schemas'
 import { listTickets, createTicket } from '@/services/tickets/ticket.service'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET(req: Request) {
   const access = await validatePermissionAccess(req, 'view:tickets')
@@ -61,7 +62,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json({ ...result, page, pageSize })
   } catch (error) {
-    console.error('[api/tickets] GET error:', error)
+    logger.error({ err: error }, '[api/tickets] GET error')
     return apiError('Failed to fetch tickets', 500, error)
   }
 }
@@ -95,7 +96,7 @@ export async function POST(req: Request) {
     await revalidateTag(`org-${access.organizationId}`, 'max')
     return NextResponse.json(result.data, { status: 201 })
   } catch (error) {
-    console.error('[api/tickets] POST error:', error)
+    logger.error({ err: error }, '[api/tickets] POST error')
     return apiError('Falha ao criar ticket', 500, error)
   }
 }

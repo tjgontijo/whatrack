@@ -1,5 +1,6 @@
 import 'server-only'
 import { z } from 'zod'
+import { logger } from '@/lib/utils/logger'
 
 /**
  * Centralized environment variables schema.
@@ -98,9 +99,9 @@ export type Env = z.infer<typeof envSchema>
 const parsed = envSchema.safeParse(process.env)
 
 if (!parsed.success) {
-  console.error('[env] Missing or invalid environment variables:')
+  logger.error('[env] Missing or invalid environment variables:')
   Object.entries(parsed.error.flatten().fieldErrors).forEach(([key, errors]) => {
-    console.error(`  ${key}: ${errors?.join(', ')}`)
+    logger.error(`  ${key}: ${errors?.join(', ')}`)
   })
   throw new Error('[env] Invalid environment configuration. Check logs above.')
 }

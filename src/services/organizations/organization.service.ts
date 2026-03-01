@@ -11,6 +11,7 @@ import {
   validateIdentityDocument,
 } from '@/lib/document/document-identity'
 import type { UpdateOrganizationInput } from '@/schemas/organizations/organization-schemas'
+import { logger } from '@/lib/utils/logger'
 
 type ServiceError = {
   error: string
@@ -298,7 +299,7 @@ export async function updateOrganizationMe(input: {
       return { error: 'Documento já vinculado a outra organização.', status: 409 }
     }
 
-    console.error('[organization.service] failed to update fiscal identity', error)
+    logger.error({ err: error }, '[organization.service] failed to update fiscal identity')
     return { error: 'Erro ao atualizar organização.', status: 500 }
   }
 

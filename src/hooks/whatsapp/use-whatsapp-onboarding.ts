@@ -75,7 +75,6 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
 
     try {
       // 1. Gerar tracking code
-      console.log('[Onboarding] Gerando tracking code...')
       const response = await fetch(`/api/v1/whatsapp/onboarding?organizationId=${activeOrg.id}`)
 
       if (!response.ok) {
@@ -84,7 +83,6 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
       }
 
       const { onboardingUrl, trackingCode } = await response.json()
-      console.log('[Onboarding] Tracking code gerado:', trackingCode)
 
       // 2. Preparar URL
       const extras = {
@@ -114,14 +112,12 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
         return
       }
 
-      console.log('[Onboarding] Popup aberto, aguardando conclusão...')
 
       const onFocus = () => {
         if (popupRef.current?.closed) {
           window.removeEventListener('focus', onFocus)
           onFocusRef.current = null
 
-          console.log('[Onboarding] Popup fechado')
           setStatus('success')
           toast.success('Processo concluído! Atualizando...')
           onSuccess?.()

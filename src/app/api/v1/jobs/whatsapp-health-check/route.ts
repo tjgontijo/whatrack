@@ -21,6 +21,7 @@ import { apiError } from '@/lib/utils/api-response'
 import { getJobTracker } from '@/lib/db/queue'
 import { whatsappHealthCheckJob } from '@/jobs/whatsapp-health-check.job'
 import { rateLimitMiddleware } from '@/lib/utils/rate-limit.middleware'
+import { logger } from '@/lib/utils/logger'
 
 const CRON_SECRET = process.env.CRON_SECRET
 if (!CRON_SECRET) {
@@ -41,7 +42,7 @@ export async function GET(request: NextRequest) {
     const authHeader = request.headers.get('authorization')
 
     if (!CRON_SECRET || authHeader !== `Bearer ${CRON_SECRET}`) {
-      console.error('[HealthCheckAPI] Invalid or missing CRON_SECRET')
+      logger.error('[HealthCheckAPI] Invalid or missing CRON_SECRET')
       return apiError('Unauthorized', 401)
     }
 
@@ -49,7 +50,7 @@ export async function GET(request: NextRequest) {
     const jobId = await jobTracker.acquireLock('whatsapp-health-check')
 
     if (!jobId) {
-      console.warn('[HealthCheckAPI] Job already running, skipping')
+      logger.warn('[HealthCheckAPI] Job already running, skipping')
       return NextResponse.json(
         {
           success: false,
@@ -59,13 +60,13 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    console.log(`[HealthCheckAPI] Starting job ${jobId}`)
+    logger.info(`[HealthCheckAPI] Starting job ${jobId}`)
 
     try {
       // Execute health check job
       await whatsappHealthCheckJob({ id: jobId })
 
-      console.log(`[HealthCheckAPI] Job ${jobId} completed successfully`)
+      logger.info(`[HealthCheckAPI] Job ${jobId} completed successfully`)
 
       return NextResponse.json({
         success: true,
@@ -77,7 +78,7 @@ export async function GET(request: NextRequest) {
       await jobTracker.releaseLock('whatsapp-health-check', jobId)
     }
   } catch (error) {
-    console.error('[HealthCheckAPI] Error:', error)
+    logger.error({ err: error }, '[HealthCheckAPI] Error')
     return apiError(error instanceof Error ? error.message : 'Unknown error', 500, error)
   }
 }

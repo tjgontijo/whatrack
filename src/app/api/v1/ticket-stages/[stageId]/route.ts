@@ -4,6 +4,7 @@ import { apiError } from '@/lib/utils/api-response'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { updateTicketStageSchema } from '@/schemas/tickets/ticket-stage-schemas'
 import { deleteTicketStage, updateTicketStage } from '@/services/ticket-stages/ticket-stage.service'
+import { logger } from '@/lib/utils/logger'
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ stageId: string }> }) {
   const access = await validatePermissionAccess(req, 'manage:tickets')
@@ -34,7 +35,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ stag
 
     return NextResponse.json(result)
   } catch (error) {
-    console.error('[ticket-stages/[stageId]] PUT error:', error)
+    logger.error({ err: error }, '[ticket-stages/[stageId]] PUT error')
     return apiError('Falha ao atualizar fase', 500, error)
   }
 }
@@ -61,7 +62,7 @@ export async function DELETE(
 
     return NextResponse.json(result)
   } catch (error) {
-    console.error('[ticket-stages/[stageId]] DELETE error:', error)
+    logger.error({ err: error }, '[ticket-stages/[stageId]] DELETE error')
     return apiError('Falha ao excluir fase', 500, error)
   }
 }

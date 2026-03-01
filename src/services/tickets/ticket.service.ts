@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db/prisma'
 import { metaCapiService } from '@/services/meta-ads/capi.service'
 import { getDefaultTicketStage } from './ensure-ticket-stages'
+import { logger } from '@/lib/utils/logger'
 
 export interface TicketListParams {
   organizationId: string
@@ -315,7 +316,7 @@ function triggerStageCapiEvent(input: {
       value: input.dealValue ?? undefined,
     })
     .catch((error) =>
-      console.error(`[CAPI] Fire-and-forget failed for ticket ${input.ticketId}`, error)
+      logger.error({ err: error }, `[CAPI] Fire-and-forget failed for ticket ${input.ticketId}`)
     )
 }
 

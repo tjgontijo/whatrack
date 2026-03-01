@@ -4,6 +4,7 @@ import { apiError } from '@/lib/utils/api-response'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { createItemSchema, itemListQuerySchema } from '@/schemas/items/item-schemas'
 import { createItem, listItems, type ListItemsParams } from '@/services/items/item.service'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET(request: Request) {
   try {
@@ -37,7 +38,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(await listItems(payload))
   } catch (error) {
-    console.error('[api/items] GET error', error)
+    logger.error({ err: error }, '[api/items] GET error')
     return apiError('Failed to load items', 500, error)
   }
 }
@@ -65,7 +66,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(result, { status: 201 })
   } catch (error) {
-    console.error('[api/items] POST error', error)
+    logger.error({ err: error }, '[api/items] POST error')
     return apiError('Failed to create item', 500, error)
   }
 }

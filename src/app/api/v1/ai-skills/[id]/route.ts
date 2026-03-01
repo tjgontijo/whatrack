@@ -4,6 +4,7 @@ import { apiError } from '@/lib/utils/api-response'
 import { aiResourceIdParamSchema, updateAiSkillSchema } from '@/schemas/ai/ai-schemas'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { deleteAiSkill, getAiSkillById, updateAiSkill } from '@/services/ai/ai-skill.service'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -25,7 +26,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     return NextResponse.json({ skill })
   } catch (error) {
-    console.error('[GET ai-skill]', error)
+    logger.error({ err: error }, '[GET ai-skill]')
     return apiError('Erro ao buscar skill', 500, error)
   }
 }
@@ -55,7 +56,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     return NextResponse.json({ skill: result.data })
   } catch (error) {
-    console.error('[PATCH ai-skill]', error)
+    logger.error({ err: error }, '[PATCH ai-skill]')
     return apiError('Erro ao atualizar skill', 500, error)
   }
 }
@@ -83,7 +84,7 @@ export async function DELETE(
 
     return NextResponse.json({ message: 'Skill removida com sucesso' })
   } catch (error) {
-    console.error('[DELETE ai-skill]', error)
+    logger.error({ err: error }, '[DELETE ai-skill]')
     return apiError('Erro ao remover skill', 500, error)
   }
 }

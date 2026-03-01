@@ -4,6 +4,7 @@ import { apiError } from '@/lib/utils/api-response'
 import { approveAiInsightSchema } from '@/schemas/ai/ai-schemas'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { approveAiInsight } from '@/services/ai/ai-insight-approval.service'
+import { logger } from '@/lib/utils/logger'
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -43,7 +44,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     return NextResponse.json(result.data)
   } catch (error) {
-    console.error('[Approve AI Conversion] Error:', error)
+    logger.error({ err: error }, '[Approve AI Conversion] Error')
     return apiError('Erro interno ao aprovar conversão', 500, error)
   }
 }

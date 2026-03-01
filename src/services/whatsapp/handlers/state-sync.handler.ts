@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db/prisma'
+import { logger } from '@/lib/utils/logger'
 
 /**
  * State Sync Handler - PRD: WhatsApp History Sync
@@ -47,11 +48,11 @@ export async function stateSyncHandler(payload: any): Promise<void> {
     throw new Error(`WhatsAppConfig not found for phoneId: ${phoneNumberId}`)
   }
 
-  console.log('[StateSyncHandler] Processing state sync webhook')
+  logger.info('[StateSyncHandler] Processing state sync webhook')
 
   const stateSync = value.state_sync || []
   if (!Array.isArray(stateSync) || stateSync.length === 0) {
-    console.warn('[StateSyncHandler] No state_sync data found in payload')
+    logger.warn('[StateSyncHandler] No state_sync data found in payload')
     return
   }
 
@@ -65,7 +66,7 @@ export async function stateSyncHandler(payload: any): Promise<void> {
       const contactData = item.contact || {}
 
       if (item.type !== 'contact') {
-        console.log(`[StateSyncHandler] Skipping non-contact item: ${item.type}`)
+        logger.info(`[StateSyncHandler] Skipping non-contact item: ${item.type}`)
         continue
       }
 
@@ -75,7 +76,7 @@ export async function stateSyncHandler(payload: any): Promise<void> {
       const displayName = fullName || firstName || 'Unknown'
 
       if (!waId) {
-        console.warn('[StateSyncHandler] Contact missing wa_id/phone_number')
+        logger.warn('[StateSyncHandler] Contact missing wa_id/phone_number')
         continue
       }
 
@@ -110,10 +111,10 @@ export async function stateSyncHandler(payload: any): Promise<void> {
 
         if (action === 'add') {
           contactsAdded++
-          console.log(`[StateSyncHandler] Contact added: ${lead.id}`)
+          logger.info(`[StateSyncHandler] Contact added: ${lead.id}`)
         } else {
           contactsUpdated++
-          console.log(`[StateSyncHandler] Contact updated: ${lead.id}`)
+          logger.info(`[StateSyncHandler] Contact updated: ${lead.id}`)
         }
       } else if (action === 'delete') {
         // Mark Lead as inactive/deleted
@@ -134,11 +135,11 @@ export async function stateSyncHandler(payload: any): Promise<void> {
           })
 
           contactsDeleted++
-          console.log(`[StateSyncHandler] Contact deleted/deactivated: ${lead.id}`)
+          logger.info(`[StateSyncHandler] Contact deleted/deactivated: ${lead.id}`)
         }
       }
     } catch (error) {
-      console.error('[StateSyncHandler] Error processing state sync item', error)
+      logger.error({ err: error }, '[StateSyncHandler] Error processing state sync item')
       // Continue with next item instead of failing
     }
   }
@@ -156,7 +157,7 @@ export async function stateSyncHandler(payload: any): Promise<void> {
     },
   })
 
-  console.log(
+  logger.info(
     `[StateSyncHandler] Completed: added=${contactsAdded}, ` +
       `updated=${contactsUpdated}, deleted=${contactsDeleted}`
   )

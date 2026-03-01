@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db/prisma'
 import { resendProvider } from '@/services/mail/resend'
 import { getEmailTemplate } from './get-email'
 import { AuthDeliveryPayload, AuthDeliveryResult } from './types'
+import { logger } from '@/lib/utils/logger'
 
 interface AuthDeliveryTimingLog {
   event: 'auth_delivery_timings'
@@ -38,11 +39,7 @@ class AuthDeliveryService {
     let deliveredChannel: AuthDeliveryResult['channel'] | 'pending' = 'pending'
     let errorMessage: string | undefined
 
-    console.info('[auth_delivery] start', {
-      email: maskedEmail,
-      type,
-      timestamp: new Date().toISOString(),
-    })
+    logger.info({ context: { email: maskedEmail, type, timestamp: new Date().toISOString() } }, '[auth_delivery] start')
 
     try {
       const user = await prisma.user.findUnique({
@@ -57,7 +54,7 @@ class AuthDeliveryService {
       if (!user) {
         outcome = 'failure'
         errorMessage = 'user_not_found'
-        console.error('[AuthDeliveryService] Usuário não encontrado', { email: maskedEmail })
+        logger.error({ err: { email: maskedEmail } }, '[AuthDeliveryService] Usuário não encontrado')
         return {
           success: false,
           channel: 'none',
@@ -100,7 +97,7 @@ class AuthDeliveryService {
     } catch (error) {
       outcome = 'failure'
       errorMessage = error instanceof Error ? error.message : 'unknown_error'
-      console.error('[AuthDeliveryService] Erro ao enviar mensagem de autenticação:', error)
+      logger.error({ err: error }, '[AuthDeliveryService] Erro ao enviar mensagem de autenticação')
       return {
         success: false,
         channel: 'none',
@@ -124,7 +121,7 @@ class AuthDeliveryService {
         error: errorMessage,
       }
 
-      console.info('[auth_delivery] timings', log)
+      logger.info({ context: log }, '[auth_delivery] timings')
     }
   }
 }

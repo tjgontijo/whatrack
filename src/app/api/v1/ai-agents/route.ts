@@ -4,6 +4,7 @@ import { apiError } from '@/lib/utils/api-response'
 import { createAiAgentSchema } from '@/schemas/ai/ai-schemas'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { createAiAgent, listAiAgents } from '@/services/ai/ai-agent.service'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
     const agents = await listAiAgents(access.organizationId)
     return NextResponse.json({ agents })
   } catch (error) {
-    console.error('[GET ai-agents]', error)
+    logger.error({ err: error }, '[GET ai-agents]')
     return apiError('Erro ao buscar agentes', 500, error)
   }
 }
@@ -39,7 +40,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ agent: result.data }, { status: 201 })
   } catch (error) {
-    console.error('[POST ai-agents]', error)
+    logger.error({ err: error }, '[POST ai-agents]')
     return apiError('Erro ao criar agente', 500, error)
   }
 }

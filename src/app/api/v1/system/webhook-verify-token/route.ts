@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server'
 import { requireSuperAdmin } from '@/lib/auth/guards'
 import { apiError } from '@/lib/utils/api-response'
+import { logger } from '@/lib/utils/logger'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest) {
       configured: !!verifyToken,
     })
   } catch (error) {
-    console.error('[system/webhook-verify-token] Error:', error)
+    logger.error({ err: error }, '[system/webhook-verify-token] Error')
     return apiError('Failed to fetch verify token', 500, error)
   }
 }

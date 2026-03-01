@@ -8,6 +8,7 @@ import {
   getAiAgentById,
   updateAiAgent,
 } from '@/services/ai/ai-agent.service'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -30,7 +31,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     return NextResponse.json({ agent })
   } catch (error) {
-    console.error('[GET ai-agent]', error)
+    logger.error({ err: error }, '[GET ai-agent]')
     return apiError('Erro ao buscar agente', 500, error)
   }
 }
@@ -61,7 +62,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     return NextResponse.json({ agent: result.data })
   } catch (error) {
-    console.error('[PATCH ai-agent]', error)
+    logger.error({ err: error }, '[PATCH ai-agent]')
     return apiError('Erro ao atualizar agente', 500, error)
   }
 }
@@ -89,7 +90,7 @@ export async function DELETE(
 
     return NextResponse.json({ message: 'Agente removido com sucesso' })
   } catch (error) {
-    console.error('[DELETE ai-agent]', error)
+    logger.error({ err: error }, '[DELETE ai-agent]')
     return apiError('Erro ao remover agente', 500, error)
   }
 }

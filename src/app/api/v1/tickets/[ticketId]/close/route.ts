@@ -5,6 +5,7 @@ import { revalidateTag } from 'next/cache'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { closeTicketSchema } from '@/schemas/tickets/ticket-schemas'
 import { closeTicket } from '@/services/tickets/ticket.service'
+import { logger } from '@/lib/utils/logger'
 
 // POST /api/v1/tickets/:id/close - Close ticket (won/lost)
 export async function POST(
@@ -49,7 +50,7 @@ export async function POST(
 
     return NextResponse.json(result.data)
   } catch (error) {
-    console.error('[api/tickets/[ticketId]/close] POST error:', error)
+    logger.error({ err: error }, '[api/tickets/[ticketId]/close] POST error')
     return apiError('Falha ao fechar ticket', 500, error)
   }
 }

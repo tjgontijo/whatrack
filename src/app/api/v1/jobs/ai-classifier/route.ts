@@ -16,6 +16,7 @@ import { apiError } from '@/lib/utils/api-response'
 import { getJobTracker } from '@/lib/db/queue'
 import { drainDueClassifications } from '@/services/ai/ai-classifier.scheduler'
 import { dispatchAiEvent } from '@/services/ai/ai-execution.service'
+import { logger } from '@/lib/utils/logger'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
@@ -38,7 +39,7 @@ export async function GET(request: NextRequest) {
   try {
     const due = await drainDueClassifications(20)
 
-    console.log(`[AI Classifier Job] ${due.length} tickets due for analysis`)
+    logger.info(`[AI Classifier Job] ${due.length} tickets due for analysis`)
 
     const results = await Promise.allSettled(
       due.map(({ ticketId, organizationId }) =>

@@ -4,6 +4,7 @@ import { apiError } from '@/lib/utils/api-response'
 import { validateFullAccess, validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { createTicketStageSchema } from '@/schemas/tickets/ticket-stage-schemas'
 import { createTicketStage, listTicketStages } from '@/services/ticket-stages/ticket-stage.service'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET(req: Request) {
   const access = await validateFullAccess(req)
@@ -14,7 +15,7 @@ export async function GET(req: Request) {
   try {
     return NextResponse.json(await listTicketStages(access.organizationId))
   } catch (error) {
-    console.error('[ticket-stages] GET error:', error)
+    logger.error({ err: error }, '[ticket-stages] GET error')
     return apiError('Falha ao buscar fases', 500, error)
   }
 }
@@ -45,7 +46,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(result, { status: 201 })
   } catch (error) {
-    console.error('[ticket-stages] POST error:', error)
+    logger.error({ err: error }, '[ticket-stages] POST error')
     return apiError('Falha ao criar fase', 500, error)
   }
 }

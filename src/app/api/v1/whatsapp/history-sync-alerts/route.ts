@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/utils/api-response'
 import { historySyncAlertsService } from '@/services/whatsapp/history-sync-alerts.service'
+import { logger } from '@/lib/utils/logger'
 
 /**
  * POST /api/v1/whatsapp/history-sync-alerts
@@ -17,7 +18,7 @@ export async function POST(req: NextRequest) {
     const expectedToken = process.env.HISTORY_SYNC_ALERT_TOKEN
 
     if (!expectedToken) {
-      console.error('[HistorySyncAlertsAPI] HISTORY_SYNC_ALERT_TOKEN não configurado')
+      logger.error('[HistorySyncAlertsAPI] HISTORY_SYNC_ALERT_TOKEN não configurado')
       return apiError('Alert token not configured', 500)
     }
 
@@ -37,7 +38,7 @@ export async function POST(req: NextRequest) {
       { status: 200 }
     )
   } catch (error) {
-    console.error('[HistorySyncAlertsAPI] Error running alerts check', error)
+    logger.error({ err: error }, '[HistorySyncAlertsAPI] Error running alerts check')
 
     return apiError('Failed to run alerts check', 500, error)
   }
@@ -99,7 +100,7 @@ export async function GET(req: NextRequest) {
       { status: 200 }
     )
   } catch (error) {
-    console.error('[HistorySyncAlertsAPI] Error checking status', error)
+    logger.error({ err: error }, '[HistorySyncAlertsAPI] Error checking status')
 
     return apiError('Failed to check status', 500, error)
   }

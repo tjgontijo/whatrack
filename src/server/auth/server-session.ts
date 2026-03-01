@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers'
 import { auth } from '@/lib/auth/auth'
 import { prisma } from '@/lib/db/prisma'
+import { logger } from '@/lib/utils/logger'
 
 /**
  * Get the current session on the server side
@@ -30,7 +31,7 @@ export async function getServerSession() {
 
       // Se a session não existe no banco, limpar o cookie e retornar null
       if (!sessionExists) {
-        console.warn(
+        logger.warn(
           `[getServerSession] Session ${session.session.id} not found in database, clearing cookie`
         )
         // Expirar o cookie definindo maxAge como 0
@@ -68,7 +69,7 @@ export async function getServerSession() {
 
     return session
   } catch (error) {
-    console.error('[getServerSession] Error:', error)
+    logger.error({ err: error }, '[getServerSession] Error')
     return null
   }
 }

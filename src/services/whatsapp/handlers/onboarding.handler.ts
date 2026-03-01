@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/db/prisma'
 import { whatsappCache } from '@/services/whatsapp/cache.service'
 import { whatsappAuditService } from '@/services/whatsapp/audit.service'
+import { logger } from '@/lib/utils/logger'
 
 /**
  * Onboarding Handler
@@ -34,7 +35,7 @@ export async function onboardingHandler(payload: any, eventType: string): Promis
     throw new Error('Invalid payload: missing waba_id')
   }
 
-  console.log(
+  logger.info(
     `[OnboardingHandler] Event: ${eventType}, WABA: ${wabaId}, TrackingCode: ${trackingCode}`
   )
 
@@ -51,7 +52,7 @@ export async function onboardingHandler(payload: any, eventType: string): Promis
 
     // Validar expiração
     if (onboarding.expiresAt < new Date()) {
-      console.warn(`[OnboardingHandler] Onboarding expired: ${trackingCode}`)
+      logger.warn(`[OnboardingHandler] Onboarding expired: ${trackingCode}`)
       await prisma.whatsAppOnboarding.update({
         where: { trackingCode },
         data: { status: 'expired' },
@@ -113,7 +114,7 @@ export async function onboardingHandler(payload: any, eventType: string): Promis
         }
       )
 
-      console.log(
+      logger.info(
         `[OnboardingHandler] PARTNER_ADDED: Connection created for org ${onboarding.organizationId}`
       )
     }
@@ -152,7 +153,7 @@ export async function onboardingHandler(payload: any, eventType: string): Promis
         )
       }
 
-      console.log(`[OnboardingHandler] PARTNER_REMOVED: Connection disconnected`)
+      logger.info(`[OnboardingHandler] PARTNER_REMOVED: Connection disconnected`)
     }
 
     if (eventType === 'PARTNER_REINSTATED') {
@@ -183,7 +184,7 @@ export async function onboardingHandler(payload: any, eventType: string): Promis
         )
       }
 
-      console.log(`[OnboardingHandler] PARTNER_REINSTATED: Connection reactivated`)
+      logger.info(`[OnboardingHandler] PARTNER_REINSTATED: Connection reactivated`)
     }
 
     return
@@ -227,7 +228,7 @@ export async function onboardingHandler(payload: any, eventType: string): Promis
           metadata: { wabaId, ownerBusinessId },
         })
 
-        console.log(`[OnboardingHandler] Coexistence PARTNER_ADDED: Updated existing connection`)
+        logger.info(`[OnboardingHandler] Coexistence PARTNER_ADDED: Updated existing connection`)
       }
 
       if (eventType === 'PARTNER_REMOVED') {
@@ -254,7 +255,7 @@ export async function onboardingHandler(payload: any, eventType: string): Promis
           connectedDuration
         )
 
-        console.log(`[OnboardingHandler] Coexistence PARTNER_REMOVED`)
+        logger.info(`[OnboardingHandler] Coexistence PARTNER_REMOVED`)
       }
 
       return
@@ -264,7 +265,7 @@ export async function onboardingHandler(payload: any, eventType: string): Promis
   // ============================================
   // Caso 3: Nenhum - Phantom Connection
   // ============================================
-  console.warn(
+  logger.warn(
     `[OnboardingHandler] Phantom connection detected: WABA ${wabaId}, no trackingCode or ownerBusinessId match`
   )
   // TODO: Criar WABA órfã para admin reivindicar

@@ -2,6 +2,7 @@ import { Prisma } from '@prisma/client'
 import { nanoid } from 'nanoid'
 
 import { prisma } from '@/lib/db/prisma'
+import { auditService } from '@/services/audit/audit.service'
 import { calculateMetrics } from '@/services/onboarding-metrics/metrics-calculator'
 import { ensureCoreSkillsForOrganization } from '@/services/ai/ai-skill-provisioning.service'
 import {
@@ -179,6 +180,19 @@ export async function createOrganizationFromOnboarding(input: {
     await ensureCoreSkillsForOrganization(tx, createdOrganization.id)
 
     return createdOrganization
+  })
+
+  void auditService.log({
+    organizationId: organization.id,
+    userId: input.user.id,
+    action: 'organization.created',
+    resourceType: 'Organization',
+    resourceId: organization.id,
+    after: {
+      id: organization.id,
+      name: organization.name,
+      entityType: input.data.entityType,
+    },
   })
 
   return {

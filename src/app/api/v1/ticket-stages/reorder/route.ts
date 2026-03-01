@@ -4,6 +4,7 @@ import { apiError } from '@/lib/utils/api-response'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { reorderTicketStageSchema } from '@/schemas/tickets/ticket-stage-schemas'
 import { reorderTicketStages } from '@/services/ticket-stages/ticket-stage.service'
+import { logger } from '@/lib/utils/logger'
 
 export async function PUT(req: Request) {
   const access = await validatePermissionAccess(req, 'manage:tickets')
@@ -29,7 +30,7 @@ export async function PUT(req: Request) {
 
     return NextResponse.json(result)
   } catch (error) {
-    console.error('[ticket-stages/reorder] PUT error:', error)
+    logger.error({ err: error }, '[ticket-stages/reorder] PUT error')
     return apiError('Falha ao reordenar fases', 500, error)
   }
 }

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { apiError } from '@/lib/utils/api-response'
 import { MetaCloudService } from '@/services/whatsapp/meta-cloud.service'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import { logger } from '@/lib/utils/logger'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,7 +22,7 @@ export async function GET(request: Request) {
     return NextResponse.json(config)
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to fetch configuration'
-    console.error('[API] Get Config Error:', error)
+    logger.error({ err: error }, '[API] Get Config Error')
     return apiError(message, 500, error)
   }
 }

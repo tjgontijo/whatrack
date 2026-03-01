@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db/prisma'
 import { resolveAccessToken } from '@/lib/whatsapp/token-crypto'
+import { logger } from '@/lib/utils/logger'
 
 const GRAPH_API_URL = 'https://graph.facebook.com'
 export const API_VERSION = process.env.META_API_VERSION
@@ -47,16 +48,10 @@ export class MetaCloudService {
     const url = `${GRAPH_API_URL}/${API_VERSION}/oauth/access_token`
 
     const appId = process.env.NEXT_PUBLIC_META_APP_ID
-    // Use provided redirectUri or default to callback endpoint
     const finalRedirectUri =
       redirectUri || `${process.env.APP_URL}/api/v1/whatsapp/onboarding/callback`
 
-    console.log('[MetaCloudService] Exchanging code for token:', {
-      url,
-      appId,
-      redirectUri: finalRedirectUri,
-      code: code.substring(0, 10) + '...',
-    })
+    logger.info({ context: { url, appId, redirectUri: finalRedirectUri, code: code.substring(0, 10) + '...' } }, '[MetaCloudService] Exchanging code for token')
 
     if (!appId)
       throw new Error('[MetaCloudService] NEXT_PUBLIC_META_APP_ID environment variable is required')
@@ -78,14 +73,11 @@ export class MetaCloudService {
     const data = await response.json()
 
     if (!response.ok) {
-      console.error('[MetaCloudService] Token exchange error:', data)
+      logger.error({ err: data }, '[MetaCloudService] Token exchange error')
       throw new Error(data.error?.message || 'Failed to exchange code for token')
     }
 
-    console.log('[MetaCloudService] Token received:', {
-      access_token: data.access_token ? 'OK' : 'MISSING',
-      expires_in: data.expires_in,
-    })
+    logger.info({ context: { access_token: data.access_token ? 'OK' : 'MISSING', expires_in: data.expires_in } }, '[MetaCloudService] Token received')
 
     return data as { access_token: string; expires_in?: number }
   }
@@ -97,12 +89,11 @@ export class MetaCloudService {
   static async listWabas(
     accessToken: string
   ): Promise<Array<{ wabaId: string; wabaName: string; businessId: string }>> {
-    // First, try debug_token to get WABA IDs from granular scopes
-    console.log('[MetaCloudService] Fetching WABAs via debug_token...')
+    logger.info('[MetaCloudService] Fetching WABAs via debug_token...')
 
     try {
       const debugData = await this.debugToken(accessToken)
-      console.log('[MetaCloudService] Debug token response:', JSON.stringify(debugData, null, 2))
+      logger.info({ context: debugData }, '[MetaCloudService] Debug token response')
 
       const granularScopes = debugData.granular_scopes || []
       const wabaIds: string[] = []
@@ -113,13 +104,9 @@ export class MetaCloudService {
         }
       }
 
-      console.log(
-        `[MetaCloudService] Found ${wabaIds.length} WABA IDs from granular_scopes:`,
-        wabaIds
-      )
+      logger.info({ context: { count: wabaIds.length, wabaIds } }, '[MetaCloudService] Found WABA IDs from granular_scopes')
 
       if (wabaIds.length > 0) {
-        // Fetch WABA details for each ID
         const allWabas: Array<{ wabaId: string; wabaName: string; businessId: string }> = []
 
         for (const wabaId of wabaIds) {
@@ -131,8 +118,7 @@ export class MetaCloudService {
               businessId: wabaInfo.owner_business_info?.id || 'unknown',
             })
           } catch (err) {
-            console.warn(`[MetaCloudService] Failed to get info for WABA ${wabaId}:`, err)
-            // Still add it with minimal info
+            logger.warn({ err, context: { wabaId } }, '[MetaCloudService] Failed to get info for WABA')
             allWabas.push({
               wabaId,
               wabaName: 'WhatsApp Business',
@@ -144,27 +130,24 @@ export class MetaCloudService {
         return allWabas
       }
     } catch (err) {
-      console.warn('[MetaCloudService] debug_token failed, trying /me/businesses:', err)
+      logger.warn({ err }, '[MetaCloudService] debug_token failed, trying /me/businesses')
     }
 
-    // Fallback: try /me/businesses
     const url = `${GRAPH_API_URL}/${API_VERSION}/me/businesses?fields=id,name,client_whatsapp_business_accounts{id,name,currency,timezone_id}`
 
-    console.log('[MetaCloudService] Fallback: Fetching shared WABAs via /me/businesses...')
+    logger.info('[MetaCloudService] Fallback: Fetching shared WABAs via /me/businesses...')
 
     const response = await fetch(url, {
       headers: { Authorization: `Bearer ${accessToken}` },
     })
 
     const data = await response.json()
-    console.log('[MetaCloudService] /me/businesses response:', JSON.stringify(data, null, 2))
 
     if (!response.ok) {
-      console.error('[MetaCloudService] List WABAs error:', data)
+      logger.error({ err: data }, '[MetaCloudService] List WABAs error')
       throw new Error(data.error?.message || 'Failed to list WABAs')
     }
 
-    // Extract WABAs from all businesses
     const businesses = data.data || []
     const allWabas: Array<{ wabaId: string; wabaName: string; businessId: string }> = []
 
@@ -179,9 +162,7 @@ export class MetaCloudService {
       }
     }
 
-    console.log(
-      `[MetaCloudService] Found ${allWabas.length} WABAs from ${businesses.length} businesses`
-    )
+    logger.info({ context: { wabaCount: allWabas.length, businessCount: businesses.length } }, '[MetaCloudService] Found WABAs')
     return allWabas
   }
 
@@ -192,7 +173,7 @@ export class MetaCloudService {
   static async subscribeToWaba(wabaId: string, accessToken: string) {
     const url = `${GRAPH_API_URL}/${API_VERSION}/${wabaId}/subscribed_apps`
 
-    console.log('[MetaCloudService] ASSINANDO WEBHOOKS PARA WABA:', { wabaId, url })
+    logger.info({ context: { wabaId, url } }, '[MetaCloudService] Subscribing webhooks for WABA')
 
     const response = await fetch(url, {
       method: 'POST',
@@ -204,11 +185,11 @@ export class MetaCloudService {
     const data = await response.json()
 
     if (!response.ok) {
-      console.error('[MetaCloudService] ERRO NA ASSINATURA DE WEBHOOK (Meta):', data)
+      logger.error({ err: data }, '[MetaCloudService] Webhook subscription error')
       throw new Error(data.error?.message || 'Falha ao assinar webhooks da WABA')
     }
 
-    console.log('[MetaCloudService] SUCESSO NA ASSINATURA DE WEBHOOK:', data)
+    logger.info({ context: data }, '[MetaCloudService] Webhook subscription success')
     return data
   }
 
@@ -237,7 +218,7 @@ export class MetaCloudService {
       },
     }
 
-    console.log('[MetaCloudService] Sending template:', { url, payload })
+    logger.info({ context: { url, payload } }, '[MetaCloudService] Sending template')
 
     const response = await fetch(url, {
       method: 'POST',
@@ -251,7 +232,7 @@ export class MetaCloudService {
     const data = await response.json()
 
     if (!response.ok) {
-      console.error('[MetaCloudService] Send error:', data)
+      logger.error({ err: data }, '[MetaCloudService] Send error')
       throw new Error(data.error?.message || 'Failed to send WhatsApp message')
     }
 
@@ -265,7 +246,7 @@ export class MetaCloudService {
     const token = accessToken || this.accessToken
     const url = `${GRAPH_API_URL}/${API_VERSION}/${wabaId}/message_templates?limit=50`
 
-    console.log('[MetaCloudService] Fetching templates:', { url })
+    logger.info({ context: { url } }, '[MetaCloudService] Fetching templates')
 
     const response = await fetch(url, {
       method: 'GET',
@@ -277,7 +258,7 @@ export class MetaCloudService {
     const data = await response.json()
 
     if (!response.ok) {
-      console.error('[MetaCloudService] Fetch templates error:', data)
+      logger.error({ err: data }, '[MetaCloudService] Fetch templates error')
       throw new Error(data.error?.message || 'Failed to fetch templates')
     }
 
@@ -291,12 +272,7 @@ export class MetaCloudService {
     const token = accessToken || this.accessToken
     const url = `${GRAPH_API_URL}/${API_VERSION}/${wabaId}/message_templates`
 
-    console.log('[MetaCloudService] INICIANDO CRIAÇÃO DE TEMPLATE:', {
-      wabaId,
-      templateName: template.name,
-      url,
-    })
-    console.log('[MetaCloudService] PAYLOAD ENVIADO PARA META:', JSON.stringify(template, null, 2))
+    logger.info({ context: { wabaId, templateName: template.name, url } }, '[MetaCloudService] Creating template')
 
     const response = await fetch(url, {
       method: 'POST',
@@ -310,19 +286,16 @@ export class MetaCloudService {
     const data = await response.json()
 
     if (!response.ok) {
-      console.error('[MetaCloudService] ERRO NA RESPOSTA DA META:', JSON.stringify(data, null, 2))
-
-      // Tratamento detalhado de erro da Meta
       const metaError = data.error?.message || 'Erro desconhecido na API da Meta'
       const errorDetails = data.error?.error_data?.details || ''
       const errorParam = data.error?.error_subcode ? `(Subcode: ${data.error.error_subcode})` : ''
       const fullError = `${metaError} ${errorParam}${errorDetails ? ` - ${errorDetails}` : ''}`
 
-      console.error('[MetaCloudService] ERRO DETALHADO:', JSON.stringify(data.error, null, 2))
+      logger.error({ err: data.error }, '[MetaCloudService] Create template error')
       throw new Error(fullError)
     }
 
-    console.log('[MetaCloudService] TEMPLATE CRIADO COM SUCESSO:', data)
+    logger.info({ context: data }, '[MetaCloudService] Template created successfully')
     return data
   }
 
@@ -346,11 +319,7 @@ export class MetaCloudService {
     const token = accessToken || this.accessToken
     const url = `${GRAPH_API_URL}/${API_VERSION}/${templateId}`
 
-    console.log('[MetaCloudService] INICIANDO EDIÇÃO DE TEMPLATE:', {
-      templateId,
-      url,
-    })
-    console.log('[MetaCloudService] COMPONENTES ENVIADOS:', JSON.stringify(components, null, 2))
+    logger.info({ context: { templateId, url } }, '[MetaCloudService] Editing template')
 
     const response = await fetch(url, {
       method: 'POST',
@@ -364,13 +333,10 @@ export class MetaCloudService {
     const data = await response.json()
 
     if (!response.ok) {
-      console.error('[MetaCloudService] ERRO AO EDITAR TEMPLATE:', JSON.stringify(data, null, 2))
-
       const metaError = data.error?.message || 'Erro desconhecido na API da Meta'
       const errorCode = data.error?.code
       const errorSubcode = data.error?.error_subcode
 
-      // Specific error messages for common edit failures
       let userMessage = metaError
       if (errorCode === 100 && errorSubcode === 33) {
         userMessage =
@@ -379,10 +345,11 @@ export class MetaCloudService {
         userMessage = `Erro ao editar template: ${metaError}`
       }
 
+      logger.error({ err: data.error }, '[MetaCloudService] Edit template error')
       throw new Error(userMessage)
     }
 
-    console.log('[MetaCloudService] TEMPLATE EDITADO COM SUCESSO:', data)
+    logger.info({ context: data }, '[MetaCloudService] Template edited successfully')
     return data
   }
 
@@ -401,7 +368,7 @@ export class MetaCloudService {
     const token = accessToken || this.accessToken
     const url = `${GRAPH_API_URL}/${API_VERSION}/${wabaId}/message_templates?name=${name}`
 
-    console.log('[MetaCloudService] Deleting template:', { url, name })
+    logger.info({ context: { url, name } }, '[MetaCloudService] Deleting template')
 
     const response = await fetch(url, {
       method: 'DELETE',
@@ -413,7 +380,7 @@ export class MetaCloudService {
     const data = await response.json()
 
     if (!response.ok) {
-      console.error('[MetaCloudService] Delete template error:', data)
+      logger.error({ err: data }, '[MetaCloudService] Delete template error')
       throw new Error(data.error?.message || 'Failed to delete template')
     }
 
@@ -427,12 +394,7 @@ export class MetaCloudService {
     const token = accessToken || this.accessToken
     const url = `${GRAPH_API_URL}/${API_VERSION}/${wabaId}/phone_numbers?fields=display_phone_number,verified_name,status,quality_rating,throughput`
 
-    console.log('[MetaCloudService] DEBUG - AppID Enviado:', process.env.META_APP_ID)
-    console.log(
-      '[MetaCloudService] DEBUG - Token Usado (10 chars):',
-      token.substring(0, 10) + '...'
-    )
-    console.log('[MetaCloudService] Fetching phone numbers:', { url })
+    logger.info({ context: { url } }, '[MetaCloudService] Fetching phone numbers')
 
     const response = await fetch(url, {
       method: 'GET',
@@ -444,7 +406,7 @@ export class MetaCloudService {
     const data = await response.json()
 
     if (!response.ok) {
-      console.error('[MetaCloudService] Fetch phone numbers error:', data)
+      logger.error({ err: data }, '[MetaCloudService] Fetch phone numbers error')
       throw new Error(data.error?.message || 'Failed to fetch phone numbers')
     }
 
@@ -464,7 +426,7 @@ export class MetaCloudService {
     const token = accessToken || this.accessToken
     const url = `${GRAPH_API_URL}/${API_VERSION}/${phoneId}/whatsapp_business_profile`
 
-    console.log('[MetaCloudService] Fetching business profile:', { url })
+    logger.info({ context: { url } }, '[MetaCloudService] Fetching business profile')
 
     const response = await fetch(url, {
       method: 'GET',
@@ -476,7 +438,7 @@ export class MetaCloudService {
     const data = await response.json()
 
     if (!response.ok) {
-      console.error('[MetaCloudService] Fetch business profile error:', data)
+      logger.error({ err: data }, '[MetaCloudService] Fetch business profile error')
       throw new Error(data.error?.message || 'Failed to fetch business profile')
     }
 
@@ -490,7 +452,7 @@ export class MetaCloudService {
     const token = accessToken || this.accessToken
     const url = `${GRAPH_API_URL}/${API_VERSION}/${wabaId}`
 
-    console.log('[MetaCloudService] Fetching account info:', { url })
+    logger.info({ context: { url } }, '[MetaCloudService] Fetching account info')
 
     const response = await fetch(url, {
       method: 'GET',
@@ -502,7 +464,7 @@ export class MetaCloudService {
     const data = await response.json()
 
     if (!response.ok) {
-      console.error('[MetaCloudService] Fetch account info error:', data)
+      logger.error({ err: data }, '[MetaCloudService] Fetch account info error')
       throw new Error(data.error?.message || 'Failed to fetch account info')
     }
 
@@ -531,7 +493,7 @@ export class MetaCloudService {
       url += `&after=${after}`
     }
 
-    console.log('[MetaCloudService] Fetching message history:', { url })
+    logger.info({ context: { url } }, '[MetaCloudService] Fetching message history')
 
     const response = await fetch(url, {
       method: 'GET',
@@ -543,7 +505,7 @@ export class MetaCloudService {
     const data = await response.json()
 
     if (!response.ok) {
-      console.error('[MetaCloudService] Fetch message history error:', data)
+      logger.error({ err: data }, '[MetaCloudService] Fetch message history error')
       throw new Error(data.error?.message || 'Failed to fetch message history')
     }
 
@@ -564,7 +526,7 @@ export class MetaCloudService {
     const token = accessToken || this.accessToken
     const url = `${GRAPH_API_URL}/${API_VERSION}/${phoneId}/deregister`
 
-    console.log('[MetaCloudService] Deregistering phone:', { url })
+    logger.info({ context: { url } }, '[MetaCloudService] Deregistering phone')
 
     const response = await fetch(url, {
       method: 'POST',
@@ -577,7 +539,7 @@ export class MetaCloudService {
     const data = await response.json()
 
     if (!response.ok) {
-      console.error('[MetaCloudService] Deregister error:', data)
+      logger.error({ err: data }, '[MetaCloudService] Deregister error')
       throw new Error(data.error?.message || 'Failed to deregister phone')
     }
 
@@ -589,7 +551,6 @@ export class MetaCloudService {
    * Reads from the database only. Use the seed to populate development data.
    */
   static async getConfig(organizationId: string) {
-    // Retorna a config mais recente por padrão (compatibilidade)
     const config = await prisma.whatsAppConfig.findFirst({
       where: { organizationId },
       orderBy: { updatedAt: 'desc' },
@@ -634,7 +595,7 @@ export class MetaCloudService {
 
     const url = `${GRAPH_API_URL}/${API_VERSION}/debug_token?input_token=${encodeURIComponent(inputToken)}`
 
-    console.log('[MetaCloudService] Debugging token...')
+    logger.info('[MetaCloudService] Debugging token...')
 
     const response = await fetch(url, {
       method: 'GET',
@@ -646,7 +607,7 @@ export class MetaCloudService {
     const data = await response.json()
 
     if (!response.ok) {
-      console.error('[MetaCloudService] Debug token error:', data)
+      logger.error({ err: data }, '[MetaCloudService] Debug token error')
       throw new Error(data.error?.message || 'Failed to debug token')
     }
 
@@ -662,7 +623,7 @@ export class MetaCloudService {
   static async unsubscribeFromWaba(wabaId: string, accessToken: string) {
     const url = `${GRAPH_API_URL}/${API_VERSION}/${wabaId}/subscribed_apps`
 
-    console.log('[MetaCloudService] Unsubscribing webhooks for WABA:', { wabaId })
+    logger.info({ context: { wabaId } }, '[MetaCloudService] Unsubscribing webhooks for WABA')
 
     const response = await fetch(url, {
       method: 'DELETE',
@@ -674,11 +635,11 @@ export class MetaCloudService {
     const data = await response.json()
 
     if (!response.ok) {
-      console.error('[MetaCloudService] Unsubscribe error:', data)
+      logger.error({ err: data }, '[MetaCloudService] Unsubscribe error')
       throw new Error(data.error?.message || 'Failed to unsubscribe from WABA')
     }
 
-    console.log('[MetaCloudService] Successfully unsubscribed from WABA:', wabaId)
+    logger.info({ context: { wabaId } }, '[MetaCloudService] Successfully unsubscribed from WABA')
     return data
   }
 }

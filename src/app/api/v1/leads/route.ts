@@ -6,6 +6,7 @@ import {
 } from '@/schemas/leads/lead-schemas'
 import { createLead, LeadConflictError, listLeads } from '@/services/leads/lead.service'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import { logger } from '@/lib/utils/logger'
 
 export async function POST(req: Request) {
   const access = await validateFullAccess(req)
@@ -24,7 +25,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(lead, { status: 201 })
   } catch (error) {
-    console.error('[api/leads] POST error:', error)
+    logger.error({ err: error }, '[api/leads] POST error')
 
     if (error instanceof LeadConflictError) {
       if (error.field === 'phone') {
@@ -65,7 +66,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json(payload)
   } catch (error) {
-    console.error('[api/leads] GET error:', error)
+    logger.error({ err: error }, '[api/leads] GET error')
     return apiError('Failed to fetch leads', 500, error)
   }
 }

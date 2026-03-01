@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { cancelRequestSchema, cancelResponseSchema } from '@/schemas/billing/billing-schemas'
 import { cancelSubscription, SubscriptionNotFoundError } from '@/services/billing/billing-subscription.service'
+import { logger } from '@/lib/utils/logger'
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   // Auth check
@@ -57,7 +58,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       )
     }
 
-    console.error('Subscription cancellation error:', error)
+    logger.error({ err: error }, 'Subscription cancellation error')
     return NextResponse.json(
       { error: 'Failed to cancel subscription' },
       { status: 500 }

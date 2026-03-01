@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db/prisma'
 import { publishToCentrifugo } from '@/lib/centrifugo/server'
+import { logger } from '@/lib/utils/logger'
 
 /**
  * Status Handler
@@ -18,7 +19,7 @@ export async function statusHandler(payload: any): Promise<void> {
   const value = change?.value
 
   if (!value?.statuses || !Array.isArray(value.statuses)) {
-    console.warn('[StatusHandler] No statuses found in payload')
+    logger.warn('[StatusHandler] No statuses found in payload')
     return
   }
 
@@ -26,7 +27,7 @@ export async function statusHandler(payload: any): Promise<void> {
   const phoneNumberId = metadata?.phone_number_id
 
   if (!phoneNumberId) {
-    console.warn('[StatusHandler] Missing phone_number_id')
+    logger.warn('[StatusHandler] Missing phone_number_id')
     return
   }
 
@@ -36,11 +37,11 @@ export async function statusHandler(payload: any): Promise<void> {
   })
 
   if (!config) {
-    console.warn(`[StatusHandler] Config not found for phoneId: ${phoneNumberId}`)
+    logger.warn(`[StatusHandler] Config not found for phoneId: ${phoneNumberId}`)
     return
   }
 
-  console.log(`[StatusHandler] Processing ${value.statuses.length} status updates`)
+  logger.info(`[StatusHandler] Processing ${value.statuses.length} status updates`)
 
   for (const status of value.statuses) {
     try {
@@ -49,7 +50,7 @@ export async function statusHandler(payload: any): Promise<void> {
       const timestamp = status.timestamp
 
       if (!wamid || !newStatus) {
-        console.warn('[StatusHandler] Status missing id or status field')
+        logger.warn('[StatusHandler] Status missing id or status field')
         continue
       }
 
@@ -65,7 +66,7 @@ export async function statusHandler(payload: any): Promise<void> {
 
       if (!message) {
         // Message not found - could be a message we didn't track
-        console.log(`[StatusHandler] Message not found: ${wamid}`)
+        logger.info(`[StatusHandler] Message not found: ${wamid}`)
         continue
       }
 
@@ -83,7 +84,7 @@ export async function statusHandler(payload: any): Promise<void> {
 
       // Always update if failed, or if new status is better
       if (newStatus !== 'failed' && newPriority <= currentPriority) {
-        console.log(
+        logger.info(
           `[StatusHandler] Skipping ${wamid}: ${message.status} -> ${newStatus} (not an upgrade)`
         )
         continue
@@ -95,7 +96,7 @@ export async function statusHandler(payload: any): Promise<void> {
         data: { status: newStatus },
       })
 
-      console.log(`[StatusHandler] Updated ${wamid}: ${message.status} -> ${newStatus}`)
+      logger.info(`[StatusHandler] Updated ${wamid}: ${message.status} -> ${newStatus}`)
 
       // Publish real-time event
       await publishToCentrifugo(`org:${config.organizationId}:messages`, {
@@ -107,9 +108,9 @@ export async function statusHandler(payload: any): Promise<void> {
         timestamp,
       })
 
-      console.log(`[StatusHandler] ✓ Published status update for ${wamid}`)
+      logger.info(`[StatusHandler] ✓ Published status update for ${wamid}`)
     } catch (error) {
-      console.error('[StatusHandler] Error processing status', error)
+      logger.error({ err: error }, '[StatusHandler] Error processing status')
       // Continue with next status
     }
   }

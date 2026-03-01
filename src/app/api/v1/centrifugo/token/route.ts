@@ -3,6 +3,7 @@ import { createHmac } from 'crypto'
 import { apiError } from '@/lib/utils/api-response'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { rateLimitMiddleware } from '@/lib/utils/rate-limit.middleware'
+import { logger } from '@/lib/utils/logger'
 
 /**
  * GET /api/v1/centrifugo/token
@@ -32,7 +33,7 @@ export async function GET(request: NextRequest) {
     const secret = process.env.CENTRIFUGO_TOKEN_HMAC_SECRET_KEY
 
     if (!secret) {
-      console.error('[Centrifugo] CENTRIFUGO_TOKEN_HMAC_SECRET_KEY not configured')
+      logger.error('[Centrifugo] CENTRIFUGO_TOKEN_HMAC_SECRET_KEY not configured')
       return apiError('Server configuration error', 500)
     }
 
@@ -61,7 +62,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ token }, { status: 200 })
   } catch (error) {
-    console.error('[Centrifugo] Token generation error:', error)
+    logger.error({ err: error }, '[Centrifugo] Token generation error')
     return apiError('Failed to generate token', 500, error)
   }
 }

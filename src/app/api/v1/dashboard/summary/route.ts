@@ -4,6 +4,7 @@ import { apiError } from '@/lib/utils/api-response'
 import { dashboardSummaryQuerySchema } from '@/schemas/dashboard/dashboard-schemas'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { getDashboardSummary } from '@/services/dashboard/dashboard-summary.service'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET(request: Request) {
   const access = await validateFullAccess(request)
@@ -23,7 +24,7 @@ export async function GET(request: Request) {
     const payload = await getDashboardSummary(access.organizationId, parsed.data)
     return NextResponse.json(payload)
   } catch (error) {
-    console.error('[api/dashboard/summary] GET error:', error)
+    logger.error({ err: error }, '[api/dashboard/summary] GET error')
     return apiError('Falha ao gerar resumo', 500, error)
   }
 }

@@ -11,6 +11,7 @@ import {
   listItemCategories,
   type ListItemCategoriesParams,
 } from '@/services/item-categories/item-category.service'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET(request: Request) {
   try {
@@ -42,7 +43,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(await listItemCategories(payload))
   } catch (error) {
-    console.error('[api/item-categories] GET error', error)
+    logger.error({ err: error }, '[api/item-categories] GET error')
     return apiError('Failed to load categories', 500, error)
   }
 }
@@ -69,7 +70,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(result, { status: 201 })
   } catch (error) {
-    console.error('[api/item-categories] POST error', error)
+    logger.error({ err: error }, '[api/item-categories] POST error')
     return apiError('Failed to create category', 500, error)
   }
 }

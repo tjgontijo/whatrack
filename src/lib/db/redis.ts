@@ -1,4 +1,5 @@
 import { Redis } from 'ioredis'
+import { logger } from '@/lib/utils/logger'
 
 let redis: Redis | null = null
 let isConnected = false
@@ -24,13 +25,13 @@ export function getRedis(): Redis {
       // Parse URL for logging (hide password)
       const urlObj = new URL(redisUrl)
       const safeUrl = `${urlObj.protocol}//${urlObj.hostname}:${urlObj.port}`
-      console.log('[Redis] Connecting to:', safeUrl)
+      logger.info({ context: safeUrl }, '[Redis] Connecting to')
 
       redis = new Redis(redisUrl, {
         retryStrategy: (times) => {
           const delay = Math.min(times * 50, 2000)
           if (times > 10) {
-            console.error('[Redis] Max retries exceeded')
+            logger.error('[Redis] Max retries exceeded')
             return null
           }
           return delay
@@ -43,28 +44,28 @@ export function getRedis(): Redis {
 
       redis.on('connect', () => {
         isConnected = true
-        console.log('[Redis] ✓ Connected successfully')
+        logger.info('[Redis] ✓ Connected successfully')
       })
 
       redis.on('ready', () => {
-        console.log('[Redis] ✓ Ready for commands')
+        logger.info('[Redis] ✓ Ready for commands')
       })
 
       redis.on('error', (err) => {
-        console.error('[Redis] ✗ Error:', err.message)
+        logger.error({ err: err.message }, '[Redis] ✗ Error')
         isConnected = false
       })
 
       redis.on('close', () => {
         isConnected = false
-        console.log('[Redis] ✗ Connection closed')
+        logger.info('[Redis] ✗ Connection closed')
       })
 
       redis.on('reconnecting', (info: any) => {
-        console.log(`[Redis] Reconnecting... (attempt ${info?.attempt || '?'})`)
+        logger.info(`[Redis] Reconnecting... (attempt ${info?.attempt || '?'})`)
       })
     } catch (error) {
-      console.error('[Redis] ✗ Failed to initialize:', error)
+      logger.error({ err: error }, '[Redis] ✗ Failed to initialize')
       throw error
     }
   }

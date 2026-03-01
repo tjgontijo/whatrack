@@ -4,11 +4,12 @@ import { apiError } from '@/lib/utils/api-response'
 import { whatsappClaimWabaSchema } from '@/schemas/whatsapp/whatsapp-schemas'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { claimWhatsAppWaba } from '@/services/whatsapp/whatsapp-config.service'
+import { logger } from '@/lib/utils/logger'
 
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: Request) {
-  console.warn(
+  logger.warn(
     '[DEPRECATED] POST /api/v1/whatsapp/claim-waba is deprecated as of v2.1. Use webhook-based onboarding instead.'
   )
 
@@ -53,7 +54,7 @@ export async function POST(request: Request) {
     )
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to claim WABA'
-    console.error('[API] Claim WABA Error:', error)
+    logger.error({ err: error }, '[API] Claim WABA Error')
     return apiError(message, 500, error)
   }
 }

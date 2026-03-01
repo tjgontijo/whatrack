@@ -2,6 +2,7 @@ import { prisma } from '@/lib/db/prisma'
 import { metaAccessTokenService } from './access-token.service'
 import crypto from 'crypto'
 import axios from 'axios'
+import { logger } from '@/lib/utils/logger'
 
 function requireEnv(name: string): string {
   const value = process.env[name]
@@ -61,7 +62,7 @@ export class MetaCapiService {
     })
 
     if (!ticket || !ticket.tracking || !ticket.tracking.ctwaclid) {
-      console.log(`[CAPI] Skipping ticket ${ticketId}: No CTWA CLID found.`)
+      logger.info(`[CAPI] Skipping ticket ${ticketId}: No CTWA CLID found.`)
       return
     }
 
@@ -69,7 +70,7 @@ export class MetaCapiService {
     let targetPixels = ticket.organization.metaPixels
 
     if (!targetPixels || targetPixels.length === 0) {
-      console.warn(`[CAPI] No Pixels found for organization ${ticket.organizationId}.`)
+      logger.warn(`[CAPI] No Pixels found for organization ${ticket.organizationId}.`)
       return
     }
 
@@ -80,7 +81,7 @@ export class MetaCapiService {
     // 3. Send event to each pixel asynchronously
     for (const pixel of targetPixels) {
       if (!pixel.capiToken) {
-        console.warn(`[CAPI] Skipping pixel ${pixel.pixelId}: No CAPI Token configured.`)
+        logger.warn(`[CAPI] Skipping pixel ${pixel.pixelId}: No CAPI Token configured.`)
         continue
       }
 
@@ -136,12 +137,12 @@ export class MetaCapiService {
           },
         })
 
-        console.log(
+        logger.info(
           `[CAPI] Successfully sent ${eventName} to pixel ${pixel.pixelId} for ticket ${ticketId}`
         )
       } catch (error: any) {
         const errorMsg = error?.response?.data?.error?.message || error.message
-        console.error(`[CAPI] Error sending ${eventName} to pixel ${pixel.pixelId}:`, errorMsg)
+        logger.error({ err: errorMsg }, `[CAPI] Error sending ${eventName} to pixel ${pixel.pixelId}`)
 
         await prisma.metaConversionEvent.upsert({
           where: { ticketId_eventName: { ticketId, eventName } },

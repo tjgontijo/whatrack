@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db/prisma'
+import { logger } from '@/lib/utils/logger'
 
 export type WhatsAppAuditAction =
   | 'ONBOARDING_STARTED'
@@ -47,9 +48,9 @@ export class WhatsAppAuditService {
         },
       })
 
-      console.log(`[AuditLog] ${input.action}: ${input.description || ''}`)
+      logger.info(`[AuditLog] ${input.action}: ${input.description || ''}`)
     } catch (error) {
-      console.error('[AuditLog] Error logging audit event:', error)
+      logger.error({ err: error }, '[AuditLog] Error logging audit event')
       // Don't throw - audit logging failure shouldn't break the main flow
     }
   }

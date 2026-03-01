@@ -11,6 +11,7 @@ import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { eventRecordingRequestSchema, eventRecordingResponseSchema } from '@/schemas/billing/billing-schemas'
 import { rateLimitMiddleware } from '@/lib/utils/rate-limit.middleware'
 import { recordEvent, NoActiveSubscriptionError } from '@/services/billing/billing-metering.service'
+import { logger } from '@/lib/utils/logger'
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   // Rate limit check (stricter for events)
@@ -69,7 +70,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       )
     }
 
-    console.error('Event recording error:', error)
+    logger.error({ err: error }, 'Event recording error')
     return NextResponse.json(
       { error: 'Failed to record event' },
       { status: 500 }

@@ -4,6 +4,7 @@ import { messageHandler } from './handlers/message.handler'
 import { statusHandler } from './handlers/status.handler'
 import { historyHandler } from './handlers/history.handler'
 import { stateSyncHandler } from './handlers/state-sync.handler'
+import { logger } from '@/lib/utils/logger'
 
 /**
  * WhatsApp Webhook Processor
@@ -20,11 +21,11 @@ export class WebhookProcessor {
       const eventType = this.extractEventType(payload)
 
       if (!eventType) {
-        console.warn('[WebhookProcessor] No event type found in payload')
+        logger.warn('[WebhookProcessor] No event type found in payload')
         return
       }
 
-      console.log(`[WebhookProcessor] Processing event: ${eventType}`)
+      logger.info(`[WebhookProcessor] Processing event: ${eventType}`)
 
       // Route to appropriate handler
       switch (eventType) {
@@ -59,14 +60,14 @@ export class WebhookProcessor {
 
         case 'message_template_status_update':
           // TODO: Handle template approvals
-          console.log('[WebhookProcessor] Template updates not yet implemented')
+          logger.info('[WebhookProcessor] Template updates not yet implemented')
           break
 
         default:
-          console.warn(`[WebhookProcessor] Unknown event type: ${eventType}`)
+          logger.warn(`[WebhookProcessor] Unknown event type: ${eventType}`)
       }
     } catch (error) {
-      console.error('[WebhookProcessor] Error processing webhook', error)
+      logger.error({ err: error }, '[WebhookProcessor] Error processing webhook')
       throw error // Re-throw to mark as unprocessed for DLQ
     }
   }
@@ -82,10 +83,10 @@ export class WebhookProcessor {
    * - smb_app_state_sync (PRD: WhatsApp History Sync - contact sync)
    */
   private extractEventType(payload: any): string | null {
-    console.log('[WebhookProcessor.extractEventType] Payload:', JSON.stringify(payload, null, 2))
+    logger.info({ context: payload }, '[WebhookProcessor.extractEventType] Payload')
 
     if (!payload?.entry?.[0]?.changes?.[0]) {
-      console.warn('[WebhookProcessor.extractEventType] Missing entry/changes structure')
+      logger.warn('[WebhookProcessor.extractEventType] Missing entry/changes structure')
       return null
     }
 
@@ -93,11 +94,11 @@ export class WebhookProcessor {
     const field = change.field
     const value = change.value
 
-    console.log('[WebhookProcessor.extractEventType] Field:', field, 'Has value:', !!value)
+    logger.info({ context: { field, hasValue: !!value } }, '[WebhookProcessor.extractEventType] Field')
 
     // Account update events (PARTNER_ADDED, PARTNER_REMOVED, etc)
     if (field === 'account_update') {
-      console.log('[WebhookProcessor.extractEventType] Account update event:', value?.event)
+      logger.info({ context: value?.event }, '[WebhookProcessor.extractEventType] Account update event')
       return value?.event || null
     }
 
@@ -106,10 +107,10 @@ export class WebhookProcessor {
     if (field === 'messages') {
       // Check if it's actually a status update
       if (value?.statuses && !value?.messages) {
-        console.log('[WebhookProcessor.extractEventType] Detected status update in messages field')
+        logger.info('[WebhookProcessor.extractEventType] Detected status update in messages field')
         return 'statuses'
       }
-      console.log('[WebhookProcessor.extractEventType] Found matching field:', field)
+      logger.info({ context: field }, '[WebhookProcessor.extractEventType] Found matching field')
       return field
     }
 
@@ -120,11 +121,11 @@ export class WebhookProcessor {
       field === 'smb_app_state_sync' || // ✅ Contact sync webhook
       field === 'smb_message_echoes' // ✅ Messages sent from mobile app
     ) {
-      console.log('[WebhookProcessor.extractEventType] Found matching field:', field)
+      logger.info({ context: field }, '[WebhookProcessor.extractEventType] Found matching field')
       return field
     }
 
-    console.warn('[WebhookProcessor.extractEventType] No matching field type')
+    logger.warn('[WebhookProcessor.extractEventType] No matching field type')
     return null
   }
 }

@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db/prisma'
+import { logger } from '@/lib/utils/logger'
 
 /**
  * History Handler - PRD: WhatsApp History Sync
@@ -58,11 +59,11 @@ export async function historyHandler(payload: any): Promise<void> {
     throw new Error(`WhatsAppConfig not found for phoneId: ${phoneNumberId}`)
   }
 
-  console.log('[HistoryHandler] Processing history webhook')
+  logger.info('[HistoryHandler] Processing history webhook')
 
   const historyData = value.history || []
   if (!Array.isArray(historyData) || historyData.length === 0) {
-    console.warn('[HistoryHandler] No history data found in payload')
+    logger.warn('[HistoryHandler] No history data found in payload')
     return
   }
 
@@ -73,7 +74,7 @@ export async function historyHandler(payload: any): Promise<void> {
   const chunkOrder = chunkMetadata.chunk_order
   const progress = chunkMetadata.progress || 0
 
-  console.log(`[HistoryHandler] Phase: ${phase}, Chunk: ${chunkOrder}, Progress: ${progress}%`)
+  logger.info(`[HistoryHandler] Phase: ${phase}, Chunk: ${chunkOrder}, Progress: ${progress}%`)
 
   // Create sync log entry
   const syncLog = await prisma.whatsAppHistorySync.create({
@@ -101,14 +102,11 @@ export async function historyHandler(payload: any): Promise<void> {
       const username = thread.context?.username
 
       if (!waId) {
-        console.warn(
-          '[HistoryHandler] Thread missing wa_id, skipping:',
-          JSON.stringify(thread).substring(0, 200)
-        )
+        logger.warn({ context: JSON.stringify(thread).substring(0, 200) }, '[HistoryHandler] Thread missing wa_id, skipping:')
         continue
       }
 
-      console.log(
+      logger.info(
         `[HistoryHandler] Processing thread for waId: ${waId}, messages: ${thread.messages?.length || 0}`
       )
 
@@ -166,7 +164,7 @@ export async function historyHandler(payload: any): Promise<void> {
           const messageId = msg.id
 
           if (!messageId || !fromPhone) {
-            console.warn('[HistoryHandler] Message missing id or from')
+            logger.warn('[HistoryHandler] Message missing id or from')
             continue
           }
 
@@ -207,17 +205,17 @@ export async function historyHandler(payload: any): Promise<void> {
           })
 
           totalMessagesImported++
-          console.log(`[HistoryHandler] Message upserted: ${createdMessage.id}`)
+          logger.info(`[HistoryHandler] Message upserted: ${createdMessage.id}`)
         } catch (msgError) {
-          console.error('[HistoryHandler] Error importing message', msgError)
+          logger.error({ err: msgError }, '[HistoryHandler] Error importing message')
           // Continue with next message instead of failing
         }
       }
 
       totalThreadsProcessed++
-      console.log(`[HistoryHandler] Thread processed: ${thread.id}, ${messages.length} messages`)
+      logger.info(`[HistoryHandler] Thread processed: ${thread.id}, ${messages.length} messages`)
     } catch (threadError) {
-      console.error('[HistoryHandler] Error processing thread', threadError)
+      logger.error({ err: threadError }, '[HistoryHandler] Error processing thread')
       // Continue with next thread instead of failing
     }
   }
@@ -252,7 +250,7 @@ export async function historyHandler(payload: any): Promise<void> {
     },
   })
 
-  console.log(
+  logger.info(
     `[HistoryHandler] Completed: ${totalThreadsProcessed} threads, ` +
       `${totalMessagesImported} messages imported, progress: ${progress}%`
   )

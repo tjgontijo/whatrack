@@ -7,6 +7,7 @@ import {
   getOrganizationCompany,
   saveOrganizationCompany,
 } from '@/services/company/company.service'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET(request: NextRequest) {
   const access = await validateFullAccess(request)
@@ -23,7 +24,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(company)
   } catch (error) {
-    console.error('[api/v1/company] GET error:', error)
+    logger.error({ err: error }, '[api/v1/company] GET error')
     return apiError('Erro ao buscar dados da empresa', 500, error)
   }
 }
@@ -48,7 +49,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result.data, { status: result.status })
   } catch (error) {
-    console.error('[api/v1/company] POST error:', error)
+    logger.error({ err: error }, '[api/v1/company] POST error')
 
     if (error instanceof Error && error.message.includes('Unique constraint')) {
       return apiError('Este CNPJ já está vinculado a outra organização', 409, error)

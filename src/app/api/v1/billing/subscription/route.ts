@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { subscriptionResponseSchema } from '@/schemas/billing/billing-schemas'
 import { getActiveSubscription, SubscriptionNotFoundError } from '@/services/billing/billing-subscription.service'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   // Auth check
@@ -49,7 +50,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       )
     }
 
-    console.error('Subscription fetch error:', error)
+    logger.error({ err: error }, 'Subscription fetch error')
     return NextResponse.json(
       { error: 'Failed to fetch subscription' },
       { status: 500 }

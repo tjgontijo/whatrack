@@ -3,6 +3,7 @@ import { getRedis } from '@/lib/db/redis'
 import { WebhookProcessor } from '@/services/whatsapp/webhook-processor'
 import { resendProvider } from '@/services/mail/resend'
 import { generateWebhookFailureAlertEmail } from '@/services/mail/templates/WebhookFailureAlertEmail'
+import { logger } from '@/lib/utils/logger'
 
 const MAX_RETRIES = 3
 const ALERT_THROTTLE_SECONDS = 3600 // 1 alert per webhook per hour
@@ -27,7 +28,7 @@ async function sendWebhookFailureAlert(log: {
   }
 
   if (!log.organizationId) {
-    console.warn(`[WebhookRetryJob] No organizationId for webhook ${log.id}, skipping alert`)
+    logger.warn(`[WebhookRetryJob] No organizationId for webhook ${log.id}, skipping alert`)
     return
   }
 
@@ -39,7 +40,7 @@ async function sendWebhookFailureAlert(log: {
     })
 
     if (!membership?.user?.email) {
-      console.warn(`[WebhookRetryJob] No owner found for org ${log.organizationId}, skipping alert`)
+      logger.warn(`[WebhookRetryJob] No owner found for org ${log.organizationId}, skipping alert`)
       return
     }
 
@@ -64,9 +65,9 @@ async function sendWebhookFailureAlert(log: {
       text: emailContent.text,
     })
 
-    console.log(`[WebhookRetryJob] Alert sent to ${membership.user.email} for webhook ${log.id}`)
+    logger.info(`[WebhookRetryJob] Alert sent to ${membership.user.email} for webhook ${log.id}`)
   } catch (alertError) {
-    console.error(`[WebhookRetryJob] Failed to send alert for webhook ${log.id}:`, alertError)
+    logger.error({ err: alertError }, `[WebhookRetryJob] Failed to send alert for webhook ${log.id}`)
   }
 }
 
@@ -87,7 +88,7 @@ async function sendWebhookFailureAlert(log: {
  */
 
 export async function webhookRetryJob(job: any): Promise<void> {
-  console.log('[WebhookRetryJob] Starting webhook retry processing')
+  logger.info('[WebhookRetryJob] Starting webhook retry processing')
 
   try {
     // Find all unprocessed webhooks that haven't exceeded max retries
@@ -101,7 +102,7 @@ export async function webhookRetryJob(job: any): Promise<void> {
       take: 50, // Process max 50 per job
     })
 
-    console.log(`[WebhookRetryJob] Found ${failedWebhooks.length} webhooks to retry`)
+    logger.info(`[WebhookRetryJob] Found ${failedWebhooks.length} webhooks to retry`)
 
     let successCount = 0
     let failCount = 0
@@ -113,14 +114,14 @@ export async function webhookRetryJob(job: any): Promise<void> {
         const shouldRetry = checkExponentialBackoff(log.createdAt, log.retryCount)
 
         if (!shouldRetry) {
-          console.log(
+          logger.info(
             `[WebhookRetryJob] Webhook ${log.id} not ready for retry yet (exponential backoff)`
           )
           skipCount++
           continue
         }
 
-        console.log(
+        logger.info(
           `[WebhookRetryJob] Retrying webhook ${log.id} (attempt ${log.retryCount + 1}/3)`
         )
 
@@ -135,10 +136,10 @@ export async function webhookRetryJob(job: any): Promise<void> {
           },
         })
 
-        console.log(`[WebhookRetryJob] Successfully retried webhook ${log.id}`)
+        logger.info(`[WebhookRetryJob] Successfully retried webhook ${log.id}`)
         successCount++
       } catch (error) {
-        console.error(`[WebhookRetryJob] Error retrying webhook ${log.id}:`, error)
+        logger.error({ err: error }, `[WebhookRetryJob] Error retrying webhook ${log.id}`)
 
         // Update retry count and last retry time
         await prisma.whatsAppWebhookLog.update({
@@ -154,7 +155,7 @@ export async function webhookRetryJob(job: any): Promise<void> {
 
         // Alert if webhook exceeded max retries
         if (log.retryCount + 1 >= MAX_RETRIES) {
-          console.error(
+          logger.error(
             `[WebhookRetryJob] ALERT: Webhook ${log.id} exceeded max retries (${MAX_RETRIES}/${MAX_RETRIES})`
           )
           await sendWebhookFailureAlert({
@@ -165,11 +166,11 @@ export async function webhookRetryJob(job: any): Promise<void> {
       }
     }
 
-    console.log(
+    logger.info(
       `[WebhookRetryJob] Completed: ${successCount} success, ${failCount} failed, ${skipCount} skipped`
     )
   } catch (error) {
-    console.error('[WebhookRetryJob] Fatal error:', error)
+    logger.error({ err: error }, '[WebhookRetryJob] Fatal error')
     throw error
   }
 }

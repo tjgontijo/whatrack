@@ -5,6 +5,7 @@ import { revalidateTag } from 'next/cache'
 import { updateSaleSchema } from '@/schemas/sales/sale-schemas'
 import { deleteSale, updateSale } from '@/services/sales/sale.service'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import { logger } from '@/lib/utils/logger'
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ saleId: string }> }) {
   const access = await validateFullAccess(req)
@@ -33,7 +34,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ sale
 
     return NextResponse.json(updated)
   } catch (error) {
-    console.error('[api/sales/[saleId]] PUT error:', error)
+    logger.error({ err: error }, '[api/sales/[saleId]] PUT error')
     return apiError('Falha ao atualizar venda', 500, error)
   }
 }
@@ -63,7 +64,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('[api/sales/[saleId]] DELETE error:', error)
+    logger.error({ err: error }, '[api/sales/[saleId]] DELETE error')
     return apiError('Falha ao deletar venda', 500, error)
   }
 }

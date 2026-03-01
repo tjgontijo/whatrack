@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/utils/api-response'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { getEfficiencyMetrics } from '@/services/analytics'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET(req: NextRequest) {
   try {
@@ -22,7 +23,7 @@ export async function GET(req: NextRequest) {
     const data = await getEfficiencyMetrics(access.organizationId, startDate, endDate)
     return NextResponse.json(data)
   } catch (error) {
-    console.error('[Analytics Efficiency API] GET Error:', error)
+    logger.error({ err: error }, '[Analytics Efficiency API] GET Error')
     return apiError('Internal Server Error', 500, error)
   }
 }

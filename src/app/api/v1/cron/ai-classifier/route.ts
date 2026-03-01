@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 
 import { apiError } from '@/lib/utils/api-response'
 import { runAiClassifierCron } from '@/services/ai/ai-classifier-cron.service'
+import { logger } from '@/lib/utils/logger'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -24,7 +25,7 @@ export async function GET(request: Request) {
       timestamp: new Date().toISOString(),
     })
   } catch (error) {
-    console.error('[Cron AI Copilot] Fatal error:', error)
+    logger.error({ err: error }, '[Cron AI Copilot] Fatal error')
     return apiError('Internal Server Error', 500, error)
   }
 }

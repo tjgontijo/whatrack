@@ -4,6 +4,7 @@ import { apiError } from '@/lib/utils/api-response'
 import { aiInsightsQuerySchema } from '@/schemas/ai/ai-schemas'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { listAiInsights } from '@/services/ai/ai-insight-query.service'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET(request: NextRequest) {
   try {
@@ -20,7 +21,7 @@ export async function GET(request: NextRequest) {
     const insights = await listAiInsights(access.organizationId, parsed.data.status)
     return NextResponse.json({ items: insights })
   } catch (error) {
-    console.error('[GET ai-insights] Error:', error)
+    logger.error({ err: error }, '[GET ai-insights] Error')
     return apiError('Internal server error', 500, error)
   }
 }

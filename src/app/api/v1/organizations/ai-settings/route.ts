@@ -7,6 +7,7 @@ import {
   getOrganizationAiSettings,
   updateOrganizationAiSettings,
 } from '@/services/organizations/organization-management.service'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,7 +18,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(await getOrganizationAiSettings(access.organizationId))
   } catch (error) {
-    console.error('[GET ai-settings] Error:', error)
+    logger.error({ err: error }, '[GET ai-settings] Error')
     return apiError('Erro ao buscar configurações de IA', 500, error)
   }
 }
@@ -42,7 +43,7 @@ export async function PATCH(request: NextRequest) {
       })
     )
   } catch (error) {
-    console.error('[PATCH ai-settings] Error:', error)
+    logger.error({ err: error }, '[PATCH ai-settings] Error')
     return apiError('Erro ao salvar configurações de IA', 500, error)
   }
 }
