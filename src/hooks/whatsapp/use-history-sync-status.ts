@@ -2,7 +2,8 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { useOrganization } from '@/hooks/organization/use-organization'
-import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
+import { apiFetch } from '@/lib/api-client'
+
 
 interface HistorySyncStatus {
   status: string | null
@@ -11,16 +12,19 @@ interface HistorySyncStatus {
   isLoading: boolean
 }
 
-async function fetchSyncStatus(configId: string, orgId: string) {
-  const response = await fetch(`/api/v1/whatsapp/config/${configId}`, {
-    headers: {
-      [ORGANIZATION_HEADER]: orgId,
-    },
-  })
 
-  if (!response.ok) return null
-  return response.json()
+
+async function fetchSyncStatus(configId: string, orgId: string) {
+  try {
+    const data = await apiFetch(`/api/v1/whatsapp/config/${configId}`, {
+      orgId,
+    })
+    return data as any
+  } catch (err) {
+    return null
+  }
 }
+
 
 /**
  * Hook para rastrear status de sincronização de histórico usando TanStack Query.

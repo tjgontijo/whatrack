@@ -2,7 +2,8 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { useOrganization } from '@/hooks/organization/use-organization'
-import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
+import { apiFetch } from '@/lib/api-client'
+
 
 interface VolumeDataPoint {
   date: string
@@ -62,29 +63,22 @@ interface AgentsAnalyticsResponse {
 
 export type Period = '7d' | '30d' | '90d'
 
+
+
 async function fetchDashboardAnalytics(period: Period, orgId: string): Promise<DashboardAnalyticsResponse> {
-  const response = await fetch(`/api/v1/dashboard/analytics?period=${period}`, {
-    headers: {
-      [ORGANIZATION_HEADER]: orgId,
-    },
+  const data = await apiFetch(`/api/v1/dashboard/analytics?period=${period}`, {
+    orgId,
   })
-  if (!response.ok) {
-    throw new Error('Failed to fetch dashboard analytics')
-  }
-  return response.json()
+  return data as DashboardAnalyticsResponse
 }
 
 async function fetchAgentsAnalytics(period: Period, orgId: string): Promise<AgentsAnalyticsResponse> {
-  const response = await fetch(`/api/v1/dashboard/analytics/agents?period=${period}`, {
-    headers: {
-      [ORGANIZATION_HEADER]: orgId,
-    },
+  const data = await apiFetch(`/api/v1/dashboard/analytics/agents?period=${period}`, {
+    orgId,
   })
-  if (!response.ok) {
-    throw new Error('Failed to fetch agents analytics')
-  }
-  return response.json()
+  return data as AgentsAnalyticsResponse
 }
+
 
 export function useDashboardAnalytics(period: Period = '7d') {
   const { data: org } = useOrganization()

@@ -9,7 +9,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { ChatItem, MessageListResponse } from './types'
 import { MessageBubble } from './message-bubble'
-import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
+import { apiFetch } from '@/lib/api-client'
+
 
 interface ChatWindowProps {
   chat: ChatItem
@@ -19,21 +20,21 @@ interface ChatWindowProps {
 export function ChatWindow({ chat, organizationId }: ChatWindowProps) {
   const scrollRef = React.useRef<HTMLDivElement>(null)
 
+
+
   const { data, isLoading, isFetching, refetch } = useQuery<MessageListResponse>({
     queryKey: ['chat-messages', chat.id, organizationId],
     queryFn: async () => {
       console.log('[ChatWindow] Fetching messages for chat:', chat.id, 'org:', organizationId)
-      const response = await fetch(`/api/v1/whatsapp/chats/${chat.id}/messages`, {
-        headers: {
-          [ORGANIZATION_HEADER]: organizationId,
-        },
+      const data = await apiFetch(`/api/v1/whatsapp/chats/${chat.id}/messages`, {
+        orgId: organizationId,
       })
-      if (!response.ok) throw new Error('Falha ao carregar mensagens')
-      return response.json()
+      return data as MessageListResponse
     },
     // Real-time updates via Centrifugo - no polling needed
     staleTime: Infinity, // Don't mark as stale automatically
   })
+
 
   // Log when data changes (for debugging real-time updates)
   React.useEffect(() => {

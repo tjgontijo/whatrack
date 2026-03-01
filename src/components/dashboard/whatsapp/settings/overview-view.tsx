@@ -29,16 +29,22 @@ interface OverviewViewProps {
   phone: WhatsAppPhoneNumber
 }
 
+import { useOrganization } from '@/hooks/organization/use-organization'
+
 export function OverviewView({ phone }: OverviewViewProps) {
   const queryClient = useQueryClient()
+  const { data: org } = useOrganization()
+  const orgId = org?.id
 
   const { data: accountInfo } = useQuery({
-    queryKey: ['whatsapp', 'account'],
-    queryFn: () => whatsappApi.getAccountInfo(),
+    queryKey: ['whatsapp', 'account', orgId],
+    queryFn: () => whatsappApi.getAccountInfo(orgId!),
+    enabled: !!orgId,
   })
 
   const activateMutation = useMutation({
-    mutationFn: () => whatsappApi.activateNumber(),
+    mutationFn: () => whatsappApi.activateNumber(orgId!),
+
     onSuccess: (data) => {
       if (data.success) {
         toast.success('Número ativado com sucesso!')

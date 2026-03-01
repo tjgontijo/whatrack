@@ -15,6 +15,8 @@ import {
   Loader2,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { useOrganization } from '@/hooks/organization/use-organization'
+import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -72,6 +74,8 @@ interface AgentBuilderFormProps {
 function AgentBuilderForm({ agent, allSkills, isNew }: AgentBuilderFormProps) {
   const router = useRouter()
   const queryClient = useQueryClient()
+  const { data: org } = useOrganization()
+  const orgId = org?.id
 
   const [name, setName] = useState(agent?.name ?? '')
   const [leanPrompt, setLeanPrompt] = useState(agent?.leanPrompt ?? '')
@@ -149,7 +153,10 @@ function AgentBuilderForm({ agent, allSkills, isNew }: AgentBuilderFormProps) {
 
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(orgId ? { [ORGANIZATION_HEADER]: orgId } : {}),
+        },
         body: JSON.stringify(payload),
       })
 
@@ -420,16 +427,22 @@ export default function AiAgentBuilderPage() {
   const router = useRouter()
   const id = Array.isArray(params.id) ? params.id[0] : params.id
   const isNew = id === 'new'
+  const { data: org } = useOrganization()
+  const orgId = org?.id
 
   const { data: agentData, isLoading: agentLoading } = useQuery({
-    queryKey: ['ai-agents', id],
+    queryKey: ['ai-agents', id, orgId],
     queryFn: async (): Promise<AgentData> => {
-      const res = await fetch(`/api/v1/ai-agents/${id}`)
+      const res = await fetch(`/api/v1/ai-agents/${id}`, {
+        headers: {
+          [ORGANIZATION_HEADER]: orgId!,
+        },
+      })
       if (!res.ok) throw new Error('Agente não encontrado.')
       const data = await res.json()
       return data.agent
     },
-    enabled: !isNew,
+    enabled: !isNew && !!orgId,
     retry: false,
     throwOnError: () => {
       router.push('/dashboard/settings/ai')
@@ -438,9 +451,14 @@ export default function AiAgentBuilderPage() {
   })
 
   const { data: skillsData, isLoading: skillsLoading } = useQuery({
-    queryKey: AI_SKILLS_QUERY_KEY,
+    queryKey: [AI_SKILLS_QUERY_KEY, orgId],
+    enabled: !!orgId,
     queryFn: async (): Promise<AiSkill[]> => {
-      const res = await fetch('/api/v1/ai-skills')
+      const res = await fetch('/api/v1/ai-skills', {
+        headers: {
+          [ORGANIZATION_HEADER]: orgId!,
+        },
+      })
       if (!res.ok) throw new Error('Erro ao carregar skills.')
       const data = await res.json()
       return data.skills ?? []

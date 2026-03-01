@@ -14,11 +14,18 @@ interface ProfileViewProps {
   phone: WhatsAppPhoneNumber
 }
 
+import { useOrganization } from '@/hooks/organization/use-organization'
+
 export function ProfileView({ phone }: ProfileViewProps) {
+  const { data: org } = useOrganization()
+  const orgId = org?.id
+
   const { data: profile, isLoading } = useQuery({
-    queryKey: ['whatsapp', 'business-profile'],
-    queryFn: () => whatsappApi.getBusinessProfile(),
+    queryKey: ['whatsapp', 'business-profile', orgId],
+    queryFn: () => whatsappApi.getBusinessProfile(orgId!),
+    enabled: !!orgId,
   })
+
 
   if (isLoading) {
     return <ProfileSkeleton />

@@ -14,13 +14,17 @@ import { OrganizationIdentityDrawer } from '@/components/dashboard/organization/
 import { INTEGRATION_IDENTITY_REQUIRED_MESSAGE } from '@/lib/constants/http-headers'
 import type { WhatsAppPhoneNumber } from '@/types/whatsapp/whatsapp'
 
+import { useOrganization } from '@/hooks/organization/use-organization'
+
 export default function WhatsAppSettingsPage() {
   const isMobile = useIsMobile()
   const completionQuery = useOrganizationCompletion()
+  const { data: org } = useOrganization()
+  const orgId = org?.id
 
   const hasOrganization = completionQuery.data?.hasOrganization ?? false
   const identityComplete = completionQuery.data?.identityComplete ?? false
-  const canLoadInstances = completionQuery.isSuccess && hasOrganization && identityComplete
+  const canLoadInstances = completionQuery.isSuccess && hasOrganization && identityComplete && !!orgId
 
   const {
     data: phoneNumbers,
@@ -29,12 +33,13 @@ export default function WhatsAppSettingsPage() {
     refetch,
     isRefetching,
   } = useQuery<WhatsAppPhoneNumber[]>({
-    queryKey: ['whatsapp', 'phone-numbers'],
-    queryFn: () => whatsappApi.listPhoneNumbers(),
+    queryKey: ['whatsapp', 'phone-numbers', orgId],
+    queryFn: () => whatsappApi.listPhoneNumbers(orgId!),
     staleTime: 30_000,
     retry: false,
     enabled: canLoadInstances,
   })
+
 
   const handleRefresh = () => {
     void completionQuery.refetch()
@@ -80,7 +85,7 @@ export default function WhatsAppSettingsPage() {
       <div className="border-border bg-background/50 supports-[backdrop-filter]:bg-background/50 border-b px-6 backdrop-blur">
         <DataToolbar
           searchValue=""
-          onSearchChange={() => {}}
+          onSearchChange={() => { }}
           searchPlaceholder="Buscar instância..."
           actions={
             <Button

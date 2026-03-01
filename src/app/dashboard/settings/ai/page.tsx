@@ -17,14 +17,23 @@ import { Badge } from '@/components/ui/badge'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { PageShell, PageHeader, PageContent } from '@/components/dashboard/layout'
 import { LoadingCard, EmptyState } from '@/components/dashboard/states'
+import { useOrganization } from '@/hooks/organization/use-organization'
+import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 
 export default function AiAgentsPage() {
   const queryClient = useQueryClient()
+  const { data: org } = useOrganization()
+  const orgId = org?.id
 
   const { data: agents = [], isLoading } = useQuery({
-    queryKey: ['ai-agents'],
+    queryKey: ['ai-agents', orgId],
+    enabled: !!orgId,
     queryFn: async () => {
-      const res = await fetch('/api/v1/ai-agents')
+      const res = await fetch('/api/v1/ai-agents', {
+        headers: {
+          [ORGANIZATION_HEADER]: orgId!,
+        },
+      })
       if (!res.ok) throw new Error('Erro ao carregar agentes de IA.')
       const data = await res.json()
       return data.agents || []
@@ -33,7 +42,12 @@ export default function AiAgentsPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async ({ id, name }: { id: string; name: string }) => {
-      const res = await fetch(`/api/v1/ai-agents/${id}`, { method: 'DELETE' })
+      const res = await fetch(`/api/v1/ai-agents/${id}`, {
+        method: 'DELETE',
+        headers: {
+          [ORGANIZATION_HEADER]: orgId!,
+        },
+      })
       if (!res.ok) throw new Error()
       return name
     },
@@ -97,56 +111,56 @@ export default function AiAgentsPage() {
 
         {!isLoading && agents.length > 0 && (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {agents.map((agent: any) => (
-            <Card key={agent.id} className="flex flex-col">
-              <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-                <div className="space-y-1">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Bot className="text-primary h-5 w-5" />
-                    {agent.name}
-                  </CardTitle>
-                  <div className="mt-2 flex items-center gap-2">
-                    <Badge
-                      variant={agent.isActive ? 'default' : 'secondary'}
-                      className={agent.isActive ? 'bg-green-600 hover:bg-green-700' : ''}
-                    >
-                      {agent.isActive ? 'Ativo' : 'Pausado'}
-                    </Badge>
-                    <span className="text-muted-foreground text-xs">{agent.model}</span>
+            {agents.map((agent: any) => (
+              <Card key={agent.id} className="flex flex-col">
+                <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+                  <div className="space-y-1">
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <Bot className="text-primary h-5 w-5" />
+                      {agent.name}
+                    </CardTitle>
+                    <div className="mt-2 flex items-center gap-2">
+                      <Badge
+                        variant={agent.isActive ? 'default' : 'secondary'}
+                        className={agent.isActive ? 'bg-green-600 hover:bg-green-700' : ''}
+                      >
+                        {agent.isActive ? 'Ativo' : 'Pausado'}
+                      </Badge>
+                      <span className="text-muted-foreground text-xs">{agent.model}</span>
+                    </div>
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent className="flex-1 py-4">
-                <p className="text-muted-foreground line-clamp-3 text-sm">{agent.leanPrompt}</p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <Badge variant="outline" className="text-[10px] uppercase">
-                    {agent.triggers?.length || 0} Triggers
-                  </Badge>
-                  <Badge variant="outline" className="text-[10px] uppercase">
-                    {agent.schemaFields?.length || 0} Campos
-                  </Badge>
-                  <Badge variant="outline" className="text-[10px] uppercase">
-                    {agent.skillBindings?.length || 0} Skills
-                  </Badge>
-                </div>
-              </CardContent>
-              <CardFooter className="flex items-center justify-between gap-2 border-t pt-4">
-                <Button variant="ghost" size="sm" asChild className="flex-1">
-                  <Link href={`/dashboard/settings/ai/${agent.id}`}>
-                    <Edit2 className="mr-2 h-4 w-4" /> Editar
-                  </Link>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleDelete(agent.id, agent.name)}
-                  className="text-destructive hover:text-destructive hover:bg-destructive/10 flex-1"
-                >
-                  <Trash2 className="mr-2 h-4 w-4" /> Apagar
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
+                </CardHeader>
+                <CardContent className="flex-1 py-4">
+                  <p className="text-muted-foreground line-clamp-3 text-sm">{agent.leanPrompt}</p>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <Badge variant="outline" className="text-[10px] uppercase">
+                      {agent.triggers?.length || 0} Triggers
+                    </Badge>
+                    <Badge variant="outline" className="text-[10px] uppercase">
+                      {agent.schemaFields?.length || 0} Campos
+                    </Badge>
+                    <Badge variant="outline" className="text-[10px] uppercase">
+                      {agent.skillBindings?.length || 0} Skills
+                    </Badge>
+                  </div>
+                </CardContent>
+                <CardFooter className="flex items-center justify-between gap-2 border-t pt-4">
+                  <Button variant="ghost" size="sm" asChild className="flex-1">
+                    <Link href={`/dashboard/settings/ai/${agent.id}`}>
+                      <Edit2 className="mr-2 h-4 w-4" /> Editar
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDelete(agent.id, agent.name)}
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10 flex-1"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" /> Apagar
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
           </div>
         )}
       </PageContent>

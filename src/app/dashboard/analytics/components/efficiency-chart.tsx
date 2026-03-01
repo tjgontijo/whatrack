@@ -7,6 +7,9 @@ const formatDealValue = (value: number | string | null | undefined) => {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(numValue)
 }
 
+import { apiFetch } from '@/lib/api-client'
+import { authClient } from '@/lib/auth/auth-client'
+
 export default function EfficiencyChart({
   startDate,
   endDate,
@@ -14,16 +17,21 @@ export default function EfficiencyChart({
   startDate: string
   endDate: string
 }) {
+  const { data: activeOrg } = authClient.useActiveOrganization()
+  const organizationId = activeOrg?.id
+
   const { data, isLoading, error } = useQuery({
-    queryKey: ['analytics', 'efficiency', startDate, endDate],
+    queryKey: ['analytics', 'efficiency', organizationId, startDate, endDate],
     queryFn: async () => {
-      const res = await fetch(
-        `/api/v1/analytics/efficiency?startDate=${startDate}&endDate=${endDate}`
+      const data = await apiFetch(
+        `/api/v1/analytics/efficiency?startDate=${startDate}&endDate=${endDate}`,
+        { orgId: organizationId }
       )
-      if (!res.ok) throw new Error('Falha ao buscar eficiência')
-      return res.json()
+      return data
     },
+    enabled: !!organizationId,
   })
+
 
   if (isLoading) return <div className="bg-card h-full w-full animate-pulse rounded-xl border" />
   if (error || !data)

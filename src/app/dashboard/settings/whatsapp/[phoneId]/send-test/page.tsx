@@ -10,21 +10,27 @@ import { whatsappApi } from '@/lib/whatsapp/client'
 import { SendTestView } from '@/components/dashboard/whatsapp/settings/send-test-view'
 import { Button } from '@/components/ui/button'
 
+import { useOrganization } from '@/hooks/organization/use-organization'
+
 interface PageProps {
   params: Promise<{ phoneId: string }>
 }
 
 export default function SendTestPage({ params }: PageProps) {
   const { phoneId } = React.use(params)
+  const { data: org } = useOrganization()
+  const orgId = org?.id
 
   const {
     data: phone,
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ['whatsapp', 'phone', phoneId],
-    queryFn: () => whatsappApi.getPhoneNumberById(phoneId),
+    queryKey: ['whatsapp', 'phone', phoneId, orgId],
+    queryFn: () => whatsappApi.getPhoneNumberById(phoneId, orgId!),
+    enabled: !!orgId,
   })
+
 
   return (
     <PageShell>

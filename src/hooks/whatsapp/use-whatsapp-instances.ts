@@ -2,7 +2,8 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { useOrganization } from '@/hooks/organization/use-organization'
-import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
+import { apiFetch } from '@/lib/api-client'
+
 
 export interface WhatsAppInstance {
     id: string
@@ -18,18 +19,13 @@ interface InstancesResponse {
 }
 
 async function fetchWhatsAppInstances(orgId: string): Promise<InstancesResponse> {
-    const response = await fetch('/api/v1/whatsapp/instances', {
-        headers: {
-            [ORGANIZATION_HEADER]: orgId,
-        },
+    const data = await apiFetch('/api/v1/whatsapp/instances', {
+        orgId,
     })
 
-    if (!response.ok) {
-        throw new Error('Falha ao buscar instâncias do WhatsApp')
-    }
-
-    return response.json()
+    return data as InstancesResponse
 }
+
 
 /**
  * Hook centralizado para buscar instâncias do WhatsApp com cache distribuído.

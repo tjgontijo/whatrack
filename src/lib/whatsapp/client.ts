@@ -10,16 +10,16 @@ import type {
 const API_VERSION = process.env.META_API_VERSION
 const GRAPH_API_URL = `https://graph.facebook.com/${API_VERSION}`
 
-export const whatsappApi = {
-  // ============================================================================
-  // TEMPLATES - Gerenciamento de Templates de Mensagem
-  // ============================================================================
+import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 
+export const whatsappApi = {
   /**
    * Lista todos os templates de mensagem aprovados
    */
-  async getTemplates(): Promise<WhatsAppTemplate[]> {
-    const res = await fetch('/api/v1/whatsapp/templates')
+  async getTemplates(orgId: string): Promise<WhatsAppTemplate[]> {
+    const res = await fetch('/api/v1/whatsapp/templates', {
+      headers: { [ORGANIZATION_HEADER]: orgId },
+    })
     if (!res.ok) {
       const error = await res.json()
       throw new Error(error.error || 'Failed to fetch templates')
@@ -31,8 +31,10 @@ export const whatsappApi = {
   /**
    * Obtém detalhes de um template específico
    */
-  async getTemplate(templateId: string): Promise<WhatsAppTemplate> {
-    const res = await fetch(`/api/v1/whatsapp/templates/${templateId}`)
+  async getTemplate(templateId: string, orgId: string): Promise<WhatsAppTemplate> {
+    const res = await fetch(`/api/v1/whatsapp/templates/${templateId}`, {
+      headers: { [ORGANIZATION_HEADER]: orgId },
+    })
     if (!res.ok) {
       const error = await res.json()
       throw new Error(error.error || 'Failed to fetch template')
@@ -43,10 +45,13 @@ export const whatsappApi = {
   /**
    * Cria um novo template de mensagem
    */
-  async createTemplate(template: any): Promise<any> {
+  async createTemplate(template: any, orgId: string): Promise<any> {
     const res = await fetch('/api/v1/whatsapp/templates', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        [ORGANIZATION_HEADER]: orgId,
+      },
       body: JSON.stringify(template),
     })
     if (!res.ok) {
@@ -59,9 +64,10 @@ export const whatsappApi = {
   /**
    * Exclui um template de mensagem pelo nome
    */
-  async deleteTemplate(name: string): Promise<any> {
+  async deleteTemplate(name: string, orgId: string): Promise<any> {
     const res = await fetch(`/api/v1/whatsapp/templates?name=${name}`, {
       method: 'DELETE',
+      headers: { [ORGANIZATION_HEADER]: orgId },
     })
     if (!res.ok) {
       const error = await res.json()
@@ -72,12 +78,14 @@ export const whatsappApi = {
 
   /**
    * Atualiza um template existente (edita componentes)
-   * Meta API: POST /{TEMPLATE_ID} — nome, categoria e idioma não podem ser alterados
    */
-  async updateTemplate(templateId: string, components: any[]): Promise<any> {
+  async updateTemplate(templateId: string, components: any[], orgId: string): Promise<any> {
     const res = await fetch('/api/v1/whatsapp/templates', {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        [ORGANIZATION_HEADER]: orgId,
+      },
       body: JSON.stringify({ templateId, components }),
     })
     if (!res.ok) {
@@ -87,17 +95,16 @@ export const whatsappApi = {
     return res.json()
   },
 
-  // ============================================================================
-  // MENSAGENS - Envio e Gerenciamento de Mensagens
-  // ============================================================================
-
   /**
    * Envia uma mensagem usando um template
    */
-  async sendTemplate(to: string, templateName: string): Promise<SendTemplateResponse> {
+  async sendTemplate(to: string, templateName: string, orgId: string): Promise<SendTemplateResponse> {
     const res = await fetch('/api/v1/whatsapp/send-template', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        [ORGANIZATION_HEADER]: orgId,
+      },
       body: JSON.stringify({ to, templateName }),
     })
     if (!res.ok) {
@@ -110,8 +117,10 @@ export const whatsappApi = {
   /**
    * Obtém detalhes de uma mensagem específica
    */
-  async getMessage(messageId: string): Promise<WhatsAppMessage> {
-    const res = await fetch(`/api/v1/whatsapp/messages/${messageId}`)
+  async getMessage(messageId: string, orgId: string): Promise<WhatsAppMessage> {
+    const res = await fetch(`/api/v1/whatsapp/messages/${messageId}`, {
+      headers: { [ORGANIZATION_HEADER]: orgId },
+    })
     if (!res.ok) {
       const error = await res.json()
       throw new Error(error.error || 'Failed to fetch message')
@@ -119,15 +128,13 @@ export const whatsappApi = {
     return res.json()
   },
 
-  // ============================================================================
-  // NÚMEROS DE TELEFONE - Gerenciamento de Números WhatsApp Business
-  // ============================================================================
-
   /**
    * Lista todos os números de telefone cadastrados na conta WABA
    */
-  async listPhoneNumbers(): Promise<WhatsAppPhoneNumber[]> {
-    const res = await fetch('/api/v1/whatsapp/phone-numbers')
+  async listPhoneNumbers(orgId: string): Promise<WhatsAppPhoneNumber[]> {
+    const res = await fetch('/api/v1/whatsapp/phone-numbers', {
+      headers: { [ORGANIZATION_HEADER]: orgId },
+    })
     if (!res.ok) {
       const error = await res.json()
       throw new Error(error.error || 'Failed to fetch phone numbers')
@@ -136,16 +143,18 @@ export const whatsappApi = {
     return data.phoneNumbers || []
   },
 
-  async getPhoneNumberById(id: string): Promise<WhatsAppPhoneNumber | null> {
-    const phones = await this.listPhoneNumbers()
+  async getPhoneNumberById(id: string, orgId: string): Promise<WhatsAppPhoneNumber | null> {
+    const phones = await this.listPhoneNumbers(orgId)
     return phones.find((p) => p.id === id) || null
   },
 
   /**
    * Obtém informações detalhadas de um número de telefone específico
    */
-  async getPhoneNumber(phoneNumberId: string): Promise<WhatsAppPhoneNumber> {
-    const res = await fetch(`/api/v1/whatsapp/phone-numbers/${phoneNumberId}`)
+  async getPhoneNumber(phoneNumberId: string, orgId: string): Promise<WhatsAppPhoneNumber> {
+    const res = await fetch(`/api/v1/whatsapp/phone-numbers/${phoneNumberId}`, {
+      headers: { [ORGANIZATION_HEADER]: orgId },
+    })
     if (!res.ok) {
       const error = await res.json()
       throw new Error(error.error || 'Failed to fetch phone number')
@@ -153,15 +162,13 @@ export const whatsappApi = {
     return res.json()
   },
 
-  // ============================================================================
-  // PERFIL COMERCIAL - Informações do Negócio no WhatsApp
-  // ============================================================================
-
   /**
    * Obtém o perfil comercial do WhatsApp Business
    */
-  async getBusinessProfile(): Promise<WhatsAppBusinessProfile> {
-    const res = await fetch('/api/v1/whatsapp/business-profile')
+  async getBusinessProfile(orgId: string): Promise<WhatsAppBusinessProfile> {
+    const res = await fetch('/api/v1/whatsapp/business-profile', {
+      headers: { [ORGANIZATION_HEADER]: orgId },
+    })
     if (!res.ok) {
       const error = await res.json()
       throw new Error(error.error || 'Failed to fetch business profile')
@@ -173,11 +180,15 @@ export const whatsappApi = {
    * Atualiza o perfil comercial do WhatsApp Business
    */
   async updateBusinessProfile(
-    data: Partial<WhatsAppBusinessProfile>
+    data: Partial<WhatsAppBusinessProfile>,
+    orgId: string
   ): Promise<WhatsAppBusinessProfile> {
     const res = await fetch('/api/v1/whatsapp/business-profile', {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        [ORGANIZATION_HEADER]: orgId,
+      },
       body: JSON.stringify(data),
     })
     if (!res.ok) {
@@ -187,15 +198,13 @@ export const whatsappApi = {
     return res.json()
   },
 
-  // ============================================================================
-  // CONFIGURAÇÃO - Informações da Conta WABA
-  // ============================================================================
-
   /**
    * Obtém as configurações da conta WhatsApp Business
    */
-  async getConfig(): Promise<WhatsAppAccountInfo> {
-    const res = await fetch('/api/v1/whatsapp/config')
+  async getConfig(orgId: string): Promise<WhatsAppAccountInfo> {
+    const res = await fetch('/api/v1/whatsapp/config', {
+      headers: { [ORGANIZATION_HEADER]: orgId },
+    })
     if (!res.ok) {
       const error = await res.json()
       throw new Error(error.error || 'Failed to fetch config')
@@ -206,8 +215,10 @@ export const whatsappApi = {
   /**
    * Obtém informações da conta WABA (WhatsApp Business Account)
    */
-  async getAccountInfo(): Promise<WhatsAppAccountInfo> {
-    const res = await fetch('/api/v1/whatsapp/account')
+  async getAccountInfo(orgId: string): Promise<WhatsAppAccountInfo> {
+    const res = await fetch('/api/v1/whatsapp/account', {
+      headers: { [ORGANIZATION_HEADER]: orgId },
+    })
     if (!res.ok) {
       const error = await res.json()
       throw new Error(error.error || 'Failed to fetch account info')
@@ -215,18 +226,16 @@ export const whatsappApi = {
     return res.json()
   },
 
-  // ============================================================================
-  // WEBHOOKS - Mensagens Recebidas e Notificações
-  // ============================================================================
-
   /**
    * Registra um webhook para receber notificações
-   * Nota: Normalmente configurado via Meta App Dashboard
    */
-  async subscribeWebhook(callbackUrl: string): Promise<{ success: boolean }> {
+  async subscribeWebhook(callbackUrl: string, orgId: string): Promise<{ success: boolean }> {
     const res = await fetch('/api/v1/whatsapp/webhooks/subscribe', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        [ORGANIZATION_HEADER]: orgId,
+      },
       body: JSON.stringify({ callbackUrl }),
     })
     if (!res.ok) {
@@ -239,10 +248,13 @@ export const whatsappApi = {
   /**
    * Ativa um número de telefone (register + subscribe)
    */
-  async activateNumber(): Promise<{ success: boolean; message: string; results: any }> {
+  async activateNumber(orgId: string): Promise<{ success: boolean; message: string; results: any }> {
     const res = await fetch('/api/v1/whatsapp/activate', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        [ORGANIZATION_HEADER]: orgId,
+      },
     })
     if (!res.ok) {
       const error = await res.json()
@@ -254,8 +266,10 @@ export const whatsappApi = {
   /**
    * Obtém os logs de webhook recebidos
    */
-  async getWebhookLogs(): Promise<any[]> {
-    const res = await fetch('/api/v1/system/webhook-logs')
+  async getWebhookLogs(orgId?: string): Promise<any[]> {
+    const res = await fetch('/api/v1/system/webhook-logs', {
+      headers: orgId ? { [ORGANIZATION_HEADER]: orgId } : {},
+    })
     if (!res.ok) {
       const error = await res.json()
       throw new Error(error.error || 'Failed to fetch webhook logs')

@@ -2,6 +2,9 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { ResponsiveFunnel } from '@nivo/funnel'
+import { apiFetch } from '@/lib/api-client'
+import { authClient } from '@/lib/auth/auth-client'
+
 
 export default function ConversionFunnel({
   startDate,
@@ -10,16 +13,21 @@ export default function ConversionFunnel({
   startDate: string
   endDate: string
 }) {
+  const { data: activeOrg } = authClient.useActiveOrganization()
+  const organizationId = activeOrg?.id
+
   const { data, isLoading, error } = useQuery({
-    queryKey: ['analytics', 'conversion', startDate, endDate],
+    queryKey: ['analytics', 'conversion', organizationId, startDate, endDate],
     queryFn: async () => {
-      const res = await fetch(
-        `/api/v1/analytics/conversion?startDate=${startDate}&endDate=${endDate}`
+      const data = await apiFetch(
+        `/api/v1/analytics/conversion?startDate=${startDate}&endDate=${endDate}`,
+        { orgId: organizationId }
       )
-      if (!res.ok) throw new Error('Falha ao buscar funil')
-      return res.json()
+      return data
     },
+    enabled: !!organizationId,
   })
+
 
   if (isLoading) return <div className="bg-card h-full w-full animate-pulse rounded-xl border" />
   if (error || !data)

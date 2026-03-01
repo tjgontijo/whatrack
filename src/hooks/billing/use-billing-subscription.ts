@@ -3,7 +3,8 @@
 import { useQuery } from '@tanstack/react-query'
 import type { SubscriptionResponse, UsageResponse } from '@/schemas/billing/billing-schemas'
 import { useOrganization } from '@/hooks/organization/use-organization'
-import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
+import { apiFetch } from '@/lib/api-client'
+
 
 interface UseBillingSubscriptionReturn {
   subscription: SubscriptionResponse | null
@@ -16,28 +17,26 @@ interface UseBillingSubscriptionReturn {
 /**
  * Fetch subscription + usage data
  */
+
+
 async function fetchBillingData(orgId: string): Promise<{ subscription: SubscriptionResponse | null; usage: UsageResponse | null }> {
-  const headers = {
-    [ORGANIZATION_HEADER]: orgId,
+  try {
+    const [subData, usageData] = await Promise.all([
+      apiFetch('/api/v1/billing/subscription', { orgId }),
+      apiFetch('/api/v1/billing/usage', { orgId }),
+    ])
+    return {
+      subscription: subData as SubscriptionResponse,
+      usage: usageData as UsageResponse
+    }
+  } catch (err) {
+    if (err instanceof Error && err.message.includes('404')) {
+      return { subscription: null, usage: null }
+    }
+    throw err
   }
-
-  const [subRes, usageRes] = await Promise.all([
-    fetch('/api/v1/billing/subscription', { headers }),
-    fetch('/api/v1/billing/usage', { headers }),
-  ])
-
-  // If subscription returns 404, it's expected (no subscription yet)
-  if (subRes.status === 404) {
-    return { subscription: null, usage: null }
-  }
-
-  if (!subRes.ok || !usageRes.ok) {
-    throw new Error(`Billing fetch failed: sub=${subRes.status}, usage=${usageRes.status}`)
-  }
-
-  const [subData, usageData] = await Promise.all([subRes.json(), usageRes.json()])
-  return { subscription: subData, usage: usageData }
 }
+
 
 /**
  * Hook centralizado com cache (TanStack Query) para evitar múltiplas chamadas redundantes.

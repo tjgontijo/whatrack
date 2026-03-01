@@ -39,7 +39,11 @@ interface TemplatesViewProps {
   phone: WhatsAppPhoneNumber
 }
 
+import { useOrganization } from '@/hooks/organization/use-organization'
+
 export function TemplatesView({ phone: _phone }: TemplatesViewProps) {
+  const { data: org } = useOrganization()
+  const orgId = org?.id
   // View & Search state
   const [view, setView] = useState<ViewType>('cards')
   const [searchInput, setSearchInput] = useState('')
@@ -58,9 +62,11 @@ export function TemplatesView({ phone: _phone }: TemplatesViewProps) {
 
   // Fetch templates
   const { data: templates, isLoading } = useQuery<WhatsAppTemplate[]>({
-    queryKey: ['whatsapp', 'templates'],
-    queryFn: () => whatsappApi.getTemplates(),
+    queryKey: ['whatsapp', 'templates', orgId],
+    queryFn: () => whatsappApi.getTemplates(orgId!),
+    enabled: !!orgId,
   })
+
 
   // Filter templates based on search
   const filteredTemplates =
@@ -297,9 +303,9 @@ export function TemplatesView({ phone: _phone }: TemplatesViewProps) {
               : 'Crie seu primeiro template para começar a enviar mensagens padronizadas.',
             action: !searchInput
               ? {
-                  label: 'Criar primeiro template',
-                  onClick: handleCreate,
-                }
+                label: 'Criar primeiro template',
+                onClick: handleCreate,
+              }
               : undefined,
           }}
         />
@@ -330,8 +336,8 @@ export function TemplatesView({ phone: _phone }: TemplatesViewProps) {
           title="Excluir Template?"
           description={`Tem certeza que deseja excluir o template "${templateToDelete?.name}"? Esta ação não pode ser desfeita e ele será removido permanentemente da Meta.`}
           onConfirm={async () => {
-            if (templateToDelete) {
-              await whatsappApi.deleteTemplate(templateToDelete.name)
+            if (templateToDelete && orgId) {
+              await whatsappApi.deleteTemplate(templateToDelete.name, orgId)
               setDeleteDialogOpen(false)
               setTemplateToDelete(null)
             }

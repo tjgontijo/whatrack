@@ -49,8 +49,12 @@ interface TemplateEditorFormProps {
   onClose: () => void
 }
 
+import { useOrganization } from '@/hooks/organization/use-organization'
+
 export function TemplateEditorForm({ template, onClose }: TemplateEditorFormProps) {
   const queryClient = useQueryClient()
+  const { data: org } = useOrganization()
+  const orgId = org?.id
   const mode = template ? 'edit' : 'create'
 
   const defaultValues = React.useMemo(() => {
@@ -125,7 +129,7 @@ export function TemplateEditorForm({ template, onClose }: TemplateEditorFormProp
       }
 
       if (mode === 'edit' && template?.id) {
-        return whatsappApi.updateTemplate(template.id, components)
+        return whatsappApi.updateTemplate(template.id, components, orgId!)
       }
 
       const payload = {
@@ -135,13 +139,14 @@ export function TemplateEditorForm({ template, onClose }: TemplateEditorFormProp
         components,
         parameter_format: 'positional',
       }
-      return whatsappApi.createTemplate(payload)
+      return whatsappApi.createTemplate(payload, orgId!)
     },
     onSuccess: () => {
       toast.success(mode === 'create' ? 'Template enviado para análise!' : 'Template atualizado!')
-      queryClient.invalidateQueries({ queryKey: ['whatsapp', 'templates'] })
+      queryClient.invalidateQueries({ queryKey: ['whatsapp', 'templates', orgId] })
       onClose()
     },
+
     onError: (error: any) => {
       console.error('[TemplateForm] Erro:', error)
       toast.error(`Erro: ${error.message}`)

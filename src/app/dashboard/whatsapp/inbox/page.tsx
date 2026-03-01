@@ -5,8 +5,9 @@ import { useQuery } from '@tanstack/react-query'
 import { MessageSquareOff } from 'lucide-react'
 
 import { authClient } from '@/lib/auth/auth-client'
-import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
+import { apiFetch } from '@/lib/api-client'
 import { useRealtime } from '@/hooks/whatsapp/use-realtime'
+
 import { ChatList } from '@/components/dashboard/whatsapp/inbox/chat-list'
 import { ChatWindow } from '@/components/dashboard/whatsapp/inbox/chat-window'
 import { TicketPanel } from '@/components/dashboard/whatsapp/inbox/ticket-panel'
@@ -24,6 +25,8 @@ export default function WhatsAppInboxPage() {
   // Enable real-time updates via Centrifugo
   useRealtime(organizationId)
 
+
+
   const { data, isLoading } = useQuery<ChatListResponse>({
     queryKey: ['whatsapp-chats', organizationId, searchQuery, selectedInstanceId],
     enabled: !!organizationId,
@@ -34,15 +37,13 @@ export default function WhatsAppInboxPage() {
         url.searchParams.set('instanceId', selectedInstanceId)
       }
 
-      const response = await fetch(url.toString(), {
-        headers: {
-          [ORGANIZATION_HEADER]: organizationId!,
-        },
+      const data = await apiFetch(url.toString(), {
+        orgId: organizationId,
       })
-      if (!response.ok) throw new Error('Falha ao carregar conversas')
-      return response.json()
+      return data as ChatListResponse
     },
   })
+
 
   if (!organizationId) {
     return (

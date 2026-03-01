@@ -15,8 +15,12 @@ import { authClient } from '@/lib/auth/auth-client'
 import { formatPayloadHumanly, formatPhoneNumber } from './webhook-payload-formatter'
 import { WebhookLogDetailDialog } from './webhook-log-detail-dialog'
 
+import { useOrganization } from '@/hooks/organization/use-organization'
+
 export function WebhooksView() {
   const { data: session } = authClient.useSession()
+  const { data: org } = useOrganization()
+  const orgId = org?.id
   const isSuperAdmin = session?.user?.role === 'owner'
   const [showVerifyToken, setShowVerifyToken] = useState(false)
 
@@ -39,9 +43,10 @@ export function WebhooksView() {
     isLoading: isLoadingLogs,
     refetch: refetchLogs,
   } = useQuery({
-    queryKey: ['whatsapp', 'webhook', 'logs'],
-    queryFn: () => whatsappApi.getWebhookLogs(),
+    queryKey: ['whatsapp', 'webhook', 'logs', orgId],
+    queryFn: () => whatsappApi.getWebhookLogs(orgId),
   })
+
 
   const logs = Array.isArray(logData) ? logData : (logData as any)?.logs || []
   const activeEventTypes = (logData as any)?.eventTypes || []

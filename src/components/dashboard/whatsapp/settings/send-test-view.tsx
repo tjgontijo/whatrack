@@ -22,14 +22,19 @@ interface SendTestViewProps {
   phone: WhatsAppPhoneNumber
 }
 
+import { useOrganization } from '@/hooks/organization/use-organization'
+
 export function SendTestView({ phone }: SendTestViewProps) {
+  const { data: org } = useOrganization()
+  const orgId = org?.id
   const [recipientPhone, setRecipientPhone] = React.useState('')
   const [selectedTemplateName, setSelectedTemplateName] = React.useState('')
   const [lastResponse, setLastResponse] = React.useState<any>(null)
 
   const { data: templates } = useQuery<WhatsAppTemplate[]>({
-    queryKey: ['whatsapp', 'templates'],
-    queryFn: () => whatsappApi.getTemplates(),
+    queryKey: ['whatsapp', 'templates', orgId],
+    queryFn: () => whatsappApi.getTemplates(orgId!),
+    enabled: !!orgId,
   })
 
   const approvedTemplates = templates?.filter((t) => t.status === 'APPROVED') || []
@@ -37,7 +42,8 @@ export function SendTestView({ phone }: SendTestViewProps) {
 
   const sendMutation = useMutation({
     mutationFn: ({ to, template }: { to: string; template: string }) =>
-      whatsappApi.sendTemplate(to, template),
+      whatsappApi.sendTemplate(to, template, orgId!),
+
     onSuccess: (data) => {
       setLastResponse(data)
       toast.success('Mensagem enviada com sucesso!', {

@@ -32,6 +32,8 @@ import {
 } from 'recharts'
 import { formatCurrencyBRL } from '@/lib/mask/formatters'
 import { Skeleton } from '@/components/ui/skeleton'
+import { apiFetch } from '@/lib/api-client'
+
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -101,13 +103,17 @@ export function CampaignAnalysisDrawer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, campaignId])
 
+
+
   const handleAnalyze = async () => {
     setIsLoading(true)
     setError(null)
     try {
-      const resp = await fetch('/api/v1/meta-ads/copilot-analyze', {
+      const data = await apiFetch('/api/v1/meta-ads/copilot-analyze', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
           organizationId,
           campaignId,
@@ -115,22 +121,16 @@ export function CampaignAnalysisDrawer({
           campaignName,
           days: 14,
         }),
+        orgId: organizationId,
       })
-      const data = await resp.json()
-      if (!resp.ok) {
-        setError({
-          message: data.error || 'Erro ao analisar campanha',
-          detail: data.detail,
-        })
-        return
-      }
-      setResult(data)
+      setResult(data as CopilotAnalysisResult)
     } catch (err: any) {
       setError({ message: err.message })
     } finally {
       setIsLoading(false)
     }
   }
+
 
   const analysis = result?.analysis
   const timeline = result?.timeline || []

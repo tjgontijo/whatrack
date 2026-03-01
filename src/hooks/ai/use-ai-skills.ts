@@ -4,19 +4,18 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import type { AiSkill } from '@/types/ai/ai-skill'
 import { useOrganization } from '@/hooks/organization/use-organization'
-import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
+import { apiFetch } from '@/lib/api-client'
+
 
 export const AI_SKILLS_QUERY_KEY = ['ai-skills'] as const
 
+
+
 async function fetchSkills(orgId: string): Promise<AiSkill[]> {
-  const res = await fetch('/api/v1/ai-skills', {
-    headers: {
-      [ORGANIZATION_HEADER]: orgId,
-    },
+  const data = await apiFetch('/api/v1/ai-skills', {
+    orgId,
   })
-  if (!res.ok) throw new Error('Erro ao carregar skills.')
-  const data = await res.json()
-  return data.skills ?? []
+  return (data as any).skills ?? []
 }
 
 export function useAiSkills() {
@@ -34,6 +33,8 @@ export function useAiSkills() {
 
 export function useCreateAiSkill() {
   const queryClient = useQueryClient()
+  const { data: org } = useOrganization()
+  const orgId = org?.id
 
   return useMutation({
     mutationFn: async (input: {
@@ -43,25 +44,15 @@ export function useCreateAiSkill() {
       content: string
       kind: 'SHARED' | 'AGENT'
     }): Promise<AiSkill> => {
-      const orgId = document.cookie
-        .split('; ')
-        .find((row) => row.startsWith(`${ORGANIZATION_HEADER}=`))
-        ?.split('=')[1]
-
-      const res = await fetch('/api/v1/ai-skills', {
+      const data = await apiFetch('/api/v1/ai-skills', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(orgId ? { [ORGANIZATION_HEADER]: orgId } : {}),
         },
         body: JSON.stringify(input),
+        orgId: orgId!,
       })
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        throw new Error(err.error ?? 'Erro ao criar skill.')
-      }
-      const data = await res.json()
-      return data.skill
+      return (data as any).skill
     },
     onSuccess: () => {
       toast.success('Skill criada com sucesso.')
@@ -75,6 +66,8 @@ export function useCreateAiSkill() {
 
 export function useUpdateAiSkill() {
   const queryClient = useQueryClient()
+  const { data: org } = useOrganization()
+  const orgId = org?.id
 
   return useMutation({
     mutationFn: async ({
@@ -91,17 +84,15 @@ export function useUpdateAiSkill() {
         isActive: boolean
       }>
     }): Promise<AiSkill> => {
-      const res = await fetch(`/api/v1/ai-skills/${id}`, {
+      const data = await apiFetch(`/api/v1/ai-skills/${id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(input),
+        orgId: orgId!,
       })
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        throw new Error(err.error ?? 'Erro ao atualizar skill.')
-      }
-      const data = await res.json()
-      return data.skill
+      return (data as any).skill
     },
     onSuccess: () => {
       toast.success('Skill atualizada.')
@@ -115,15 +106,17 @@ export function useUpdateAiSkill() {
 
 export function useDeleteAiSkill() {
   const queryClient = useQueryClient()
+  const { data: org } = useOrganization()
+  const orgId = org?.id
 
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
-      const res = await fetch(`/api/v1/ai-skills/${id}`, { method: 'DELETE' })
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        throw new Error(err.error ?? 'Erro ao remover skill.')
-      }
+      await apiFetch(`/api/v1/ai-skills/${id}`, {
+        method: 'DELETE',
+        orgId: orgId!,
+      })
     },
+
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: AI_SKILLS_QUERY_KEY })
     },

@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { createCentrifugoClient, subscribeTo } from '@/lib/centrifugo/client'
+import { apiFetch } from '@/lib/api-client'
+
 
 function normalizeCentrifugoIssue(payload: unknown) {
   if (!payload || typeof payload !== 'object') {
@@ -33,14 +35,18 @@ export function useRealtime(organizationId: string | undefined) {
   const [client, setClient] = useState<any>(null)
   const [connected, setConnected] = useState(false)
 
+
+
   // Fetch Centrifugo connection token
   const { data: tokenData } = useQuery({
     queryKey: ['centrifugo-token', organizationId],
     queryFn: async () => {
-      const res = await fetch('/api/v1/centrifugo/token')
-      if (!res.ok) throw new Error(`Failed to fetch Centrifugo token: ${res.status}`)
-      return res.json()
+      const data = await apiFetch('/api/v1/centrifugo/token', {
+        orgId: organizationId,
+      })
+      return data as { token: string }
     },
+
     staleTime: 50 * 60 * 1000,
     refetchInterval: 50 * 60 * 1000, // Automático pelo TanStack Query
     enabled: !!organizationId,
@@ -72,7 +78,7 @@ export function useRealtime(organizationId: string | undefined) {
       const ticketsSub = subscribeTo(centrifuge, `org:${organizationId}:tickets`, (data) => {
         if (data.conversationId) {
           queryClient.invalidateQueries({
-            queryKey: ['conversation-ticket', data.conversationId],
+            queryKey: ['conversation-ticket', data.conversationId, organizationId],
           })
         }
         queryClient.invalidateQueries({
