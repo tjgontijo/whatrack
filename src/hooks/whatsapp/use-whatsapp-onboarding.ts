@@ -23,7 +23,7 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
   const [error, setError] = useState<string | null>(null)
   const [sdkReady, setSdkReady] = useState(false)
   const popupRef = useRef<Window | null>(null)
-  const checkIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const onFocusRef = useRef<(() => void) | null>(null)
 
   useEffect(() => {
     const appId = process.env.NEXT_PUBLIC_META_APP_ID
@@ -32,9 +32,9 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
   }, [])
 
   const clearState = useCallback(() => {
-    if (checkIntervalRef.current) {
-      clearInterval(checkIntervalRef.current)
-      checkIntervalRef.current = null
+    if (onFocusRef.current) {
+      window.removeEventListener('focus', onFocusRef.current)
+      onFocusRef.current = null
     }
     if (popupRef.current && !popupRef.current.closed) {
       popupRef.current.close()
@@ -116,19 +116,20 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
 
       console.log('[Onboarding] Popup aberto, aguardando conclusão...')
 
-      // 4. Monitorar fechamento do popup
-      checkIntervalRef.current = setInterval(() => {
-        if (popupRef.current && popupRef.current.closed) {
-          if (checkIntervalRef.current) {
-            clearInterval(checkIntervalRef.current)
-            checkIntervalRef.current = null
-          }
+      const onFocus = () => {
+        if (popupRef.current?.closed) {
+          window.removeEventListener('focus', onFocus)
+          onFocusRef.current = null
+
           console.log('[Onboarding] Popup fechado')
           setStatus('success')
           toast.success('Processo concluído! Atualizando...')
           onSuccess?.()
         }
-      }, 500)
+      }
+
+      onFocusRef.current = onFocus
+      window.addEventListener('focus', onFocus)
     } catch (err) {
       console.error('[Onboarding] Erro ao iniciar:', err)
       setStatus('idle')

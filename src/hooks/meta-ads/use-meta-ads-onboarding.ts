@@ -5,14 +5,14 @@ import { useOrganizationCompletion } from '@/hooks/organization/use-organization
 export function useMetaAdsOnboarding(organizationId: string | undefined, onSuccess?: () => void) {
   const [isPending, setIsPending] = useState(false)
   const popupRef = useRef<Window | null>(null)
-  const checkIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const onFocusRef = useRef<(() => void) | null>(null)
   const { isLoading: isCompletionLoading, isModuleBlocked, integrationBlockMessage } =
     useOrganizationCompletion()
 
   const clearState = useCallback(() => {
-    if (checkIntervalRef.current) {
-      clearInterval(checkIntervalRef.current)
-      checkIntervalRef.current = null
+    if (onFocusRef.current) {
+      window.removeEventListener('focus', onFocusRef.current)
+      onFocusRef.current = null
     }
     popupRef.current = null
   }, [])
@@ -55,17 +55,19 @@ export function useMetaAdsOnboarding(organizationId: string | undefined, onSucce
       return
     }
 
-    checkIntervalRef.current = setInterval(() => {
-      if (popupRef.current && popupRef.current.closed) {
-        if (checkIntervalRef.current) {
-          clearInterval(checkIntervalRef.current)
-          checkIntervalRef.current = null
-        }
+    const onFocus = () => {
+      if (popupRef.current?.closed) {
+        window.removeEventListener('focus', onFocus)
+        onFocusRef.current = null
+
         setIsPending(false)
         toast.success('Conexão finalizada!')
         onSuccess?.()
       }
-    }, 500)
+    }
+
+    onFocusRef.current = onFocus
+    window.addEventListener('focus', onFocus)
   }, [
     organizationId,
     onSuccess,
