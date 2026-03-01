@@ -24,9 +24,23 @@ Executar tarefas com processo consistente e baixo retrabalho.
 
 ## Politica React (Inegociavel)
 
-- Proibido introduzir `useEffect` ou `useLayoutEffect` no `src/`.
+- Proibido introduzir `useEffect` ou `useLayoutEffect` no `src/` para fluxo de dados.
 - Nao usar effects para fetch, sincronizacao de estado derivado, bootstrap de tela ou orquestracao de fluxo.
 - Preferir Server Components, Server Actions, props derivadas e handlers explicitos de evento.
+- Unico uso permitido de `useEffect`: sincronizacao com APIs externas do browser (event listeners DOM, observers, focus management, libs externas).
+
+## Politica Client-Side Data Fetching (Inegociavel)
+
+- Todo fetch client-side DEVE usar TanStack Query. Proibido fetch avulso em useEffect.
+- Proibido `cache: 'no-store'` em fetch client-side (so valido em Server Components).
+- Todo fetch client-side para endpoint com contexto de org DEVE incluir `ORGANIZATION_HEADER`.
+- QueryKeys DEVEM conter todas as variaveis usadas em queryFn (incluindo `organizationId`).
+- Proibido `setInterval` para polling — usar `refetchInterval` do TanStack Query.
+- Proibido `setInterval` para detectar popup fechado — usar `window.addEventListener('focus', ...)`.
+- Para debounce de input, usar `useDeferredValue` (React 19) em vez de `setTimeout`.
+- Para sincronizar form com dados de query, usar `key` prop em vez de `useEffect`.
+- Proibido `console.log` em codigo de producao.
+- Consultar `references/rules.md` secoes "Client-Side Data Fetching", "useEffect — Usos Permitidos vs Proibidos" e "Polling e Timers" para regras detalhadas e exemplos.
 
 ## Fluxo Obrigatorio
 

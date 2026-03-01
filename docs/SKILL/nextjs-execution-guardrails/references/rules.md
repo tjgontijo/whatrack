@@ -21,6 +21,128 @@
 - Schemas Zod novos sempre em `src/schemas/[dominio]/` — unico local permitido.
 - Evitar duplicacao de regras de negocio; centralizar em servicos.
 
+## Client-Side Data Fetching (Inegociavel)
+
+### TanStack Query — Regras de Uso
+
+- **Todo fetch client-side DEVE usar TanStack Query** (`useQuery`, `useInfiniteQuery`, `useMutation`).
+- Proibido `fetch()` avulso dentro de `useEffect` — sempre encapsular em `queryFn`.
+- Proibido `cache: 'no-store'` em fetch client-side. Essa opcao so tem efeito no fetch do Next.js em Server Components. Em client components, a freshness e controlada exclusivamente por `staleTime` e `gcTime` do TanStack Query.
+- Proibido `setInterval`/`setTimeout` para polling de dados. Usar `refetchInterval` do TanStack Query.
+
+### QueryKey — Regras de Composicao
+
+- Toda variavel usada dentro de `queryFn` DEVE estar representada na `queryKey`.
+- `organizationId` DEVE estar presente na `queryKey` de toda query que depende de contexto de org.
+- Estrutura padrao: `[dominio, { ...filtros, organizationId }]`.
+- Queries que dependem de valores async (ex: `organizationId`) DEVEM usar `enabled: !!valor`.
+
+```typescript
+// CORRETO
+queryKey: ['ticket-stages', { organizationId }],
+queryFn: () => fetch(`/api/v1/ticket-stages`, { headers: { [ORGANIZATION_HEADER]: organizationId } }),
+enabled: !!organizationId,
+
+// ERRADO — organizationId ausente da queryKey
+queryKey: ['ticket-stages'],
+queryFn: () => fetch(`/api/v1/ticket-stages`, { headers: { [ORGANIZATION_HEADER]: organizationId } }),
+```
+
+### ORGANIZATION_HEADER — Regra de Transporte
+
+- Todo fetch client-side para endpoint que exige contexto de organizacao DEVE incluir `[ORGANIZATION_HEADER]: organizationId` nos headers.
+- Importar de `@/lib/constants/http-headers`.
+- Nunca depender de cookie ou session implicita no client — sempre explicitar o header.
+
+### Configuracao Padrao de Queries
+
+- `refetchOnWindowFocus: false` — ja configurado globalmente no QueryClient. Nao sobrescrever com `true`.
+- `staleTime` — definir valor adequado ao dominio:
+  - Dados de referencia (stages, roles, plans): `5 * 60 * 1000` (5 min)
+  - Dados operacionais (tickets, messages): `30 * 1000` (30 seg)
+  - Dados em tempo real (sync status): `5 * 1000` (5 seg)
+  - Dados de sessao (auth, org): `Infinity` (invalida manualmente)
+- `refetchInterval` — usar apenas para dados que mudam sem acao do usuario (ex: sync status). Preferir invalidacao explicita via `queryClient.invalidateQueries()` apos mutations.
+
+## useEffect — Usos Permitidos vs Proibidos
+
+### Proibido (alternativa obrigatoria)
+
+| Padrao Proibido | Alternativa |
+|----------------|-------------|
+| `useEffect` para fetch de dados | `useQuery` / `useInfiniteQuery` |
+| `useEffect` para sincronizar form state de query | `key` prop no form/componente (ex: `key={item?.id ?? 'new'}`) |
+| `useEffect` para computar estado derivado | Calcular inline no render: `const x = data?.field ?? fallback` |
+| `useEffect` para redirect condicional | `src/proxy.ts` (server-side) ou callback em `onSuccess` |
+| `useEffect` + `setInterval` para polling | `refetchInterval` do TanStack Query |
+| `useEffect` + `setInterval` para popup closed | `window.addEventListener('focus', ...)` |
+| `useEffect` para debounce de input | `useDeferredValue` (React 19) |
+| `useEffect` para limpar estado apos mutation | Callback `onSuccess` / `onSettled` da mutation |
+
+### Permitido (sincronizacao com APIs externas do browser)
+
+| Padrao Permitido | Motivo |
+|-----------------|--------|
+| Event listeners DOM (`keydown`, `scroll`, `resize`) | Sincronizacao com browser API |
+| `MediaQuery` listeners | Sincronizacao com browser API |
+| `IntersectionObserver` / `ResizeObserver` | Sincronizacao com browser API |
+| Scroll programatico (`scrollIntoView`) | Imperativo DOM |
+| Focus management (`element.focus()`) | Imperativo DOM |
+| Integracao com lib externa (Embla, etc) | API de terceiro |
+| Hydration guard (`mounted` state) | Necessidade tecnica React |
+
+### Regra de Decisao
+
+Antes de escrever `useEffect`, perguntar:
+1. Estou buscando dados? → `useQuery`
+2. Estou derivando estado de outro estado? → Computar inline
+3. Estou sincronizando form com dados de query? → `key` prop
+4. Estou reagindo a mudanca para redirecionar? → `proxy.ts` ou `onSuccess`
+5. Estou ouvindo evento do browser? → **Unico caso permitido para useEffect**
+
+## Polling e Timers
+
+- Proibido `setInterval` para polling de dados. Usar `refetchInterval` do TanStack Query.
+- Proibido `setInterval` para detectar popup fechado. Usar `window.addEventListener('focus', ...)`:
+
+```typescript
+// CORRETO — popup close detection
+const onFocus = () => {
+  if (popupRef.current?.closed) {
+    window.removeEventListener('focus', onFocus)
+    onComplete()
+  }
+}
+window.addEventListener('focus', onFocus)
+
+// ERRADO
+const interval = setInterval(() => {
+  if (popup.closed) { clearInterval(interval); onComplete() }
+}, 500)
+```
+
+- `setTimeout` para UX intencional (ex: delay de redirect, reset de erro) e aceitavel com justificativa.
+- Para debounce de input, usar `useDeferredValue` (React 19) em vez de `setTimeout` manual:
+
+```typescript
+// CORRETO
+const [search, setSearch] = useState('')
+const deferredSearch = useDeferredValue(search)
+// usar deferredSearch nas queryKeys
+
+// ERRADO
+useEffect(() => {
+  const timer = setTimeout(() => setDebouncedSearch(search), 400)
+  return () => clearTimeout(timer)
+}, [search])
+```
+
+## Console.log em Producao
+
+- Proibido `console.log` em codigo de producao. Remover antes da entrega.
+- `console.error` em error boundaries e aceitavel.
+- Para debug temporario, usar comentario `// TODO: remove debug log` e garantir remocao antes do commit.
+
 ## Compartilhamento entre dominios
 
 - Proibido criar wrappers/aliases entre dominios apenas para reaproveitar regra.
