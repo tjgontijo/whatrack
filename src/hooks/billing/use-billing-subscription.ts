@@ -44,9 +44,17 @@ async function fetchBillingData(orgId: string): Promise<{ subscription: Subscrip
 export function useBillingSubscription(): UseBillingSubscriptionReturn {
   const { data: org, isLoading: orgLoading } = useOrganization()
 
+  // Debug: log org state
+  if (typeof window !== 'undefined') {
+    console.debug('[useBillingSubscription] org:', org, 'orgLoading:', orgLoading)
+  }
+
   const query = useQuery({
     queryKey: ['billing', 'subscription-usage', org?.id],
-    queryFn: () => fetchBillingData(org!.id),
+    queryFn: () => {
+      console.debug('[useBillingSubscription] Fetching with orgId:', org?.id)
+      return fetchBillingData(org!.id)
+    },
     enabled: !!org?.id,
     staleTime: 5 * 60 * 1000, // 5 min de cache
     gcTime: 10 * 60 * 1000,
