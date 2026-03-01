@@ -12,8 +12,9 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { formatCnpj, isValidCnpjFormat, stripCnpj } from '@/lib/mask/cnpj'
-import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
+import { apiFetch } from '@/lib/api-client'
 import { authClient } from '@/lib/auth/auth-client'
+
 
 type CompanyState = 'empty' | 'loading' | 'preview' | 'saved' | 'error'
 
@@ -36,56 +37,45 @@ interface CompanyData {
   qsa?: QsaMember[]
 }
 
+
+
 async function fetchCompanyData(orgId: string): Promise<CompanyData | null> {
-  const response = await fetch('/api/v1/company', {
-    headers: { [ORGANIZATION_HEADER]: orgId },
-  })
-
-  if (response.status === 404) {
-    return null
+  try {
+    const data = await apiFetch('/api/v1/company', {
+      orgId,
+    })
+    return data as CompanyData
+  } catch (err) {
+    if (err instanceof Error && err.message.includes('404')) return null
+    throw err
   }
-
-  if (!response.ok) {
-    throw new Error('Erro ao carregar dados da empresa')
-  }
-
-  return response.json()
 }
 
 async function lookupCnpj(cnpj: string, orgId: string): Promise<CompanyData> {
   const cleanCnpj = stripCnpj(cnpj)
-  const response = await fetch(`/api/v1/company/lookup?cnpj=${cleanCnpj}`, {
-    headers: { [ORGANIZATION_HEADER]: orgId },
+  const data = await apiFetch(`/api/v1/company/lookup?cnpj=${cleanCnpj}`, {
+    orgId,
   })
 
-  if (!response.ok) {
-    const data = await response.json().catch(() => ({}))
-    throw new Error(data.error || 'Erro ao buscar CNPJ')
-  }
-
-  return response.json()
+  return data as CompanyData
 }
 
 async function saveCompanyData(
   data: CompanyData & { authorized: boolean },
   orgId: string
 ): Promise<CompanyData> {
-  const response = await fetch('/api/v1/company', {
+  const result = await apiFetch('/api/v1/company', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      [ORGANIZATION_HEADER]: orgId,
     },
     body: JSON.stringify(data),
+    orgId,
   })
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}))
-    throw new Error(errorData.error || 'Erro ao salvar empresa')
-  }
-
-  return response.json()
+  return result as CompanyData
 }
+
 
 export function CompanyDataSection() {
   const { data: activeOrg } = authClient.useActiveOrganization()
@@ -168,12 +158,8 @@ export function CompanyDataSection() {
   }
 
   // Limpa preview quando há dados salvos
-  useEffect(() => {
-    if (savedData) {
-      setPreviewData(null)
-      setCnpjInput('')
-    }
-  }, [savedData])
+  // Removido useEffect: o cleanup do preview já é feito no onSuccess da mutation de save
+
 
   const isValidCnpj = isValidCnpjFormat(cnpjInput)
   const isSearching = lookupMutation.isPending

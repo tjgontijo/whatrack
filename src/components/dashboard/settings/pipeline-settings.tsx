@@ -30,7 +30,8 @@ import {
 import { toast } from 'sonner'
 
 import { useOrganization } from '@/hooks/organization/use-organization'
-import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
+import { apiFetch } from '@/lib/api-client'
+
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -184,14 +185,8 @@ function StageDialog({
     isClosed: stage?.isClosed ?? false,
   })
 
-  React.useEffect(() => {
-    setForm({
-      name: stage?.name ?? '',
-      color: stage?.color ?? PRESET_COLORS[0],
-      isDefault: stage?.isDefault ?? false,
-      isClosed: stage?.isClosed ?? false,
-    })
-  }, [stage, open])
+  // Removido useEffect para sincronização via key prop
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -200,7 +195,7 @@ function StageDialog({
           <DialogTitle>{stage ? 'Editar Fase' : 'Nova Fase'}</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-5 py-2">
+        <div key={stage?.id ?? (open ? 'new' : 'closed')} className="space-y-5 py-2">
           <div className="space-y-2">
             <Label>Nome da fase</Label>
             <Input
@@ -292,16 +287,15 @@ export function PipelineSettings() {
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
 
+
+
   const { data, isLoading } = useQuery<{ items: Stage[] }>({
     queryKey: ['ticket-stages', organizationId],
     queryFn: async () => {
-      const res = await fetch('/api/v1/ticket-stages', {
-        headers: {
-          [ORGANIZATION_HEADER]: organizationId ?? '',
-        }
+      const data = await apiFetch('/api/v1/ticket-stages', {
+        orgId: organizationId,
       })
-      if (!res.ok) throw new Error('Falha ao carregar fases')
-      return res.json()
+      return data as { items: Stage[] }
     },
     enabled: !!organizationId,
   })
@@ -310,19 +304,15 @@ export function PipelineSettings() {
 
   const createMutation = useMutation({
     mutationFn: async (body: StageFormData) => {
-      const res = await fetch('/api/v1/ticket-stages', {
+      const data = await apiFetch('/api/v1/ticket-stages', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          [ORGANIZATION_HEADER]: organizationId ?? '',
         },
         body: JSON.stringify(body),
+        orgId: organizationId,
       })
-      if (!res.ok) {
-        const err = await res.json()
-        throw new Error(err.error ?? 'Falha ao criar fase')
-      }
-      return res.json()
+      return data
     },
     onSuccess: () => {
       toast.success('Fase criada com sucesso')
@@ -335,19 +325,15 @@ export function PipelineSettings() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, ...body }: StageFormData & { id: string }) => {
-      const res = await fetch(`/api/v1/ticket-stages/${id}`, {
+      const data = await apiFetch(`/api/v1/ticket-stages/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          [ORGANIZATION_HEADER]: organizationId ?? '',
         },
         body: JSON.stringify(body),
+        orgId: organizationId,
       })
-      if (!res.ok) {
-        const err = await res.json()
-        throw new Error(err.error ?? 'Falha ao atualizar fase')
-      }
-      return res.json()
+      return data
     },
     onSuccess: () => {
       toast.success('Fase atualizada')
@@ -361,16 +347,10 @@ export function PipelineSettings() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`/api/v1/ticket-stages/${id}`, {
+      await apiFetch(`/api/v1/ticket-stages/${id}`, {
         method: 'DELETE',
-        headers: {
-          [ORGANIZATION_HEADER]: organizationId ?? '',
-        }
+        orgId: organizationId,
       })
-      if (!res.ok) {
-        const err = await res.json()
-        throw new Error(err.error ?? 'Falha ao excluir fase')
-      }
     },
     onSuccess: () => {
       toast.success('Fase excluída')
@@ -382,15 +362,14 @@ export function PipelineSettings() {
 
   const reorderMutation = useMutation({
     mutationFn: async (orderedIds: string[]) => {
-      const res = await fetch('/api/v1/ticket-stages/reorder', {
+      await apiFetch('/api/v1/ticket-stages/reorder', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          [ORGANIZATION_HEADER]: organizationId ?? '',
         },
         body: JSON.stringify({ orderedIds }),
+        orgId: organizationId,
       })
-      if (!res.ok) throw new Error('Falha ao reordenar fases')
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ticket-stages'] })
@@ -400,6 +379,7 @@ export function PipelineSettings() {
       setLocalOrder(null)
     },
   })
+
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event

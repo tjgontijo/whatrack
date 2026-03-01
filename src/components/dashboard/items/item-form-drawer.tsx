@@ -20,6 +20,7 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 import { authClient } from '@/lib/auth/auth-client'
+import { apiFetch } from '@/lib/api-client'
 import { CrudEditDrawer } from '@/components/dashboard/crud'
 
 type CategoryOption = {
@@ -60,6 +61,7 @@ export function ItemFormDrawer({
   const [isCreatingCategory, setIsCreatingCategory] = useState(false)
   const [showCreateCategoryInput, setShowCreateCategoryInput] = useState(false)
 
+
   const {
     control,
     register,
@@ -75,14 +77,7 @@ export function ItemFormDrawer({
     },
   })
 
-  useEffect(() => {
-    if (!open) {
-      reset()
-      setCreatedCategories([])
-      setNewCategoryName('')
-      setShowCreateCategoryInput(false)
-    }
-  }, [open, reset])
+  // Removido useEffect para sincronização via key prop no formulário
 
   const allCategories = useMemo(() => {
     const map = new Map<string, CategoryOption>()
@@ -95,6 +90,8 @@ export function ItemFormDrawer({
     setOpen(false)
   }
 
+
+
   const createCategoryInline = async () => {
     const trimmedName = newCategoryName.trim()
     if (!trimmedName) {
@@ -104,21 +101,15 @@ export function ItemFormDrawer({
 
     setIsCreatingCategory(true)
     try {
-      const response = await fetch('/api/v1/item-categories', {
+      const created = (await apiFetch('/api/v1/item-categories', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          [ORGANIZATION_HEADER]: organizationId ?? '',
         },
         body: JSON.stringify({ name: trimmedName }),
-      })
+        orgId: organizationId,
+      })) as CategoryOption
 
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({}))
-        throw new Error(error?.error ?? 'Falha ao criar categoria')
-      }
-
-      const created = (await response.json()) as CategoryOption
       setCreatedCategories((prev) => [...prev, created])
       setValue('categoryId', created.id, { shouldDirty: true, shouldTouch: true })
       setNewCategoryName('')
@@ -134,22 +125,17 @@ export function ItemFormDrawer({
 
   const submit = async (values: FormValues) => {
     try {
-      const response = await fetch('/api/v1/items', {
+      await apiFetch('/api/v1/items', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          [ORGANIZATION_HEADER]: organizationId ?? '',
         },
         body: JSON.stringify({
           name: values.name.trim(),
           categoryId: values.categoryId || undefined,
         }),
+        orgId: organizationId,
       })
-
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({}))
-        throw new Error(error?.error ?? 'Falha ao criar item')
-      }
 
       toast.success('Item criado com sucesso')
       closeDrawer()
@@ -158,6 +144,7 @@ export function ItemFormDrawer({
       toast.error((error as Error).message)
     }
   }
+
 
   return (
     <CrudEditDrawer
@@ -171,7 +158,11 @@ export function ItemFormDrawer({
       mobileDirection="bottom"
       maxWidth="max-w-[720px]"
     >
-      <form className="space-y-5" onSubmit={handleSubmit(submit)}>
+      <form
+        key={open ? 'open' : 'closed'}
+        className="space-y-5"
+        onSubmit={handleSubmit(submit)}
+      >
         <div className="space-y-2">
           <Label htmlFor="item-name">Nome *</Label>
           <Input id="item-name" placeholder="Nome do item" {...register('name')} />

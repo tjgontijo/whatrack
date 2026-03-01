@@ -11,6 +11,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
+import { useOrganization } from '@/hooks/organization/use-organization'
+import { apiFetch } from '@/lib/api-client'
+import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 import { CrudEditDrawer } from '@/components/dashboard/crud'
 
 const categorySchema = z.object({
@@ -39,6 +42,8 @@ export function CategoryFormDrawer({
   category,
   onSuccess,
 }: CategoryFormDrawerProps) {
+  const { data: org } = useOrganization()
+  const organizationId = org?.id
   const isEditMode = Boolean(category)
 
   const {
@@ -50,54 +55,37 @@ export function CategoryFormDrawer({
   } = useForm<FormValues>({
     resolver: zodResolver(categorySchema),
     defaultValues: {
-      name: '',
-      active: true,
+      name: category?.name ?? '',
+      active: category?.active ?? true,
     },
   })
 
-  useEffect(() => {
-    if (!open) {
-      reset({
-        name: '',
-        active: true,
-      })
-      return
-    }
+  // Removido useEffect para sincronização via key prop no formulário
 
-    if (category) {
-      reset({
-        name: category.name,
-        active: category.active,
-      })
-    } else {
-      reset({
-        name: '',
-        active: true,
-      })
-    }
-  }, [open, category, reset])
 
   const closeDrawer = () => onOpenChange(false)
 
   const submit = async (values: FormValues) => {
     try {
-      const response = await fetch(
+      await apiFetch(
         isEditMode ? `/api/v1/item-categories/${category!.id}` : '/api/v1/item-categories',
         {
           method: isEditMode ? 'PUT' : 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+          },
           body: JSON.stringify(
             isEditMode
               ? { name: values.name.trim(), active: values.active }
               : { name: values.name.trim() }
           ),
+          orgId: organizationId,
         }
       )
 
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({}))
-        throw new Error(error?.error ?? 'Falha ao salvar categoria')
-      }
+
+
+
 
       toast.success(isEditMode ? 'Categoria atualizada' : 'Categoria criada')
       closeDrawer()
@@ -119,7 +107,11 @@ export function CategoryFormDrawer({
       mobileDirection="bottom"
       maxWidth="max-w-[640px]"
     >
-      <form className="space-y-5" onSubmit={handleSubmit(submit)}>
+      <form
+        key={category?.id ?? (open ? 'new' : 'closed')}
+        className="space-y-5"
+        onSubmit={handleSubmit(submit)}
+      >
         <div className="space-y-2">
           <Label htmlFor="category-name">Nome *</Label>
           <Input id="category-name" placeholder="Ex: Serviços premium" {...register('name')} />

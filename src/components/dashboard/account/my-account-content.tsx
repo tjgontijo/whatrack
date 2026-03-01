@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useOrganization } from '@/hooks/organization/use-organization'
-import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
+
 
 type Account = {
   id: string
@@ -36,40 +36,18 @@ type OrganizationProfile = {
   documentNumber: string | null
 }
 
-async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(url, {
-    ...init,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(init?.headers || {}),
-    },
-  })
+import { apiFetch } from '@/lib/api-client'
 
-  if (!response.ok) {
-    const body = (await response.json().catch(() => null)) as { error?: string } | null
-    throw new Error(body?.error || 'Erro inesperado')
-  }
-
-  return response.json() as Promise<T>
+async function fetchJson<T>(url: string, init?: RequestInit & { orgId?: string }): Promise<T> {
+  return apiFetch(url, init)
 }
+
 
 export function MyAccountContent() {
   const { data: org } = useOrganization()
   const organizationId = org?.id
   const queryClient = useQueryClient()
   const authorization = useAuthorization()
-
-  const [profileName, setProfileName] = useState('')
-  const [profileEmail, setProfileEmail] = useState('')
-  const [profilePhone, setProfilePhone] = useState('')
-
-  const [currentPassword, setCurrentPassword] = useState('')
-  const [newPassword, setNewPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-
-  const [organizationName, setOrganizationName] = useState('')
-  const [organizationType, setOrganizationType] = useState<'pessoa_fisica' | 'pessoa_juridica' | ''>('')
-  const [documentNumber, setDocumentNumber] = useState('')
 
   const { data: account } = useQuery({
     queryKey: ['me', 'account'],
@@ -79,26 +57,26 @@ export function MyAccountContent() {
   const { data: organization } = useQuery({
     queryKey: ['organizations', 'me', organizationId],
     queryFn: () => fetchJson<OrganizationProfile>('/api/v1/organizations/me', {
-      headers: {
-        [ORGANIZATION_HEADER]: organizationId ?? '',
-      }
+      orgId: organizationId,
     }),
+
     enabled: !!organizationId,
   })
 
-  useEffect(() => {
-    if (!account) return
-    setProfileName(account.name || '')
-    setProfileEmail(account.email || '')
-    setProfilePhone(account.phone || '')
-  }, [account])
+  const [profileName, setProfileName] = useState(account?.name ?? '')
+  const [profileEmail, setProfileEmail] = useState(account?.email ?? '')
+  const [profilePhone, setProfilePhone] = useState(account?.phone ?? '')
 
-  useEffect(() => {
-    if (!organization) return
-    setOrganizationName(organization.name || '')
-    setOrganizationType(organization.organizationType || '')
-    setDocumentNumber(applyCpfCnpjMask(organization.documentNumber || '', organization.documentType))
-  }, [organization])
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+
+  const [organizationName, setOrganizationName] = useState(organization?.name ?? '')
+  const [organizationType, setOrganizationType] = useState<'pessoa_fisica' | 'pessoa_juridica' | ''>(organization?.organizationType ?? '')
+  const [documentNumber, setDocumentNumber] = useState(organization ? applyCpfCnpjMask(organization.documentNumber || '', organization.documentType) : '')
+
+
+  // Removidos useEffects de sincronização automática via key props nos Cards
 
   const canManageOrganizationSettings = authorization.isOwner
 
@@ -190,9 +168,8 @@ export function MyAccountContent() {
     mutationFn: async () =>
       fetchJson<OrganizationProfile>('/api/v1/organizations/me', {
         method: 'PATCH',
-        headers: {
-          [ORGANIZATION_HEADER]: organizationId ?? '',
-        },
+        orgId: organizationId,
+
         body: JSON.stringify({
           name: organizationName,
           organizationType: organizationType || null,
@@ -217,7 +194,7 @@ export function MyAccountContent() {
           <CardTitle>Perfil</CardTitle>
           <CardDescription>Atualize os dados da sua conta.</CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4">
+        <CardContent key={account?.id || 'loading'} className="grid gap-4">
           <div className="grid gap-2">
             <label className="text-sm font-medium">Nome</label>
             <Input value={profileName} onChange={(event) => setProfileName(event.target.value)} />
@@ -293,7 +270,7 @@ export function MyAccountContent() {
             Selecione PF ou PJ e preencha os dados do documento conforme o tipo.
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4">
+        <CardContent key={organization?.id || 'loading'} className="grid gap-4">
           <div className="grid gap-2">
             <label className="text-sm font-medium">{accountNameLabel}</label>
             <Input value={organizationName} onChange={(event) => setOrganizationName(event.target.value)} />
