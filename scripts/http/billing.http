@@ -1,0 +1,17 @@
+@baseUrl = http://localhost:3000
+@orgId = 9d31236f-24f1-46fd-ae49-00aefb92b405
+@sessionToken = 3Yq4NdrbSJHOaAmBT9SDx7uZwOBZKl1W.na6jcDcIKzAmR8UoTwVLcWavDBaPfW88cKAjIEM17L4=
+
+### Test GET /api/v1/billing/subscription (COM COOKIE)
+GET {{baseUrl}}/api/v1/billing/subscription
+X-Organization-Id: {{orgId}}
+Cookie: better-auth.session_token={{sessionToken}}
+
+### Test GET /api/v1/billing/subscription (COM SECURE COOKIE)
+GET {{baseUrl}}/api/v1/billing/subscription
+X-Organization-Id: {{orgId}}
+Cookie: __Secure-better-auth.session_token={{sessionToken}}
+
+### Test GET /api/v1/organizations (Para verificar se auth funciona)
+GET {{baseUrl}}/api/v1/organizations
+Cookie: better-auth.session_token={{sessionToken}}

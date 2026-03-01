@@ -12,20 +12,44 @@ import {
 import { listEffectivePermissionsForUser } from '@/server/organization/organization-rbac.service'
 import { logger } from '@/lib/utils/logger'
 
-async function getSessionFromRequest(request: Request) {
-  const headers = new Headers(request.headers)
-  if (!headers.get('cookie')) {
-    try {
-      const cookieStore = await cookies()
-      const cookieHeader = cookieStore
-        .getAll()
-        .map((cookie) => `${cookie.name}=${cookie.value}`)
-        .join('; ')
-      if (cookieHeader) headers.set('cookie', cookieHeader)
-    } catch {
-      // ignore
+async function buildAuthHeaders(request?: Request): Promise<Headers> {
+  if (request) {
+    const headers = new Headers(request.headers)
+    if (!headers.get('cookie')) {
+      try {
+        const cookieStore = await cookies()
+        const cookieHeader = cookieStore
+          .getAll()
+          .map((cookie) => `${cookie.name}=${cookie.value}`)
+          .join('; ')
+
+        if (cookieHeader) {
+          headers.set('cookie', cookieHeader)
+        }
+      } catch {
+        // ignore
+      }
     }
+    return headers
   }
+
+  const cookieStore = await cookies()
+  const headers = new Headers()
+
+  const cookieHeader = cookieStore
+    .getAll()
+    .map((cookie) => `${cookie.name}=${cookie.value}`)
+    .join('; ')
+
+  if (cookieHeader) {
+    headers.set('cookie', cookieHeader)
+  }
+
+  return headers
+}
+
+async function getSessionFromRequest(request: Request) {
+  const headers = await buildAuthHeaders(request)
   return auth.api.getSession({ headers })
 }
 
@@ -135,10 +159,7 @@ export async function validateTenantAccess(
     const organizationId =
       session.session?.activeOrganizationId ?? extractOrganizationId(request) ?? undefined
 
-    logger.debug(`[validateTenantAccess] User: ${userId}, GlobalRole: ${globalRole}, OrgID: ${organizationId}`)
-
     if (!organizationId) {
-      logger.warn(`[validateTenantAccess] No organization ID found in session or request for user ${userId}`)
       return {
         hasAccess: false,
         userId,
