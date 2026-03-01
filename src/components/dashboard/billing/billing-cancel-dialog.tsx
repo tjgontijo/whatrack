@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -11,6 +12,9 @@ import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils/utils'
+import { useOrganization } from '@/hooks/organization/use-organization'
+import { apiFetch } from '@/lib/api-client'
+
 
 interface BillingCancelDialogProps {
   open: boolean
@@ -36,6 +40,9 @@ export function BillingCancelDialog({
   onOpenChange,
   planName,
 }: BillingCancelDialogProps) {
+  const router = useRouter()
+  const { data: org } = useOrganization()
+  const orgId = org?.id
   const [isLoading, setIsLoading] = useState(false)
   const [cancelOption, setCancelOption] = useState<'period-end' | 'immediate'>(
     'period-end',
@@ -44,18 +51,24 @@ export function BillingCancelDialog({
   async function handleCancel() {
     setIsLoading(true)
 
+
+
     try {
-      const response = await fetch('/api/v1/billing/cancel', {
+      if (!orgId) throw new Error('Organização não identificada')
+
+      await apiFetch('/api/v1/billing/cancel', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({ atPeriodEnd: cancelOption === 'period-end' }),
+        orgId,
       })
 
-      if (!response.ok) throw new Error('Erro ao cancelar assinatura')
 
       toast.success('Assinatura cancelada com sucesso')
       onOpenChange(false)
-      setTimeout(() => window.location.reload(), 1000)
+      router.refresh()
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : 'Erro ao cancelar assinatura',

@@ -7,7 +7,8 @@ import { motion } from 'motion/react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils/utils'
 import { useOrganization } from '@/hooks/organization/use-organization'
-import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
+import { apiFetch } from '@/lib/api-client'
+
 
 interface Plan {
   id: string
@@ -102,6 +103,8 @@ export function PlanSelector({ onClose: _ }: PlanSelectorProps) {
     setSelectedPlan(plan.id)
     setState('loading')
 
+
+
     try {
       if (!org?.id) {
         toast.error('Selecione uma organização primeiro')
@@ -109,20 +112,18 @@ export function PlanSelector({ onClose: _ }: PlanSelectorProps) {
         return
       }
 
-      const response = await fetch('/api/v1/billing/checkout', {
+      const data = await apiFetch('/api/v1/billing/checkout', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          [ORGANIZATION_HEADER]: org.id,
         },
         body: JSON.stringify({ planType: plan.id }),
+        orgId: org.id,
       })
 
-      if (!response.ok) throw new Error('Erro ao criar checkout')
-
-      const data = await response.json()
-      if (data.url) window.location.href = data.url
+      if ((data as any).url) window.location.href = (data as any).url
     } catch {
+
       setState('error')
       toast.error('Erro ao processar checkout. Tente novamente.')
       setTimeout(() => setState('idle'), 3000)

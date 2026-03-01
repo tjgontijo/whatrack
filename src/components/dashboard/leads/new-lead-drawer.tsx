@@ -70,6 +70,9 @@ export type NewLeadDrawerProps = {
   onOpenChange: (open: boolean) => void
 }
 
+import { useOrganization } from '@/hooks/organization/use-organization'
+import { apiFetch } from '@/lib/api-client'
+
 export function NewLeadDrawer({
   onSuccess,
   open,
@@ -77,6 +80,7 @@ export function NewLeadDrawer({
 }: NewLeadDrawerProps) {
   const setOpen = onOpenChange
   const queryClient = useQueryClient()
+  const { data: org } = useOrganization()
 
   const {
     control,
@@ -109,18 +113,14 @@ export function NewLeadDrawer({
     }
 
     try {
-      const response = await fetch('/api/v1/leads', {
+      await apiFetch('/api/v1/leads', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
+        orgId: org?.id,
       })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || `Erro ao criar lead (${response.status})`)
-      }
 
       toast.success('Lead registrado com sucesso!')
       reset()
@@ -136,6 +136,7 @@ export function NewLeadDrawer({
       toast.error(errorMessage)
     }
   }
+
 
   return (
     <CrudEditDrawer

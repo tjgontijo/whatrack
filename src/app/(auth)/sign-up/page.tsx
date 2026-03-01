@@ -73,8 +73,7 @@ export default function SignUpPage() {
         return
       }
 
-      // 2. Aguardar sincronização da session
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      // 2. Aceitar convite se houver
 
       if (invitationId) {
         try {
