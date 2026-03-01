@@ -60,7 +60,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     // Process webhook
+    console.log(`[Webhook/AbacatePay] Processing event type: ${payload.type}, id: ${payload.id}`)
     const result = await handlePaymentWebhook(payload, 'abacatepay')
+
+    console.log('[Webhook/AbacatePay] Processing result:', result)
 
     if (!result.processed) {
       // Idempotent success - already processed or expired

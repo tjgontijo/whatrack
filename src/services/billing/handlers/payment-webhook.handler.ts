@@ -104,6 +104,7 @@ export async function handlePaymentWebhook(
 
   try {
     // Process based on event type
+    console.log(`[Handler/Webhook] Dispatching event: ${eventType}`)
     switch (eventType) {
       case 'billing.paid':
         await handleBillingPaid(payload.data)
@@ -122,6 +123,7 @@ export async function handlePaymentWebhook(
         break
 
       default:
+        console.warn(`[Handler/Webhook] Received unhandled event type: ${eventType}`)
         throw new Error(`Unknown webhook event type: ${eventType}`)
     }
 
@@ -134,6 +136,8 @@ export async function handlePaymentWebhook(
       },
     })
 
+    console.log(`[Handler/Webhook] Successfully processed ${eventType} for eventId: ${eventId}`)
+
     return {
       processed: true,
       eventId,
@@ -141,7 +145,7 @@ export async function handlePaymentWebhook(
     }
   } catch (error) {
     // Log the error but don't throw
-    console.error(`Failed to process webhook ${eventId}:`, error)
+    console.error(`[Handler/Webhook] Error processing webhook ${eventId}:`, error)
 
     // Mark as attempted (but not fully processed)
     await prisma.billingWebhookLog.update({

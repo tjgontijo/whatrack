@@ -103,15 +103,15 @@ export function PlanSelector({ onClose: _ }: PlanSelectorProps) {
     setSelectedPlan(plan.id)
     setState('loading')
 
-
-
     try {
       if (!org?.id) {
+        console.warn('[PlanSelector] No organization selected')
         toast.error('Selecione uma organização primeiro')
         setState('idle')
         return
       }
 
+      console.log('[PlanSelector] Starting checkout process for plan:', plan.id, 'in org:', org.id)
       const data = await apiFetch('/api/v1/billing/checkout', {
         method: 'POST',
         headers: {
@@ -121,9 +121,13 @@ export function PlanSelector({ onClose: _ }: PlanSelectorProps) {
         orgId: org.id,
       })
 
-      if ((data as any).url) window.location.href = (data as any).url
-    } catch {
-
+      console.log('[PlanSelector] Checkout API response:', data)
+      if ((data as any).url) {
+        console.log('[PlanSelector] Redirecting to checkout URL:', (data as any).url)
+        window.location.href = (data as any).url
+      }
+    } catch (error) {
+      console.error('[PlanSelector] Checkout error:', error)
       setState('error')
       toast.error('Erro ao processar checkout. Tente novamente.')
       setTimeout(() => setState('idle'), 3000)
@@ -280,7 +284,6 @@ export function PlanSelector({ onClose: _ }: PlanSelectorProps) {
           )
         })}
       </div>
-
     </div>
   )
 }

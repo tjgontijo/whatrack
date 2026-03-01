@@ -42,6 +42,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const returnUrl = `${origin}/billing`
 
     // Create checkout session
+    console.log('[API/Checkout] Creating session for org:', auth.organizationId, 'plan:', validated.planType)
     const checkoutSession = await createCheckoutSessionWithProvider({
       organizationId: auth.organizationId,
       planType: validated.planType,
@@ -55,6 +56,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       provider: checkoutSession.provider,
     })
 
+    console.log('[API/Checkout] Session created successfully. Redirect URL:', response.url)
     return NextResponse.json(response, { status: 200 })
   } catch (error) {
     console.error('Checkout creation error:', error)
