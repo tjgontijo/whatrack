@@ -13,8 +13,9 @@ import { DashboardMetricCard, DashboardMetricGrid } from '@/components/dashboard
 import { DashboardPieChart } from '@/components/dashboard/charts/pie'
 import { FunnelChart } from '@/components/dashboard/charts/funnel-chart'
 import { formatCurrencyBRL } from '@/lib/mask/formatters'
-import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 import { authClient } from '@/lib/auth/auth-client'
+import { apiFetch } from '@/lib/api-client'
+
 import {
   dashboardSummaryResponseSchema,
   type DashboardSummaryResponse,
@@ -81,23 +82,20 @@ export default function DashboardPage() {
         throw new Error('Organização não encontrada')
       }
 
-      const url = new URL('/api/v1/dashboard/summary', window.location.origin)
-      url.searchParams.set('period', filters.period)
-      url.searchParams.set('trafficSource', filters.trafficSource)
-      url.searchParams.set('trafficType', filters.trafficType)
-      url.searchParams.set('item', filters.item)
+      const queryParams = new URLSearchParams()
+      queryParams.set('period', filters.period)
+      queryParams.set('trafficSource', filters.trafficSource)
+      queryParams.set('trafficType', filters.trafficType)
+      queryParams.set('item', filters.item)
 
-      const response = await fetch(url.toString(), {
-        headers: {
-          [ORGANIZATION_HEADER]: organizationId,
-        },
+      const data = await apiFetch(`/api/v1/dashboard/summary?${queryParams.toString()}`, {
+        orgId: organizationId,
       })
-      if (!response.ok) throw new Error('Falha ao carregar resumo')
-      const json = await response.json()
-      return dashboardSummaryResponseSchema.parse(json)
+      return dashboardSummaryResponseSchema.parse(data)
     },
     staleTime: 2 * 60 * 1000,
   })
+
 
   const pieData = data?.salesByService ?? []
   const itemFilters = data?.itemFilters

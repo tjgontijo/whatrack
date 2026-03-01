@@ -13,6 +13,8 @@ import {
   VisibilityState,
 } from '@tanstack/react-table'
 import { campaignsColumns, MetaCampaign } from './columns'
+import { apiFetch } from '@/lib/api-client'
+
 import { Button } from '@/components/ui/button'
 import { CampaignAnalysisDrawer } from '@/components/dashboard/meta-ads/campaign-analysis-drawer'
 import { Sparkles, RefreshCw, Search, Settings2 } from 'lucide-react'
@@ -113,15 +115,15 @@ export function MetaAdsCampaignsClient() {
     queryKey: ['meta-campaigns', organizationId, days],
     queryFn: async () => {
       if (!organizationId) throw new Error('No organization selected')
-      const response = await fetch(
-        `/api/v1/meta-ads/campaigns?organizationId=${organizationId}&days=${days}`
-      )
-      if (!response.ok) throw new Error('Failed to fetch campaigns')
-      return response.json()
+      const data = await apiFetch(`/api/v1/meta-ads/campaigns?days=${days}`, {
+        orgId: organizationId,
+      })
+      return data as MetaCampaign[]
     },
     enabled: !!organizationId,
     refetchOnWindowFocus: false,
   })
+
 
   const uniqueAccounts = React.useMemo(() => {
     if (!campaigns) return []
