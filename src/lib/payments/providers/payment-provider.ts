@@ -111,6 +111,8 @@ export interface PaymentProvider {
     userEmail?: string
     userName?: string
     userPhone?: string
+    userTaxId?: string
+    isPerson?: boolean
   }): Promise<CheckoutSession>
 
   /**

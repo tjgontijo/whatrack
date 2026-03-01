@@ -82,6 +82,39 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       )
     }
 
+    if (!user.phone) {
+      return NextResponse.json(
+        { error: 'User phone is required for checkout' },
+        { status: 400 }
+      )
+    }
+
+    // Fetch organization profile to get taxId (CPF or CNPJ)
+    const orgProfile = await prisma.organizationProfile.findUnique({
+      where: { organizationId: auth.organizationId },
+      select: {
+        cpf: true,
+      },
+    })
+
+    const orgCompany = await prisma.organizationCompany.findUnique({
+      where: { organizationId: auth.organizationId },
+      select: {
+        cnpj: true,
+      },
+    })
+
+    const taxId = orgProfile?.cpf || orgCompany?.cnpj
+    if (!taxId) {
+      return NextResponse.json(
+        { error: 'Organization tax ID (CPF or CNPJ) is required for checkout' },
+        { status: 400 }
+      )
+    }
+
+    // Determine if it's a person (PF) or company (PJ)
+    const isPerson = !!orgProfile?.cpf
+
     // Get the success and return URLs
     const origin = request.headers.get('origin') || 'http://localhost:3000'
     const successUrl = `${origin}/billing/success`
@@ -95,7 +128,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       returnUrl,
       userEmail: user.email,
       userName: user.name,
-      userPhone: user.phone || undefined,
+      userPhone: user.phone,
+      userTaxId: taxId,
+      isPerson,
     })
 
     // Validate and return response

@@ -227,10 +227,9 @@ export class AbacatepayProvider implements PaymentProvider {
       if (!userData?.phone) {
         throw new Error('User phone is required for customer creation')
       }
-
-      // TODO: Add taxId field to User model schema
-      // For now, generate a placeholder CNPJ (will need user to provide real CPF/CNPJ)
-      const taxId = '12.345.678/0001-90'
+      if (!userData?.taxId) {
+        throw new Error('Tax ID (CPF or CNPJ) is required for customer creation')
+      }
 
       const response = await this.apiFetch('/customer/create', {
         method: 'POST',
@@ -238,7 +237,7 @@ export class AbacatepayProvider implements PaymentProvider {
           name: userData.name,
           cellphone: userData.phone,
           email: userData.email,
-          taxId,
+          taxId: userData.taxId,
         },
       })
 

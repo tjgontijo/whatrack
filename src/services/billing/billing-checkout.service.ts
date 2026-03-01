@@ -18,6 +18,8 @@ export interface CreateCheckoutSessionParams {
   userEmail?: string
   userName?: string
   userPhone?: string
+  userTaxId?: string
+  isPerson?: boolean
 }
 
 /**
@@ -49,6 +51,8 @@ export async function createCheckoutSessionWithProvider(
       userEmail: params.userEmail,
       userName: params.userName,
       userPhone: params.userPhone,
+      userTaxId: params.userTaxId,
+      isPerson: params.isPerson,
     })
 
     return {
