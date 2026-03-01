@@ -42,7 +42,7 @@ async function fetchBillingData(orgId: string): Promise<{ subscription: Subscrip
  * Hook centralizado com cache (TanStack Query) para evitar múltiplas chamadas redundantes.
  */
 export function useBillingSubscription(): UseBillingSubscriptionReturn {
-  const { data: org } = useOrganization()
+  const { data: org, isLoading: orgLoading } = useOrganization()
 
   const query = useQuery({
     queryKey: ['billing', 'subscription-usage', org?.id],
@@ -56,7 +56,7 @@ export function useBillingSubscription(): UseBillingSubscriptionReturn {
   return {
     subscription: query.data?.subscription ?? null,
     usage: query.data?.usage ?? null,
-    isLoading: query.isLoading && !!org?.id,
+    isLoading: (query.isLoading && !!org?.id) || orgLoading,
     error: query.error as Error | null,
     refetch: () => query.refetch(),
   }
