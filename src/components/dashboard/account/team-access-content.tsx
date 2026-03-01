@@ -29,6 +29,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { useOrganization } from '@/hooks/organization/use-organization'
+
 
 type Account = {
   id: string
@@ -79,22 +81,12 @@ type MemberPermissionsResponse = {
   }>
 }
 
-async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(url, {
-    ...init,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(init?.headers || {}),
-    },
-  })
+import { apiFetch } from '@/lib/api-client'
 
-  if (!response.ok) {
-    const body = (await response.json().catch(() => null)) as { error?: string } | null
-    throw new Error(body?.error || 'Erro inesperado')
-  }
-
-  return response.json() as Promise<T>
+async function fetchJson<T>(url: string, init?: RequestInit & { orgId?: string }): Promise<T> {
+  return apiFetch(url, init)
 }
+
 
 function roleBadgeVariant(role: string): 'default' | 'secondary' | 'outline' {
   if (role === 'owner') return 'default'
@@ -124,6 +116,8 @@ function toRoleKeyDraft(value: string): string {
 }
 
 export function TeamAccessContent() {
+  const { data: org } = useOrganization()
+  const organizationId = org?.id
   const queryClient = useQueryClient()
   const authorization = useAuthorization()
 
@@ -145,36 +139,58 @@ export function TeamAccessContent() {
     queryFn: () => fetchJson<Account>('/api/v1/me/account'),
   })
 
+  const { data: organization } = useQuery({
+    queryKey: ['organizations', 'me', organizationId],
+    queryFn: () => fetchJson<Account>('/api/v1/organizations/me', {
+      orgId: organizationId,
+    }),
+
+    enabled: !!organizationId,
+  })
+
   const canManageTeamOps =
     authorization.can('manage:members') && (authorization.isOwner || authorization.isAdmin)
   const canManageRoles = authorization.isOwner
   const canManageMemberPermissions = authorization.isOwner
 
   const membersQuery = useQuery({
-    queryKey: ['organizations', 'me', 'members'],
-    queryFn: () => fetchJson<{ data: TeamMember[] }>('/api/v1/organizations/me/members'),
-    enabled: canManageTeamOps || canManageMemberPermissions,
+    queryKey: ['organizations', 'me', 'members', organizationId],
+    queryFn: () => fetchJson<{ data: TeamMember[] }>('/api/v1/organizations/me/members', {
+      orgId: organizationId,
+    }),
+
+    enabled: (canManageTeamOps || canManageMemberPermissions) && !!organizationId,
   })
 
   const invitationsQuery = useQuery({
-    queryKey: ['organizations', 'me', 'invitations'],
-    queryFn: () => fetchJson<{ data: TeamInvitation[] }>('/api/v1/organizations/me/invitations'),
-    enabled: canManageTeamOps,
+    queryKey: ['organizations', 'me', 'invitations', organizationId],
+    queryFn: () => fetchJson<{ data: TeamInvitation[] }>('/api/v1/organizations/me/invitations', {
+      orgId: organizationId,
+    }),
+
+    enabled: canManageTeamOps && !!organizationId,
   })
 
   const rolesQuery = useQuery({
-    queryKey: ['organizations', 'me', 'roles'],
-    queryFn: () => fetchJson<RolesResponse>('/api/v1/organizations/me/roles'),
-    enabled: canManageTeamOps || canManageRoles,
+    queryKey: ['organizations', 'me', 'roles', organizationId],
+    queryFn: () => fetchJson<RolesResponse>('/api/v1/organizations/me/roles', {
+      orgId: organizationId,
+    }),
+
+    enabled: (canManageTeamOps || canManageRoles) && !!organizationId,
   })
 
   const memberPermissionsQuery = useQuery({
-    queryKey: ['organizations', 'me', 'members', selectedMemberId, 'permissions'],
+    queryKey: ['organizations', 'me', 'members', selectedMemberId, 'permissions', organizationId],
     queryFn: () =>
       fetchJson<MemberPermissionsResponse>(
-        `/api/v1/organizations/me/members/${selectedMemberId}/permissions`
+        `/api/v1/organizations/me/members/${selectedMemberId}/permissions`,
+        {
+          orgId: organizationId,
+        }
       ),
-    enabled: canManageMemberPermissions && Boolean(selectedMemberId),
+
+    enabled: canManageMemberPermissions && Boolean(selectedMemberId) && !!organizationId,
   })
 
   const members = membersQuery.data?.data || []
@@ -189,24 +205,15 @@ export function TeamAccessContent() {
     [rolesQuery.data?.permissionCatalog]
   )
 
-  useEffect(() => {
-    if (!members.length) {
-      setSelectedMemberId('')
-      return
-    }
+  // Removido useEffect: A seleção automática agora é tratada via fallbacks no render
+  const effectiveMemberId = selectedMemberId || members[0]?.id || ''
 
-    const exists = members.some((member) => member.id === selectedMemberId)
-    if (!selectedMemberId || !exists) {
-      setSelectedMemberId(members[0]?.id || '')
-    }
-  }, [members, selectedMemberId])
 
-  useEffect(() => {
-    const data = memberPermissionsQuery.data
-    if (!data) return
-    setOverrideAllowDraft(data.allowOverrides)
-    setOverrideDenyDraft(data.denyOverrides)
-  }, [memberPermissionsQuery.data])
+  // Removido useEffect: Drafts são inicializados no render ou via key prop
+  const mData = memberPermissionsQuery.data
+  const overrideAllow = overrideAllowDraft.length > 0 ? overrideAllowDraft : (mData?.allowOverrides || [])
+  const overrideDeny = overrideDenyDraft.length > 0 ? overrideDenyDraft : (mData?.denyOverrides || [])
+
 
   const assignableRoles = useMemo(() => {
     if (!roles.length) {
@@ -224,12 +231,9 @@ export function TeamAccessContent() {
     return []
   }, [authorization.isAdmin, authorization.isOwner, roles])
 
-  useEffect(() => {
-    if (!assignableRoles.length) return
-    if (!assignableRoles.includes(inviteRole)) {
-      setInviteRole(assignableRoles[0] || 'user')
-    }
-  }, [assignableRoles, inviteRole])
+  // Removido useEffect: Invite role padrão tratado no render
+  const effectiveInviteRole = assignableRoles.includes(inviteRole) ? inviteRole : (assignableRoles[0] || 'user')
+
 
   const selectedMember = members.find((member) => member.id === selectedMemberId) || null
   const inviteRoleOptions = assignableRoles.length > 0 ? assignableRoles : ['user']
@@ -238,11 +242,13 @@ export function TeamAccessContent() {
     mutationFn: async () =>
       fetchJson<{ id: string }>('/api/v1/organizations/me/invitations', {
         method: 'POST',
+        orgId: organizationId,
         body: JSON.stringify({
           email: inviteEmail,
           role: inviteRole,
         }),
       }),
+
     onSuccess: () => {
       toast.success('Convite enviado com sucesso')
       setInviteEmail('')
@@ -257,8 +263,10 @@ export function TeamAccessContent() {
     mutationFn: async ({ memberId, role }: { memberId: string; role: string }) =>
       fetchJson(`/api/v1/organizations/me/members/${memberId}/role`, {
         method: 'PATCH',
+        orgId: organizationId,
         body: JSON.stringify({ role }),
       }),
+
     onSuccess: () => {
       toast.success('Papel atualizado com sucesso')
       void queryClient.invalidateQueries({ queryKey: ['organizations', 'me', 'members'] })
@@ -274,7 +282,9 @@ export function TeamAccessContent() {
     mutationFn: async (memberId: string) =>
       fetchJson(`/api/v1/organizations/me/members/${memberId}`, {
         method: 'DELETE',
+        orgId: organizationId,
       }),
+
     onSuccess: () => {
       toast.success('Membro removido com sucesso')
       void queryClient.invalidateQueries({ queryKey: ['organizations', 'me', 'members'] })
@@ -288,7 +298,9 @@ export function TeamAccessContent() {
     mutationFn: async (invitationId: string) =>
       fetchJson(`/api/v1/organizations/me/invitations/${invitationId}`, {
         method: 'DELETE',
+        orgId: organizationId,
       }),
+
     onSuccess: () => {
       toast.success('Convite removido')
       void queryClient.invalidateQueries({ queryKey: ['organizations', 'me', 'invitations'] })
@@ -302,7 +314,9 @@ export function TeamAccessContent() {
     mutationFn: async (invitationId: string) =>
       fetchJson(`/api/v1/organizations/me/invitations/${invitationId}/resend`, {
         method: 'POST',
+        orgId: organizationId,
       }),
+
     onSuccess: () => {
       toast.success('Convite reenviado com sucesso')
       void queryClient.invalidateQueries({ queryKey: ['organizations', 'me', 'invitations'] })
@@ -325,6 +339,7 @@ export function TeamAccessContent() {
       if (editingRoleId) {
         return fetchJson(`/api/v1/organizations/me/roles/${editingRoleId}`, {
           method: 'PATCH',
+          orgId: organizationId,
           body: JSON.stringify({
             name: roleNameDraft.trim(),
             description: roleDescriptionDraft.trim() || null,
@@ -335,6 +350,7 @@ export function TeamAccessContent() {
 
       return fetchJson('/api/v1/organizations/me/roles', {
         method: 'POST',
+        orgId: organizationId,
         body: JSON.stringify({
           key: toRoleKeyDraft(roleKeyDraft || roleNameDraft),
           name: roleNameDraft.trim(),
@@ -342,6 +358,7 @@ export function TeamAccessContent() {
           permissions: rolePermissionsDraft,
         }),
       })
+
     },
     onSuccess: () => {
       toast.success(editingRoleId ? 'Papel atualizado com sucesso' : 'Papel criado com sucesso')
@@ -362,7 +379,9 @@ export function TeamAccessContent() {
     mutationFn: async (roleId: string) =>
       fetchJson(`/api/v1/organizations/me/roles/${roleId}`, {
         method: 'DELETE',
+        orgId: organizationId,
       }),
+
     onSuccess: () => {
       toast.success('Papel removido com sucesso')
       if (editingRoleId) {
@@ -388,11 +407,13 @@ export function TeamAccessContent() {
 
       return fetchJson(`/api/v1/organizations/me/members/${selectedMemberId}/permissions`, {
         method: 'PATCH',
+        orgId: organizationId,
         body: JSON.stringify({
           allow: overrideAllowDraft,
           deny: overrideDenyDraft,
         }),
       })
+
     },
     onSuccess: () => {
       toast.success('Overrides atualizados com sucesso')
@@ -519,7 +540,7 @@ export function TeamAccessContent() {
               />
 
               <Select
-                value={inviteRole}
+                value={effectiveInviteRole}
                 onValueChange={(value) => setInviteRole(value)}
                 disabled={!canManageTeamOps}
               >
@@ -630,12 +651,12 @@ export function TeamAccessContent() {
 
                 <div className="grid gap-2">
                   <label className="text-sm font-medium">Descrição</label>
-                    <Input
-                      value={roleDescriptionDraft}
-                      onChange={(event) => setRoleDescriptionDraft(event.target.value)}
-                      placeholder="Uso interno para área de atendimento"
-                    />
-                  </div>
+                  <Input
+                    value={roleDescriptionDraft}
+                    onChange={(event) => setRoleDescriptionDraft(event.target.value)}
+                    placeholder="Uso interno para área de atendimento"
+                  />
+                </div>
 
                 <div className="space-y-2">
                   <p className="text-sm font-medium">Permissões do papel</p>
@@ -749,7 +770,7 @@ export function TeamAccessContent() {
         </Card>
       </TabsContent>
 
-      <TabsContent value="permissoes" className="space-y-6">
+      <TabsContent value="permissoes" key={effectiveMemberId} className="space-y-6">
         <Card>
           <CardHeader>
             <CardTitle>Permissões por membro</CardTitle>

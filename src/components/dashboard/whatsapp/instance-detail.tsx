@@ -13,6 +13,8 @@ import * as Flags from 'country-flag-icons/react/3x2'
 
 import { OverviewView } from '@/components/dashboard/whatsapp/settings/overview-view'
 
+import { useOrganization } from '@/hooks/organization/use-organization'
+
 interface InstanceDetailProps {
   phoneId: string
 }
@@ -20,11 +22,15 @@ interface InstanceDetailProps {
 export function InstanceDetail({ phoneId }: InstanceDetailProps) {
   const isMobile = useIsMobile()
   const router = useRouter()
+  const { data: org } = useOrganization()
+  const orgId = org?.id
 
   const { data: phone, isLoading } = useQuery({
-    queryKey: ['whatsapp', 'phone', phoneId],
-    queryFn: () => whatsappApi.getPhoneNumberById(phoneId),
+    queryKey: ['whatsapp', 'phone', phoneId, orgId],
+    queryFn: () => whatsappApi.getPhoneNumberById(phoneId, orgId!),
+    enabled: !!orgId,
   })
+
 
   if (isLoading) {
     return (

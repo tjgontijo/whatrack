@@ -52,9 +52,13 @@ export function InstanceSelector({ selectedInstanceId, onInstanceChange }: Insta
     return <div className="text-muted-foreground p-2 text-xs">Nenhuma instância conectada</div>
   }
 
+  const effectiveId = (instances.length === 1 && selectedInstanceId === null && !isLoading)
+    ? instances[0].id
+    : (selectedInstanceId || 'all')
+
   // Always show "Todas as instâncias" option, even with single instance
   return (
-    <Select value={selectedInstanceId || 'all'} onValueChange={onInstanceChange}>
+    <Select value={effectiveId} onValueChange={onInstanceChange}>
       <SelectTrigger className="w-full">
         <SelectValue placeholder="Selecione uma instância" />
       </SelectTrigger>
