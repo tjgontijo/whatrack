@@ -44,7 +44,7 @@ export class AbacatepayProvider implements PaymentProvider {
     returnUrl: string
   }): Promise<CheckoutSession> {
     try {
-      const { organizationId, planType } = params
+      const { planType } = params
 
       // Get plan details
       const planConfig = this.getPlanConfig(planType)
@@ -56,25 +56,41 @@ export class AbacatepayProvider implements PaymentProvider {
         amount: planConfig.monthlyPrice,
         name: planConfig.name,
         description: planConfig.description,
-        externalId: `org-${organizationId}`,
+        externalId: `org-${params.organizationId}`,
         method: 'card',
         frequency: {
           cycle: 'MONTHLY',
           dayOfProcessing: 1,
         },
-        customerId: organizationId,
+        customerId: params.organizationId,
         retryPolicy: {
           maxRetry: 3,
           retryEvery: 3,
         },
       } as any)
 
+      logger.info(
+        { response: subscription },
+        '[AbacatePay] Subscription creation response'
+      )
+
       if (!subscription.success || !subscription.data) {
-        throw new Error(`Failed to create subscription: ${subscription.error}`)
+        logger.error(
+          { response: subscription },
+          '[AbacatePay] Subscription creation failed'
+        )
+        throw new Error(
+          `Failed to create subscription: ${subscription.error || JSON.stringify(subscription)}`
+        )
       }
 
       // SDK v2 provides the checkout URL
       const checkoutUrl = `https://checkout.abacatepay.com/${subscription.data.id}`
+
+      logger.info(
+        { id: subscription.data.id, url: checkoutUrl },
+        '[AbacatePay] Checkout URL created'
+      )
 
       return {
         id: subscription.data.id,
@@ -83,6 +99,10 @@ export class AbacatepayProvider implements PaymentProvider {
         method: 'card',
       }
     } catch (error) {
+      logger.error(
+        { err: error, stack: error instanceof Error ? error.stack : undefined },
+        '[AbacatePay] Checkout creation error'
+      )
       throw new Error(
         `AbacatePay checkout creation failed: ${error instanceof Error ? error.message : String(error)}`
       )
