@@ -869,7 +869,7 @@ CREATE TABLE "org_audit_logs" (
 
 -- CreateTable
 CREATE TABLE "billing_subscriptions" (
-    "id" TEXT NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "organizationId" UUID NOT NULL,
     "provider" TEXT NOT NULL,
     "providerCustomerId" TEXT NOT NULL,
@@ -892,8 +892,8 @@ CREATE TABLE "billing_subscriptions" (
 
 -- CreateTable
 CREATE TABLE "billing_event_usages" (
-    "id" TEXT NOT NULL,
-    "subscriptionId" TEXT NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "subscriptionId" UUID NOT NULL,
     "eventType" TEXT NOT NULL,
     "eventCount" INTEGER NOT NULL DEFAULT 1,
     "chargedAmount" DECIMAL(10,2) NOT NULL,
@@ -906,7 +906,7 @@ CREATE TABLE "billing_event_usages" (
 
 -- CreateTable
 CREATE TABLE "billing_webhook_logs" (
-    "id" TEXT NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "provider" TEXT NOT NULL,
     "eventType" TEXT NOT NULL,
     "payload" JSONB NOT NULL,
@@ -923,7 +923,7 @@ CREATE TABLE "billing_webhook_logs" (
 
 -- CreateTable
 CREATE TABLE "billing_plan_templates" (
-    "id" TEXT NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "slug" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,

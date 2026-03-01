@@ -9,6 +9,7 @@ import { toast } from 'sonner'
 import { authClient } from '@/lib/auth/auth-client'
 import { apiFetch } from '@/lib/api-client'
 import { applyCpfCnpjMask, stripCpfCnpj } from '@/lib/mask/cpf-cnpj'
+import { applyWhatsAppMask, removeWhatsAppMask, validateWhatsApp } from '@/lib/mask/phone-mask'
 import { validateDocumentByType } from '@/lib/document/document-identity'
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
@@ -16,7 +17,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
-type Step = 'type-select' | 'individual' | 'company'
+type Step = 'type-select' | 'individual' | 'company' | 'phone'
 type EntityType = 'individual' | 'company'
 
 type CompanyLookupData = {
@@ -65,6 +66,8 @@ export function OnboardingDialog({ open }: OnboardingDialogProps) {
   const [cpf, setCpf] = useState('')
   const [cnpj, setCnpj] = useState('')
   const [cnpjToFetch, setCnpjToFetch] = useState<string | null>(null)
+  const [phone, setPhone] = useState('')
+  const [entityTypeForPhone, setEntityTypeForPhone] = useState<EntityType | null>(null)
 
   const userName = session?.user?.name ?? ''
 
@@ -111,11 +114,25 @@ export function OnboardingDialog({ open }: OnboardingDialogProps) {
   }
 
   function handleBack() {
-    setStep('type-select')
-    setCpf('')
-    setFullName('')
-    setCnpj('')
-    setCnpjToFetch(null)
+    if (step === 'phone') {
+      // Go back from phone step to document step
+      setStep(entityTypeForPhone === 'individual' ? 'individual' : 'company')
+      setPhone('')
+    } else {
+      setStep('type-select')
+      setCpf('')
+      setFullName('')
+      setCnpj('')
+      setCnpjToFetch(null)
+      setPhone('')
+      setEntityTypeForPhone(null)
+    }
+  }
+
+  function handleMoveToPhoneStep(entityType: EntityType) {
+    setEntityTypeForPhone(entityType)
+    setPhone('')
+    setStep('phone')
   }
 
   function handleCnpjChange(value: string) {
@@ -131,13 +148,19 @@ export function OnboardingDialog({ open }: OnboardingDialogProps) {
       return
     }
 
+    const phoneDigits = removeWhatsAppMask(phone)
     const payload =
       entityType === 'individual'
-        ? { entityType: 'individual', documentNumber: stripCpfCnpj(cpf) }
+        ? {
+            entityType: 'individual',
+            documentNumber: stripCpfCnpj(cpf),
+            phone: phoneDigits,
+          }
         : {
             entityType: 'company',
             documentNumber: stripCpfCnpj(cnpj),
             companyLookupData: cnpjQuery.data,
+            phone: phoneDigits,
           }
 
     createOrgMutation.mutate(payload)
@@ -147,6 +170,8 @@ export function OnboardingDialog({ open }: OnboardingDialogProps) {
   const canSubmitPf = fullName.trim().length >= 3 && validateDocumentByType('cpf', cpfDigits)
   const canSubmitPj = cnpjQuery.isSuccess && !!cnpjQuery.data
   const isSubmitting = createOrgMutation.isPending
+  const phoneDigits = removeWhatsAppMask(phone)
+  const canSubmitPhone = validateWhatsApp(phoneDigits)
 
   return (
     <Dialog
@@ -170,13 +195,18 @@ export function OnboardingDialog({ open }: OnboardingDialogProps) {
         {/* Indicador de progresso */}
         <div className="flex items-center justify-between border-b px-6 py-4">
           <div className="text-muted-foreground text-xs font-medium">
-            {step === 'type-select' ? 'Passo 1 de 2' : 'Passo 2 de 2'}
+            {step === 'type-select' ? 'Passo 1 de 3' : step === 'phone' ? 'Passo 3 de 3' : 'Passo 2 de 3'}
           </div>
           <div className="flex gap-1.5">
             <div className="bg-primary h-1.5 w-6 rounded-full" />
             <div
               className={`h-1.5 w-6 rounded-full transition-colors ${
                 step !== 'type-select' ? 'bg-primary' : 'bg-muted'
+              }`}
+            />
+            <div
+              className={`h-1.5 w-6 rounded-full transition-colors ${
+                step === 'phone' ? 'bg-primary' : 'bg-muted'
               }`}
             />
           </div>
@@ -288,12 +318,12 @@ export function OnboardingDialog({ open }: OnboardingDialogProps) {
               </Button>
               <Button
                 type="button"
-                onClick={() => handleSubmit('individual')}
+                onClick={() => handleMoveToPhoneStep('individual')}
                 disabled={!canSubmitPf || isSubmitting}
                 className="gap-1.5"
               >
                 {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-                Criar minha conta
+                Próximo
               </Button>
             </div>
           </div>
@@ -320,7 +350,7 @@ export function OnboardingDialog({ open }: OnboardingDialogProps) {
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && canSubmitPj && !isSubmitting) {
                         e.preventDefault()
-                        handleSubmit('company')
+                        handleMoveToPhoneStep('company')
                       }
                     }}
                     placeholder="00.000.000/0000-00"
@@ -386,8 +416,67 @@ export function OnboardingDialog({ open }: OnboardingDialogProps) {
               </Button>
               <Button
                 type="button"
-                onClick={() => handleSubmit('company')}
+                onClick={() => handleMoveToPhoneStep('company')}
                 disabled={!canSubmitPj || isSubmitting}
+                className="gap-1.5"
+              >
+                {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+                Próximo
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Passo 3: Telefone Pessoal */}
+        {step === 'phone' && entityTypeForPhone && (
+          <div className="space-y-6 p-6">
+            <div>
+              <h2 className="text-foreground text-xl font-bold">Telefone pessoal</h2>
+              <p className="text-muted-foreground mt-1 text-sm">
+                Informe seu telefone. Este será usado para contato e cobranças.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="grid gap-1.5">
+                <Label htmlFor="phone">Telefone</Label>
+                <Input
+                  id="phone"
+                  value={phone}
+                  onChange={(e) => setPhone(applyWhatsAppMask(e.target.value))}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && canSubmitPhone && !isSubmitting) {
+                      e.preventDefault()
+                      handleSubmit(entityTypeForPhone)
+                    }
+                  }}
+                  placeholder="(11) 98888-8888"
+                  maxLength={14}
+                  disabled={isSubmitting}
+                />
+                {phoneDigits.length > 0 && !validateWhatsApp(phoneDigits) && (
+                  <p className="text-destructive text-xs">
+                    Telefone deve ter 10 ou 11 dígitos (DDD + número).
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={handleBack}
+                disabled={isSubmitting}
+                className="gap-1.5"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Voltar
+              </Button>
+              <Button
+                type="button"
+                onClick={() => handleSubmit(entityTypeForPhone)}
+                disabled={!canSubmitPhone || isSubmitting}
                 className="gap-1.5"
               >
                 {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}

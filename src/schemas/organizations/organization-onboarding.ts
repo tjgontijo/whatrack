@@ -60,12 +60,14 @@ const companyLookupDataSchema = z.object({
 const individualSchema = z.object({
   entityType: z.literal('individual'),
   documentNumber: z.string().min(1, 'CPF é obrigatório'),
+  phone: z.string().min(10, 'Telefone deve ter pelo menos 10 dígitos'),
 })
 
 const companySchema = z.object({
   entityType: z.literal('company'),
   documentNumber: z.string().min(1, 'CNPJ é obrigatório'),
   companyLookupData: companyLookupDataSchema.optional(),
+  phone: z.string().min(10, 'Telefone deve ter pelo menos 10 dígitos'),
 })
 
 export const organizationOnboardingSchema = z

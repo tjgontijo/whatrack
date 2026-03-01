@@ -107,6 +107,14 @@ export async function createOrganizationFromOnboarding(input: {
   }
 
   const organization = await prisma.$transaction(async (tx) => {
+    // Update user with phone number
+    if (input.data.phone) {
+      await tx.user.update({
+        where: { id: input.user.id },
+        data: { phone: input.data.phone },
+      })
+    }
+
     const createdOrganization = await tx.organization.create({
       data: {
         name: organizationName,

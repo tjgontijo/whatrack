@@ -7,6 +7,7 @@ describe('organizationOnboardingSchema', () => {
     const parsed = organizationOnboardingSchema.safeParse({
       entityType: 'individual',
       documentNumber: '529.982.247-25',
+      phone: '11987654321',
     })
 
     expect(parsed.success).toBe(true)
@@ -25,6 +26,7 @@ describe('organizationOnboardingSchema', () => {
     const parsed = organizationOnboardingSchema.safeParse({
       entityType: 'company',
       documentNumber: '11.222.333/0001-81',
+      phone: '11987654321',
       companyLookupData: {
         cnpj: '11222333000181',
         razaoSocial: 'Empresa Exemplo LTDA',
