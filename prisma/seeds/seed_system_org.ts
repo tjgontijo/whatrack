@@ -4,13 +4,13 @@ export async function seedSystemOrg(prisma: PrismaClient) {
     console.log('🏢 Seeding system organization...')
 
     const systemOrg = await prisma.organization.upsert({
-        where: { slug: 'whatrack' },
+        where: { slug: 'system' },
         update: {
-            name: 'Whatrack',
+            name: 'System',
         },
         create: {
-            name: 'WhaTrack',
-            slug: 'whatrack',
+            name: 'System',
+            slug: 'system',
         },
     })
 
