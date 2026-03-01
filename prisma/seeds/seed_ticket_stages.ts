@@ -4,24 +4,13 @@ import { DEFAULT_TICKET_STAGES } from '../../src/lib/constants/ticket-stages'
 export async function seedTicketStages(prisma: PrismaClient) {
   console.log('Seeding ticket stages...')
 
-  let organizations = await prisma.organization.findMany({
+  const organizations = await prisma.organization.findMany({
     orderBy: { createdAt: 'asc' },
   })
 
   if (organizations.length === 0) {
-    console.log('No organizations found. Creating default organization for seeds...')
-
-    const ownerEmail = process.env.OWNER_EMAIL || 'admin@whatrack.com'
-    const baseSlug = ownerEmail.split('@')[0]
-
-    const organization = await prisma.organization.create({
-      data: {
-        name: 'Default Organization',
-        slug: baseSlug,
-      },
-    })
-
-    organizations = [organization]
+    console.warn('⚠️ No organizations found. Ticket stages not seeded.')
+    return
   }
 
   for (const organization of organizations) {
