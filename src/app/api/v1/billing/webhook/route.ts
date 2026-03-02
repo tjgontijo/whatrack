@@ -33,19 +33,33 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const body = await request.text()
     const payload = JSON.parse(body)
 
-    // Get signature from header
-    const signature = request.headers.get('x-signature') || request.headers.get('authorization')
+    // Debug: Log all headers for webhook signature investigation
+    const allHeaders: Record<string, string> = {}
+    request.headers.forEach((value, key) => {
+      allHeaders[key] = value
+    })
+    logger.info({ headers: allHeaders }, '[Webhook/Debug] All request headers')
+
+    // Get signature from header - try multiple header names
+    const signature =
+      request.headers.get('x-signature') ||
+      request.headers.get('x-webhook-signature') ||
+      request.headers.get('x-abacate-signature') ||
+      request.headers.get('authorization')
+
     if (!signature) {
-      logger.warn('Webhook received without signature')
+      logger.warn({ headers: Object.keys(allHeaders) }, 'Webhook received without signature. Available headers:')
       return NextResponse.json(
         { error: 'Missing signature' },
         { status: 401 }
       )
     }
 
+    logger.info({ signature: signature.substring(0, 20) + '...' }, '[Webhook/Debug] Signature received')
+
     // Validate signature
     if (!validateWebhookSignature(body, signature)) {
-      logger.warn('Webhook signature validation failed')
+      logger.warn({ signature: signature.substring(0, 20) + '...', body: body.substring(0, 100) + '...' }, 'Webhook signature validation failed')
       return NextResponse.json(
         { error: 'Invalid signature' },
         { status: 401 }
