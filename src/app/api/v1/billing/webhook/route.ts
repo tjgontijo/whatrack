@@ -14,11 +14,15 @@ import { logger } from '@/lib/utils/logger'
 
 /**
  * Validate webhook signature using HMAC-SHA256
- * AbacatePay sends signature in Base64 format
+ * AbacatePay uses a fixed public key for all webhook signatures
+ * Reference: https://docs.abacatepay.com/pages/webhooks
  */
-function validateWebhookSignature(payload: string, signature: string, secret: string): boolean {
-  // Create HMAC-SHA256 hash
-  const hash = crypto.createHmac('sha256', secret).update(payload).digest('base64')
+function validateWebhookSignature(payload: string, signature: string): boolean {
+  // Public key from AbacatePay (fixed for all webhooks)
+  const publicKey = 't9dXRhHHo3yDEj5pVDYz0frf7q6bMKyMRmxxCPIPp3RCplBfXRxqlC6ZpiWmOqj4L63qEaeUOtrCI8P0VMUgo6iIga2ri9ogaHFs0WIIywSMg0q7RmBfybe1E5XJcfC4IW3alNqym0tXoAKkzvfEjZxV6bE0oG2zJrNNYmUCKZyV0KZ3JS8Votf9EAWWYdiDkMkpbMdPggfh1EqHlVkMiTady6jOR3hyzGEHrIz2Ret0xHKMbiqkr9HS1JhNHDX9'
+
+  // Create HMAC-SHA256 hash using the public key
+  const hash = crypto.createHmac('sha256', publicKey).update(payload).digest('base64')
   return hash === signature
 }
 
@@ -41,9 +45,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     })
     logger.info({ headers: allHeaders }, '[Webhook/Debug] All request headers')
 
-    // Get signature and secret from headers
+    // Get signature from header (X-Webhook-Signature from AbacatePay)
     const signature = request.headers.get('x-webhook-signature')
-    const webhookSecret = request.headers.get('x-webhook-secret')
 
     if (!signature) {
       logger.warn({ headers: Object.keys(allHeaders) }, 'Webhook received without x-webhook-signature header')
@@ -53,20 +56,19 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       )
     }
 
-    if (!webhookSecret) {
-      logger.warn({ headers: Object.keys(allHeaders) }, 'Webhook received without x-webhook-secret header')
-      return NextResponse.json(
-        { error: 'Missing webhook secret' },
-        { status: 401 }
-      )
-    }
+    logger.info({ signature: signature.substring(0, 20) + '...' }, '[Webhook/AbacatePay] Signature received')
 
-    logger.info({ signature: signature.substring(0, 20) + '...' }, '[Webhook/Debug] Signature received')
-
-    // Validate signature (AbacatePay uses Base64 format)
-    if (!validateWebhookSignature(body, signature, webhookSecret)) {
+    // Validate signature using AbacatePay's public key
+    if (!validateWebhookSignature(body, signature)) {
+      const publicKey = 't9dXRhHHo3yDEj5pVDYz0frf7q6bMKyMRmxxCPIPp3RCplBfXRxqlC6ZpiWmOqj4L63qEaeUOtrCI8P0VMUgo6iIga2ri9ogaHFs0WIIywSMg0q7RmBfybe1E5XJcfC4IW3alNqym0tXoAKkzvfEjZxV6bE0oG2zJrNNYmUCKZyV0KZ3JS8Votf9EAWWYdiDkMkpbMdPggfh1EqHlVkMiTady6jOR3hyzGEHrIz2Ret0xHKMbiqkr9HS1JhNHDX9'
+      const computedHash = crypto.createHmac('sha256', publicKey).update(body).digest('base64')
       logger.warn(
-        { signature: signature.substring(0, 20) + '...', bodyHash: crypto.createHmac('sha256', webhookSecret).update(body).digest('base64').substring(0, 20) + '...' },
+        {
+          signature: signature,
+          computedHash: computedHash,
+          bodyLength: body.length,
+          bodyPreview: body.substring(0, 100),
+        },
         'Webhook signature validation failed'
       )
       return NextResponse.json(
@@ -74,6 +76,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         { status: 401 }
       )
     }
+
+    logger.info('[Webhook/AbacatePay] Signature validated successfully')
 
     // Validate payload structure
     // AbacatePay sends "event" field, not "type"
