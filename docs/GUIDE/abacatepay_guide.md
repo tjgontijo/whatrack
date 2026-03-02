@@ -640,31 +640,42 @@ curl --request GET \
 
 ### Validação de Assinatura
 
+#### Public Key (Fixa)
+A AbacatePay usa uma **chave pública fixa** para assinar todos os webhooks:
+```
+t9dXRhHHo3yDEj5pVDYz0frf7q6bMKyMRmxxCPIPp3RCplBfXRxqlC6ZpiWmOqj4L63qEaeUOtrCI8P0VMUgo6iIga2ri9ogaHFs0WIIywSMg0q7RmBfybe1E5XJcfC4IW3alNqym0tXoAKkzvfEjZxV6bE0oG2zJrNNYmUCKZyV0KZ3JS8Votf9EAWWYdiDkMkpbMdPggfh1EqHlVkMiTady6jOR3hyzGEHrIz2Ret0xHKMbiqkr9HS1JhNHDX9
+```
+
 #### Headers Recebidos
-A AbacatePay envia dois headers importantes:
-- **`x-webhook-signature`**: Assinatura HMAC-SHA256 em **Base64** do payload
-- **`x-webhook-secret`**: Secret dinâmico para validação (enviado junto com cada webhook)
+A AbacatePay envia o header:
+- **`x-webhook-signature`**: Assinatura HMAC-SHA256 em **Base64** do payload (usando a chave pública acima)
 
 #### Validação em Node.js/TypeScript
 ```typescript
 import crypto from 'crypto'
 
-function validateWebhookSignature(payload: string, signature: string, secret: string): boolean {
-  // Computar HMAC-SHA256 em Base64
-  const hash = crypto.createHmac('sha256', secret).update(payload).digest('base64')
+function validateWebhookSignature(payload: string, signature: string): boolean {
+  // Chave pública fixa da AbacatePay
+  const publicKey = 't9dXRhHHo3yDEj5pVDYz0frf7q6bMKyMRmxxCPIPp3RCplBfXRxqlC6ZpiWmOqj4L63qEaeUOtrCI8P0VMUgo6iIga2ri9ogaHFs0WIIywSMg0q7RmBfybe1E5XJcfC4IW3alNqym0tXoAKkzvfEjZxV6bE0oG2zJrNNYmUCKZyV0KZ3JS8Votf9EAWWYdiDkMkpbMdPggfh1EqHlVkMiTady6jOR3hyzGEHrIz2Ret0xHKMbiqkr9HS1JhNHDX9'
+
+  // Computar HMAC-SHA256 em Base64 (usar raw body, não parseado)
+  const hash = crypto.createHmac('sha256', publicKey).update(payload).digest('base64')
+
   // Comparar com assinatura recebida
   return hash === signature
 }
 
 // No handler:
-const body = await request.text()
+const body = await request.text() // Raw body, antes de JSON.parse()
 const signature = request.headers.get('x-webhook-signature')
-const webhookSecret = request.headers.get('x-webhook-secret')
 
-if (validateWebhookSignature(body, signature, webhookSecret)) {
+if (validateWebhookSignature(body, signature)) {
   // Processar webhook com segurança
+  const payload = JSON.parse(body)
 }
 ```
+
+**Importante**: Sempre usar o **raw body** (antes de `JSON.parse()`), pois qualquer transformação alterará o hash.
 
 #### Formato do Payload
 O webhook envia um JSON com:
