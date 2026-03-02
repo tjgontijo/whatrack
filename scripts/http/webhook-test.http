@@ -1,0 +1,74 @@
+@baseUrl = http://localhost:3000
+@secretKey = test-webhook-secret
+
+### Teste 1: Webhook com x-signature (hex)
+POST {{baseUrl}}/api/v1/billing/webhook
+Content-Type: application/json
+x-signature: abc123def456
+
+{
+  "id": "evt_test_123",
+  "type": "billing.paid",
+  "timestamp": "2025-03-01T10:00:00Z",
+  "data": {
+    "billing": {
+      "id": "bill_test_123",
+      "status": "PAID",
+      "amount": 99.90,
+      "products": [
+        {
+          "externalId": "org-test123",
+          "name": "Pro Plan"
+        }
+      ]
+    }
+  }
+}
+
+### Teste 2: Webhook com x-webhook-signature
+POST {{baseUrl}}/api/v1/billing/webhook
+Content-Type: application/json
+x-webhook-signature: abc123def456
+
+{
+  "id": "evt_test_124",
+  "type": "billing.paid",
+  "timestamp": "2025-03-01T10:00:00Z",
+  "data": {
+    "billing": {
+      "id": "bill_test_124",
+      "status": "PAID",
+      "amount": 99.90,
+      "products": [
+        {
+          "externalId": "org-test123",
+          "name": "Pro Plan"
+        }
+      ]
+    }
+  }
+}
+
+### Teste 3: Webhook com x-abacate-signature
+POST {{baseUrl}}/api/v1/billing/webhook
+Content-Type: application/json
+x-abacate-signature: abc123def456
+
+{
+  "id": "evt_test_125",
+  "type": "billing.paid",
+  "timestamp": "2025-03-01T10:00:00Z",
+  "data": {
+    "billing": {
+      "id": "bill_test_125",
+      "status": "PAID",
+      "amount": 99.90,
+      "products": [
+        {
+          "externalId": "org-test123",
+          "name": "Pro Plan"
+        }
+      ]
+    }
+  }
+}
