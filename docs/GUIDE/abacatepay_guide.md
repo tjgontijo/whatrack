@@ -632,10 +632,71 @@ curl --request GET \
 
 ## Webhooks
 
+### Visão Geral
 - Notificações automáticas enviadas pela AbacatePay.
 - Eventos disponíveis: `billing.paid`, `pix.paid`, `pix.expired`, `withdraw.paid`.
 - Sempre validar a assinatura enviada.
 - Implementar retries para lidar com falhas de rede.
+
+### Validação de Assinatura
+
+#### Headers Recebidos
+A AbacatePay envia dois headers importantes:
+- **`x-webhook-signature`**: Assinatura HMAC-SHA256 em **Base64** do payload
+- **`x-webhook-secret`**: Secret dinâmico para validação (enviado junto com cada webhook)
+
+#### Validação em Node.js/TypeScript
+```typescript
+import crypto from 'crypto'
+
+function validateWebhookSignature(payload: string, signature: string, secret: string): boolean {
+  // Computar HMAC-SHA256 em Base64
+  const hash = crypto.createHmac('sha256', secret).update(payload).digest('base64')
+  // Comparar com assinatura recebida
+  return hash === signature
+}
+
+// No handler:
+const body = await request.text()
+const signature = request.headers.get('x-webhook-signature')
+const webhookSecret = request.headers.get('x-webhook-secret')
+
+if (validateWebhookSignature(body, signature, webhookSecret)) {
+  // Processar webhook com segurança
+}
+```
+
+#### Formato do Payload
+O webhook envia um JSON com:
+```json
+{
+  "id": "log_4bGcaqghc0kPd5SmMpZxyNhn",
+  "event": "billing.paid",
+  "timestamp": "2026-03-02T00:28:22Z",
+  "data": {
+    "billing": {
+      "id": "bill_jmfaMQr3ka...",
+      "status": "PAID",
+      "amount": 99.90,
+      "products": [
+        {
+          "externalId": "org-{organizationId}",
+          "name": "Pro Plan"
+        }
+      ],
+      "customer": {
+        "id": "cust_..."
+      }
+    }
+  }
+}
+```
+
+**Importante**: O campo é `event` (não `type`), e pode ter valores como:
+- `billing.paid` - Cobrança recorrente paga
+- `pix.paid` - PIX pago
+- `pix.expired` - PIX expirado
+- `withdraw.paid` - Saque realizado
 
 ---
 
