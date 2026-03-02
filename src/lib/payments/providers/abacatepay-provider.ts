@@ -70,12 +70,13 @@ export class AbacatepayProvider implements PaymentProvider {
         '[AbacatePay] Customer ready'
       )
 
-      // Step 2: Create billing via API v1
+      // Step 2: Create recurring billing via API v1
+      // Using MULTIPLE_PAYMENTS for recurring subscription via card
       const billingResponse = await this.apiFetch('/billing/create', {
         method: 'POST',
         body: {
-          frequency: 'ONE_TIME',
-          methods: ['PIX', 'CARD'],
+          frequency: 'MULTIPLE_PAYMENTS',
+          methods: ['CARD'],
           products: [
             {
               externalId: `org-${organizationId}`,
