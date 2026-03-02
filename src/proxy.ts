@@ -11,6 +11,7 @@ const PUBLIC_API_PREFIXES = [
   '/api/v1/whatsapp/instances',
   '/api/v1/whatsapp/webhook',
   '/api/v1/billing/plans',
+  '/api/v1/billing/webhook',
   '/api/v1/invitations',
 ]
 
