@@ -9,7 +9,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { env } from '@/lib/env/env'
 import { rateLimitMiddleware } from '@/lib/utils/rate-limit.middleware'
-import { handlePaymentWebhook } from '@/services/billing/handlers/payment-webhook.handler'
+import { handlePaymentWebhook } from '@/services/billing/handlers/billing-webhook.handler'
 import { logger } from '@/lib/utils/logger'
 
 /**
@@ -18,8 +18,8 @@ import { logger } from '@/lib/utils/logger'
  * Reference: https://docs.abacatepay.com/pages/webhooks
  */
 function validateWebhookSignature(payload: string, signature: string): boolean {
-  // Public key from AbacatePay (fixed for all webhooks)
-  const publicKey = 't9dXRhHHo3yDEj5pVDYz0frf7q6bMKyMRmxxCPIPp3RCplBfXRxqlC6ZpiWmOqj4L63qEaeUOtrCI8P0VMUgo6iIga2ri9ogaHFs0WIIywSMg0q7RmBfybe1E5XJcfC4IW3alNqym0tXoAKkzvfEjZxV6bE0oG2zJrNNYmUCKZyV0KZ3JS8Votf9EAWWYdiDkMkpbMdPggfh1EqHlVkMiTady6jOR3hyzGEHrIz2Ret0xHKMbiqkr9HS1JhNHDX9'
+  // Public key from AbacatePay (configured in env vars)
+  const publicKey = env.ABACATEPAY_WEBHOOK_SECRET
 
   // Create HMAC-SHA256 hash using the public key
   const hash = crypto.createHmac('sha256', publicKey).update(payload).digest('base64')
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // Validate signature using AbacatePay's public key
     if (!validateWebhookSignature(body, signature)) {
-      const publicKey = 't9dXRhHHo3yDEj5pVDYz0frf7q6bMKyMRmxxCPIPp3RCplBfXRxqlC6ZpiWmOqj4L63qEaeUOtrCI8P0VMUgo6iIga2ri9ogaHFs0WIIywSMg0q7RmBfybe1E5XJcfC4IW3alNqym0tXoAKkzvfEjZxV6bE0oG2zJrNNYmUCKZyV0KZ3JS8Votf9EAWWYdiDkMkpbMdPggfh1EqHlVkMiTady6jOR3hyzGEHrIz2Ret0xHKMbiqkr9HS1JhNHDX9'
+      const publicKey = env.ABACATEPAY_WEBHOOK_SECRET
       const computedHash = crypto.createHmac('sha256', publicKey).update(body).digest('base64')
       logger.warn(
         {

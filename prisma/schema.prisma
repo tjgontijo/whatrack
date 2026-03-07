@@ -41,6 +41,17 @@ model SaleStatus {
   @@map("sale_statuses")
 }
 
+model BillingSubscriptionStatus {
+  id            String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name          String                @unique
+  description   String
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+  subscriptions BillingSubscription[]
+
+  @@map("billing_subscription_statuses")
+}
+
 model WhatsAppOnboardingStatus {
   id          String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name        String               @unique
@@ -1150,7 +1161,8 @@ model BillingSubscription {
   eventsUsedInCurrentCycle Int @default(0)
 
   // Status
-  status              String  @default("active") // 'active' | 'paused' | 'canceled' | 'past_due'
+  status              String                    @default("active") // 'active' | 'paused' | 'canceled' | 'past_due'
+  statusRef           BillingSubscriptionStatus @relation(fields: [status], references: [name])
   canceledAtPeriodEnd Boolean @default(false)
 
   createdAt  DateTime  @default(now())

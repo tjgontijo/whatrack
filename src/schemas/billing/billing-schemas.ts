@@ -28,12 +28,14 @@ export const subscriptionResponseSchema = z.object({
   organizationId: z.string(),
   planType: z.string(),
   status: z.enum(['active', 'paused', 'canceled', 'past_due']),
+  canceledAtPeriodEnd: z.boolean(),
   billingCycleStartDate: z.string().datetime(),
   billingCycleEndDate: z.string().datetime(),
   nextResetDate: z.string().datetime(),
   eventLimitPerMonth: z.number(),
   eventsUsedInCurrentCycle: z.number(),
   createdAt: z.string().datetime(),
+  canceledAt: z.string().datetime().nullable().optional(),
   provider: z.string().optional(),
   providerSubscriptionId: z.string().optional(),
 })
@@ -72,8 +74,9 @@ export const cancelRequestSchema = z.object({
 })
 
 export const cancelResponseSchema = z.object({
-  status: z.string(),
-  canceledAt: z.string().datetime().optional(),
+  status: z.enum(['active', 'paused', 'canceled', 'past_due']),
+  canceledAtPeriodEnd: z.boolean(),
+  canceledAt: z.string().datetime().nullable().optional(),
 })
 
 // ============================================

@@ -4,8 +4,10 @@
  * Handles checkout session creation and redirects to payment provider
  */
 
-import { providerRegistry } from '@/lib/payments/init'
+import { providerRegistry } from '@/lib/billing/providers/init'
 import type { PlanType } from '@/types/billing/billing'
+import { createSubscription } from './billing-subscription.service'
+import { logger } from '@/lib/utils/logger'
 
 /**
  * Parameters for creating checkout session
@@ -53,6 +55,17 @@ export async function createCheckoutSessionWithProvider(
       userPhone: params.userPhone,
       userTaxId: params.userTaxId,
       isPerson: params.isPerson,
+    })
+
+    // Create subscription in database with 'paused' status (waiting for payment)
+    logger.info({ organizationId, planType }, '[Checkout] Creating pending subscription')
+    await createSubscription({
+      organizationId,
+      planType,
+      provider: provider.getProviderId(),
+      providerCustomerId: session.customerId,
+      providerSubscriptionId: session.id,
+      status: 'paused',
     })
 
     return {

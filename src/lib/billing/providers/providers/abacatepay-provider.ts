@@ -15,7 +15,7 @@ import type {
   PaymentProvider,
   SubscriptionDetails,
   SubscriptionStatus,
-} from './payment-provider'
+} from './billing-provider'
 import { logger } from '@/lib/utils/logger'
 
 const API_BASE = 'https://api.abacatepay.com/v1'
@@ -79,7 +79,7 @@ export class AbacatepayProvider implements PaymentProvider {
           methods: ['CARD'],
           products: [
             {
-              externalId: `org-${organizationId}`,
+              externalId: `org:${organizationId}:plan:${planType}`,
               name: planConfig.name,
               description: planConfig.description,
               quantity: 1,
@@ -119,6 +119,7 @@ export class AbacatepayProvider implements PaymentProvider {
 
       return {
         id: billingId,
+        customerId,
         url: checkoutUrl,
         expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
         method: 'card',

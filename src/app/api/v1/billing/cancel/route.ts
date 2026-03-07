@@ -27,12 +27,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const validated = cancelRequestSchema.parse(body)
 
     // Cancel subscription
-    await cancelSubscription(auth.organizationId, validated.atPeriodEnd ?? false)
+    const result = await cancelSubscription(auth.organizationId, validated.atPeriodEnd ?? false)
 
     // Return success response
     const response = cancelResponseSchema.parse({
-      status: 'canceled',
-      canceledAt: new Date().toISOString(),
+      status: result.status,
+      canceledAtPeriodEnd: result.canceledAtPeriodEnd,
+      canceledAt: result.canceledAt?.toISOString() ?? null,
     })
 
     return NextResponse.json(response, { status: 200 })

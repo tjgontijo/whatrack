@@ -13,8 +13,18 @@ const prismaMock = vi.hoisted(() => ({
   },
 }))
 
+const loggerMock = vi.hoisted(() => ({
+  warn: vi.fn(),
+  info: vi.fn(),
+  error: vi.fn(),
+}))
+
 vi.mock('@/lib/db/prisma', () => ({
   prisma: prismaMock,
+}))
+
+vi.mock('@/lib/utils/logger', () => ({
+  logger: loggerMock,
 }))
 
 import { historySyncAlertsService } from '@/services/whatsapp/history-sync-alerts.service'
@@ -33,9 +43,6 @@ describe('history-sync-alerts.service', () => {
       },
     ])
 
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-
     await historySyncAlertsService.checkSyncTimeouts(30)
 
     expect(prismaMock.whatsAppConfig.findMany).toHaveBeenCalledWith({
@@ -47,9 +54,6 @@ describe('history-sync-alerts.service', () => {
       },
     })
 
-    expect(warnSpy).toHaveBeenCalledWith('[HistorySyncAlerts] Sync timeout for config cfg-1')
-
-    warnSpy.mockRestore()
-    logSpy.mockRestore()
+    expect(loggerMock.warn).toHaveBeenCalledWith('[HistorySyncAlerts] Sync timeout for config cfg-1')
   })
 })

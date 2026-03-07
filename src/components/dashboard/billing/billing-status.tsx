@@ -76,6 +76,10 @@ export function BillingStatus() {
   const daysUntilReset = Math.ceil(
     (nextResetDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
   )
+  const cancellationScheduled = status === 'active' && subscription.canceledAtPeriodEnd
+  const bannerMessage = cancellationScheduled
+    ? 'Renovação cancelada — seu acesso segue ativo até o fim do ciclo atual.'
+    : config.banner
 
   return (
     <>
@@ -86,10 +90,10 @@ export function BillingStatus() {
         className="overflow-hidden rounded-xl border border-border bg-card"
       >
         {/* Banner de alerta para estados críticos */}
-        {config.banner && (
+        {bannerMessage && (
           <div className="flex items-center gap-2.5 border-b border-destructive/15 bg-destructive/5 px-6 py-3">
             <AlertCircle className="h-4 w-4 shrink-0 text-destructive" />
-            <p className="text-sm text-destructive">{config.banner}</p>
+            <p className="text-sm text-destructive">{bannerMessage}</p>
           </div>
         )}
 
@@ -171,7 +175,7 @@ export function BillingStatus() {
               </a>
             </Button>
 
-            {status !== 'canceled' && (
+            {status !== 'canceled' && !subscription.canceledAtPeriodEnd && (
               <Button
                 onClick={() => setShowCancelDialog(true)}
                 size="sm"

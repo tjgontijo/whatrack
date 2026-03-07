@@ -9,9 +9,10 @@
  */
 
 import { prisma } from '@/lib/db/prisma'
-import { BILLING_CYCLE_DAYS, PLAN_LIMITS } from '@/lib/payments/metering-constants'
-import { ensurePaymentProviders, providerRegistry } from '@/lib/payments/init'
-import type { PlanType } from '@/types/billing/billing'
+import { Prisma } from '@db/client'
+import { BILLING_CYCLE_DAYS, PLAN_LIMITS } from '@/lib/billing/providers/metering-constants'
+import type { PlanType, SubscriptionStatus } from '@/types/billing/billing'
+import { isSubscriptionStatus } from '@/types/billing/billing'
 
 /**
  * Custom domain errors
@@ -30,12 +31,24 @@ export class SubscriptionAlreadyExistsError extends Error {
   }
 }
 
+function ensureSubscriptionStatus(status: string): SubscriptionStatus {
+  if (!isSubscriptionStatus(status)) {
+    throw new Error(`Invalid subscription status: ${status}`)
+  }
+
+  return status
+}
+
 /**
  * Parameters for creating a subscription
  */
 export interface CreateSubscriptionParams {
   organizationId: string
   planType: PlanType
+  provider?: string
+  providerCustomerId?: string
+  providerSubscriptionId?: string
+  status?: SubscriptionStatus
 }
 
 /**
@@ -44,14 +57,15 @@ export interface CreateSubscriptionParams {
 export async function createSubscription(
   params: CreateSubscriptionParams
 ): Promise<void> {
-  const { organizationId, planType } = params
+  const { organizationId, planType, provider, providerCustomerId, providerSubscriptionId, status } = params
 
   // Check if org already has active subscription
   const existing = await prisma.billingSubscription.findUnique({
     where: { organizationId },
   })
 
-  if (existing) {
+  // If already exists, we might want to update it instead of throwing if it's not active
+  if (existing && existing.status === 'active') {
     throw new SubscriptionAlreadyExistsError(organizationId)
   }
 
@@ -65,22 +79,32 @@ export async function createSubscription(
     now.getTime() + BILLING_CYCLE_DAYS * 24 * 60 * 60 * 1000
   )
 
-  // Create subscription in database
-  await prisma.billingSubscription.create({
-    data: {
-      organizationId,
-      provider: 'abacatepay',
-      providerCustomerId: `cust_${organizationId}`, // Placeholder
-      providerSubscriptionId: `sub_${organizationId}`, // Placeholder
-      planType,
-      eventLimitPerMonth: planLimits.eventLimitPerMonth,
-      overagePricePerEvent: new Prisma.Decimal(planLimits.overagePricePerEvent),
-      billingCycleStartDate,
-      billingCycleEndDate,
-      nextResetDate: billingCycleEndDate,
-      status: 'active',
-    },
-  })
+  const subscriptionData = {
+    organizationId,
+    provider: provider || 'abacatepay',
+    providerCustomerId: providerCustomerId || `cust_${organizationId}`,
+    providerSubscriptionId: providerSubscriptionId || `sub_${organizationId}`,
+    planType,
+    eventLimitPerMonth: planLimits.eventLimitPerMonth,
+    overagePricePerEvent: new Prisma.Decimal(planLimits.overagePricePerEvent),
+    billingCycleStartDate,
+    billingCycleEndDate,
+    nextResetDate: billingCycleEndDate,
+    status: status || 'active',
+  }
+
+  if (existing) {
+    // Update existing subscription
+    await prisma.billingSubscription.update({
+      where: { id: existing.id },
+      data: subscriptionData,
+    })
+  } else {
+    // Create new subscription in database
+    await prisma.billingSubscription.create({
+      data: subscriptionData,
+    })
+  }
 }
 
 /**
@@ -94,12 +118,14 @@ export async function getActiveSubscription(organizationId: string) {
       organizationId: true,
       planType: true,
       status: true,
+      canceledAtPeriodEnd: true,
       billingCycleStartDate: true,
       billingCycleEndDate: true,
       nextResetDate: true,
       eventLimitPerMonth: true,
       eventsUsedInCurrentCycle: true,
       createdAt: true,
+      canceledAt: true,
       provider: true,
       providerSubscriptionId: true,
     },
@@ -119,17 +145,13 @@ export async function updateSubscriptionStatus(
   subscriptionId: string,
   status: string
 ): Promise<void> {
-  const validStatuses = ['active', 'paused', 'canceled', 'past_due']
-
-  if (!validStatuses.includes(status)) {
-    throw new Error(`Invalid subscription status: ${status}`)
-  }
+  const validatedStatus = ensureSubscriptionStatus(status)
 
   await prisma.billingSubscription.update({
     where: { id: subscriptionId },
     data: {
-      status,
-      ...(status === 'canceled' && { canceledAt: new Date() }),
+      status: validatedStatus,
+      ...(validatedStatus === 'canceled' && { canceledAt: new Date() }),
     },
   })
 }
@@ -140,12 +162,50 @@ export async function updateSubscriptionStatus(
 export async function cancelSubscription(
   organizationId: string,
   atPeriodEnd: boolean = false
-): Promise<void> {
+): Promise<{
+  status: SubscriptionStatus
+  canceledAtPeriodEnd: boolean
+  canceledAt: Date | null
+}> {
   const subscription = await getActiveSubscription(organizationId)
 
-  // For now, immediately mark as canceled
-  // In the future: call provider API based on atPeriodEnd
-  await updateSubscriptionStatus(subscription.id, 'canceled')
+  if (atPeriodEnd) {
+    const updatedSubscription = await prisma.billingSubscription.update({
+      where: { id: subscription.id },
+      data: {
+        canceledAtPeriodEnd: true,
+      },
+      select: {
+        status: true,
+        canceledAtPeriodEnd: true,
+        canceledAt: true,
+      },
+    })
+
+    return {
+      ...updatedSubscription,
+      status: ensureSubscriptionStatus(updatedSubscription.status),
+    }
+  }
+
+  const updatedSubscription = await prisma.billingSubscription.update({
+    where: { id: subscription.id },
+    data: {
+      status: 'canceled',
+      canceledAtPeriodEnd: false,
+      canceledAt: new Date(),
+    },
+    select: {
+      status: true,
+      canceledAtPeriodEnd: true,
+      canceledAt: true,
+    },
+  })
+
+  return {
+    ...updatedSubscription,
+    status: ensureSubscriptionStatus(updatedSubscription.status),
+  }
 }
 
 /**
@@ -181,4 +241,4 @@ export async function resetBillingCycle(
 }
 
 // Re-export Prisma for type safety
-import { Prisma } from '@db/client'
+// (Imported at the top)

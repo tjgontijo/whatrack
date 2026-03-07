@@ -5,7 +5,7 @@
  * Allows registering, retrieving, and switching between providers.
  */
 
-import type { PaymentProvider } from './payment-provider'
+import type { PaymentProvider } from './billing-provider'
 
 type ProviderId = 'abacatepay' | 'polar' | 'asaas' | 'stripe'
 

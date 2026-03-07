@@ -6,8 +6,9 @@
  */
 
 import { prisma } from '@/lib/db/prisma'
-import type { WebhookPayload } from '@/lib/payments/providers/payment-provider'
-import { updateSubscriptionStatus } from '../billing-subscription.service'
+import type { WebhookPayload } from '@/lib/billing/providers/providers/billing-provider'
+import { updateSubscriptionStatus, createSubscription } from '../billing-subscription.service'
+import type { PlanType } from '@/types/billing/billing'
 import { logger } from '@/lib/utils/logger'
 
 /**
@@ -176,13 +177,27 @@ async function handleBillingPaid(data: WebhookData['data']): Promise<void> {
 
   const { id: billingId, status } = data.billing
 
-  // Extract organizationId from product externalId
+  // Extract organizationId and planType from product externalId
   let organizationId: string | undefined
+  let planType: PlanType | undefined
+
   if (data.billing.products && data.billing.products.length > 0) {
     const externalId = data.billing.products[0].externalId
-    // Format: org-{organizationId}
-    if (externalId.startsWith('org-')) {
-      organizationId = externalId.slice(4) // Remove 'org-' prefix
+
+    // New format: org:{organizationId}:plan:{planType}
+    if (externalId.includes(':plan:')) {
+      const parts = externalId.split(':')
+      organizationId = parts[1]
+      planType = parts[3] as PlanType
+    }
+    // Old format fallback: org-{organizationId}
+    else if (externalId.startsWith('org-')) {
+      organizationId = externalId.slice(4)
+      // Infer plan type from name if possible
+      const name = data.billing.products[0].name.toLowerCase()
+      if (name.includes('pro')) planType = 'pro'
+      else if (name.includes('starter')) planType = 'starter'
+      else if (name.includes('agency')) planType = 'agency'
     }
   }
 
@@ -192,12 +207,36 @@ async function handleBillingPaid(data: WebhookData['data']): Promise<void> {
   }
 
   // Find subscription by organizationId
-  const subscription = await prisma.billingSubscription.findUnique({
+  let subscription = await prisma.billingSubscription.findUnique({
     where: { organizationId },
   })
 
+  // If subscription doesn't exist, create it (it's likely the first payment)
   if (!subscription) {
-    logger.warn(`No subscription found for organizationId: ${organizationId}`)
+    if (!planType) {
+      logger.warn(`No subscription found and cannot infer planType for organizationId: ${organizationId}`)
+      return
+    }
+
+    logger.info({ organizationId, planType }, '[Handler/Webhook] Creating new subscription for organization')
+
+    await createSubscription({
+      organizationId,
+      planType,
+      provider: 'abacatepay',
+      providerCustomerId: data.billing.customer?.id,
+      providerSubscriptionId: billingId,
+      status: 'active', // Since we just received a 'paid' event
+    })
+
+    // Fetch the newly created subscription
+    subscription = await prisma.billingSubscription.findUnique({
+      where: { organizationId },
+    })
+  }
+
+  if (!subscription) {
+    logger.error(`Failed to create or find subscription for organizationId: ${organizationId}`)
     return
   }
 

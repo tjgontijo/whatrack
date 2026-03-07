@@ -19,6 +19,11 @@ export interface CheckoutSession {
   id: string
 
   /**
+   * Customer ID from the provider
+   */
+  customerId?: string
+
+  /**
    * URL where the user completes payment
    */
   url: string

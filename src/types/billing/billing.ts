@@ -13,7 +13,13 @@ export type PlanType = 'starter' | 'pro' | 'agency'
 /**
  * Subscription status
  */
-export type SubscriptionStatus = 'active' | 'paused' | 'canceled' | 'past_due'
+export const BILLING_SUBSCRIPTION_STATUSES = ['active', 'paused', 'canceled', 'past_due'] as const
+
+export type SubscriptionStatus = (typeof BILLING_SUBSCRIPTION_STATUSES)[number]
+
+export function isSubscriptionStatus(value: string): value is SubscriptionStatus {
+  return BILLING_SUBSCRIPTION_STATUSES.includes(value as SubscriptionStatus)
+}
 
 /**
  * Event types that count towards billing metering
