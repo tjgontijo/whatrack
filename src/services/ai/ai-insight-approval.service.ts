@@ -117,66 +117,85 @@ export async function approveAiInsight(params: ApproveAiInsightParams) {
         data: { status: 'APPLIED' },
       })
 
-      await tx.ticket.update({
-        where: { id: insight.ticketId },
-        data: {
-          status: 'closed_won',
-          closedAt: new Date(),
-          closedReason: 'ai_copilot_approval',
-          dealValue,
-        },
-      })
+      // Only update ticket if this is a ticket-based insight (has ticketId)
+      if (insight.ticketId) {
+        await tx.ticket.update({
+          where: { id: insight.ticketId },
+          data: {
+            status: 'closed_won',
+            closedAt: new Date(),
+            closedReason: 'ai_copilot_approval',
+            dealValue,
+          },
+        })
+      }
 
       const item = await tx.item.findUnique({ where: { id: resolvedItemId } })
 
-      await tx.sale.create({
-        data: {
-          organizationId: params.organizationId,
-          ticketId: insight.ticketId,
-          totalAmount: dealValue,
-          status: 'completed',
-          items: {
-            create: {
-              organizationId: params.organizationId,
-              itemId: resolvedItemId,
-              name: item?.name ?? extractedItemName ?? 'Item',
-              unitPrice: dealValue,
-              quantity: 1,
-              total: dealValue,
+      // Only create sale if this is a ticket-based insight
+      if (insight.ticketId) {
+        await tx.sale.create({
+          data: {
+            organizationId: params.organizationId,
+            ticketId: insight.ticketId,
+            totalAmount: dealValue,
+            status: 'completed',
+            items: {
+              create: {
+                organizationId: params.organizationId,
+                itemId: resolvedItemId,
+                name: item?.name ?? extractedItemName ?? 'Item',
+                unitPrice: dealValue,
+                quantity: 1,
+                total: dealValue,
+              },
             },
           },
-        },
-      })
+        })
+      }
     })
   } else {
+    // Reject case
     await prisma.$transaction(async (tx) => {
       await tx.aiInsight.update({
         where: { id: insight.id },
         data: { status: 'APPLIED' },
       })
 
-      await tx.ticket.update({
-        where: { id: insight.ticketId },
-        data: {
-          status: 'closed_won',
-          closedAt: new Date(),
-          closedReason: 'ai_copilot_approval',
-          dealValue,
-        },
-      })
+      // Only update ticket if this is a ticket-based insight
+      if (insight.ticketId) {
+        await tx.ticket.update({
+          where: { id: insight.ticketId },
+          data: {
+            status: 'closed_won',
+            closedAt: new Date(),
+            closedReason: 'ai_copilot_approval',
+            dealValue,
+          },
+        })
+      }
     })
   }
 
-  void metaCapiService.sendEvent(insight.ticketId, eventName, {
-    value: dealValue ? Number(dealValue) : undefined,
-    eventId: `AI_COPILOT_${insight.id}_${Date.now()}`,
-  })
+  // Only send CAPI event if this is a ticket-based insight
+  if (insight.ticketId) {
+    void metaCapiService.sendEvent(insight.ticketId, eventName, {
+      value: dealValue ? Number(dealValue) : undefined,
+      eventId: `AI_COPILOT_${insight.id}_${Date.now()}`,
+    })
 
-  await publishToCentrifugo(`org:${params.organizationId}:tickets`, {
-    type: 'ticket_updated',
-    ticketId: insight.ticketId,
-    updates: { status: 'closed_won', dealValue },
-  })
+    await publishToCentrifugo(`org:${params.organizationId}:tickets`, {
+      type: 'ticket_updated',
+      ticketId: insight.ticketId,
+      updates: { status: 'closed_won', dealValue },
+    })
+  } else {
+    // For audit-based insights, just publish org update
+    await publishToCentrifugo(`org:${params.organizationId}:updates`, {
+      type: 'insight_applied',
+      insightId: insight.id,
+    })
+  }
 
   return {
     data: {

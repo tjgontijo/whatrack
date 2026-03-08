@@ -26,7 +26,7 @@ function isNeutralResult(data: Record<string, unknown>): boolean {
   return false
 }
 
-function resolveModel(modelId: string) {
+export function resolveModel(modelId: string) {
   if (modelId.startsWith('openai/')) {
     return openai(modelId.replace('openai/', ''))
   }

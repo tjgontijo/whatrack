@@ -1,5 +1,11 @@
 import { z } from 'zod'
 
+export const metaAdsAuditSchema = z.object({
+  accountId: z.string().trim().min(1, 'Account ID required'),
+}).strict()
+
+export type MetaAdsAuditInput = z.infer<typeof metaAdsAuditSchema>
+
 export const campaignsQuerySchema = z.object({
   accountId: z.string().optional(),
   days: z.coerce.number().int().min(1).max(365).default(30),

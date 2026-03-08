@@ -1087,10 +1087,11 @@ model AiSchemaField {
 }
 
 model AiInsight {
-  id             String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId String @db.Uuid
-  ticketId       String @db.Uuid
-  agentId        String @db.Uuid
+  id             String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String  @db.Uuid
+  ticketId       String? @db.Uuid // Optional: null for audit events, required for ticket events
+  agentId        String  @db.Uuid
+  eventType      String? // Event trigger type (e.g., "META_ADS_AUDIT_REQUESTED", "CONVERSATION_IDLE_3M")
 
   payload Json // The raw JSON result from Mastra (Zod output)
   status  String @default("SUGGESTION") // Points to AiInsightActionStatus.name
@@ -1099,13 +1100,14 @@ model AiInsight {
   updatedAt DateTime @updatedAt
 
   organization Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  ticket       Ticket                @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  ticket       Ticket?               @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   agent        AiAgent               @relation(fields: [agentId], references: [id], onDelete: Cascade)
   statusRef    AiInsightActionStatus @relation(fields: [status], references: [name])
 
   @@index([organizationId])
   @@index([ticketId])
   @@index([agentId])
+  @@index([organizationId, eventType, createdAt])
   @@map("ai_insights")
 }
 
