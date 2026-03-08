@@ -146,6 +146,10 @@ Configuração esperada no node HTTP Request do `n8n`:
 
 ## Configuração Mínima
 
+Guia operacional:
+
+- `docs/GUIDE/n8n_cron_setup.md`
+
 Variáveis envolvidas:
 
 - `CRON_SECRET`

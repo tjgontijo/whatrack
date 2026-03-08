@@ -1,55 +1,37 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 
-import { getJobTracker } from '@/lib/db/queue'
-import { apiError } from '@/lib/utils/api-response'
-import { logger } from '@/lib/utils/logger'
-import { rateLimitMiddleware } from '@/lib/utils/rate-limit.middleware'
-import { drainDueClassifications } from '@/services/ai/ai-classifier.scheduler'
-import { dispatchAiEvent } from '@/services/ai/ai-execution.service'
+import { apiError, apiSuccess } from '@/lib/utils/api-response'
+import { cronTriggerBodySchema } from '@/schemas/cron/cron-schemas'
+import { authorizeCronRequest } from '@/server/cron/cron-auth'
+import { runAiClassifierCronJob } from '@/services/cron/ai-classifier-cron.service'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
 
-const CRON_SECRET = process.env.CRON_SECRET
+const ENDPOINT = '/api/v1/cron/ai/classifier'
 
 export async function POST(request: NextRequest) {
-  const rateLimitResponse = await rateLimitMiddleware(request, '/api/v1/cron/ai/classifier')
-  if (rateLimitResponse) return rateLimitResponse
+  const authorizationError = await authorizeCronRequest(request, ENDPOINT)
+  if (authorizationError) return authorizationError
 
-  const authHeader = request.headers.get('authorization')
-  if (!CRON_SECRET || authHeader !== `Bearer ${CRON_SECRET}`) {
-    return apiError('Unauthorized', 401)
-  }
-
-  const jobTracker = getJobTracker()
-  const jobId = await jobTracker.acquireLock('ai-classifier')
-
-  if (!jobId) {
-    return NextResponse.json({ success: false, message: 'Job already running' }, { status: 429 })
+  const parseResult = cronTriggerBodySchema.safeParse(await request.json().catch(() => ({})))
+  if (!parseResult.success) {
+    return apiError('Invalid cron payload', 400, parseResult.error.flatten())
   }
 
   try {
-    const due = await drainDueClassifications(20)
+    const result = await runAiClassifierCronJob()
 
-    logger.info(`[AI Classifier Cron] ${due.length} tickets due for analysis`)
+    if (result.status === 'already-running') {
+      return apiSuccess({ success: false, message: 'Job already running' }, 429)
+    }
 
-    const results = await Promise.allSettled(
-      due.map(({ ticketId, organizationId }) =>
-        dispatchAiEvent('CONVERSATION_IDLE_3M', ticketId, organizationId),
-      ),
-    )
-
-    const dispatched = results.filter((result) => result.status === 'fulfilled').length
-    const failed = results.filter((result) => result.status === 'rejected').length
-
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
-      processed: due.length,
-      dispatched,
-      failed,
+      ...result.data,
       timestamp: new Date().toISOString(),
     })
-  } finally {
-    await jobTracker.releaseLock('ai-classifier', jobId)
+  } catch (error) {
+    return apiError(error instanceof Error ? error.message : 'Unknown error', 500, error)
   }
 }

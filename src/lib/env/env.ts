@@ -85,7 +85,6 @@ const envSchema = z.object({
   CRON_SECRET: z
     .string()
     .min(32, 'CRON_SECRET must be at least 32 characters'),
-  HISTORY_SYNC_ALERT_TOKEN: z.string().min(1, 'HISTORY_SYNC_ALERT_TOKEN is required'),
 
   // Logging
   LOG_LEVEL: z
