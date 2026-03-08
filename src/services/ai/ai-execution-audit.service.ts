@@ -3,6 +3,7 @@ import { Prisma } from '@db/client'
 import { z } from 'zod'
 import { prisma } from '@/lib/db/prisma'
 import { resolveModel } from './ai-execution.service'
+import { recordAiCost } from './ai-cost-tracking.service'
 import { logger } from '@/lib/utils/logger'
 
 type AgentSchemaRow = {
@@ -178,6 +179,30 @@ export async function dispatchAiEventForAudit(
 
     logger.info(`[AI Audit] Created insight: ${insight.id}`)
 
+    // 6. Record cost
+    try {
+      await recordAiCost({
+        organizationId,
+        aiInsightId: insight.id,
+        feature: 'meta-ads-audit',
+        operation: 'account-analysis',
+        agentName: agentDef.name,
+        eventType,
+        modelUsed: agentDef.model,
+        inputTokens: result.usage?.inputTokens || 0,
+        outputTokens: result.usage?.outputTokens || 0,
+        latencyMs: Math.round(latencyMs),
+        status: 'success',
+      })
+      logger.info(`[AI Audit] Recorded cost for insight: ${insight.id}`)
+    } catch (costError) {
+      logger.warn(
+        { err: costError },
+        `[AI Audit] Failed to record cost for insight: ${insight.id}`
+      )
+      // Don't fail the whole operation if cost recording fails
+    }
+
     return insight
   } catch (error) {
     const latencyMs = performance.now() - startTime
@@ -185,6 +210,30 @@ export async function dispatchAiEventForAudit(
       { err: error },
       `[AI Audit] Failed after ${latencyMs.toFixed(0)}ms for ${eventType}`
     )
+
+    // Record error cost too
+    try {
+      await recordAiCost({
+        organizationId,
+        aiInsightId: 'error',
+        feature: 'meta-ads-audit',
+        operation: 'account-analysis',
+        agentName: 'Unknown',
+        eventType,
+        modelUsed: 'unknown',
+        inputTokens: 0,
+        outputTokens: 0,
+        latencyMs: Math.round(latencyMs),
+        status: 'error',
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+      })
+    } catch (costError) {
+      logger.warn(
+        { err: costError },
+        `[AI Audit] Failed to record error cost for ${eventType}`
+      )
+    }
+
     throw error
   }
 }

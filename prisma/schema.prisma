@@ -248,9 +248,10 @@ model Organization {
   aiConversionApprovals AiConversionApproval[]
 
   // AI Platform Relations
-  aiAgents   AiAgent[]
-  aiInsights AiInsight[]
-  aiSkills   AiSkill[]
+  aiAgents      AiAgent[]
+  aiInsights    AiInsight[]
+  aiInsightCosts AiInsightCost[]
+  aiSkills      AiSkill[]
 
   // Audit
   orgAuditLogs       OrgAuditLog[]
@@ -1103,6 +1104,7 @@ model AiInsight {
   ticket       Ticket?               @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   agent        AiAgent               @relation(fields: [agentId], references: [id], onDelete: Cascade)
   statusRef    AiInsightActionStatus @relation(fields: [status], references: [name])
+  costs        AiInsightCost[]
 
   @@index([organizationId])
   @@index([ticketId])
@@ -1254,4 +1256,43 @@ model BillingPlanTemplate {
   @@index([slug])
   @@index([isActive])
   @@map("billing_plan_templates")
+}
+
+model AiInsightCost {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String   @db.Uuid
+  aiInsightId    String   @db.Uuid
+
+  // Context
+  feature        String   // "meta-ads-audit", "ticket-analysis", etc
+  operation      String   // "account-analysis", "conversation-idle", etc
+  agentName      String   // "Meta Ads Analyst", "Sale Detector", etc
+  eventType      String   // "META_ADS_AUDIT_REQUESTED", "CONVERSATION_IDLE_3M", etc
+
+  // Tokens & Cost
+  inputTokens    Int
+  outputTokens   Int
+  totalTokens    Int      // computed: input + output
+  modelUsed      String   // "openai/gpt-4o-mini", "groq/mixtral-8x7b"
+  inputCost      Decimal  @db.Decimal(10, 6) // tokens * rate / 1M
+  outputCost     Decimal  @db.Decimal(10, 6) // tokens * rate / 1M
+  totalCost      Decimal  @db.Decimal(10, 6) // inputCost + outputCost
+
+  // Performance
+  latencyMs      Int?     // tempo total da execução
+  status         String   // "success", "error", "timeout"
+  errorMessage   String?
+
+  // Audit
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  insight        AiInsight    @relation(fields: [aiInsightId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt])
+  @@index([feature, createdAt])
+  @@index([status, createdAt])
+  @@index([organizationId, eventType, createdAt])
+  @@map("ai_insight_costs")
 }
