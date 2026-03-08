@@ -10,6 +10,7 @@ import {
   ExternalLink,
   CalendarDays,
   Zap,
+  Loader2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useBillingSubscription } from '@/hooks/billing/use-billing-subscription'
@@ -17,6 +18,7 @@ import { BillingCancelDialog } from './billing-cancel-dialog'
 import { formatDate } from '@/lib/date/format-date'
 import { getBillingPlanLabel } from '@/lib/billing/plans'
 import { getBillingStatusLabel } from '@/lib/billing/subscription-status'
+import { useTransition } from 'react'
 
 type SubscriptionStatusValue = 'active' | 'paused' | 'canceled' | 'past_due'
 
@@ -64,6 +66,28 @@ const statusConfig: Record<SubscriptionStatusValue, StatusConfig> = {
 export function BillingStatus() {
   const { subscription, isLoading, error } = useBillingSubscription()
   const [showCancelDialog, setShowCancelDialog] = useState(false)
+  const [isOpeningPortal, startTransition] = useTransition()
+
+  const handleOpenPortal = () => {
+    startTransition(async () => {
+      try {
+        const response = await fetch('/api/v1/billing/portal', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ returnUrl: '/dashboard/billing' }),
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to generate portal URL')
+        }
+
+        const data = (await response.json()) as { url: string }
+        window.location.href = data.url
+      } catch (err) {
+        console.error('Error opening portal:', err)
+      }
+    })
+  }
 
   if (isLoading || error || !subscription) return null
 
@@ -162,15 +186,15 @@ export function BillingStatus() {
 
           {/* Ações */}
           <div className="mt-6 flex flex-wrap gap-2">
-            <Button asChild size="sm" variant="outline">
-              <a
-                href="https://dashboard.abacatepay.com"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
-                Gerenciar pagamento
-              </a>
+            <Button
+              onClick={handleOpenPortal}
+              disabled={isOpeningPortal}
+              size="sm"
+              variant="outline"
+            >
+              {isOpeningPortal && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
+              {!isOpeningPortal && <ExternalLink className="mr-1.5 h-3.5 w-3.5" />}
+              Gerenciar assinatura
             </Button>
 
             {status !== 'canceled' && !subscription.canceledAtPeriodEnd && (

@@ -30,6 +30,9 @@ Decisões fechadas:
 7. `07_PRD_V1_DOMAIN_ACQUISITION_AUTH_ONBOARDING.md`
 8. `08_PRD_V1_DOMAIN_CRM_OPERATIONS.md`
 9. `09_PRD_V1_LAUNCH_RESIDUALS.md`
+10. `10_PRD_V1_META_ADS_ANALYST_AUDIT.md`
+11. `11_PRD_V1_AI_COST_TRACKING.md`
+12. `12_PRD_STRIPE_FIRST_BILLING.md`
 
 ## Leitura Real do Produto
 
@@ -107,3 +110,9 @@ Implementado na `launch-v1`:
 O trabalho remanescente para o launch foi consolidado em:
 
 - `09_PRD_V1_LAUNCH_RESIDUALS.md`
+
+Frentes abertas após o fechamento do launch imediato:
+
+- `10_PRD_V1_META_ADS_ANALYST_AUDIT.md`
+- `11_PRD_V1_AI_COST_TRACKING.md`
+- `12_PRD_STRIPE_FIRST_BILLING.md`
