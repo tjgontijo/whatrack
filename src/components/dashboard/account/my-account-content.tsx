@@ -1,81 +1,58 @@
 'use client'
 
-import { useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { startTransition, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
 import { authClient } from '@/lib/auth/auth-client'
-import { isOwner } from '@/lib/auth/rbac/roles'
 import { getAuthErrorMessage } from '@/lib/auth/error-messages'
+import { isOwner } from '@/lib/auth/rbac/roles'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { useOrganization } from '@/hooks/organization/use-organization'
-import type { SubscriptionResponse } from '@/schemas/billing/billing-schemas'
 import type { UpdateMeAccountInput } from '@/schemas/me/me-account-schemas'
-import { useBillingSubscription } from '@/hooks/billing/use-billing-subscription'
+import type { AccountSummary } from '@/types/account/account-summary'
 import { OnboardingDialog } from '@/components/dashboard/organization/onboarding-dialog'
-import { AccountProfileCard, type AccountProfile } from './account-profile-card'
-import { AccountOrganizationCard, type AccountOrganization } from './account-organization-card'
+import { AccountProfileCard } from './account-profile-card'
+import { AccountOrganizationCard } from './account-organization-card'
 import { AccountBillingCard } from './account-billing-card'
-import { AccountPageSkeleton } from './account-page-skeleton'
 import { apiFetch } from '@/lib/api-client'
 
 async function fetchJson<T>(url: string, init?: RequestInit & { orgId?: string }): Promise<T> {
   return apiFetch(url, init)
 }
 
+type MyAccountContentProps = {
+  initialAccount: AccountSummary['account']
+  initialOrganization: AccountSummary['organization']
+  initialSubscription: AccountSummary['subscription']
+}
 
-export function MyAccountContent() {
-  const { data: org, isLoading: organizationSessionLoading } = useOrganization()
-  const organizationId = org?.id
-  const queryClient = useQueryClient()
-  const { subscription, isLoading: billingLoading } = useBillingSubscription(organizationId)
-
-  const {
-    data: account,
-    isLoading: accountLoading,
-  } = useQuery({
-    queryKey: ['me', 'account'],
-    queryFn: () => fetchJson<AccountProfile>('/api/v1/me/account'),
-  })
-
-  const {
-    data: organization,
-    isLoading: organizationLoading,
-  } = useQuery({
-    queryKey: ['organizations', 'me', organizationId],
-    queryFn: () => fetchJson<AccountOrganization>('/api/v1/organizations/me', {
-      orgId: organizationId,
-    }),
-    enabled: !!organizationId,
-  })
-
+export function MyAccountContent({
+  initialAccount,
+  initialOrganization,
+  initialSubscription,
+}: MyAccountContentProps) {
+  const router = useRouter()
+  const [account, setAccount] = useState(initialAccount)
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [isFiscalDialogOpen, setIsFiscalDialogOpen] = useState(false)
 
-  const canManageOrganizationSettings = isOwner(organization?.currentUserRole)
-
-  const isInitialLoading =
-    organizationSessionLoading ||
-    accountLoading ||
-    (!!organizationId && organizationLoading) ||
-    (!!organizationId && billingLoading)
+  const canManageOrganizationSettings = isOwner(initialOrganization?.currentUserRole)
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data: UpdateMeAccountInput) =>
-      fetchJson<AccountProfile>('/api/v1/me/account', {
+      fetchJson<typeof initialAccount>('/api/v1/me/account', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...data,
-        }),
+        body: JSON.stringify(data),
       }),
-    onSuccess: () => {
+    onSuccess: (updatedAccount) => {
+      setAccount(updatedAccount)
       toast.success('Perfil atualizado com sucesso')
-      void queryClient.invalidateQueries({ queryKey: ['me', 'account'] })
     },
     onError: (error: Error) => {
       toast.error(error.message)
@@ -104,9 +81,9 @@ export function MyAccountContent() {
       if (error) {
         throw new Error(
           getAuthErrorMessage(
-            (error as any).code,
-            (error as any).message || 'Não foi possível alterar sua senha.'
-          )
+            (error as { code?: string; message?: string }).code,
+            (error as { message?: string }).message || 'Não foi possível alterar sua senha.',
+          ),
         )
       }
     },
@@ -120,10 +97,6 @@ export function MyAccountContent() {
       toast.error(error.message)
     },
   })
-
-  if (isInitialLoading) {
-    return <AccountPageSkeleton />
-  }
 
   return (
     <div className="space-y-6">
@@ -177,30 +150,32 @@ export function MyAccountContent() {
         </CardContent>
       </Card>
 
-      {organization ? (
+      {initialOrganization ? (
         <>
           <AccountOrganizationCard
-            organization={organization}
+            organization={initialOrganization}
             canManageOrganizationSettings={canManageOrganizationSettings}
             onEdit={() => setIsFiscalDialogOpen(true)}
           />
 
           {isFiscalDialogOpen ? (
             <OnboardingDialog
-              key={`${organization.id}:${organization.updatedAt}:${organization.documentNumber ?? ''}`}
+              key={`${initialOrganization.id}:${initialOrganization.updatedAt}:${initialOrganization.documentNumber ?? ''}`}
               open={isFiscalDialogOpen}
               mode="edit"
-              initialOrganization={organization}
+              initialOrganization={initialOrganization}
               onOpenChange={setIsFiscalDialogOpen}
+              onCompleted={() => {
+                startTransition(() => {
+                  router.refresh()
+                })
+              }}
             />
           ) : null}
         </>
       ) : null}
 
-      <AccountBillingCard
-        subscription={subscription as SubscriptionResponse | null}
-        isLoading={billingLoading}
-      />
+      <AccountBillingCard subscription={initialSubscription} />
     </div>
   )
 }

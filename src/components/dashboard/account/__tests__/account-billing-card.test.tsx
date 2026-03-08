@@ -7,7 +7,6 @@ describe('AccountBillingCard', () => {
   it('shows the contracted plan details when a subscription exists', () => {
     render(
       <AccountBillingCard
-        isLoading={false}
         subscription={{
           id: 'sub-1',
           organizationId: 'org-1',
@@ -34,5 +33,16 @@ describe('AccountBillingCard', () => {
       'href',
       '/dashboard/billing',
     )
+  })
+
+  it('shows only a redirect to billing when there is no active subscription', () => {
+    render(<AccountBillingCard subscription={null} />)
+
+    expect(screen.getByText('Nenhum plano ativo')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Abrir billing' })).toHaveAttribute(
+      'href',
+      '/dashboard/billing',
+    )
+    expect(screen.queryByText('Escolha um plano para seguir com a configuração.')).not.toBeInTheDocument()
   })
 })

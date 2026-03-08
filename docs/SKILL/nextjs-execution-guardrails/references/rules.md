@@ -21,6 +21,19 @@
 - Schemas Zod novos sempre em `src/schemas/[dominio]/` — unico local permitido.
 - Evitar duplicacao de regras de negocio; centralizar em servicos.
 
+## Dashboard Read-Heavy: Regra Server-First
+
+- Paginas de dashboard com leitura inicial predominante e interacoes pontuais DEVEM ser implementadas como `Server Component` por padrao.
+- O primeiro render dessas paginas nao deve depender de multiplas `useQuery` client-side para compor o layout principal.
+- Quando a tela precisar de varios blocos de dados para o primeiro paint, agregar a leitura em um service server-side e passar o resultado por props.
+- Componentes client nessas paginas devem cuidar de:
+  - formularios locais;
+  - mutations;
+  - refresh localizado;
+  - estados efemeros de UI.
+- Para loading inicial, preferir `app/.../loading.tsx` com skeleton estavel da rota.
+- `TanStack Query` continua obrigatorio no client, mas nao deve ser usado para bootstrapar pagina read-heavy que pode nascer pronta do servidor.
+
 ## Client-Side Data Fetching (Inegociavel)
 
 ### TanStack Query — Regras de Uso

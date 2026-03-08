@@ -3,21 +3,8 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { applyCpfCnpjMask } from '@/lib/mask/cpf-cnpj'
-
-export type AccountOrganization = {
-  id: string
-  name: string
-  organizationType: 'pessoa_fisica' | 'pessoa_juridica' | null
-  documentType: 'cpf' | 'cnpj' | null
-  documentNumber: string | null
-  legalName: string | null
-  tradeName: string | null
-  taxStatus: string | null
-  city: string | null
-  state: string | null
-  currentUserRole?: string
-  updatedAt: string
-}
+import type { AccountOrganizationSummary } from '@/types/account/account-summary'
+export type AccountOrganization = AccountOrganizationSummary
 
 type AccountOrganizationCardProps = {
   organization: AccountOrganization

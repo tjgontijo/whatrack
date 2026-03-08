@@ -11,14 +11,8 @@ import {
   removeWhatsAppMask,
 } from '@/lib/mask/phone-mask'
 import type { UpdateMeAccountInput } from '@/schemas/me/me-account-schemas'
-
-export type AccountProfile = {
-  id: string
-  name: string
-  email: string
-  phone: string | null
-  updatedAt: string
-}
+import type { AccountProfileSummary } from '@/types/account/account-summary'
+export type AccountProfile = AccountProfileSummary
 
 type AccountProfileCardProps = {
   account: AccountProfile

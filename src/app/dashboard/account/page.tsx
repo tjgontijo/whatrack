@@ -1,6 +1,23 @@
-import { MyAccountContent } from '@/components/dashboard/account/my-account-content'
+import { redirect } from 'next/navigation'
 
-export default function AccountPage() {
+import { MyAccountContent } from '@/components/dashboard/account/my-account-content'
+import { getAccountSummary } from '@/services/account/account-summary.service'
+import { getServerSession } from '@/server/auth/server-session'
+import { getCurrentOrganizationId } from '@/server/organization/get-current-organization-id'
+
+export default async function AccountPage() {
+  const session = await getServerSession()
+
+  if (!session) {
+    redirect('/sign-in')
+  }
+
+  const organizationId = await getCurrentOrganizationId(session.user.id)
+  const summary = await getAccountSummary({
+    userId: session.user.id,
+    organizationId,
+  })
+
   return (
     <div className="mx-auto w-full max-w-5xl space-y-6 pt-8 first:pt-0">
       <div>
@@ -10,7 +27,12 @@ export default function AccountPage() {
         </p>
       </div>
 
-      <MyAccountContent />
+      <MyAccountContent
+        key={`${summary.account?.updatedAt ?? 'account'}:${summary.organization?.updatedAt ?? 'organization'}:${summary.subscription?.id ?? 'subscription'}`}
+        initialAccount={summary.account}
+        initialOrganization={summary.organization}
+        initialSubscription={summary.subscription}
+      />
     </div>
   )
 }

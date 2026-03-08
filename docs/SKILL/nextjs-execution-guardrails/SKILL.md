@@ -29,6 +29,14 @@ Executar tarefas com processo consistente e baixo retrabalho.
 - Preferir Server Components, Server Actions, props derivadas e handlers explicitos de evento.
 - Unico uso permitido de `useEffect`: sincronizacao com APIs externas do browser (event listeners DOM, observers, focus management, libs externas).
 
+## Politica Server-First para Dashboard (Inegociavel)
+
+- Paginas de dashboard majoritariamente de leitura inicial + formularios (`account`, `billing`, `settings`, `organization` e equivalentes) DEVEM nascer em `Server Component`.
+- Proibido montar o primeiro render dessas paginas com multiplas `useQuery` client-side em paralelo ou waterfall.
+- O primeiro payload deve vir do servidor, preferencialmente agregado por service de leitura.
+- `TanStack Query` no client deve ficar restrito a mutation, refresh localizado, polling real e dados dinamicos de longa vida.
+- Para loading inicial de rota server-first, usar `loading.tsx` com skeleton estavel. Skeleton client-side e fallback, nao estrategia principal.
+
 ## Politica Client-Side Data Fetching (Inegociavel)
 
 - Todo fetch client-side DEVE usar TanStack Query. Proibido fetch avulso em useEffect.

@@ -51,6 +51,7 @@ type OnboardingDialogProps = {
   open: boolean
   mode?: OnboardingDialogMode
   onOpenChange?: (open: boolean) => void
+  onCompleted?: () => void
   initialOrganization?: OnboardingDialogOrganization | null
 }
 
@@ -118,6 +119,7 @@ export function OnboardingDialog({
   open,
   mode = 'create',
   onOpenChange,
+  onCompleted,
   initialOrganization,
 }: OnboardingDialogProps) {
   const isEditMode = mode === 'edit'
@@ -183,6 +185,11 @@ export function OnboardingDialog({
         await authClient.organization.setActive({ organizationId: orgId }).catch(() => null)
       }
       await invalidateOrganizationState()
+      if (onCompleted) {
+        onCompleted()
+        return
+      }
+
       router.refresh()
     },
     onError: (error) => {
@@ -207,6 +214,11 @@ export function OnboardingDialog({
       await invalidateOrganizationState()
       toast.success('Dados fiscais atualizados com sucesso.')
       onOpenChange?.(false)
+      if (onCompleted) {
+        onCompleted()
+        return
+      }
+
       router.refresh()
     },
     onError: (error) => {

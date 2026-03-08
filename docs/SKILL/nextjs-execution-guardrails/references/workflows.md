@@ -11,12 +11,14 @@
 7. Schema: criar ou atualizar em `src/schemas/[dominio]/[recurso]-schemas.ts`.
 8. Service: implementar logica de negocio, queries e cache em `src/services/[dominio]/`.
 9. Route: apenas autenticar, validar (com schema importado), delegar ao service, responder.
-10. UI: componentes em `src/components/dashboard/[dominio]/`; usar `"use client"` so se necessario e sem `useEffect`/`useLayoutEffect`.
-11. Cobrir casos principais e limites (erro, vazio, permissao, fallback).
-12. Escrever ou atualizar testes para comportamento novo.
-13. Executar obrigatoriamente os testes criados/atualizados antes da entrega.
-14. Rodar validacao proporcional ao impacto.
-15. Entregar resumo com arquivos alterados, testes executados e riscos.
+10. Antes da UI, classificar a tela: se for dashboard read-heavy (leitura inicial + formularios), implementar `page.tsx` server-first e reservar client components para interacao.
+11. UI: componentes em `src/components/dashboard/[dominio]/`; usar `"use client"` so se necessario e sem `useEffect`/`useLayoutEffect`.
+12. Para rotas server-first, criar `loading.tsx` com skeleton estavel quando houver espera perceptivel.
+13. Cobrir casos principais e limites (erro, vazio, permissao, fallback).
+14. Escrever ou atualizar testes para comportamento novo.
+15. Executar obrigatoriamente os testes criados/atualizados antes da entrega.
+16. Rodar validacao proporcional ao impacto.
+17. Entregar resumo com arquivos alterados, testes executados e riscos.
 
 ## Workflow: Bugfix
 
@@ -73,13 +75,14 @@
 3. Refatorar em passos pequenos e verificaveis; um passo por vez.
 4. Se a regra for usada em mais de um dominio, extrair para modulo neutro (sem nome de dominio) antes de ajustar consumidores.
 5. Sequencia recomendada: extrair schema → extrair helpers → extrair service → limpar route.
-6. Executar testes a cada bloco de mudanca relevante.
-7. Garantir que ha teste criado ou atualizado para confirmar ausencia de regressao.
-8. Executar obrigatoriamente os testes criados/atualizados antes da entrega.
-9. Evitar combinar refactor com mudanca funcional nao solicitada.
-10. Em cleanup estrutural, verificar se restam aliases/wrappers entre dominios sem valor funcional e remover.
-11. Garantir ausencia de arquivos obsoletos, diretorios vazios e codigo morto apos o cleanup.
-12. Entregar com justificativa tecnica curta e verificavel.
+6. Se a refatoracao envolver pagina dashboard read-heavy, mover o bootstrap inicial para o servidor antes de otimizar detalhes de client.
+7. Executar testes a cada bloco de mudanca relevante.
+8. Garantir que ha teste criado ou atualizado para confirmar ausencia de regressao.
+9. Executar obrigatoriamente os testes criados/atualizados antes da entrega.
+10. Evitar combinar refactor com mudanca funcional nao solicitada.
+11. Em cleanup estrutural, verificar se restam aliases/wrappers entre dominios sem valor funcional e remover.
+12. Garantir ausencia de arquivos obsoletos, diretorios vazios e codigo morto apos o cleanup.
+13. Entregar com justificativa tecnica curta e verificavel.
 
 ## Workflow: Otimizacao de Performance (Dashboard/API GET)
 
