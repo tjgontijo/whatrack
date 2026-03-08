@@ -16,6 +16,7 @@ import { useBillingSubscription } from '@/hooks/billing/use-billing-subscription
 import { BillingCancelDialog } from './billing-cancel-dialog'
 import { formatDate } from '@/lib/date/format-date'
 import { getBillingPlanLabel } from '@/lib/billing/plans'
+import { getBillingStatusLabel } from '@/lib/billing/subscription-status'
 
 type SubscriptionStatusValue = 'active' | 'paused' | 'canceled' | 'past_due'
 
@@ -51,10 +52,12 @@ const statusConfig: Record<SubscriptionStatusValue, StatusConfig> = {
       'Pagamento pendente — atualize o método de pagamento para continuar.',
   },
   paused: {
-    label: 'Pausado',
+    label: getBillingStatusLabel('paused'),
     icon: Clock,
     pill: 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/25',
     dot: 'bg-amber-500',
+    banner:
+      'Estamos confirmando o pagamento com o provedor. Sua assinatura será ativada automaticamente.',
   },
 }
 
@@ -158,7 +161,7 @@ export function BillingStatus() {
           </div>
 
           {/* Ações */}
-          <div className="mt-5 flex flex-wrap gap-2">
+          <div className="mt-6 flex flex-wrap gap-2">
             <Button asChild size="sm" variant="outline">
               <a
                 href="https://dashboard.abacatepay.com"

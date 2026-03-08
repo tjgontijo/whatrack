@@ -44,6 +44,9 @@ export function useBillingSubscription(
     enabled: !!organizationId,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
+    refetchOnMount: 'always',
+    refetchInterval: (query) =>
+      query.state.data?.subscription?.status === 'paused' ? 5 * 1000 : false,
     retry: 1,
   })
 

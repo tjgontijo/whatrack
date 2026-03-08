@@ -32,9 +32,9 @@ export function BillingPageContent() {
 
   // Se tem subscription, mostrar status + uso
   return (
-    <>
+    <div className="space-y-6" data-testid="billing-page-content">
       <BillingStatus />
       <UsageProgress />
-    </>
+    </div>
   )
 }

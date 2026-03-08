@@ -5,17 +5,11 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { getBillingPlanLabel } from '@/lib/billing/plans'
+import { getBillingStatusLabel } from '@/lib/billing/subscription-status'
 import type { SubscriptionResponse } from '@/schemas/billing/billing-schemas'
 
 type AccountBillingCardProps = {
   subscription: SubscriptionResponse | null
-}
-
-const STATUS_LABELS: Record<SubscriptionResponse['status'], string> = {
-  active: 'Ativo',
-  paused: 'Pausado',
-  canceled: 'Cancelado',
-  past_due: 'Pagamento pendente',
 }
 
 export function AccountBillingCard({
@@ -75,7 +69,7 @@ export function AccountBillingCard({
               Status
             </p>
             <p className="mt-1 text-lg font-semibold text-foreground">
-              {STATUS_LABELS[subscription.status]}
+              {getBillingStatusLabel(subscription.status)}
             </p>
           </div>
 
