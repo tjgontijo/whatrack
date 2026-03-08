@@ -9,6 +9,7 @@ import { seedAgentConversationSummarizer } from './seed_agent_conversation_summa
 import { seedSharedCoreSkills } from './seed_skills_shared_core'
 import { seedBillingPlans } from './seed_billing_plans'
 import { seedSystemOrg } from './seed_system_org'
+import { seedAgentMetaAdsAnalyst } from './seed_agent_meta_ads_analyst'
 
 interface PgTableRow {
   tablename: string
@@ -109,6 +110,7 @@ export async function runSeed() {
       await seedAgentLeadQualifier(prisma, org.id)
       await seedAgentConversationSummarizer(prisma, org.id)
       await seedSharedCoreSkills(prisma, org.id)
+      await seedAgentMetaAdsAnalyst(prisma, org.id)
     }
 
     console.log('✅ Seed concluído com sucesso!')

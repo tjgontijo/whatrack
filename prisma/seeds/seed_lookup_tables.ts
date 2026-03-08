@@ -69,6 +69,7 @@ const aiTriggerEventTypes = [
   { name: 'CONVERSATION_IDLE_3M', description: 'Quando a conversa esfria por 3 minutos.' },
   { name: 'CONVERSATION_IDLE_2H', description: 'Quando a conversa esfria por 2 horas.' },
   { name: 'MANUAL_TRIGGER', description: 'Acionado manualmente no front-end por botão.' },
+  { name: 'META_ADS_AUDIT_REQUESTED', description: 'Auditoria de Meta Ads requisitada via dashboard.' },
 ]
 
 const aiSchemaFieldTypes = [
