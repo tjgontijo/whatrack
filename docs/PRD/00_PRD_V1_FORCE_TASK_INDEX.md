@@ -29,6 +29,7 @@ Decisões fechadas:
 6. `06_PRD_V1_DOMAIN_META_ADS.md`
 7. `07_PRD_V1_DOMAIN_ACQUISITION_AUTH_ONBOARDING.md`
 8. `08_PRD_V1_DOMAIN_CRM_OPERATIONS.md`
+9. `09_PRD_V1_LAUNCH_RESIDUALS.md`
 
 ## Leitura Real do Produto
 
@@ -89,3 +90,20 @@ Ao fim da força-tarefa, cada domínio deve ter:
 - gaps reais priorizados
 - checklist objetiva de execução
 - critério de aceite claro para amanhã
+
+## Estado Atual da Força-Tarefa
+
+Implementado na `launch-v1`:
+
+- `01` Release Operations
+- `02` Scheduling N8N
+- `03` Billing
+- `04` WhatsApp
+- `05` AI Copilot
+- `06` Meta Ads
+- `07` Acquisition/Auth/Onboarding
+- `08` CRM Operations
+
+O trabalho remanescente para o launch foi consolidado em:
+
+- `09_PRD_V1_LAUNCH_RESIDUALS.md`
