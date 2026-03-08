@@ -1,218 +1,206 @@
 # Análise dos PRDs V1 — Recomendações para Launch
 
-**Data**: 2026-03-07
-**Base**: código atual em `src/`, git status, PRDs ativos (00-08), `vercel.json`
+**Data**: 2026-03-08
+**Base**: código na branch `launch-v1`, PRDs 00-09, git status pós-implementação
 
 ---
 
-## Visão Geral
+## Visão Geral — Estado Pós-Implementação
 
-O conjunto de PRDs melhorou significativamente com a inclusão do domínio de Scheduling e a decisão explícita de `n8n` como scheduler oficial. A maior parte das correções que eu faria na versão anterior já foram incorporadas pelo autor.
+Os PRDs 01-08 foram implementados. O código está limpo:
 
-**Veredito**: os PRDs estão alinhados com o código. O gargalo continua sendo checkpoint do worktree, setup operacional e smoke real.
+- Rotas legadas removidas (`/jobs/*`, `/test/*`, `/health/*`, `/debug/*`, `/billing/debug`, `/billing/test`)
+- `history-sync-alerts` removido (rota + service + teste)
+- `src/lib/payments/` substituído por `src/lib/billing/` — versionado
+- `vercel.json` removido
+- Cron reestruturado em `/api/v1/cron/[domain]/[function]` com auth centralizada, lock distribuído e schemas
+- Sem diretórios vazios em `src/`
+- Branch `launch-v1` com 8 commits atômicos por PRD
+
+**O que resta agora é exclusivamente operacional.** O PRD 09 captura isso corretamente.
 
 ---
 
 ## 00 — Force Task Index
 
-**Qualidade**: Excelente. Decisões fechadas estão corretas e refletem a realidade do código.
+**Status**: Atualizado e alinhado com a realidade. A seção "Estado Atual da Força-Tarefa" confirmando os 8 PRDs implementados e apontando para o 09 é o fechamento correto.
 
-**O que melhorou**: a inclusão de `n8n` nas decisões fechadas e na ordem da força-tarefa resolve a lacuna operacional que existia antes.
-
-**Ponto aberto**: o gate de go/no-go lista 8 itens mas não diferencia bloqueantes de degradáveis. Se Meta Ads falhar no OAuth mas todo o resto passar, o launch é go ou no-go? Recomendo classificar explicitamente:
-- **Bloqueante**: billing webhook, n8n configurado, job de IA rodando, fluxo onboarding+compra, fluxo WhatsApp→IA→venda
-- **Degradável com ajuste de copy**: Meta Ads, AI Studio
+**Único ponto aberto**: o gate de go/no-go ainda não diferencia explicitamente bloqueantes de degradáveis. O PRD 09 resolve isso na seção "Decisões de Go/No-Go" — mas o Index deveria referenciar isso para ficar autocontido.
 
 ---
 
-## 01 — Release Operations
+## 01 — Release Operations ✅ Implementado
 
-**Qualidade**: Bom. A adição de `n8n` no escopo e nos critérios de aceite foi a correção certa.
+**Verificação do código**:
+- 4 diretórios vazios: removidos
+- `/test/publish-message`: removido
+- `/health/redis`: removido
+- `/whatsapp/history-sync-alerts`: removido (service e teste junto)
+- `vercel.json`: removido — ambiguidade resolvida
+- Rotas duplicadas (`/jobs/*` vs `/cron/*`): unificadas em `/cron/*`
 
-**Estado real do código**:
-- 4 diretórios vazios (sem `route.ts`): `/debug`, `/debug/auth`, `/billing/debug`, `/billing/test`
-- 3 rotas sem consumidor no produto:
-  - `/api/v1/test/publish-message` — teste de Centrifugo. **Remover**
-  - `/api/v1/health/redis` — público, sem auth, sem consumidor (só em teste de proxy). **Remover**
-  - `/api/v1/whatsapp/history-sync-alerts` — GET base público retornando JSON estático, sem consumidor. **Remover** (service + teste órfão junto)
-- `/api/v1/cron/ai-classifier` existe e é duplicata funcional de `/api/v1/jobs/ai-classifier` — o PRD 02 e 05 já identificam essa ambiguidade
-
-**Recomendações**:
-1. Deletar: 4 diretórios vazios + 3 rotas sem consumidor + `/cron/ai-classifier` (após confirmar que não tem lógica exclusiva — ver nota no domínio 05)
-2. **Risco de execução duplicada no `vercel.json`**: hoje agenda `whatsapp-health-check` (02:00 UTC) e `webhook-retry` (03:00 UTC) 1x/dia. O PRD 02 pede que n8n rode esses mesmos jobs com frequência muito maior. Se ambos ficarem ativos, haverá execução duplicada. Decisão: remover crons do `vercel.json` ou manter como fallback documentado
-3. Smoke manual continua sendo a tarefa mais importante
-
-**Esforço**: Médio. ~3-4h (corte de rotas + resolução de ambiguidade vercel.json/n8n + smoke).
+**Pendência do PRD 09**: smoke manual. Ainda não executado.
 
 ---
 
-## 02 — Scheduling N8N
+## 02 — Scheduling N8N ✅ Implementado
 
-**Qualidade**: Muito bom. É o PRD mais necessário desta versão — transforma uma dependência implícita em contrato explícito.
+**Verificação do código**:
+- 3 rotas oficiais em `/api/v1/cron/*` — todas POST, com `authorizeCronRequest` + `cronTriggerBodySchema`
+- `cron-auth.ts` com rate limit + Bearer validation via `requireEnv('CRON_SECRET')`
+- `cron-execution.service.ts` com lock distribuído genérico (`executeLockedCronJob`)
+- `ai-classifier-cron.service.ts` usa `drainDueClassifications` + `dispatchAiEvent` com lock — a divergência de implementação entre `/jobs/` e `/cron/` antigos foi resolvida
+- Guia operacional em `docs/GUIDE/n8n_cron_setup.md` com curl examples, frequências e regras
+- `vercel.json` removido
 
-**Estado real do código**:
-- 3 jobs em `/api/v1/jobs/*` — todos com Bearer `CRON_SECRET`
-- `ai-classifier` com lock distribuído Redis e `maxDuration: 60`
-- 1 duplicata em `/api/v1/cron/ai-classifier` — sem lock distribuído, chama service diferente (`runAiClassifierCron` vs `drainDueClassifications`)
-- `vercel.json` agenda 2/3 jobs com frequência insuficiente (1x/dia vs 1min e 5min recomendados)
+**O que falta é configurar o n8n real (PRD 09).**
 
-**Pontos fortes do PRD**:
-- Frequências realistas: ai-classifier 1min, webhook-retry 5min, health-check 1x/dia
-- Decisão clara de que `/api/v1/cron/*` não é contrato oficial
-- History-sync-alerts como opcional
-
-**Pontos de atenção**:
-1. **`vercel.json` não abordado**: o PRD não prescreve o destino do `vercel.json`. Sem decisão, haverá dois schedulers rodando os mesmos jobs. Recomendo remover os crons do `vercel.json` e documentar que n8n é a única fonte
-2. **Ambiguidade `/cron/ai-classifier` vs `/jobs/ai-classifier`**: o PRD identifica mas não prescreve ação. Os dois endpoints chamam services diferentes — verificar se `runAiClassifierCron()` tem lógica exclusiva antes de deletar
-
-**Esforço**: Baixo-Médio. ~1-2h (configurar 3 workflows no n8n + testar com curl).
+**Nota sobre o guia n8n**: está diretamente executável. A instrução sobre tratar `429` como lock ativo (não como falha) é um detalhe operacional que evita falsos alertas.
 
 ---
 
-## 03 — Billing
+## 03 — Billing ✅ Implementado
 
-**Qualidade**: Bom. A adição do gap sobre `webhook-retry` via n8n mostra alinhamento com o novo domínio de scheduling.
+**Verificação do código**:
+- 6 rotas operacionais, 3 services, webhook handler com testes
+- `src/lib/billing/` versionado com 8 arquivos (plans, providers, webhook-security)
+- `src/lib/payments/` completamente removido
 
-**Estado real do código**:
-- 6 rotas completas, 3 services maduros, provider abstraction com AbacatePay v1 REST
-- Webhook security HMAC-SHA256 com timing-safe comparison
-- Schemas Zod com cobertura completa
-- PRD agora referencia corretamente `src/lib/billing/plans.ts` e `src/lib/billing/providers/providers/abacatepay-provider.ts`
-- **Refactor não commitado**: `src/lib/payments/` deletado, `src/lib/billing/` criado, não versionado
-
-**Recomendações**:
-1. **URGENTE**: checkpoint do worktree inteiro — billing é o domínio com mais mudanças pendentes
-2. Validar checkout→pagamento→webhook→assinatura com evento real
-3. Para produção: `prisma migrate deploy` (não `db push`) — o projeto usa `prisma/migrations`
-4. UI de cancelamento: comunicar "plano ativo até fim do período"
-
-**Esforço**: Médio. ~2-3h (commit + validação real + migration).
-
-**Risco crítico**: worktree não commitado.
+**Pendência do PRD 09**: migration deploy + seeds + validação real de checkout→webhook→assinatura.
 
 ---
 
-## 04 — WhatsApp
+## 04 — WhatsApp ✅ Implementado
 
-**Qualidade**: Adequado. O gap sobre rotinas operacionais ligadas ao n8n é a melhoria certa.
+**Verificação do código**:
+- Rotas auxiliares removidas
+- `whatsapp-health-check` consolidado em `/api/v1/cron/whatsapp/health-check`
 
-**Estado real do código**:
-- 17 rotas de API, 17 arquivos de service — domínio mais completo
-- `whatsapp-health-check` configurado em `/api/v1/jobs/` com Bearer auth
-
-**Recomendações**:
-1. Das 17 rotas, smoke deve cobrir: onboarding → webhook recebe mensagem → inbox atualiza → lead/ticket criado
-2. `history-sync-alerts` já decidido como opcional no PRD 02, candidato a remoção no PRD 01
-3. Tarefa 5 do PRD ("confirmar rotina operacional no n8n, se existir") — `whatsapp-health-check` precisa estar no n8n
-
-**Esforço**: Médio. ~2-3h (depende de conta sandbox/produção disponível).
-
-**Risco principal**: conta Meta Business aprovada é pré-requisito externo ao código.
+**Pendência do PRD 09**: validação com conta real + smoke.
 
 ---
 
-## 05 — AI Copilot
+## 05 — AI Copilot ✅ Implementado
 
-**Qualidade**: Bom. A adição sobre ambiguidade entre endpoints e referência ao n8n são as correções certas.
+**Verificação do código**:
+- Endpoint oficial: `POST /api/v1/cron/ai/classifier` com lock distribuído
+- Ambiguidade resolvida: rotas legadas (`/jobs/ai-classifier`, `/cron/ai-classifier` antigo) removidas
+- `runAiClassifierCronJob()` usa `executeLockedCronJob` → `drainDueClassifications` + `dispatchAiEvent` — implementação correta e com lock
+- PRD atualizado referenciando o endpoint correto
 
-**Estado real do código**:
-- 3 rotas de API, job endpoint funcional, 13 services, 5 testes
-- `/api/v1/jobs/ai-classifier`: lock distribuído Redis, drena até 20 tickets, `maxDuration: 60`, chama `drainDueClassifications()` + `dispatchAiEvent()`
-- `/api/v1/cron/ai-classifier`: **sem lock**, chama `runAiClassifierCron()` — service diferente
-
-**Ponto importante**: os dois endpoints não são apenas URLs diferentes — são implementações distintas. `/jobs/` é mais robusto (lock, batch de 20, maxDuration). Antes de deletar `/cron/`, verificar se `runAiClassifierCron()` faz algo que `drainDueClassifications()` não faz.
-
-**Recomendações**:
-1. Comparar as duas implementações. Se `/jobs/` cobre tudo, deletar `/cron/`
-2. n8n: GET `/api/v1/jobs/ai-classifier` a cada 1 min com Bearer CRON_SECRET
-3. Smoke: mensagem → classificação → sugestão → aprovação → venda
-4. AI Studio: esconder na nav ou marcar "Beta"
-
-**Esforço**: Médio. ~2h (verificação + n8n + smoke).
-
-**Dependência**: WhatsApp precisa funcionar primeiro.
+**Pendência do PRD 09**: n8n configurado + smoke do fluxo completo.
 
 ---
 
-## 06 — Meta Ads
+## 06 — Meta Ads ✅ Implementado (código)
 
-**Qualidade**: Adequado. Sem mudanças nesta versão.
+Sem mudanças no código nesta fase — domínio já estava completo.
 
-**Estado real do código**:
-- 10 rotas de API, 14 services, CAPI implementado, OAuth completo
-
-**Recomendações**:
-1. **Semi-bloqueante**. Landing vende rastreio + CAPI + Meta em `types.ts`, sidebar expõe como módulo oficial. Degradar sem ajustar copy gera incoerência
-2. Validação mínima: conta conecta → campanhas no dashboard → 1 evento CAPI no Events Manager
-3. `copilot-analyze` não precisa de validação para launch
-4. Permissões Meta App Review (`ads_read`, `ads_management`): verificar HOJE
-
-**Se degradar**: ajustar `types.ts` + esconder em `sidebar.tsx`.
-
-**Esforço**: Baixo-Médio. ~1-2h se credenciais OK.
+**Pendência do PRD 09**: decisão explícita de go vs degradação. Se degradar, landing e sidebar precisam de ajuste.
 
 ---
 
-## 07 — Acquisition / Auth / Onboarding
+## 07 — Acquisition / Auth / Onboarding ✅ Implementado
 
-**Qualidade**: Bom. Sem mudanças, não precisa de mudanças.
-
-**Recomendações**:
-1. Smoke: landing → cadastro → login → cria org → dashboard
-2. Copy alinhada com "IA assistida, não autônoma"
-3. Convites: suportado, não frente de launch
-4. Edge case: usuário logado sem organização → onboarding dialog deve aparecer
-
-**Esforço**: Baixo. ~1h. **Provavelmente já está pronto.**
+**Pendência do PRD 09**: smoke manual.
 
 ---
 
-## 08 — CRM Operations
+## 08 — CRM Operations ✅ Implementado
 
-**Qualidade**: Adequado. Consumidor dos outros domínios.
-
-**Recomendações**:
-1. Smoke do AI Copilot já valida 80% deste domínio
-2. Dashboard com dados vazios deve mostrar zeros, não erros
-3. Seed: pelo menos 1 item no catálogo para fluxo de aprovação
-
-**Esforço**: Baixo. ~30min de validação visual.
+**Pendência do PRD 09**: seed de dados mínimos + validação visual.
 
 ---
 
-## Resumo Executivo
+## 09 — Launch Residuals (novo)
 
-### Faça AGORA (bloqueante):
-1. **Checkpoint do worktree inteiro** — commitar em commits atômicos por domínio
-2. **Deletar superfície morta**: 4 diretórios vazios + 3 rotas sem consumidor
+**Qualidade**: Bom. Consolida apenas o que falta sem reabrir escopo.
 
-### Faça HOJE (necessário para go):
-3. **Configurar n8n**: ai-classifier 1min, webhook-retry 5min, whatsapp-health-check 1x/dia
-4. **Resolver `vercel.json`**: remover crons ou documentar coexistência com n8n
-5. **Resolver ambiguidade `/cron/ai-classifier` vs `/jobs/ai-classifier`**: comparar implementações, deletar a legada
-6. **Executar `prisma migrate deploy`** no banco de produção
-7. **Smoke completo**: Auth → Billing → WhatsApp → IA → CRM
+### Análise ponto a ponto:
+
+**1. Infra Externa Obrigatória**
+
+Os 3 endpoints listados estão corretos e alinhados com o código. O guia `docs/GUIDE/n8n_cron_setup.md` tem tudo que o operador precisa — endpoint, método, header, body, curl.
+
+**Risco real**: se o `CRON_SECRET` de produção divergir do configurado no n8n, todos os jobs retornam 401. Testar com curl antes de confiar no schedule.
+
+**2. Banco e Ambiente de Produção**
+
+O git status mostra uma migration pendente:
+```
+D prisma/migrations/20260307230140_init/migration.sql
+?? prisma/migrations/20260308152858_init/
+```
+
+A migration foi recriada. **Precisa commitar antes do deploy** — senão `prisma migrate deploy` não encontra o arquivo.
+
+O checklist de variáveis (auth, billing, WhatsApp/Meta, Redis, OpenAI, cron secret) está correto mas genérico. Para execução segura, rodar um diff automatizado das env vars ao invés de validar de memória.
+
+**3. Smoke Manual de Launch**
+
+Os 6 fluxos listados são os corretos e na ordem certa:
+1. Auth → Onboarding (pré-requisito para tudo)
+2. Checkout → Billing (pré-requisito para uso)
+3. WhatsApp → Lead/Ticket (pré-requisito para IA)
+4. IA → Insight → Aprovação → Venda (fluxo core)
+5. Fechamento manual → Sale (validação CRM)
+6. Meta Ads (se estiver no escopo)
+
+**Gap**: o PRD não define o que fazer quando um smoke falha. Recomendo: falha nos fluxos 1-4 = no-go. Falha no 5 ou 6 = go com degradação documentada.
+
+**4. Decisões de Go/No-Go**
+
+A classificação bloqueante vs degradável está correta. Único gap: degradar Meta Ads requer alterar código (`types.ts` + `sidebar.tsx`). Isso deveria estar previsto como diff pronto, não como decisão de última hora.
+
+**5. Checklist Curta de Amanhã**
+
+Boa. Operacional e direta.
+
+---
+
+## Resumo: O que Separa o Estado Atual do Go-Live
+
+### Commitar AGORA:
+1. **Migration pendente** — `prisma/migrations/20260308152858_init/` está untracked. Sem commit, o deploy não leva a migration
+
+### Operação n8n (~1h com o guia pronto):
+2. Criar 3 workflows seguindo `docs/GUIDE/n8n_cron_setup.md`
+3. Testar cada um com curl antes de ativar o schedule
+4. Confirmar `CRON_SECRET` no ambiente de produção
+
+### Banco de produção:
+5. `prisma migrate deploy`
+6. Seeds obrigatórios (billing plan templates, catálogo mínimo de itens)
+7. Validar variáveis de ambiente com diff automatizado
+
+### Smoke (~2-3h):
+8. Auth → Checkout → WhatsApp → IA → CRM → Meta Ads (se go)
 
 ### Decisão pendente:
-8. **Meta Ads**: go, degradar com ajuste de copy, ou adiar?
+9. Meta Ads: go ou degradar? Se degradar, ter diff pronto para `types.ts` + `sidebar.tsx`
 
-### Domínios por risco de bloqueio:
+### Domínios por risco:
 
-| Domínio | Risco | Motivo |
-|---------|-------|--------|
-| Billing | **ALTO** | Worktree carregado não commitado, precisa de validação real |
-| Scheduling N8N | **ALTO** | Sem scheduler externo, IA e retries ficam mortos |
-| AI Copilot | **MEDIO** | Depende de n8n + WhatsApp funcionando |
-| WhatsApp | **MEDIO** | Depende de conta Meta Business aprovada |
-| Meta Ads | **MEDIO** | Semi-bloqueante: degradar exige ajustar copy da landing e sidebar |
-| Auth/Onboarding | **BAIXO** | Provavelmente já funciona |
-| CRM | **BAIXO** | Consumidor dos outros domínios |
-| Release Ops | **BAIXO** | Limpeza + decisões pontuais |
+| Domínio | Código | Operação | Bloqueio |
+|---------|--------|----------|----------|
+| Release Ops | ✅ Limpo | Smoke pendente | Baixo |
+| Scheduling | ✅ Implementado | n8n não configurado | **ALTO** |
+| Billing | ✅ Implementado | Migration + validação real | **ALTO** |
+| WhatsApp | ✅ Implementado | Conta Meta Business | Médio |
+| AI Copilot | ✅ Implementado | Depende de n8n + WhatsApp | Médio |
+| Meta Ads | ✅ Implementado | OAuth + App Review | Médio |
+| Auth/Onboarding | ✅ Implementado | Smoke | Baixo |
+| CRM | ✅ Implementado | Seed + validação visual | Baixo |
 
 ---
 
 ## Opinião Final
 
-Os PRDs estão maduros para execução. A inclusão do domínio de Scheduling foi a decisão mais importante desta versão — transformou uma dependência implícita em contrato explícito.
+O código está pronto. O PRD 09 acerta ao dizer que "o maior risco restante não está mais no código versionado — está na operação externa do launch."
 
-Três coisas separam o estado atual do go: (1) checkpoint do worktree, (2) n8n configurado, (3) smoke real. Sem essas três, é aposta. Com essas três, é execução — e o que quebrar na semana 1, corrige na semana 1.
+Três ações concretas separam o estado atual do go-live:
+1. **Commitar a migration** (5 minutos)
+2. **Configurar o n8n** (~1h com o guia pronto)
+3. **Smoke real** (~2-3h)
+
+Depois dessas três, a decisão de go/no-go é baseada em evidência, não em incerteza.
