@@ -1,14 +1,7 @@
 import type { Prisma } from '@db/client'
 import { prisma } from '@/lib/db/prisma'
-import type { DateRange } from '@/lib/date/date-range'
 
-export async function buildSalesByService(organizationId: string, dateRange?: DateRange) {
-  const where: Prisma.SaleWhereInput = { organizationId, status: 'completed' }
-
-  if (dateRange) {
-    where.createdAt = { gte: dateRange.gte, lte: dateRange.lte }
-  }
-
+export async function buildSalesByService(where: Prisma.SaleWhereInput) {
   const sales = await prisma.sale.findMany({
     where,
     select: {

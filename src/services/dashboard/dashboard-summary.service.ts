@@ -22,6 +22,7 @@ export async function getDashboardSummary(
     period: query.period,
     trafficSource: query.trafficSource,
     trafficType: query.trafficType,
+    itemCategory: query.itemCategory,
     item: query.item,
   }
 
@@ -42,7 +43,7 @@ export async function getDashboardSummary(
         _count: { _all: true },
       }),
       buildItemsCost(salesWhere),
-      buildSalesByService(organizationId, dateRange),
+      buildSalesByService(salesWhere),
       buildFunnel(organizationId, dateRange),
       buildOriginsSummary(organizationId, dateRange),
       buildPaidCampaignsSummary(organizationId, dateRange),

@@ -61,6 +61,13 @@ export type DeleteSaleParams = {
   saleId: string
 }
 
+export type SyncCompletedSaleForTicketParams = {
+  organizationId: string
+  ticketId: string
+  totalAmount: number
+  notes?: string
+}
+
 export async function createSale(params: CreateSaleParams) {
   const { organizationId, userId, input } = params
 
@@ -95,6 +102,43 @@ export async function createSale(params: CreateSaleParams) {
         : undefined,
     },
     select: saleWithItemsSelect,
+  })
+}
+
+export async function syncCompletedSaleForTicket(
+  tx: Prisma.TransactionClient,
+  params: SyncCompletedSaleForTicketParams
+) {
+  const existingSale = await tx.sale.findFirst({
+    where: {
+      organizationId: params.organizationId,
+      ticketId: params.ticketId,
+    },
+    select: { id: true },
+  })
+
+  const saleData = {
+    totalAmount: params.totalAmount,
+    status: 'completed' as const,
+    statusChangedAt: new Date(),
+    ...(params.notes ? { notes: params.notes } : {}),
+  }
+
+  if (existingSale) {
+    return tx.sale.update({
+      where: { id: existingSale.id },
+      data: saleData,
+      select: { id: true },
+    })
+  }
+
+  return tx.sale.create({
+    data: {
+      organizationId: params.organizationId,
+      ticketId: params.ticketId,
+      ...saleData,
+    },
+    select: { id: true },
   })
 }
 

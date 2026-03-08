@@ -15,6 +15,7 @@ import { FunnelChart } from '@/components/dashboard/charts/funnel-chart'
 import { formatCurrencyBRL } from '@/lib/mask/formatters'
 import { authClient } from '@/lib/auth/auth-client'
 import { apiFetch } from '@/lib/api-client'
+import { buildDashboardSummaryQuery } from '@/lib/dashboard/summary-query'
 
 import {
   dashboardSummaryResponseSchema,
@@ -82,13 +83,8 @@ export default function DashboardPage() {
         throw new Error('Organização não encontrada')
       }
 
-      const queryParams = new URLSearchParams()
-      queryParams.set('period', filters.period)
-      queryParams.set('trafficSource', filters.trafficSource)
-      queryParams.set('trafficType', filters.trafficType)
-      queryParams.set('item', filters.item)
-
-      const data = await apiFetch(`/api/v1/dashboard/summary?${queryParams.toString()}`, {
+      const query = buildDashboardSummaryQuery(filters)
+      const data = await apiFetch(`/api/v1/dashboard/summary?${query}`, {
         orgId: organizationId,
       })
       return dashboardSummaryResponseSchema.parse(data)

@@ -2,6 +2,7 @@ import { Prisma } from '@db/client'
 
 import { prisma } from '@/lib/db/prisma'
 import { metaCapiService } from '@/services/meta-ads/capi.service'
+import { syncCompletedSaleForTicket } from '@/services/sales/sale.service'
 import { getDefaultTicketStage } from './ensure-ticket-stages'
 import { logger } from '@/lib/utils/logger'
 
@@ -563,6 +564,15 @@ export async function closeTicket(params: CloseTicketParams) {
   const closed = await prisma.$transaction(async (tx) => {
     const now = new Date()
     const resolutionTimeSec = Math.floor((now.getTime() - existing.createdAt.getTime()) / 1000)
+
+    if (newStatus === 'closed_won' && typeof params.dealValue === 'number' && params.dealValue > 0) {
+      await syncCompletedSaleForTicket(tx, {
+        organizationId: params.organizationId,
+        ticketId: params.ticketId,
+        totalAmount: params.dealValue,
+        notes: params.closedReason,
+      })
+    }
 
     const updatedTicket = await tx.ticket.update({
       where: { id: params.ticketId },

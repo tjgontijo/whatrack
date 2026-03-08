@@ -46,6 +46,7 @@ export async function POST(
     }
 
     // Revalidate cache
+    await revalidateTag('dashboard-summary', 'max')
     await revalidateTag(`org-${organizationId}`, 'max')
 
     return NextResponse.json(result.data)

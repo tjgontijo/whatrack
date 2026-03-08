@@ -9,6 +9,7 @@ export type SummaryFilters = {
   period?: string
   trafficSource?: string
   trafficType?: string
+  itemCategory?: string
   item?: string
 }
 
@@ -37,6 +38,18 @@ export function buildSalesWhere(filters: SummaryFilters): Prisma.SaleWhereInput 
       items: {
         some: {
           itemId: filters.item,
+        },
+      },
+    })
+  }
+
+  if (filters.itemCategory && filters.itemCategory !== 'any') {
+    andConditions.push({
+      items: {
+        some: {
+          item: {
+            categoryId: filters.itemCategory,
+          },
         },
       },
     })

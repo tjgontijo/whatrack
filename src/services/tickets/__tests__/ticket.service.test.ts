@@ -18,6 +18,11 @@ const prismaMock = vi.hoisted(() => ({
     update: vi.fn(),
     create: vi.fn(),
   },
+  sale: {
+    findFirst: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+  },
   lead: {
     update: vi.fn(),
   },
@@ -50,6 +55,11 @@ describe('ticket.service', () => {
       if (typeof input === 'function') {
         return input({
           ticket: { update: prismaMock.ticket.update },
+          sale: {
+            findFirst: prismaMock.sale.findFirst,
+            create: prismaMock.sale.create,
+            update: prismaMock.sale.update,
+          },
           lead: { update: prismaMock.lead.update },
         })
       }
@@ -203,6 +213,8 @@ describe('ticket.service', () => {
       tracking: { utmSource: null, sourceType: null, ctwaclid: null },
       _count: { sales: 2 },
     })
+    prismaMock.sale.findFirst.mockResolvedValueOnce(null)
+    prismaMock.sale.create.mockResolvedValueOnce({ id: 'sale-1' })
     prismaMock.lead.update.mockResolvedValueOnce({})
 
     const result = await closeTicket({
@@ -220,6 +232,68 @@ describe('ticket.service', () => {
         totalTickets: { increment: 1 },
       },
     })
+    expect(prismaMock.sale.create).toHaveBeenCalledWith({
+      data: {
+        organizationId: 'org-1',
+        ticketId: 'ticket-1',
+        totalAmount: 300,
+        status: 'completed',
+        statusChangedAt: expect.any(Date),
+        notes: 'Fechou',
+      },
+      select: { id: true },
+    })
     expect('data' in result && result.data.status).toBe('closed_won')
+  })
+
+  it('updates existing sale instead of duplicating on won close', async () => {
+    prismaMock.ticket.findFirst.mockResolvedValueOnce({
+      id: 'ticket-2',
+      status: 'open',
+      createdAt: new Date('2026-01-10T00:00:00.000Z'),
+      leadId: 'lead-2',
+    })
+    prismaMock.sale.findFirst.mockResolvedValueOnce({ id: 'sale-2' })
+    prismaMock.sale.update.mockResolvedValueOnce({ id: 'sale-2' })
+    prismaMock.ticket.update.mockResolvedValueOnce({
+      id: 'ticket-2',
+      status: 'closed_won',
+      windowOpen: true,
+      windowExpiresAt: null,
+      dealValue: 500,
+      closedAt: new Date('2026-01-12T00:00:00.000Z'),
+      closedReason: 'Pagamento confirmado',
+      messagesCount: 3,
+      createdAt: new Date('2026-01-10T00:00:00.000Z'),
+      updatedAt: new Date('2026-01-12T00:00:00.000Z'),
+      conversation: {
+        lead: { id: 'lead-2', name: 'Lead 2', phone: '5511888888888', pushName: null },
+      },
+      stage: { id: 'stage-1', name: 'Ganho', color: '#00FF00' },
+      assignee: null,
+      tracking: null,
+      _count: { sales: 1 },
+    })
+    prismaMock.lead.update.mockResolvedValueOnce({})
+
+    await closeTicket({
+      organizationId: 'org-1',
+      ticketId: 'ticket-2',
+      reason: 'won',
+      dealValue: 500,
+      closedReason: 'Pagamento confirmado',
+    })
+
+    expect(prismaMock.sale.create).not.toHaveBeenCalled()
+    expect(prismaMock.sale.update).toHaveBeenCalledWith({
+      where: { id: 'sale-2' },
+      data: {
+        totalAmount: 500,
+        status: 'completed',
+        statusChangedAt: expect.any(Date),
+        notes: 'Pagamento confirmado',
+      },
+      select: { id: true },
+    })
   })
 })
