@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from 'react'
 import { toast } from 'sonner'
 import { useOrganizationCompletion } from '@/hooks/organization/use-organization-completion'
+import { META_ADS_CONNECT_PATH } from '@/lib/meta-ads/client'
 
 export function useMetaAdsOnboarding(organizationId: string | undefined, onSuccess?: () => void) {
   const [isPending, setIsPending] = useState(false)
@@ -41,10 +42,8 @@ export function useMetaAdsOnboarding(organizationId: string | undefined, onSucce
     const left = window.screen.width / 2 - width / 2
     const top = window.screen.height / 2 - height / 2
 
-    const authUrl = `/api/v1/meta-ads/connect?organizationId=${organizationId}`
-
     popupRef.current = window.open(
-      authUrl,
+      META_ADS_CONNECT_PATH,
       'meta_ads_auth',
       `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no`
     )

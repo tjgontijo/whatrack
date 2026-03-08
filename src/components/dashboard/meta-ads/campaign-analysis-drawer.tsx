@@ -115,7 +115,6 @@ export function CampaignAnalysisDrawer({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          organizationId,
           campaignId,
           accountId,
           campaignName,

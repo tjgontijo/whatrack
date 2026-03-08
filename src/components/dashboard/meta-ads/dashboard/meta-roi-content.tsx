@@ -4,9 +4,14 @@ import { BarChart3, TrendingUp, DollarSign, Target, RefreshCw, AlertCircle } fro
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import type {
+  MetaRoiAccountSummary,
+  MetaRoiCampaignSummary,
+  MetaRoiResponse,
+} from '@/types/meta-ads/meta-ads'
 
 interface MetaROIContentProps {
-  roiData: { accountSummary: any[]; campaigns: any[] } | undefined
+  roiData: MetaRoiResponse | undefined
   isLoading: boolean
   isRefetching: boolean
   onRefresh: () => void
@@ -19,12 +24,15 @@ export function MetaROIContent({
   onRefresh,
 }: MetaROIContentProps) {
   const totalSpend =
-    roiData?.accountSummary?.reduce((acc: number, curr: any) => acc + curr.spend, 0) || 0
+    roiData?.accountSummary?.reduce((acc: number, curr: MetaRoiAccountSummary) => acc + curr.spend, 0) || 0
   const totalRevenue =
-    roiData?.accountSummary?.reduce((acc: number, curr: any) => acc + curr.revenue, 0) || 0
+    roiData?.accountSummary?.reduce(
+      (acc: number, curr: MetaRoiAccountSummary) => acc + curr.revenue,
+      0
+    ) || 0
   const globalROAS = totalSpend > 0 ? (totalRevenue / totalSpend).toFixed(2) : '0.00'
 
-  const chartData = roiData?.accountSummary?.map((acc: any) => ({
+  const chartData = roiData?.accountSummary?.map((acc: MetaRoiAccountSummary) => ({
     name: acc.accountName.substring(0, 15) + '...',
     Investimento: acc.spend,
     Retorno: acc.revenue,
@@ -119,7 +127,9 @@ export function MetaROIContent({
                       border: '1px solid #E2E8F0',
                       boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
                     }}
-                    formatter={(value: any) => `R$ ${Number(value).toLocaleString('pt-BR')}`}
+                    formatter={(value: number | string | undefined) =>
+                      `R$ ${Number(value).toLocaleString('pt-BR')}`
+                    }
                   />
                   <Bar dataKey="Investimento" fill="#3B82F6" radius={[4, 4, 0, 0]} barSize={40} />
                   <Bar dataKey="Retorno" fill="#10B981" radius={[4, 4, 0, 0]} barSize={40} />
@@ -158,7 +168,7 @@ export function MetaROIContent({
                       </td>
                     </tr>
                   ) : (roiData?.campaigns?.length ?? 0) > 0 ? (
-                    roiData?.campaigns?.map((camp: any) => (
+                    roiData?.campaigns?.map((camp: MetaRoiCampaignSummary) => (
                       <tr key={camp.campaignId} className="hover:bg-muted/10 transition-colors">
                         <td
                           className="max-w-[200px] truncate px-6 py-4 font-medium"

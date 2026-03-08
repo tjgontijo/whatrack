@@ -2,11 +2,12 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { BarChart3, RefreshCw } from 'lucide-react'
-import axios from 'axios'
 import { PageShell, PageHeader, PageContent } from '@/components/dashboard/layout'
 import { authClient } from '@/lib/auth/auth-client'
 import { MetaROIContent } from '@/components/dashboard/meta-ads/dashboard/meta-roi-content'
 import { Button } from '@/components/ui/button'
+import { metaAdsClient } from '@/lib/meta-ads/client'
+import type { MetaRoiResponse } from '@/types/meta-ads/meta-ads'
 
 export default function MetaROIOverviewPage() {
   const { data: organization } = authClient.useActiveOrganization()
@@ -17,12 +18,9 @@ export default function MetaROIOverviewPage() {
     isLoading,
     refetch,
     isRefetching,
-  } = useQuery({
-    queryKey: ['meta-ads', 'insights', organizationId],
-    queryFn: async () => {
-      const res = await axios.get(`/api/v1/meta-ads/insights?organizationId=${organizationId}`)
-      return res.data
-    },
+  } = useQuery<MetaRoiResponse>({
+    queryKey: ['meta-ads', 'insights', { organizationId }],
+    queryFn: () => metaAdsClient.getInsights(organizationId!),
     enabled: !!organizationId,
   })
 

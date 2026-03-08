@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 
-import { apiError } from '@/lib/utils/api-response'
+import { apiError, apiSuccess } from '@/lib/utils/api-response'
+import { metaAdAccountsQuerySchema } from '@/schemas/meta-ads/meta-ads-schemas'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { listMetaAdAccounts } from '@/services/meta-ads/meta-account-query.service'
 
@@ -12,9 +13,16 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const sync = new URL(req.url).searchParams.get('sync') === 'true'
-    const accounts = await listMetaAdAccounts({ organizationId: access.organizationId, sync })
-    return NextResponse.json(accounts)
+    const parsed = metaAdAccountsQuerySchema.safeParse(Object.fromEntries(new URL(req.url).searchParams))
+    if (!parsed.success) {
+      return apiError('Parâmetros inválidos', 400, undefined, { details: parsed.error.flatten() })
+    }
+
+    const accounts = await listMetaAdAccounts({
+      organizationId: access.organizationId,
+      sync: parsed.data.sync,
+    })
+    return apiSuccess(accounts)
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to list ad accounts'
     return apiError(message, 500, error)

@@ -1,7 +1,6 @@
 'use client'
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import axios from 'axios'
 import { toast } from 'sonner'
 import { useState } from 'react'
 import { Plus, Trash2, Database, Pencil, RefreshCw } from 'lucide-react'
@@ -12,37 +11,40 @@ import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import { CrudEditDrawer } from '@/components/dashboard/crud/crud-edit-drawer'
 import { Label } from '@/components/ui/label'
+import { metaAdsClient } from '@/lib/meta-ads/client'
+import type { MetaPixelConfig } from '@/types/meta-ads/meta-ads'
 
 interface MetaPixelsConfigAreaProps {
   organizationId: string | undefined
-  initialPixels?: any[]
+  initialPixels?: MetaPixelConfig[]
+}
+
+interface MetaPixelFormData {
+  name: string
+  pixelId: string
+  capiToken: string
 }
 
 export function MetaPixelsConfigArea({ organizationId, initialPixels }: MetaPixelsConfigAreaProps) {
   const queryClient = useQueryClient()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [editingPixel, setEditingPixel] = useState<any>(null)
+  const [editingPixel, setEditingPixel] = useState<MetaPixelConfig | null>(null)
   const [formData, setFormData] = useState({ name: '', pixelId: '', capiToken: '' })
 
-  const { data: pixels, isLoading } = useQuery({
-    queryKey: ['meta-ads', 'pixels', organizationId],
-    queryFn: async () => {
-      const res = await axios.get(`/api/v1/meta-ads/pixels?organizationId=${organizationId}`)
-      return res.data
-    },
+  const { data: pixels, isLoading } = useQuery<MetaPixelConfig[]>({
+    queryKey: ['meta-ads', 'pixels', { organizationId }],
+    queryFn: () => metaAdsClient.getPixels(organizationId!),
     enabled: !!organizationId,
     initialData: initialPixels,
   })
+  const pixelItems = pixels ?? []
 
   const createMutation = useMutation({
     mutationFn: async () => {
       if (!formData.name || !formData.pixelId || !formData.capiToken) {
         throw new Error('Preencha todos os campos')
       }
-      return axios.post(`/api/v1/meta-ads/pixels`, {
-        organizationId,
-        ...formData,
-      })
+      return metaAdsClient.createPixel(formData, organizationId!)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['meta-ads', 'pixels'] })
@@ -50,8 +52,8 @@ export function MetaPixelsConfigArea({ organizationId, initialPixels }: MetaPixe
       setIsDialogOpen(false)
       setFormData({ name: '', pixelId: '', capiToken: '' })
     },
-    onError: (err: any) => {
-      toast.error(err?.response?.data?.error || err.message || 'Erro ao adicionar Pixel')
+    onError: (error: unknown) => {
+      toast.error(error instanceof Error ? error.message : 'Erro ao adicionar Pixel')
     },
   })
 
@@ -61,7 +63,7 @@ export function MetaPixelsConfigArea({ organizationId, initialPixels }: MetaPixe
     setIsDialogOpen(true)
   }
 
-  const handleOpenEdit = (pixel: any) => {
+  const handleOpenEdit = (pixel: MetaPixelConfig) => {
     setEditingPixel(pixel)
     setFormData({
       name: pixel.name || '',
@@ -85,29 +87,29 @@ export function MetaPixelsConfigArea({ organizationId, initialPixels }: MetaPixe
   }
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: any }) => {
-      return axios.patch(`/api/v1/meta-ads/pixels/${id}`, data)
+    mutationFn: async ({ id, data }: { id: string; data: MetaPixelFormData | { isActive: boolean } }) => {
+      return metaAdsClient.updatePixel(id, data, organizationId!)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['meta-ads', 'pixels'] })
       toast.success('Configurações salvas')
       setIsDialogOpen(false)
     },
-    onError: (err: any) => {
-      toast.error(err?.response?.data?.error || 'Erro ao salvar configurações')
+    onError: (error: unknown) => {
+      toast.error(error instanceof Error ? error.message : 'Erro ao salvar configurações')
     },
   })
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      return axios.delete(`/api/v1/meta-ads/pixels/${id}`)
+      return metaAdsClient.deletePixel(id, organizationId!)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['meta-ads', 'pixels'] })
       toast.success('Pixel removido')
     },
-    onError: (err: any) => {
-      toast.error(err?.response?.data?.error || 'Erro ao remover Pixel')
+    onError: (error: unknown) => {
+      toast.error(error instanceof Error ? error.message : 'Erro ao remover Pixel')
     },
   })
 
@@ -181,14 +183,14 @@ export function MetaPixelsConfigArea({ organizationId, initialPixels }: MetaPixe
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {isLoading && (!pixels || pixels.length === 0) ? (
+                {isLoading && pixelItems.length === 0 ? (
                   <tr>
                     <td colSpan={4} className="px-6 py-8 text-center">
                       <RefreshCw className="text-muted-foreground/20 mx-auto h-6 w-6 animate-spin" />
                     </td>
                   </tr>
-                ) : (pixels?.length ?? 0) > 0 ? (
-                  pixels.map((pixel: any) => (
+                ) : pixelItems.length > 0 ? (
+                  pixelItems.map((pixel) => (
                     <tr key={pixel.id} className="hover:bg-muted/20 transition-colors">
                       <td className="space-y-2 px-6 py-4">
                         <div className="text-foreground mb-1 text-sm font-medium">{pixel.name}</div>

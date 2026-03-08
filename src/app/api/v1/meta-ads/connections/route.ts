@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 
-import { apiError } from '@/lib/utils/api-response'
+import { apiError, apiSuccess } from '@/lib/utils/api-response'
+import { metaConnectionDeleteQuerySchema } from '@/schemas/meta-ads/meta-ads-schemas'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import {
   deleteMetaConnection,
@@ -9,38 +10,38 @@ import {
 
 export async function GET(req: NextRequest) {
   const access = await validatePermissionAccess(req, 'view:integrations')
-  const { searchParams } = new URL(req.url)
-  const requestedOrganizationId = searchParams.get('organizationId')
 
   if (!access.hasAccess || !access.organizationId) {
     return apiError(access.error ?? 'Unauthorized', 401)
   }
 
-  if (requestedOrganizationId && requestedOrganizationId !== access.organizationId) {
-    return apiError('Forbidden for requested organization', 403)
-  }
-
   const connections = await listMetaConnections(access.organizationId)
-  return NextResponse.json(connections)
+  return apiSuccess(connections)
 }
 
 export async function DELETE(req: NextRequest) {
   const access = await validatePermissionAccess(req, 'manage:integrations')
-  const id = new URL(req.url).searchParams.get('id')
 
-  if (!access.hasAccess || !access.organizationId || !access.userId || !id) {
+  if (!access.hasAccess || !access.organizationId || !access.userId) {
     return apiError(access.error ?? 'Unauthorized', 401)
+  }
+
+  const parsed = metaConnectionDeleteQuerySchema.safeParse(
+    Object.fromEntries(new URL(req.url).searchParams)
+  )
+  if (!parsed.success) {
+    return apiError('Parâmetros inválidos', 400, undefined, { details: parsed.error.flatten() })
   }
 
   const result = await deleteMetaConnection({
     organizationId: access.organizationId,
     userId: access.userId,
-    connectionId: id,
+    connectionId: parsed.data.id,
   })
 
   if ('error' in result) {
     return apiError(result.error, result.status)
   }
 
-  return NextResponse.json({ success: true })
+  return apiSuccess({ success: true })
 }

@@ -1,6 +1,4 @@
-import { NextResponse } from 'next/server'
-
-import { apiError } from '@/lib/utils/api-response'
+import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import {
   metaCopilotAnalyzeRequestSchema,
   type MetaCopilotAnalyzeRequestInput,
@@ -22,11 +20,6 @@ export async function POST(req: Request) {
     }
 
     const payload: MetaCopilotAnalyzeRequestInput = parsed.data
-    const scopedOrganizationId = payload.organizationId ?? access.organizationId
-
-    if (scopedOrganizationId !== access.organizationId) {
-      return apiError('Forbidden for requested organization', 403)
-    }
 
     const result = await runMetaCopilotAnalysis({
       organizationId: access.organizationId,
@@ -37,7 +30,7 @@ export async function POST(req: Request) {
       return apiError(result.error, result.status, result.detail)
     }
 
-    return NextResponse.json(result.data)
+    return apiSuccess(result.data)
   } catch (error: unknown) {
     const detail = error instanceof Error ? error.message : String(error)
     logger.error({ err: detail }, '[Copilot] Analysis Error')

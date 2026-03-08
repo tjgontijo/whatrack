@@ -1,7 +1,6 @@
 'use client'
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import axios from 'axios'
 import { toast } from 'sonner'
 import { Plus, Trash2, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -11,6 +10,8 @@ import { Badge } from '@/components/ui/badge'
 import { MetaIcon } from '@/components/shared/icons'
 import { TemplateMainShell } from '@/components/dashboard/leads'
 import { useMetaAdsOnboarding } from '@/hooks/meta-ads/use-meta-ads-onboarding'
+import { metaAdsClient } from '@/lib/meta-ads/client'
+import type { MetaAdAccountSummary, MetaConnectionSummary, MetaPixelConfig } from '@/types/meta-ads/meta-ads'
 import { MetaPixelsConfigArea } from './meta-pixels-config-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
@@ -23,9 +24,9 @@ const META_ADS_TAB_IDS = {
 
 interface MetaAdsSettingsContentProps {
   organizationId: string | undefined
-  initialConnections?: any[]
-  initialAdAccounts?: any[]
-  initialPixels?: any[]
+  initialConnections?: MetaConnectionSummary[]
+  initialAdAccounts?: MetaAdAccountSummary[]
+  initialPixels?: MetaPixelConfig[]
 }
 
 export function MetaAdsSettingsContent({
@@ -46,12 +47,9 @@ export function MetaAdsSettingsContent({
     data: connections,
     isLoading: loadingConnections,
     refetch: refetchConnections,
-  } = useQuery({
-    queryKey: ['meta-ads', 'connections', organizationId],
-    queryFn: async () => {
-      const res = await axios.get(`/api/v1/meta-ads/connections?organizationId=${organizationId}`)
-      return res.data
-    },
+  } = useQuery<MetaConnectionSummary[]>({
+    queryKey: ['meta-ads', 'connections', { organizationId }],
+    queryFn: () => metaAdsClient.getConnections(organizationId!),
     enabled: !!organizationId,
     initialData: initialConnections,
   })
@@ -61,15 +59,14 @@ export function MetaAdsSettingsContent({
     data: adAccounts,
     isLoading: loadingAccounts,
     refetch: refetchAccounts,
-  } = useQuery({
-    queryKey: ['meta-ads', 'ad-accounts', organizationId],
-    queryFn: async () => {
-      const res = await axios.get(`/api/v1/meta-ads/ad-accounts?organizationId=${organizationId}`)
-      return res.data
-    },
+  } = useQuery<MetaAdAccountSummary[]>({
+    queryKey: ['meta-ads', 'ad-accounts', { organizationId }],
+    queryFn: () => metaAdsClient.getAdAccounts(organizationId!),
     enabled: !!organizationId,
     initialData: initialAdAccounts,
   })
+  const connectionItems = connections ?? []
+  const adAccountItems = adAccounts ?? []
   const hasConnections = (connections?.length ?? 0) > 0
 
   const { startOnboarding, isPending: isConnecting } = useMetaAdsOnboarding(
@@ -80,20 +77,20 @@ export function MetaAdsSettingsContent({
   // 3. Mutations
   const toggleMutation = useMutation({
     mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
-      return axios.patch(`/api/v1/meta-ads/ad-accounts/${id}`, { isActive })
+      return metaAdsClient.toggleAdAccount(id, { isActive }, organizationId!)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['meta-ads', 'ad-accounts'] })
       toast.success('Rastreamento de conta atualizado')
     },
-    onError: (err: any) => {
-      toast.error(err?.response?.data?.error || 'Erro ao atualizar rastreamento')
+    onError: (error: unknown) => {
+      toast.error(error instanceof Error ? error.message : 'Erro ao atualizar rastreamento')
     },
   })
 
   const syncMutation = useMutation({
     mutationFn: async () => {
-      return axios.get(`/api/v1/meta-ads/ad-accounts?organizationId=${organizationId}&sync=true`)
+      return metaAdsClient.getAdAccounts(organizationId!, { sync: true })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['meta-ads', 'ad-accounts'] })
@@ -103,7 +100,7 @@ export function MetaAdsSettingsContent({
 
   const disconnectMutation = useMutation({
     mutationFn: async (id: string) => {
-      return axios.delete(`/api/v1/meta-ads/connections?id=${id}`)
+      return metaAdsClient.deleteConnection(id, organizationId!)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['meta-ads', 'connections'] })
@@ -159,12 +156,12 @@ export function MetaAdsSettingsContent({
               </div>
 
               <div className="grid gap-4">
-                {loadingConnections && (!connections || connections.length === 0) ? (
+                {loadingConnections && connectionItems.length === 0 ? (
                   <div className="bg-muted/5 text-muted-foreground/30 flex justify-center rounded-xl border border-dashed p-8">
                     <RefreshCw className="h-6 w-6 animate-spin" />
                   </div>
-                ) : (connections?.length ?? 0) > 0 ? (
-                  connections?.map((conn: any) => (
+                ) : connectionItems.length > 0 ? (
+                  connectionItems.map((conn) => (
                     <Card key={conn.id} className="overflow-hidden border-blue-100 bg-blue-50/20">
                       <CardHeader className="flex flex-row items-center justify-between py-4">
                         <div className="flex items-center gap-4">
@@ -245,14 +242,14 @@ export function MetaAdsSettingsContent({
                         </tr>
                       </thead>
                       <tbody className="divide-y">
-                        {loadingAccounts && (!adAccounts || adAccounts.length === 0) ? (
+                        {loadingAccounts && adAccountItems.length === 0 ? (
                           <tr>
                             <td colSpan={2} className="px-6 py-8 text-center">
                               <RefreshCw className="text-muted-foreground/20 mx-auto h-6 w-6 animate-spin" />
                             </td>
                           </tr>
-                        ) : (adAccounts?.length ?? 0) > 0 ? (
-                          adAccounts?.map((acc: any) => (
+                        ) : adAccountItems.length > 0 ? (
+                          adAccountItems.map((acc) => (
                             <tr
                               key={acc.id}
                               className={`hover:bg-muted/30 transition-colors ${acc.isActive ? 'bg-emerald-50/10' : ''}`}
