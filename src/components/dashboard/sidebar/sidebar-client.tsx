@@ -236,9 +236,9 @@ export function SidebarClient({ navItems, session: initialSession }: SidebarClie
                 <SidebarMenuButton
                   asChild
                   tooltip="Minha Conta"
-                  isActive={pathname === '/dashboard/minha-conta'}
+                  isActive={pathname === '/dashboard/account'}
                 >
-                  <Link href="/dashboard/minha-conta" onClick={handleNavClick}>
+                  <Link href="/dashboard/account" onClick={handleNavClick}>
                     <User className="h-4 w-4" />
                     <span>Minha Conta</span>
                   </Link>

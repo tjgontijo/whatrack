@@ -132,7 +132,7 @@ export function UserDropdownMenu({ userName, userEmail, userImage }: UserDropdow
         <DropdownMenuSeparator />
 
         <DropdownMenuGroup>
-          <DropdownMenuItem onSelect={() => handleNavigate('/dashboard/minha-conta')}>
+          <DropdownMenuItem onSelect={() => handleNavigate('/dashboard/account')}>
             <User className="mr-2 h-4 w-4" />
             Minha Conta
           </DropdownMenuItem>

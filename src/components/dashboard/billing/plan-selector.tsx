@@ -16,9 +16,15 @@ type CheckoutState = 'idle' | 'loading' | 'error'
 
 interface PlanSelectorProps {
   onClose?: () => void
+  redirectPath?: string
+  showHeader?: boolean
 }
 
-export function PlanSelector({ onClose: _ }: PlanSelectorProps) {
+export function PlanSelector({
+  onClose: _,
+  redirectPath = '/dashboard/billing',
+  showHeader = true,
+}: PlanSelectorProps) {
   const { data: org } = useOrganization()
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
   const [state, setState] = useState<CheckoutState>('idle')
@@ -45,7 +51,7 @@ export function PlanSelector({ onClose: _ }: PlanSelectorProps) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ planType: plan.id, redirectPath: '/dashboard/billing' }),
+        body: JSON.stringify({ planType: plan.id, redirectPath }),
         orgId: org.id,
       })
 
@@ -53,7 +59,6 @@ export function PlanSelector({ onClose: _ }: PlanSelectorProps) {
         window.location.href = (data as any).url
       }
     } catch (error) {
-      console.error('[PlanSelector] Checkout error:', error)
       setState('error')
       toast.error('Erro ao processar checkout. Tente novamente.')
       setTimeout(() => setState('idle'), 3000)
@@ -63,11 +68,13 @@ export function PlanSelector({ onClose: _ }: PlanSelectorProps) {
   return (
     <div className="w-full">
       {/* Header */}
-      <div className="mb-6">
-        <h2 className="text-lg font-semibold text-foreground">
-          Escolha seu plano
-        </h2>
-      </div>
+      {showHeader && (
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold text-foreground">
+            Escolha seu plano
+          </h2>
+        </div>
+      )}
 
       {/* Cards de plano */}
       <div className="grid gap-3 sm:grid-cols-3">

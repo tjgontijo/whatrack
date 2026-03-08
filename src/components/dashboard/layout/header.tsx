@@ -31,6 +31,7 @@ const ROUTE_LABELS: Record<string, string> = {
   'settings/profile': 'Perfil',
   'settings/organization': 'Organização',
   'settings/team': 'Equipe',
+  account: 'Minha Conta',
   'minha-conta': 'Minha Conta',
   equipe: 'Organização',
   'meta-ads': 'Meta Ads',

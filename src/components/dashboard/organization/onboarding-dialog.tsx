@@ -439,7 +439,7 @@ export function OnboardingDialog({ open }: OnboardingDialogProps) {
             <div>
               <h2 className="text-foreground text-xl font-bold">Telefone pessoal</h2>
               <p className="text-muted-foreground mt-1 text-sm">
-                Informe seu telefone. Este será usado para contato e cobranças.
+                Informe seu telefone. Este será usado para comunicações da sua conta.
               </p>
             </div>
 

@@ -1,40 +1,24 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
 import { useAuthorization } from '@/hooks/auth/use-authorization'
-import { applyCpfCnpjMask, stripCpfCnpj } from '@/lib/mask/cpf-cnpj'
 import { authClient } from '@/lib/auth/auth-client'
 import { getAuthErrorMessage } from '@/lib/auth/error-messages'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { useOrganization } from '@/hooks/organization/use-organization'
+import type { SubscriptionResponse } from '@/schemas/billing/billing-schemas'
+import type { UpdateMeAccountInput } from '@/schemas/me/me-account-schemas'
+import type { UpdateOrganizationInput } from '@/schemas/organizations/organization-schemas'
+import { useBillingSubscription } from '@/hooks/billing/use-billing-subscription'
+import { AccountProfileCard, type AccountProfile } from './account-profile-card'
+import { AccountOrganizationCard, type AccountOrganization } from './account-organization-card'
+import { AccountBillingCard } from './account-billing-card'
 
-
-type Account = {
-  id: string
-  name: string
-  email: string
-  phone: string | null
-}
-
-type OrganizationProfile = {
-  id: string
-  name: string
-  organizationType: 'pessoa_fisica' | 'pessoa_juridica' | null
-  documentType: 'cpf' | 'cnpj' | null
-  documentNumber: string | null
-}
 
 import { apiFetch } from '@/lib/api-client'
 
@@ -48,72 +32,35 @@ export function MyAccountContent() {
   const organizationId = org?.id
   const queryClient = useQueryClient()
   const authorization = useAuthorization()
+  const { subscription, isLoading: billingLoading } = useBillingSubscription()
 
   const { data: account } = useQuery({
     queryKey: ['me', 'account'],
-    queryFn: () => fetchJson<Account>('/api/v1/me/account'),
+    queryFn: () => fetchJson<AccountProfile>('/api/v1/me/account'),
   })
 
   const { data: organization } = useQuery({
     queryKey: ['organizations', 'me', organizationId],
-    queryFn: () => fetchJson<OrganizationProfile>('/api/v1/organizations/me', {
+    queryFn: () => fetchJson<AccountOrganization>('/api/v1/organizations/me', {
       orgId: organizationId,
     }),
 
     enabled: !!organizationId,
   })
 
-  const [profileName, setProfileName] = useState(account?.name ?? '')
-  const [profileEmail, setProfileEmail] = useState(account?.email ?? '')
-  const [profilePhone, setProfilePhone] = useState(account?.phone ?? '')
-
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
 
-  const [organizationName, setOrganizationName] = useState(organization?.name ?? '')
-  const [organizationType, setOrganizationType] = useState<'pessoa_fisica' | 'pessoa_juridica' | ''>(organization?.organizationType ?? '')
-  const [documentNumber, setDocumentNumber] = useState(organization ? applyCpfCnpjMask(organization.documentNumber || '', organization.documentType) : '')
-
-
-  // Removidos useEffects de sincronização automática via key props nos Cards
-
   const canManageOrganizationSettings = authorization.isOwner
 
-  const selectedDocumentType = useMemo(() => {
-    if (organizationType === 'pessoa_fisica') return 'cpf'
-    if (organizationType === 'pessoa_juridica') return 'cnpj'
-    return null
-  }, [organizationType])
-
-  const documentInputMaxLength = selectedDocumentType === 'cnpj' ? 18 : 14
-
-  const accountNameLabel = useMemo(() => {
-    if (organizationType === 'pessoa_fisica') return 'Nome completo'
-    if (organizationType === 'pessoa_juridica') return 'Razão social / Nome fantasia'
-    return 'Nome da conta'
-  }, [organizationType])
-
-  const documentLabel = useMemo(() => {
-    if (organizationType === 'pessoa_fisica') return 'CPF'
-    if (organizationType === 'pessoa_juridica') return 'CNPJ'
-    return 'Documento'
-  }, [organizationType])
-
-  const documentPlaceholder = useMemo(() => {
-    if (organizationType === 'pessoa_juridica') return 'Informe o CNPJ'
-    if (organizationType === 'pessoa_fisica') return 'Informe o CPF'
-    return 'Selecione PF ou PJ para informar o documento'
-  }, [organizationType])
-
   const updateProfileMutation = useMutation({
-    mutationFn: async () =>
-      fetchJson<Account>('/api/v1/me/account', {
+    mutationFn: async (data: UpdateMeAccountInput) =>
+      fetchJson<AccountProfile>('/api/v1/me/account', {
         method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: profileName,
-          email: profileEmail,
-          phone: profilePhone || null,
+          ...data,
         }),
       }),
     onSuccess: () => {
@@ -165,21 +112,17 @@ export function MyAccountContent() {
   })
 
   const updateOrganizationMutation = useMutation({
-    mutationFn: async () =>
-      fetchJson<OrganizationProfile>('/api/v1/organizations/me', {
+    mutationFn: async (data: UpdateOrganizationInput) =>
+      fetchJson<AccountOrganization>('/api/v1/organizations/me', {
         method: 'PATCH',
         orgId: organizationId,
-
-        body: JSON.stringify({
-          name: organizationName,
-          organizationType: organizationType || null,
-          documentType: selectedDocumentType,
-          documentNumber: documentNumber ? stripCpfCnpj(documentNumber) : null,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
       }),
     onSuccess: () => {
       toast.success('Organização atualizada com sucesso')
       void queryClient.invalidateQueries({ queryKey: ['organizations', 'me'] })
+      void queryClient.invalidateQueries({ queryKey: ['organizations', 'me', organizationId] })
       void queryClient.invalidateQueries({ queryKey: ['organizations', 'me', 'authorization'] })
     },
     onError: (error: Error) => {
@@ -189,38 +132,14 @@ export function MyAccountContent() {
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Perfil</CardTitle>
-          <CardDescription>Atualize os dados da sua conta.</CardDescription>
-        </CardHeader>
-        <CardContent key={account?.id || 'loading'} className="grid gap-4">
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">Nome</label>
-            <Input value={profileName} onChange={(event) => setProfileName(event.target.value)} />
-          </div>
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">E-mail</label>
-            <Input
-              type="email"
-              value={profileEmail}
-              onChange={(event) => setProfileEmail(event.target.value)}
-            />
-          </div>
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">Telefone</label>
-            <Input value={profilePhone} onChange={(event) => setProfilePhone(event.target.value)} />
-          </div>
-          <div>
-            <Button
-              onClick={() => updateProfileMutation.mutate()}
-              disabled={updateProfileMutation.isPending}
-            >
-              {updateProfileMutation.isPending ? 'Salvando...' : 'Salvar perfil'}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {account ? (
+        <AccountProfileCard
+          key={`${account.id}:${account.updatedAt}`}
+          account={account}
+          isPending={updateProfileMutation.isPending}
+          onSubmit={(data) => updateProfileMutation.mutate(data)}
+        />
+      ) : null}
 
       <Card>
         <CardHeader>
@@ -263,73 +182,20 @@ export function MyAccountContent() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Detalhes da conta</CardTitle>
-          <CardDescription>
-            Selecione PF ou PJ e preencha os dados do documento conforme o tipo.
-          </CardDescription>
-        </CardHeader>
-        <CardContent key={organization?.id || 'loading'} className="grid gap-4">
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">{accountNameLabel}</label>
-            <Input value={organizationName} onChange={(event) => setOrganizationName(event.target.value)} />
-          </div>
+      {organization ? (
+        <AccountOrganizationCard
+          key={`${organization.id}:${organization.updatedAt}:${organization.documentNumber ?? ''}`}
+          organization={organization}
+          canManageOrganizationSettings={canManageOrganizationSettings}
+          isPending={updateOrganizationMutation.isPending}
+          onSubmit={(data) => updateOrganizationMutation.mutate(data)}
+        />
+      ) : null}
 
-          <div className="grid gap-2 md:w-[320px]">
-            <label className="text-sm font-medium">Tipo da conta</label>
-            <Select
-              value={organizationType}
-              onValueChange={(value: 'pessoa_fisica' | 'pessoa_juridica') => {
-                if (value !== organizationType) {
-                  setDocumentNumber('')
-                }
-                setOrganizationType(value)
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="pessoa_fisica">Pessoa Física</SelectItem>
-                <SelectItem value="pessoa_juridica">Pessoa Jurídica</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {organizationType ? (
-            <div className="grid gap-2 md:w-[420px]">
-              <label className="text-sm font-medium">{documentLabel}</label>
-              <Input
-                value={documentNumber}
-                maxLength={documentInputMaxLength}
-                placeholder={documentPlaceholder}
-                onChange={(event) =>
-                  setDocumentNumber(applyCpfCnpjMask(event.target.value, selectedDocumentType))
-                }
-              />
-            </div>
-          ) : (
-            <p className="text-muted-foreground text-sm">
-              Selecione o tipo da conta para preencher o documento.
-            </p>
-          )}
-
-          <div>
-            <Button
-              onClick={() => updateOrganizationMutation.mutate()}
-              disabled={!canManageOrganizationSettings || updateOrganizationMutation.isPending}
-            >
-              {updateOrganizationMutation.isPending ? 'Salvando...' : 'Salvar detalhes da conta'}
-            </Button>
-            {!canManageOrganizationSettings && (
-              <p className="text-muted-foreground mt-2 text-xs">
-                Somente owner pode alterar os detalhes estruturais da conta.
-              </p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+      <AccountBillingCard
+        subscription={subscription as SubscriptionResponse | null}
+        isLoading={billingLoading}
+      />
     </div>
   )
 }
