@@ -59,6 +59,7 @@ const companyLookupDataSchema = z.object({
 
 const individualSchema = z.object({
   entityType: z.literal('individual'),
+  fullName: z.string().trim().min(3, 'Nome deve ter pelo menos 3 caracteres'),
   documentNumber: z.string().min(1, 'CPF é obrigatório'),
   phone: z.string().regex(/^\d{10,11}$/, 'Telefone deve ter 10 ou 11 dígitos'),
 })

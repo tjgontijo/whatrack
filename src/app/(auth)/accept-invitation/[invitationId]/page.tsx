@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import Link from 'next/link'
 
@@ -14,7 +15,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { authClient } from '@/lib/auth/auth-client'
 import { getAuthErrorMessage } from '@/lib/auth/error-messages'
-import { acceptOrganizationInvitation, buildInvitationQuery } from '@/lib/auth/invitation-client'
+import {
+  acceptOrganizationInvitation,
+  buildInvitationQuery,
+  fetchInvitationPreview,
+} from '@/lib/auth/invitation-client'
 
 const invitationSignUpSchema = z
   .object({
@@ -35,14 +40,6 @@ const invitationSignUpSchema = z
 
 type InvitationSignUpData = z.infer<typeof invitationSignUpSchema>
 
-type InvitationPreview = {
-  id: string
-  email: string
-  role: string
-  expiresAt: string
-  organizationName: string
-}
-
 export default function AcceptInvitationPage() {
   const router = useRouter()
   const params = useParams<{ invitationId: string }>()
@@ -60,10 +57,6 @@ export default function AcceptInvitationPage() {
     [invitationId]
   )
 
-  const [invitation, setInvitation] = useState<InvitationPreview | null>(null)
-  const [isLoadingInvitation, setIsLoadingInvitation] = useState(true)
-  const [invitationError, setInvitationError] = useState<string | null>(null)
-
   const form = useForm<InvitationSignUpData>({
     resolver: zodResolver(invitationSignUpSchema),
     defaultValues: {
@@ -73,51 +66,14 @@ export default function AcceptInvitationPage() {
     },
   })
 
-  useEffect(() => {
-    if (!invitationId) {
-      setInvitationError('Convite inválido.')
-      setIsLoadingInvitation(false)
-      return
-    }
-
-    let isCancelled = false
-
-    const loadInvitation = async () => {
-      try {
-        setIsLoadingInvitation(true)
-        setInvitationError(null)
-
-        const response = await fetch(`/api/v1/invitations/${encodeURIComponent(invitationId)}/public`, {
-          method: 'GET',
-        })
-
-        if (!response.ok) {
-          throw new Error('Convite não encontrado ou expirado.')
-        }
-
-        const data = (await response.json()) as InvitationPreview
-
-        if (!isCancelled) {
-          setInvitation(data)
-        }
-      } catch (error) {
-        if (!isCancelled) {
-          console.error('[accept-invitation] erro ao carregar convite', error)
-          setInvitationError('Convite não encontrado ou expirado.')
-        }
-      } finally {
-        if (!isCancelled) {
-          setIsLoadingInvitation(false)
-        }
-      }
-    }
-
-    void loadInvitation()
-
-    return () => {
-      isCancelled = true
-    }
-  }, [invitationId])
+  const invitationQueryResult = useQuery({
+    queryKey: ['auth', 'invitation', { invitationId }],
+    queryFn: () => fetchInvitationPreview(invitationId),
+    enabled: invitationId.length > 0,
+    retry: false,
+    staleTime: 5 * 60 * 1000,
+  })
+  const invitation = invitationQueryResult.data
 
   const handleSubmit = async (values: InvitationSignUpData) => {
     if (!invitation) {
@@ -159,7 +115,6 @@ export default function AcceptInvitationPage() {
       toast.success('Conta criada e convite aceito com sucesso!')
       router.push('/dashboard')
     } catch (error) {
-      console.error('[accept-invitation] erro ao aceitar convite', error)
       toast.error(
         error instanceof Error
           ? error.message
@@ -170,7 +125,7 @@ export default function AcceptInvitationPage() {
 
   const isSubmitting = form.formState.isSubmitting
 
-  if (isLoadingInvitation) {
+  if (invitationQueryResult.isLoading) {
     return (
       <div className="w-full space-y-4">
         <h1 className="text-foreground text-2xl font-bold">Validando convite...</h1>
@@ -179,13 +134,15 @@ export default function AcceptInvitationPage() {
     )
   }
 
-  if (invitationError || !invitation) {
+  if (!invitationId || invitationQueryResult.isError || !invitation) {
     return (
       <div className="w-full space-y-6">
         <div className="text-left">
           <h1 className="text-foreground text-3xl font-bold tracking-tight">Convite inválido</h1>
           <p className="text-muted-foreground mt-2 text-sm font-medium">
-            {invitationError || 'Não foi possível carregar esse convite.'}
+            {invitationQueryResult.error instanceof Error
+              ? invitationQueryResult.error.message
+              : 'Convite não encontrado ou expirado.'}
           </p>
         </div>
         <Button className="w-full" asChild>

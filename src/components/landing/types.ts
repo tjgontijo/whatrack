@@ -142,9 +142,9 @@ export const LANDING_CONTENT: Record<LandingVariant, LandingContent> = {
         },
         {
           icon: 'shield',
-          title: 'Qualificação via Inteligência Artificial',
+          title: 'Qualificação com IA assistida',
           description:
-            'O Copilot analisa conversas em tempo real para identificar intenção de compra e estágio do lead. Só dispara eventos para o Meta quando o contato é qualificado, limpando o rastro de dados.',
+            'O Copilot analisa conversas e sugere a qualificação do lead para apoiar o time comercial. Com isso, o Meta recebe sinais mais limpos e próximos da venda real.',
           size: 'large',
           color: 'emerald',
         },
@@ -167,7 +167,7 @@ export const LANDING_CONTENT: Record<LandingVariant, LandingContent> = {
           icon: 'database',
           title: 'Rastreamento e Qualificação',
           description:
-            'Cada interação é vinculada à sua origem. O Copilot qualifica a intenção de venda e prepara o sinal para ser enviado de volta às plataformas de anúncio.',
+            'Cada interação é vinculada à sua origem. O Copilot apoia a qualificação da intenção de venda e prepara sinais melhores para devolver às plataformas de anúncio.',
         },
         {
           icon: 'trending',
@@ -400,7 +400,7 @@ export const LANDING_CONTENT: Record<LandingVariant, LandingContent> = {
           icon: 'shield',
           title: 'Leads quentes primeiro',
           description:
-            'Nossa IA identifica quem está mais perto de comprar. Seu time comercial foca em quem vai fechar, não em quem está só curiosando.',
+            'Nossa IA assistida ajuda a identificar quem está mais perto de comprar. Seu time comercial foca em quem vai fechar, não em quem está só curiosando.',
           size: 'large',
           color: 'emerald',
         },

@@ -45,11 +45,17 @@ function parseOptionalDate(value?: string | null): Date | null {
 
 function resolveOrganizationName(input: {
   entityType: 'individual' | 'company'
+  fullName?: string
   userName: string | null | undefined
   userEmail: string
   companyName?: string
   legalName?: string
 }) {
+  if (input.entityType === 'individual') {
+    const fromFullName = input.fullName?.trim()
+    if (fromFullName) return fromFullName
+  }
+
   if (input.entityType === 'company') {
     const fromCompany = input.legalName?.trim() || input.companyName?.trim()
     if (fromCompany) return fromCompany
@@ -92,6 +98,7 @@ export async function createOrganizationFromOnboarding(input: {
 
   const organizationName = resolveOrganizationName({
     entityType: input.data.entityType,
+    fullName: input.data.entityType === 'individual' ? input.data.fullName : undefined,
     userName: input.user.name,
     userEmail: input.user.email,
     companyName: companyData?.nomeFantasia,
@@ -108,10 +115,13 @@ export async function createOrganizationFromOnboarding(input: {
 
   const organization = await prisma.$transaction(async (tx) => {
     // Update user with phone number
-    if (input.data.phone) {
+    if (input.data.phone || (input.data.entityType === 'individual' && input.data.fullName)) {
       await tx.user.update({
         where: { id: input.user.id },
-        data: { phone: input.data.phone },
+        data: {
+          ...(input.data.phone ? { phone: input.data.phone } : {}),
+          ...(input.data.entityType === 'individual' ? { name: input.data.fullName } : {}),
+        },
       })
     }
 

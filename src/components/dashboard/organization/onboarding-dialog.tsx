@@ -153,6 +153,7 @@ export function OnboardingDialog({ open }: OnboardingDialogProps) {
       entityType === 'individual'
         ? {
             entityType: 'individual',
+            fullName: fullName.trim(),
             documentNumber: stripCpfCnpj(cpf),
             phone: phoneDigits,
           }

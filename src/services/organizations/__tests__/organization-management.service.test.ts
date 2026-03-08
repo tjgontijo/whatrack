@@ -12,12 +12,23 @@ const prismaMock = vi.hoisted(() => ({
     findFirst: vi.fn(),
     create: vi.fn(),
   },
+  user: {
+    update: vi.fn(),
+  },
+  organizationProfile: {
+    create: vi.fn(),
+  },
   $transaction: vi.fn(),
 }))
 
 vi.mock('@/lib/db/prisma', () => ({ prisma: prismaMock }))
 vi.mock('@/services/ai/ai-skill-provisioning.service', () => ({
   ensureCoreSkillsForOrganization: vi.fn(),
+}))
+vi.mock('@/services/audit/audit.service', () => ({
+  auditService: {
+    log: vi.fn(),
+  },
 }))
 
 import {
@@ -41,7 +52,9 @@ describe('organization-management.service', () => {
       user: { id: 'user-1', email: 'user@test.com', name: 'User' },
       data: {
         entityType: 'individual',
+        fullName: 'User One',
         documentNumber: '12345678901',
+        phone: '11987654321',
       },
     })
 
@@ -49,6 +62,52 @@ describe('organization-management.service', () => {
       error: 'Usuário já pertence a uma organização.',
       status: 409,
       organizationId: 'org-1',
+    })
+  })
+
+  it('persists the individual full name during onboarding creation', async () => {
+    prismaMock.member.findFirst.mockResolvedValueOnce(null)
+    prismaMock.$transaction.mockImplementationOnce(async (callback: (tx: typeof prismaMock) => Promise<unknown>) =>
+      callback(prismaMock)
+    )
+    prismaMock.organization.create.mockResolvedValueOnce({
+      id: 'org-1',
+      name: 'Thiago Alves',
+      slug: 'org-1',
+    })
+    prismaMock.member.create.mockResolvedValueOnce({})
+    prismaMock.organizationProfile.create.mockResolvedValueOnce({})
+    prismaMock.user.update.mockResolvedValueOnce({})
+
+    const result = await createOrganizationFromOnboarding({
+      user: { id: 'user-1', email: 'user@test.com', name: null },
+      data: {
+        entityType: 'individual',
+        fullName: 'Thiago Alves',
+        documentNumber: '52998224725',
+        phone: '11987654321',
+      },
+    })
+
+    expect(prismaMock.user.update).toHaveBeenCalledWith({
+      where: { id: 'user-1' },
+      data: {
+        name: 'Thiago Alves',
+        phone: '11987654321',
+      },
+    })
+    expect(prismaMock.organization.create).toHaveBeenCalledWith({
+      data: {
+        name: 'Thiago Alves',
+        slug: expect.any(String),
+        createdAt: expect.any(Date),
+      },
+    })
+    expect(result).toEqual({
+      id: 'org-1',
+      name: 'Thiago Alves',
+      slug: 'org-1',
+      entityType: 'individual',
     })
   })
 

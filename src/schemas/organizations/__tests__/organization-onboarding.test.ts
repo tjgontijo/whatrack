@@ -6,6 +6,7 @@ describe('organizationOnboardingSchema', () => {
   it('validates individual payload with cpf', () => {
     const parsed = organizationOnboardingSchema.safeParse({
       entityType: 'individual',
+      fullName: 'Thiago Alves',
       documentNumber: '529.982.247-25',
       phone: '11987654321',
     })
@@ -16,7 +17,20 @@ describe('organizationOnboardingSchema', () => {
   it('rejects individual payload with invalid cpf', () => {
     const parsed = organizationOnboardingSchema.safeParse({
       entityType: 'individual',
+      fullName: 'Thiago Alves',
       documentNumber: '000.000.000-00',
+      phone: '11987654321',
+    })
+
+    expect(parsed.success).toBe(false)
+  })
+
+  it('rejects individual payload without full name', () => {
+    const parsed = organizationOnboardingSchema.safeParse({
+      entityType: 'individual',
+      fullName: 'Ti',
+      documentNumber: '529.982.247-25',
+      phone: '11987654321',
     })
 
     expect(parsed.success).toBe(false)
@@ -45,6 +59,7 @@ describe('organizationOnboardingSchema', () => {
     const parsed = organizationOnboardingSchema.safeParse({
       entityType: 'company',
       documentNumber: '11.222.333/0001-81',
+      phone: '11987654321',
     })
 
     expect(parsed.success).toBe(false)

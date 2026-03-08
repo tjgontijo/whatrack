@@ -1,8 +1,18 @@
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { buildInvitationQuery } from '@/lib/auth/invitation-client'
+const apiFetchMock = vi.hoisted(() => vi.fn())
+
+vi.mock('@/lib/api-client', () => ({
+  apiFetch: apiFetchMock,
+}))
+
+import { buildInvitationQuery, fetchInvitationPreview } from '@/lib/auth/invitation-client'
 
 describe('buildInvitationQuery', () => {
+  beforeEach(() => {
+    apiFetchMock.mockReset()
+  })
+
   it('keeps invitation and next params when they are safe', () => {
     expect(buildInvitationQuery('inv-123', '/dashboard/billing')).toBe(
       '?invitationId=inv-123&next=%2Fdashboard%2Fbilling'
@@ -15,5 +25,20 @@ describe('buildInvitationQuery', () => {
 
   it('drops unsafe next paths', () => {
     expect(buildInvitationQuery('inv-123', 'https://evil.com')).toBe('?invitationId=inv-123')
+  })
+
+  it('loads the public invitation preview through the public API route', async () => {
+    apiFetchMock.mockResolvedValueOnce({
+      id: 'inv-123',
+      email: 'user@test.com',
+      role: 'member',
+      expiresAt: '2026-03-09T00:00:00.000Z',
+      organizationName: 'Org A',
+    })
+
+    const preview = await fetchInvitationPreview('inv-123')
+
+    expect(apiFetchMock).toHaveBeenCalledWith('/api/v1/invitations/inv-123/public')
+    expect(preview.organizationName).toBe('Org A')
   })
 })
