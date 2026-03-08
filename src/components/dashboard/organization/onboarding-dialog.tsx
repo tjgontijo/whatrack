@@ -9,7 +9,12 @@ import { toast } from 'sonner'
 import { authClient } from '@/lib/auth/auth-client'
 import { apiFetch } from '@/lib/api-client'
 import { applyCpfCnpjMask, stripCpfCnpj } from '@/lib/mask/cpf-cnpj'
-import { applyWhatsAppMask, removeWhatsAppMask, validateWhatsApp } from '@/lib/mask/phone-mask'
+import {
+  WHATSAPP_MASK_MAX_LENGTH,
+  applyWhatsAppMask,
+  removeWhatsAppMask,
+  validateWhatsApp,
+} from '@/lib/mask/phone-mask'
 import { validateDocumentByType } from '@/lib/document/document-identity'
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
@@ -452,7 +457,7 @@ export function OnboardingDialog({ open }: OnboardingDialogProps) {
                     }
                   }}
                   placeholder="(11) 98888-8888"
-                  maxLength={14}
+                  maxLength={WHATSAPP_MASK_MAX_LENGTH}
                   disabled={isSubmitting}
                 />
                 {phoneDigits.length > 0 && !validateWhatsApp(phoneDigits) && (

@@ -1,8 +1,10 @@
 /**
  * Máscara para WhatsApp no formato brasileiro
  * Usuário digita: (11) 98888-8888
- * Armazena: 556182493200 (com 55 + sem espaços + sem o nono dígito)
+ * Armazena: 5511988888888 (com 55 + DDD + número local)
  */
+
+export const WHATSAPP_MASK_MAX_LENGTH = '(11) 98888-8888'.length
 
 /**
  * Aplica máscara visual no input (sem o código do país)
@@ -64,7 +66,7 @@ export function validateWhatsApp(value: string): boolean {
  * Normaliza o WhatsApp para salvar no banco
  * Adiciona 55 no início e MANTÉM o nono dígito
  * @param value - Valor com ou sem máscara (DDD + número)
- * @returns Formato normalizado: 5561982482100 (13 dígitos com 55 + DDD + 9 + número)
+ * @returns Formato normalizado: 5511988888888 (13 dígitos com 55 + DDD + 9 + número)
  */
 export function normalizeWhatsApp(value: string): string {
   // Remove tudo que não é número
