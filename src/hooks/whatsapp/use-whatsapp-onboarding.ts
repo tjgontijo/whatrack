@@ -1,6 +1,11 @@
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { toast } from 'sonner'
 import { authClient } from '@/lib/auth/auth-client'
+import { apiFetch } from '@/lib/api-client'
+import {
+  buildWhatsAppEmbeddedSignupUrl,
+  isWhatsAppEmbeddedSignupConfigured,
+} from '@/lib/whatsapp/onboarding'
 import { useOrganizationCompletion } from '@/hooks/organization/use-organization-completion'
 
 export type OnboardingStatus = 'idle' | 'pending' | 'success'
@@ -21,15 +26,9 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
     useOrganizationCompletion()
   const [status, setStatus] = useState<OnboardingStatus>('idle')
   const [error, setError] = useState<string | null>(null)
-  const [sdkReady, setSdkReady] = useState(false)
   const popupRef = useRef<Window | null>(null)
   const onFocusRef = useRef<(() => void) | null>(null)
-
-  useEffect(() => {
-    const appId = process.env.NEXT_PUBLIC_META_APP_ID
-    const configId = process.env.NEXT_PUBLIC_META_CONFIG_ID
-    setSdkReady(Boolean(appId && configId))
-  }, [])
+  const sdkReady = isWhatsAppEmbeddedSignupConfigured()
 
   const clearState = useCallback(() => {
     if (onFocusRef.current) {
@@ -61,10 +60,7 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
       return
     }
 
-    const appId = process.env.NEXT_PUBLIC_META_APP_ID
-    const configId = process.env.NEXT_PUBLIC_META_CONFIG_ID
-
-    if (!appId || !configId) {
+    if (!sdkReady) {
       setError('Configuração da Meta não encontrada.')
       return
     }
@@ -74,27 +70,12 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
     clearState()
 
     try {
-      // 1. Gerar tracking code
-      const response = await fetch(`/api/v1/whatsapp/onboarding?organizationId=${activeOrg.id}`)
+      const { onboardingUrl, trackingCode } = await apiFetch('/api/v1/whatsapp/onboarding', {
+        method: 'GET',
+        orgId: activeOrg.id,
+      })
+      const url = buildWhatsAppEmbeddedSignupUrl(onboardingUrl, trackingCode)
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Falha ao gerar URL de onboarding')
-      }
-
-      const { onboardingUrl, trackingCode } = await response.json()
-
-      // 2. Preparar URL
-      const extras = {
-        featureType: 'whatsapp_business_app_onboarding',
-        sessionInfoVersion: '3',
-        version: 'v3',
-        sessionInfo: { trackingCode },
-      }
-
-      const url = `${onboardingUrl}&state=${encodeURIComponent(trackingCode)}&extras=${encodeURIComponent(JSON.stringify(extras))}`
-
-      // 3. Abrir popup
       const width = 800
       const height = 700
       const left = window.screen.width / 2 - width / 2
@@ -127,7 +108,6 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
       onFocusRef.current = onFocus
       window.addEventListener('focus', onFocus)
     } catch (err) {
-      console.error('[Onboarding] Erro ao iniciar:', err)
       setStatus('idle')
       setError(err instanceof Error ? err.message : 'Erro ao iniciar onboarding')
       clearState()
@@ -139,6 +119,7 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
     integrationBlockMessage,
     isCompletionLoading,
     isModuleBlocked,
+    sdkReady,
   ])
 
   return {

@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 
-import { apiError } from '@/lib/utils/api-response'
+import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { rateLimitMiddleware } from '@/lib/utils/rate-limit.middleware'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { createWhatsAppOnboardingSession } from '@/services/whatsapp/whatsapp-onboarding.service'
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
       return apiError('Server configuration error', 500, result.error)
     }
 
-    return NextResponse.json(result)
+    return apiSuccess(result)
   } catch (error) {
     logger.error({ err: error }, '[Onboarding] Error generating URL')
     return apiError('Internal server error', 500, error)

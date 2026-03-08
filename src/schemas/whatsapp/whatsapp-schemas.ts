@@ -21,12 +21,6 @@ export const whatsappWebhookVerifySchema = z.object({
   'hub.challenge': z.string().min(1),
 })
 
-export const whatsappClaimWabaSchema = z.object({
-  wabaId: z.string().min(1),
-  code: z.string().min(1),
-  phoneNumberId: z.string().optional(),
-})
-
 export const whatsappDisconnectSchema = z.object({
   configId: z.string().min(1),
 })
@@ -34,5 +28,4 @@ export const whatsappDisconnectSchema = z.object({
 export type WhatsAppChatsQueryInput = z.infer<typeof whatsappChatsQuerySchema>
 export type WhatsAppChatMessagesQueryInput = z.infer<typeof whatsappChatMessagesQuerySchema>
 export type WhatsAppSendTemplateInput = z.infer<typeof whatsappSendTemplateSchema>
-export type WhatsAppClaimWabaInput = z.infer<typeof whatsappClaimWabaSchema>
 export type WhatsAppDisconnectInput = z.infer<typeof whatsappDisconnectSchema>
