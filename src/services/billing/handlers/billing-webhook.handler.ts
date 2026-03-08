@@ -54,9 +54,8 @@ export async function handlePaymentWebhook(
 ): Promise<{ processed: boolean; eventId: string; message: string }> {
   const eventId = payload.id
   const eventType = payload.type
-  const timestamp = new Date(payload.timestamp)
+  const processedAt = new Date()
 
-  // Check for duplicate processing
   const existing = await prisma.billingWebhookLog.findUnique({
     where: {
       eventId,
@@ -72,46 +71,10 @@ export async function handlePaymentWebhook(
     }
   }
 
-  // Validate timestamp (max 5 minutes old)
-  const now = new Date()
-  const ageSeconds = (now.getTime() - timestamp.getTime()) / 1000
-  if (ageSeconds > 5 * 60) {
-    // Mark as processed even though expired, to prevent re-processing
-    if (existing) {
-      await prisma.billingWebhookLog.update({
-        where: { id: existing.id },
-        data: {
-          isProcessed: true,
-          processedAt: now,
-        },
-      })
-    } else {
-      await prisma.billingWebhookLog.create({
-        data: {
-          provider: providerId,
-          eventId,
-          eventType: 'expired',
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          payload: payload as any,
-          isProcessed: true,
-          processedAt: now,
-        },
-      })
-    }
-
-    return {
-      processed: false,
-      eventId,
-      message: 'Webhook expired (older than 5 minutes)',
-    }
-  }
-
-  // Create webhook log entry
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const logId = existing?.id ?? (await createWebhookLog(providerId, eventId, eventType, timestamp, payload as any)).id
+  const logId = existing?.id ?? (await createWebhookLog(providerId, eventId, eventType, payload as any)).id
 
   try {
-    // Process based on event type
     logger.info(`[Handler/Webhook] Dispatching event: ${eventType}`)
     switch (eventType) {
       case 'billing.paid':
@@ -137,7 +100,7 @@ export async function handlePaymentWebhook(
       where: { id: logId },
       data: {
         isProcessed: true,
-        processedAt: now,
+        processedAt,
       },
     })
 
@@ -158,7 +121,7 @@ export async function handlePaymentWebhook(
       data: {
         processingError: error instanceof Error ? error.message : String(error),
         retryCount: { increment: 1 },
-        lastRetryAt: now,
+        lastRetryAt: processedAt,
       },
     })
 
@@ -274,7 +237,6 @@ async function createWebhookLog(
   providerId: string,
   eventId: string,
   eventType: string,
-  timestamp: Date,
   payload?: unknown
 ) {
   return await prisma.billingWebhookLog.create({

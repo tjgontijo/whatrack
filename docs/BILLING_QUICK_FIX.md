@@ -1,69 +1,69 @@
-# 🚀 Billing System - Quick Fix Guide
+# Billing Quick Fix
 
-## Problem
-Billing checkout returns **500 Error** on production (Vercel), but works locally.
+## Quando usar
 
-## Root Cause
-Production uses **sandbox/development** AbacatePay credentials (`abc_dev_...`), which are invalid in production.
+Use este guia quando o checkout ou o webhook de billing falharem perto do launch.
 
-## ⚡ Quick Fix (5 minutes)
+## 1. Checkout retorna 500
 
-### 1. Get Production API Key
-```
-Go to: https://dashboard.abacatepay.com
-→ Settings → API Keys
-→ Copy "Production Secret Key" (starts with abc_, not abc_dev_)
-→ Copy "Webhook Secret"
-```
+Checklist:
 
-### 2. Update Vercel (60 seconds)
-```
-Go to: https://vercel.com/dashboard
-→ Select your project
-→ Settings → Environment Variables
-→ Edit ABACATEPAY_SECRET_KEY
-→ Paste your production key
-→ Edit ABACATEPAY_WEBHOOK_SECRET
-→ Paste your webhook secret
-→ Save
-```
-
-### 3. Redeploy
 ```bash
-git push  # Vercel auto-deploys
-# OR manually:
-vercel --prod
+ABACATEPAY_SECRET_KEY=abc_...
+ABACATEPAY_WEBHOOK_SECRET=...
 ```
 
-### 4. Test
+Confirmar:
+
+- a chave não é sandbox em produção
+- o usuário tem `email`, `name` e `phone`
+- a organização tem `cpf` ou `cnpj`
+
+## 2. Webhook chega, mas a assinatura não ativa
+
+Confirmar na AbacatePay:
+
+- URL: `https://whatrack.com/api/v1/billing/webhook`
+- secret correto
+- eventos corretos:
+  - `billing.paid`
+  - `pix.paid`
+  - `pix.expired`
+
+Não usar eventos `subscription.*`.
+
+## 3. Retry operacional não roda
+
+Confirmar no `n8n`:
+
+- workflow ativo
+- chamada `POST https://whatrack.com/api/v1/cron/system/webhook-retry`
+- header `Authorization: Bearer ${CRON_SECRET}`
+
+Exemplo:
+
+```bash
+curl -X POST https://whatrack.com/api/v1/cron/system/webhook-retry \
+  -H "Authorization: Bearer ${CRON_SECRET}" \
+  -H "Content-Type: application/json" \
+  -d '{}'
 ```
-Go to: https://whatrack.com/
-→ Click "Comprar" on any plan
-→ Should redirect to AbacatePay checkout ✓
-```
 
-## ✅ Verify it Works
+## 4. Cancelamento parece inconsistente
 
-After redeploy:
-1. ✓ Checkout page loads
-2. ✓ AbacatePay modal/redirect appears
-3. ✓ Can complete test payment
-4. ✓ Redirected to success page
-5. ✓ Subscription appears in `/dashboard/billing`
+Lembrar a verdade operacional da V1:
 
-## 🔍 What Was Wrong
+- o app controla `status` e `canceledAtPeriodEnd`
+- não existe endpoint oficial de cancelamento no provider adotado hoje
+- o dashboard precisa refletir essa verdade, sem prometer cancelamento no provider
 
-| Environment | Key Type | Status |
-|---|---|---|
-| Local Dev | `abc_dev_...` | ✅ Works (sandbox) |
-| Production | `abc_dev_...` | ❌ Fails (sandbox key invalid in prod) |
-| Production | `abc_prod_...` | ✅ Works (production key) |
+## 5. Smoke mínimo
 
-## 📚 More Info
-- See `BILLING_DEBUG_SUMMARY.md` for detailed troubleshooting
-- See `docs/BILLING_DEPLOYMENT.md` for complete guide
-- All API routes verified: ✓ checkout, ✓ subscription, ✓ usage, ✓ webhook
+Executar:
 
----
-
-**That's it!** Once you have the production API key from AbacatePay, it's just copy-paste to Vercel. 🎉
+1. iniciar checkout
+2. pagar
+3. confirmar webhook processado
+4. confirmar assinatura ativa no dashboard
+5. cancelar
+6. confirmar estado atualizado no dashboard

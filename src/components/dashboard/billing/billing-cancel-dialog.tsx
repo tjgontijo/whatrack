@@ -25,13 +25,13 @@ interface BillingCancelDialogProps {
 const CANCEL_OPTIONS = [
   {
     value: 'period-end' as const,
-    label: 'Cancelar no fim do período',
-    description: 'Você continua com acesso até a data de renovação.',
+    label: 'Encerrar no fim do período',
+    description: 'Na V1, o acesso ao Whatrack continua até a data de renovação atual.',
   },
   {
     value: 'immediate' as const,
-    label: 'Cancelar agora',
-    description: 'O acesso será encerrado imediatamente.',
+    label: 'Encerrar acesso agora',
+    description: 'Na V1, o acesso ao Whatrack será encerrado imediatamente.',
   },
 ]
 
@@ -51,8 +51,6 @@ export function BillingCancelDialog({
   async function handleCancel() {
     setIsLoading(true)
 
-
-
     try {
       if (!orgId) throw new Error('Organização não identificada')
 
@@ -65,8 +63,11 @@ export function BillingCancelDialog({
         orgId,
       })
 
-
-      toast.success('Assinatura cancelada com sucesso')
+      toast.success(
+        cancelOption === 'period-end'
+          ? 'Cancelamento agendado para o fim do período atual'
+          : 'Acesso ao plano encerrado no Whatrack'
+      )
       onOpenChange(false)
       router.refresh()
     } catch (error) {
@@ -87,7 +88,7 @@ export function BillingCancelDialog({
 
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Ao cancelar, você perderá acesso ao plano{' '}
+            Na V1, o cancelamento atualiza o estado da assinatura no Whatrack. Ao encerrar, você perderá acesso ao plano{' '}
             <span className="font-medium text-foreground">{planName}</span>.
             Eventos registrados neste ciclo não serão reembolsados.
           </p>

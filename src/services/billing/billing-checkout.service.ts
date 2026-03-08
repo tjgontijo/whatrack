@@ -4,24 +4,32 @@
  * Handles checkout session creation and redirects to payment provider
  */
 
-import { providerRegistry } from '@/lib/billing/providers/init'
+import { ensurePaymentProviders, providerRegistry } from '@/lib/billing/providers/init'
+import { prisma } from '@/lib/db/prisma'
+import { resolveInternalPath } from '@/lib/utils/internal-path'
 import type { SelfServePlanType } from '@/types/billing/billing'
 import { createSubscription } from './billing-subscription.service'
 import { logger } from '@/lib/utils/logger'
+
+export class BillingCheckoutError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number
+  ) {
+    super(message)
+    this.name = 'BillingCheckoutError'
+  }
+}
 
 /**
  * Parameters for creating checkout session
  */
 export interface CreateCheckoutSessionParams {
   organizationId: string
+  userId: string
   planType: SelfServePlanType
-  successUrl: string
-  returnUrl: string
-  userEmail?: string
-  userName?: string
-  userPhone?: string
-  userTaxId?: string
-  isPerson?: boolean
+  origin: string
+  redirectPath?: string
 }
 
 /**
@@ -33,35 +41,38 @@ export interface CheckoutSessionResponse {
 }
 
 /**
- * Create a checkout session via payment provider
+ * Create a checkout session with the active payment provider
  */
-export async function createCheckoutSessionWithProvider(
+export async function createCheckoutSession(
   params: CreateCheckoutSessionParams
 ): Promise<CheckoutSessionResponse> {
-  const { organizationId, planType, successUrl, returnUrl } = params
+  ensurePaymentProviders()
+
+  const customerContext = await resolveCheckoutCustomerContext(params.organizationId, params.userId)
+  const { successUrl, returnUrl } = buildCheckoutUrls(params)
 
   try {
-    // Get active payment provider
     const provider = providerRegistry.getActive()
 
-    // Create checkout session
     const session = await provider.createCheckoutSession({
-      organizationId,
-      planType,
+      organizationId: params.organizationId,
+      planType: params.planType,
       successUrl,
       returnUrl,
-      userEmail: params.userEmail,
-      userName: params.userName,
-      userPhone: params.userPhone,
-      userTaxId: params.userTaxId,
-      isPerson: params.isPerson,
+      userEmail: customerContext.userEmail,
+      userName: customerContext.userName,
+      userPhone: customerContext.userPhone,
+      userTaxId: customerContext.userTaxId,
+      isPerson: customerContext.isPerson,
     })
 
-    // Create subscription in database with 'paused' status (waiting for payment)
-    logger.info({ organizationId, planType }, '[Checkout] Creating pending subscription')
+    logger.info(
+      { organizationId: params.organizationId, planType: params.planType },
+      '[Checkout] Creating pending subscription'
+    )
     await createSubscription({
-      organizationId,
-      planType,
+      organizationId: params.organizationId,
+      planType: params.planType,
       provider: provider.getProviderId(),
       providerCustomerId: session.customerId,
       providerSubscriptionId: session.id,
@@ -73,8 +84,80 @@ export async function createCheckoutSessionWithProvider(
       provider: provider.getProviderId(),
     }
   } catch (error) {
-    throw new Error(
-      `Failed to create checkout session: ${error instanceof Error ? error.message : String(error)}`
-    )
+    logger.error({ err: error }, '[Checkout] Failed to create checkout session')
+    throw error
+  }
+}
+
+interface CheckoutCustomerContext {
+  userEmail: string
+  userName: string
+  userPhone: string
+  userTaxId: string
+  isPerson: boolean
+}
+
+async function resolveCheckoutCustomerContext(
+  organizationId: string,
+  userId: string
+): Promise<CheckoutCustomerContext> {
+  const [user, orgProfile, orgCompany] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        email: true,
+        name: true,
+        phone: true,
+      },
+    }),
+    prisma.organizationProfile.findUnique({
+      where: { organizationId },
+      select: {
+        cpf: true,
+      },
+    }),
+    prisma.organizationCompany.findUnique({
+      where: { organizationId },
+      select: {
+        cnpj: true,
+      },
+    }),
+  ])
+
+  if (!user) {
+    throw new BillingCheckoutError('User profile not found', 404)
+  }
+
+  if (!user.email || !user.name) {
+    throw new BillingCheckoutError('User email and name are required for checkout', 400)
+  }
+
+  if (!user.phone) {
+    throw new BillingCheckoutError('User phone is required for checkout', 400)
+  }
+
+  const taxId = orgProfile?.cpf || orgCompany?.cnpj
+  if (!taxId) {
+    throw new BillingCheckoutError('Organization tax ID (CPF or CNPJ) is required for checkout', 400)
+  }
+
+  return {
+    userEmail: user.email,
+    userName: user.name,
+    userPhone: user.phone,
+    userTaxId: taxId,
+    isPerson: Boolean(orgProfile?.cpf),
+  }
+}
+
+function buildCheckoutUrls(params: CreateCheckoutSessionParams) {
+  const redirectPath = resolveInternalPath(params.redirectPath, '/dashboard/billing')
+  const successUrl = new URL('/billing/success', params.origin)
+  successUrl.searchParams.set('plan', params.planType)
+  successUrl.searchParams.set('next', redirectPath)
+
+  return {
+    successUrl: successUrl.toString(),
+    returnUrl: new URL(redirectPath, params.origin).toString(),
   }
 }

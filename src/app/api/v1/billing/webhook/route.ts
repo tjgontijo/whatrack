@@ -91,11 +91,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     logger.info({ context: result }, '[Webhook/AbacatePay] Processing result')
 
-    if (!result.processed) {
-      // Idempotent success - already processed or expired
-      return apiSuccess({ ok: true, message: result.message, eventId: result.eventId })
-    }
-
     return apiSuccess({ ok: true, message: result.message, eventId: result.eventId })
   } catch (error) {
     logger.error({ err: error }, 'Webhook processing error')

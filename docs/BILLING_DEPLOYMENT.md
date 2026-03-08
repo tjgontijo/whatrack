@@ -1,105 +1,125 @@
-# Billing System Deployment Guide
+# Billing Deployment Guide
 
-## Issue: AbacatePay Checkout Failing on Production
+## Objetivo
 
-### Root Cause
-The production environment on Vercel is configured with **sandbox/development** AbacatePay credentials (`abc_dev_...`), which are invalid in the production environment.
+Subir billing da V1 com o contrato real do produto:
 
-### Errors
-- **Server**: "AbacatePay checkout creation failed: 3 attempts were performed, all failed"
-- **Client**: `POST /api/v1/billing/checkout 500 (Internal Server Error)`
+- checkout self-serve via AbacatePay
+- ativação de assinatura por webhook
+- cancelamento controlado no app por `status` e `canceledAtPeriodEnd`
+- retry operacional via `n8n`
 
-### Solution
+## Verdade Operacional da V1
 
-#### Step 1: Get Production AbacatePay Credentials
+- O checkout recorrente usa `MULTIPLE_PAYMENTS`.
+- O contrato atual da AbacatePay usado pelo projeto não expõe endpoint oficial de cancelamento.
+- Por isso, o cancelamento da V1 é refletido no Whatrack, não no provider.
+- O webhook processa apenas `billing.paid`, `pix.paid` e `pix.expired`.
 
-1. Log in to your **AbacatePay Dashboard** (https://dashboard.abacatepay.com)
-2. Navigate to **Settings → API Keys**
-3. Copy your **Production Secret Key** (starts with `abc_` not `abc_dev_`)
-4. Copy your **Production Webhook Secret**
+## Pré-requisitos
 
-#### Step 2: Update Vercel Environment Variables
+### Ambiente
 
-For **Production** environment:
+Definir no ambiente de release:
+
 ```bash
-# Get your real credentials from AbacatePay dashboard
-ABACATEPAY_SECRET_KEY=abc_prod_YOUR_REAL_SECRET_KEY
-ABACATEPAY_WEBHOOK_SECRET=YOUR_REAL_WEBHOOK_SECRET
+ABACATEPAY_SECRET_KEY=abc_...
+ABACATEPAY_WEBHOOK_SECRET=...
 ABACATEPAY_WEBHOOK_URL=https://whatrack.com/api/v1/billing/webhook
+CRON_SECRET=...
 ```
 
-#### Step 3: Testing Strategy
+### Banco
 
-**Local Development** (sandbox):
+Antes do launch:
+
+1. aplicar migrations pendentes
+2. executar os seeds de lookup tables
+3. confirmar que `billing_subscription_status` está populada
+
+## Webhook AbacatePay
+
+Configurar no painel da AbacatePay:
+
+- URL: `https://whatrack.com/api/v1/billing/webhook`
+- secret: mesmo valor de `ABACATEPAY_WEBHOOK_SECRET`
+- eventos:
+  - `billing.paid`
+  - `pix.paid`
+  - `pix.expired`
+
+Não usar:
+
+- `subscription.created`
+- `subscription.updated`
+- `subscription.canceled`
+
+Esses eventos não fazem parte do contrato atualmente processado pelo app.
+
+## Scheduler Oficial
+
+O scheduler oficial da V1 é externo via `n8n`.
+
+Rotina obrigatória:
+
+- `POST https://whatrack.com/api/v1/cron/system/webhook-retry`
+- header: `Authorization: Bearer $CRON_SECRET`
+- frequência recomendada: a cada 5 minutos
+
+Exemplo:
+
 ```bash
-# Use development credentials from .env
-ABACATEPAY_SECRET_KEY=abc_dev_WRrZNEhf5Ke4WXZXC4TsfMGy
-ABACATEPAY_WEBHOOK_SECRET=e7ea8ebfb16adafd6a82e7a9eb3c848d
+curl -X POST https://whatrack.com/api/v1/cron/system/webhook-retry \
+  -H "Authorization: Bearer ${CRON_SECRET}" \
+  -H "Content-Type: application/json" \
+  -d '{}'
 ```
 
-**Production (Vercel)**:
-```bash
-# Use real production credentials
-ABACATEPAY_SECRET_KEY=abc_... (from dashboard)
-ABACATEPAY_WEBHOOK_SECRET=... (from dashboard)
-```
+## Smoke de Release
 
-#### Step 4: Verify Webhook Configuration
+Executar na ordem:
 
-1. In AbacatePay Dashboard, go to **Settings → Webhooks**
-2. Set webhook URL to: `https://whatrack.com/api/v1/billing/webhook`
-3. Ensure the webhook secret matches your `ABACATEPAY_WEBHOOK_SECRET`
-4. Subscribe to: `subscription.created`, `subscription.updated`, `subscription.canceled`
+1. abrir `/dashboard/billing`
+2. iniciar checkout em `Starter` ou `Pro`
+3. concluir pagamento
+4. confirmar entrega do webhook
+5. validar assinatura ativa no banco e no dashboard
+6. executar cancelamento no app
+7. validar estado final no dashboard
 
-#### Step 5: Test the Flow
+## Interpretação do Cancelamento
 
-1. Navigate to `/dashboard/billing`
-2. Click "Comprar" on a plan
-3. You should be redirected to AbacatePay checkout
-4. Complete payment in sandbox mode
-5. You should receive a webhook confirmation
-6. Subscription should be active in the database
+Na V1:
 
-### Troubleshooting
+- `atPeriodEnd=true`: agenda encerramento do acesso ao fim do ciclo atual
+- `atPeriodEnd=false`: encerra o acesso no Whatrack imediatamente
 
-#### Still getting 500 errors?
-- **Clear build cache**: Delete `.next` folder and rebuild
-- **Verify API routes**: Check that all routes are showing up in `npm run build`
-- **Check logs**: Monitor Vercel logs in real-time with `vercel logs`
+Isso precisa ser explicado ao suporte exatamente assim. Não prometer cancelamento no provider enquanto esse endpoint não existir no contrato da AbacatePay.
 
-#### Webhook not firing?
-- Verify webhook URL in AbacatePay dashboard
-- Check webhook secret matches in environment variables
-- Monitor webhook logs in AbacatePay dashboard
-- Test webhook manually from AbacatePay dashboard
+## Diagnóstico Rápido
 
-#### Getting 404 on billing routes?
-- This was caused by stale build cache
-- Solution: `rm -rf .next && npm run build`
-- Redeploy to Vercel after cleanup
+### Checkout falhando com 500
 
-### Files Modified
-- `.env` - AbacatePay credentials (Vercel only, not in git)
-- `src/app/api/v1/billing/*` - API routes (all present and working)
-- `src/services/billing/` - Business logic (all present and working)
+Checar:
 
-### Recent Build Fix
-```bash
-# The clean build resolved missing routes issue
-rm -rf .next
-npm run build
-# All 6 billing routes now appear in build output:
-# ├ ƒ /api/v1/billing/cancel
-# ├ ƒ /api/v1/billing/checkout
-# ├ ƒ /api/v1/billing/events
-# ├ ƒ /api/v1/billing/subscription
-# ├ ƒ /api/v1/billing/usage
-# └ ƒ /api/v1/billing/webhook
-```
+- `ABACATEPAY_SECRET_KEY` correta para produção
+- identidade de cobrança completa do usuário e da organização
+- logs do servidor para erro do provider
 
-### Next Steps
-1. Contact AbacatePay support to get production API keys
-2. Update Vercel environment variables
-3. Redeploy application
-4. Test checkout flow end-to-end
-5. Monitor webhook delivery in production
+### Webhook não ativa assinatura
+
+Checar:
+
+- URL do webhook
+- secret
+- eventos corretos
+- assinatura HMAC
+- tabela `billing_webhook_logs`
+
+### Retry não roda
+
+Checar:
+
+- workflow ativo no `n8n`
+- `CRON_SECRET`
+- resposta da rota `/api/v1/cron/system/webhook-retry`

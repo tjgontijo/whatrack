@@ -10,22 +10,17 @@ import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { subscriptionResponseSchema } from '@/schemas/billing/billing-schemas'
 import { getActiveSubscription, SubscriptionNotFoundError } from '@/services/billing/billing-subscription.service'
 import { logger } from '@/lib/utils/logger'
+import { apiError, apiSuccess } from '@/lib/utils/api-response'
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  // Auth check
   const auth = await validateFullAccess(request)
   if (!auth.hasAccess || !auth.organizationId) {
-    return NextResponse.json(
-      { error: auth.error || 'Unauthorized' },
-      { status: 403 }
-    )
+    return apiError(auth.error || 'Unauthorized', 403)
   }
 
   try {
-    // Fetch active subscription
     const subscription = await getActiveSubscription(auth.organizationId)
 
-    // Validate and return response
     const response = subscriptionResponseSchema.parse({
       id: subscription.id,
       organizationId: subscription.organizationId,
@@ -43,16 +38,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       providerSubscriptionId: subscription.providerSubscriptionId,
     })
 
-    return NextResponse.json(response, { status: 200 })
+    return apiSuccess(response)
   } catch (error) {
     if (error instanceof SubscriptionNotFoundError) {
-      return NextResponse.json({ subscription: null }, { status: 200 })
+      return apiSuccess({ subscription: null })
     }
 
     logger.error({ err: error }, 'Subscription fetch error')
-    return NextResponse.json(
-      { error: 'Failed to fetch subscription' },
-      { status: 500 }
-    )
+    return apiError('Failed to fetch subscription', 500, error)
   }
 }
