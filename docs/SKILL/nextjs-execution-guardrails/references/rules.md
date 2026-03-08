@@ -64,6 +64,50 @@ queryFn: () => fetch(`/api/v1/ticket-stages`, { headers: { [ORGANIZATION_HEADER]
   - Dados de sessao (auth, org): `Infinity` (invalida manualmente)
 - `refetchInterval` — usar apenas para dados que mudam sem acao do usuario (ex: sync status). Preferir invalidacao explicita via `queryClient.invalidateQueries()` apos mutations.
 
+## Pacote de Performance (Dashboard e CRUD)
+
+### GET de listagem
+
+- Toda rota GET de listagem DEVE expor paginacao explicita:
+  - pagina numerada: `page` + `pageSize`
+  - ou cursor: `cursor` + `limit`
+- Proibido endpoint de listagem retornar dataset inteiro sem controle.
+- Padrao recomendado de retorno:
+  - pagina numerada: `{ items, total, page, pageSize }`
+  - cursor: `{ items, nextCursor }`
+- Definir limites de pagina no schema Zod (`pageSize`/`limit` com maximo defensivo).
+- Em service, usar `select` minimo e evitar `include` amplo.
+- Para pagina numerada, executar `findMany` e `count` em paralelo quando necessario.
+
+### Auth e leitura (read-only)
+
+- Caminho de leitura (GET e guard de autorizacao para leitura) deve ser read-only.
+- Proibido qualquer escrita em banco no caminho critico de leitura (ex: sincronizacao de role, update de perfil, lastSeen implicito).
+- Se sincronizacao for necessaria, mover para fluxo dedicado fora de GET.
+
+### Client de dashboard
+
+- Listagens de dashboard/CRUD devem usar `useInfiniteQuery` por padrao.
+- Proibido loop sequencial de prefetch para carregar "tudo" no mount.
+- Para volume medio/alto, usar virtualizacao com `react-virtuoso` (ou componente equivalente ja padronizado no projeto).
+- Busca textual deve usar `useDeferredValue` com threshold minimo de 3 caracteres, salvo requisito funcional explicito.
+- Query keys devem incluir todos os filtros que impactam o resultado (incluindo busca e ordenacao).
+
+### QueryClient (defaults de performance)
+
+- Para dashboard/admin, manter defaults:
+  - `staleTime: 5 * 60 * 1000`
+  - `gcTime: 10 * 60 * 1000`
+  - `refetchOnWindowFocus: false`
+  - `refetchOnMount: false`
+  - `refetchOnReconnect: false`
+- Evitar sobrescrever esses defaults sem justificativa tecnica.
+
+### Observabilidade minima
+
+- Em endpoint de lista critico, registrar metrica de latencia (P50/P95) no monitoramento disponivel.
+- Antes/depois de otimizar, comparar TTFR do client e latencia do GET para comprovar ganho.
+
 ## useEffect — Usos Permitidos vs Proibidos
 
 ### Proibido (alternativa obrigatoria)

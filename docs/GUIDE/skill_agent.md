@@ -112,7 +112,7 @@
 - mantém lógica de neutral skip.
 4. Integração de rota:
 - `/api/v1/ai-skills` happy path + erro de permissão + bloqueio SYSTEM.
-- `/api/v1/jobs/ai-classifier` sem regressão no disparo.
+- `/api/v1/cron/ai/classifier` sem regressão no disparo.
 5. Seed test:
 - execução idempotente (não duplica skills/vínculos).
 - shared core vinculadas a todos os agentes.

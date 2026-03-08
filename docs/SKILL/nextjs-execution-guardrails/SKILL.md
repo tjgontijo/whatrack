@@ -42,15 +42,30 @@ Executar tarefas com processo consistente e baixo retrabalho.
 - Proibido `console.log` em codigo de producao.
 - Consultar `references/rules.md` secoes "Client-Side Data Fetching", "useEffect — Usos Permitidos vs Proibidos" e "Polling e Timers" para regras detalhadas e exemplos.
 
+## Pacote de Performance Dashboard (Inegociavel)
+
+- Toda rota GET de listagem em dashboard/CRUD DEVE ser paginada (page/pageSize ou cursor). Proibido retornar dataset inteiro sem controle.
+- Caminho de leitura (GET + guard de auth) DEVE ser read-only. Proibido escrita de sincronizacao de role ou side effects em request path de leitura.
+- Listagem client-side de dashboard DEVE usar TanStack Query com `useInfiniteQuery`.
+- Tabelas/listas com potencial de volume DEVEM usar virtualizacao (`react-virtuoso` ou equivalente ja adotado no projeto).
+- Busca textual em lista DEVE usar `useDeferredValue` e threshold minimo (padrao: 3 caracteres), salvo requisito explicito diferente.
+- QueryClient de dashboard DEVE manter defaults conservadores de refetch:
+  - `staleTime: 5 * 60 * 1000`
+  - `gcTime: 10 * 60 * 1000`
+  - `refetchOnWindowFocus: false`
+  - `refetchOnMount: false`
+  - `refetchOnReconnect: false`
+
 ## Fluxo Obrigatorio
 
 1. Ler `references/rules.md` antes de editar qualquer arquivo.
 2. Ler `references/directory-map.md` para localizar onde criar ou editar arquivos.
 3. Ler apenas os blocos relevantes de `references/workflows.md` conforme o tipo da tarefa.
-4. Mapear arquivos impactados e planejar diff minimo.
-5. Implementar seguindo as regras desta skill.
-6. Validar com comandos proporcionais ao impacto.
-7. Responder com resumo objetivo, arquivos alterados, validacoes executadas e riscos pendentes.
+4. Para tarefas de dashboard/CRUD, aplicar obrigatoriamente o pacote de performance antes de implementar refinamentos de UI.
+5. Mapear arquivos impactados e planejar diff minimo.
+6. Implementar seguindo as regras desta skill.
+7. Validar com comandos proporcionais ao impacto.
+8. Responder com resumo objetivo, arquivos alterados, validacoes executadas e riscos pendentes.
 
 ## Selecao de Workflow
 
@@ -59,6 +74,7 @@ Executar tarefas com processo consistente e baixo retrabalho.
 - Endpoint/API: usar `workflows.md` -> "Workflow: Endpoint/API".
 - Mudanca de schema Prisma: usar `workflows.md` -> "Workflow: Prisma e Dados".
 - Refatoracao: usar `workflows.md` -> "Workflow: Refactor Seguro".
+- Otimizacao de dashboard/CRUD: usar `workflows.md` -> "Workflow: Otimizacao de Performance (Dashboard/API GET)".
 
 ## Criterio de Conclusao
 

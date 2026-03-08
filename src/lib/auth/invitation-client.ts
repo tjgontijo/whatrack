@@ -1,3 +1,5 @@
+import { sanitizeInternalPath } from '@/lib/utils/internal-path'
+
 type InvitationApiError = {
   error?: string
   message?: string
@@ -18,9 +20,18 @@ export async function acceptOrganizationInvitation(invitationId: string): Promis
   throw new Error(body?.message || body?.error || 'Não foi possível aceitar o convite.')
 }
 
-export function buildInvitationQuery(invitationId: string | null): string {
-  if (!invitationId) {
-    return ''
+export function buildInvitationQuery(invitationId: string | null, next?: string | null): string {
+  const params = new URLSearchParams()
+
+  if (invitationId) {
+    params.set('invitationId', invitationId)
   }
-  return `?invitationId=${encodeURIComponent(invitationId)}`
+
+  const safeNextPath = sanitizeInternalPath(next)
+  if (safeNextPath) {
+    params.set('next', safeNextPath)
+  }
+
+  const query = params.toString()
+  return query ? `?${query}` : ''
 }

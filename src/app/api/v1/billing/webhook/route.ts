@@ -6,25 +6,13 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import crypto from 'crypto'
+import { billingWebhookPayloadSchema } from '@/schemas/billing/billing-schemas'
+import { verifyAbacatePayWebhookSignature } from '@/lib/billing/webhook-security'
 import { env } from '@/lib/env/env'
+import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { rateLimitMiddleware } from '@/lib/utils/rate-limit.middleware'
 import { handlePaymentWebhook } from '@/services/billing/handlers/billing-webhook.handler'
 import { logger } from '@/lib/utils/logger'
-
-/**
- * Validate webhook signature using HMAC-SHA256
- * AbacatePay uses a fixed public key for all webhook signatures
- * Reference: https://docs.abacatepay.com/pages/webhooks
- */
-function validateWebhookSignature(payload: string, signature: string): boolean {
-  // Public key from AbacatePay (configured in env vars)
-  const publicKey = env.ABACATEPAY_WEBHOOK_SECRET
-
-  // Create HMAC-SHA256 hash using the public key
-  const hash = crypto.createHmac('sha256', publicKey).update(payload).digest('base64')
-  return hash === signature
-}
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   // Rate limit check
@@ -36,58 +24,58 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     // Get raw body for signature validation
     const body = await request.text()
-    const payload = JSON.parse(body)
-
-    // Debug: Log all headers for webhook signature investigation
-    const allHeaders: Record<string, string> = {}
-    request.headers.forEach((value, key) => {
-      allHeaders[key] = value
-    })
-    logger.info({ headers: allHeaders }, '[Webhook/Debug] All request headers')
-
     // Get signature from header (X-Webhook-Signature from AbacatePay)
     const signature = request.headers.get('x-webhook-signature')
 
     if (!signature) {
-      logger.warn({ headers: Object.keys(allHeaders) }, 'Webhook received without x-webhook-signature header')
-      return NextResponse.json(
-        { error: 'Missing signature' },
-        { status: 401 }
-      )
-    }
-
-    logger.info({ signature: signature.substring(0, 20) + '...' }, '[Webhook/AbacatePay] Signature received')
-
-    // Validate signature using AbacatePay's public key
-    if (!validateWebhookSignature(body, signature)) {
-      const publicKey = env.ABACATEPAY_WEBHOOK_SECRET
-      const computedHash = crypto.createHmac('sha256', publicKey).update(body).digest('base64')
       logger.warn(
         {
-          signature: signature,
-          computedHash: computedHash,
-          bodyLength: body.length,
-          bodyPreview: body.substring(0, 100),
+          context: {
+            bodyLength: body.length,
+            contentType: request.headers.get('content-type'),
+          },
         },
-        'Webhook signature validation failed'
+        '[Webhook/AbacatePay] Missing signature header'
       )
-      return NextResponse.json(
-        { error: 'Invalid signature' },
-        { status: 401 }
-      )
+      return apiError('Missing signature', 401)
     }
 
-    logger.info('[Webhook/AbacatePay] Signature validated successfully')
-
-    // Validate payload structure
-    // AbacatePay sends "event" field, not "type"
-    const eventType = payload.type || payload.event
-    if (!payload.id || !eventType || !payload.data) {
-      logger.warn({ payload: JSON.stringify(payload).substring(0, 200) }, 'Invalid webhook payload structure')
-      return NextResponse.json(
-        { error: 'Invalid webhook payload' },
-        { status: 400 }
+    if (!verifyAbacatePayWebhookSignature(body, signature, env.ABACATEPAY_WEBHOOK_SECRET)) {
+      logger.warn(
+        {
+          context: {
+            bodyLength: body.length,
+            signatureLength: signature.length,
+          },
+        },
+        '[Webhook/AbacatePay] Invalid signature'
       )
+      return apiError('Invalid signature', 401)
+    }
+
+    const payloadResult = billingWebhookPayloadSchema.safeParse(JSON.parse(body))
+
+    if (!payloadResult.success) {
+      logger.warn(
+        {
+          context: {
+            issues: payloadResult.error.issues.map((issue) => ({
+              path: issue.path.join('.'),
+              message: issue.message,
+            })),
+          },
+        },
+        '[Webhook/AbacatePay] Invalid payload structure'
+      )
+      return apiError('Invalid webhook payload', 400)
+    }
+
+    const payload = payloadResult.data
+    const eventType = payload.type ?? payload.event
+
+    if (!eventType) {
+      logger.warn('[Webhook/AbacatePay] Missing normalized event type after schema validation')
+      return apiError('Invalid webhook payload', 400)
     }
 
     // Process webhook - normalize to expected format
@@ -98,36 +86,24 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       data: payload.data,
     }
 
-    logger.info(`[Webhook/AbacatePay] Processing event type: ${eventType}, id: ${payload.id}`)
+    logger.info({ context: { eventId: payload.id, eventType } }, '[Webhook/AbacatePay] Processing event')
     const result = await handlePaymentWebhook(normalizedPayload, 'abacatepay')
 
     logger.info({ context: result }, '[Webhook/AbacatePay] Processing result')
 
     if (!result.processed) {
       // Idempotent success - already processed or expired
-      return NextResponse.json(
-        { ok: true, message: result.message, eventId: result.eventId },
-        { status: 200 }
-      )
+      return apiSuccess({ ok: true, message: result.message, eventId: result.eventId })
     }
 
-    return NextResponse.json(
-      { ok: true, message: result.message, eventId: result.eventId },
-      { status: 200 }
-    )
+    return apiSuccess({ ok: true, message: result.message, eventId: result.eventId })
   } catch (error) {
     logger.error({ err: error }, 'Webhook processing error')
 
     if (error instanceof SyntaxError) {
-      return NextResponse.json(
-        { error: 'Invalid JSON payload' },
-        { status: 400 }
-      )
+      return apiError('Invalid JSON payload', 400)
     }
 
-    return NextResponse.json(
-      { error: 'Webhook processing failed' },
-      { status: 500 }
-    )
+    return apiError('Webhook processing failed', 500, error)
   }
 }

@@ -16,6 +16,7 @@ import type {
   SubscriptionDetails,
   SubscriptionStatus,
 } from './billing-provider'
+import { getBillingPlan } from '@/lib/billing/plans'
 import { logger } from '@/lib/utils/logger'
 
 const API_BASE = 'https://api.abacatepay.com/v1'
@@ -51,7 +52,10 @@ export class AbacatepayProvider implements PaymentProvider {
       const { planType, organizationId, successUrl, returnUrl } = params
 
       // Get plan details
-      const planConfig = this.getPlanConfig(planType)
+      const planConfig = getBillingPlan(planType)
+      if (!planConfig) {
+        throw new Error(`Unknown plan type: ${planType}`)
+      }
 
       // Step 1: Get or create customer
       const customerId = await this.getOrCreateCustomer(
@@ -83,7 +87,7 @@ export class AbacatepayProvider implements PaymentProvider {
               name: planConfig.name,
               description: planConfig.description,
               quantity: 1,
-              price: planConfig.monthlyPrice, // centavos
+              price: planConfig.monthlyPriceInCents,
             },
           ],
           returnUrl,
@@ -319,35 +323,4 @@ export class AbacatepayProvider implements PaymentProvider {
     return map[status] ?? 'past_due'
   }
 
-  /**
-   * Get plan configuration
-   */
-  private getPlanConfig(planType: string): {
-    name: string
-    description: string
-    monthlyPrice: number
-  } {
-    switch (planType) {
-      case 'starter':
-        return {
-          name: 'WhaTrack Starter',
-          description: 'Para começar a rastrear suas vendas com clareza',
-          monthlyPrice: 9700, // R$ 97.00 em centavos
-        }
-      case 'pro':
-        return {
-          name: 'WhaTrack Pro',
-          description: 'Para agências e operações em escala',
-          monthlyPrice: 19700, // R$ 197.00 em centavos
-        }
-      case 'agency':
-        return {
-          name: 'WhaTrack Agency',
-          description: 'Para agências e operações complexas',
-          monthlyPrice: 0, // Sob consulta
-        }
-      default:
-        throw new Error(`Unknown plan type: ${planType}`)
-    }
-  }
 }

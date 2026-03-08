@@ -10,7 +10,7 @@
 
 import { prisma } from '@/lib/db/prisma'
 import { Prisma } from '@db/client'
-import { BILLING_CYCLE_DAYS, PLAN_LIMITS } from '@/lib/billing/providers/metering-constants'
+import { BILLING_CYCLE_DAYS, BILLING_PLANS } from '@/lib/billing/plans'
 import type { PlanType, SubscriptionStatus } from '@/types/billing/billing'
 import { isSubscriptionStatus } from '@/types/billing/billing'
 
@@ -70,7 +70,7 @@ export async function createSubscription(
   }
 
   // Get plan limits
-  const planLimits = PLAN_LIMITS[planType]
+  const plan = BILLING_PLANS[planType]
 
   // Calculate billing cycle dates
   const now = new Date()
@@ -85,8 +85,8 @@ export async function createSubscription(
     providerCustomerId: providerCustomerId || `cust_${organizationId}`,
     providerSubscriptionId: providerSubscriptionId || `sub_${organizationId}`,
     planType,
-    eventLimitPerMonth: planLimits.eventLimitPerMonth,
-    overagePricePerEvent: new Prisma.Decimal(planLimits.overagePricePerEvent),
+    eventLimitPerMonth: plan.eventLimitPerMonth,
+    overagePricePerEvent: new Prisma.Decimal(plan.overagePricePerEvent),
     billingCycleStartDate,
     billingCycleEndDate,
     nextResetDate: billingCycleEndDate,

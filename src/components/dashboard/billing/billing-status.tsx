@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button'
 import { useBillingSubscription } from '@/hooks/billing/use-billing-subscription'
 import { BillingCancelDialog } from './billing-cancel-dialog'
 import { formatDate } from '@/lib/date/format-date'
+import { getBillingPlanLabel } from '@/lib/billing/plans'
 
 type SubscriptionStatusValue = 'active' | 'paused' | 'canceled' | 'past_due'
 
@@ -57,12 +58,6 @@ const statusConfig: Record<SubscriptionStatusValue, StatusConfig> = {
   },
 }
 
-const planNames: Record<string, string> = {
-  starter: 'Starter',
-  pro: 'Pro',
-  agency: 'Agency',
-}
-
 export function BillingStatus() {
   const { subscription, isLoading, error } = useBillingSubscription()
   const [showCancelDialog, setShowCancelDialog] = useState(false)
@@ -71,7 +66,7 @@ export function BillingStatus() {
 
   const status = subscription.status as SubscriptionStatusValue
   const config = statusConfig[status]
-  const planName = planNames[subscription.planType] || subscription.planType
+  const planName = getBillingPlanLabel(subscription.planType)
   const nextResetDate = new Date(subscription.nextResetDate)
   const daysUntilReset = Math.ceil(
     (nextResetDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24),

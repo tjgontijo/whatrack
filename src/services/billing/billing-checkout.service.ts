@@ -5,7 +5,7 @@
  */
 
 import { providerRegistry } from '@/lib/billing/providers/init'
-import type { PlanType } from '@/types/billing/billing'
+import type { SelfServePlanType } from '@/types/billing/billing'
 import { createSubscription } from './billing-subscription.service'
 import { logger } from '@/lib/utils/logger'
 
@@ -14,7 +14,7 @@ import { logger } from '@/lib/utils/logger'
  */
 export interface CreateCheckoutSessionParams {
   organizationId: string
-  planType: PlanType
+  planType: SelfServePlanType
   successUrl: string
   returnUrl: string
   userEmail?: string

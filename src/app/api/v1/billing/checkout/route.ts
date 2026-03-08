@@ -14,6 +14,7 @@ import { createCheckoutSessionWithProvider } from '@/services/billing/billing-ch
 import { logger } from '@/lib/utils/logger'
 import { auth as authClient } from '@/lib/auth/auth'
 import { prisma } from '@/lib/db/prisma'
+import { resolveInternalPath } from '@/lib/utils/internal-path'
 import { cookies } from 'next/headers'
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
@@ -116,15 +117,18 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const isPerson = !!orgProfile?.cpf
 
     // Get the success and return URLs
-    const origin = request.headers.get('origin') || 'http://localhost:3000'
-    const successUrl = `${origin}/billing/success`
-    const returnUrl = `${origin}/billing`
+    const origin = request.nextUrl.origin || request.headers.get('origin') || 'http://localhost:3000'
+    const redirectPath = resolveInternalPath(validated.redirectPath, '/dashboard/billing')
+    const successUrl = new URL('/billing/success', origin)
+    successUrl.searchParams.set('plan', validated.planType)
+    successUrl.searchParams.set('next', redirectPath)
+    const returnUrl = new URL(redirectPath, origin).toString()
 
     // Create checkout session
     const checkoutSession = await createCheckoutSessionWithProvider({
       organizationId: auth.organizationId,
       planType: validated.planType,
-      successUrl,
+      successUrl: successUrl.toString(),
       returnUrl,
       userEmail: user.email,
       userName: user.name,

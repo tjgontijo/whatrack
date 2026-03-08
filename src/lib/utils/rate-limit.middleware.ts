@@ -47,7 +47,7 @@ export const DEFAULT_RATE_LIMITS: Record<string, RateLimitConfig> = {
   },
 
   // Health check: Very restrictive (cron job, single call every 5 min)
-  '/api/v1/jobs/whatsapp-health-check': {
+  '/api/v1/cron/whatsapp/health-check': {
     enabled: true,
     ip: { limit: 60, windowSeconds: 3600 }, // 60 per hour
     org: { limit: 100, windowSeconds: 3600 }, // 100 per hour
@@ -55,7 +55,15 @@ export const DEFAULT_RATE_LIMITS: Record<string, RateLimitConfig> = {
   },
 
   // Webhook retry: Very restrictive (cron job)
-  '/api/v1/jobs/webhook-retry': {
+  '/api/v1/cron/system/webhook-retry': {
+    enabled: true,
+    ip: { limit: 60, windowSeconds: 3600 }, // 60 per hour
+    org: { limit: 100, windowSeconds: 3600 }, // 100 per hour
+    burst: { limit: 2, windowSeconds: 60 }, // 2 per minute
+  },
+
+  // AI classifier: Very restrictive (cron job)
+  '/api/v1/cron/ai/classifier': {
     enabled: true,
     ip: { limit: 60, windowSeconds: 3600 }, // 60 per hour
     org: { limit: 100, windowSeconds: 3600 }, // 100 per hour

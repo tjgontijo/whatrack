@@ -8,79 +8,9 @@ import { toast } from 'sonner'
 import { cn } from '@/lib/utils/utils'
 import { useOrganization } from '@/hooks/organization/use-organization'
 import { apiFetch } from '@/lib/api-client'
+import { BILLING_PLANS, BILLING_PLAN_ORDER, type BillingPlan } from '@/lib/billing/plans'
 
-
-interface Plan {
-  id: string
-  name: string
-  limit: string
-  price: string | null
-  priceValue: string
-  overage: string | null
-  features: string[]
-  additionals: string[]
-  highlighted: boolean
-  agency: boolean
-}
-
-const PLANS: Plan[] = [
-  {
-    id: 'starter',
-    name: 'Starter',
-    limit: '200 eventos / mês',
-    price: 'R$',
-    priceValue: '97',
-    overage: 'R$ 0,25 por evento extra',
-    features: [
-      'Rastreamento de leads e purchases',
-      '1 número de WhatsApp',
-      '1 conta de anúncio',
-      'Relatórios de vendas por campanha',
-      'API de Conversão ativada',
-    ],
-    additionals: [],
-    highlighted: false,
-    agency: false,
-  },
-  {
-    id: 'pro',
-    name: 'Pro',
-    limit: '500 eventos / mês',
-    price: 'R$',
-    priceValue: '197',
-    overage: 'R$ 0,18 por evento extra',
-    features: [
-      'Tudo do Starter',
-      '2 números de WhatsApp',
-      '2 contas de anúncio',
-      'Copilot IA avançado',
-      'Múltiplos membros da equipe',
-      'Relatórios de ROI em tempo real',
-    ],
-    additionals: ['Números adicionais: R$ 69/mês'],
-    highlighted: true,
-    agency: false,
-  },
-  {
-    id: 'agency',
-    name: 'Agency',
-    limit: 'A partir de 10 WhatsApps',
-    price: null,
-    priceValue: 'Sob consulta',
-    overage: null,
-    features: [
-      'Tudo do Pro',
-      'Múltiplos números de WhatsApp',
-      'Contas de anúncio personalizadas',
-      'Agentes IA customizados',
-      'Suporte dedicado + SLA',
-      'Integrações sob medida',
-    ],
-    additionals: [],
-    highlighted: false,
-    agency: true,
-  },
-]
+const PLANS = BILLING_PLAN_ORDER.map((planType) => BILLING_PLANS[planType])
 
 type CheckoutState = 'idle' | 'loading' | 'error'
 
@@ -93,8 +23,8 @@ export function PlanSelector({ onClose: _ }: PlanSelectorProps) {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
   const [state, setState] = useState<CheckoutState>('idle')
 
-  async function handleSelectPlan(plan: Plan) {
-    if (plan.agency) {
+  async function handleSelectPlan(plan: BillingPlan) {
+    if (plan.contactSalesOnly) {
       window.location.href =
         'mailto:contato@whatrack.com?subject=Plano Agency - WhaTrack'
       return
@@ -115,7 +45,7 @@ export function PlanSelector({ onClose: _ }: PlanSelectorProps) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ planType: plan.id }),
+        body: JSON.stringify({ planType: plan.id, redirectPath: '/dashboard/billing' }),
         orgId: org.id,
       })
 
@@ -177,17 +107,17 @@ export function PlanSelector({ onClose: _ }: PlanSelectorProps) {
                     )}
                   </div>
                   <p className="mt-0.5 text-xs text-muted-foreground">
-                    {plan.limit}
+                    {plan.subtitle}
                   </p>
                 </div>
 
                 {/* Preço */}
                 <div className="mb-4">
-                  {plan.price !== null ? (
+                  {plan.pricePrefix !== null ? (
                     <>
                       <div className="flex items-baseline gap-1">
                         <span className="text-xs text-muted-foreground">
-                          {plan.price}
+                          {plan.pricePrefix}
                         </span>
                         <span className="text-2xl font-bold text-foreground">
                           {plan.priceValue}
@@ -196,9 +126,9 @@ export function PlanSelector({ onClose: _ }: PlanSelectorProps) {
                           /mês
                         </span>
                       </div>
-                      {plan.overage && (
+                      {plan.overageLabel && (
                         <p className="mt-1 text-xs text-muted-foreground">
-                          + {plan.overage}
+                          + {plan.overageLabel}
                         </p>
                       )}
                     </>
@@ -228,7 +158,7 @@ export function PlanSelector({ onClose: _ }: PlanSelectorProps) {
                     </>
                   ) : isErrorThis ? (
                     'Tentar novamente'
-                  ) : plan.agency ? (
+                  ) : plan.contactSalesOnly ? (
                     <>
                       <Mail className="mr-1.5 h-3.5 w-3.5" />
                       Falar com vendas

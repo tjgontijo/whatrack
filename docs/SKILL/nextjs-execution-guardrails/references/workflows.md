@@ -80,3 +80,24 @@
 10. Em cleanup estrutural, verificar se restam aliases/wrappers entre dominios sem valor funcional e remover.
 11. Garantir ausencia de arquivos obsoletos, diretorios vazios e codigo morto apos o cleanup.
 12. Entregar com justificativa tecnica curta e verificavel.
+
+## Workflow: Otimizacao de Performance (Dashboard/API GET)
+
+1. Medir baseline da tela/endpoint antes de mudar (TTFR no client e latencia do GET).
+2. Verificar se ha escrita em caminho de leitura (route GET, guard de auth, service de leitura) e remover qualquer side effect.
+3. Garantir contrato paginado no GET de listagem (`page/pageSize` ou `cursor/limit`) com schema Zod dedicado.
+4. Revisar service da listagem:
+   - usar `select` minimo;
+   - evitar `include` amplo;
+   - usar `findMany + count` em paralelo quando houver pagina numerada.
+5. Revisar indices para filtros/ordenacao mais usados pela tela.
+6. No client, aplicar `useInfiniteQuery` e impedir fetch sequencial de todas as paginas no mount.
+7. Aplicar virtualizacao (`react-virtuoso`) para listas com potencial de volume.
+8. Aplicar busca diferida com `useDeferredValue` e threshold minimo (padrao 3 caracteres).
+9. Validar defaults de QueryClient para dashboard (`staleTime`, `gcTime`, `refetchOn*`).
+10. Cobrir com teste(s) direcionado(s):
+   - schema de query paginada;
+   - service de listagem com filtros;
+   - consumo client (primeira pagina + proxima pagina sob demanda).
+11. Reexecutar medicao apos mudancas e registrar ganho/perda com numeros.
+12. Entregar com resumo objetivo: gargalo raiz, alteracoes, evidencias de desempenho, riscos pendentes.

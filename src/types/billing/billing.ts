@@ -8,7 +8,21 @@
 /**
  * Plan types available
  */
-export type PlanType = 'starter' | 'pro' | 'agency'
+export const BILLING_PLAN_TYPES = ['starter', 'pro', 'agency'] as const
+
+export type PlanType = (typeof BILLING_PLAN_TYPES)[number]
+
+export const SELF_SERVE_PLAN_TYPES = ['starter', 'pro'] as const
+
+export type SelfServePlanType = (typeof SELF_SERVE_PLAN_TYPES)[number]
+
+export function isPlanType(value: string): value is PlanType {
+  return BILLING_PLAN_TYPES.includes(value as PlanType)
+}
+
+export function isSelfServePlanType(value: string): value is SelfServePlanType {
+  return SELF_SERVE_PLAN_TYPES.includes(value as SelfServePlanType)
+}
 
 /**
  * Subscription status

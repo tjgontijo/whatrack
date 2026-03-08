@@ -5,27 +5,24 @@ import { useEffect } from 'react'
 import { motion } from 'motion/react'
 import { Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { getBillingPlan } from '@/lib/billing/plans'
+import { resolveInternalPath } from '@/lib/utils/internal-path'
 
-const planNames: Record<string, string> = {
-  starter: 'Starter',
-  pro: 'Pro',
-  agency: 'Agency',
-}
+const SUCCESS_REDIRECT_DELAY_MS = 5000
 
 export default function BillingSuccessPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const plan = searchParams.get('plan') || 'starter'
-  const planName = planNames[plan] || 'Premium'
+  const planName = getBillingPlan(searchParams.get('plan') || '')?.name || 'WhaTrack'
+  const nextPath = resolveInternalPath(searchParams.get('next'), '/dashboard/billing')
 
-  // Auto-redirect após 5 segundos
   useEffect(() => {
     const timer = setTimeout(() => {
-      router.push('/dashboard/billing')
-    }, 8000)
+      router.push(nextPath)
+    }, SUCCESS_REDIRECT_DELAY_MS)
 
     return () => clearTimeout(timer)
-  }, [router])
+  }, [nextPath, router])
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-zinc-950 text-white">
@@ -120,7 +117,7 @@ export default function BillingSuccessPage() {
           className="flex flex-col gap-4 sm:flex-row"
         >
           <Button
-            onClick={() => router.push('/dashboard/billing')}
+            onClick={() => router.push(nextPath)}
             className="h-12 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-8 font-semibold text-white shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/40"
           >
             Ir para o Dashboard

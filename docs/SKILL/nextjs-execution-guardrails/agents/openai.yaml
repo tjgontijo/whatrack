@@ -19,6 +19,9 @@ instructions: |
   - Proibido `any` em services e funcoes de dominio critico.
   - Nunca criar src/middleware.ts — usar src/proxy.ts para interceptacao.
   - Nao adicionar verificacao de role manual apos validatePermissionAccess.
+  - GET de listagem em dashboard/CRUD deve ser paginado (page/pageSize ou cursor/limit), sem retorno de dataset inteiro.
+  - Caminho de leitura deve ser read-only (proibido escrita em guard/GET).
+  - Listagens de dashboard devem usar useInfiniteQuery e virtualizacao quando houver potencial de volume.
 
   Ao concluir, informar: arquivos alterados, comandos executados e riscos pendentes.
 

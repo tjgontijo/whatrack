@@ -15,6 +15,7 @@ import { authClient } from '@/lib/auth/auth-client'
 import { signUpSchema, type SignUpData } from '@/schemas/auth/sign-up'
 import { getAuthErrorMessage } from '@/lib/auth/error-messages'
 import { acceptOrganizationInvitation, buildInvitationQuery } from '@/lib/auth/invitation-client'
+import { resolveInternalPath } from '@/lib/utils/internal-path'
 
 type SignUpErrorShape = {
   code?: string
@@ -37,7 +38,12 @@ export default function SignUpPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const invitationId = searchParams.get('invitationId')
-  const invitationQuery = useMemo(() => buildInvitationQuery(invitationId), [invitationId])
+  const nextParam = searchParams.get('next')
+  const invitationQuery = useMemo(
+    () => buildInvitationQuery(invitationId, nextParam),
+    [invitationId, nextParam]
+  )
+  const nextPath = resolveInternalPath(nextParam, '/dashboard')
 
   const form = useForm<SignUpData>({
     resolver: zodResolver(signUpSchema),
@@ -87,7 +93,7 @@ export default function SignUpPage() {
         toast.success('Conta criada com sucesso!')
       }
 
-      router.push('/dashboard')
+      router.push(nextPath)
     } catch (error) {
       console.error('[sign-up] erro ao criar conta', error)
       toast.error('Falha na comunicação com o servidor. Tente novamente.')

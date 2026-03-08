@@ -5,13 +5,15 @@
  */
 
 import { z } from 'zod'
+import { SELF_SERVE_PLAN_TYPES } from '@/types/billing/billing'
 
 // ============================================
 // Checkout Schemas
 // ============================================
 
 export const checkoutRequestSchema = z.object({
-  planType: z.enum(['starter', 'pro', 'agency']),
+  planType: z.enum(SELF_SERVE_PLAN_TYPES),
+  redirectPath: z.string().max(2048).optional(),
 })
 
 export const checkoutResponseSchema = z.object({
@@ -80,6 +82,55 @@ export const cancelResponseSchema = z.object({
 })
 
 // ============================================
+// Webhook Schemas
+// ============================================
+
+const paymentWebhookEventSchema = z.enum(['billing.paid', 'pix.paid', 'pix.expired'])
+
+export const billingWebhookPayloadSchema = z
+  .object({
+    id: z.string().min(1),
+    type: paymentWebhookEventSchema.optional(),
+    event: paymentWebhookEventSchema.optional(),
+    timestamp: z.string().datetime().optional(),
+    data: z
+      .object({
+        billing: z
+          .object({
+            id: z.string().min(1),
+            status: z.string().min(1),
+            amount: z.number(),
+            products: z
+              .array(
+                z.object({
+                  externalId: z.string().min(1),
+                  name: z.string().min(1),
+                }),
+              )
+              .optional(),
+            customer: z
+              .object({
+                id: z.string().min(1),
+              })
+              .optional(),
+          })
+          .optional(),
+        pixQrCode: z
+          .object({
+            id: z.string().min(1),
+            status: z.string().min(1),
+            amount: z.number(),
+          })
+          .optional(),
+      })
+      .passthrough(),
+  })
+  .refine((payload) => Boolean(payload.type || payload.event), {
+    message: 'Webhook event type is required',
+    path: ['event'],
+  })
+
+// ============================================
 // Type Inference
 // ============================================
 
@@ -91,3 +142,4 @@ export type EventRecordingRequest = z.infer<typeof eventRecordingRequestSchema>
 export type EventRecordingResponse = z.infer<typeof eventRecordingResponseSchema>
 export type CancelRequest = z.infer<typeof cancelRequestSchema>
 export type CancelResponse = z.infer<typeof cancelResponseSchema>
+export type BillingWebhookPayload = z.infer<typeof billingWebhookPayloadSchema>

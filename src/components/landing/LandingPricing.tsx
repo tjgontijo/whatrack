@@ -18,89 +18,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
+import { BILLING_PLANS, BILLING_PLAN_ORDER, type BillingPlan } from '@/lib/billing/plans'
 
-interface Plan {
-  name: string
-  subtitle: string
-  description: string
-  price: string
-  priceValue: string
-  pricePeriod: string
-  features: string[]
-  overage?: {
-    metric: string
-    price: string
-  }
-  additionals?: string[]
-  cta: string
-  highlighted: boolean
-}
-
-const plans: Plan[] = [
-  {
-    name: 'Starter',
-    subtitle: 'Até 100 eventos/mês',
-    description: 'Para começar a rastrear suas vendas com clareza.',
-    price: 'R$',
-    priceValue: '97',
-    pricePeriod: '/mês',
-    features: [
-      'Rastreamento de leads e purchases',
-      '1 número de WhatsApp',
-      '1 conta de anúncio',
-      'Relatórios de vendas por campanha',
-      'API de Conversão ativada',
-    ],
-    overage: {
-      metric: 'por evento extra',
-      price: 'R$ 0,25',
-    },
-    cta: 'Começar agora',
-    highlighted: false,
-  },
-  {
-    name: 'Pro',
-    subtitle: 'Até 500 eventos/mês',
-    description: 'Para agências e operações em escala.',
-    price: 'R$',
-    priceValue: '197',
-    pricePeriod: '/mês',
-    features: [
-      'Tudo do Starter',
-      '2 números de WhatsApp',
-      '2 contas de anúncio',
-      'Copilot IA avançado',
-      'Múltiplos membros da equipe',
-      'Relatórios de ROI em tempo real',
-    ],
-    overage: {
-      metric: 'por evento extra',
-      price: 'R$ 0,18',
-    },
-    additionals: ['Números WhatsApp adicionais: R$ 69/mês'],
-    cta: 'Começar agora',
-    highlighted: true,
-  },
-  {
-    name: 'Agency',
-    subtitle: 'A partir de 10 WhatsApps',
-    description: 'Para agências e operações complexas.',
-    price: 'Sob',
-    priceValue: 'consulta',
-    pricePeriod: '',
-    features: [
-      'Tudo do Pro com customizações',
-      'Múltiplos números de WhatsApp',
-      'Contas de anúncio custom',
-      'Agentes IA personalizados',
-      'Suporte dedicado',
-      'SLA garantido',
-      'Integrações custom',
-    ],
-    cta: 'Falar com time',
-    highlighted: false,
-  },
-]
+const plans = BILLING_PLAN_ORDER.map((planType) => BILLING_PLANS[planType])
 
 interface LandingPricingProps {
   variant?: LandingVariant
@@ -109,7 +29,7 @@ interface LandingPricingProps {
 type CheckoutState = 'idle' | 'loading' | 'error'
 
 interface CheckoutButtonProps {
-  plan: Plan
+  plan: BillingPlan
 }
 
 function CheckoutButton({ plan }: CheckoutButtonProps) {
@@ -133,7 +53,7 @@ function CheckoutButton({ plan }: CheckoutButtonProps) {
     }
 
     // Agency plan — abrir contato
-    if (plan.name === 'Agency') {
+    if (plan.contactSalesOnly) {
       window.location.href = 'mailto:contato@whatrack.com?subject=Plano Agency - WhaTrack'
       return
     }
@@ -149,7 +69,8 @@ function CheckoutButton({ plan }: CheckoutButtonProps) {
           [ORGANIZATION_HEADER]: org.id,
         },
         body: JSON.stringify({
-          planType: plan.name.toLowerCase(),
+          planType: plan.id,
+          redirectPath: '/dashboard/billing',
         }),
       })
 
@@ -372,26 +293,30 @@ export function LandingPricing({ variant = 'generic' }: LandingPricingProps) {
 
                 {/* Pricing */}
                 <div className="mb-8">
-                  {plan.name === 'Agency' ? (
+                  {plan.contactSalesOnly ? (
                     <div className="flex items-baseline gap-1">
                       <span className="font-geist text-3xl font-bold tracking-tight text-emerald-400">
-                        {plan.price} {plan.priceValue}
+                        {plan.priceValue}
                       </span>
                     </div>
                   ) : (
                     <>
                       <div className="flex items-baseline gap-2">
-                        {plan.price && <span className="text-lg text-zinc-400">{plan.price}</span>}
+                        {plan.pricePrefix && (
+                          <span className="text-lg text-zinc-400">{plan.pricePrefix}</span>
+                        )}
                         <span className="font-geist text-5xl font-bold tracking-tight">
                           {plan.priceValue}
                         </span>
-                        {plan.pricePeriod && <span className="text-lg text-zinc-400">{plan.pricePeriod}</span>}
+                        {plan.pricePeriod && (
+                          <span className="text-lg text-zinc-400">{plan.pricePeriod}</span>
+                        )}
                       </div>
 
                       {/* Overage pricing */}
-                      {plan.overage && (
+                      {plan.overageLabel && (
                         <div className="mt-3 text-sm text-zinc-400">
-                          <span>{plan.overage.price} {plan.overage.metric}</span>
+                          <span>{plan.overageLabel}</span>
                         </div>
                       )}
                     </>

@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button'
 import { authClient } from '@/lib/auth/auth-client'
 import { getAuthErrorMessage } from '@/lib/auth/error-messages'
 import { acceptOrganizationInvitation, buildInvitationQuery } from '@/lib/auth/invitation-client'
+import { resolveInternalPath } from '@/lib/utils/internal-path'
 
 const loginSchema = z.object({
   email: z.string().trim().min(1, 'Informe o seu email.').email('Email inválido.'),
@@ -30,7 +31,12 @@ export default function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const invitationId = searchParams.get('invitationId')
-  const invitationQuery = useMemo(() => buildInvitationQuery(invitationId), [invitationId])
+  const nextParam = searchParams.get('next')
+  const invitationQuery = useMemo(
+    () => buildInvitationQuery(invitationId, nextParam),
+    [invitationId, nextParam]
+  )
+  const nextPath = resolveInternalPath(nextParam, '/dashboard')
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -68,7 +74,7 @@ export default function LoginPage() {
         } else {
           toast.success('Login realizado com sucesso!')
         }
-        router.push('/dashboard')
+        router.push(nextPath)
       }
     } catch (error) {
       console.error('[login] erro ao autenticar', error)

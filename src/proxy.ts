@@ -1,50 +1,30 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-
-const PUBLIC_ROUTES = ['/', '/pricing', '/privacy', '/terms', '/solucoes']
-const AUTH_ROUTES = ['/sign-in', '/sign-up', '/forgot-password', '/reset-password', '/accept-invitation']
-
-const PUBLIC_API_PREFIXES = [
-  '/api/v1/auth',
-  '/api/v1/contact',
-  '/api/v1/meta-ads/metrics',
-  '/api/v1/whatsapp/instances',
-  '/api/v1/whatsapp/webhook',
-  '/api/v1/billing/plans',
-  '/api/v1/billing/webhook',
-  '/api/v1/invitations',
-]
+import {
+  buildSignInRedirectPath,
+  isAuthPagePath,
+  isPublicApiPath,
+  isPublicPagePath,
+} from '@/lib/auth/proxy-policy'
 
 function isApiRoute(pathname: string) {
   return pathname.startsWith('/api/')
-}
-
-function isPublicPage(pathname: string) {
-  return PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`))
-}
-
-function isAuthPage(pathname: string) {
-  return AUTH_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`))
-}
-
-function isPublicApi(pathname: string) {
-  return PUBLIC_API_PREFIXES.some((prefix) => pathname.startsWith(prefix))
-}
-
-function looksLikeSessionCookie(v?: string) {
-  if (!v) return false
-  const dot = v.indexOf('.')
-  if (dot <= 0) return false
-  if (dot === v.length - 1) return false
-  if (v.length < 30) return false
-  return true
 }
 
 function unauthorizedResponse(request: NextRequest) {
   if (isApiRoute(request.nextUrl.pathname)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
-  return NextResponse.redirect(new URL('/sign-in', request.url))
+
+  const signInPath = buildSignInRedirectPath(request.nextUrl.pathname, request.nextUrl.search)
+  return NextResponse.redirect(new URL(signInPath, request.url))
+}
+
+function hasSessionCookie(request: NextRequest) {
+  return Boolean(
+    request.cookies.get('better-auth.session_token')?.value ||
+      request.cookies.get('__Secure-better-auth.session_token')?.value
+  )
 }
 
 import { randomUUID } from 'crypto'
@@ -53,16 +33,11 @@ import { requestContextStorage } from '@/lib/utils/request-context'
 export function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
-  if (isPublicPage(pathname) || isAuthPage(pathname) || isPublicApi(pathname)) {
+  if (isPublicPagePath(pathname) || isAuthPagePath(pathname) || isPublicApiPath(pathname)) {
     return NextResponse.next()
   }
 
-  const sessionToken = request.cookies.get('better-auth.session_token')?.value
-  const secureSessionToken = request.cookies.get('__Secure-better-auth.session_token')?.value
-  const hasPlausibleCookie =
-    looksLikeSessionCookie(sessionToken) || looksLikeSessionCookie(secureSessionToken)
-
-  if (!hasPlausibleCookie) {
+  if (!hasSessionCookie(request)) {
     return unauthorizedResponse(request)
   }
 
