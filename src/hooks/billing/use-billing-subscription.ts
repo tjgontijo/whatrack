@@ -32,13 +32,16 @@ async function fetchBillingData(
 /**
  * Hook centralizado com cache (TanStack Query) para evitar múltiplas chamadas redundantes.
  */
-export function useBillingSubscription(): UseBillingSubscriptionReturn {
+export function useBillingSubscription(
+  organizationIdOverride?: string | null,
+): UseBillingSubscriptionReturn {
   const { data: org, isLoading: orgLoading } = useOrganization()
+  const organizationId = organizationIdOverride ?? org?.id
 
   const query = useQuery({
-    queryKey: ['billing', 'subscription-usage', org?.id],
-    queryFn: () => fetchBillingData(org!.id),
-    enabled: !!org?.id,
+    queryKey: ['billing', 'subscription-usage', organizationId],
+    queryFn: () => fetchBillingData(organizationId!),
+    enabled: !!organizationId,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     retry: 1,
@@ -47,7 +50,7 @@ export function useBillingSubscription(): UseBillingSubscriptionReturn {
   return {
     subscription: query.data?.subscription ?? null,
     usage: query.data?.usage ?? null,
-    isLoading: (query.isLoading && !!org?.id) || orgLoading,
+    isLoading: organizationIdOverride ? query.isLoading : (query.isLoading && !!organizationId) || orgLoading,
     error: query.error as Error | null,
     refetch: () => query.refetch(),
   }

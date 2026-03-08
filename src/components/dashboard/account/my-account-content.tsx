@@ -4,8 +4,8 @@ import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
-import { useAuthorization } from '@/hooks/auth/use-authorization'
 import { authClient } from '@/lib/auth/auth-client'
+import { isOwner } from '@/lib/auth/rbac/roles'
 import { getAuthErrorMessage } from '@/lib/auth/error-messages'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -18,6 +18,7 @@ import { OnboardingDialog } from '@/components/dashboard/organization/onboarding
 import { AccountProfileCard, type AccountProfile } from './account-profile-card'
 import { AccountOrganizationCard, type AccountOrganization } from './account-organization-card'
 import { AccountBillingCard } from './account-billing-card'
+import { AccountPageSkeleton } from './account-page-skeleton'
 import { apiFetch } from '@/lib/api-client'
 
 async function fetchJson<T>(url: string, init?: RequestInit & { orgId?: string }): Promise<T> {
@@ -26,18 +27,23 @@ async function fetchJson<T>(url: string, init?: RequestInit & { orgId?: string }
 
 
 export function MyAccountContent() {
-  const { data: org } = useOrganization()
+  const { data: org, isLoading: organizationSessionLoading } = useOrganization()
   const organizationId = org?.id
   const queryClient = useQueryClient()
-  const authorization = useAuthorization()
-  const { subscription, isLoading: billingLoading } = useBillingSubscription()
+  const { subscription, isLoading: billingLoading } = useBillingSubscription(organizationId)
 
-  const { data: account } = useQuery({
+  const {
+    data: account,
+    isLoading: accountLoading,
+  } = useQuery({
     queryKey: ['me', 'account'],
     queryFn: () => fetchJson<AccountProfile>('/api/v1/me/account'),
   })
 
-  const { data: organization } = useQuery({
+  const {
+    data: organization,
+    isLoading: organizationLoading,
+  } = useQuery({
     queryKey: ['organizations', 'me', organizationId],
     queryFn: () => fetchJson<AccountOrganization>('/api/v1/organizations/me', {
       orgId: organizationId,
@@ -50,7 +56,13 @@ export function MyAccountContent() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [isFiscalDialogOpen, setIsFiscalDialogOpen] = useState(false)
 
-  const canManageOrganizationSettings = authorization.isOwner
+  const canManageOrganizationSettings = isOwner(organization?.currentUserRole)
+
+  const isInitialLoading =
+    organizationSessionLoading ||
+    accountLoading ||
+    (!!organizationId && organizationLoading) ||
+    (!!organizationId && billingLoading)
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data: UpdateMeAccountInput) =>
@@ -108,6 +120,10 @@ export function MyAccountContent() {
       toast.error(error.message)
     },
   })
+
+  if (isInitialLoading) {
+    return <AccountPageSkeleton />
+  }
 
   return (
     <div className="space-y-6">

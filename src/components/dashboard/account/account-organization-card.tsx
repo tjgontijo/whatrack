@@ -15,6 +15,7 @@ export type AccountOrganization = {
   taxStatus: string | null
   city: string | null
   state: string | null
+  currentUserRole?: string
   updatedAt: string
 }
 
