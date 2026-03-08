@@ -13,13 +13,11 @@ import { Input } from '@/components/ui/input'
 import { useOrganization } from '@/hooks/organization/use-organization'
 import type { SubscriptionResponse } from '@/schemas/billing/billing-schemas'
 import type { UpdateMeAccountInput } from '@/schemas/me/me-account-schemas'
-import type { UpdateOrganizationInput } from '@/schemas/organizations/organization-schemas'
 import { useBillingSubscription } from '@/hooks/billing/use-billing-subscription'
+import { OnboardingDialog } from '@/components/dashboard/organization/onboarding-dialog'
 import { AccountProfileCard, type AccountProfile } from './account-profile-card'
 import { AccountOrganizationCard, type AccountOrganization } from './account-organization-card'
 import { AccountBillingCard } from './account-billing-card'
-
-
 import { apiFetch } from '@/lib/api-client'
 
 async function fetchJson<T>(url: string, init?: RequestInit & { orgId?: string }): Promise<T> {
@@ -44,13 +42,13 @@ export function MyAccountContent() {
     queryFn: () => fetchJson<AccountOrganization>('/api/v1/organizations/me', {
       orgId: organizationId,
     }),
-
     enabled: !!organizationId,
   })
 
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [isFiscalDialogOpen, setIsFiscalDialogOpen] = useState(false)
 
   const canManageOrganizationSettings = authorization.isOwner
 
@@ -111,25 +109,6 @@ export function MyAccountContent() {
     },
   })
 
-  const updateOrganizationMutation = useMutation({
-    mutationFn: async (data: UpdateOrganizationInput) =>
-      fetchJson<AccountOrganization>('/api/v1/organizations/me', {
-        method: 'PATCH',
-        orgId: organizationId,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      }),
-    onSuccess: () => {
-      toast.success('Organização atualizada com sucesso')
-      void queryClient.invalidateQueries({ queryKey: ['organizations', 'me'] })
-      void queryClient.invalidateQueries({ queryKey: ['organizations', 'me', organizationId] })
-      void queryClient.invalidateQueries({ queryKey: ['organizations', 'me', 'authorization'] })
-    },
-    onError: (error: Error) => {
-      toast.error(error.message)
-    },
-  })
-
   return (
     <div className="space-y-6">
       {account ? (
@@ -183,13 +162,23 @@ export function MyAccountContent() {
       </Card>
 
       {organization ? (
-        <AccountOrganizationCard
-          key={`${organization.id}:${organization.updatedAt}:${organization.documentNumber ?? ''}`}
-          organization={organization}
-          canManageOrganizationSettings={canManageOrganizationSettings}
-          isPending={updateOrganizationMutation.isPending}
-          onSubmit={(data) => updateOrganizationMutation.mutate(data)}
-        />
+        <>
+          <AccountOrganizationCard
+            organization={organization}
+            canManageOrganizationSettings={canManageOrganizationSettings}
+            onEdit={() => setIsFiscalDialogOpen(true)}
+          />
+
+          {isFiscalDialogOpen ? (
+            <OnboardingDialog
+              key={`${organization.id}:${organization.updatedAt}:${organization.documentNumber ?? ''}`}
+              open={isFiscalDialogOpen}
+              mode="edit"
+              initialOrganization={organization}
+              onOpenChange={setIsFiscalDialogOpen}
+            />
+          ) : null}
+        </>
       ) : null}
 
       <AccountBillingCard

@@ -11,6 +11,7 @@ import {
   validateIdentityDocument,
 } from '@/lib/document/document-identity'
 import type { UpdateOrganizationInput } from '@/schemas/organizations/organization-schemas'
+import type { CompanyLookupData } from '@/schemas/organizations/organization-onboarding'
 import { logger } from '@/lib/utils/logger'
 
 type ServiceError = {
@@ -32,6 +33,8 @@ type OrganizationFiscalSnapshot = OrganizationIdentitySnapshot & {
   city: string | null
   state: string | null
 }
+
+type CompanyLookupInput = NonNullable<UpdateOrganizationInput['companyLookupData']>
 
 function resolveIdentitySnapshot(input: {
   profileCpf?: string | null
@@ -75,6 +78,74 @@ function resolveFiscalSnapshot(input: {
     taxStatus: input.companyTaxStatus?.trim() || null,
     city: input.companyCity?.trim() || null,
     state: input.companyState?.trim().toUpperCase() || null,
+  }
+}
+
+function parseOptionalDate(value?: string | null): Date | null {
+  if (!value) return null
+
+  const parsed = new Date(value)
+  if (Number.isNaN(parsed.getTime())) return null
+
+  return parsed
+}
+
+function resolveCompanyName(input: {
+  companyLookupData?: CompanyLookupData | null
+  explicitName?: string
+  fallbackName: string
+}) {
+  const fromLookup =
+    input.companyLookupData?.razaoSocial?.trim() || input.companyLookupData?.nomeFantasia?.trim()
+
+  if (fromLookup) return fromLookup
+  if (input.explicitName?.trim()) return input.explicitName.trim()
+
+  return input.fallbackName
+}
+
+function buildCompanyPersistenceData(input: {
+  companyLookupData: CompanyLookupInput
+  fallbackName: string
+  userId: string
+}) {
+  const companyName = resolveCompanyName({
+    companyLookupData: input.companyLookupData,
+    fallbackName: input.fallbackName,
+  })
+
+  return {
+    cnpj: normalizeDocumentNumber(input.companyLookupData.cnpj) ?? '',
+    razaoSocial: companyName,
+    nomeFantasia: input.companyLookupData.nomeFantasia?.trim() || null,
+    cnaeCode: input.companyLookupData.cnaeCode || '',
+    cnaeDescription: input.companyLookupData.cnaeDescription || '',
+    municipio: input.companyLookupData.municipio || '',
+    uf: (input.companyLookupData.uf || '').trim().toUpperCase(),
+    tipo: input.companyLookupData.tipo || null,
+    porte: input.companyLookupData.porte || null,
+    naturezaJuridica: input.companyLookupData.naturezaJuridica || null,
+    capitalSocial:
+      typeof input.companyLookupData.capitalSocial === 'number'
+        ? new Prisma.Decimal(input.companyLookupData.capitalSocial)
+        : null,
+    situacao: input.companyLookupData.situacao || null,
+    dataAbertura: parseOptionalDate(input.companyLookupData.dataAbertura),
+    dataSituacao: parseOptionalDate(input.companyLookupData.dataSituacao),
+    logradouro: input.companyLookupData.logradouro || null,
+    numero: input.companyLookupData.numero || null,
+    complemento: input.companyLookupData.complemento || null,
+    bairro: input.companyLookupData.bairro || null,
+    cep: input.companyLookupData.cep || null,
+    email: input.companyLookupData.email || null,
+    telefone: input.companyLookupData.telefone || null,
+    qsa: input.companyLookupData.qsa
+      ? (input.companyLookupData.qsa as unknown as Prisma.InputJsonValue)
+      : undefined,
+    atividadesSecundarias: input.companyLookupData.atividadesSecundarias
+      ? (input.companyLookupData.atividadesSecundarias as unknown as Prisma.InputJsonValue)
+      : undefined,
+    authorizedByUserId: input.userId,
   }
 }
 
@@ -230,12 +301,42 @@ export async function updateOrganizationMe(input: {
     return { error: identityValidation.error, status: 400 }
   }
 
+  const normalizedDocument = identityValidation.normalizedDocument
+  const isUpdatingToNewCompanyIdentity =
+    nextOrganizationType === 'pessoa_juridica' &&
+    (!!normalizedDocument &&
+      (currentIdentity.organizationType !== 'pessoa_juridica' ||
+        currentIdentity.documentNumber !== normalizedDocument))
+
+  if (isUpdatingToNewCompanyIdentity && !input.data.companyLookupData) {
+    return {
+      error: 'Dados da Receita Federal são obrigatórios para atualizar pessoa jurídica.',
+      status: 400,
+    }
+  }
+
+  if (nextOrganizationType === 'pessoa_juridica' && input.data.companyLookupData && normalizedDocument) {
+    const lookupCnpj = normalizeDocumentNumber(input.data.companyLookupData.cnpj)
+    if (lookupCnpj !== normalizedDocument) {
+      return { error: 'CNPJ consultado difere do documento informado.', status: 400 }
+    }
+  }
+
   const before = {
     name: current?.name ?? null,
     organizationType: currentIdentity.organizationType,
     documentType: currentIdentity.documentType,
     documentNumber: currentIdentity.documentNumber,
   }
+
+  const resolvedOrganizationName =
+    nextOrganizationType === 'pessoa_juridica'
+      ? resolveCompanyName({
+          companyLookupData: input.data.companyLookupData,
+          explicitName: input.data.name,
+          fallbackName: current?.name ?? 'Minha Organização',
+        })
+      : input.data.name
 
   let updatedOrganization: {
     id: string
@@ -253,11 +354,9 @@ export async function updateOrganizationMe(input: {
       const updated = await tx.organization.update({
         where: { id: input.organizationId },
         data: {
-          ...(input.data.name !== undefined ? { name: input.data.name } : {}),
+          ...(resolvedOrganizationName !== undefined ? { name: resolvedOrganizationName } : {}),
         },
       })
-
-      const normalizedDocument = identityValidation.normalizedDocument
 
       if (nextOrganizationType === 'pessoa_fisica') {
         await tx.organizationProfile.upsert({
@@ -278,25 +377,40 @@ export async function updateOrganizationMe(input: {
           throw new Error('documentNumber é obrigatório para pessoa jurídica.')
         }
 
+        const companyPersistenceData = input.data.companyLookupData
+          ? buildCompanyPersistenceData({
+              companyLookupData: input.data.companyLookupData,
+              fallbackName: resolvedOrganizationName ?? updated.name,
+              userId: input.userId,
+            })
+          : null
+
         await tx.organizationCompany.upsert({
           where: { organizationId: input.organizationId },
-          update: {
-            cnpj: normalizedDocument,
-            ...(input.data.name !== undefined
-              ? { razaoSocial: input.data.name, nomeFantasia: input.data.name }
-              : {}),
-          },
-          create: {
-            organizationId: input.organizationId,
-            cnpj: normalizedDocument,
-            razaoSocial: input.data.name ?? updated.name,
-            nomeFantasia: input.data.name ?? updated.name,
-            cnaeCode: '',
-            cnaeDescription: '',
-            municipio: '',
-            uf: '',
-            authorizedByUserId: input.userId,
-          },
+          update:
+            companyPersistenceData ??
+            {
+              cnpj: normalizedDocument,
+              ...(resolvedOrganizationName !== undefined
+                ? { razaoSocial: resolvedOrganizationName, nomeFantasia: resolvedOrganizationName }
+                : {}),
+            },
+          create: companyPersistenceData
+            ? {
+                organizationId: input.organizationId,
+                ...companyPersistenceData,
+              }
+            : {
+                organizationId: input.organizationId,
+                cnpj: normalizedDocument,
+                razaoSocial: resolvedOrganizationName ?? updated.name,
+                nomeFantasia: resolvedOrganizationName ?? updated.name,
+                cnaeCode: '',
+                cnaeDescription: '',
+                municipio: '',
+                uf: '',
+                authorizedByUserId: input.userId,
+              },
         })
 
         await tx.organizationProfile.upsert({

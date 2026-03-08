@@ -2,54 +2,31 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useQueryClient, useQuery, useMutation } from '@tanstack/react-query'
-import { Building2, UserRound, ArrowLeft, Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { AlertCircle, ArrowLeft, Building2, CheckCircle2, Loader2, UserRound } from 'lucide-react'
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
 import { toast } from 'sonner'
 
-import { authClient } from '@/lib/auth/auth-client'
 import { apiFetch } from '@/lib/api-client'
+import { authClient } from '@/lib/auth/auth-client'
+import { validateDocumentByType } from '@/lib/document/document-identity'
 import { applyCpfCnpjMask, stripCpfCnpj } from '@/lib/mask/cpf-cnpj'
 import {
-  WHATSAPP_MASK_MAX_LENGTH,
   applyWhatsAppMask,
   removeWhatsAppMask,
   validateWhatsApp,
+  WHATSAPP_MASK_MAX_LENGTH,
 } from '@/lib/mask/phone-mask'
-import { validateDocumentByType } from '@/lib/document/document-identity'
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog'
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
+import type { CompanyLookupData } from '@/schemas/organizations/organization-onboarding'
+import type { UpdateOrganizationInput } from '@/schemas/organizations/organization-schemas'
 import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
 type Step = 'type-select' | 'individual' | 'company' | 'phone'
 type EntityType = 'individual' | 'company'
-
-type CompanyLookupData = {
-  cnpj: string
-  razaoSocial: string
-  nomeFantasia?: string
-  cnaeCode?: string
-  cnaeDescription?: string
-  municipio?: string
-  uf?: string
-  tipo?: string
-  porte?: string
-  naturezaJuridica?: string
-  capitalSocial?: number
-  situacao?: string
-  dataAbertura?: string
-  dataSituacao?: string
-  logradouro?: string
-  numero?: string
-  complemento?: string
-  bairro?: string
-  cep?: string
-  email?: string
-  telefone?: string
-  qsa?: Array<{ nome: string; qual: string }>
-  atividadesSecundarias?: Array<{ code: string; text: string }>
-}
+type OnboardingDialogMode = 'create' | 'edit'
 
 type CreateOrgResponse = {
   id?: string
@@ -57,26 +34,123 @@ type CreateOrgResponse = {
   error?: string
 }
 
-type OnboardingDialogProps = {
-  open: boolean
+type OnboardingDialogOrganization = {
+  id: string
+  name: string
+  organizationType: 'pessoa_fisica' | 'pessoa_juridica' | null
+  documentType: 'cpf' | 'cnpj' | null
+  documentNumber: string | null
+  legalName?: string | null
+  tradeName?: string | null
+  taxStatus?: string | null
+  city?: string | null
+  state?: string | null
 }
 
-export function OnboardingDialog({ open }: OnboardingDialogProps) {
+type OnboardingDialogProps = {
+  open: boolean
+  mode?: OnboardingDialogMode
+  onOpenChange?: (open: boolean) => void
+  initialOrganization?: OnboardingDialogOrganization | null
+}
+
+function getEntityTypeFromOrganizationType(
+  organizationType: OnboardingDialogOrganization['organizationType'],
+): EntityType | null {
+  if (organizationType === 'pessoa_fisica') return 'individual'
+  if (organizationType === 'pessoa_juridica') return 'company'
+  return null
+}
+
+function buildInitialCompanyLookupData(
+  organization?: OnboardingDialogOrganization | null,
+): CompanyLookupData | null {
+  if (
+    organization?.organizationType !== 'pessoa_juridica' ||
+    organization.documentType !== 'cnpj' ||
+    !organization.documentNumber
+  ) {
+    return null
+  }
+
+  return {
+    cnpj: organization.documentNumber,
+    razaoSocial: organization.legalName?.trim() || organization.name,
+    ...(organization.tradeName ? { nomeFantasia: organization.tradeName } : {}),
+    ...(organization.city ? { municipio: organization.city } : {}),
+    ...(organization.state ? { uf: organization.state } : {}),
+    ...(organization.taxStatus ? { situacao: organization.taxStatus } : {}),
+  }
+}
+
+function getInitialStep(mode: OnboardingDialogMode, entityType: EntityType | null): Step {
+  if (mode === 'edit') {
+    if (entityType === 'individual') return 'individual'
+    if (entityType === 'company') return 'company'
+  }
+
+  return 'type-select'
+}
+
+function getStepIndex(step: Step, isEditMode: boolean) {
+  if (step === 'type-select') return 1
+  if (isEditMode) return 2
+  if (step === 'phone') return 3
+  return 2
+}
+
+function renderProgressDots(step: Step, isEditMode: boolean) {
+  const activeDots = isEditMode ? [true, step !== 'type-select'] : [true, step !== 'type-select', step === 'phone']
+
+  return (
+    <div className="flex gap-1.5">
+      {activeDots.map((active, index) => (
+        <div
+          key={index}
+          className={`h-1.5 w-6 rounded-full transition-colors ${active ? 'bg-primary' : 'bg-muted'}`}
+        />
+      ))}
+    </div>
+  )
+}
+
+export function OnboardingDialog({
+  open,
+  mode = 'create',
+  onOpenChange,
+  initialOrganization,
+}: OnboardingDialogProps) {
+  const isEditMode = mode === 'edit'
   const router = useRouter()
   const queryClient = useQueryClient()
   const { data: session } = authClient.useSession()
 
-  const [step, setStep] = useState<Step>('type-select')
-  const [fullName, setFullName] = useState('')
-  const [cpf, setCpf] = useState('')
-  const [cnpj, setCnpj] = useState('')
+  const userName = session?.user?.name ?? ''
+  const initialEntityType = getEntityTypeFromOrganizationType(initialOrganization?.organizationType ?? null)
+  const initialCompanyLookupData = buildInitialCompanyLookupData(initialOrganization)
+  const initialDocumentNumber = initialOrganization?.documentNumber ?? ''
+  const initialCpf =
+    initialOrganization?.documentType === 'cpf' && initialDocumentNumber
+      ? applyCpfCnpjMask(initialDocumentNumber, 'cpf')
+      : ''
+  const initialCnpj =
+    initialOrganization?.documentType === 'cnpj' && initialDocumentNumber
+      ? applyCpfCnpjMask(initialDocumentNumber, 'cnpj')
+      : ''
+  const initialFullName =
+    isEditMode && initialEntityType === 'individual' ? initialOrganization?.name ?? userName : ''
+
+  const [step, setStep] = useState<Step>(getInitialStep(mode, initialEntityType))
+  const [fullName, setFullName] = useState(initialFullName)
+  const [cpf, setCpf] = useState(initialCpf)
+  const [cnpj, setCnpj] = useState(initialCnpj)
   const [cnpjToFetch, setCnpjToFetch] = useState<string | null>(null)
+  const [companyLookupData, setCompanyLookupData] = useState<CompanyLookupData | null>(
+    initialCompanyLookupData,
+  )
   const [phone, setPhone] = useState('')
   const [entityTypeForPhone, setEntityTypeForPhone] = useState<EntityType | null>(null)
 
-  const userName = session?.user?.name ?? ''
-
-  // Lookup CNPJ via TanStack Query — dispara quando cnpjToFetch tem 14 dígitos
   const cnpjQuery = useQuery<CompanyLookupData>({
     queryKey: ['company-lookup', cnpjToFetch],
     queryFn: () => apiFetch(`/api/v1/company/lookup?cnpj=${cnpjToFetch}`) as Promise<CompanyLookupData>,
@@ -84,6 +158,17 @@ export function OnboardingDialog({ open }: OnboardingDialogProps) {
     staleTime: 5 * 60 * 1000,
     retry: false,
   })
+
+  async function invalidateOrganizationState() {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['organizations', 'me', 'completion'] }),
+      queryClient.invalidateQueries({ queryKey: ['organizations', 'me'] }),
+      queryClient.invalidateQueries({ queryKey: ['organizations', 'me', initialOrganization?.id] }),
+      queryClient.invalidateQueries({ queryKey: ['organizations', 'me', 'authorization'] }),
+      queryClient.invalidateQueries({ queryKey: ['whatsapp', 'phone-numbers'] }),
+      queryClient.invalidateQueries({ queryKey: ['meta-ads'] }),
+    ])
+  }
 
   const createOrgMutation = useMutation({
     mutationFn: (payload: object) =>
@@ -97,11 +182,7 @@ export function OnboardingDialog({ open }: OnboardingDialogProps) {
       if (orgId) {
         await authClient.organization.setActive({ organizationId: orgId }).catch(() => null)
       }
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['organizations', 'me', 'completion'] }),
-        queryClient.invalidateQueries({ queryKey: ['organizations', 'me'] }),
-        queryClient.invalidateQueries({ queryKey: ['organizations', 'me', 'authorization'] }),
-      ])
+      await invalidateOrganizationState()
       router.refresh()
     },
     onError: (error) => {
@@ -109,29 +190,73 @@ export function OnboardingDialog({ open }: OnboardingDialogProps) {
     },
   })
 
+  const updateOrganizationMutation = useMutation({
+    mutationFn: (payload: UpdateOrganizationInput) => {
+      if (!initialOrganization?.id) {
+        throw new Error('Organização não encontrada para edição.')
+      }
+
+      return apiFetch('/api/v1/organizations/me', {
+        method: 'PATCH',
+        orgId: initialOrganization.id,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+    },
+    onSuccess: async () => {
+      await invalidateOrganizationState()
+      toast.success('Dados fiscais atualizados com sucesso.')
+      onOpenChange?.(false)
+      router.refresh()
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : 'Erro ao atualizar organização.')
+    },
+  })
+
+  const resolvedCompanyLookupData = cnpjQuery.data ?? companyLookupData
+  const isSubmitting = isEditMode
+    ? updateOrganizationMutation.isPending
+    : createOrgMutation.isPending
+
   function handleSelectType(type: EntityType) {
     if (type === 'individual') {
-      setFullName(userName)
+      setFullName(initialEntityType === 'individual' ? initialOrganization?.name ?? userName : userName)
+      setCpf(initialEntityType === 'individual' ? initialCpf : '')
       setStep('individual')
-    } else {
-      setStep('company')
+      return
     }
+
+    setCnpj(initialEntityType === 'company' ? initialCnpj : '')
+    setCompanyLookupData(initialEntityType === 'company' ? initialCompanyLookupData : null)
+    setCnpjToFetch(null)
+    setStep('company')
   }
 
   function handleBack() {
-    if (step === 'phone') {
-      // Go back from phone step to document step
+    if (!isEditMode && step === 'phone') {
       setStep(entityTypeForPhone === 'individual' ? 'individual' : 'company')
       setPhone('')
-    } else {
-      setStep('type-select')
-      setCpf('')
-      setFullName('')
-      setCnpj('')
-      setCnpjToFetch(null)
-      setPhone('')
-      setEntityTypeForPhone(null)
+      return
     }
+
+    setStep('type-select')
+
+    if (isEditMode) {
+      setFullName(initialFullName)
+      setCpf(initialCpf)
+      setCnpj(initialCnpj)
+      setCompanyLookupData(initialCompanyLookupData)
+      setCnpjToFetch(null)
+      return
+    }
+
+    setCpf('')
+    setFullName('')
+    setCnpj('')
+    setCnpjToFetch(null)
+    setPhone('')
+    setEntityTypeForPhone(null)
   }
 
   function handleMoveToPhoneStep(entityType: EntityType) {
@@ -142,14 +267,51 @@ export function OnboardingDialog({ open }: OnboardingDialogProps) {
 
   function handleCnpjChange(value: string) {
     const masked = applyCpfCnpjMask(value, 'cnpj')
-    setCnpj(masked)
     const digits = stripCpfCnpj(masked)
-    setCnpjToFetch(digits.length === 14 ? digits : null)
+    const shouldReuseInitialLookup = initialEntityType === 'company' && digits === initialDocumentNumber
+
+    setCnpj(masked)
+    setCompanyLookupData(shouldReuseInitialLookup ? initialCompanyLookupData : null)
+    setCnpjToFetch(digits.length === 14 && !shouldReuseInitialLookup ? digits : null)
   }
 
   function handleSubmit(entityType: EntityType) {
     if (!session?.user) {
       toast.error('Sessão inválida. Faça login novamente.')
+      return
+    }
+
+    if (isEditMode) {
+      if (!initialOrganization?.id) {
+        toast.error('Organização não encontrada para edição.')
+        return
+      }
+
+      const payload: UpdateOrganizationInput =
+        entityType === 'individual'
+          ? {
+              name: fullName.trim(),
+              organizationType: 'pessoa_fisica',
+              documentType: 'cpf',
+              documentNumber: stripCpfCnpj(cpf),
+              companyLookupData: null,
+            }
+          : {
+              organizationType: 'pessoa_juridica',
+              documentType: 'cnpj',
+              documentNumber: stripCpfCnpj(cnpj),
+              ...(resolvedCompanyLookupData ? { companyLookupData: resolvedCompanyLookupData } : {}),
+              ...(initialEntityType !== 'company' || stripCpfCnpj(cnpj) !== initialDocumentNumber
+                ? {
+                    name:
+                      resolvedCompanyLookupData?.razaoSocial?.trim() ||
+                      resolvedCompanyLookupData?.nomeFantasia?.trim() ||
+                      initialOrganization.name,
+                  }
+                : {}),
+            }
+
+      updateOrganizationMutation.mutate(payload)
       return
     }
 
@@ -165,7 +327,7 @@ export function OnboardingDialog({ open }: OnboardingDialogProps) {
         : {
             entityType: 'company',
             documentNumber: stripCpfCnpj(cnpj),
-            companyLookupData: cnpjQuery.data,
+            companyLookupData: resolvedCompanyLookupData,
             phone: phoneDigits,
           }
 
@@ -173,58 +335,57 @@ export function OnboardingDialog({ open }: OnboardingDialogProps) {
   }
 
   const cpfDigits = stripCpfCnpj(cpf)
-  const canSubmitPf = fullName.trim().length >= 3 && validateDocumentByType('cpf', cpfDigits)
-  const canSubmitPj = cnpjQuery.isSuccess && !!cnpjQuery.data
-  const isSubmitting = createOrgMutation.isPending
+  const cnpjDigits = stripCpfCnpj(cnpj)
   const phoneDigits = removeWhatsAppMask(phone)
+  const canSubmitPf = fullName.trim().length >= 3 && validateDocumentByType('cpf', cpfDigits)
+  const canSubmitPj =
+    validateDocumentByType('cnpj', cnpjDigits) && !!resolvedCompanyLookupData
   const canSubmitPhone = validateWhatsApp(phoneDigits)
+  const stepIndex = getStepIndex(step, isEditMode)
+  const totalSteps = isEditMode ? 2 : 3
 
   return (
     <Dialog
       open={open}
-      onOpenChange={() => {
-        /* bloqueante — não fecha */
+      onOpenChange={(nextOpen) => {
+        if (isEditMode) {
+          onOpenChange?.(nextOpen)
+        }
       }}
     >
       <DialogTitle asChild>
-        <VisuallyHidden>Cadastro de Organização</VisuallyHidden>
+        <VisuallyHidden>{isEditMode ? 'Editar dados fiscais' : 'Cadastro de Organização'}</VisuallyHidden>
       </DialogTitle>
       <DialogDescription asChild>
-        <VisuallyHidden>Complete o cadastro da sua organização com os dados fiscal</VisuallyHidden>
+        <VisuallyHidden>
+          {isEditMode
+            ? 'Atualize o cadastro fiscal da sua conta.'
+            : 'Complete o cadastro da sua organização com os dados fiscais.'}
+        </VisuallyHidden>
       </DialogDescription>
       <DialogContent
         className="w-full max-w-lg gap-0 overflow-hidden p-0"
-        onInteractOutside={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => e.preventDefault()}
-        showCloseButton={false}
+        onInteractOutside={isEditMode ? undefined : (event) => event.preventDefault()}
+        onEscapeKeyDown={isEditMode ? undefined : (event) => event.preventDefault()}
+        showCloseButton={isEditMode}
       >
-        {/* Indicador de progresso */}
         <div className="flex items-center justify-between border-b px-6 py-4">
           <div className="text-muted-foreground text-xs font-medium">
-            {step === 'type-select' ? 'Passo 1 de 3' : step === 'phone' ? 'Passo 3 de 3' : 'Passo 2 de 3'}
+            Passo {stepIndex} de {totalSteps}
           </div>
-          <div className="flex gap-1.5">
-            <div className="bg-primary h-1.5 w-6 rounded-full" />
-            <div
-              className={`h-1.5 w-6 rounded-full transition-colors ${
-                step !== 'type-select' ? 'bg-primary' : 'bg-muted'
-              }`}
-            />
-            <div
-              className={`h-1.5 w-6 rounded-full transition-colors ${
-                step === 'phone' ? 'bg-primary' : 'bg-muted'
-              }`}
-            />
-          </div>
+          {renderProgressDots(step, isEditMode)}
         </div>
 
-        {/* Passo 1: seleção de tipo */}
         {step === 'type-select' && (
           <div className="space-y-6 p-6">
             <div>
-              <h2 className="text-foreground text-xl font-bold">Como você opera?</h2>
+              <h2 className="text-foreground text-xl font-bold">
+                {isEditMode ? 'Como deseja atualizar a conta?' : 'Como você opera?'}
+              </h2>
               <p className="text-muted-foreground mt-1 text-sm">
-                Isso define o tipo do seu cadastro fiscal.
+                {isEditMode
+                  ? 'Escolha o tipo cadastral que deve ficar vinculado à conta.'
+                  : 'Isso define o tipo do seu cadastro fiscal.'}
               </p>
             </div>
 
@@ -264,13 +425,14 @@ export function OnboardingDialog({ open }: OnboardingDialogProps) {
           </div>
         )}
 
-        {/* Passo 2A: Pessoa Física */}
         {step === 'individual' && (
           <div className="space-y-6 p-6">
             <div>
               <h2 className="text-foreground text-xl font-bold">Seus dados</h2>
               <p className="text-muted-foreground mt-1 text-sm">
-                Confirme seu nome e informe seu CPF.
+                {isEditMode
+                  ? 'Atualize o nome fiscal da conta e confirme o CPF.'
+                  : 'Confirme seu nome e informe seu CPF.'}
               </p>
             </div>
 
@@ -280,7 +442,7 @@ export function OnboardingDialog({ open }: OnboardingDialogProps) {
                 <Input
                   id="full-name"
                   value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
+                  onChange={(event) => setFullName(event.target.value)}
                   placeholder="Seu nome completo"
                   disabled={isSubmitting}
                 />
@@ -294,11 +456,17 @@ export function OnboardingDialog({ open }: OnboardingDialogProps) {
                 <Input
                   id="cpf"
                   value={cpf}
-                  onChange={(e) => setCpf(applyCpfCnpjMask(e.target.value, 'cpf'))}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && canSubmitPf && !isSubmitting) {
-                      e.preventDefault()
-                      handleSubmit('individual')
+                  onChange={(event) => setCpf(applyCpfCnpjMask(event.target.value, 'cpf'))}
+                  onKeyDown={(event) => {
+                    const canContinue = isEditMode ? canSubmitPf : canSubmitPf && !isSubmitting
+                    if (event.key === 'Enter' && canContinue) {
+                      event.preventDefault()
+                      if (isEditMode) {
+                        handleSubmit('individual')
+                        return
+                      }
+
+                      handleMoveToPhoneStep('individual')
                     }
                   }}
                   placeholder="000.000.000-00"
@@ -324,24 +492,32 @@ export function OnboardingDialog({ open }: OnboardingDialogProps) {
               </Button>
               <Button
                 type="button"
-                onClick={() => handleMoveToPhoneStep('individual')}
+                onClick={() => {
+                  if (isEditMode) {
+                    handleSubmit('individual')
+                    return
+                  }
+
+                  handleMoveToPhoneStep('individual')
+                }}
                 disabled={!canSubmitPf || isSubmitting}
                 className="gap-1.5"
               >
                 {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-                Próximo
+                {isEditMode ? 'Salvar dados fiscais' : 'Próximo'}
               </Button>
             </div>
           </div>
         )}
 
-        {/* Passo 2B: Pessoa Jurídica */}
         {step === 'company' && (
           <div className="space-y-6 p-6">
             <div>
               <h2 className="text-foreground text-xl font-bold">Dados da empresa</h2>
               <p className="text-muted-foreground mt-1 text-sm">
-                Informe o CNPJ para buscar os dados automaticamente.
+                {isEditMode
+                  ? 'Informe o CNPJ para atualizar os dados automaticamente.'
+                  : 'Informe o CNPJ para buscar os dados automaticamente.'}
               </p>
             </div>
 
@@ -352,10 +528,16 @@ export function OnboardingDialog({ open }: OnboardingDialogProps) {
                   <Input
                     id="cnpj"
                     value={cnpj}
-                    onChange={(e) => handleCnpjChange(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && canSubmitPj && !isSubmitting) {
-                        e.preventDefault()
+                    onChange={(event) => handleCnpjChange(event.target.value)}
+                    onKeyDown={(event) => {
+                      const canContinue = canSubmitPj && !isSubmitting
+                      if (event.key === 'Enter' && canContinue) {
+                        event.preventDefault()
+                        if (isEditMode) {
+                          handleSubmit('company')
+                          return
+                        }
+
                         handleMoveToPhoneStep('company')
                       }
                     }}
@@ -365,7 +547,7 @@ export function OnboardingDialog({ open }: OnboardingDialogProps) {
                     className={
                       cnpjQuery.isError
                         ? 'border-destructive focus-visible:ring-destructive'
-                        : cnpjQuery.isSuccess
+                        : resolvedCompanyLookupData
                           ? 'border-green-500 focus-visible:ring-green-500'
                           : ''
                     }
@@ -373,7 +555,7 @@ export function OnboardingDialog({ open }: OnboardingDialogProps) {
                   {cnpjQuery.isFetching && (
                     <Loader2 className="text-muted-foreground absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin" />
                   )}
-                  {cnpjQuery.isSuccess && (
+                  {!cnpjQuery.isFetching && resolvedCompanyLookupData && (
                     <CheckCircle2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-green-500" />
                   )}
                   {cnpjQuery.isError && (
@@ -389,20 +571,20 @@ export function OnboardingDialog({ open }: OnboardingDialogProps) {
                 )}
               </div>
 
-              {cnpjQuery.isSuccess && cnpjQuery.data && (
+              {resolvedCompanyLookupData && (
                 <div className="bg-muted/50 rounded-lg border p-4 text-sm">
-                  <p className="text-foreground font-semibold">{cnpjQuery.data.razaoSocial}</p>
-                  {cnpjQuery.data.nomeFantasia && (
-                    <p className="text-muted-foreground text-xs">{cnpjQuery.data.nomeFantasia}</p>
+                  <p className="text-foreground font-semibold">{resolvedCompanyLookupData.razaoSocial}</p>
+                  {resolvedCompanyLookupData.nomeFantasia && (
+                    <p className="text-muted-foreground text-xs">{resolvedCompanyLookupData.nomeFantasia}</p>
                   )}
                   <div className="text-muted-foreground mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs">
-                    {cnpjQuery.data.municipio && cnpjQuery.data.uf && (
+                    {resolvedCompanyLookupData.municipio && resolvedCompanyLookupData.uf && (
                       <span>
-                        {cnpjQuery.data.municipio}/{cnpjQuery.data.uf}
+                        {resolvedCompanyLookupData.municipio}/{resolvedCompanyLookupData.uf}
                       </span>
                     )}
-                    {cnpjQuery.data.situacao && (
-                      <span>Situação: {cnpjQuery.data.situacao}</span>
+                    {resolvedCompanyLookupData.situacao && (
+                      <span>Situação: {resolvedCompanyLookupData.situacao}</span>
                     )}
                   </div>
                 </div>
@@ -422,19 +604,25 @@ export function OnboardingDialog({ open }: OnboardingDialogProps) {
               </Button>
               <Button
                 type="button"
-                onClick={() => handleMoveToPhoneStep('company')}
+                onClick={() => {
+                  if (isEditMode) {
+                    handleSubmit('company')
+                    return
+                  }
+
+                  handleMoveToPhoneStep('company')
+                }}
                 disabled={!canSubmitPj || isSubmitting}
                 className="gap-1.5"
               >
                 {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-                Próximo
+                {isEditMode ? 'Salvar dados fiscais' : 'Próximo'}
               </Button>
             </div>
           </div>
         )}
 
-        {/* Passo 3: Telefone Pessoal */}
-        {step === 'phone' && entityTypeForPhone && (
+        {step === 'phone' && entityTypeForPhone && !isEditMode && (
           <div className="space-y-6 p-6">
             <div>
               <h2 className="text-foreground text-xl font-bold">Telefone pessoal</h2>
@@ -449,10 +637,10 @@ export function OnboardingDialog({ open }: OnboardingDialogProps) {
                 <Input
                   id="phone"
                   value={phone}
-                  onChange={(e) => setPhone(applyWhatsAppMask(e.target.value))}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && canSubmitPhone && !isSubmitting) {
-                      e.preventDefault()
+                  onChange={(event) => setPhone(applyWhatsAppMask(event.target.value))}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' && canSubmitPhone && !isSubmitting) {
+                      event.preventDefault()
                       handleSubmit(entityTypeForPhone)
                     }
                   }}

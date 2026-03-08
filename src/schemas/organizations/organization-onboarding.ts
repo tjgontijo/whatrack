@@ -31,7 +31,7 @@ function validateCpf(value: string): boolean {
   return secondCheck === Number(digits[10])
 }
 
-const companyLookupDataSchema = z.object({
+export const companyLookupDataSchema = z.object({
   cnpj: z.string().min(14),
   razaoSocial: z.string().min(2),
   nomeFantasia: z.string().optional(),
@@ -115,6 +115,7 @@ export const organizationOnboardingSchema = z
   })
 
 export type OrganizationOnboardingInput = z.infer<typeof organizationOnboardingSchema>
+export type CompanyLookupData = z.infer<typeof companyLookupDataSchema>
 
 export function normalizeOnboardingDocument(value: string): string {
   return normalizeDocumentNumber(value)

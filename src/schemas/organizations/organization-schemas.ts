@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { companyLookupDataSchema } from './organization-onboarding'
 
 export const updateOrganizationSchema = z
   .object({
@@ -6,6 +7,7 @@ export const updateOrganizationSchema = z
     organizationType: z.enum(['pessoa_fisica', 'pessoa_juridica']).nullable().optional(),
     documentType: z.enum(['cpf', 'cnpj']).nullable().optional(),
     documentNumber: z.string().max(32).nullable().optional(),
+    companyLookupData: companyLookupDataSchema.nullable().optional(),
   })
   .refine((input) => Object.keys(input).length > 0, {
     message: 'Informe ao menos um campo para atualização.',
