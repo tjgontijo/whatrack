@@ -68,8 +68,8 @@ export default function AiAgentsPage() {
   return (
     <PageShell>
       <PageHeader
-        title="IA Copilot Studio"
-        description="Crie múltiplos agentes para interagir e auferir insights preciosos das suas conversas."
+        title="AI Studio Beta"
+        description="Configuração avançada de agentes e skills. O fluxo principal da V1 continua sendo revisão humana em IA Copilot."
         icon={Sparkles}
         actions={
           <div className="flex items-center gap-2">
@@ -100,7 +100,7 @@ export default function AiAgentsPage() {
           <EmptyState
             icon={Bot}
             title="Nenhum Agente Criado"
-            description="Você ainda não possui copilotos configurados. Que tal criar um Auditor de Vendas ou um Analista de Qualidade agora mesmo?"
+            description="Você ainda não possui agentes configurados. Use este espaço para ajustes avançados depois de validar o fluxo principal de aprovações."
             action={
               <Button asChild>
                 <Link href="/dashboard/settings/ai/new">Criar Meu Primeiro Agente</Link>

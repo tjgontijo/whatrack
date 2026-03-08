@@ -28,6 +28,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { apiFetch } from '@/lib/api-client'
+import { AI_INSIGHTS_QUERY_KEY, buildAiInsightsQueryKey, readAiInsightPayload } from '@/lib/ai/insights'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -42,6 +43,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { ChatItem } from './types'
+import type { AiInsightSummary } from '@/types/ai/ai-insight'
 
 interface TicketPanelProps {
   conversationId: string
@@ -108,8 +110,6 @@ export function TicketPanel({ conversationId, organizationId, chat }: TicketPane
   const [showAiApproval, setShowAiApproval] = useState(true)
   const queryClient = useQueryClient()
 
-
-
   const { data, isLoading, error } = useQuery({
     queryKey: ['conversation-ticket', conversationId, organizationId],
     queryFn: async () => {
@@ -129,20 +129,19 @@ export function TicketPanel({ conversationId, organizationId, chat }: TicketPane
 
   const ticket = data
 
-  // Use the same tickets data, or fetch the ai_approval directly
-  const { data: insightsData } = useQuery({
-    queryKey: ['ai-insights', ticket?.id, organizationId],
+  const { data: insightsData } = useQuery<{ items: AiInsightSummary[] }>({
+    queryKey: buildAiInsightsQueryKey({ organizationId }),
     queryFn: async () => {
       const data = await apiFetch(`/api/v1/ai-insights?status=SUGGESTION`, {
         orgId: organizationId,
       })
-      return (data as any) || { items: [] }
+      return (data as { items: AiInsightSummary[] }) || { items: [] }
     },
     enabled: !!ticket?.id,
   })
 
-
-  const currentInsight = insightsData?.items?.find((a: any) => a.ticketId === ticket?.id)
+  const currentInsight = insightsData?.items?.find((insight) => insight.ticketId === ticket?.id)
+  const currentInsightPayload = readAiInsightPayload(currentInsight?.payload)
 
   const { data: stagesData } = useQuery({
     queryKey: ['ticket-stages', organizationId],
@@ -321,20 +320,17 @@ export function TicketPanel({ conversationId, organizationId, chat }: TicketPane
               </div>
               <div className="bg-background/80 border-border/50 mb-3 rounded border p-3 text-sm">
                 <p className="text-muted-foreground mb-2 break-words text-xs leading-relaxed">
-                  "
-                  {(currentInsight?.payload as any)?.reasoning ||
-                    'Insight gerado baseado na conversa.'}
-                  "
+                  "{currentInsightPayload.reasoning || 'Insight gerado baseado na conversa.'}"
                 </p>
                 <div className="bg-card flex items-center justify-between rounded border p-2">
                   <span
                     className="mr-2 truncate text-xs font-medium"
-                    title={(currentInsight?.payload as any)?.itemName}
+                    title={currentInsightPayload.itemName || undefined}
                   >
-                    {(currentInsight?.payload as any)?.itemName || 'Não especificado'}
+                    {currentInsightPayload.itemName || 'Não especificado'}
                   </span>
                   <span className="whitespace-nowrap text-sm font-bold text-green-600">
-                    {formatDealValue((currentInsight?.payload as any)?.dealValue)}
+                    {formatDealValue(currentInsightPayload.dealValue)}
                   </span>
                 </div>
               </div>
@@ -357,7 +353,7 @@ export function TicketPanel({ conversationId, organizationId, chat }: TicketPane
                       queryClient.invalidateQueries({
                         queryKey: ['conversation-ticket', conversationId],
                       })
-                      queryClient.invalidateQueries({ queryKey: ['ai-insights'] })
+                      queryClient.invalidateQueries({ queryKey: AI_INSIGHTS_QUERY_KEY })
                     } catch {
                       toast.error('Erro ao aprovar.', { id: loadingToast })
                     }
@@ -378,7 +374,7 @@ export function TicketPanel({ conversationId, organizationId, chat }: TicketPane
 
                       toast.info('Sugestão rejeitada.')
                       setShowAiApproval(false)
-                      queryClient.invalidateQueries({ queryKey: ['ai-insights'] })
+                      queryClient.invalidateQueries({ queryKey: AI_INSIGHTS_QUERY_KEY })
                     } catch { }
                   }}
                 >

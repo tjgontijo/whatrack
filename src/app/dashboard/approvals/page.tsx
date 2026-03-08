@@ -1,6 +1,5 @@
 'use client'
 
-import React from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Check, X, Sparkles, MessageSquare } from 'lucide-react'
 import { toast } from 'sonner'
@@ -14,62 +13,52 @@ import { Badge } from '@/components/ui/badge'
 import { PageShell, PageHeader, PageContent } from '@/components/dashboard/layout'
 import { LoadingPage, EmptyState } from '@/components/dashboard/states'
 import { useOrganization } from '@/hooks/organization/use-organization'
-import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
+import { apiFetch } from '@/lib/api-client'
+import { AI_INSIGHTS_QUERY_KEY, buildAiInsightsQueryKey, readAiInsightPayload } from '@/lib/ai/insights'
+import type { AiInsightSummary } from '@/types/ai/ai-insight'
 
 export default function ApprovalsPage() {
   const queryClient = useQueryClient()
   const { data: org } = useOrganization()
   const orgId = org?.id
 
-  const { data: insights, isLoading } = useQuery({
-    queryKey: ['ai-insights', 'SUGGESTION', orgId],
+  const { data: insights = [], isLoading } = useQuery<AiInsightSummary[]>({
+    queryKey: buildAiInsightsQueryKey({ organizationId: orgId }),
     enabled: !!orgId,
     queryFn: async () => {
-      const res = await fetch('/api/v1/ai-insights?status=SUGGESTION', {
-        headers: {
-          [ORGANIZATION_HEADER]: orgId!,
-        },
+      const data = await apiFetch('/api/v1/ai-insights?status=SUGGESTION', {
+        orgId: orgId!,
       })
-      if (!res.ok) throw new Error('Falha ao carregar as sugestões da IA.')
-      const data = await res.json()
       return data.items || []
     },
   })
 
   const approveMutation = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`/api/v1/ai-insights/${id}/approve`, {
+      return apiFetch(`/api/v1/ai-insights/${id}/approve`, {
         method: 'PATCH',
-        headers: {
-          [ORGANIZATION_HEADER]: orgId!,
-        },
+        orgId: orgId!,
       })
-      if (!res.ok) throw new Error('Falha ao aprovar a venda.')
-      return res.json()
     },
     onSuccess: () => {
-      toast.success('Venda Aprovada! O Meta Ads foi notificado via CAPI.')
-      queryClient.invalidateQueries({ queryKey: ['ai-insights'] })
+      toast.success('Sugestão aplicada. Ticket fechado e venda registrada.')
+      queryClient.invalidateQueries({ queryKey: AI_INSIGHTS_QUERY_KEY })
     },
     onError: () => {
-      toast.error('Erro ao aprovar a venda.')
+      toast.error('Erro ao aplicar a sugestão.')
     },
   })
 
   const rejectMutation = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`/api/v1/ai-insights/${id}/reject`, {
+      return apiFetch(`/api/v1/ai-insights/${id}/reject`, {
         method: 'PATCH',
-        headers: {
-          [ORGANIZATION_HEADER]: orgId!,
-        },
+        orgId: orgId!,
       })
-      if (!res.ok) throw new Error('Falha ao descartar a sugestão.')
-      return res.json()
     },
     onSuccess: () => {
-      toast.info('Sugestão da IA descartada.')
-      queryClient.invalidateQueries({ queryKey: ['ai-insights'] })
+      toast.info('Sugestão descartada.')
+      queryClient.invalidateQueries({ queryKey: AI_INSIGHTS_QUERY_KEY })
     },
     onError: () => {
       toast.error('Erro ao descartar a sugestão.')
@@ -87,26 +76,26 @@ export default function ApprovalsPage() {
   return (
     <PageShell maxWidth="5xl">
       <PageHeader
-        title="Aprovações do Copilot IA"
-        description="O Mastra AI lê as conversas, detecta as vendas e deixa pré-pronto aqui. Apenas clique em Aprovar para nutrir o Pixel do Meta Ads."
+        title="Aprovações da IA Assistida"
+        description="O Copilot analisa conversas e prepara sugestões para revisão humana. Revise e aplique somente quando fizer sentido."
         icon={Sparkles}
       />
 
       <PageContent>
-        {isLoading && <LoadingPage message="Analizando sugestões da IA..." />}
+        {isLoading && <LoadingPage message="Analisando sugestões da IA..." />}
 
-        {!isLoading && insights?.length === 0 && (
+        {!isLoading && insights.length === 0 && (
           <EmptyState
             title="Nenhuma sugestão por enquanto"
             description="Sua IA está analisando conversas novas. Sugestões de aprovação vão aparecer aqui."
           />
         )}
 
-        {!isLoading && insights && insights.length > 0 && (
+        {!isLoading && insights.length > 0 && (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {insights.map((approval: any) => {
+            {insights.map((approval) => {
               const lead = approval.ticket?.conversation?.lead
-              const confidencePercent = (approval.confidence * 100).toFixed(0)
+              const payload = readAiInsightPayload(approval.payload)
 
               return (
                 <Card
@@ -117,7 +106,7 @@ export default function ApprovalsPage() {
                     <div className="mb-4 flex items-start justify-between gap-4">
                       <div className="flex items-center gap-3">
                         <Avatar className="bg-background h-12 w-12 border shadow-sm">
-                          <AvatarImage src={lead?.profilePicUrl} />
+                          <AvatarImage src={lead?.profilePicUrl || undefined} />
                           <AvatarFallback className="text-primary font-semibold uppercase">
                             {lead?.name?.substring(0, 2) || 'CL'}
                           </AvatarFallback>
@@ -131,7 +120,7 @@ export default function ApprovalsPage() {
                         </div>
                       </div>
                       <Badge className="bg-green-100 text-[10px] uppercase tracking-widest text-green-800 hover:bg-green-100">
-                        {confidencePercent}% certeza
+                        Revisão humana
                       </Badge>
                     </div>
 
@@ -142,7 +131,7 @@ export default function ApprovalsPage() {
                             Item
                           </p>
                           <p className="text-sm font-medium">
-                            {approval.itemName || 'Não especificado'}
+                            {payload.itemName || 'Não especificado'}
                           </p>
                         </div>
                         <div className="text-right">
@@ -150,14 +139,14 @@ export default function ApprovalsPage() {
                             Valor do Deal
                           </p>
                           <p className="text-sm font-bold text-green-600">
-                            {formatDealValue(approval.dealValue)}
+                            {formatDealValue(payload.dealValue)}
                           </p>
                         </div>
                       </div>
 
                       <div className="bg-background/50 border-border/50 text-muted-foreground rounded-lg border p-3 text-xs leading-relaxed">
                         <p className="text-muted-foreground bg-muted/30 mt-2 line-clamp-2 rounded p-2 text-sm italic">
-                          "{(approval.payload as any)?.reasoning || 'Insight gerado...'}"
+                          "{payload.reasoning || 'Insight gerado a partir da conversa.'}"
                         </p>
                       </div>
                     </div>

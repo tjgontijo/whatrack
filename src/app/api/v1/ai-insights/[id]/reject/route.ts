@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 
-import { apiError } from '@/lib/utils/api-response'
+import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { rejectAiInsight } from '@/services/ai/ai-insight-query.service'
 import { logger } from '@/lib/utils/logger'
@@ -19,7 +19,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       return apiError(result.error, result.status)
     }
 
-    return NextResponse.json(result.data)
+    return apiSuccess(result.data)
   } catch (error) {
     logger.error({ err: error }, '[Reject AI Insight] Error')
     return apiError('Erro interno ao descartar insight', 500, error)

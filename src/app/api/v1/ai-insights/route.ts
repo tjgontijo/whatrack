@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 
-import { apiError } from '@/lib/utils/api-response'
+import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { aiInsightsQuerySchema } from '@/schemas/ai/ai-schemas'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { listAiInsights } from '@/services/ai/ai-insight-query.service'
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     }
 
     const insights = await listAiInsights(access.organizationId, parsed.data.status)
-    return NextResponse.json({ items: insights })
+    return apiSuccess({ items: insights })
   } catch (error) {
     logger.error({ err: error }, '[GET ai-insights] Error')
     return apiError('Internal server error', 500, error)

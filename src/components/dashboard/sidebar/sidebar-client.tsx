@@ -304,12 +304,12 @@ export function SidebarClient({ navItems, session: initialSession }: SidebarClie
               <SidebarMenuItem>
                 <SidebarMenuButton
                   asChild
-                  tooltip="Configurações de IA"
+                  tooltip="AI Studio Beta"
                   isActive={pathname === '/dashboard/settings/ai'}
                 >
                   <Link href="/dashboard/settings/ai" onClick={handleNavClick}>
                     <Sparkles className="h-4 w-4" />
-                    <span>IA Copilot</span>
+                    <span>AI Studio Beta</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

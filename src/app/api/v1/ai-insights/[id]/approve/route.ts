@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 
-import { apiError } from '@/lib/utils/api-response'
+import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { approveAiInsightSchema } from '@/schemas/ai/ai-schemas'
+import type { ApproveAiInsightInput } from '@/schemas/ai/ai-schemas'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { approveAiInsight } from '@/services/ai/ai-insight-approval.service'
 import { logger } from '@/lib/utils/logger'
@@ -15,7 +16,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     const insightId = (await params).id
 
-    let payload = {}
+    let payload: ApproveAiInsightInput = {}
     try {
       const raw = await request.json()
       const parsed = approveAiInsightSchema.safeParse(raw)
@@ -36,13 +37,13 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     if ('error' in result) {
       if (result.status === 422 && result.data) {
-        return NextResponse.json(result.data, { status: 422 })
+        return apiSuccess(result.data, 422)
       }
 
       return apiError(result.error, result.status)
     }
 
-    return NextResponse.json(result.data)
+    return apiSuccess(result.data)
   } catch (error) {
     logger.error({ err: error }, '[Approve AI Conversion] Error')
     return apiError('Erro interno ao aprovar conversão', 500, error)
