@@ -4,12 +4,20 @@ import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { getBillingPlanLabel } from '@/lib/billing/plans'
 import { getBillingStatusLabel } from '@/lib/billing/subscription-status'
 import type { SubscriptionResponse } from '@/schemas/billing/billing-schemas'
 
 type AccountBillingCardProps = {
   subscription: SubscriptionResponse | null
+}
+
+function formatPlanLabel(planName: string | null | undefined, planType: string) {
+  if (planName?.trim()) return planName
+
+  return planType
+    .split('-')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
 }
 
 export function AccountBillingCard({
@@ -45,7 +53,7 @@ export function AccountBillingCard({
     )
   }
 
-  const planName = getBillingPlanLabel(subscription.planType)
+  const planName = formatPlanLabel(subscription.planName, subscription.planType)
 
   return (
     <Card>

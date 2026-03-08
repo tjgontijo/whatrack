@@ -18,7 +18,6 @@ import { useBillingSubscription } from '@/hooks/billing/use-billing-subscription
 import { apiFetch } from '@/lib/api-client'
 import { BillingCancelDialog } from './billing-cancel-dialog'
 import { formatDate } from '@/lib/date/format-date'
-import { getBillingPlanLabel } from '@/lib/billing/plans'
 import { getBillingStatusLabel } from '@/lib/billing/subscription-status'
 import { useTransition } from 'react'
 
@@ -98,7 +97,7 @@ export function BillingStatus() {
 
   const status = subscription.status as SubscriptionStatusValue
   const config = statusConfig[status]
-  const planName = getBillingPlanLabel(subscription.planType)
+  const planName = subscription.planName || subscription.planType
   const nextResetDate = new Date(subscription.nextResetDate)
   const daysUntilReset = Math.ceil(
     (nextResetDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24),

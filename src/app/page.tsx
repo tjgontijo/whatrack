@@ -9,9 +9,11 @@ import {
   LandingFooter,
   LANDING_CONTENT,
 } from '@/components/landing'
+import { listPublicBillingPlans } from '@/services/billing/billing-plan-catalog.service'
 
-export default function HomePage() {
+export default async function HomePage() {
   const content = LANDING_CONTENT.generic
+  const plans = await listPublicBillingPlans()
 
   return (
     <div className="bg-background text-foreground flex min-h-screen flex-col">
@@ -20,7 +22,7 @@ export default function HomePage() {
       <LandingProblem content={content.problem} />
       <LandingSolution content={content.solution} />
       <LandingHowItWorks content={content.howItWorks} />
-      <LandingPricing variant="generic" />
+      <LandingPricing variant="generic" plans={plans} />
       <LandingCTA content={content.cta} />
       <LandingFooter />
     </div>

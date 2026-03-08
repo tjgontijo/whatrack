@@ -19,6 +19,7 @@ const providerMock = vi.hoisted(() => ({
 
 const ensurePaymentProvidersMock = vi.hoisted(() => vi.fn())
 const getActiveProviderMock = vi.hoisted(() => vi.fn(() => providerMock))
+const requireCheckoutReadyBillingPlanMock = vi.hoisted(() => vi.fn())
 
 vi.mock('@/lib/db/prisma', () => ({
   prisma: prismaMock,
@@ -31,11 +32,33 @@ vi.mock('@/lib/billing/providers/init', () => ({
   },
 }))
 
+vi.mock('@/services/billing/billing-plan-catalog.service', () => ({
+  BillingPlanCatalogError: class BillingPlanCatalogError extends Error {
+    constructor(
+      message: string,
+      public readonly status: number,
+    ) {
+      super(message)
+    }
+  },
+  requireCheckoutReadyBillingPlan: requireCheckoutReadyBillingPlanMock,
+}))
+
 import { createCheckoutSession } from '@/services/billing/billing-checkout.service'
 
 describe('billing-checkout.service', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    requireCheckoutReadyBillingPlanMock.mockResolvedValue({
+      id: 'plan-starter',
+      slug: 'starter',
+      name: 'Starter',
+      stripePriceId: 'price_starter',
+      syncStatus: 'synced',
+      isActive: true,
+      deletedAt: null,
+      contactSalesOnly: false,
+    })
   })
 
   it('creates a checkout session with resolved customer context and launch URLs', async () => {
@@ -68,7 +91,8 @@ describe('billing-checkout.service', () => {
     expect(providerMock.createCheckoutSession).toHaveBeenCalledWith({
       organizationId: 'org-1',
       planType: 'starter',
-      successUrl: 'https://whatrack.com/billing/success?plan=starter&next=%2Fdashboard%2Fbilling',
+      successUrl:
+        'https://whatrack.com/billing/success?plan=starter&planName=Starter&next=%2Fdashboard%2Fbilling',
       returnUrl: 'https://whatrack.com/dashboard/billing',
       userEmail: 'owner@whatrack.com',
       userName: 'Thiago',

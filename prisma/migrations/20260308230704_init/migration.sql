@@ -849,8 +849,9 @@ CREATE TABLE "ai_schema_fields" (
 CREATE TABLE "ai_insights" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "organizationId" UUID NOT NULL,
-    "ticketId" UUID NOT NULL,
+    "ticketId" UUID,
     "agentId" UUID NOT NULL,
+    "eventType" TEXT,
     "payload" JSONB NOT NULL,
     "status" TEXT NOT NULL DEFAULT 'SUGGESTION',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -882,6 +883,7 @@ CREATE TABLE "org_audit_logs" (
 CREATE TABLE "billing_subscriptions" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "organizationId" UUID NOT NULL,
+    "planId" TEXT,
     "provider" TEXT NOT NULL,
     "providerCustomerId" TEXT NOT NULL,
     "providerSubscriptionId" TEXT,
@@ -955,6 +957,79 @@ CREATE TABLE "billing_plan_templates" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "billing_plan_templates_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "billing_plans" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
+    "description" TEXT,
+    "monthlyPrice" DECIMAL(10,2) NOT NULL,
+    "currency" TEXT NOT NULL DEFAULT 'BRL',
+    "eventLimitPerMonth" INTEGER NOT NULL,
+    "overagePricePerEvent" DECIMAL(5,2) NOT NULL,
+    "maxWhatsAppNumbers" INTEGER NOT NULL,
+    "maxAdAccounts" INTEGER NOT NULL,
+    "maxTeamMembers" INTEGER NOT NULL,
+    "supportLevel" TEXT NOT NULL,
+    "stripeProductId" TEXT,
+    "stripePriceId" TEXT,
+    "syncStatus" TEXT NOT NULL DEFAULT 'pending',
+    "syncError" TEXT,
+    "syncedAt" TIMESTAMP(3),
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "displayOrder" INTEGER NOT NULL DEFAULT 0,
+    "isHighlighted" BOOLEAN NOT NULL DEFAULT false,
+    "contactSalesOnly" BOOLEAN NOT NULL DEFAULT false,
+    "metadata" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "createdBy" TEXT,
+    "deletedAt" TIMESTAMP(3),
+
+    CONSTRAINT "billing_plans_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "billing_plan_history" (
+    "id" TEXT NOT NULL,
+    "planId" TEXT NOT NULL,
+    "action" TEXT NOT NULL,
+    "oldValues" JSONB,
+    "newValues" JSONB,
+    "syncAction" TEXT,
+    "syncResult" JSONB,
+    "syncError" TEXT,
+    "changedBy" TEXT,
+    "changedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "billing_plan_history_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ai_insight_costs" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "organizationId" UUID NOT NULL,
+    "aiInsightId" UUID NOT NULL,
+    "feature" TEXT NOT NULL,
+    "operation" TEXT NOT NULL,
+    "agentName" TEXT NOT NULL,
+    "eventType" TEXT NOT NULL,
+    "inputTokens" INTEGER NOT NULL,
+    "outputTokens" INTEGER NOT NULL,
+    "totalTokens" INTEGER NOT NULL,
+    "modelUsed" TEXT NOT NULL,
+    "inputCost" DECIMAL(10,6) NOT NULL,
+    "outputCost" DECIMAL(10,6) NOT NULL,
+    "totalCost" DECIMAL(10,6) NOT NULL,
+    "latencyMs" INTEGER,
+    "status" TEXT NOT NULL,
+    "errorMessage" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ai_insight_costs_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -1327,6 +1402,9 @@ CREATE INDEX "ai_insights_ticketId_idx" ON "ai_insights"("ticketId");
 CREATE INDEX "ai_insights_agentId_idx" ON "ai_insights"("agentId");
 
 -- CreateIndex
+CREATE INDEX "ai_insights_organizationId_eventType_createdAt_idx" ON "ai_insights"("organizationId", "eventType", "createdAt");
+
+-- CreateIndex
 CREATE INDEX "org_audit_logs_organizationId_idx" ON "org_audit_logs"("organizationId");
 
 -- CreateIndex
@@ -1382,6 +1460,42 @@ CREATE INDEX "billing_plan_templates_slug_idx" ON "billing_plan_templates"("slug
 
 -- CreateIndex
 CREATE INDEX "billing_plan_templates_isActive_idx" ON "billing_plan_templates"("isActive");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "billing_plans_name_key" ON "billing_plans"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "billing_plans_slug_key" ON "billing_plans"("slug");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "billing_plans_stripeProductId_key" ON "billing_plans"("stripeProductId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "billing_plans_stripePriceId_key" ON "billing_plans"("stripePriceId");
+
+-- CreateIndex
+CREATE INDEX "billing_plans_slug_idx" ON "billing_plans"("slug");
+
+-- CreateIndex
+CREATE INDEX "billing_plans_isActive_idx" ON "billing_plans"("isActive");
+
+-- CreateIndex
+CREATE INDEX "billing_plans_stripeProductId_idx" ON "billing_plans"("stripeProductId");
+
+-- CreateIndex
+CREATE INDEX "billing_plan_history_planId_changedAt_idx" ON "billing_plan_history"("planId", "changedAt");
+
+-- CreateIndex
+CREATE INDEX "ai_insight_costs_organizationId_createdAt_idx" ON "ai_insight_costs"("organizationId", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "ai_insight_costs_feature_createdAt_idx" ON "ai_insight_costs"("feature", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "ai_insight_costs_status_createdAt_idx" ON "ai_insight_costs"("status", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "ai_insight_costs_organizationId_eventType_createdAt_idx" ON "ai_insight_costs"("organizationId", "eventType", "createdAt");
 
 -- AddForeignKey
 ALTER TABLE "session" ADD CONSTRAINT "session_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1603,4 +1717,16 @@ ALTER TABLE "billing_subscriptions" ADD CONSTRAINT "billing_subscriptions_status
 ALTER TABLE "billing_subscriptions" ADD CONSTRAINT "billing_subscriptions_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "billing_subscriptions" ADD CONSTRAINT "billing_subscriptions_planId_fkey" FOREIGN KEY ("planId") REFERENCES "billing_plans"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "billing_event_usages" ADD CONSTRAINT "billing_event_usages_subscriptionId_fkey" FOREIGN KEY ("subscriptionId") REFERENCES "billing_subscriptions"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "billing_plan_history" ADD CONSTRAINT "billing_plan_history_planId_fkey" FOREIGN KEY ("planId") REFERENCES "billing_plans"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_insight_costs" ADD CONSTRAINT "ai_insight_costs_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_insight_costs" ADD CONSTRAINT "ai_insight_costs_aiInsightId_fkey" FOREIGN KEY ("aiInsightId") REFERENCES "ai_insights"("id") ON DELETE CASCADE ON UPDATE CASCADE;

@@ -10,9 +10,11 @@
 
 import { prisma } from '@/lib/db/prisma'
 import { Prisma } from '@db/client'
-import { BILLING_CYCLE_DAYS, BILLING_PLANS } from '@/lib/billing/plans'
-import type { PlanType, SubscriptionStatus } from '@/types/billing/billing'
+import type { SubscriptionStatus } from '@/types/billing/billing'
 import { isSubscriptionStatus } from '@/types/billing/billing'
+import { getBillingPlanBySlug } from './billing-plan-catalog.service'
+
+const BILLING_CYCLE_DAYS = 30
 
 /**
  * Custom domain errors
@@ -44,7 +46,7 @@ function ensureSubscriptionStatus(status: string): SubscriptionStatus {
  */
 export interface CreateSubscriptionParams {
   organizationId: string
-  planType: PlanType
+  planType: string
   provider?: string
   providerCustomerId?: string
   providerSubscriptionId?: string
@@ -85,7 +87,11 @@ export async function createSubscription(
   }
 
   // Get plan limits
-  const plan = BILLING_PLANS[planType]
+  const plan = await getBillingPlanBySlug(planType)
+
+  if (!plan) {
+    throw new Error(`Billing plan not found for slug: ${planType}`)
+  }
 
   // Calculate billing cycle dates
   const cycleStartDate = billingCycleStartDate ?? new Date()
@@ -99,8 +105,9 @@ export async function createSubscription(
     providerCustomerId: providerCustomerId || `cust_${organizationId}`,
     providerSubscriptionId: providerSubscriptionId || `sub_${organizationId}`,
     planType,
+    planId: plan.id,
     eventLimitPerMonth: plan.eventLimitPerMonth,
-    overagePricePerEvent: new Prisma.Decimal(plan.overagePricePerEvent),
+    overagePricePerEvent: new Prisma.Decimal(plan.overagePricePerEvent.toString()),
     billingCycleStartDate: cycleStartDate,
     billingCycleEndDate: cycleEndDate,
     nextResetDate: nextResetDate ?? cycleEndDate,
@@ -143,6 +150,11 @@ export async function getActiveSubscription(organizationId: string) {
       canceledAt: true,
       provider: true,
       providerSubscriptionId: true,
+      plan: {
+        select: {
+          name: true,
+        },
+      },
     },
   })
 

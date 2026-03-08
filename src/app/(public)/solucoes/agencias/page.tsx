@@ -10,6 +10,7 @@ import {
   LandingFooter,
   LANDING_CONTENT,
 } from '@/components/landing'
+import { listPublicBillingPlans } from '@/services/billing/billing-plan-catalog.service'
 
 export const metadata: Metadata = {
   title: 'WhaTrack para Agências | Prove o ROI dos seus clientes',
@@ -23,8 +24,9 @@ export const metadata: Metadata = {
   },
 }
 
-export default function AgenciasPage() {
+export default async function AgenciasPage() {
   const content = LANDING_CONTENT.agencias
+  const plans = await listPublicBillingPlans()
 
   return (
     <div className="bg-background text-foreground flex min-h-screen flex-col">
@@ -33,7 +35,7 @@ export default function AgenciasPage() {
       <LandingProblem content={content.problem} />
       <LandingSolution content={content.solution} />
       <LandingHowItWorks content={content.howItWorks} />
-      <LandingPricing variant="agencias" />
+      <LandingPricing variant="agencias" plans={plans} />
       <LandingCTA content={content.cta} />
       <LandingFooter />
     </div>

@@ -12,8 +12,11 @@ import type {
   SubscriptionDetails,
   SubscriptionStatus,
 } from './billing-provider'
-import { getBillingPlan } from '@/lib/billing/plans'
-import { getStripePriceIdForPlan } from '@/lib/billing/stripe-price-map'
+import {
+  buildBillingPlanPresentation,
+  getBillingPlanBySlug,
+  requireCheckoutReadyBillingPlan,
+} from '@/services/billing/billing-plan-catalog.service'
 import { logger } from '@/lib/utils/logger'
 import Stripe from 'stripe'
 
@@ -46,20 +49,8 @@ export class StripeProvider implements PaymentProvider {
   }): Promise<CheckoutSession> {
     try {
       const { organizationId, planType, successUrl, userEmail } = params
-
-      // Get plan details
-      const planConfig = getBillingPlan(planType)
-      if (!planConfig) {
-        throw new Error(`Unknown plan type: ${planType}`)
-      }
-
-      // Get Stripe price ID from environment
-      const priceId = getStripePriceIdForPlan(planType)
-      if (!priceId) {
-        throw new Error(
-          `Stripe price ID not configured for plan: ${planType}`
-        )
-      }
+      const plan = await requireCheckoutReadyBillingPlan(planType)
+      const presentation = buildBillingPlanPresentation(plan)
 
       // Create checkout session for subscription
       const session = await this.stripe.checkout.sessions.create({
@@ -67,7 +58,7 @@ export class StripeProvider implements PaymentProvider {
         payment_method_types: ['card'],
         line_items: [
           {
-            price: priceId,
+            price: plan.stripePriceId!,
             quantity: 1,
           },
         ],
@@ -83,6 +74,11 @@ export class StripeProvider implements PaymentProvider {
             organizationId,
             planType,
           },
+          ...(presentation.trialDays > 0
+            ? {
+                trial_period_days: presentation.trialDays,
+              }
+            : {}),
         },
         allow_promotion_codes: true,
       })
@@ -184,8 +180,8 @@ export class StripeProvider implements PaymentProvider {
     newPlanType: string
   ): Promise<void> {
     try {
-      const priceId = getStripePriceIdForPlan(newPlanType)
-      if (!priceId) {
+      const plan = await getBillingPlanBySlug(newPlanType)
+      if (!plan?.stripePriceId || plan.syncStatus !== 'synced') {
         throw new Error(
           `Stripe price ID not configured for plan: ${newPlanType}`
         )
@@ -208,7 +204,7 @@ export class StripeProvider implements PaymentProvider {
         items: [
           {
             id: subscription.items.data[0].id,
-            price: priceId,
+            price: plan.stripePriceId,
           },
         ],
         proration_behavior: 'create_prorations',

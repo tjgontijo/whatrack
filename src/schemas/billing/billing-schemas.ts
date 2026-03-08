@@ -5,14 +5,13 @@
  */
 
 import { z } from 'zod'
-import { SELF_SERVE_PLAN_TYPES } from '@/types/billing/billing'
 
 // ============================================
 // Checkout Schemas
 // ============================================
 
 export const checkoutRequestSchema = z.object({
-  planType: z.enum(SELF_SERVE_PLAN_TYPES),
+  planType: z.string().trim().min(1).max(60),
   redirectPath: z.string().max(2048).optional(),
 })
 
@@ -29,6 +28,7 @@ export const subscriptionResponseSchema = z.object({
   id: z.string(),
   organizationId: z.string(),
   planType: z.string(),
+  planName: z.string().nullable().optional(),
   status: z.enum(['active', 'paused', 'canceled', 'past_due']),
   canceledAtPeriodEnd: z.boolean(),
   billingCycleStartDate: z.string().datetime(),

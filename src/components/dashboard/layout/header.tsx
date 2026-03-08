@@ -27,7 +27,7 @@ const ROUTE_LABELS: Record<string, string> = {
   settings: 'Configurações',
   'settings/whatsapp': 'WhatsApp',
   'settings/whatsapp/webhooks': 'Webhook Meta',
-  'settings/billing': 'Billing',
+  'settings/billing': 'Planos Billing',
   'settings/profile': 'Perfil',
   'settings/organization': 'Organização',
   'settings/team': 'Equipe',

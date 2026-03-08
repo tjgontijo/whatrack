@@ -8,19 +8,19 @@ import { toast } from 'sonner'
 import { cn } from '@/lib/utils/utils'
 import { useOrganization } from '@/hooks/organization/use-organization'
 import { apiFetch } from '@/lib/api-client'
-import { BILLING_PLANS, BILLING_PLAN_ORDER, type BillingPlan } from '@/lib/billing/plans'
-
-const PLANS = BILLING_PLAN_ORDER.map((planType) => BILLING_PLANS[planType])
+import type { PublicBillingPlan } from '@/schemas/billing/billing-plan-schemas'
 
 type CheckoutState = 'idle' | 'loading' | 'error'
 
 interface PlanSelectorProps {
+  plans: PublicBillingPlan[]
   onClose?: () => void
   redirectPath?: string
   showHeader?: boolean
 }
 
 export function PlanSelector({
+  plans,
   onClose: _,
   redirectPath = '/dashboard/billing',
   showHeader = true,
@@ -29,7 +29,7 @@ export function PlanSelector({
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
   const [state, setState] = useState<CheckoutState>('idle')
 
-  async function handleSelectPlan(plan: BillingPlan) {
+  async function handleSelectPlan(plan: PublicBillingPlan) {
     if (plan.contactSalesOnly) {
       window.location.href =
         'mailto:contato@whatrack.com?subject=Plano Agency - WhaTrack'
@@ -51,7 +51,7 @@ export function PlanSelector({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ planType: plan.id, redirectPath }),
+        body: JSON.stringify({ planType: plan.slug, redirectPath }),
         orgId: org.id,
       })
 
@@ -78,7 +78,7 @@ export function PlanSelector({
 
       {/* Cards de plano */}
       <div className="grid gap-3 sm:grid-cols-3">
-        {PLANS.map((plan, index) => {
+        {plans.map((plan, index) => {
           const isLoadingThis = state === 'loading' && selectedPlan === plan.id
           const isErrorThis = state === 'error' && selectedPlan === plan.id
 
@@ -90,13 +90,13 @@ export function PlanSelector({
               transition={{ duration: 0.3, delay: index * 0.07 }}
               className={cn(
                 'relative flex flex-col overflow-hidden rounded-xl border transition-all',
-                plan.highlighted
+                plan.isHighlighted
                   ? 'border-primary/30 bg-primary/5 ring-1 ring-primary/20'
                   : 'border-border bg-card hover:border-border/80',
               )}
             >
               {/* Linha de destaque no topo */}
-              {plan.highlighted && (
+              {plan.isHighlighted && (
                 <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-primary to-transparent" />
               )}
 
@@ -107,7 +107,7 @@ export function PlanSelector({
                     <h3 className="text-sm font-semibold text-foreground">
                       {plan.name}
                     </h3>
-                    {plan.highlighted && (
+                    {plan.isHighlighted && (
                       <span className="shrink-0 rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary-foreground">
                         Popular
                       </span>
@@ -120,28 +120,29 @@ export function PlanSelector({
 
                 {/* Preço */}
                 <div className="mb-4">
-                  {plan.pricePrefix !== null ? (
+                  {!plan.contactSalesOnly ? (
                     <>
                       <div className="flex items-baseline gap-1">
-                        <span className="text-xs text-muted-foreground">
-                          {plan.pricePrefix}
-                        </span>
+                        <span className="text-xs text-muted-foreground">R$</span>
                         <span className="text-2xl font-bold text-foreground">
-                          {plan.priceValue}
+                          {plan.monthlyPrice.toLocaleString('pt-BR', {
+                            minimumFractionDigits: 0,
+                            maximumFractionDigits: 0,
+                          })}
                         </span>
                         <span className="text-xs text-muted-foreground">
                           /mês
                         </span>
                       </div>
-                      {plan.overageLabel && (
+                      {plan.overagePricePerEvent > 0 && (
                         <p className="mt-1 text-xs text-muted-foreground">
-                          + {plan.overageLabel}
+                          + R$ {plan.overagePricePerEvent.toFixed(2)} por evento extra
                         </p>
                       )}
                     </>
                   ) : (
                     <div className="text-lg font-semibold text-primary">
-                      {plan.priceValue}
+                      Sob consulta
                     </div>
                   )}
                 </div>
@@ -151,10 +152,10 @@ export function PlanSelector({
                   onClick={() => handleSelectPlan(plan)}
                   disabled={state === 'loading'}
                   size="sm"
-                  variant={plan.highlighted ? 'default' : 'outline'}
+                  variant={plan.isHighlighted ? 'default' : 'outline'}
                   className={cn(
                     'mb-4 w-full',
-                    plan.highlighted &&
+                    plan.isHighlighted &&
                     'bg-primary text-primary-foreground hover:bg-primary/90',
                   )}
                 >
@@ -172,7 +173,7 @@ export function PlanSelector({
                     </>
                   ) : (
                     <>
-                      Assinar {plan.name}
+                      {plan.cta}
                       <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
                     </>
                   )}
@@ -188,7 +189,7 @@ export function PlanSelector({
                       <div
                         className={cn(
                           'mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full',
-                          plan.highlighted
+                          plan.isHighlighted
                             ? 'bg-primary/15 text-primary'
                             : 'bg-muted text-muted-foreground',
                         )}

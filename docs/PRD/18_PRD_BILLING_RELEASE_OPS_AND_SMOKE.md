@@ -71,9 +71,9 @@ Para cada cobrança/assinatura:
 
 1. sign up
 2. onboarding
-3. checkout Stripe
+3. checkout Stripe com `7 dias grátis`
 4. webhook
-5. assinatura ativa
+5. assinatura em `trialing` / ativa com trial
 6. account e billing refletindo plano correto
 
 ### Smoke 2: customer portal
@@ -107,6 +107,7 @@ Para cada cobrança/assinatura:
 - `STRIPE_PUBLISHABLE_KEY`
 - `STRIPE_WEBHOOK_SECRET`
 - IDs de prices/produtos coerentes com catálogo oficial
+- configuração de trial de 7 dias coerente com os planos self-serve
 - `ACTIVE_PAYMENT_PROVIDER=stripe`
 - `CRON_SECRET`
 - portal Stripe habilitado

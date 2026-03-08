@@ -365,6 +365,19 @@ export function SidebarClient({ navItems, session: initialSession }: SidebarClie
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
+
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    tooltip="Planos Billing"
+                    isActive={pathname === '/dashboard/settings/billing'}
+                  >
+                    <Link href="/dashboard/settings/billing" onClick={handleNavClick}>
+                      <CreditCard className="h-4 w-4" />
+                      <span>Planos Billing</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>

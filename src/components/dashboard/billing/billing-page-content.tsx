@@ -2,11 +2,16 @@
 
 import { useOrganization } from '@/hooks/organization/use-organization'
 import { useBillingSubscription } from '@/hooks/billing/use-billing-subscription'
+import type { PublicBillingPlan } from '@/schemas/billing/billing-plan-schemas'
 import { BillingStatus } from './billing-status'
 import { UsageProgress } from './usage-progress'
 import { PlanSelector } from './plan-selector'
 
-export function BillingPageContent() {
+interface BillingPageContentProps {
+  availablePlans: PublicBillingPlan[]
+}
+
+export function BillingPageContent({ availablePlans }: BillingPageContentProps) {
   const { data: org, isLoading: orgLoading } = useOrganization()
   const { subscription, isLoading } = useBillingSubscription()
 
@@ -27,7 +32,7 @@ export function BillingPageContent() {
 
   // Se não tem subscription, mostrar seletor de planos
   if (!subscription) {
-    return <PlanSelector />
+    return <PlanSelector plans={availablePlans} />
   }
 
   // Se tem subscription, mostrar status + uso

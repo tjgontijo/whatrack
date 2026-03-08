@@ -1145,6 +1145,7 @@ model OrgAuditLog {
 model BillingSubscription {
   id             String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   organizationId String @db.Uuid
+  planId         String?  // Reference to BillingPlan for admin-managed plans
 
   // Provider (agnóstico)
   provider              String  // 'abacatepay' | 'polar' | 'asaas' | 'stripe'
@@ -1175,6 +1176,7 @@ model BillingSubscription {
 
   eventUsages  BillingEventUsage[]
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plan         BillingPlan? @relation(fields: [planId], references: [id], onDelete: SetNull)
 
   @@unique([organizationId])
   @@index([status])
@@ -1256,6 +1258,86 @@ model BillingPlanTemplate {
   @@index([slug])
   @@index([isActive])
   @@map("billing_plan_templates")
+}
+
+model BillingPlan {
+  id String @id @default(cuid())
+
+  // Identificação
+  name        String @unique      // "Starter"
+  slug        String @unique      // "starter"
+  description String?
+
+  // Preço
+  monthlyPrice Decimal @db.Decimal(10, 2)  // 97.00
+  currency     String  @default("BRL")
+
+  // Limites de Eventos
+  eventLimitPerMonth    Int
+  overagePricePerEvent  Decimal @db.Decimal(5, 2)   // 0.25
+
+  // Quotas
+  maxWhatsAppNumbers    Int
+  maxAdAccounts         Int
+  maxTeamMembers        Int
+  supportLevel          String   // "email" | "priority" | "dedicated"
+
+  // Stripe Sync
+  stripeProductId       String?  @unique
+  stripePriceId         String?  @unique
+  syncStatus            String   @default("pending")  // "synced" | "pending" | "error"
+  syncError             String?
+  syncedAt              DateTime?
+
+  // Display
+  isActive              Boolean  @default(true)
+  displayOrder          Int      @default(0)
+  isHighlighted         Boolean  @default(false)
+  contactSalesOnly      Boolean  @default(false)
+
+  // Metadata
+  metadata              Json?
+
+  // Audit
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  createdBy             String?
+  deletedAt             DateTime?
+
+  // Relations
+  history               BillingPlanHistory[]
+  subscriptions         BillingSubscription[]
+
+  @@index([slug])
+  @@index([isActive])
+  @@index([stripeProductId])
+  @@map("billing_plans")
+}
+
+model BillingPlanHistory {
+  id String @id @default(cuid())
+
+  planId String
+  plan   BillingPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  // Ação
+  action String   // "created" | "updated" | "synced" | "deleted"
+
+  // Valores
+  oldValues Json?
+  newValues Json?
+
+  // Stripe Sync
+  syncAction  String?
+  syncResult  Json?
+  syncError   String?
+
+  // Audit
+  changedBy   String?
+  changedAt   DateTime @default(now())
+
+  @@index([planId, changedAt])
+  @@map("billing_plan_history")
 }
 
 model AiInsightCost {

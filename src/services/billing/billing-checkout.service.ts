@@ -7,8 +7,8 @@
 import { ensurePaymentProviders, providerRegistry } from '@/lib/billing/providers/init'
 import { prisma } from '@/lib/db/prisma'
 import { resolveInternalPath } from '@/lib/utils/internal-path'
-import type { SelfServePlanType } from '@/types/billing/billing'
 import { logger } from '@/lib/utils/logger'
+import { BillingPlanCatalogError, requireCheckoutReadyBillingPlan } from './billing-plan-catalog.service'
 
 export class BillingCheckoutError extends Error {
   constructor(
@@ -26,7 +26,7 @@ export class BillingCheckoutError extends Error {
 export interface CreateCheckoutSessionParams {
   organizationId: string
   userId: string
-  planType: SelfServePlanType
+  planType: string
   origin: string
   redirectPath?: string
 }
@@ -48,7 +48,18 @@ export async function createCheckoutSession(
   ensurePaymentProviders()
 
   const customerContext = await resolveCheckoutCustomerContext(params.organizationId, params.userId)
-  const { successUrl, returnUrl } = buildCheckoutUrls(params)
+  let plan
+
+  try {
+    plan = await requireCheckoutReadyBillingPlan(params.planType)
+  } catch (error) {
+    if (error instanceof BillingPlanCatalogError) {
+      throw new BillingCheckoutError(error.message, error.status)
+    }
+
+    throw error
+  }
+  const { successUrl, returnUrl } = buildCheckoutUrls(params, plan.name)
 
   try {
     const provider = providerRegistry.getActive()
@@ -141,10 +152,14 @@ async function resolveCheckoutCustomerContext(
   }
 }
 
-function buildCheckoutUrls(params: CreateCheckoutSessionParams) {
+function buildCheckoutUrls(
+  params: CreateCheckoutSessionParams,
+  planName: string,
+) {
   const redirectPath = resolveInternalPath(params.redirectPath, '/dashboard/billing')
   const successUrl = new URL('/billing/success', params.origin)
   successUrl.searchParams.set('plan', params.planType)
+  successUrl.searchParams.set('planName', planName)
   successUrl.searchParams.set('next', redirectPath)
 
   return {

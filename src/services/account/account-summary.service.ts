@@ -6,6 +6,10 @@ import { getOrganizationMe } from '@/services/organizations/organization.service
 import type { SubscriptionResponse } from '@/schemas/billing/billing-schemas'
 import type { AccountOrganizationSummary, AccountProfileSummary } from '@/types/account/account-summary'
 
+function toIsoString(value: Date | string) {
+  return value instanceof Date ? value.toISOString() : new Date(value).toISOString()
+}
+
 function serializeSubscription(
   subscription: Awaited<ReturnType<typeof getActiveSubscription>>,
 ): SubscriptionResponse {
@@ -13,6 +17,7 @@ function serializeSubscription(
     id: subscription.id,
     organizationId: subscription.organizationId,
     planType: subscription.planType,
+    planName: subscription.plan?.name ?? null,
     status: subscription.status as SubscriptionResponse['status'],
     canceledAtPeriodEnd: subscription.canceledAtPeriodEnd,
     billingCycleStartDate: subscription.billingCycleStartDate.toISOString(),
@@ -37,7 +42,7 @@ function serializeAccount(
     name: account.name,
     email: account.email,
     phone: account.phone,
-    updatedAt: account.updatedAt.toISOString(),
+    updatedAt: toIsoString(account.updatedAt),
   }
 }
 
@@ -58,7 +63,7 @@ function serializeOrganization(
     city: organization.city,
     state: organization.state,
     currentUserRole: organization.currentUserRole,
-    updatedAt: organization.updatedAt.toISOString(),
+    updatedAt: toIsoString(organization.updatedAt),
   }
 }
 

@@ -7,6 +7,7 @@ Criar um CRUD administrativo para planos de billing com `Stripe` como source of 
 O resultado esperado é:
 
 - criar e editar planos sem alterar `src/lib/billing/plans.ts`
+- configurar `7 dias grátis` sem editar código
 - versionar preço e limites sem sobrescrever contratos antigos
 - sincronizar novas versões do plano com a Stripe
 - manter auditoria usando a infraestrutura já existente do projeto
@@ -16,6 +17,8 @@ O resultado esperado é:
 - esta interface é administrativa e interna
 - o método oficial de cobrança continua sendo `cartão`
 - `Stripe` é o único provider desta frente
+- `Starter` e `Pro` devem carregar `trialDays = 7`
+- não existe plano gratuito permanente nesta fase
 - não haverá compatibilidade legada permanente com planos hardcoded no `src/`
 - quotas de plano entram como configuração administrativa do catálogo, não como UI para usuários finais
 
@@ -126,6 +129,7 @@ model BillingPlanVersion {
 
   monthlyPrice          Decimal  @db.Decimal(10, 2)
   currency              String   @default("BRL")
+  trialDays             Int      @default(7)
   eventLimitPerMonth    Int
   overagePricePerEvent  Decimal  @db.Decimal(6, 2)
 

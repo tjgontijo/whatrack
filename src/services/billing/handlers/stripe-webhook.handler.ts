@@ -7,11 +7,9 @@
 import { prisma } from '@/lib/db/prisma'
 import { updateSubscriptionStatus, createSubscription } from '../billing-subscription.service'
 import { Prisma } from '@db/client'
-import { getBillingPlan } from '@/lib/billing/plans'
-import { getPlanTypeFromStripePriceId } from '@/lib/billing/stripe-price-map'
-import { isPlanType, type PlanType } from '@/types/billing/billing'
 import { logger } from '@/lib/utils/logger'
 import Stripe from 'stripe'
+import { getBillingPlanBySlug, getBillingPlanByStripePriceId } from '../billing-plan-catalog.service'
 
 /**
  * Stripe webhook event types we care about
@@ -181,7 +179,8 @@ async function handleSubscriptionUpsert(subscription: Stripe.Subscription): Prom
   const subscriptionId = sub.id
   const metadata = sub.metadata as Record<string, string | undefined> | undefined
   const organizationId = metadata?.organizationId
-  const planType = resolvePlanType(subscription)
+  const resolvedPlan = await resolveBillingPlan(subscription)
+  const planType = resolvedPlan?.slug ?? metadata?.planType ?? null
 
   // Find subscription by provider IDs
   const dbSubscription = await prisma.billingSubscription.findUnique({
@@ -232,7 +231,7 @@ async function handleSubscriptionUpsert(subscription: Stripe.Subscription): Prom
 
     await createSubscription({
       organizationId,
-      planType: planType as PlanType,
+      planType,
       provider: 'stripe',
       providerCustomerId: customerId,
       providerSubscriptionId: subscriptionId,
@@ -250,8 +249,6 @@ async function handleSubscriptionUpsert(subscription: Stripe.Subscription): Prom
     return
   }
 
-  const resolvedPlan = planType ? getBillingPlan(planType) : null
-
   await prisma.billingSubscription.update({
     where: { id: dbSubscription.id },
     data: {
@@ -265,10 +262,11 @@ async function handleSubscriptionUpsert(subscription: Stripe.Subscription): Prom
       nextResetDate: periodEnd,
       ...(resolvedPlan
         ? {
-            planType: resolvedPlan.id,
+            planId: resolvedPlan.id,
+            planType: resolvedPlan.slug,
             eventLimitPerMonth: resolvedPlan.eventLimitPerMonth,
             overagePricePerEvent: new Prisma.Decimal(
-              resolvedPlan.overagePricePerEvent,
+              resolvedPlan.overagePricePerEvent.toString(),
             ),
           }
         : {}),
@@ -392,16 +390,18 @@ async function createWebhookLog(providerId: string, eventId: string, eventType: 
   })
 }
 
-function resolvePlanType(subscription: Stripe.Subscription): PlanType | null {
+async function resolveBillingPlan(subscription: Stripe.Subscription) {
   const priceId = subscription.items.data[0]?.price?.id
-  const planTypeFromPrice = getPlanTypeFromStripePriceId(priceId)
-  if (planTypeFromPrice) {
-    return planTypeFromPrice
+  if (priceId) {
+    const planFromPrice = await getBillingPlanByStripePriceId(priceId)
+    if (planFromPrice) {
+      return planFromPrice
+    }
   }
 
   const metadataPlanType = subscription.metadata?.planType
-  if (metadataPlanType && isPlanType(metadataPlanType)) {
-    return metadataPlanType
+  if (metadataPlanType) {
+    return getBillingPlanBySlug(metadataPlanType)
   }
 
   return null

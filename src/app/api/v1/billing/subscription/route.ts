@@ -25,6 +25,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       id: subscription.id,
       organizationId: subscription.organizationId,
       planType: subscription.planType,
+      planName: subscription.plan?.name ?? null,
       status: subscription.status,
       canceledAtPeriodEnd: subscription.canceledAtPeriodEnd,
       billingCycleStartDate: subscription.billingCycleStartDate.toISOString(),

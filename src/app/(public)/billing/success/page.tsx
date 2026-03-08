@@ -5,7 +5,6 @@ import { useEffect } from 'react'
 import { motion } from 'motion/react'
 import { Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { getBillingPlan } from '@/lib/billing/plans'
 import { resolveInternalPath } from '@/lib/utils/internal-path'
 
 const SUCCESS_REDIRECT_DELAY_MS = 5000
@@ -13,7 +12,7 @@ const SUCCESS_REDIRECT_DELAY_MS = 5000
 export default function BillingSuccessPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const planName = getBillingPlan(searchParams.get('plan') || '')?.name || 'WhaTrack'
+  const planName = searchParams.get('planName') || searchParams.get('plan') || 'WhaTrack'
   const nextPath = resolveInternalPath(searchParams.get('next'), '/dashboard/billing')
 
   useEffect(() => {

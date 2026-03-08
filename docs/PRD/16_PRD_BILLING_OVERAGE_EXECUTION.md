@@ -47,6 +47,7 @@ Para a V1 de Stripe:
 
 - o overage será calculado localmente no app
 - a cobrança será feita por `invoice item` na Stripe antes da renovação
+- trial de 7 dias não gera cobrança de overage
 - não vamos usar Stripe metered billing nativo nesta fase
 
 Motivo:
@@ -91,9 +92,10 @@ No fechamento:
 1. localizar assinaturas com `nextResetDate <= now`
 2. calcular `overage = max(0, used - limit)`
 3. calcular `amount = overage * overagePricePerEvent`
-4. se `amount > 0`, criar invoice item na Stripe
-5. persistir ledger do closeout
-6. só então resetar ciclo
+4. se a assinatura estiver em trial, não criar invoice item
+5. se `amount > 0`, criar invoice item na Stripe
+6. persistir ledger do closeout
+7. só então resetar ciclo
 
 ### Ledger
 
@@ -191,6 +193,7 @@ Objetivo:
 
 - evento faturável duplicado não incrementa uso duas vezes
 - assinatura acima do limite gera cálculo de overage correto
+- assinatura em trial não gera cobrança de overage
 - fechamento de ciclo cria invoice item quando necessário
 - reset de ciclo só acontece depois da persistência do closeout
 - ledger permite auditoria por assinatura e ciclo

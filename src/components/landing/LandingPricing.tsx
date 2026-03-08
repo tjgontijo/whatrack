@@ -18,18 +18,17 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
-import { BILLING_PLANS, BILLING_PLAN_ORDER, type BillingPlan } from '@/lib/billing/plans'
-
-const plans = BILLING_PLAN_ORDER.map((planType) => BILLING_PLANS[planType])
+import type { PublicBillingPlan } from '@/schemas/billing/billing-plan-schemas'
 
 interface LandingPricingProps {
   variant?: LandingVariant
+  plans: PublicBillingPlan[]
 }
 
 type CheckoutState = 'idle' | 'loading' | 'error'
 
 interface CheckoutButtonProps {
-  plan: BillingPlan
+  plan: PublicBillingPlan
 }
 
 function CheckoutButton({ plan }: CheckoutButtonProps) {
@@ -69,7 +68,7 @@ function CheckoutButton({ plan }: CheckoutButtonProps) {
           [ORGANIZATION_HEADER]: org.id,
         },
         body: JSON.stringify({
-          planType: plan.id,
+          planType: plan.slug,
           redirectPath: '/dashboard/billing',
         }),
       })
@@ -109,7 +108,7 @@ function CheckoutButton({ plan }: CheckoutButtonProps) {
       <Button
         onClick={handleCheckout}
         disabled={isLoading}
-        className={`h-12 w-full rounded-xl font-semibold transition-all ${plan.highlighted
+        className={`h-12 w-full rounded-xl font-semibold transition-all ${plan.isHighlighted
             ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/40 disabled:opacity-70'
             : 'border border-zinc-700 bg-zinc-800 text-white hover:bg-zinc-700 disabled:opacity-70'
           } ${isError ? 'ring-2 ring-red-500/50' : ''}`}
@@ -166,7 +165,7 @@ function CheckoutButton({ plan }: CheckoutButtonProps) {
   )
 }
 
-export function LandingPricing({ variant = 'generic' }: LandingPricingProps) {
+export function LandingPricing({ variant = 'generic', plans }: LandingPricingProps) {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-100px' })
 
@@ -261,13 +260,13 @@ export function LandingPricing({ variant = 'generic' }: LandingPricingProps) {
                 duration: 0.8,
                 ease: [0.22, 1, 0.36, 1],
               }}
-              className={`group relative overflow-hidden rounded-3xl transition-all ${plan.highlighted
+              className={`group relative overflow-hidden rounded-3xl transition-all ${plan.isHighlighted
                 ? 'bg-gradient-to-b from-emerald-950/50 to-zinc-900 ring-2 ring-emerald-500/50'
                 : 'bg-zinc-900/50 ring-1 ring-zinc-800 hover:ring-zinc-700'
                 }`}
             >
               {/* Glow effect for highlighted plan */}
-              {plan.highlighted && (
+              {plan.isHighlighted && (
                 <>
                   <div className="pointer-events-none absolute -top-40 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-emerald-500/20 blur-3xl" />
                   <div className="absolute -top-px left-1/2 h-px w-1/2 -translate-x-1/2 bg-gradient-to-r from-transparent via-emerald-500 to-transparent" />
@@ -275,7 +274,7 @@ export function LandingPricing({ variant = 'generic' }: LandingPricingProps) {
               )}
 
               {/* Badge for highlighted plan */}
-              {plan.highlighted && (
+              {plan.isHighlighted && (
                 <div className="absolute right-6 top-6">
                   <div className="rounded-full bg-emerald-500 px-3 py-1 text-xs font-bold text-white">
                     Mais escolhido
@@ -296,27 +295,26 @@ export function LandingPricing({ variant = 'generic' }: LandingPricingProps) {
                   {plan.contactSalesOnly ? (
                     <div className="flex items-baseline gap-1">
                       <span className="font-geist text-3xl font-bold tracking-tight text-emerald-400">
-                        {plan.priceValue}
+                        Sob consulta
                       </span>
                     </div>
                   ) : (
                     <>
                       <div className="flex items-baseline gap-2">
-                        {plan.pricePrefix && (
-                          <span className="text-lg text-zinc-400">{plan.pricePrefix}</span>
-                        )}
+                        <span className="text-lg text-zinc-400">R$</span>
                         <span className="font-geist text-5xl font-bold tracking-tight">
-                          {plan.priceValue}
+                          {plan.monthlyPrice.toLocaleString('pt-BR', {
+                            minimumFractionDigits: 0,
+                            maximumFractionDigits: 0,
+                          })}
                         </span>
-                        {plan.pricePeriod && (
-                          <span className="text-lg text-zinc-400">{plan.pricePeriod}</span>
-                        )}
+                        <span className="text-lg text-zinc-400">/mês</span>
                       </div>
 
                       {/* Overage pricing */}
-                      {plan.overageLabel && (
+                      {plan.overagePricePerEvent > 0 && (
                         <div className="mt-3 text-sm text-zinc-400">
-                          <span>{plan.overageLabel}</span>
+                          <span>R$ {plan.overagePricePerEvent.toFixed(2)} por evento extra</span>
                         </div>
                       )}
                     </>
@@ -344,13 +342,13 @@ export function LandingPricing({ variant = 'generic' }: LandingPricingProps) {
                       className="flex items-start gap-3"
                     >
                       <div
-                        className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full ${plan.highlighted
+                        className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full ${plan.isHighlighted
                           ? 'bg-emerald-500/20'
                           : 'bg-zinc-800'
                           }`}
                       >
                         <Check
-                          className={`h-3.5 w-3.5 ${plan.highlighted ? 'text-emerald-400' : 'text-zinc-400'
+                          className={`h-3.5 w-3.5 ${plan.isHighlighted ? 'text-emerald-400' : 'text-zinc-400'
                             }`}
                         />
                       </div>

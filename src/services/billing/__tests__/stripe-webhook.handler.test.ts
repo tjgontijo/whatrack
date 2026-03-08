@@ -15,6 +15,8 @@ const prismaMock = vi.hoisted(() => ({
 
 const updateSubscriptionStatusMock = vi.hoisted(() => vi.fn())
 const createSubscriptionMock = vi.hoisted(() => vi.fn())
+const getBillingPlanBySlugMock = vi.hoisted(() => vi.fn())
+const getBillingPlanByStripePriceIdMock = vi.hoisted(() => vi.fn())
 
 vi.mock('@/lib/db/prisma', () => ({
   prisma: prismaMock,
@@ -25,14 +27,16 @@ vi.mock('@/services/billing/billing-subscription.service', () => ({
   createSubscription: createSubscriptionMock,
 }))
 
+vi.mock('@/services/billing/billing-plan-catalog.service', () => ({
+  getBillingPlanBySlug: getBillingPlanBySlugMock,
+  getBillingPlanByStripePriceId: getBillingPlanByStripePriceIdMock,
+}))
+
 import { handleStripeWebhook } from '@/services/billing/handlers/stripe-webhook.handler'
 
 describe('stripe-webhook.handler', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    process.env.STRIPE_PRICE_STARTER = 'price_test_starter_placeholder'
-    process.env.STRIPE_PRICE_PRO = 'price_test_pro_placeholder'
-    process.env.STRIPE_PRICE_AGENCY = 'price_test_agency_placeholder'
 
     prismaMock.billingWebhookLog.create.mockResolvedValue({
       id: 'log-1',
@@ -40,6 +44,48 @@ describe('stripe-webhook.handler', () => {
     prismaMock.billingWebhookLog.update.mockResolvedValue({
       id: 'log-1',
       isProcessed: true,
+    })
+    getBillingPlanByStripePriceIdMock.mockImplementation((priceId: string) => {
+      if (priceId === 'price_test_starter_placeholder') {
+        return Promise.resolve({
+          id: 'plan-starter',
+          slug: 'starter',
+          eventLimitPerMonth: 200,
+          overagePricePerEvent: 0.25,
+        })
+      }
+
+      if (priceId === 'price_test_pro_placeholder') {
+        return Promise.resolve({
+          id: 'plan-pro',
+          slug: 'pro',
+          eventLimitPerMonth: 500,
+          overagePricePerEvent: 0.18,
+        })
+      }
+
+      return Promise.resolve(null)
+    })
+    getBillingPlanBySlugMock.mockImplementation((slug: string) => {
+      if (slug === 'starter') {
+        return Promise.resolve({
+          id: 'plan-starter',
+          slug: 'starter',
+          eventLimitPerMonth: 200,
+          overagePricePerEvent: 0.25,
+        })
+      }
+
+      if (slug === 'pro') {
+        return Promise.resolve({
+          id: 'plan-pro',
+          slug: 'pro',
+          eventLimitPerMonth: 500,
+          overagePricePerEvent: 0.18,
+        })
+      }
+
+      return Promise.resolve(null)
     })
   })
 

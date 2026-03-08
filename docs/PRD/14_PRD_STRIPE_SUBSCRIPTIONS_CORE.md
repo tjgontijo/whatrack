@@ -50,6 +50,9 @@ Hoje o billing já abre checkout e recebe webhook, mas o núcleo ainda está inc
 
 - Stripe é o único provider operacional desta frente
 - checkout self-serve é cartão only
+- o self-serve oferece `7 dias grátis`
+- o trial é aplicado aos planos pagos `Starter` e `Pro`
+- trial não cobra overage
 - o app deve refletir o lifecycle oficial da Stripe
 - o provider local não deve inventar semântica extra quando a Stripe já fornece o contrato
 
@@ -63,7 +66,7 @@ Hoje o billing já abre checkout e recebe webhook, mas o núcleo ainda está inc
 4. fechar customer portal
 5. fechar cancelamento no provider
 6. fechar mudança de plano no provider
-7. decidir e implementar trial, se ele entrar na V1
+7. implementar trial de 7 dias na Stripe
 8. alinhar status locais com Stripe
 
 ### Fica fora desta iniciativa
@@ -88,9 +91,10 @@ Objetivo:
 Fluxo alvo:
 
 1. app cria checkout session Stripe
-2. metadata inclui `organizationId`, `planId`/`planVersionId` ou `planType` transitório
-3. app persiste apenas estado transitório mínimo e seguro
-4. webhook Stripe consolida customer, subscription, ciclo e status
+2. checkout inclui `trial_period_days = 7` para planos self-serve elegíveis
+3. metadata inclui `organizationId`, `planId`/`planVersionId` ou `planType` transitório
+4. a assinatura local nasce apenas quando o webhook consolidar a subscription real
+5. trial local deve refletir `trialing` como assinatura ativa com trial em andamento
 
 ### Webhook
 
@@ -109,6 +113,7 @@ O webhook deve:
 - deduplicar por `event.id`
 - atualizar assinatura local de forma idempotente
 - atualizar datas de ciclo
+- refletir `trial_start`/`trial_end` quando disponíveis
 - consolidar cancelamento no fim do período
 
 ### Customer Portal
@@ -127,6 +132,15 @@ Fluxo alvo:
 - UI solicita troca
 - app atualiza a subscription item da Stripe
 - webhook consolida estado final local
+
+### Trial
+
+Fluxo alvo:
+
+- o usuário escolhe `Starter` ou `Pro`
+- Stripe inicia `7 dias grátis`
+- o app mostra status coerente com trial em andamento
+- ao fim do trial, a assinatura passa para cobrança normal sem intervenção manual
 
 ## Mudanças Técnicas Necessárias
 
@@ -198,6 +212,7 @@ Revisar:
 - checkout cria sessão Stripe válida
 - webhook ativa assinatura local corretamente
 - `providerCustomerId` e `providerSubscriptionId` ficam consistentes
+- trial de 7 dias é criado corretamente para planos elegíveis
 - cancelamento no app reflete no provider
 - mudança de plano reflete no provider e no app
 - customer portal abre sem cast inseguro no domínio

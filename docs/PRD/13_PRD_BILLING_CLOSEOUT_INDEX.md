@@ -16,6 +16,14 @@ Hoje o domínio de billing está funcional apenas no caminho básico de assinatu
 
 O problema é que essas peças ainda não fecham um sistema completo.
 
+## Decisão de Produto Travada
+
+- self-serve com `7 dias grátis`
+- sem plano gratuito permanente nesta fase
+- trial aplicado aos planos pagos `Starter` e `Pro`
+- trial sem cobrança de excedente
+- cobrança normal começa apenas após o fim do trial
+
 ### Pontas soltas confirmadas no código
 
 1. O domínio ainda está em transição de provider
@@ -26,7 +34,7 @@ O problema é que essas peças ainda não fecham um sistema completo.
 2. A assinatura local ainda não espelha corretamente o lifecycle final da Stripe
 - o checkout cria assinatura local pendente antes da consolidação definitiva
 - `providerSubscriptionId` recebe IDs transitórios no fluxo de checkout
-- mudança de plano e cancelamento ainda não estão fechados como contrato de produto e operação
+- mudança de plano, trial e cancelamento ainda não estão fechados como contrato de produto e operação
 
 3. O catálogo de planos ainda não é source of truth do sistema
 - checkout, landing e UI ainda dependem de `src/lib/billing/plans.ts`
@@ -48,6 +56,7 @@ O problema é que essas peças ainda não fecham um sistema completo.
 Ao final do programa de fechamento:
 
 - Stripe é a única verdade operacional do billing
+- trial de 7 dias está refletido no checkout, webhook e UI
 - catálogo de planos sai do hardcode
 - assinatura local reflete a Stripe com consistência
 - overage é medido, consolidado e cobrado de forma confiável

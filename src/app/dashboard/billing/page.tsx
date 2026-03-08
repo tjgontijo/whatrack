@@ -5,13 +5,16 @@ import { PageHeader } from '@/components/dashboard/layout/page-header'
 import { PageContent } from '@/components/dashboard/layout/page-content'
 import { BillingPageSkeleton } from '@/components/dashboard/billing/billing-page-skeleton'
 import { BillingPageContent } from '@/components/dashboard/billing/billing-page-content'
+import { listPublicBillingPlans } from '@/services/billing/billing-plan-catalog.service'
 
 export const metadata = {
   title: 'Assinatura | WhaTrack',
   description: 'Gerencie sua assinatura e acompanhe o uso de eventos.',
 }
 
-export default function BillingPage() {
+export default async function BillingPage() {
+  const availablePlans = await listPublicBillingPlans()
+
   return (
     <PageShell maxWidth="5xl">
       <PageHeader
@@ -22,7 +25,7 @@ export default function BillingPage() {
 
       <PageContent>
         <Suspense fallback={<BillingPageSkeleton />}>
-          <BillingPageContent />
+          <BillingPageContent availablePlans={availablePlans} />
         </Suspense>
       </PageContent>
     </PageShell>
