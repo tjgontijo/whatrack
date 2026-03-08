@@ -69,6 +69,11 @@ export interface SubscriptionDetails {
    * Provider identifier
    */
   provider: string
+
+  /**
+   * Whether the subscription is scheduled to cancel at the end of the period
+   */
+  cancelAtPeriodEnd?: boolean
 }
 
 export interface WebhookPayload {
@@ -137,4 +142,9 @@ export interface PaymentProvider {
    * Update subscription plan (typically used for upgrades/downgrades)
    */
   updateSubscriptionPlan(subscriptionId: string, newPlanType: string): Promise<void>
+
+  /**
+   * Create a customer portal session when supported by the provider
+   */
+  createPortalSession?(customerId: string, returnUrl: string): Promise<string>
 }

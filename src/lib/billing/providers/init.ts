@@ -11,7 +11,6 @@
 
 import { env } from '@/lib/env/env'
 import { providerRegistry } from './providers/provider-registry'
-import { AbacatepayProvider } from './providers/abacatepay-provider'
 import { StripeProvider } from './providers/stripe-provider'
 
 let initialized = false
@@ -23,21 +22,13 @@ let initialized = false
 export function ensurePaymentProviders(): void {
   if (initialized) return
 
-  // Register AbacatePay provider (legacy, for backward compatibility)
-  providerRegistry.register(
-    'abacatepay',
-    new AbacatepayProvider(env.ABACATEPAY_SECRET_KEY)
-  )
-
   // Register Stripe provider
   providerRegistry.register(
     'stripe',
     new StripeProvider(env.STRIPE_SECRET_KEY)
   )
 
-  // Set active provider based on env var
-  const activeProvider = env.ACTIVE_PAYMENT_PROVIDER || 'stripe'
-  providerRegistry.setActive(activeProvider)
+  providerRegistry.setActive('stripe')
 
   initialized = true
 }

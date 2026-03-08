@@ -13,6 +13,7 @@ import type {
   SubscriptionStatus,
 } from './billing-provider'
 import { getBillingPlan } from '@/lib/billing/plans'
+import { getStripePriceIdForPlan } from '@/lib/billing/stripe-price-map'
 import { logger } from '@/lib/utils/logger'
 import Stripe from 'stripe'
 
@@ -53,7 +54,7 @@ export class StripeProvider implements PaymentProvider {
       }
 
       // Get Stripe price ID from environment
-      const priceId = this.getPriceIdForPlan(planType)
+      const priceId = getStripePriceIdForPlan(planType)
       if (!priceId) {
         throw new Error(
           `Stripe price ID not configured for plan: ${planType}`
@@ -76,6 +77,12 @@ export class StripeProvider implements PaymentProvider {
         metadata: {
           organizationId,
           planType,
+        },
+        subscription_data: {
+          metadata: {
+            organizationId,
+            planType,
+          },
         },
         allow_promotion_codes: true,
       })
@@ -126,6 +133,7 @@ export class StripeProvider implements PaymentProvider {
         currentPeriodStart: new Date((subscription.current_period_start as number) * 1000),
         currentPeriodEnd: new Date((subscription.current_period_end as number) * 1000),
         provider: 'stripe',
+        cancelAtPeriodEnd: Boolean(subscription.cancel_at_period_end),
       }
     } catch (error) {
       logger.error(
@@ -176,7 +184,7 @@ export class StripeProvider implements PaymentProvider {
     newPlanType: string
   ): Promise<void> {
     try {
-      const priceId = this.getPriceIdForPlan(newPlanType)
+      const priceId = getStripePriceIdForPlan(newPlanType)
       if (!priceId) {
         throw new Error(
           `Stripe price ID not configured for plan: ${newPlanType}`
@@ -194,12 +202,16 @@ export class StripeProvider implements PaymentProvider {
 
       // Update the first subscription item with the new price
       await this.stripe.subscriptions.update(subscriptionId, {
+        metadata: {
+          planType: newPlanType,
+        },
         items: [
           {
             id: subscription.items.data[0].id,
             price: priceId,
           },
         ],
+        proration_behavior: 'create_prorations',
       })
 
       logger.info(
@@ -258,17 +270,5 @@ export class StripeProvider implements PaymentProvider {
       trialing: 'active',
     }
     return map[status] ?? 'past_due'
-  }
-
-  /**
-   * Get Stripe price ID for a given plan type
-   */
-  private getPriceIdForPlan(planType: string): string | null {
-    const priceMap: Record<string, string | undefined> = {
-      starter: process.env.STRIPE_PRICE_STARTER,
-      pro: process.env.STRIPE_PRICE_PRO,
-      agency: process.env.STRIPE_PRICE_AGENCY,
-    }
-    return priceMap[planType] || null
   }
 }

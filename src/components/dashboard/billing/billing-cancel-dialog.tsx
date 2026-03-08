@@ -26,12 +26,12 @@ const CANCEL_OPTIONS = [
   {
     value: 'period-end' as const,
     label: 'Encerrar no fim do período',
-    description: 'Na V1, o acesso ao Whatrack continua até a data de renovação atual.',
+    description: 'A Stripe mantém o acesso ativo até a data de renovação atual.',
   },
   {
     value: 'immediate' as const,
     label: 'Encerrar acesso agora',
-    description: 'Na V1, o acesso ao Whatrack será encerrado imediatamente.',
+    description: 'A assinatura será encerrada imediatamente no provider e no Whatrack.',
   },
 ]
 
@@ -88,7 +88,7 @@ export function BillingCancelDialog({
 
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Na V1, o cancelamento atualiza o estado da assinatura no Whatrack. Ao encerrar, você perderá acesso ao plano{' '}
+            O cancelamento reflete o estado real da assinatura na Stripe. Ao encerrar, você perderá acesso ao plano{' '}
             <span className="font-medium text-foreground">{planName}</span>.
             Eventos registrados neste ciclo não serão reembolsados.
           </p>

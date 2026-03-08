@@ -14,11 +14,10 @@ const prismaMock = vi.hoisted(() => ({
 
 const providerMock = vi.hoisted(() => ({
   createCheckoutSession: vi.fn(),
-  getProviderId: vi.fn(() => 'abacatepay'),
+  getProviderId: vi.fn(() => 'stripe'),
 }))
 
 const ensurePaymentProvidersMock = vi.hoisted(() => vi.fn())
-const createSubscriptionMock = vi.hoisted(() => vi.fn())
 const getActiveProviderMock = vi.hoisted(() => vi.fn(() => providerMock))
 
 vi.mock('@/lib/db/prisma', () => ({
@@ -30,10 +29,6 @@ vi.mock('@/lib/billing/providers/init', () => ({
   providerRegistry: {
     getActive: getActiveProviderMock,
   },
-}))
-
-vi.mock('@/services/billing/billing-subscription.service', () => ({
-  createSubscription: createSubscriptionMock,
 }))
 
 import { createCheckoutSession } from '@/services/billing/billing-checkout.service'
@@ -54,9 +49,9 @@ describe('billing-checkout.service', () => {
     })
     prismaMock.organizationCompany.findUnique.mockResolvedValueOnce(null)
     providerMock.createCheckoutSession.mockResolvedValueOnce({
-      id: 'bill-1',
+      id: 'cs_1',
       customerId: 'cust-1',
-      url: 'https://checkout.abacatepay.com/bill-1',
+      url: 'https://checkout.stripe.com/c/pay/cs_1',
       expiresAt: new Date('2026-03-31T00:00:00.000Z'),
       method: 'card',
     })
@@ -81,17 +76,9 @@ describe('billing-checkout.service', () => {
       userTaxId: '12345678901',
       isPerson: true,
     })
-    expect(createSubscriptionMock).toHaveBeenCalledWith({
-      organizationId: 'org-1',
-      planType: 'starter',
-      provider: 'abacatepay',
-      providerCustomerId: 'cust-1',
-      providerSubscriptionId: 'bill-1',
-      status: 'paused',
-    })
     expect(result).toEqual({
-      url: 'https://checkout.abacatepay.com/bill-1',
-      provider: 'abacatepay',
+      url: 'https://checkout.stripe.com/c/pay/cs_1',
+      provider: 'stripe',
     })
   })
 
@@ -117,6 +104,5 @@ describe('billing-checkout.service', () => {
       })
 
     expect(providerMock.createCheckoutSession).not.toHaveBeenCalled()
-    expect(createSubscriptionMock).not.toHaveBeenCalled()
   })
 })

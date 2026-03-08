@@ -49,6 +49,10 @@ export interface CreateSubscriptionParams {
   providerCustomerId?: string
   providerSubscriptionId?: string
   status?: SubscriptionStatus
+  billingCycleStartDate?: Date
+  billingCycleEndDate?: Date
+  nextResetDate?: Date
+  canceledAtPeriodEnd?: boolean
 }
 
 /**
@@ -57,7 +61,18 @@ export interface CreateSubscriptionParams {
 export async function createSubscription(
   params: CreateSubscriptionParams
 ): Promise<void> {
-  const { organizationId, planType, provider, providerCustomerId, providerSubscriptionId, status } = params
+  const {
+    organizationId,
+    planType,
+    provider,
+    providerCustomerId,
+    providerSubscriptionId,
+    status,
+    billingCycleStartDate,
+    billingCycleEndDate,
+    nextResetDate,
+    canceledAtPeriodEnd,
+  } = params
 
   // Check if org already has active subscription
   const existing = await prisma.billingSubscription.findUnique({
@@ -73,24 +88,24 @@ export async function createSubscription(
   const plan = BILLING_PLANS[planType]
 
   // Calculate billing cycle dates
-  const now = new Date()
-  const billingCycleStartDate = now
-  const billingCycleEndDate = new Date(
-    now.getTime() + BILLING_CYCLE_DAYS * 24 * 60 * 60 * 1000
+  const cycleStartDate = billingCycleStartDate ?? new Date()
+  const cycleEndDate = billingCycleEndDate ?? new Date(
+    cycleStartDate.getTime() + BILLING_CYCLE_DAYS * 24 * 60 * 60 * 1000
   )
 
   const subscriptionData = {
     organizationId,
-    provider: provider || 'abacatepay',
+    provider: provider || 'stripe',
     providerCustomerId: providerCustomerId || `cust_${organizationId}`,
     providerSubscriptionId: providerSubscriptionId || `sub_${organizationId}`,
     planType,
     eventLimitPerMonth: plan.eventLimitPerMonth,
     overagePricePerEvent: new Prisma.Decimal(plan.overagePricePerEvent),
-    billingCycleStartDate,
-    billingCycleEndDate,
-    nextResetDate: billingCycleEndDate,
+    billingCycleStartDate: cycleStartDate,
+    billingCycleEndDate: cycleEndDate,
+    nextResetDate: nextResetDate ?? cycleEndDate,
     status: status || 'active',
+    canceledAtPeriodEnd: canceledAtPeriodEnd ?? false,
   }
 
   if (existing) {
@@ -168,6 +183,17 @@ export async function cancelSubscription(
   canceledAt: Date | null
 }> {
   const subscription = await getActiveSubscription(organizationId)
+  const subscriptionId = subscription.providerSubscriptionId
+
+  if (!subscriptionId) {
+    throw new Error('Subscription is missing provider subscription ID')
+  }
+
+  const { providerRegistry, ensurePaymentProviders } = await import('@/lib/billing/providers/init')
+  ensurePaymentProviders()
+
+  const provider = providerRegistry.getActive()
+  await provider.cancelSubscription(subscriptionId, atPeriodEnd)
 
   if (atPeriodEnd) {
     const updatedSubscription = await prisma.billingSubscription.update({

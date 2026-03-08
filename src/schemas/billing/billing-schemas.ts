@@ -82,6 +82,18 @@ export const cancelResponseSchema = z.object({
 })
 
 // ============================================
+// Portal Schemas
+// ============================================
+
+export const portalRequestSchema = z.object({
+  returnUrl: z.string().max(2048).optional(),
+})
+
+export const portalResponseSchema = z.object({
+  url: z.string().url(),
+})
+
+// ============================================
 // Webhook Schemas
 // ============================================
 
@@ -142,4 +154,6 @@ export type EventRecordingRequest = z.infer<typeof eventRecordingRequestSchema>
 export type EventRecordingResponse = z.infer<typeof eventRecordingResponseSchema>
 export type CancelRequest = z.infer<typeof cancelRequestSchema>
 export type CancelResponse = z.infer<typeof cancelResponseSchema>
+export type PortalRequest = z.infer<typeof portalRequestSchema>
+export type PortalResponse = z.infer<typeof portalResponseSchema>
 export type BillingWebhookPayload = z.infer<typeof billingWebhookPayloadSchema>

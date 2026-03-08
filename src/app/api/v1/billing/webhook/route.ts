@@ -22,6 +22,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 
   try {
+    if (!env.ABACATEPAY_WEBHOOK_SECRET) {
+      logger.warn('[Webhook/AbacatePay] Webhook secret not configured')
+      return apiError('Webhook not configured', 400)
+    }
+
     // Get raw body for signature validation
     const body = await request.text()
     // Get signature from header (X-Webhook-Signature from AbacatePay)

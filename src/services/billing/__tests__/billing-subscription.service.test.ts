@@ -7,8 +7,20 @@ const prismaMock = vi.hoisted(() => ({
   },
 }))
 
+const ensurePaymentProvidersMock = vi.hoisted(() => vi.fn())
+const cancelSubscriptionProviderMock = vi.hoisted(() => vi.fn())
+
 vi.mock('@/lib/db/prisma', () => ({
   prisma: prismaMock,
+}))
+
+vi.mock('@/lib/billing/providers/init', () => ({
+  ensurePaymentProviders: ensurePaymentProvidersMock,
+  providerRegistry: {
+    getActive: vi.fn(() => ({
+      cancelSubscription: cancelSubscriptionProviderMock,
+    })),
+  },
 }))
 
 import { cancelSubscription } from '@/services/billing/billing-subscription.service'
@@ -32,8 +44,8 @@ describe('billing-subscription.service', () => {
       eventsUsedInCurrentCycle: 10,
       createdAt: new Date('2026-03-01T00:00:00.000Z'),
       canceledAt: null,
-      provider: 'abacatepay',
-      providerSubscriptionId: 'bill-1',
+      provider: 'stripe',
+      providerSubscriptionId: 'sub_1',
     })
 
     prismaMock.billingSubscription.update.mockResolvedValueOnce({
@@ -43,6 +55,9 @@ describe('billing-subscription.service', () => {
     })
 
     const result = await cancelSubscription('org-1', true)
+
+    expect(ensurePaymentProvidersMock).toHaveBeenCalledTimes(1)
+    expect(cancelSubscriptionProviderMock).toHaveBeenCalledWith('sub_1', true)
 
     expect(prismaMock.billingSubscription.update).toHaveBeenCalledWith({
       where: { id: 'sub-1' },
@@ -77,8 +92,8 @@ describe('billing-subscription.service', () => {
       eventsUsedInCurrentCycle: 40,
       createdAt: new Date('2026-03-01T00:00:00.000Z'),
       canceledAt: null,
-      provider: 'abacatepay',
-      providerSubscriptionId: 'bill-2',
+      provider: 'stripe',
+      providerSubscriptionId: 'sub_2',
     })
 
     prismaMock.billingSubscription.update.mockResolvedValueOnce({
@@ -88,6 +103,9 @@ describe('billing-subscription.service', () => {
     })
 
     const result = await cancelSubscription('org-1', false)
+
+    expect(ensurePaymentProvidersMock).toHaveBeenCalledTimes(1)
+    expect(cancelSubscriptionProviderMock).toHaveBeenCalledWith('sub_2', false)
 
     expect(prismaMock.billingSubscription.update).toHaveBeenCalledWith({
       where: { id: 'sub-2' },

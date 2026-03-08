@@ -65,8 +65,8 @@ const envSchema = z.object({
   NEXT_PUBLIC_CENTRIFUGO_URL: z.string().url(),
 
   // 7. Payments & Billing
-  ABACATEPAY_SECRET_KEY: z.string().min(1, 'ABACATEPAY_SECRET_KEY is required'),
-  ABACATEPAY_WEBHOOK_SECRET: z.string().min(1, 'ABACATEPAY_WEBHOOK_SECRET is required'),
+  ABACATEPAY_SECRET_KEY: z.string().min(1).optional(),
+  ABACATEPAY_WEBHOOK_SECRET: z.string().min(1).optional(),
   ABACATEPAY_WEBHOOK_URL: z.string().url().optional(),
   STRIPE_SECRET_KEY: z.string().min(1, 'STRIPE_SECRET_KEY is required for Stripe provider'),
   STRIPE_PUBLISHABLE_KEY: z.string().min(1).optional(),
@@ -74,7 +74,7 @@ const envSchema = z.object({
   STRIPE_PRICE_STARTER: z.string().min(1).optional(),
   STRIPE_PRICE_PRO: z.string().min(1).optional(),
   STRIPE_PRICE_AGENCY: z.string().min(1).optional(),
-  ACTIVE_PAYMENT_PROVIDER: z.enum(['stripe', 'abacatepay']).default('stripe'),
+  ACTIVE_PAYMENT_PROVIDER: z.literal('stripe').default('stripe'),
   POLAR_ACCESS_TOKEN: z.string().min(1).optional(),
   POLAR_SUCCESS_URL: z.string().url().optional(),
 

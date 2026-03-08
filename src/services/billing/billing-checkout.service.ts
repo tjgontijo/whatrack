@@ -8,7 +8,6 @@ import { ensurePaymentProviders, providerRegistry } from '@/lib/billing/provider
 import { prisma } from '@/lib/db/prisma'
 import { resolveInternalPath } from '@/lib/utils/internal-path'
 import type { SelfServePlanType } from '@/types/billing/billing'
-import { createSubscription } from './billing-subscription.service'
 import { logger } from '@/lib/utils/logger'
 
 export class BillingCheckoutError extends Error {
@@ -68,16 +67,8 @@ export async function createCheckoutSession(
 
     logger.info(
       { organizationId: params.organizationId, planType: params.planType },
-      '[Checkout] Creating pending subscription'
+      '[Checkout] Checkout session created; awaiting Stripe webhook to persist subscription'
     )
-    await createSubscription({
-      organizationId: params.organizationId,
-      planType: params.planType,
-      provider: provider.getProviderId(),
-      providerCustomerId: session.customerId,
-      providerSubscriptionId: session.id,
-      status: 'paused',
-    })
 
     return {
       url: session.url,

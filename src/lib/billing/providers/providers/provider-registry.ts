@@ -11,7 +11,7 @@ type ProviderId = 'abacatepay' | 'polar' | 'asaas' | 'stripe'
 
 class ProviderRegistry {
   private providers = new Map<ProviderId, PaymentProvider>()
-  private activeId: ProviderId = 'abacatepay'
+  private activeId: ProviderId = 'stripe'
 
   /**
    * Register a new payment provider

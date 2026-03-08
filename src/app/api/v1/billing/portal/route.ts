@@ -5,12 +5,14 @@
  * POST /api/v1/billing/portal
  */
 
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { prisma } from '@/lib/db/prisma'
-import { apiError } from '@/lib/utils/api-response'
+import { portalRequestSchema, portalResponseSchema } from '@/schemas/billing/billing-schemas'
+import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
 import { ensurePaymentProviders, providerRegistry } from '@/lib/billing/providers/init'
+import { resolveInternalPath } from '@/lib/utils/internal-path'
 
 export async function POST(req: NextRequest) {
   try {
@@ -25,7 +27,18 @@ export async function POST(req: NextRequest) {
 
     // Get return URL from request body
     const body = await req.json().catch(() => ({}))
-    const returnUrl = (body.returnUrl as string) || '/dashboard/billing'
+    const parsed = portalRequestSchema.safeParse(body)
+    if (!parsed.success) {
+      return apiError('Invalid request parameters', 400, undefined, {
+        details: parsed.error.flatten(),
+      })
+    }
+
+    const returnPath = resolveInternalPath(
+      parsed.data.returnUrl,
+      '/dashboard/billing',
+    )
+    const returnUrl = new URL(returnPath, req.nextUrl.origin).toString()
 
     // Find subscription for the organization
     const subscription = await prisma.billingSubscription.findUnique({
@@ -43,18 +56,11 @@ export async function POST(req: NextRequest) {
     // Get the active provider and create portal session
     const provider = providerRegistry.getActive()
 
-    if (provider.getProviderId() !== 'stripe') {
-      return apiError('Customer portal only available for Stripe', 400)
-    }
-
-    // Cast to StripeProvider to access createPortalSession method
-    const stripeProvider = provider as any // eslint-disable-line @typescript-eslint/no-explicit-any
-
-    if (!stripeProvider.createPortalSession) {
+    if (!provider.createPortalSession) {
       return apiError('Portal session not supported for this provider', 400)
     }
 
-    const portalUrl = await stripeProvider.createPortalSession(
+    const portalUrl = await provider.createPortalSession(
       subscription.providerCustomerId,
       returnUrl
     )
@@ -64,7 +70,7 @@ export async function POST(req: NextRequest) {
       '[Portal] Generated billing portal URL'
     )
 
-    return NextResponse.json({ url: portalUrl })
+    return apiSuccess(portalResponseSchema.parse({ url: portalUrl }))
   } catch (error) {
     logger.error({ err: error }, '[Portal] Error generating portal URL')
     return apiError(

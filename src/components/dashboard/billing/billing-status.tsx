@@ -12,8 +12,10 @@ import {
   Zap,
   Loader2,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { useBillingSubscription } from '@/hooks/billing/use-billing-subscription'
+import { apiFetch } from '@/lib/api-client'
 import { BillingCancelDialog } from './billing-cancel-dialog'
 import { formatDate } from '@/lib/date/format-date'
 import { getBillingPlanLabel } from '@/lib/billing/plans'
@@ -71,20 +73,23 @@ export function BillingStatus() {
   const handleOpenPortal = () => {
     startTransition(async () => {
       try {
-        const response = await fetch('/api/v1/billing/portal', {
+        if (!subscription?.organizationId) {
+          throw new Error('Organização não identificada')
+        }
+
+        const data = (await apiFetch('/api/v1/billing/portal', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ returnUrl: '/dashboard/billing' }),
-        })
-
-        if (!response.ok) {
-          throw new Error('Failed to generate portal URL')
-        }
-
-        const data = (await response.json()) as { url: string }
+          orgId: subscription.organizationId,
+        })) as { url: string }
         window.location.href = data.url
       } catch (err) {
-        console.error('Error opening portal:', err)
+        toast.error(
+          err instanceof Error
+            ? err.message
+            : 'Não foi possível abrir o portal da Stripe.',
+        )
       }
     })
   }

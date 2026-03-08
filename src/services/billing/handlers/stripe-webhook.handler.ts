@@ -6,7 +6,10 @@
 
 import { prisma } from '@/lib/db/prisma'
 import { updateSubscriptionStatus, createSubscription } from '../billing-subscription.service'
-import type { PlanType } from '@/types/billing/billing'
+import { Prisma } from '@db/client'
+import { getBillingPlan } from '@/lib/billing/plans'
+import { getPlanTypeFromStripePriceId } from '@/lib/billing/stripe-price-map'
+import { isPlanType, type PlanType } from '@/types/billing/billing'
 import { logger } from '@/lib/utils/logger'
 import Stripe from 'stripe'
 
@@ -15,8 +18,10 @@ import Stripe from 'stripe'
  */
 type StripeWebhookEventType =
   | 'checkout.session.completed'
+  | 'customer.subscription.created'
   | 'customer.subscription.updated'
   | 'customer.subscription.deleted'
+  | 'invoice.paid'
   | 'invoice.payment_failed'
 
 /**
@@ -55,12 +60,20 @@ export async function handleStripeWebhook(
         await handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session)
         break
 
+      case 'customer.subscription.created':
+        await handleSubscriptionUpsert(event.data.object as Stripe.Subscription)
+        break
+
       case 'customer.subscription.updated':
-        await handleSubscriptionUpdated(event.data.object as Stripe.Subscription)
+        await handleSubscriptionUpsert(event.data.object as Stripe.Subscription)
         break
 
       case 'customer.subscription.deleted':
         await handleSubscriptionDeleted(event.data.object as Stripe.Subscription)
+        break
+
+      case 'invoice.paid':
+        await handleInvoicePaid(event.data.object as Stripe.Invoice)
         break
 
       case 'invoice.payment_failed':
@@ -134,54 +147,41 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session):
     return
   }
 
-  // Find existing subscription by organizationId
-  let subscription = await prisma.billingSubscription.findUnique({
+  const existingSubscription = await prisma.billingSubscription.findUnique({
     where: { organizationId },
   })
 
-  if (!subscription) {
-    // Create new subscription
-    logger.info(
-      { organizationId, planType, subscriptionId },
-      '[Stripe] Creating new subscription'
-    )
-
-    await createSubscription({
-      organizationId,
-      planType: planType as PlanType,
-      provider: 'stripe',
-      providerCustomerId: customerId,
-      providerSubscriptionId: subscriptionId,
-      status: 'active',
-    })
-  } else {
-    // Update existing subscription with Stripe IDs
+  if (existingSubscription) {
     await prisma.billingSubscription.update({
-      where: { id: subscription.id },
+      where: { id: existingSubscription.id },
       data: {
         providerCustomerId: customerId,
         providerSubscriptionId: subscriptionId,
         provider: 'stripe',
-        status: 'active',
       },
     })
-
-    logger.info(
-      { organizationId, subscriptionId },
-      '[Stripe] Updated existing subscription with Stripe IDs'
-    )
+    logger.info({ organizationId, subscriptionId }, '[Stripe] Linked checkout session to existing subscription')
+    return
   }
+
+  logger.info(
+    { organizationId, planType, subscriptionId },
+    '[Stripe] Awaiting subscription webhook to create local subscription'
+  )
 }
 
 /**
  * Handle customer.subscription.updated event
  * This can indicate plan changes, billing cycle updates, etc.
  */
-async function handleSubscriptionUpdated(subscription: Stripe.Subscription): Promise<void> {
+async function handleSubscriptionUpsert(subscription: Stripe.Subscription): Promise<void> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sub = subscription as any
   const customerId = sub.customer.toString()
   const subscriptionId = sub.id
+  const metadata = sub.metadata as Record<string, string | undefined> | undefined
+  const organizationId = metadata?.organizationId
+  const planType = resolvePlanType(subscription)
 
   // Find subscription by provider IDs
   const dbSubscription = await prisma.billingSubscription.findUnique({
@@ -190,16 +190,9 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription): Pro
     },
   })
 
-  if (!dbSubscription) {
-    logger.warn(
-      { subscriptionId, customerId },
-      '[Stripe] No subscription found for subscription update'
-    )
-    return
-  }
-
   // Determine new status
-  let newStatus: 'active' | 'paused' | 'canceled' | 'past_due' = (dbSubscription.status as 'active' | 'paused' | 'canceled' | 'past_due')
+  let newStatus: 'active' | 'paused' | 'canceled' | 'past_due' =
+    (dbSubscription?.status as 'active' | 'paused' | 'canceled' | 'past_due') ?? 'paused'
   switch (sub.status) {
     case 'active':
     case 'trialing':
@@ -220,26 +213,73 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription): Pro
       break
   }
 
-  // Update subscription status
-  if (dbSubscription.status !== newStatus) {
-    await updateSubscriptionStatus(dbSubscription.id, newStatus)
+  const periodStart = sub.current_period_start
+    ? new Date((sub.current_period_start as number) * 1000)
+    : new Date()
+  const periodEnd = sub.current_period_end
+    ? new Date((sub.current_period_end as number) * 1000)
+    : new Date(periodStart)
+  const cancelAtPeriodEnd = Boolean(sub.cancel_at_period_end)
+
+  if (!dbSubscription) {
+    if (!organizationId || !planType) {
+      logger.warn(
+        { subscriptionId, customerId },
+        '[Stripe] Missing organization metadata for subscription upsert'
+      )
+      return
+    }
+
+    await createSubscription({
+      organizationId,
+      planType: planType as PlanType,
+      provider: 'stripe',
+      providerCustomerId: customerId,
+      providerSubscriptionId: subscriptionId,
+      status: newStatus,
+      billingCycleStartDate: periodStart,
+      billingCycleEndDate: periodEnd,
+      nextResetDate: periodEnd,
+      canceledAtPeriodEnd: cancelAtPeriodEnd,
+    })
+
     logger.info(
-      { organizationId: dbSubscription.organizationId, newStatus },
-      '[Stripe] Updated subscription status'
+      { organizationId, subscriptionId, newStatus },
+      '[Stripe] Created subscription from Stripe subscription webhook'
     )
+    return
   }
 
-  // Update billing period dates if available
-  if (sub.current_period_start && sub.current_period_end) {
-    await prisma.billingSubscription.update({
-      where: { id: dbSubscription.id },
-      data: {
-        billingCycleStartDate: new Date((sub.current_period_start as number) * 1000),
-        billingCycleEndDate: new Date((sub.current_period_end as number) * 1000),
-        nextResetDate: new Date((sub.current_period_end as number) * 1000),
-      },
-    })
-  }
+  const resolvedPlan = planType ? getBillingPlan(planType) : null
+
+  await prisma.billingSubscription.update({
+    where: { id: dbSubscription.id },
+    data: {
+      providerCustomerId: customerId,
+      providerSubscriptionId: subscriptionId,
+      provider: 'stripe',
+      status: newStatus,
+      canceledAtPeriodEnd: cancelAtPeriodEnd,
+      billingCycleStartDate: periodStart,
+      billingCycleEndDate: periodEnd,
+      nextResetDate: periodEnd,
+      ...(resolvedPlan
+        ? {
+            planType: resolvedPlan.id,
+            eventLimitPerMonth: resolvedPlan.eventLimitPerMonth,
+            overagePricePerEvent: new Prisma.Decimal(
+              resolvedPlan.overagePricePerEvent,
+            ),
+          }
+        : {}),
+      ...(newStatus === 'canceled' ? { canceledAt: new Date() } : { canceledAt: null }),
+    },
+  })
+
+  logger.info(
+    { organizationId: dbSubscription.organizationId, newStatus, cancelAtPeriodEnd },
+    '[Stripe] Upserted subscription from Stripe webhook'
+  )
 }
 
 /**
@@ -267,6 +307,35 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription): Pro
   logger.info(
     { organizationId: dbSubscription.organizationId, subscriptionId },
     '[Stripe] Subscription canceled'
+  )
+}
+
+async function handleInvoicePaid(invoice: Stripe.Invoice): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const inv = invoice as any
+  const subscriptionId = inv.subscription?.toString()
+
+  if (!subscriptionId) {
+    logger.warn({ invoiceId: invoice.id }, '[Stripe] Missing subscription in invoice.paid')
+    return
+  }
+
+  const dbSubscription = await prisma.billingSubscription.findUnique({
+    where: { providerSubscriptionId: subscriptionId },
+  })
+
+  if (!dbSubscription) {
+    logger.warn({ subscriptionId }, '[Stripe] No subscription found for invoice payment')
+    return
+  }
+
+  if (dbSubscription.status !== 'active') {
+    await updateSubscriptionStatus(dbSubscription.id, 'active')
+  }
+
+  logger.info(
+    { organizationId: dbSubscription.organizationId, subscriptionId },
+    '[Stripe] Invoice paid - subscription marked active'
   )
 }
 
@@ -321,4 +390,19 @@ async function createWebhookLog(providerId: string, eventId: string, eventType: 
       payload: payload || {},
     },
   })
+}
+
+function resolvePlanType(subscription: Stripe.Subscription): PlanType | null {
+  const priceId = subscription.items.data[0]?.price?.id
+  const planTypeFromPrice = getPlanTypeFromStripePriceId(priceId)
+  if (planTypeFromPrice) {
+    return planTypeFromPrice
+  }
+
+  const metadataPlanType = subscription.metadata?.planType
+  if (metadataPlanType && isPlanType(metadataPlanType)) {
+    return metadataPlanType
+  }
+
+  return null
 }
