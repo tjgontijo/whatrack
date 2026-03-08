@@ -18,7 +18,6 @@ import { useBillingSubscription } from '@/hooks/billing/use-billing-subscription
 import { AccountProfileCard, type AccountProfile } from './account-profile-card'
 import { AccountOrganizationCard, type AccountOrganization } from './account-organization-card'
 import { AccountBillingCard } from './account-billing-card'
-import { AccountFiscalCard } from './account-fiscal-card'
 
 
 import { apiFetch } from '@/lib/api-client'
@@ -192,8 +191,6 @@ export function MyAccountContent() {
           onSubmit={(data) => updateOrganizationMutation.mutate(data)}
         />
       ) : null}
-
-      {organization ? <AccountFiscalCard fiscalData={organization} /> : null}
 
       <AccountBillingCard
         subscription={subscription as SubscriptionResponse | null}

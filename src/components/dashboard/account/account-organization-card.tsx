@@ -36,6 +36,31 @@ type AccountOrganizationCardProps = {
   onSubmit: (data: UpdateOrganizationInput) => void
 }
 
+function getOrganizationTypeLabel(value: AccountOrganization['organizationType']) {
+  if (value === 'pessoa_fisica') return 'Pessoa Física'
+  if (value === 'pessoa_juridica') return 'Pessoa Jurídica'
+  return 'Não definido'
+}
+
+function Field({
+  label,
+  value,
+}: {
+  label: string
+  value: string | null
+}) {
+  return (
+    <div className="rounded-lg border border-border bg-muted/30 p-4">
+      <p className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
+        {label}
+      </p>
+      <p className="mt-1 text-sm font-medium text-foreground">
+        {value?.trim() || 'Não informado'}
+      </p>
+    </div>
+  )
+}
+
 export function AccountOrganizationCard({
   organization,
   canManageOrganizationSettings,
@@ -76,25 +101,32 @@ export function AccountOrganizationCard({
     return 'Selecione PF ou PJ para informar o documento'
   }, [organizationType])
 
+  const currentOrganizationTypeLabel = getOrganizationTypeLabel(organization.organizationType)
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Detalhes da conta</CardTitle>
+        <CardTitle>Dados fiscais</CardTitle>
         <CardDescription>
-          Selecione PF ou PJ e preencha os dados do documento conforme o tipo.
+          Edite o cadastro fiscal da organização e visualize os dados atuais vinculados à conta.
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
         <div className="grid gap-2">
-          <label className="text-sm font-medium">{accountNameLabel}</label>
+          <label className="text-sm font-medium" htmlFor="account-organization-name">
+            {accountNameLabel}
+          </label>
           <Input
+            id="account-organization-name"
             value={organizationName}
             onChange={(event) => setOrganizationName(event.target.value)}
           />
         </div>
 
         <div className="grid gap-2 md:w-[320px]">
-          <label className="text-sm font-medium">Tipo da conta</label>
+          <label className="text-sm font-medium" htmlFor="account-organization-type">
+            Tipo cadastral
+          </label>
           <Select
             value={organizationType}
             onValueChange={(value: 'pessoa_fisica' | 'pessoa_juridica') => {
@@ -104,7 +136,7 @@ export function AccountOrganizationCard({
               setOrganizationType(value)
             }}
           >
-            <SelectTrigger>
+            <SelectTrigger id="account-organization-type">
               <SelectValue placeholder="Selecione" />
             </SelectTrigger>
             <SelectContent>
@@ -116,8 +148,11 @@ export function AccountOrganizationCard({
 
         {organizationType ? (
           <div className="grid gap-2 md:w-[420px]">
-            <label className="text-sm font-medium">{documentLabel}</label>
+            <label className="text-sm font-medium" htmlFor="account-organization-document">
+              {documentLabel}
+            </label>
             <Input
+              id="account-organization-document"
               value={documentNumber}
               maxLength={documentInputMaxLength}
               placeholder={documentPlaceholder}
@@ -144,12 +179,40 @@ export function AccountOrganizationCard({
             }
             disabled={!canManageOrganizationSettings || isPending}
           >
-            {isPending ? 'Salvando...' : 'Salvar detalhes da conta'}
+            {isPending ? 'Salvando...' : 'Salvar dados fiscais'}
           </Button>
           {!canManageOrganizationSettings && (
             <p className="text-muted-foreground mt-2 text-xs">
               Somente owner pode alterar os detalhes estruturais da conta.
             </p>
+          )}
+        </div>
+
+        <div className="grid gap-4 border-t border-border pt-4 md:grid-cols-2 xl:grid-cols-3">
+          <Field label="Tipo cadastral atual" value={currentOrganizationTypeLabel} />
+          <Field
+            label={organization.documentType === 'cnpj' ? 'CNPJ atual' : 'CPF atual'}
+            value={
+              organization.documentNumber && organization.documentType
+                ? applyCpfCnpjMask(organization.documentNumber, organization.documentType)
+                : null
+            }
+          />
+
+          {organization.organizationType === 'pessoa_juridica' && (
+            <>
+              <Field label="Razão social" value={organization.legalName} />
+              <Field label="Nome fantasia" value={organization.tradeName} />
+              <Field label="Situação" value={organization.taxStatus} />
+              <Field
+                label="Município / UF"
+                value={
+                  organization.city || organization.state
+                    ? [organization.city, organization.state].filter(Boolean).join(' / ')
+                    : null
+                }
+              />
+            </>
           )}
         </div>
       </CardContent>
