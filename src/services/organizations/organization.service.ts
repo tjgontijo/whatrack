@@ -25,6 +25,14 @@ type OrganizationIdentitySnapshot = {
   documentNumber: string | null
 }
 
+type OrganizationFiscalSnapshot = OrganizationIdentitySnapshot & {
+  legalName: string | null
+  tradeName: string | null
+  taxStatus: string | null
+  city: string | null
+  state: string | null
+}
+
 function resolveIdentitySnapshot(input: {
   profileCpf?: string | null
   companyCnpj?: string | null
@@ -46,6 +54,30 @@ function resolveIdentitySnapshot(input: {
   }
 }
 
+function resolveFiscalSnapshot(input: {
+  profileCpf?: string | null
+  companyCnpj?: string | null
+  companyLegalName?: string | null
+  companyTradeName?: string | null
+  companyTaxStatus?: string | null
+  companyCity?: string | null
+  companyState?: string | null
+}): OrganizationFiscalSnapshot {
+  const identity = resolveIdentitySnapshot({
+    profileCpf: input.profileCpf,
+    companyCnpj: input.companyCnpj,
+  })
+
+  return {
+    ...identity,
+    legalName: input.companyLegalName?.trim() || null,
+    tradeName: input.companyTradeName?.trim() || null,
+    taxStatus: input.companyTaxStatus?.trim() || null,
+    city: input.companyCity?.trim() || null,
+    state: input.companyState?.trim().toUpperCase() || null,
+  }
+}
+
 export async function getOrganizationMe(input: {
   organizationId: string
   memberId: string
@@ -61,6 +93,11 @@ export async function getOrganizationMe(input: {
       organizationType: IdentityType | null
       documentType: DocumentType | null
       documentNumber: string | null
+      legalName: string | null
+      tradeName: string | null
+      taxStatus: string | null
+      city: string | null
+      state: string | null
       organizationId: string
       currentUserRole: string
       currentUserPermissions: string[]
@@ -88,6 +125,11 @@ export async function getOrganizationMe(input: {
       company: {
         select: {
           cnpj: true,
+          razaoSocial: true,
+          nomeFantasia: true,
+          situacao: true,
+          municipio: true,
+          uf: true,
         },
       },
     },
@@ -98,9 +140,14 @@ export async function getOrganizationMe(input: {
   }
 
   const effective = await listEffectivePermissions(input.memberId)
-  const identity = resolveIdentitySnapshot({
+  const fiscal = resolveFiscalSnapshot({
     profileCpf: organization.profile?.cpf,
     companyCnpj: organization.company?.cnpj,
+    companyLegalName: organization.company?.razaoSocial,
+    companyTradeName: organization.company?.nomeFantasia,
+    companyTaxStatus: organization.company?.situacao,
+    companyCity: organization.company?.municipio,
+    companyState: organization.company?.uf,
   })
 
   return {
@@ -110,9 +157,14 @@ export async function getOrganizationMe(input: {
     logo: organization.logo,
     createdAt: organization.createdAt,
     updatedAt: organization.updatedAt,
-    organizationType: identity.organizationType,
-    documentType: identity.documentType,
-    documentNumber: identity.documentNumber,
+    organizationType: fiscal.organizationType,
+    documentType: fiscal.documentType,
+    documentNumber: fiscal.documentNumber,
+    legalName: fiscal.legalName,
+    tradeName: fiscal.tradeName,
+    taxStatus: fiscal.taxStatus,
+    city: fiscal.city,
+    state: fiscal.state,
     organizationId: organization.id,
     currentUserRole: input.role ?? 'user',
     currentUserPermissions: effective.effectivePermissions,

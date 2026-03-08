@@ -21,6 +21,11 @@ export type AccountOrganization = {
   organizationType: 'pessoa_fisica' | 'pessoa_juridica' | null
   documentType: 'cpf' | 'cnpj' | null
   documentNumber: string | null
+  legalName: string | null
+  tradeName: string | null
+  taxStatus: string | null
+  city: string | null
+  state: string | null
   updatedAt: string
 }
 
