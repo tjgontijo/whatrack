@@ -222,11 +222,20 @@ async function handleSubscriptionUpsert(subscription: Stripe.Subscription): Prom
       break
   }
 
-  const periodStart = sub.current_period_start
-    ? new Date((sub.current_period_start as number) * 1000)
+  const periodStartUnix =
+    typeof sub.current_period_start === 'number'
+      ? sub.current_period_start
+      : sub.items?.data?.[0]?.current_period_start
+  const periodEndUnix =
+    typeof sub.current_period_end === 'number'
+      ? sub.current_period_end
+      : sub.items?.data?.[0]?.current_period_end
+
+  const periodStart = periodStartUnix
+    ? new Date((periodStartUnix as number) * 1000)
     : new Date()
-  const periodEnd = sub.current_period_end
-    ? new Date((sub.current_period_end as number) * 1000)
+  const periodEnd = periodEndUnix
+    ? new Date((periodEndUnix as number) * 1000)
     : new Date(periodStart)
   const trialEndsAt = sub.trial_end
     ? new Date((sub.trial_end as number) * 1000)
