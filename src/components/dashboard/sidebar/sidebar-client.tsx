@@ -38,7 +38,7 @@ import {
 } from '@/components/ui/sidebar'
 import { WhatsAppIcon, MetaIcon } from '@/components/shared/icons'
 import { authClient, useSession } from '@/lib/auth/auth-client'
-import { isOwner } from '@/lib/auth/rbac/roles'
+import { isAdmin, isOwner } from '@/lib/auth/rbac/roles'
 import { UserDropdownMenu } from './user-dropdown-menu'
 
 // Icon mapping for dynamic nav items
@@ -107,6 +107,7 @@ export function SidebarClient({ navItems, session: initialSession }: SidebarClie
   )
 
   const isSuperAdmin = isOwner(session?.user?.role)
+  const canManageBillingCatalog = isAdmin(session?.user?.role)
 
   const isWhatsAppActive = pathname.startsWith('/dashboard/settings/whatsapp')
 
@@ -348,7 +349,7 @@ export function SidebarClient({ navItems, session: initialSession }: SidebarClie
         </SidebarGroup>
 
         {/* Admin section - Design System (Only for Super Admin) */}
-        {isSuperAdmin && (
+        {canManageBillingCatalog && (
           <SidebarGroup>
             <SidebarGroupLabel>Admin</SidebarGroupLabel>
             <SidebarGroupContent>

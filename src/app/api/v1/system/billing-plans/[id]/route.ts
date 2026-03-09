@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { requireSuperAdmin } from '@/lib/auth/guards'
+import { requireAdmin } from '@/lib/auth/guards'
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import {
   billingPlanDetailSchema,
@@ -21,7 +21,7 @@ type RouteContext = {
 
 export async function GET(request: NextRequest, context: RouteContext) {
   try {
-    const user = await requireSuperAdmin(request)
+    const user = await requireAdmin(request)
     if (user instanceof NextResponse) return user
 
     const { id } = await context.params
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
 export async function PATCH(request: NextRequest, context: RouteContext) {
   try {
-    const user = await requireSuperAdmin(request)
+    const user = await requireAdmin(request)
     if (user instanceof NextResponse) return user
 
     const body = await request.json()

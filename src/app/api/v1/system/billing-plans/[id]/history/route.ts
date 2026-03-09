@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { requireSuperAdmin } from '@/lib/auth/guards'
+import { requireAdmin } from '@/lib/auth/guards'
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import {
   billingPlanHistoryQuerySchema,
@@ -17,7 +17,7 @@ export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest, context: RouteContext) {
   try {
-    const user = await requireSuperAdmin(request)
+    const user = await requireAdmin(request)
     if (user instanceof NextResponse) return user
 
     const parsed = billingPlanHistoryQuerySchema.safeParse(

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { requireSuperAdmin } from '@/lib/auth/guards'
+import { requireAdmin } from '@/lib/auth/guards'
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import {
   billingPlanArchiveSchema,
@@ -18,7 +18,7 @@ type RouteContext = {
 
 export async function POST(request: NextRequest, context: RouteContext) {
   try {
-    const user = await requireSuperAdmin(request)
+    const user = await requireAdmin(request)
     if (user instanceof NextResponse) return user
 
     const body = await request.json().catch(() => ({}))

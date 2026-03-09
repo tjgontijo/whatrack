@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from './auth'
-import { isOwner, hasPermission, Permission, RoleName } from './rbac/roles'
+import { isAdmin, isOwner, hasPermission, Permission, RoleName } from './rbac/roles'
 
 export interface AuthenticatedUser {
   id: string
@@ -43,6 +43,23 @@ export async function requireSuperAdmin(
 
   if (!isOwner(user.role)) {
     return NextResponse.json({ error: 'Forbidden - Super Admin required' }, { status: 403 })
+  }
+
+  return user
+}
+
+/**
+ * Requer que o usuário seja admin global (owner ou admin)
+ */
+export async function requireAdmin(
+  request: NextRequest
+): Promise<AuthenticatedUser | NextResponse> {
+  const user = await requireAuth(request)
+
+  if (user instanceof NextResponse) return user
+
+  if (!isAdmin(user.role)) {
+    return NextResponse.json({ error: 'Forbidden - Admin required' }, { status: 403 })
   }
 
   return user

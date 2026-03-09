@@ -5,7 +5,7 @@ import { BillingPlanList } from '@/components/dashboard/billing/billing-plan-lis
 import { PageContent } from '@/components/dashboard/layout/page-content'
 import { PageHeader } from '@/components/dashboard/layout/page-header'
 import { PageShell } from '@/components/dashboard/layout/page-shell'
-import { isOwner } from '@/lib/auth/rbac/roles'
+import { isAdmin } from '@/lib/auth/rbac/roles'
 import { billingPlanListQuerySchema } from '@/schemas/billing/billing-plan-schemas'
 import { listBillingPlans } from '@/services/billing/billing-plan-query.service'
 import { getServerSession } from '@/server/auth/server-session'
@@ -39,7 +39,7 @@ export default async function BillingSettingsPage({
     redirect('/sign-in')
   }
 
-  if (!isOwner(session.user.role)) {
+  if (!isAdmin(session.user.role)) {
     redirect('/dashboard')
   }
 
