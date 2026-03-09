@@ -11,6 +11,8 @@ import { logger } from '@/lib/utils/logger'
 import Stripe from 'stripe'
 import { getBillingPlanBySlug, getBillingPlanByStripePriceId } from '../billing-plan-catalog.service'
 
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '')
+
 /**
  * Stripe webhook event types we care about
  */
@@ -20,6 +22,7 @@ type StripeWebhookEventType =
   | 'customer.subscription.updated'
   | 'customer.subscription.deleted'
   | 'invoice.paid'
+  | 'invoice.payment_succeeded'
   | 'invoice.payment_failed'
 
 /**
@@ -71,6 +74,10 @@ export async function handleStripeWebhook(
         break
 
       case 'invoice.paid':
+        await handleInvoicePaid(event.data.object as Stripe.Invoice)
+        break
+
+      case 'invoice.payment_succeeded':
         await handleInvoicePaid(event.data.object as Stripe.Invoice)
         break
 
@@ -162,9 +169,12 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session):
     return
   }
 
+  const stripeSubscription = await retrieveStripeSubscription(subscriptionId)
+  await handleSubscriptionUpsert(stripeSubscription)
+
   logger.info(
     { organizationId, planType, subscriptionId },
-    '[Stripe] Awaiting subscription webhook to create local subscription'
+    '[Stripe] Created subscription from checkout.session.completed fallback'
   )
 }
 
@@ -328,7 +338,13 @@ async function handleInvoicePaid(invoice: Stripe.Invoice): Promise<void> {
   })
 
   if (!dbSubscription) {
-    logger.warn({ subscriptionId }, '[Stripe] No subscription found for invoice payment')
+    logger.warn(
+      { subscriptionId },
+      '[Stripe] No subscription found for invoice payment; attempting fallback sync'
+    )
+
+    const stripeSubscription = await retrieveStripeSubscription(subscriptionId)
+    await handleSubscriptionUpsert(stripeSubscription)
     return
   }
 
@@ -410,4 +426,13 @@ async function resolveBillingPlan(subscription: Stripe.Subscription) {
   }
 
   return null
+}
+
+async function retrieveStripeSubscription(subscriptionId: string): Promise<Stripe.Subscription> {
+  try {
+    return await stripe.subscriptions.retrieve(subscriptionId)
+  } catch (error) {
+    logger.error({ err: error, subscriptionId }, '[Stripe] Failed to retrieve subscription from API')
+    throw error
+  }
 }

@@ -17,6 +17,7 @@ const updateSubscriptionStatusMock = vi.hoisted(() => vi.fn())
 const createSubscriptionMock = vi.hoisted(() => vi.fn())
 const getBillingPlanBySlugMock = vi.hoisted(() => vi.fn())
 const getBillingPlanByStripePriceIdMock = vi.hoisted(() => vi.fn())
+const stripeRetrieveSubscriptionMock = vi.hoisted(() => vi.fn())
 
 vi.mock('@/lib/db/prisma', () => ({
   prisma: prismaMock,
@@ -30,6 +31,14 @@ vi.mock('@/services/billing/billing-subscription.service', () => ({
 vi.mock('@/services/billing/billing-plan-catalog.service', () => ({
   getBillingPlanBySlug: getBillingPlanBySlugMock,
   getBillingPlanByStripePriceId: getBillingPlanByStripePriceIdMock,
+}))
+
+vi.mock('stripe', () => ({
+  default: class Stripe {
+    subscriptions = {
+      retrieve: stripeRetrieveSubscriptionMock,
+    }
+  },
 }))
 
 import { handleStripeWebhook } from '@/services/billing/handlers/stripe-webhook.handler'
@@ -87,6 +96,7 @@ describe('stripe-webhook.handler', () => {
 
       return Promise.resolve(null)
     })
+    stripeRetrieveSubscriptionMock.mockReset()
   })
 
   it('updates an existing subscription on checkout.session.completed', async () => {
@@ -187,6 +197,71 @@ describe('stripe-webhook.handler', () => {
     })
   })
 
+  it('hydrates a missing local subscription from checkout.session.completed', async () => {
+    prismaMock.billingWebhookLog.findUnique.mockResolvedValueOnce(null)
+    prismaMock.billingSubscription.findUnique.mockResolvedValueOnce(null)
+    stripeRetrieveSubscriptionMock.mockResolvedValueOnce({
+      id: 'sub_2',
+      customer: 'cus_2',
+      status: 'trialing',
+      cancel_at_period_end: false,
+      current_period_start: 1761955200,
+      current_period_end: 1764547200,
+      trial_end: 1764547200,
+      items: {
+        data: [
+          {
+            price: {
+              id: 'price_test_starter_placeholder',
+            },
+          },
+        ],
+      },
+      metadata: {
+        organizationId: 'org-2',
+        planType: 'starter',
+      },
+    })
+
+    const event = {
+      id: 'evt_checkout_missing',
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: 'cs_2',
+          customer: 'cus_2',
+          subscription: 'sub_2',
+          metadata: {
+            organizationId: 'org-2',
+            planType: 'starter',
+          },
+        },
+      },
+    } as unknown as Stripe.Event
+
+    const result = await handleStripeWebhook(event)
+
+    expect(stripeRetrieveSubscriptionMock).toHaveBeenCalledWith('sub_2')
+    expect(createSubscriptionMock).toHaveBeenCalledWith({
+      organizationId: 'org-2',
+      planType: 'starter',
+      provider: 'stripe',
+      providerCustomerId: 'cus_2',
+      providerSubscriptionId: 'sub_2',
+      status: 'active',
+      billingCycleStartDate: new Date('2025-11-01T00:00:00.000Z'),
+      billingCycleEndDate: new Date('2025-12-01T00:00:00.000Z'),
+      nextResetDate: new Date('2025-12-01T00:00:00.000Z'),
+      trialEndsAt: new Date('2025-12-01T00:00:00.000Z'),
+      canceledAtPeriodEnd: false,
+    })
+    expect(result).toEqual({
+      processed: true,
+      eventId: 'evt_checkout_missing',
+      message: 'Successfully processed checkout.session.completed webhook',
+    })
+  })
+
   it('syncs the local plan when stripe sends a subscription update after a plan change', async () => {
     prismaMock.billingWebhookLog.findUnique.mockResolvedValueOnce(null)
     prismaMock.billingSubscription.findUnique.mockResolvedValueOnce({
@@ -267,6 +342,65 @@ describe('stripe-webhook.handler', () => {
     expect(result).toEqual({
       processed: true,
       eventId: 'evt_3',
+      message: 'Successfully processed invoice.paid webhook',
+    })
+  })
+
+  it('hydrates a missing local subscription when invoice.paid arrives before local creation', async () => {
+    prismaMock.billingWebhookLog.findUnique.mockResolvedValueOnce(null)
+    prismaMock.billingSubscription.findUnique.mockResolvedValueOnce(null)
+    stripeRetrieveSubscriptionMock.mockResolvedValueOnce({
+      id: 'sub_3',
+      customer: 'cus_3',
+      status: 'active',
+      cancel_at_period_end: false,
+      current_period_start: 1761955200,
+      current_period_end: 1764547200,
+      items: {
+        data: [
+          {
+            price: {
+              id: 'price_test_starter_placeholder',
+            },
+          },
+        ],
+      },
+      metadata: {
+        organizationId: 'org-3',
+        planType: 'starter',
+      },
+    })
+
+    const event = {
+      id: 'evt_invoice_missing',
+      type: 'invoice.paid',
+      data: {
+        object: {
+          id: 'in_2',
+          subscription: 'sub_3',
+        },
+      },
+    } as unknown as Stripe.Event
+
+    const result = await handleStripeWebhook(event)
+
+    expect(stripeRetrieveSubscriptionMock).toHaveBeenCalledWith('sub_3')
+    expect(createSubscriptionMock).toHaveBeenCalledWith({
+      organizationId: 'org-3',
+      planType: 'starter',
+      provider: 'stripe',
+      providerCustomerId: 'cus_3',
+      providerSubscriptionId: 'sub_3',
+      status: 'active',
+      billingCycleStartDate: new Date('2025-11-01T00:00:00.000Z'),
+      billingCycleEndDate: new Date('2025-12-01T00:00:00.000Z'),
+      nextResetDate: new Date('2025-12-01T00:00:00.000Z'),
+      trialEndsAt: null,
+      canceledAtPeriodEnd: false,
+    })
+    expect(result).toEqual({
+      processed: true,
+      eventId: 'evt_invoice_missing',
       message: 'Successfully processed invoice.paid webhook',
     })
   })
