@@ -141,6 +141,11 @@ Objetivo:
 
 - permitir smoke rápido antes de cada release sensível de billing
 
+Entregáveis esperados:
+
+- `docs/BILLING_RELEASE_CHECKLIST.md`
+- `docs/BILLING_SMOKE_CHECKLIST.md`
+
 ## Critérios de Aceite
 
 - existe um único caminho documentado para setup Stripe

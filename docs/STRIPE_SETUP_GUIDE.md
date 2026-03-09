@@ -95,16 +95,32 @@ Se no futuro quisermos usar a feature de Usage Billing nativa da Stripe:
 
 **Recomendação:** Manter modelo atual (cálculo local) enquanto volume for baixo.
 
+## Step 5: Configure Customer Portal
+
+Go to [Stripe Dashboard → Customer Portal](https://dashboard.stripe.com/settings/billing/portal):
+
+1. Habilite o portal
+2. Configure `Return URL` para `https://whatrack.com/dashboard/billing`
+3. Ative pelo menos:
+   - atualização de método de pagamento
+   - acesso a invoices
+   - troca entre planos self-serve
+   - cancelamento da assinatura
+
+O app também expõe cancelamento direto em `/dashboard/billing`, mas o portal continua sendo o caminho oficial de gestão ampla da assinatura.
+
 ## Step 6: Set Up Webhooks
 
 Go to [Stripe Dashboard → Webhooks](https://dashboard.stripe.com/webhooks):
 
 1. Click "Add endpoint"
-2. **Endpoint URL**: `https://yourdomain.com/api/v1/billing/webhooks/stripe`
+2. **Endpoint URL**: `https://whatrack.com/api/v1/billing/webhooks/stripe`
 3. **Events to send**: Select:
    - `checkout.session.completed`
+   - `customer.subscription.created`
    - `customer.subscription.updated`
    - `customer.subscription.deleted`
+   - `invoice.paid`
    - `invoice.payment_failed`
 4. Click "Add endpoint"
 5. Copy the **Signing secret** (whsec_...)
@@ -128,6 +144,11 @@ Test the checkout flow:
 3. Complete checkout with test card: `4242 4242 4242 4242`
 4. Verify webhook processing in [Stripe Dashboard → Webhooks](https://dashboard.stripe.com/webhooks)
 5. Execute `POST /api/v1/cron/billing/close-cycles` para validar o closeout quando houver ciclo vencido
+
+Antes do go-live, execute também:
+
+- [BILLING_RELEASE_CHECKLIST.md](/Users/thiago/www/whatrack/docs/BILLING_RELEASE_CHECKLIST.md)
+- [BILLING_SMOKE_CHECKLIST.md](/Users/thiago/www/whatrack/docs/BILLING_SMOKE_CHECKLIST.md)
 
 ## API Keys Location
 
@@ -162,16 +183,6 @@ For production:
 3. Create live products and prices
 4. Update environment variables in production deployment
 5. Test with real payment (or small amount)
-
-## Customer Portal
-
-After a customer subscribes, they can access the Stripe Customer Portal via:
-- Dashboard → Billing → "Gerenciar assinatura" button
-- This redirects to Stripe's managed portal for:
-  - Updating payment method
-  - Changing billing email
-  - Downloading invoices
-  - Managing cancellation
 
 ## Troubleshooting
 

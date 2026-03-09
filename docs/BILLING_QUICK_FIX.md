@@ -30,6 +30,7 @@ Confirmar na Stripe:
   - `customer.subscription.created`
   - `customer.subscription.updated`
   - `customer.subscription.deleted`
+  - `invoice.paid`
   - `invoice.payment_failed`
 
 ## 3. Retry operacional não roda
@@ -58,3 +59,8 @@ Executar:
 4. confirmar assinatura ativa ou `trialing`
 5. abrir Customer Portal
 6. confirmar estado atualizado no dashboard
+
+Referências operacionais:
+
+- [BILLING_RELEASE_CHECKLIST.md](/Users/thiago/www/whatrack/docs/BILLING_RELEASE_CHECKLIST.md)
+- [BILLING_SMOKE_CHECKLIST.md](/Users/thiago/www/whatrack/docs/BILLING_SMOKE_CHECKLIST.md)

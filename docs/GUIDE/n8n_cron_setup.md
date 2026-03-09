@@ -75,3 +75,19 @@ curl -X POST 'https://whatrack.com/api/v1/cron/whatsapp/health-check' \
 - não usar token em query string
 - tratar qualquer `401` como erro de secret
 - tratar `429` como lock ativo, não como falha de infraestrutura
+
+## Billing: respostas esperadas
+
+### `/api/v1/cron/system/webhook-retry`
+
+- `200`: retry executado
+- `429`: job já está em execução
+- `401`: `CRON_SECRET` inválido
+
+### `/api/v1/cron/billing/close-cycles`
+
+- `200`: closeout executado
+- `429`: job já está em execução
+- `401`: `CRON_SECRET` inválido
+
+Use [BILLING_RELEASE_CHECKLIST.md](/Users/thiago/www/whatrack/docs/BILLING_RELEASE_CHECKLIST.md) como referência operacional do billing.

@@ -6,8 +6,13 @@ Subir billing com Stripe como única verdade operacional do produto:
 
 - checkout self-serve em cartão
 - ativação e sincronização de assinatura via webhook Stripe
-- cancelamento e troca de plano via Customer Portal
+- gestão de assinatura via Customer Portal e cancelamento direto no app
 - overage fechado por cron oficial no `n8n`
+
+Checklist operacional canônico:
+
+- [BILLING_RELEASE_CHECKLIST.md](/Users/thiago/www/whatrack/docs/BILLING_RELEASE_CHECKLIST.md)
+- [BILLING_SMOKE_CHECKLIST.md](/Users/thiago/www/whatrack/docs/BILLING_SMOKE_CHECKLIST.md)
 
 ## Pré-requisitos
 
@@ -42,6 +47,7 @@ Configurar no painel da Stripe:
   - `customer.subscription.created`
   - `customer.subscription.updated`
   - `customer.subscription.deleted`
+  - `invoice.paid`
   - `invoice.payment_failed`
 
 ## Scheduler Oficial
@@ -67,7 +73,7 @@ Executar na ordem:
 4. confirmar entrega do webhook Stripe
 5. validar assinatura ativa ou `trialing`
 6. abrir Customer Portal
-7. validar cancelamento ou troca de plano
+7. validar troca de plano ou cancelamento direto pelo app
 
 ## Diagnóstico Rápido
 
