@@ -2,233 +2,128 @@
 
 ## Objetivo
 
-Remover do domínio de billing tudo que hoje mantém o sistema em estado híbrido, migrando o produto para um desenho coerente com Stripe-only e catálogo administrado, sem legado operacional ativo no `src/`.
-
-Nesta frente, a meta não é apenas "despriorizar" AbacatePay. A meta é:
-
-- remover completamente AbacatePay do produto
-- não deixar vestígios operacionais no código, env, schema, testes ou documentação ativa
-- tratar qualquer referência restante como falha de fechamento da iniciativa
+Remover do domínio de billing tudo que ainda mantém o sistema em estado híbrido, deixando o produto coerente com Stripe-only e sem legado operacional ativo no `src/`, `prisma/`, `docs/` ou `.env*`.
 
 ## Problema Atual
 
-O billing ainda mistura:
+Mesmo com Stripe já operando o caminho principal, ainda restam resíduos do provider antigo em:
 
-- catálogo hardcoded
-- schema administrativo parcial
-- provider registry com AbacatePay e Stripe
-- webhook Stripe novo com webhook genérico legado
-- documentação ativa e testes ainda presos a contratos antigos
+- provider layer
+- webhook legado
+- env schema
+- comentários e campos de schema
+- testes e fixtures
+- documentação histórica que ainda parece operacional
 
-Isso dificulta review, operação e futuras mudanças.
+Isso aumenta risco de manutenção, revisão e setup errado.
 
 ## Decisão Fechada
 
-AbacatePay deve sair integralmente do repositório operacional.
+O provider legado deve sair integralmente do tree ativo do projeto.
 
 Isso inclui remover:
 
-- provider
-- webhook
-- env vars
-- comentários de schema
-- referências em docs ativas
-- fixtures e testes
-- exemplos de setup
-- referências em UI, copy e suporte
-
-O único lugar aceitável para a existência histórica da AbacatePay é o histórico do git. O alvo desta iniciativa é que o tree ativo do projeto não carregue mais esse provider.
-
-## Estado Confirmado no Código
-
-### Legados ativos ou semi-ativos
-
-- `src/lib/billing/plans.ts` ainda sustenta landing, checkout e UI
-- `src/lib/billing/providers/providers/abacatepay-provider.ts` ainda está no caminho ativo do domínio
-- `src/app/api/v1/billing/webhook/route.ts` continua existindo
-- `BillingPlanTemplate` e `BillingPlan` coexistem sem contrato fechado
-- vários testes ainda assumem `abacatepay`
-
-### Inconsistências de dados
-
-- `BillingSubscription` ainda depende de `planType`
-- `planId` existe, mas não sustenta o fluxo principal
-- ainda não existe `planVersionId`
+- provider e webhook antigos
+- env vars antigas
+- utilitários, schemas e testes ligados ao webhook antigo
+- referências textuais em código, schema, docs e `.env*`
+- documentação antiga que possa ser confundida com referência operacional
 
 ## Escopo
 
 ### Entra nesta iniciativa
 
-1. remover dependência operacional da AbacatePay no `src/`
+1. remover provider antigo do runtime
 2. remover webhook legado do caminho oficial
-3. migrar o domínio de `planType` hardcoded para catálogo administrado
-4. decidir e implementar o destino de `BillingPlanTemplate`
-5. introduzir `planVersionId` se o PRD 13 for seguido
-6. remover env vars e validações ligadas à AbacatePay
-7. remover referências da AbacatePay do schema, comments e tipos gerados
-8. atualizar testes, fixtures e docs ativos
-9. remover ou reescrever documentação antiga de billing ligada à AbacatePay
-10. remover qualquer clone, guia ou material auxiliar da AbacatePay dentro do repositório
+3. limpar env e setup operacional
+4. limpar schema, seed e artefatos Prisma gerados
+5. atualizar testes e fixtures para Stripe-only
+6. remover docs e guias antigos
+7. zerar referências textuais ao provider removido
 
 ### Fica fora desta iniciativa
 
-- implementação inicial do catálogo admin
-- implementação inicial do overage
-- smoke final de produção
-
-## Decisões Arquiteturais
-
-### Anti-legado
-
-Regra:
-
-- não manter fallback eterno entre `plans.ts` e banco
-- não manter webhook genérico ativo junto do oficial Stripe
-- não manter provider antigo registrado só “por precaução”
-- não manter `enum`, comentário, `type`, env var ou exemplo mencionando AbacatePay
-- não manter docs "arquivadas" dentro do repositório ativo se ainda servirem como referência operacional indevida
-
-### Regra de Higiene Final
-
-Ao final desta iniciativa, a busca abaixo deve retornar zero ocorrências no tree ativo do projeto:
-
-```bash
-rg -n "abacatepay|ABACATEPAY|dashboard\\.abacatepay|api\\.abacatepay" src prisma docs .env*
-```
-
-Se algum diretório precisar ser explicitamente excluído dessa regra, isso deve ser decidido e documentado antes da implementação. O alvo preferencial continua sendo zero matches no repositório.
-
-### Migração de subscriptions
-
-Alvo:
-
-- subscription deixa de depender apenas de `planType`
-- passa a apontar para `planId` e, quando existir, `planVersionId`
-
-### Destino de `BillingPlanTemplate`
-
-Precisa de decisão explícita:
-
-- ou vira seed-only
-- ou é removido
-- ou é absorvido por `BillingPlan`/`BillingPlanVersion`
-
-Não pode continuar sem papel claro.
+- novos fluxos de checkout
+- novos métodos de pagamento
+- overage
+- smoke final de billing
 
 ## Mudanças Técnicas Necessárias
 
-### 1. Limpar provider layer
+### 1. Provider layer
 
 Revisar:
 
 - `src/lib/billing/providers/init.ts`
 - `src/lib/billing/providers/providers/provider-registry.ts`
-- `src/lib/billing/providers/providers/abacatepay-provider.ts`
+- `src/lib/billing/providers/providers/billing-provider.ts`
+
+Objetivo:
+
+- manter apenas Stripe no caminho ativo
+- remover IDs e comentários mortos
+
+### 2. Webhook legado
+
+Remover:
+
+- rota antiga de webhook de billing
+- `src/services/billing/handlers/billing-webhook.handler.ts`
+- utilitários e testes associados
+
+Objetivo:
+
+- deixar apenas `POST /api/v1/billing/webhooks/stripe`
+
+### 3. Env e setup
+
+Revisar:
+
+- `.env*`
 - `src/lib/env/env.ts`
+- docs de setup de billing
 
 Objetivo:
 
-- remover AbacatePay do domínio, não apenas do fluxo ativo
-- deixar só Stripe no caminho oficial
+- manter apenas envs ativos de Stripe e cron
 
-### 2. Limpar routes legadas
+### 4. Schema e seeds
 
 Revisar:
 
-- `src/app/api/v1/billing/webhook/route.ts`
-- rotas/documentos antigos ligados à AbacatePay
+- `prisma/schema.prisma`
+- migrations ativas
+- `prisma/seeds/seed_billing_plans.ts`
 
 Objetivo:
 
-- deletar o webhook legado
-- impedir que o domínio continue sustentando dois contratos de provider
+- remover campos ligados ao provider removido
+- manter o catálogo coerente com Stripe-only
 
-### 3. Migrar consumidores de plano
-
-Revisar:
-
-- landing pricing
-- billing UI
-- checkout
-- success page
-- account billing card
-
-Objetivo:
-
-- eliminar dependência operacional de `getBillingPlan()`
-
-### 4. Limpar env e setup operacional
-
-Revisar:
-
-- `.env.example` ou equivalentes
-- `src/lib/env/env.ts`
-- docs operacionais de deploy
-- scripts/setup ligados à AbacatePay
-
-Objetivo:
-
-- remover `ABACATEPAY_SECRET_KEY`
-- remover `ABACATEPAY_WEBHOOK_SECRET`
-- remover `ABACATEPAY_WEBHOOK_URL`
-- remover qualquer instrução operacional do provider antigo
-
-### 5. Migrar schema e dados
-
-Revisar:
-
-- `BillingPlan`
-- `BillingPlanHistory`
-- `BillingPlanTemplate`
-- `BillingSubscription`
-
-Objetivo:
-
-- coerência estrutural
-- sem tabelas sem função definida
-- sem campos, comentários ou referências de provider antigo
-
-### 6. Limpar docs e artefatos residuais
+### 5. Docs e histórico operacional
 
 Revisar:
 
 - `docs/BILLING_DEPLOYMENT.md`
 - `docs/BILLING_QUICK_FIX.md`
-- `docs/GUIDE/abacatepay_guide.md`
-- PRDs antigos ou auxiliares que ainda instruam uso de AbacatePay
-- diretórios auxiliares em `docs/SKILL/` ou equivalentes, se existirem
+- PRDs ativos e arquivos arquivados que ainda instruam uso do provider removido
 
 Objetivo:
 
-- remover ou reescrever qualquer documento que mantenha a AbacatePay viva no repo
-- evitar que suporte, produto ou engenharia usem documentação morta como referência
-
-### 7. Atualizar testes
-
-Objetivo:
-
-- remover fixtures `abacatepay` do caminho principal
-- alinhar testes ao mundo Stripe-only
+- deixar o repositório sem referência operacional morta
 
 ## Critérios de Aceite
 
-- nenhuma rota oficial de billing depende da AbacatePay
-- nenhum arquivo operacional do repo menciona AbacatePay
-- nenhum env obrigatório do app menciona AbacatePay
-- nenhum fluxo principal depende de `plans.ts`
-- subscription aponta para catálogo administrativo real
-- docs ativas não instruem uso de provider antigo
-- testes do domínio principal deixam de assumir `abacatepay`
-- busca textual por `abacatepay|ABACATEPAY` no repo ativo retorna zero ou somente exceções explicitamente aprovadas
+- nenhuma rota oficial de billing depende do provider removido
+- nenhum env obrigatório menciona o provider removido
+- nenhum teste do domínio principal assume o provider removido
+- docs ativas de billing refletem Stripe-only
+- busca textual por referências do provider removido retorna zero no tree ativo
 
-## Dependências
+## Ordem Recomendada
 
-- `15_PRD_BILLING_PLANS_CRUD.md`
-- `14_PRD_STRIPE_SUBSCRIPTIONS_CORE.md`
-
-## Riscos
-
-- migração parcial deixar metade dos consumers no hardcode
-- schema ficar com tabelas sobrepostas sem dono claro
-- remoção do legado sem migração de dados quebrar assinaturas existentes
-- sobrar referência textual isolada e o time assumir incorretamente que o provider antigo ainda é suportado
+1. remover runtime e webhook legado
+2. limpar env schema e `.env*`
+3. limpar schema/seed/migrations
+4. limpar docs
+5. regenerar Prisma Client e validar o projeto

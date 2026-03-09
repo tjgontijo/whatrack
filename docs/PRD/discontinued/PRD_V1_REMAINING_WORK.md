@@ -98,7 +98,7 @@ O codigo de webhook de billing ja esta mais seguro, mas a documentacao do projet
 #### Requisitos
 
 - alinhar `docs/BILLING_DEPLOYMENT.md` com os eventos reais hoje suportados;
-- alinhar `docs/PRD/ABACATEPAY_WEBHOOK_SETUP.md` e checklists relacionados;
+- alinhar o checklist operacional de webhook e billing;
 - remover orientacoes antigas que ainda mandam assinar:
   - `subscription.created`
   - `subscription.updated`

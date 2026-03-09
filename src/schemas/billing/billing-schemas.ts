@@ -94,55 +94,6 @@ export const portalResponseSchema = z.object({
 })
 
 // ============================================
-// Webhook Schemas
-// ============================================
-
-const paymentWebhookEventSchema = z.enum(['billing.paid', 'pix.paid', 'pix.expired'])
-
-export const billingWebhookPayloadSchema = z
-  .object({
-    id: z.string().min(1),
-    type: paymentWebhookEventSchema.optional(),
-    event: paymentWebhookEventSchema.optional(),
-    timestamp: z.string().datetime().optional(),
-    data: z
-      .object({
-        billing: z
-          .object({
-            id: z.string().min(1),
-            status: z.string().min(1),
-            amount: z.number(),
-            products: z
-              .array(
-                z.object({
-                  externalId: z.string().min(1),
-                  name: z.string().min(1),
-                }),
-              )
-              .optional(),
-            customer: z
-              .object({
-                id: z.string().min(1),
-              })
-              .optional(),
-          })
-          .optional(),
-        pixQrCode: z
-          .object({
-            id: z.string().min(1),
-            status: z.string().min(1),
-            amount: z.number(),
-          })
-          .optional(),
-      })
-      .passthrough(),
-  })
-  .refine((payload) => Boolean(payload.type || payload.event), {
-    message: 'Webhook event type is required',
-    path: ['event'],
-  })
-
-// ============================================
 // Type Inference
 // ============================================
 
@@ -156,4 +107,3 @@ export type CancelRequest = z.infer<typeof cancelRequestSchema>
 export type CancelResponse = z.infer<typeof cancelResponseSchema>
 export type PortalRequest = z.infer<typeof portalRequestSchema>
 export type PortalResponse = z.infer<typeof portalResponseSchema>
-export type BillingWebhookPayload = z.infer<typeof billingWebhookPayloadSchema>

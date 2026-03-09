@@ -181,7 +181,7 @@ After a customer subscribes, they can access the Stripe Customer Portal via:
 - Check logs in Stripe Dashboard → Webhooks → Endpoint → Events
 
 ### Checkout failing?
-- Verify price IDs exist and are in `.env`
+- Verify the selected plan is synced in `/dashboard/settings/billing`
 - Check API keys are not test/live mismatch
 - Look at browser console for API errors
 

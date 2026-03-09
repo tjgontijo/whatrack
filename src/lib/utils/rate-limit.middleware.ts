@@ -86,7 +86,7 @@ export const DEFAULT_RATE_LIMITS: Record<string, RateLimitConfig> = {
   },
 
   // Billing webhooks: High-volume from payment provider
-  '/api/v1/billing/webhook': {
+  '/api/v1/billing/webhooks/stripe': {
     enabled: true,
     ip: { limit: 500, windowSeconds: 3600 }, // 500 per hour
     org: { limit: 2000, windowSeconds: 3600 }, // 2000 per hour

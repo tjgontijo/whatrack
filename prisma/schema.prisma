@@ -1147,9 +1147,9 @@ model BillingSubscription {
   organizationId String @db.Uuid
   planId         String?  // Reference to BillingPlan for admin-managed plans
 
-  // Provider (agnóstico)
-  provider              String  // 'abacatepay' | 'polar' | 'asaas' | 'stripe'
-  providerCustomerId    String  @unique  // ID do customer no provider
+  // Provider
+  provider               String
+  providerCustomerId     String  @unique  // ID do customer no provider
   providerSubscriptionId String? @unique // ID da subscription no provider
 
   // Plan
@@ -1243,7 +1243,7 @@ model BillingCycleCloseout {
 model BillingWebhookLog {
   id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
 
-  provider    String  // 'abacatepay' | 'polar' | 'asaas' | 'stripe'
+  provider    String
   eventType   String  // 'subscription.created' | 'charge.paid' | etc
   payload     Json
   eventId     String? @unique  // ID do evento no provider (deduplicação)
@@ -1280,11 +1280,10 @@ model BillingPlanTemplate {
   supportLevel       String @default("email")  // 'email' | 'priority' | 'dedicated'
 
   // Referências por provider
-  abacatepayProductId String?
-  polarProductId      String?
-  asaasProductId      String?
-  stripeProductId     String?
-  stripePriceId       String?
+  polarProductId  String?
+  asaasProductId  String?
+  stripeProductId String?
+  stripePriceId   String?
 
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())

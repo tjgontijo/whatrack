@@ -2,35 +2,35 @@
 
 ## Quando usar
 
-Use este guia quando o checkout ou o webhook de billing falharem perto do launch.
+Use este guia quando checkout, webhook Stripe ou closeout de overage falharem perto do release.
 
 ## 1. Checkout retorna 500
 
 Checklist:
 
 ```bash
-ABACATEPAY_SECRET_KEY=abc_...
-ABACATEPAY_WEBHOOK_SECRET=...
+STRIPE_SECRET_KEY=sk_live_...
+STRIPE_WEBHOOK_SECRET=whsec_...
 ```
 
 Confirmar:
 
-- a chave não é sandbox em produção
+- a chave é do ambiente correto
+- o plano está sincronizado com a Stripe
 - o usuário tem `email`, `name` e `phone`
-- a organização tem `cpf` ou `cnpj`
 
 ## 2. Webhook chega, mas a assinatura não ativa
 
-Confirmar na AbacatePay:
+Confirmar na Stripe:
 
-- URL: `https://whatrack.com/api/v1/billing/webhook`
-- secret correto
+- URL: `https://whatrack.com/api/v1/billing/webhooks/stripe`
+- signing secret correto
 - eventos corretos:
-  - `billing.paid`
-  - `pix.paid`
-  - `pix.expired`
-
-Não usar eventos `subscription.*`.
+  - `checkout.session.completed`
+  - `customer.subscription.created`
+  - `customer.subscription.updated`
+  - `customer.subscription.deleted`
+  - `invoice.payment_failed`
 
 ## 3. Retry operacional não roda
 
@@ -40,22 +40,13 @@ Confirmar no `n8n`:
 - chamada `POST https://whatrack.com/api/v1/cron/system/webhook-retry`
 - header `Authorization: Bearer ${CRON_SECRET}`
 
-Exemplo:
+## 4. Overage não é cobrado
 
-```bash
-curl -X POST https://whatrack.com/api/v1/cron/system/webhook-retry \
-  -H "Authorization: Bearer ${CRON_SECRET}" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
+Confirmar:
 
-## 4. Cancelamento parece inconsistente
-
-Lembrar a verdade operacional da V1:
-
-- o app controla `status` e `canceledAtPeriodEnd`
-- não existe endpoint oficial de cancelamento no provider adotado hoje
-- o dashboard precisa refletir essa verdade, sem prometer cancelamento no provider
+- workflow `POST /api/v1/cron/billing/close-cycles` ativo no `n8n`
+- assinatura fora de trial
+- `billing_cycle_closeouts` sem erro
 
 ## 5. Smoke mínimo
 
@@ -64,6 +55,6 @@ Executar:
 1. iniciar checkout
 2. pagar
 3. confirmar webhook processado
-4. confirmar assinatura ativa no dashboard
-5. cancelar
+4. confirmar assinatura ativa ou `trialing`
+5. abrir Customer Portal
 6. confirmar estado atualizado no dashboard

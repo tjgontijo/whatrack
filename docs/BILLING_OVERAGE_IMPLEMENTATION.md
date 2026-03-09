@@ -69,7 +69,7 @@ CREATE TABLE billing_subscriptions (
   eventsUsedInCurrentCycle INTEGER DEFAULT 0,
 
   -- Provider info
-  provider VARCHAR,  -- 'stripe', 'abacatepay'
+  provider VARCHAR,  -- payment provider identifier
   providerSubscriptionId VARCHAR UNIQUE,
   providerCustomerId VARCHAR UNIQUE,
 

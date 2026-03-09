@@ -1,7 +1,7 @@
 /**
  * Payment Provider Interface
  *
- * Agnóstic interface for payment providers (Polar, AbacatePay, Stripe, etc).
+ * Agnostic interface for payment providers.
  * Each provider implements this interface to handle:
  * - Subscription creation
  * - Checkout sessions

@@ -160,7 +160,7 @@ O projeto sera considerado pronto para lancamento quando atingir os seguintes cr
 - manter `status` de lifecycle da assinatura no sistema (`active`, `paused`, `canceled`, `past_due`);
 - usar boolean de renovacao na model como fonte de verdade para "vai renovar ou nao";
 - aproveitar o campo ja existente `canceledAtPeriodEnd` ou substitui-lo explicitamente por `autoRenew`, mas sem reduzir a assinatura a apenas um boolean;
-- atualizar o guia local `docs/GUIDE/abacatepay_guide.md` para documentar claramente o fluxo oficial de cancelamento recorrente adotado;
+- atualizar o guia operacional de billing para documentar claramente o fluxo oficial de cancelamento recorrente adotado;
 - adicionar testes automatizados minimos para billing.
 
 #### Criterios de aceite

@@ -27,9 +27,9 @@ O problema é que essas peças ainda não fecham um sistema completo.
 ### Pontas soltas confirmadas no código
 
 1. O domínio ainda está em transição de provider
-- `src/lib/billing/providers/init.ts` ainda registra `abacatepay` e `stripe`
-- `src/lib/billing/providers/providers/provider-registry.ts` ainda nasce com provider ativo `abacatepay`
-- `src/app/api/v1/billing/webhook/route.ts` continua existindo para o fluxo legado
+- ainda existem resíduos do provider antigo no domínio
+- o runtime, env e docs ainda precisavam de limpeza para Stripe-only
+- o webhook legado ainda precisava sair do tree ativo
 
 2. A assinatura local ainda não espelha corretamente o lifecycle final da Stripe
 - o checkout cria assinatura local pendente antes da consolidação definitiva
@@ -107,7 +107,7 @@ PRD do excedente:
 
 PRD de limpeza estrutural:
 
-- remoção de dependência ativa da AbacatePay
+- remoção de dependência ativa do provider legado
 - migração de dados/contratos
 - remoção de código morto e docs legadas
 - alinhamento do domínio com Stripe-only

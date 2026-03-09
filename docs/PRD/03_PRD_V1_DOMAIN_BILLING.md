@@ -11,16 +11,16 @@ Base já existente no código:
 - checkout em `src/app/api/v1/billing/checkout/route.ts`
 - assinatura em `src/app/api/v1/billing/subscription/route.ts`
 - cancelamento em `src/app/api/v1/billing/cancel/route.ts`
-- webhook em `src/app/api/v1/billing/webhook/route.ts`
+- webhook em `src/app/api/v1/billing/webhooks/stripe/route.ts`
 - serviço de assinatura em `src/services/billing/billing-subscription.service.ts`
-- catálogo de planos em `src/lib/billing/plans.ts`
-- provider AbacatePay em `src/lib/billing/providers/providers/abacatepay-provider.ts`
+- catálogo de planos em `BillingPlan`
+- provider Stripe em `src/lib/billing/providers/providers/stripe-provider.ts`
 
 ## Verdade Operacional Atual
 
-- o checkout recorrente usa `MULTIPLE_PAYMENTS`
-- a AbacatePay v1 não expõe endpoint oficial de cancelamento no contrato atualmente adotado
-- por isso, o cancelamento da V1 é controlado no app por `status` e `canceledAtPeriodEnd`
+- o checkout recorrente usa Stripe Checkout
+- cancelamento e troca de plano usam o lifecycle oficial da Stripe
+- a assinatura local espelha `status`, período e trial do provider
 - essa verdade precisa estar refletida na UI, no suporte e na documentação
 
 ## Escopo Oficial da V1
@@ -30,21 +30,19 @@ Entra no launch:
 - checkout self-serve
 - ativação de assinatura via webhook
 - leitura de status atual da assinatura
-- cancelamento app-side com estado explícito
+- cancelamento no provider com estado explícito
 - exibição clara do estado da assinatura no dashboard
 
 Fica fora do esforço de hoje:
 
-- cancelamento no provider
-- troca automática de plano no provider
 - billing multi-provedor
 
 ## Gaps Reais
 
-- é obrigatório validar o webhook com evento real antes do launch
+- é obrigatório validar o webhook da Stripe com evento real antes do launch
 - migration e seed de status precisam estar aplicadas no banco de destino
 - a documentação interna de billing ainda pode conter instruções antigas e contraditórias
-- o suporte precisa saber explicar o significado de cancelamento na V1
+- o suporte precisa saber explicar trial, cancelamento e mudança de plano na V1
 - se `webhook-retry` entrar no launch, ele deve rodar via `n8n`, não depender do cron limitado da Vercel free
 
 ## Tarefas de Hoje

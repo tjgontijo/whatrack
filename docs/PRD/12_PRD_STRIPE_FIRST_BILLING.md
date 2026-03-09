@@ -10,14 +10,14 @@ Decisões fechadas para esta frente:
 
 - o método oficial de cobrança será `cartão`
 - a `Stripe` passa a ser o provider oficial do produto
-- a `AbacatePay` sai do plano ativo de billing
+- o provider legado sai do plano ativo de billing
 - `Polar` pode entrar no futuro como segundo provider, mas não faz parte desta implementação
 - o produto não vai expor múltiplos checkouts para o usuário escolher
 - a UI e o suporte devem refletir uma única verdade operacional: o checkout principal é Stripe
 
 ## Motivo da Migração
 
-O estado atual do billing com AbacatePay está funcional, mas estruturalmente frágil para um SaaS recorrente:
+O estado anterior do billing estava funcional, mas estruturalmente frágil para um SaaS recorrente:
 
 - o fluxo atual força recorrência em cima de `MULTIPLE_PAYMENTS`
 - o cancelamento não existe formalmente no provider usado hoje
@@ -44,12 +44,7 @@ A base atual do domínio já reduz o custo de migração:
 - assinatura centralizada em `src/services/billing/billing-subscription.service.ts`
 - rotas de billing já separadas em `src/app/api/v1/billing/*`
 
-Hoje, porém, o projeto está efetivamente `abacatepay-only`:
-
-- `init.ts` registra apenas AbacatePay
-- o provider ativo é fixo em `abacatepay`
-- o webhook é único e foi moldado para o payload atual da AbacatePay
-- a UI ainda aponta explicitamente para `dashboard.abacatepay.com`
+Hoje, a base já está migrando para Stripe, mas ainda exige limpeza final de runtime, env e documentação para ficar coerente com um único provider oficial.
 
 ## Resultado Esperado
 
@@ -75,7 +70,7 @@ Entra nesta iniciativa:
 - customer portal ou deep link oficial para gestão de cobrança
 - ajuste da UI de billing para Stripe-first
 - documentação operacional nova de billing
-- remoção da AbacatePay do fluxo ativo do produto
+- remoção do provider legado do fluxo ativo do produto
 
 Fica fora desta fase:
 
@@ -190,7 +185,7 @@ Revisar:
 
 Objetivo:
 
-- remover referências operacionais à AbacatePay do produto
+- remover referências operacionais ao provider legado do produto
 - mostrar links corretos para gestão de cobrança
 - mostrar status coerentes com Stripe
 - suportar mudança de plano e cancelamento via provider prioritário
@@ -206,7 +201,7 @@ Criar ou revisar:
 Objetivo:
 
 - documentar a Stripe como caminho oficial
-- remover a AbacatePay da documentação ativa de billing
+- remover o provider legado da documentação ativa de billing
 
 ## Estratégia de Rollout
 

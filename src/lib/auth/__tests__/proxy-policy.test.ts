@@ -19,6 +19,7 @@ describe('proxy policy', () => {
     expect(isPublicApiPath('/api/v1/auth/sign-in')).toBe(true)
     expect(isPublicApiPath('/api/v1/cron/ai/classifier')).toBe(true)
     expect(isPublicApiPath('/api/v1/billing/plans')).toBe(true)
+    expect(isPublicApiPath('/api/v1/billing/webhooks/stripe')).toBe(true)
     expect(isPublicApiPath('/api/v1/invitations/inv-1/public')).toBe(true)
     expect(isPublicApiPath('/api/v1/meta-ads/callback')).toBe(true)
     expect(isPublicApiPath('/api/v1/whatsapp/onboarding/callback')).toBe(true)

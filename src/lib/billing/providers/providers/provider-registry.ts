@@ -7,7 +7,7 @@
 
 import type { PaymentProvider } from './billing-provider'
 
-type ProviderId = 'abacatepay' | 'polar' | 'asaas' | 'stripe'
+type ProviderId = 'stripe'
 
 class ProviderRegistry {
   private providers = new Map<ProviderId, PaymentProvider>()

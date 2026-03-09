@@ -2,19 +2,12 @@
 
 ## Objetivo
 
-Subir billing da V1 com o contrato real do produto:
+Subir billing com Stripe como única verdade operacional do produto:
 
-- checkout self-serve via AbacatePay
-- ativação de assinatura por webhook
-- cancelamento controlado no app por `status` e `canceledAtPeriodEnd`
-- retry operacional via `n8n`
-
-## Verdade Operacional da V1
-
-- O checkout recorrente usa `MULTIPLE_PAYMENTS`.
-- O contrato atual da AbacatePay usado pelo projeto não expõe endpoint oficial de cancelamento.
-- Por isso, o cancelamento da V1 é refletido no Whatrack, não no provider.
-- O webhook processa apenas `billing.paid`, `pix.paid` e `pix.expired`.
+- checkout self-serve em cartão
+- ativação e sincronização de assinatura via webhook Stripe
+- cancelamento e troca de plano via Customer Portal
+- overage fechado por cron oficial no `n8n`
 
 ## Pré-requisitos
 
@@ -23,57 +16,46 @@ Subir billing da V1 com o contrato real do produto:
 Definir no ambiente de release:
 
 ```bash
-ABACATEPAY_SECRET_KEY=abc_...
-ABACATEPAY_WEBHOOK_SECRET=...
-ABACATEPAY_WEBHOOK_URL=https://whatrack.com/api/v1/billing/webhook
+STRIPE_SECRET_KEY=sk_live_...
+STRIPE_PUBLISHABLE_KEY=pk_live_...
+STRIPE_WEBHOOK_SECRET=whsec_...
 CRON_SECRET=...
+ACTIVE_PAYMENT_PROVIDER=stripe
 ```
 
 ### Banco
 
-Antes do launch:
+Antes do release:
 
 1. aplicar migrations pendentes
-2. executar os seeds de lookup tables
-3. confirmar que `billing_subscription_status` está populada
+2. executar seeds obrigatórios
+3. confirmar que o catálogo de planos está populado e sincronizado
 
-## Webhook AbacatePay
+## Webhook Stripe
 
-Configurar no painel da AbacatePay:
+Configurar no painel da Stripe:
 
-- URL: `https://whatrack.com/api/v1/billing/webhook`
-- secret: mesmo valor de `ABACATEPAY_WEBHOOK_SECRET`
-- eventos:
-  - `billing.paid`
-  - `pix.paid`
-  - `pix.expired`
-
-Não usar:
-
-- `subscription.created`
-- `subscription.updated`
-- `subscription.canceled`
-
-Esses eventos não fazem parte do contrato atualmente processado pelo app.
+- URL: `https://whatrack.com/api/v1/billing/webhooks/stripe`
+- signing secret: mesmo valor de `STRIPE_WEBHOOK_SECRET`
+- eventos mínimos:
+  - `checkout.session.completed`
+  - `customer.subscription.created`
+  - `customer.subscription.updated`
+  - `customer.subscription.deleted`
+  - `invoice.payment_failed`
 
 ## Scheduler Oficial
 
-O scheduler oficial da V1 é externo via `n8n`.
+O scheduler oficial roda via `n8n`.
 
-Rotina obrigatória:
+Rotinas obrigatórias:
 
 - `POST https://whatrack.com/api/v1/cron/system/webhook-retry`
-- header: `Authorization: Bearer $CRON_SECRET`
-- frequência recomendada: a cada 5 minutos
+- `POST https://whatrack.com/api/v1/cron/billing/close-cycles`
 
-Exemplo:
+Headers:
 
-```bash
-curl -X POST https://whatrack.com/api/v1/cron/system/webhook-retry \
-  -H "Authorization: Bearer ${CRON_SECRET}" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
+- `Authorization: Bearer $CRON_SECRET`
 
 ## Smoke de Release
 
@@ -81,20 +63,11 @@ Executar na ordem:
 
 1. abrir `/dashboard/billing`
 2. iniciar checkout em `Starter` ou `Pro`
-3. concluir pagamento
-4. confirmar entrega do webhook
-5. validar assinatura ativa no banco e no dashboard
-6. executar cancelamento no app
-7. validar estado final no dashboard
-
-## Interpretação do Cancelamento
-
-Na V1:
-
-- `atPeriodEnd=true`: agenda encerramento do acesso ao fim do ciclo atual
-- `atPeriodEnd=false`: encerra o acesso no Whatrack imediatamente
-
-Isso precisa ser explicado ao suporte exatamente assim. Não prometer cancelamento no provider enquanto esse endpoint não existir no contrato da AbacatePay.
+3. concluir checkout com cartão
+4. confirmar entrega do webhook Stripe
+5. validar assinatura ativa ou `trialing`
+6. abrir Customer Portal
+7. validar cancelamento ou troca de plano
 
 ## Diagnóstico Rápido
 
@@ -102,24 +75,23 @@ Isso precisa ser explicado ao suporte exatamente assim. Não prometer cancelamen
 
 Checar:
 
-- `ABACATEPAY_SECRET_KEY` correta para produção
-- identidade de cobrança completa do usuário e da organização
-- logs do servidor para erro do provider
+- `STRIPE_SECRET_KEY`
+- plano selecionado sincronizado com a Stripe
+- identidade de cobrança do usuário
 
-### Webhook não ativa assinatura
+### Webhook não sincroniza assinatura
 
 Checar:
 
 - URL do webhook
-- secret
+- signing secret
 - eventos corretos
-- assinatura HMAC
 - tabela `billing_webhook_logs`
 
-### Retry não roda
+### Overage não fecha ciclo
 
 Checar:
 
 - workflow ativo no `n8n`
 - `CRON_SECRET`
-- resposta da rota `/api/v1/cron/system/webhook-retry`
+- resposta da rota `/api/v1/cron/billing/close-cycles`

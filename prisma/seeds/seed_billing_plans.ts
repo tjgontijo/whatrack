@@ -95,34 +95,6 @@ export async function seedBillingPlans(prisma: PrismaClient) {
       update: plan,
       create: plan,
     })
-
-    await prisma.billingPlanTemplate.upsert({
-      where: { slug: plan.slug },
-      update: {
-        slug: plan.slug,
-        name: plan.name,
-        description: plan.description,
-        eventLimitPerMonth: plan.eventLimitPerMonth,
-        overagePricePerEvent: plan.overagePricePerEvent,
-        monthlyPrice: plan.monthlyPrice,
-        maxWhatsAppNumbers: plan.maxWhatsAppNumbers,
-        maxAdAccounts: plan.maxAdAccounts,
-        maxTeamMembers: plan.maxTeamMembers,
-        supportLevel: plan.supportLevel,
-      },
-      create: {
-        slug: plan.slug,
-        name: plan.name,
-        description: plan.description,
-        eventLimitPerMonth: plan.eventLimitPerMonth,
-        overagePricePerEvent: plan.overagePricePerEvent,
-        monthlyPrice: plan.monthlyPrice,
-        maxWhatsAppNumbers: plan.maxWhatsAppNumbers,
-        maxAdAccounts: plan.maxAdAccounts,
-        maxTeamMembers: plan.maxTeamMembers,
-        supportLevel: plan.supportLevel,
-      },
-    })
   }
 
   console.log('✅ Billing plans seeded successfully!')

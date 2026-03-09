@@ -20,7 +20,7 @@ describe('AccountBillingCard', () => {
           eventsUsedInCurrentCycle: 42,
           createdAt: '2026-03-01T00:00:00.000Z',
           canceledAt: null,
-          provider: 'abacatepay',
+          provider: 'stripe',
           providerSubscriptionId: 'bill-1',
         }}
       />,
