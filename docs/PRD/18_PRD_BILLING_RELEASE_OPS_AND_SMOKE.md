@@ -70,11 +70,14 @@ Para cada cobrança/assinatura:
 ### Smoke 1: assinatura nova
 
 1. sign up
-2. onboarding
-3. checkout Stripe com `7 dias grátis`
+2. onboarding leve criando o primeiro projeto
+3. inicio do trial Stripe com `14 dias gratis`
 4. webhook
-5. assinatura em `trialing` / ativa com trial
-6. account e billing refletindo plano correto
+5. assinatura em `trialing`
+6. account e billing refletindo:
+   - plano base
+   - primeiro projeto ativo
+   - sem add-ons
 
 ### Smoke 2: customer portal
 
@@ -88,11 +91,12 @@ Para cada cobrança/assinatura:
 2. confirmar mudança de estado local
 3. confirmar estado no provider
 
-### Smoke 4: mudança de plano
+### Smoke 4: expansao comercial
 
-1. sair de `Starter`
-2. migrar para `Pro`
-3. confirmar Stripe e app
+1. adicionar projeto adicional
+2. adicionar WhatsApp adicional no mesmo projeto
+3. adicionar conta Meta Ads adicional no mesmo projeto
+4. confirmar Stripe e app
 
 ### Smoke 5: overage
 
@@ -106,8 +110,12 @@ Para cada cobrança/assinatura:
 - `STRIPE_SECRET_KEY`
 - `STRIPE_PUBLISHABLE_KEY`
 - `STRIPE_WEBHOOK_SECRET`
-- IDs de prices/produtos coerentes com catálogo oficial
-- configuração de trial de 7 dias coerente com os planos self-serve
+- IDs de prices/produtos coerentes com o catalogo:
+  - `platform_base`
+  - `additional_project`
+  - `additional_whatsapp_number`
+  - `additional_meta_ad_account`
+- configuracao de trial de 14 dias coerente com o onboarding self-serve
 - `ACTIVE_PAYMENT_PROVIDER=stripe`
 - `CRON_SECRET`
 - portal Stripe habilitado
