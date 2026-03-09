@@ -54,7 +54,19 @@ Ao final desta migração:
 - a assinatura local reflete o lifecycle real da Stripe
 - cancelamento e mudança de plano passam a existir no provider
 - o dashboard mostra links e estados coerentes com Stripe
+- o modelo comercial alvo passa a ser base + add-ons operacionais
 - a arquitetura continua preparada para um futuro segundo provider
+
+## Modelo Comercial Alvo
+
+O desenho alvo de billing na Stripe deve suportar:
+
+- item base recorrente do produto
+- add-on por projeto adicional
+- add-on por numero de WhatsApp adicional
+- add-on por conta Meta Ads adicional
+
+Os limites de conversoes e creditos continuam sendo controlados pelo app por `projectId`, nao pela Stripe.
 
 ## Escopo
 
@@ -252,12 +264,12 @@ Objetivo:
 
 ## Smoke Obrigatório
 
-1. criar checkout Stripe em `Starter`
+1. criar trial Stripe do produto base
 2. concluir pagamento em cartão
 3. confirmar ativação da assinatura no app
 4. validar plano em `/dashboard/billing`
 5. validar plano em `/dashboard/account`
-6. trocar plano
+6. validar add-ons operacionais
 7. cancelar ao fim do período
 8. validar webhook, banco e UI
 
