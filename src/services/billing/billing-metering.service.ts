@@ -9,8 +9,8 @@
 
 import { prisma } from '@/lib/db/prisma'
 import { Prisma } from '@db/client'
-import { BILLING_CYCLE_DAYS } from '@/lib/billing/plans'
 import type { EventType } from '@/types/billing/billing'
+import { closeExpiredSubscriptionCycleIfNeeded } from './billing-overage-closeout.service'
 
 /**
  * Custom domain errors
@@ -55,7 +55,80 @@ export interface EventUsageSummary {
 export async function recordEvent(params: RecordEventParams): Promise<void> {
   const { organizationId, eventType, externalId } = params
 
-  // Get active subscription
+  const subscription = await loadCurrentSubscription(organizationId)
+
+  if (externalId) {
+    const existing = await prisma.billingEventUsage.findUnique({
+      where: {
+        subscriptionId_externalId: {
+          subscriptionId: subscription.id,
+          externalId,
+        },
+      },
+      select: { id: true },
+    })
+
+    if (existing) {
+      return
+    }
+  }
+
+  const newUsageCount = subscription.eventsUsedInCurrentCycle + 1
+  const billingCycle = new Date(subscription.billingCycleStartDate).toISOString().slice(0, 7)
+
+  try {
+    await prisma.$transaction([
+      prisma.billingSubscription.update({
+        where: { id: subscription.id },
+        data: {
+          eventsUsedInCurrentCycle: newUsageCount,
+        },
+      }),
+      prisma.billingEventUsage.create({
+        data: {
+          subscriptionId: subscription.id,
+          eventType,
+          externalId,
+          eventCount: 1,
+          isOverage: false,
+          chargedAmount: new Prisma.Decimal(0),
+          billingCycle,
+        },
+      }),
+    ])
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === 'P2002' &&
+      externalId
+    ) {
+      return
+    }
+
+    throw error
+  }
+}
+
+/**
+ * Get current event usage for the active billing cycle
+ */
+export async function getEventUsageForCycle(
+  organizationId: string
+): Promise<EventUsageSummary> {
+  const subscription = await loadCurrentSubscription(organizationId)
+
+  const overage = Math.max(0, subscription.eventsUsedInCurrentCycle - subscription.eventLimitPerMonth)
+
+  return {
+    used: subscription.eventsUsedInCurrentCycle,
+    limit: subscription.eventLimitPerMonth,
+    overage,
+    nextResetDate: subscription.nextResetDate,
+    withinLimit: subscription.eventsUsedInCurrentCycle <= subscription.eventLimitPerMonth,
+  }
+}
+
+async function loadCurrentSubscription(organizationId: string) {
   const subscription = await prisma.billingSubscription.findUnique({
     where: { organizationId },
     select: {
@@ -72,19 +145,18 @@ export async function recordEvent(params: RecordEventParams): Promise<void> {
     throw new NoActiveSubscriptionError(organizationId)
   }
 
-  // Check if billing cycle needs reset
-  const now = new Date()
-  if (now > subscription.nextResetDate) {
-    // Cycle has ended, reset it
-    await resetBillingCycle(subscription.id)
-    // Refresh subscription data
+  if (new Date() >= subscription.nextResetDate) {
+    await closeExpiredSubscriptionCycleIfNeeded(subscription.id)
+
     const refreshed = await prisma.billingSubscription.findUnique({
       where: { id: subscription.id },
       select: {
+        id: true,
         eventLimitPerMonth: true,
         eventsUsedInCurrentCycle: true,
         nextResetDate: true,
         planType: true,
+        billingCycleStartDate: true,
       },
     })
 
@@ -92,119 +164,10 @@ export async function recordEvent(params: RecordEventParams): Promise<void> {
       throw new MeteringError(`Failed to refresh subscription ${subscription.id}`)
     }
 
-    Object.assign(subscription, refreshed)
+    return refreshed
   }
 
-  // Increment event counter
-  const newUsageCount = subscription.eventsUsedInCurrentCycle + 1
-
-  // Update subscription with new usage
-  await prisma.billingSubscription.update({
-    where: { id: subscription.id },
-    data: {
-      eventsUsedInCurrentCycle: newUsageCount,
-    },
-  })
-
-  // Record event in usage log
-  const isOverage = newUsageCount > subscription.eventLimitPerMonth
-  const chargedAmount = new Prisma.Decimal(0) // TODO: Calculate overage charge based on plan
-
-  const billingCycle = new Date(subscription.billingCycleStartDate).toISOString().slice(0, 7) // YYYY-MM
-
-  await prisma.billingEventUsage.create({
-    data: {
-      subscriptionId: subscription.id,
-      eventType,
-      eventCount: 1,
-      chargedAmount,
-      billingCycle,
-    },
-  })
-}
-
-/**
- * Get current event usage for the active billing cycle
- */
-export async function getEventUsageForCycle(
-  organizationId: string
-): Promise<EventUsageSummary> {
-  const subscription = await prisma.billingSubscription.findUnique({
-    where: { organizationId },
-    select: {
-      id: true,
-      eventLimitPerMonth: true,
-      eventsUsedInCurrentCycle: true,
-      nextResetDate: true,
-      planType: true,
-    },
-  })
-
-  if (!subscription) {
-    throw new NoActiveSubscriptionError(organizationId)
-  }
-
-  // Check if cycle needs reset
-  const now = new Date()
-  if (now > subscription.nextResetDate) {
-    await resetBillingCycle(subscription.id)
-    // Refresh
-    const refreshed = await prisma.billingSubscription.findUnique({
-      where: { id: subscription.id },
-      select: {
-        eventLimitPerMonth: true,
-        eventsUsedInCurrentCycle: true,
-        nextResetDate: true,
-        planType: true,
-      },
-    })
-
-    if (!refreshed) {
-      throw new MeteringError(`Failed to refresh subscription ${subscription.id}`)
-    }
-
-    Object.assign(subscription, refreshed)
-  }
-
-  const overage = Math.max(0, subscription.eventsUsedInCurrentCycle - subscription.eventLimitPerMonth)
-
-  return {
-    used: subscription.eventsUsedInCurrentCycle,
-    limit: subscription.eventLimitPerMonth,
-    overage,
-    nextResetDate: subscription.nextResetDate,
-    withinLimit: subscription.eventsUsedInCurrentCycle <= subscription.eventLimitPerMonth,
-  }
-}
-
-/**
- * Reset billing cycle for a subscription
- * Called by scheduler when billing period ends
- */
-export async function resetBillingCycle(subscriptionId: string): Promise<void> {
-  const subscription = await prisma.billingSubscription.findUnique({
-    where: { id: subscriptionId },
-  })
-
-  if (!subscription) {
-    throw new Error(`Subscription ${subscriptionId} not found`)
-  }
-
-  // Calculate next cycle
-  const nextCycleStart = subscription.nextResetDate
-  const nextCycleEnd = new Date(
-    nextCycleStart.getTime() + BILLING_CYCLE_DAYS * 24 * 60 * 60 * 1000
-  )
-
-  await prisma.billingSubscription.update({
-    where: { id: subscriptionId },
-    data: {
-      eventsUsedInCurrentCycle: 0,
-      billingCycleStartDate: nextCycleStart,
-      billingCycleEndDate: nextCycleEnd,
-      nextResetDate: nextCycleEnd,
-    },
-  })
+  return subscription
 }
 
 /**

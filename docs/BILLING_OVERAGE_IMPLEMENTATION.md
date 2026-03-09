@@ -1,5 +1,7 @@
 # Implementação de Cobrança de Excedentes (Overage Billing)
 
+> Status atual: implementado com medição local, `invoice item` na Stripe e closeout oficial em `POST /api/v1/cron/billing/close-cycles`.
+
 ## Visão Geral
 
 WhaTrack usa um modelo **híbrido** onde o preço base é uma assinatura mensal na Stripe, e excedentes de eventos são calculados localmente e cobrados no final do período.
@@ -245,7 +247,7 @@ Items:
 
 ## Configuração no WhaTrack
 
-### Arquivo: `src/lib/billing/plans.ts`
+### Catálogo de Planos
 
 ```typescript
 export const BILLING_PLANS = {
@@ -397,24 +399,15 @@ POST /api/v1/billing/upgrade
 # - Sem excedente porque 250 < 500
 ```
 
-## Fluxo de Implementação Pendente
+## Fluxo Implementado
 
-Para cobrança real de excedentes, você precisa implementar:
+Hoje o overage roda assim:
 
-1. **`billingOverageLog` table** no Prisma schema
-   - Para auditoria de cobranças extras
-
-2. **`resetCycleCounters()`** no billing service
-   - Reseta `eventsUsedInCurrentCycle` para 0
-   - Atualiza `billingCycleStartDate` e `nextResetDate`
-
-3. **Stripe `invoiceItems.create()` API call**
-   - Cria item extra na fatura
-   - Chamado quando excedente > 0
-
-4. **Agendador de ciclos** (opcional)
-   - CRON job que dispara cálculo de excedentes
-   - Ou via webhook (recomendado)
+1. `recordEvent()` grava eventos com deduplicação por `externalId`
+2. `BillingCycleCloseout` registra o ledger de fechamento por ciclo
+3. `billing-overage-closeout.service.ts` cria `invoice item` idempotente na Stripe quando necessário
+4. `POST /api/v1/cron/billing/close-cycles` fecha ciclos vencidos
+5. o reset do ciclo só acontece depois do ledger persistido com sucesso
 
 ## Referências
 

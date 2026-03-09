@@ -17,7 +17,11 @@
 import { getRedis } from '@/lib/db/redis'
 import { logger } from '@/lib/utils/logger'
 
-export type JobType = 'whatsapp-health-check' | 'webhook-retry' | 'ai-classifier'
+export type JobType =
+  | 'whatsapp-health-check'
+  | 'webhook-retry'
+  | 'ai-classifier'
+  | 'billing-close-cycles'
 
 interface JobExecution {
   jobId: string

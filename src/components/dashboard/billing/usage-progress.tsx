@@ -103,7 +103,7 @@ export function UsageProgress() {
             <AlertCircle className="h-4 w-4 shrink-0 text-destructive" />
             <span className="text-sm text-destructive">
               <span className="font-semibold tabular-nums">{usage.overage}</span>{' '}
-              eventos em overage — cobrados separadamente no ciclo.
+              eventos excedentes — adicionados na proxima fatura ao fechar o ciclo.
             </span>
           </motion.div>
         )}

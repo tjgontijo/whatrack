@@ -147,4 +147,17 @@ export interface PaymentProvider {
    * Create a customer portal session when supported by the provider
    */
   createPortalSession?(customerId: string, returnUrl: string): Promise<string>
+
+  /**
+   * Create an additional invoice item for the customer's next invoice.
+   * Used for overage charges calculated locally by the app.
+   */
+  createInvoiceItem?(params: {
+    customerId: string
+    amountInCents: number
+    currency: string
+    description: string
+    metadata?: Record<string, string>
+    idempotencyKey?: string
+  }): Promise<{ id: string }>
 }

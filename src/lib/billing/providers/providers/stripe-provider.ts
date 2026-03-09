@@ -252,6 +252,40 @@ export class StripeProvider implements PaymentProvider {
     }
   }
 
+  async createInvoiceItem(params: {
+    customerId: string
+    amountInCents: number
+    currency: string
+    description: string
+    metadata?: Record<string, string>
+    idempotencyKey?: string
+  }): Promise<{ id: string }> {
+    try {
+      const invoiceItem = await this.stripe.invoiceItems.create(
+        {
+          customer: params.customerId,
+          amount: params.amountInCents,
+          currency: params.currency.toLowerCase(),
+          description: params.description,
+          metadata: params.metadata,
+        },
+        params.idempotencyKey ? { idempotencyKey: params.idempotencyKey } : undefined,
+      )
+
+      logger.info(
+        { customerId: params.customerId, invoiceItemId: invoiceItem.id },
+        '[Stripe] Invoice item created',
+      )
+
+      return { id: invoiceItem.id }
+    } catch (error) {
+      logger.error({ err: error, customerId: params.customerId }, '[Stripe] Invoice item creation error')
+      throw new Error(
+        `Stripe invoice item creation failed: ${error instanceof Error ? error.message : String(error)}`,
+      )
+    }
+  }
+
   /**
    * Map Stripe subscription status to internal status
    */

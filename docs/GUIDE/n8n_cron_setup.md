@@ -32,7 +32,20 @@ curl -X POST 'https://whatrack.com/api/v1/cron/system/webhook-retry' \
   -d '{}'
 ```
 
-### 3. WhatsApp Health Check
+### 3. Billing Close Cycles
+
+- método: `POST`
+- URL: `https://whatrack.com/api/v1/cron/billing/close-cycles`
+- frequência: a cada `15 minutos`
+
+```bash
+curl -X POST 'https://whatrack.com/api/v1/cron/billing/close-cycles' \
+  -H 'Authorization: Bearer ${CRON_SECRET}' \
+  -H 'Content-Type: application/json' \
+  -d '{}'
+```
+
+### 4. WhatsApp Health Check
 
 - método: `POST`
 - URL: `https://whatrack.com/api/v1/cron/whatsapp/health-check`

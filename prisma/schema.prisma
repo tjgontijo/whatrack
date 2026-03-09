@@ -1161,6 +1161,7 @@ model BillingSubscription {
   billingCycleStartDate DateTime
   billingCycleEndDate   DateTime
   nextResetDate         DateTime
+  trialEndsAt           DateTime?
 
   // Usage (reset a cada ciclo)
   eventsUsedInCurrentCycle Int @default(0)
@@ -1174,9 +1175,10 @@ model BillingSubscription {
   updatedAt  DateTime  @updatedAt
   canceledAt DateTime?
 
-  eventUsages  BillingEventUsage[]
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  plan         BillingPlan? @relation(fields: [planId], references: [id], onDelete: SetNull)
+  eventUsages    BillingEventUsage[]
+  cycleCloseouts BillingCycleCloseout[]
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plan           BillingPlan? @relation(fields: [planId], references: [id], onDelete: SetNull)
 
   @@unique([organizationId])
   @@index([status])
@@ -1188,8 +1190,10 @@ model BillingEventUsage {
   id             String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   subscriptionId String @db.Uuid
 
-  eventType    String  // 'lead_qualified' | 'purchase_confirmed' | custom_slug
-  eventCount   Int     @default(1)
+  eventType     String  // 'lead_qualified' | 'purchase_confirmed' | custom_slug
+  externalId    String?
+  eventCount    Int     @default(1)
+  isOverage     Boolean @default(false)
   chargedAmount Decimal @db.Decimal(10, 2) // 0 se dentro do limite; overage se acima
 
   // billingCycle = mês de início do ciclo (ex: '2026-02' para ciclo 27/02–27/03)
@@ -1202,7 +1206,38 @@ model BillingEventUsage {
   @@index([subscriptionId])
   @@index([billingCycle])
   @@index([eventType])
+  @@index([externalId])
+  @@unique([subscriptionId, externalId])
   @@map("billing_event_usages")
+}
+
+model BillingCycleCloseout {
+  id                    String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  subscriptionId        String @db.Uuid
+  billingCycle          String
+  cycleStartDate        DateTime
+  cycleEndDate          DateTime
+  eventsUsed            Int
+  eventLimit            Int
+  overageEvents         Int
+  unitPrice             Decimal @db.Decimal(10, 2)
+  amountCharged         Decimal @db.Decimal(10, 2)
+  currency              String  @default("BRL")
+  provider              String
+  providerInvoiceItemId String?
+  status                String
+  errorMessage          String?
+  processedAt           DateTime?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  subscription BillingSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@unique([subscriptionId, cycleStartDate, cycleEndDate])
+  @@index([status])
+  @@index([billingCycle])
+  @@index([subscriptionId])
+  @@map("billing_cycle_closeouts")
 }
 
 model BillingWebhookLog {

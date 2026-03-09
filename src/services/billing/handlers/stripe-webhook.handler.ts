@@ -218,6 +218,9 @@ async function handleSubscriptionUpsert(subscription: Stripe.Subscription): Prom
   const periodEnd = sub.current_period_end
     ? new Date((sub.current_period_end as number) * 1000)
     : new Date(periodStart)
+  const trialEndsAt = sub.trial_end
+    ? new Date((sub.trial_end as number) * 1000)
+    : null
   const cancelAtPeriodEnd = Boolean(sub.cancel_at_period_end)
 
   if (!dbSubscription) {
@@ -239,6 +242,7 @@ async function handleSubscriptionUpsert(subscription: Stripe.Subscription): Prom
       billingCycleStartDate: periodStart,
       billingCycleEndDate: periodEnd,
       nextResetDate: periodEnd,
+      trialEndsAt,
       canceledAtPeriodEnd: cancelAtPeriodEnd,
     })
 
@@ -260,6 +264,7 @@ async function handleSubscriptionUpsert(subscription: Stripe.Subscription): Prom
       billingCycleStartDate: periodStart,
       billingCycleEndDate: periodEnd,
       nextResetDate: periodEnd,
+      trialEndsAt,
       ...(resolvedPlan
         ? {
             planId: resolvedPlan.id,

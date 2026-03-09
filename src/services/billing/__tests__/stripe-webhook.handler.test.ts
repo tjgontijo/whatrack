@@ -177,6 +177,7 @@ describe('stripe-webhook.handler', () => {
       billingCycleStartDate: new Date('2025-11-01T00:00:00.000Z'),
       billingCycleEndDate: new Date('2025-12-01T00:00:00.000Z'),
       nextResetDate: new Date('2025-12-01T00:00:00.000Z'),
+      trialEndsAt: null,
       canceledAtPeriodEnd: false,
     })
     expect(result).toEqual({

@@ -54,6 +54,7 @@ export interface CreateSubscriptionParams {
   billingCycleStartDate?: Date
   billingCycleEndDate?: Date
   nextResetDate?: Date
+  trialEndsAt?: Date | null
   canceledAtPeriodEnd?: boolean
 }
 
@@ -73,6 +74,7 @@ export async function createSubscription(
     billingCycleStartDate,
     billingCycleEndDate,
     nextResetDate,
+    trialEndsAt,
     canceledAtPeriodEnd,
   } = params
 
@@ -111,6 +113,7 @@ export async function createSubscription(
     billingCycleStartDate: cycleStartDate,
     billingCycleEndDate: cycleEndDate,
     nextResetDate: nextResetDate ?? cycleEndDate,
+    trialEndsAt: trialEndsAt ?? null,
     status: status || 'active',
     canceledAtPeriodEnd: canceledAtPeriodEnd ?? false,
   }
@@ -144,6 +147,7 @@ export async function getActiveSubscription(organizationId: string) {
       billingCycleStartDate: true,
       billingCycleEndDate: true,
       nextResetDate: true,
+      trialEndsAt: true,
       eventLimitPerMonth: true,
       eventsUsedInCurrentCycle: true,
       createdAt: true,
@@ -244,38 +248,6 @@ export async function cancelSubscription(
     ...updatedSubscription,
     status: ensureSubscriptionStatus(updatedSubscription.status),
   }
-}
-
-/**
- * Reset billing cycle for a subscription
- * Called by scheduler when billing period ends
- */
-export async function resetBillingCycle(
-  subscriptionId: string
-): Promise<void> {
-  const subscription = await prisma.billingSubscription.findUnique({
-    where: { id: subscriptionId },
-  })
-
-  if (!subscription) {
-    throw new Error(`Subscription ${subscriptionId} not found`)
-  }
-
-  // Calculate next cycle
-  const nextCycleStart = subscription.nextResetDate
-  const nextCycleEnd = new Date(
-    nextCycleStart.getTime() + BILLING_CYCLE_DAYS * 24 * 60 * 60 * 1000
-  )
-
-  await prisma.billingSubscription.update({
-    where: { id: subscriptionId },
-    data: {
-      eventsUsedInCurrentCycle: 0,
-      billingCycleStartDate: nextCycleStart,
-      billingCycleEndDate: nextCycleEnd,
-      nextResetDate: nextCycleEnd,
-    },
-  })
 }
 
 // Re-export Prisma for type safety

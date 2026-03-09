@@ -70,6 +70,14 @@ export const DEFAULT_RATE_LIMITS: Record<string, RateLimitConfig> = {
     burst: { limit: 2, windowSeconds: 60 }, // 2 per minute
   },
 
+  // Billing closeout: Restrictive (cron job)
+  '/api/v1/cron/billing/close-cycles': {
+    enabled: true,
+    ip: { limit: 60, windowSeconds: 3600 },
+    org: { limit: 100, windowSeconds: 3600 },
+    burst: { limit: 2, windowSeconds: 60 },
+  },
+
   // Centrifugo token: Authenticated users, token generation (1h validity)
   '/api/v1/centrifugo/token': {
     enabled: true,
