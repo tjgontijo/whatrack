@@ -18,9 +18,15 @@ O problema é que essas peças ainda não fecham um sistema completo.
 
 ## Decisão de Produto Travada
 
-- self-serve com `7 dias grátis`
+- self-serve com `14 dias gratis`
+- sem cartao no inicio do trial
 - sem plano gratuito permanente nesta fase
-- trial aplicado aos planos pagos `Starter` e `Pro`
+- plano base `R$ 497 / mes` com `3 projetos ativos` incluidos
+- cada projeto inclui `1 WhatsApp`, `1 Meta Ads`, `300 conversoes / mes` e `10.000 creditos de IA / mes`
+- `R$ 97 / mes` por projeto adicional
+- `R$ 49 / mes` por WhatsApp adicional no mesmo projeto
+- `R$ 49 / mes` por conta Meta Ads adicional no mesmo projeto
+- trial focado no primeiro projeto para validacao inicial
 - trial sem cobrança de excedente
 - cobrança normal começa apenas após o fim do trial
 
@@ -56,7 +62,8 @@ O problema é que essas peças ainda não fecham um sistema completo.
 Ao final do programa de fechamento:
 
 - Stripe é a única verdade operacional do billing
-- trial de 7 dias está refletido no checkout, webhook e UI
+- trial de 14 dias está refletido no checkout, webhook e UI
+- catálogo comercial reflete plano base + add-ons
 - catálogo de planos sai do hardcode
 - assinatura local reflete a Stripe com consistência
 - overage é medido, consolidado e cobrado de forma confiável
@@ -72,12 +79,13 @@ PRD macro da decisão de produto e arquitetura:
 - Stripe como provider oficial
 - cartão only
 - arquitetura preparada para futuro `Polar`
+- assinatura com item base e add-ons operacionais
 
 ### 15. `15_PRD_BILLING_PLANS_CRUD.md`
 
 PRD do catálogo administrativo:
 
-- CRUD de planos
+- CRUD de plano base e add-ons
 - source of truth no banco
 - versionamento comercial
 - sync app -> Stripe
@@ -91,7 +99,7 @@ PRD do fechamento do lifecycle principal:
 - customer portal
 - cancelamento
 - mudança de plano
-- trial, se entrar na decisão final
+- trial de 14 dias e gating do primeiro projeto
 
 ### 16. `16_PRD_BILLING_OVERAGE_EXECUTION.md`
 
