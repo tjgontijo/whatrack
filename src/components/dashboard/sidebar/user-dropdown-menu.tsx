@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronsUpDown, LogOut, User, Sun, Moon, Monitor } from 'lucide-react'
+import { ChevronsUpDown, LogOut, Settings, Sun, Moon, Monitor } from 'lucide-react'
 import { useTheme } from 'next-themes'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -132,9 +132,9 @@ export function UserDropdownMenu({ userName, userEmail, userImage }: UserDropdow
         <DropdownMenuSeparator />
 
         <DropdownMenuGroup>
-          <DropdownMenuItem onSelect={() => handleNavigate('/dashboard/account')}>
-            <User className="mr-2 h-4 w-4" />
-            Minha Conta
+          <DropdownMenuItem onSelect={() => handleNavigate('/dashboard/settings')}>
+            <Settings className="mr-2 h-4 w-4" />
+            Configurações
           </DropdownMenuItem>
         </DropdownMenuGroup>
 

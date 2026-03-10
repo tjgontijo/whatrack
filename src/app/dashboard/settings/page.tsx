@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
 
-export default async function AccountPage() {
+export default function SettingsPage() {
   redirect('/dashboard/settings/profile')
 }

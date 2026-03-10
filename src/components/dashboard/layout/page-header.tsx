@@ -15,14 +15,14 @@ export function PageHeader({ title, description, icon: Icon, actions, className 
     <div className={cn('mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between', className)}>
       <div className="flex items-start gap-3">
         {Icon && (
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+          <div className="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-lg">
             <Icon className="h-5 w-5" />
           </div>
         )}
         <div className="min-w-0 flex-1">
-          <h1 className="text-display text-gray-900 dark:text-white">{title}</h1>
+          <h1 className="text-display text-foreground">{title}</h1>
           {description && (
-            <p className="text-caption mt-1 text-gray-500 dark:text-gray-400">{description}</p>
+            <p className="text-caption text-muted-foreground mt-1">{description}</p>
           )}
         </div>
       </div>

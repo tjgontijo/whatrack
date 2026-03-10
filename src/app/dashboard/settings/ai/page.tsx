@@ -1,8 +1,5 @@
-import { AiSettingsPage } from '@/components/dashboard/settings/ai-settings-page'
-import { requireWorkspacePageAccess } from '@/server/auth/require-workspace-page-access'
+import { redirect } from 'next/navigation'
 
 export default async function AiAgentsPage() {
-  await requireWorkspacePageAccess({ permissions: 'manage:ai' })
-
-  return <AiSettingsPage />
+  redirect('/dashboard/settings/ai-studio')
 }

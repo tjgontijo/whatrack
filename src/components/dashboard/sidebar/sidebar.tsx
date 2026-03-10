@@ -8,17 +8,15 @@ type NavItem = {
 
 export function DashboardSidebar({ session }: { session?: any }) {
   const navItems: NavItem[] = [
-    { title: 'Visão Geral', href: '/dashboard', icon: 'LayoutDashboard' },
+    { title: 'Dashboard', href: '/dashboard', icon: 'LayoutDashboard' },
     { title: 'Analytics', href: '/dashboard/analytics', icon: 'BarChart3' },
+    { title: 'Meta Ads', href: '/dashboard/meta-ads', icon: 'Meta' },
     { title: 'Mensagens', href: '/dashboard/whatsapp/inbox', icon: 'MessageSquare' },
     { title: 'Projetos', href: '/dashboard/projects', icon: 'FolderKanban' },
     { title: 'Leads', href: '/dashboard/leads', icon: 'Users' },
-    { title: 'IA Copilot', href: '/dashboard/approvals', icon: 'Sparkles' },
     { title: 'Tickets', href: '/dashboard/tickets', icon: 'Kanban' },
     { title: 'Vendas', href: '/dashboard/sales', icon: 'ShoppingBag' },
-    { title: 'Itens', href: '/dashboard/items', icon: 'Package' },
-    { title: 'Categorias', href: '/dashboard/item-categories', icon: 'Package' },
-    { title: 'Meta Ads', href: '/dashboard/meta-ads/campaigns', icon: 'Meta' },
+    { title: 'IA Copilot', href: '/dashboard/ia', icon: 'Sparkles' },
   ]
 
   return <SidebarClient navItems={navItems} navigationLabel="Navegação" session={session} />
