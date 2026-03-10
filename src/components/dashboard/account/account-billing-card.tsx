@@ -29,7 +29,7 @@ export function AccountBillingCard({
         <CardHeader>
           <CardTitle>Plano e cobrança</CardTitle>
           <CardDescription>
-            Sua conta ainda não tem um plano ativo. Abra o billing para contratar ou alterar o plano.
+            Sua conta ainda não tem um plano ativo. Abra a assinatura para contratar ou alterar o plano.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
@@ -42,10 +42,10 @@ export function AccountBillingCard({
 
           <div className="flex flex-wrap gap-2">
             <Button asChild>
-              <Link href="/dashboard/billing">Abrir billing</Link>
+              <Link href="/dashboard/settings/subscription">Abrir assinatura</Link>
             </Button>
             <Button asChild variant="outline">
-              <Link href="/dashboard/billing">Ver planos</Link>
+              <Link href="/dashboard/settings/subscription">Ver planos</Link>
             </Button>
           </div>
         </CardContent>
@@ -59,10 +59,10 @@ export function AccountBillingCard({
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Plano e cobrança</CardTitle>
-        <CardDescription>
-          Acompanhe o plano ativo da organização e abra o billing para gerenciar sua assinatura.
+        <CardHeader>
+          <CardTitle>Plano e cobrança</CardTitle>
+          <CardDescription>
+          Acompanhe o plano ativo da organização e abra a assinatura para gerenciar o plano contratado.
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
@@ -95,10 +95,10 @@ export function AccountBillingCard({
 
         <div className="flex flex-wrap gap-2">
           <Button asChild>
-            <Link href="/dashboard/billing">Abrir billing</Link>
+            <Link href="/dashboard/settings/subscription">Abrir assinatura</Link>
           </Button>
           <Button asChild variant="outline">
-            <Link href="/dashboard/billing">Ver planos e limites</Link>
+            <Link href="/dashboard/settings/subscription">Ver planos e limites</Link>
           </Button>
         </div>
       </CardContent>

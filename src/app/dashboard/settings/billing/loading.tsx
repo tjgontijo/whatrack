@@ -11,7 +11,7 @@ export default function Loading() {
   return (
     <PageShell maxWidth="7xl">
       <PageHeader
-        title="Planos Billing"
+        title="Planos e Cobrança"
         description="Catálogo interno dos planos, com visão de quotas, assinaturas e sincronização com a Stripe."
         icon={CreditCard}
       />

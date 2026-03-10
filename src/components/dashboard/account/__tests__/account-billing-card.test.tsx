@@ -40,19 +40,19 @@ describe('AccountBillingCard', () => {
     expect(screen.getByText('Plano atual')).toBeInTheDocument()
     expect(screen.getByText('WhaTrack Base')).toBeInTheDocument()
     expect(screen.getByText('Ativo')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Abrir billing' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Abrir assinatura' })).toHaveAttribute(
       'href',
-      '/dashboard/billing',
+      '/dashboard/settings/subscription',
     )
   })
 
-  it('shows only a redirect to billing when there is no active subscription', () => {
+  it('shows only a redirect to subscription management when there is no active subscription', () => {
     render(<AccountBillingCard subscription={null} />)
 
     expect(screen.getByText('Nenhum plano ativo')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Abrir billing' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Abrir assinatura' })).toHaveAttribute(
       'href',
-      '/dashboard/billing',
+      '/dashboard/settings/subscription',
     )
     expect(screen.queryByText('Escolha um plano para seguir com a configuração.')).not.toBeInTheDocument()
   })

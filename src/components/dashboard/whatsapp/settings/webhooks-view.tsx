@@ -7,7 +7,6 @@ import { Webhook, Shield, Copy, Bell, Zap, Database, RefreshCw, EyeOff, Eye } fr
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { TemplateMainShell, TemplateMainHeader } from '@/components/dashboard/leads'
 import { useQuery } from '@tanstack/react-query'
 import { whatsappApi } from '@/lib/whatsapp/client'
 import { Badge } from '@/components/ui/badge'
@@ -53,7 +52,7 @@ export function WebhooksView() {
 
   if (!isSuperAdmin) {
     return (
-      <TemplateMainShell className="flex h-full flex-col items-center justify-center p-8 text-center">
+      <div className="flex h-full flex-col items-center justify-center p-8 text-center">
         <Shield className="text-destructive mb-4 h-12 w-12 opacity-20" />
         <h2 className="text-xl font-bold">Acesso Restrito</h2>
         <p className="text-muted-foreground mt-2 max-w-xs text-sm">
@@ -63,7 +62,7 @@ export function WebhooksView() {
         <Button variant="outline" className="mt-6" asChild>
           <Link href="/dashboard">Voltar ao Início</Link>
         </Button>
-      </TemplateMainShell>
+      </div>
     )
   }
 
@@ -76,12 +75,9 @@ export function WebhooksView() {
 
   return (
     <Tabs defaultValue="overview" className="flex h-full w-full flex-col">
-      <TemplateMainShell className="flex h-full flex-col">
-        <TemplateMainHeader
-          title="Webhooks"
-          subtitle="Configurações globais e histórico de eventos recebidos da Meta"
-        >
-          <div className="-ml-3 mt-2">
+      <div className="flex h-full flex-col">
+        <div className="border-border/50 border-b pb-4">
+          <div className="-ml-3">
             <TabsList className="flex h-auto items-center gap-1 border-none bg-transparent p-0 shadow-none">
               <TabsTrigger
                 value="overview"
@@ -101,7 +97,7 @@ export function WebhooksView() {
               </TabsTrigger>
             </TabsList>
           </div>
-        </TemplateMainHeader>
+        </div>
 
         <div className="bg-muted/5 flex-1 overflow-y-auto p-8">
           <TabsContent
@@ -348,7 +344,7 @@ export function WebhooksView() {
             </div>
           </TabsContent>
         </div>
-      </TemplateMainShell>
+      </div>
     </Tabs>
   )
 }

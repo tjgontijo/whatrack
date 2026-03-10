@@ -5,7 +5,7 @@ import { AlertTriangle, Loader2, Phone, Plus, RefreshCw } from 'lucide-react'
 
 import { EmbeddedSignupButton } from '@/components/dashboard/whatsapp/embedded-signup-button'
 import { InstanceCard } from '@/components/dashboard/whatsapp/instance-card'
-import { TemplateMainHeader, TemplateMainShell, DataToolbar } from '@/components/dashboard/leads'
+import { DataToolbar } from '@/components/dashboard/leads'
 import { Button } from '@/components/ui/button'
 import { useOrganizationCompletion } from '@/hooks/organization/use-organization-completion'
 import { useOrganization } from '@/hooks/organization/use-organization'
@@ -50,27 +50,23 @@ export function WhatsAppSettingsPage() {
   const errorMessage = rawErrorMessage || 'Houve um problema ao conectar com a API da Meta.'
 
   return (
-    <TemplateMainShell className="flex h-[calc(100vh-2rem)] flex-col">
-      <TemplateMainHeader
-        title="Instâncias WhatsApp"
-        subtitle="Gerencie seus números conectados e templates de mensagens"
-        actions={
-          <Button
-            variant="default"
-            size="sm"
-            className="h-8 gap-2 font-bold shadow-sm"
-            onClick={startOnboarding}
-            disabled={!sdkReady || isOnboarding || completionQuery.isLoading}
-          >
-            {isOnboarding ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Plus className="h-4 w-4" />
-            )}
-            {!isMobile && 'Nova Instância'}
-          </Button>
-        }
-      />
+    <div className="flex min-h-[calc(100vh-16rem)] flex-col">
+      <div className="mb-4 flex justify-end">
+        <Button
+          variant="default"
+          size="sm"
+          className="h-8 gap-2 font-bold shadow-sm"
+          onClick={startOnboarding}
+          disabled={!sdkReady || isOnboarding || completionQuery.isLoading}
+        >
+          {isOnboarding ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Plus className="h-4 w-4" />
+          )}
+          {!isMobile && 'Nova Instância'}
+        </Button>
+      </div>
 
       <div className="border-border bg-background/50 supports-[backdrop-filter]:bg-background/50 border-b px-6 backdrop-blur">
         <DataToolbar
@@ -170,6 +166,6 @@ export function WhatsAppSettingsPage() {
           </div>
         )}
       </div>
-    </TemplateMainShell>
+    </div>
   )
 }

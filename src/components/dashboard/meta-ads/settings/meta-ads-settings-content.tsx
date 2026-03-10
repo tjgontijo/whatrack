@@ -8,7 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { MetaIcon } from '@/components/shared/icons'
-import { TemplateMainShell } from '@/components/dashboard/leads'
 import { useMetaAdsOnboarding } from '@/hooks/meta-ads/use-meta-ads-onboarding'
 import { metaAdsClient } from '@/lib/meta-ads/client'
 import type { MetaAdAccountSummary, MetaConnectionSummary, MetaPixelConfig } from '@/types/meta-ads/meta-ads'
@@ -119,8 +118,7 @@ export function MetaAdsSettingsContent({
   })
 
   return (
-    <TemplateMainShell className="flex h-screen flex-col overflow-hidden">
-      <div className="bg-muted/5 flex-1 overflow-y-auto p-6 lg:p-8">
+    <div className="bg-muted/5 min-h-[calc(100vh-16rem)] overflow-y-auto p-6 lg:p-8">
         <Tabs defaultValue="ad-accounts" className="w-full gap-5">
           <TabsList variant="line" className="mb-1 w-full justify-start rounded-none border-b p-0">
             <TabsTrigger
@@ -333,7 +331,6 @@ export function MetaAdsSettingsContent({
             <MetaPixelsConfigArea organizationId={organizationId} initialPixels={initialPixels} />
           </TabsContent>
         </Tabs>
-      </div>
-    </TemplateMainShell>
+    </div>
   )
 }

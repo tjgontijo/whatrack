@@ -26,7 +26,7 @@ function normalizeSearchParams(
 }
 
 export const metadata = {
-  title: 'Planos Billing | WhaTrack',
+  title: 'Planos e Cobrança | WhaTrack',
   description: 'Gerencie o catálogo interno de planos e a sincronização com a Stripe.',
 }
 
@@ -50,7 +50,7 @@ export default async function BillingSettingsPage({
   return (
     <PageShell maxWidth="7xl">
       <PageHeader
-        title="Planos Billing"
+        title="Planos e Cobrança"
         description="Catálogo interno dos planos, com visão de quotas, assinaturas e sincronização com a Stripe."
         icon={CreditCard}
       />
