@@ -11,6 +11,7 @@ export type SummaryFilters = {
   trafficType?: string
   itemCategory?: string
   item?: string
+  projectId?: string | null
 }
 
 export function resolveFiltersDateRange(filters: SummaryFilters): DateRange | undefined {
@@ -53,6 +54,10 @@ export function buildSalesWhere(filters: SummaryFilters): Prisma.SaleWhereInput 
         },
       },
     })
+  }
+
+  if (filters.projectId) {
+    andConditions.push({ projectId: filters.projectId })
   }
 
   if (filters.trafficType && filters.trafficType !== 'any') {

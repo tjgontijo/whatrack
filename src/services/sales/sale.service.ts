@@ -2,6 +2,7 @@ import type { Prisma } from '@db/client'
 
 import { prisma } from '@/lib/db/prisma'
 import { isDateRangePreset, resolveDateRange } from '@/lib/date/date-range'
+import { ensureProjectBelongsToOrganization } from '@/server/project/project-scope'
 import {
   type CreateSaleInput,
   type SalesQueryInput,
@@ -41,11 +42,13 @@ const saleWithItemsSelect = {
 
 export type ListSalesParams = {
   organizationId: string
-} & SalesQueryInput
+  projectId?: string | null
+} & Omit<SalesQueryInput, 'projectId'>
 
 export type CreateSaleParams = {
   organizationId: string
   userId?: string
+  projectId?: string | null
   input: CreateSaleInput
 }
 
@@ -53,6 +56,7 @@ export type UpdateSaleParams = {
   organizationId: string
   saleId: string
   userId?: string
+  projectId?: string | null
   input: UpdateSaleInput
 }
 
@@ -66,10 +70,20 @@ export type SyncCompletedSaleForTicketParams = {
   ticketId: string
   totalAmount: number
   notes?: string
+  projectId?: string | null
 }
 
 export async function createSale(params: CreateSaleParams) {
   const { organizationId, userId, input } = params
+  const projectId =
+    typeof input.projectId !== 'undefined' ? input.projectId : params.projectId
+
+  if (projectId) {
+    const project = await ensureProjectBelongsToOrganization(organizationId, projectId)
+    if (!project) {
+      throw new Error('Projeto inválido para esta organização')
+    }
+  }
 
   let calculatedTotal = input.totalAmount || 0
   if (input.items && input.items.length > 0) {
@@ -82,6 +96,7 @@ export async function createSale(params: CreateSaleParams) {
   return prisma.sale.create({
     data: {
       organizationId,
+      projectId: projectId ?? null,
       totalAmount: calculatedTotal,
       profit: input.profit,
       discount: input.discount,
@@ -118,6 +133,7 @@ export async function syncCompletedSaleForTicket(
   })
 
   const saleData = {
+    projectId: params.projectId ?? null,
     totalAmount: params.totalAmount,
     status: 'completed' as const,
     statusChangedAt: new Date(),
@@ -161,7 +177,10 @@ export async function listSales(params: ListSalesParams) {
     filters.push({ status: statusFilter })
   }
 
-  const baseWhere: Prisma.SaleWhereInput = { organizationId: params.organizationId }
+  const baseWhere: Prisma.SaleWhereInput = {
+    organizationId: params.organizationId,
+    ...(params.projectId ? { projectId: params.projectId } : {}),
+  }
   const where: Prisma.SaleWhereInput =
     filters.length > 0 ? { AND: [baseWhere, ...filters] } : baseWhere
 
@@ -176,6 +195,12 @@ export async function listSales(params: ListSalesParams) {
         totalAmount: true,
         status: true,
         notes: true,
+        projectId: true,
+        project: {
+          select: {
+            name: true,
+          },
+        },
         createdAt: true,
         updatedAt: true,
       },
@@ -186,12 +211,14 @@ export async function listSales(params: ListSalesParams) {
   return salesResponseSchema.parse({
     items: sales.map((sale) => ({
       id: sale.id,
-      totalAmount: sale.totalAmount ? Number(sale.totalAmount) : null,
-      status: sale.status,
-      notes: sale.notes,
-      createdAt: sale.createdAt.toISOString(),
-      updatedAt: sale.updatedAt.toISOString(),
-    })),
+        totalAmount: sale.totalAmount ? Number(sale.totalAmount) : null,
+        status: sale.status,
+        notes: sale.notes,
+        projectId: sale.projectId ?? null,
+        projectName: sale.project?.name ?? null,
+        createdAt: sale.createdAt.toISOString(),
+        updatedAt: sale.updatedAt.toISOString(),
+      })),
     total,
     page: params.page,
     pageSize: params.pageSize,
@@ -200,6 +227,8 @@ export async function listSales(params: ListSalesParams) {
 
 export async function updateSale(params: UpdateSaleParams) {
   const { organizationId, saleId, userId, input } = params
+  const projectId =
+    typeof input.projectId !== 'undefined' ? input.projectId : params.projectId
 
   const existing = await prisma.sale.findFirst({
     where: {
@@ -217,6 +246,13 @@ export async function updateSale(params: UpdateSaleParams) {
     return null
   }
 
+  if (projectId) {
+    const project = await ensureProjectBelongsToOrganization(organizationId, projectId)
+    if (!project) {
+      throw new Error('Projeto inválido para esta organização')
+    }
+  }
+
   const statusChangedAt =
     input.status && input.status !== existing.status ? new Date() : existing.statusChangedAt
 
@@ -228,6 +264,7 @@ export async function updateSale(params: UpdateSaleParams) {
       discount: input.discount,
       status: input.status,
       notes: input.notes,
+      ...(typeof projectId !== 'undefined' ? { projectId } : {}),
       updatedBy: userId,
       statusChangedAt,
     },

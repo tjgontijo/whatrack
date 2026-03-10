@@ -1,6 +1,7 @@
 import { Prisma } from '@db/client'
 
 import { prisma } from '@/lib/db/prisma'
+import { ensureProjectBelongsToOrganization } from '@/server/project/project-scope'
 import { metaCapiService } from '@/services/meta-ads/capi.service'
 import { syncCompletedSaleForTicket } from '@/services/sales/sale.service'
 import { getDefaultTicketStage } from './ensure-ticket-stages'
@@ -8,6 +9,7 @@ import { logger } from '@/lib/utils/logger'
 
 export interface TicketListParams {
   organizationId: string
+  projectId?: string | null
   q?: string
   status?: string
   stageId?: string
@@ -23,6 +25,7 @@ export interface TicketListParams {
 export interface CreateTicketParams {
   organizationId: string
   conversationId: string
+  projectId?: string | null
   stageId?: string | null
   assigneeId?: string | null
   dealValue?: number | null
@@ -32,6 +35,7 @@ export interface CreateTicketParams {
 export interface UpdateTicketParams {
   organizationId: string
   ticketId: string
+  projectId?: string | null
   stageId?: string
   assigneeId?: string | null
   dealValue?: number | null
@@ -52,6 +56,7 @@ type TicketServiceError = {
 
 const ticketListSelect = Prisma.validator<Prisma.TicketSelect>()({
   id: true,
+  projectId: true,
   status: true,
   windowOpen: true,
   windowExpiresAt: true,
@@ -68,6 +73,7 @@ const ticketListSelect = Prisma.validator<Prisma.TicketSelect>()({
   stage: { select: { id: true, name: true, color: true } },
   assignee: { select: { id: true, name: true } },
   tracking: { select: { utmSource: true, sourceType: true, ctwaclid: true } },
+  project: { select: { id: true, name: true } },
   messages: {
     select: { timestamp: true },
     orderBy: { timestamp: 'desc' as const },
@@ -80,6 +86,7 @@ type TicketListRecord = Prisma.TicketGetPayload<{ select: typeof ticketListSelec
 
 const ticketSummarySelect = Prisma.validator<Prisma.TicketSelect>()({
   id: true,
+  projectId: true,
   status: true,
   windowOpen: true,
   windowExpiresAt: true,
@@ -97,6 +104,7 @@ const ticketSummarySelect = Prisma.validator<Prisma.TicketSelect>()({
   stage: { select: { id: true, name: true, color: true } },
   assignee: { select: { id: true, name: true } },
   tracking: { select: { utmSource: true, sourceType: true, ctwaclid: true } },
+  project: { select: { id: true, name: true } },
 })
 
 type TicketSummaryRecord = Prisma.TicketGetPayload<{ select: typeof ticketSummarySelect }>
@@ -112,6 +120,7 @@ type TicketCloseRecord = Prisma.TicketGetPayload<{ select: typeof ticketCloseSel
 
 const ticketDetailsSelect = Prisma.validator<Prisma.TicketSelect>()({
   id: true,
+  projectId: true,
   status: true,
   windowOpen: true,
   windowExpiresAt: true,
@@ -147,6 +156,7 @@ const ticketDetailsSelect = Prisma.validator<Prisma.TicketSelect>()({
       landingPage: true,
     },
   },
+  project: { select: { id: true, name: true } },
   messages: {
     select: { id: true, body: true, type: true, direction: true, timestamp: true },
     orderBy: { timestamp: 'desc' as const },
@@ -182,6 +192,7 @@ function buildWhereFilters(params: TicketListParams): Prisma.TicketWhereInput {
 
   if (params.stageId) filters.push({ stageId: params.stageId })
   if (params.assigneeId) filters.push({ assigneeId: params.assigneeId })
+  if (params.projectId) filters.push({ projectId: params.projectId })
 
   if (params.sourceType) {
     filters.push({ tracking: { sourceType: params.sourceType } })
@@ -231,6 +242,12 @@ function mapTicketListItem(ticket: TicketListRecord) {
           ctwaclid: ticket.tracking.ctwaclid ?? null,
         }
       : null,
+    project: ticket.project
+      ? {
+          id: ticket.project.id,
+          name: ticket.project.name,
+        }
+      : null,
     status: ticket.status,
     windowOpen: ticket.windowOpen,
     windowExpiresAt: ticket.windowExpiresAt ? ticket.windowExpiresAt.toISOString() : null,
@@ -251,6 +268,12 @@ function mapTicketSummary(ticket: TicketSummaryRecord) {
     stage: ticket.stage,
     assignee: ticket.assignee,
     tracking: ticket.tracking,
+    project: ticket.project
+      ? {
+          id: ticket.project.id,
+          name: ticket.project.name,
+        }
+      : null,
     status: ticket.status,
     windowOpen: ticket.windowOpen,
     windowExpiresAt: ticket.windowExpiresAt?.toISOString() || null,
@@ -268,6 +291,12 @@ function mapClosedTicket(ticket: TicketCloseRecord) {
     stage: ticket.stage,
     assignee: ticket.assignee,
     tracking: ticket.tracking,
+    project: ticket.project
+      ? {
+          id: ticket.project.id,
+          name: ticket.project.name,
+        }
+      : null,
     status: ticket.status,
     windowOpen: ticket.windowOpen,
     windowExpiresAt: ticket.windowExpiresAt?.toISOString() || null,
@@ -376,6 +405,12 @@ export async function getTicketById(ticketId: string, organizationId: string) {
     stage: details.stage,
     assignee: details.assignee,
     tracking: details.tracking || null,
+    project: details.project
+      ? {
+          id: details.project.id,
+          name: details.project.name,
+        }
+      : null,
     status: details.status,
     windowOpen: details.windowOpen,
     windowExpiresAt: details.windowExpiresAt?.toISOString() || null,
@@ -401,9 +436,23 @@ export async function getTicketById(ticketId: string, organizationId: string) {
 export async function createTicket(params: CreateTicketParams) {
   const { organizationId, conversationId, stageId, assigneeId, dealValue, createdBy } = params
 
+  if (params.projectId) {
+    const project = await ensureProjectBelongsToOrganization(organizationId, params.projectId)
+    if (!project) {
+      return { error: 'Projeto não encontrado', status: 404 as const }
+    }
+  }
+
   const conversation = await prisma.conversation.findFirst({
     where: { id: conversationId, organizationId },
-    select: { leadId: true },
+    select: {
+      leadId: true,
+      instance: {
+        select: {
+          projectId: true,
+        },
+      },
+    },
   })
   if (!conversation) return { error: 'Conversa não encontrada', status: 404 as const }
 
@@ -444,6 +493,8 @@ export async function createTicket(params: CreateTicketParams) {
   const ticket = await prisma.ticket.create({
     data: {
       organizationId,
+      projectId:
+        typeof params.projectId !== 'undefined' ? params.projectId : conversation.instance.projectId,
       leadId: conversation.leadId,
       conversationId,
       stageId: targetStageId,
@@ -491,6 +542,13 @@ export async function updateTicket(params: UpdateTicketParams) {
     return { error: 'Ticket já está fechado', status: 409 as const }
   }
 
+  if (params.projectId) {
+    const project = await ensureProjectBelongsToOrganization(organizationId, params.projectId)
+    if (!project) {
+      return { error: 'Projeto não encontrado', status: 404 as const }
+    }
+  }
+
   if (stageId) {
     const stage = await prisma.ticketStage.findFirst({
       where: { id: stageId, organizationId },
@@ -513,6 +571,7 @@ export async function updateTicket(params: UpdateTicketParams) {
       ...(stageId && { stageId }),
       ...(assigneeId !== undefined && { assigneeId }),
       ...(dealValue !== undefined && { dealValue }),
+      ...(typeof params.projectId !== 'undefined' ? { projectId: params.projectId } : {}),
     },
     select: ticketSummarySelect,
   })
@@ -544,7 +603,7 @@ export async function updateTicketAndTrackCapi(params: UpdateTicketParams) {
 export async function closeTicket(params: CloseTicketParams) {
   const existing = await prisma.ticket.findFirst({
     where: { id: params.ticketId, organizationId: params.organizationId },
-    select: { id: true, status: true, createdAt: true, leadId: true },
+    select: { id: true, status: true, createdAt: true, leadId: true, projectId: true },
   })
 
   if (!existing) {
@@ -571,6 +630,7 @@ export async function closeTicket(params: CloseTicketParams) {
         ticketId: params.ticketId,
         totalAmount: params.dealValue,
         notes: params.closedReason,
+        projectId: existing.projectId,
       })
     }
 

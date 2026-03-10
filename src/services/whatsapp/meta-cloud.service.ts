@@ -562,6 +562,13 @@ export class MetaCloudService {
   static async getAllConfigs(organizationId: string) {
     return prisma.whatsAppConfig.findMany({
       where: { organizationId },
+      include: {
+        project: {
+          select: {
+            name: true,
+          },
+        },
+      },
       orderBy: { createdAt: 'desc' },
     })
   }

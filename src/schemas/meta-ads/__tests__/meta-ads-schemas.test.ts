@@ -4,6 +4,7 @@ import {
   campaignsQuerySchema,
   insightsQuerySchema,
   metaAdAccountsQuerySchema,
+  metaAdAccountToggleBodySchema,
   metaCopilotAnalyzeRequestSchema,
   metaPixelUpdateBodySchema,
 } from '@/schemas/meta-ads/meta-ads-schemas'
@@ -50,6 +51,20 @@ describe('meta-ads-schemas', () => {
 
   it('requires at least one field in pixel updates', () => {
     const result = metaPixelUpdateBodySchema.safeParse({})
+
+    expect(result.success).toBe(false)
+  })
+
+  it('accepts project assignment in ad account updates', () => {
+    const result = metaAdAccountToggleBodySchema.safeParse({
+      projectId: 'project-1',
+    })
+
+    expect(result.success).toBe(true)
+  })
+
+  it('rejects empty ad account update payloads', () => {
+    const result = metaAdAccountToggleBodySchema.safeParse({})
 
     expect(result.success).toBe(false)
   })

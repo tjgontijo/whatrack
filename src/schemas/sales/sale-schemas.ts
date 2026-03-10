@@ -16,6 +16,7 @@ export const createSaleSchema = z.object({
   status: saleStatusSchema.optional(),
   notes: z.string().optional(),
   items: z.array(saleItemInputSchema).optional(),
+  projectId: z.string().trim().min(1).nullable().optional(),
 })
 
 export const updateSaleSchema = z.object({
@@ -24,6 +25,7 @@ export const updateSaleSchema = z.object({
   discount: z.number().optional(),
   status: saleStatusSchema.optional(),
   notes: z.string().optional(),
+  projectId: z.string().trim().min(1).nullable().optional(),
 })
 
 export const salesQuerySchema = z.object({
@@ -32,6 +34,7 @@ export const salesQuerySchema = z.object({
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
   dateRange: z.string().optional(),
   status: z.string().optional(),
+  projectId: z.string().trim().min(1).optional(),
 })
 
 export const saleListItemSchema = z.object({
@@ -39,6 +42,8 @@ export const saleListItemSchema = z.object({
   totalAmount: z.number().nullable(),
   status: z.string().nullable(),
   notes: z.string().nullable(),
+  projectId: z.string().nullable().optional(),
+  projectName: z.string().nullable().optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
 })

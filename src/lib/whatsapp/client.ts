@@ -148,6 +148,22 @@ export const whatsappApi = {
     return phones.find((p) => p.id === id) || null
   },
 
+  async assignProject(configId: string, projectId: string | null, orgId: string) {
+    const res = await fetch('/api/v1/whatsapp/instances', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        [ORGANIZATION_HEADER]: orgId,
+      },
+      body: JSON.stringify({ configId, projectId }),
+    })
+    if (!res.ok) {
+      const error = await res.json()
+      throw new Error(error.error || 'Failed to assign project')
+    }
+    return res.json()
+  },
+
   /**
    * Obtém informações detalhadas de um número de telefone específico
    */

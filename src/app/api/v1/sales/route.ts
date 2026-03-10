@@ -4,6 +4,7 @@ import { revalidateTag } from 'next/cache'
 
 import { createSaleSchema, salesQuerySchema } from '@/schemas/sales/sale-schemas'
 import { createSale, listSales } from '@/services/sales/sale.service'
+import { resolveProjectScope } from '@/server/project/project-scope'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { logger } from '@/lib/utils/logger'
 
@@ -18,9 +19,14 @@ export async function POST(req: Request) {
   try {
     const body = await req.json()
     const validated = createSaleSchema.parse(body)
+    const projectId = await resolveProjectScope({
+      organizationId,
+      projectId: validated.projectId,
+    })
     const sale = await createSale({
       organizationId,
       userId,
+      projectId,
       input: validated,
     })
 
@@ -51,6 +57,10 @@ export async function GET(req: Request) {
   try {
     const payload = await listSales({
       organizationId,
+      projectId: await resolveProjectScope({
+        organizationId,
+        projectId: parsed.data.projectId,
+      }),
       q: parsed.data.q,
       page: parsed.data.page,
       pageSize: parsed.data.pageSize,

@@ -235,6 +235,7 @@ describe('ticket.service', () => {
     expect(prismaMock.sale.create).toHaveBeenCalledWith({
       data: {
         organizationId: 'org-1',
+        projectId: null,
         ticketId: 'ticket-1',
         totalAmount: 300,
         status: 'completed',
@@ -288,6 +289,7 @@ describe('ticket.service', () => {
     expect(prismaMock.sale.update).toHaveBeenCalledWith({
       where: { id: 'sale-2' },
       data: {
+        projectId: null,
         totalAmount: 500,
         status: 'completed',
         statusChangedAt: expect.any(Date),

@@ -11,6 +11,8 @@ export interface MetaAdAccountSummary {
   adAccountId: string
   adAccountName: string
   isActive: boolean
+  projectId: string | null
+  projectName: string | null
 }
 
 export interface MetaPixelConfig {
@@ -46,4 +48,3 @@ export interface MetaRoiResponse {
   accountSummary: MetaRoiAccountSummary[]
   campaigns: MetaRoiCampaignSummary[]
 }
-

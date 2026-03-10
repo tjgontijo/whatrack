@@ -16,7 +16,8 @@ import { buildItemsCost } from '@/services/dashboard/build-items-cost'
 
 export async function getDashboardSummary(
   organizationId: string,
-  query: DashboardSummaryQueryInput
+  query: DashboardSummaryQueryInput,
+  projectId?: string | null,
 ) {
   const filters: SummaryFilters = {
     period: query.period,
@@ -24,6 +25,7 @@ export async function getDashboardSummary(
     trafficType: query.trafficType,
     itemCategory: query.itemCategory,
     item: query.item,
+    projectId: projectId ?? query.projectId ?? null,
   }
 
   const dateRange = resolveFiltersDateRange(filters)
@@ -44,23 +46,29 @@ export async function getDashboardSummary(
       }),
       buildItemsCost(salesWhere),
       buildSalesByService(salesWhere),
-      buildFunnel(organizationId, dateRange),
+      buildFunnel(organizationId, dateRange, filters.projectId),
       buildOriginsSummary(organizationId, dateRange),
       buildPaidCampaignsSummary(organizationId, dateRange),
-      buildItemFilters(organizationId),
+      buildItemFilters(organizationId, filters.projectId),
     ])
 
   const [trafficSourcesRaw, trafficTypesRaw] = await Promise.all([
     prisma.ticketTracking.findMany({
       where: {
-        ticket: { organizationId },
+        ticket: {
+          organizationId,
+          ...(filters.projectId ? { projectId: filters.projectId } : {}),
+        },
       },
       distinct: ['utmSource'],
       select: { utmSource: true },
     }),
     prisma.ticketTracking.findMany({
       where: {
-        ticket: { organizationId },
+        ticket: {
+          organizationId,
+          ...(filters.projectId ? { projectId: filters.projectId } : {}),
+        },
       },
       distinct: ['sourceType'],
       select: { sourceType: true },

@@ -20,6 +20,7 @@ import { OrganizationStatusBadge } from '@/components/dashboard/organization/org
 const ROUTE_LABELS: Record<string, string> = {
   '': 'Visão Geral',
   leads: 'Leads',
+  projects: 'Projetos',
   tickets: 'Tickets',
   sales: 'Vendas',
   items: 'Itens',

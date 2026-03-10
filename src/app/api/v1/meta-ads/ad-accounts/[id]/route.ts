@@ -33,6 +33,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     organizationId: access.organizationId,
     routeId: parsedParams.data.id,
     isActive: parsedBody.data.isActive,
+    projectId: parsedBody.data.projectId,
   })
 
   if ('error' in result) {

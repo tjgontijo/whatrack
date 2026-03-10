@@ -3,6 +3,7 @@ import { apiError } from '@/lib/utils/api-response'
 import { revalidateTag } from 'next/cache'
 
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
+import { resolveProjectScope } from '@/server/project/project-scope'
 import { isDateRangePreset, resolveDateRange } from '@/lib/date/date-range'
 import { ticketsQuerySchema, createTicketSchema } from '@/schemas/tickets/ticket-schemas'
 import { listTickets, createTicket } from '@/services/tickets/ticket.service'
@@ -20,6 +21,7 @@ export async function GET(req: Request) {
     status: searchParams.get('status') ?? undefined,
     stageId: searchParams.get('stageId') ?? undefined,
     assigneeId: searchParams.get('assigneeId') ?? undefined,
+    projectId: searchParams.get('projectId') ?? undefined,
     sourceType: searchParams.get('sourceType') ?? undefined,
     utmSource: searchParams.get('utmSource') ?? undefined,
     windowStatus: searchParams.get('windowStatus') ?? undefined,
@@ -37,6 +39,7 @@ export async function GET(req: Request) {
     status,
     stageId,
     assigneeId,
+    projectId,
     sourceType,
     utmSource,
     windowStatus,
@@ -52,6 +55,10 @@ export async function GET(req: Request) {
       status,
       stageId,
       assigneeId,
+      projectId: await resolveProjectScope({
+        organizationId: access.organizationId,
+        projectId,
+      }),
       sourceType,
       utmSource,
       windowStatus: windowStatus as 'open' | 'expired' | undefined,
@@ -83,6 +90,13 @@ export async function POST(req: Request) {
     const result = await createTicket({
       organizationId: access.organizationId,
       conversationId: parsed.data.conversationId,
+      projectId:
+        typeof parsed.data.projectId !== 'undefined'
+          ? await resolveProjectScope({
+              organizationId: access.organizationId,
+              projectId: parsed.data.projectId,
+            })
+          : undefined,
       stageId: parsed.data.stageId,
       assigneeId: parsed.data.assigneeId,
       dealValue: parsed.data.dealValue,

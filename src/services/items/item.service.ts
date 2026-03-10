@@ -1,6 +1,7 @@
 import { Prisma } from '@db/client'
 
 import { prisma } from '@/lib/db/prisma'
+import { ensureProjectBelongsToOrganization } from '@/server/project/project-scope'
 
 const MIN_PAGE_SIZE = 1
 const DEFAULT_PAGE_SIZE = 50
@@ -8,6 +9,7 @@ const MAX_PAGE_SIZE = 100
 
 export type ListItemsParams = {
   organizationId: string
+  projectId?: string | null
   search?: string
   status?: 'active' | 'inactive'
   categoryId?: string
@@ -23,6 +25,8 @@ export type ItemListItem = {
     id: string
     name: string
   } | null
+  projectId: string | null
+  projectName: string | null
   createdAt: string
   updatedAt: string
 }
@@ -53,6 +57,11 @@ type ItemWithCategoryAndCount = ItemSummary & {
     createdAt: Date
     updatedAt: Date
   } | null
+  projectId: string | null
+  project: {
+    id: string
+    name: string
+  } | null
   _count: {
     saleItems: number
   }
@@ -78,6 +87,7 @@ export async function listItems(params: ListItemsParams): Promise<ItemListRespon
 
   const where: Prisma.ItemWhereInput = {
     organizationId: params.organizationId,
+    ...(params.projectId ? { projectId: params.projectId } : {}),
   }
 
   if (params.search?.trim()) {
@@ -107,6 +117,10 @@ export async function listItems(params: ListItemsParams): Promise<ItemListRespon
         id: true,
         name: true,
         active: true,
+        projectId: true,
+        project: {
+          select: { id: true, name: true },
+        },
         createdAt: true,
         updatedAt: true,
         category: {
@@ -123,6 +137,8 @@ export async function listItems(params: ListItemsParams): Promise<ItemListRespon
       name: item.name,
       active: item.active,
       category: item.category ? { id: item.category.id, name: item.category.name } : null,
+      projectId: item.projectId,
+      projectName: item.project?.name ?? null,
       createdAt: item.createdAt.toISOString(),
       updatedAt: item.updatedAt.toISOString(),
     })),
@@ -134,14 +150,23 @@ export async function listItems(params: ListItemsParams): Promise<ItemListRespon
 
 export type CreateItemParams = {
   organizationId: string
+  projectId?: string | null
   name: string
   categoryId?: string | null
 }
 
 export async function createItem(params: CreateItemParams): Promise<ItemListItem> {
+  if (params.projectId) {
+    const project = await ensureProjectBelongsToOrganization(params.organizationId, params.projectId)
+    if (!project) {
+      throw new Error('Projeto inválido para esta organização')
+    }
+  }
+
   const created = await prisma.item.create({
     data: {
       organizationId: params.organizationId,
+      projectId: params.projectId ?? null,
       name: params.name.trim(),
       categoryId: params.categoryId ?? undefined,
       active: true,
@@ -150,6 +175,10 @@ export async function createItem(params: CreateItemParams): Promise<ItemListItem
       id: true,
       name: true,
       active: true,
+      projectId: true,
+      project: {
+        select: { id: true, name: true },
+      },
       createdAt: true,
       updatedAt: true,
       category: {
@@ -163,6 +192,8 @@ export async function createItem(params: CreateItemParams): Promise<ItemListItem
     name: created.name,
     active: created.active,
     category: created.category ? { id: created.category.id, name: created.category.name } : null,
+    projectId: created.projectId,
+    projectName: created.project?.name ?? null,
     createdAt: created.createdAt.toISOString(),
     updatedAt: created.updatedAt.toISOString(),
   }
@@ -181,6 +212,13 @@ export async function getItemById(input: {
       id: true,
       organizationId: true,
       categoryId: true,
+      projectId: true,
+      project: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
       name: true,
       active: true,
       createdAt: true,
@@ -210,6 +248,7 @@ export async function updateItem(input: {
   name?: string
   categoryId?: string | null
   active?: boolean
+  projectId?: string | null
 }): Promise<ItemSummary | { error: 'Item não encontrado'; status: 404 }> {
   const existing = await prisma.item.findFirst({
     where: {
@@ -223,12 +262,20 @@ export async function updateItem(input: {
     return { error: 'Item não encontrado', status: 404 }
   }
 
+  if (input.projectId) {
+    const project = await ensureProjectBelongsToOrganization(input.organizationId, input.projectId)
+    if (!project) {
+      throw new Error('Projeto inválido para esta organização')
+    }
+  }
+
   return prisma.item.update({
     where: { id: input.itemId },
     data: {
       name: input.name,
       categoryId: input.categoryId,
       active: input.active,
+      ...(typeof input.projectId !== 'undefined' ? { projectId: input.projectId } : {}),
     },
     select: {
       id: true,

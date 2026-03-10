@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 
 import { apiError } from '@/lib/utils/api-response'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import { resolveProjectScope } from '@/server/project/project-scope'
 import { createItemSchema, itemListQuerySchema } from '@/schemas/items/item-schemas'
 import { createItem, listItems, type ListItemsParams } from '@/services/items/item.service'
 import { logger } from '@/lib/utils/logger'
@@ -19,6 +20,7 @@ export async function GET(request: Request) {
       search: searchParams.get('search') ?? undefined,
       status: searchParams.get('status') ?? undefined,
       categoryId: searchParams.get('categoryId') ?? undefined,
+      projectId: searchParams.get('projectId') ?? undefined,
       page: searchParams.get('page') ?? undefined,
       pageSize: searchParams.get('pageSize') ?? undefined,
     })
@@ -29,6 +31,10 @@ export async function GET(request: Request) {
 
     const payload: ListItemsParams = {
       organizationId,
+      projectId: await resolveProjectScope({
+        organizationId,
+        projectId: parsed.data.projectId,
+      }),
       search: parsed.data.search,
       status: parsed.data.status,
       categoryId: parsed.data.categoryId,
@@ -60,6 +66,10 @@ export async function POST(request: Request) {
 
     const result = await createItem({
       organizationId,
+      projectId: await resolveProjectScope({
+        organizationId,
+        projectId: parsed.data.projectId,
+      }),
       name: parsed.data.name,
       categoryId: parsed.data.categoryId ?? null,
     })

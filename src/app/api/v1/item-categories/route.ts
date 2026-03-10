@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 
 import { apiError } from '@/lib/utils/api-response'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import { resolveProjectScope } from '@/server/project/project-scope'
 import {
   createItemCategorySchema,
   itemCategoryListQuerySchema,
@@ -25,6 +26,7 @@ export async function GET(request: Request) {
     const parsed = itemCategoryListQuerySchema.safeParse({
       search: searchParams.get('search') ?? undefined,
       status: searchParams.get('status') ?? undefined,
+      projectId: searchParams.get('projectId') ?? undefined,
       page: searchParams.get('page') ?? undefined,
       pageSize: searchParams.get('pageSize') ?? undefined,
     })
@@ -35,6 +37,10 @@ export async function GET(request: Request) {
 
     const payload: ListItemCategoriesParams = {
       organizationId,
+      projectId: await resolveProjectScope({
+        organizationId,
+        projectId: parsed.data.projectId,
+      }),
       search: parsed.data.search,
       status: parsed.data.status,
       page: parsed.data.page,
@@ -65,6 +71,10 @@ export async function POST(request: Request) {
 
     const result = await createItemCategory({
       organizationId,
+      projectId: await resolveProjectScope({
+        organizationId,
+        projectId: parsed.data.projectId,
+      }),
       name: parsed.data.name,
     })
 

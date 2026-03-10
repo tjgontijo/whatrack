@@ -21,6 +21,18 @@ export default async function MetaAdsSettingsPage() {
     prisma.metaAdAccount.findMany({
       where: { organizationId },
       orderBy: { adAccountName: 'asc' },
+      select: {
+        id: true,
+        adAccountId: true,
+        adAccountName: true,
+        isActive: true,
+        projectId: true,
+        project: {
+          select: {
+            name: true,
+          },
+        },
+      },
     }),
     prisma.metaPixel.findMany({
       where: { organizationId },
@@ -32,7 +44,14 @@ export default async function MetaAdsSettingsPage() {
     <MetaAdsSettingsContent
       organizationId={organizationId}
       initialConnections={JSON.parse(JSON.stringify(connections))}
-      initialAdAccounts={JSON.parse(JSON.stringify(adAccounts))}
+      initialAdAccounts={adAccounts.map((account) => ({
+        id: account.id,
+        adAccountId: account.adAccountId,
+        adAccountName: account.adAccountName,
+        isActive: account.isActive,
+        projectId: account.projectId,
+        projectName: account.project?.name ?? null,
+      }))}
       initialPixels={JSON.parse(JSON.stringify(pixels))}
     />
   )

@@ -40,6 +40,7 @@ export async function stateSyncHandler(payload: any): Promise<void> {
     select: {
       id: true,
       organizationId: true,
+      projectId: true,
       historySyncStatus: true,
     },
   })
@@ -94,6 +95,7 @@ export async function stateSyncHandler(payload: any): Promise<void> {
           },
           create: {
             organizationId: config.organizationId,
+            projectId: config.projectId,
             waId,
             phone: normalizedPhone,
             pushName: displayName,
@@ -102,6 +104,7 @@ export async function stateSyncHandler(payload: any): Promise<void> {
             isActive: true,
           },
           update: {
+            ...(config.projectId ? { projectId: config.projectId } : {}),
             pushName: displayName,
             lastSyncedAt: new Date(),
             isActive: true,

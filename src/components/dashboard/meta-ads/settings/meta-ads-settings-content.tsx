@@ -14,6 +14,7 @@ import { metaAdsClient } from '@/lib/meta-ads/client'
 import type { MetaAdAccountSummary, MetaConnectionSummary, MetaPixelConfig } from '@/types/meta-ads/meta-ads'
 import { MetaPixelsConfigArea } from './meta-pixels-config-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ProjectSelector } from '@/components/dashboard/projects/project-selector'
 
 const META_ADS_TAB_IDS = {
   adAccountsTrigger: 'meta-ads-tab-trigger-ad-accounts',
@@ -76,8 +77,16 @@ export function MetaAdsSettingsContent({
 
   // 3. Mutations
   const toggleMutation = useMutation({
-    mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
-      return metaAdsClient.toggleAdAccount(id, { isActive }, organizationId!)
+    mutationFn: async ({
+      id,
+      isActive,
+      projectId,
+    }: {
+      id: string
+      isActive?: boolean
+      projectId?: string | null
+    }) => {
+      return metaAdsClient.toggleAdAccount(id, { isActive, projectId }, organizationId!)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['meta-ads', 'ad-accounts'] })
@@ -238,13 +247,14 @@ export function MetaAdsSettingsContent({
                       <thead className="bg-muted/50 border-b text-xs uppercase">
                         <tr>
                           <th className="px-6 py-4 font-semibold">Conta</th>
+                          <th className="px-6 py-4 font-semibold">Projeto</th>
                           <th className="w-48 px-6 py-4 text-right font-semibold">Status</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y">
                         {loadingAccounts && adAccountItems.length === 0 ? (
                           <tr>
-                            <td colSpan={2} className="px-6 py-8 text-center">
+                            <td colSpan={3} className="px-6 py-8 text-center">
                               <RefreshCw className="text-muted-foreground/20 mx-auto h-6 w-6 animate-spin" />
                             </td>
                           </tr>
@@ -265,6 +275,18 @@ export function MetaAdsSettingsContent({
                                     {acc.isActive ? 'Ativa' : 'Inativa'}
                                   </Badge>
                                 </div>
+                              </td>
+                              <td className="px-6 py-4">
+                                <ProjectSelector
+                                  organizationId={organizationId}
+                                  value={acc.projectId}
+                                  onChange={(projectId) =>
+                                    toggleMutation.mutate({ id: acc.id, projectId })
+                                  }
+                                  disabled={toggleMutation.isPending}
+                                  className="h-8 rounded-xl text-xs"
+                                  placeholder="Projeto"
+                                />
                               </td>
                               <td className="px-6 py-4 text-right">
                                 <div className="flex items-center justify-end gap-3">
@@ -288,7 +310,7 @@ export function MetaAdsSettingsContent({
                           ))
                         ) : (
                           <tr>
-                            <td colSpan={2} className="text-muted-foreground px-6 py-12 text-center italic">
+                            <td colSpan={3} className="text-muted-foreground px-6 py-12 text-center italic">
                               {hasConnections
                                 ? 'Nenhuma conta encontrada. Clique em Sincronizar.'
                                 : 'Conecte um perfil para importar contas de anúncios.'}

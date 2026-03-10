@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { apiError } from '@/lib/utils/api-response'
+import { resolveProjectScope } from '@/server/project/project-scope'
 import {
   createLeadSchema,
   leadsQuerySchema,
@@ -18,8 +19,13 @@ export async function POST(req: Request) {
   try {
     const body = await req.json()
     const validated = createLeadSchema.parse(body)
+    const projectId = await resolveProjectScope({
+      organizationId,
+      projectId: validated.projectId,
+    })
     const lead = await createLead({
       organizationId,
+      projectId,
       input: validated,
     })
 
@@ -58,6 +64,10 @@ export async function GET(req: Request) {
   try {
     const payload = await listLeads({
       organizationId,
+      projectId: await resolveProjectScope({
+        organizationId,
+        projectId: parsed.data.projectId,
+      }),
       q: parsed.data.q,
       page: parsed.data.page,
       pageSize: parsed.data.pageSize,

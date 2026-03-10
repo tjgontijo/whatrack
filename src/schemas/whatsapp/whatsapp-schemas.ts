@@ -25,7 +25,13 @@ export const whatsappDisconnectSchema = z.object({
   configId: z.string().min(1),
 })
 
+export const whatsappInstanceProjectUpdateSchema = z.object({
+  configId: z.string().min(1),
+  projectId: z.string().trim().min(1).nullable(),
+})
+
 export type WhatsAppChatsQueryInput = z.infer<typeof whatsappChatsQuerySchema>
 export type WhatsAppChatMessagesQueryInput = z.infer<typeof whatsappChatMessagesQuerySchema>
 export type WhatsAppSendTemplateInput = z.infer<typeof whatsappSendTemplateSchema>
 export type WhatsAppDisconnectInput = z.infer<typeof whatsappDisconnectSchema>
+export type WhatsAppInstanceProjectUpdateInput = z.infer<typeof whatsappInstanceProjectUpdateSchema>

@@ -56,7 +56,7 @@ export class WhatsAppChatService {
       // 0. Find Organization ID from Instance
       const instance = await prisma.whatsAppConfig.findUnique({
         where: { id: instanceId },
-        select: { organizationId: true },
+        select: { organizationId: true, projectId: true },
       })
 
       if (!instance) {
@@ -75,12 +75,14 @@ export class WhatsAppChatService {
           },
         },
         update: {
+          ...(instance.projectId ? { projectId: instance.projectId } : {}),
           waId: from,
           pushName: contactProfile?.name || undefined,
           lastMessageAt: new Date(parseInt(timestamp) * 1000),
         },
         create: {
           organizationId,
+          projectId: instance.projectId,
           phone: from,
           waId: from,
           pushName: contactProfile?.name,
@@ -115,6 +117,7 @@ export class WhatsAppChatService {
         ticket = await prisma.ticket.create({
           data: {
             organizationId,
+            projectId: instance.projectId,
             leadId: lead.id, // ✅ Add leadId
             conversationId: conversation.id,
             stageId: defaultStage.id,
@@ -134,6 +137,7 @@ export class WhatsAppChatService {
           data: {
             windowExpiresAt: new Date(messageTimestamp.getTime() + WINDOW_MS),
             windowOpen: true,
+            ...(instance.projectId ? { projectId: instance.projectId } : {}),
           },
         })
       }
@@ -250,7 +254,7 @@ export class WhatsAppChatService {
       // 0. Find Organization
       const instance = await prisma.whatsAppConfig.findUnique({
         where: { id: instanceId },
-        select: { organizationId: true },
+        select: { organizationId: true, projectId: true },
       })
 
       if (!instance) throw new Error(`Instance ${instanceId} not found`)
@@ -264,10 +268,12 @@ export class WhatsAppChatService {
           },
         },
         update: {
+          ...(instance.projectId ? { projectId: instance.projectId } : {}),
           lastMessageAt: new Date(parseInt(timestamp) * 1000),
         },
         create: {
           organizationId: instance.organizationId,
+          projectId: instance.projectId,
           phone: customerPhone,
           waId: customerPhone,
           lastMessageAt: new Date(parseInt(timestamp) * 1000),
@@ -299,6 +305,7 @@ export class WhatsAppChatService {
         ticket = await prisma.ticket.create({
           data: {
             organizationId: instance.organizationId,
+            projectId: instance.projectId,
             leadId: lead.id, // ✅ Add leadId
             conversationId: conversation.id,
             stageId: defaultStage.id,
@@ -339,10 +346,10 @@ export class WhatsAppChatService {
         data: { messagesCount: { increment: 1 } },
       })
 
-      await prisma.ticket.update({
-        where: { id: ticket.id },
-        data: { messagesCount: { increment: 1 } },
-      })
+          await prisma.ticket.update({
+            where: { id: ticket.id },
+            data: { messagesCount: { increment: 1 } },
+          })
 
       return created
     } catch (error) {

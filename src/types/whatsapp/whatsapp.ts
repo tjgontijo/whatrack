@@ -138,6 +138,9 @@ export interface Contact {
 
 export interface WhatsAppPhoneNumber {
   id: string
+  configId?: string | null
+  projectId?: string | null
+  projectName?: string | null
   verified_name: string
   display_phone_number: string
   quality_rating: 'GREEN' | 'YELLOW' | 'RED' | 'UNKNOWN'

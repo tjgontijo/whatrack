@@ -63,6 +63,12 @@ export async function listWhatsAppInstances(organizationId: string) {
       status: true,
       wabaId: true,
       lastWebhookAt: true,
+      projectId: true,
+      project: {
+        select: {
+          name: true,
+        },
+      },
     },
     orderBy: {
       createdAt: 'asc',
@@ -77,12 +83,26 @@ export async function listWhatsAppInstances(organizationId: string) {
       status: instance.status,
       wabaId: instance.wabaId,
       lastWebhookAt: instance.lastWebhookAt?.toISOString() || null,
+      projectId: instance.projectId,
+      projectName: instance.project?.name ?? null,
     })),
   }
 }
 
 export async function listWhatsAppPhoneNumbers(organizationId: string) {
   const configs = await MetaCloudService.getAllConfigs(organizationId)
+  const configByPhoneId = new Map(
+    configs
+      .filter((config) => config.phoneId)
+      .map((config) => [
+        config.phoneId!,
+        {
+          configId: config.id,
+          projectId: config.projectId,
+          projectName: config.project?.name ?? null,
+        },
+      ]),
+  )
 
   if (configs.length === 0) {
     return {
@@ -121,7 +141,60 @@ export async function listWhatsAppPhoneNumbers(organizationId: string) {
     return acc
   }, {})
 
-  return { data: { phoneNumbers: Object.values(uniqueById) } }
+  return {
+    data: {
+      phoneNumbers: Object.values(uniqueById).map((phone) => {
+        const id = typeof phone.id === 'string' ? phone.id : ''
+        const config = configByPhoneId.get(id)
+
+        return {
+          ...phone,
+          configId: config?.configId ?? null,
+          projectId: config?.projectId ?? null,
+          projectName: config?.projectName ?? null,
+        }
+      }),
+    },
+  }
+}
+
+export async function assignWhatsAppConfigProject(input: {
+  organizationId: string
+  configId: string
+  projectId: string | null
+}) {
+  const config = await prisma.whatsAppConfig.findFirst({
+    where: {
+      id: input.configId,
+      organizationId: input.organizationId,
+    },
+    select: { id: true },
+  })
+
+  if (!config) {
+    return { error: 'Instância não encontrada' as const, status: 404 as const }
+  }
+
+  if (input.projectId) {
+    const project = await prisma.project.findFirst({
+      where: {
+        id: input.projectId,
+        organizationId: input.organizationId,
+      },
+      select: { id: true },
+    })
+
+    if (!project) {
+      return { error: 'Projeto não encontrado' as const, status: 404 as const }
+    }
+  }
+
+  const updated = await prisma.whatsAppConfig.update({
+    where: { id: input.configId },
+    data: { projectId: input.projectId },
+  })
+
+  return { data: updated }
 }
 
 export async function checkWhatsAppTokenHealth(organizationId: string) {

@@ -46,4 +46,14 @@ describe('buildSalesWhere', () => {
       ],
     })
   })
+
+  it('applies project filter when projectId is provided', () => {
+    const where = buildSalesWhere({
+      projectId: 'project-1',
+    })
+
+    expect(where).toEqual({
+      projectId: 'project-1',
+    })
+  })
 })

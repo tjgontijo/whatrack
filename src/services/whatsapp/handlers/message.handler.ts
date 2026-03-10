@@ -106,6 +106,7 @@ export async function messageHandler(
     select: {
       id: true,
       organizationId: true,
+      projectId: true,
       organization: {
         select: {
           profile: {
@@ -164,6 +165,7 @@ export async function messageHandler(
           lead = await tx.lead.update({
             where: { id: existingLead.id },
             data: {
+              ...(config.projectId ? { projectId: config.projectId } : {}),
               lastMessageAt: messageTimestamp,
               pushName: pushName ?? existingLead.pushName ?? undefined,
             },
@@ -173,6 +175,7 @@ export async function messageHandler(
             lead = await tx.lead.create({
               data: {
                 organizationId: config.organizationId,
+                projectId: config.projectId,
                 phone: contactPhone,
                 waId: contactPhone,
                 pushName: pushName || undefined,
@@ -190,6 +193,7 @@ export async function messageHandler(
               lead = await tx.lead.update({
                 where: { id: raceLead.id },
                 data: {
+                  ...(config.projectId ? { projectId: config.projectId } : {}),
                   lastMessageAt: messageTimestamp,
                   pushName: pushName ?? raceLead.pushName ?? undefined,
                 },
@@ -235,6 +239,7 @@ export async function messageHandler(
             await tx.ticket.update({
               where: { id: ticket.id },
               data: {
+                ...(config.projectId ? { projectId: config.projectId } : {}),
                 status: 'closed',
                 closedReason: 'expired_attribution',
                 closedAt: messageTimestamp,
@@ -253,6 +258,7 @@ export async function messageHandler(
           ticket = await tx.ticket.create({
             data: {
               organizationId: config.organizationId,
+              projectId: config.projectId,
               leadId: lead.id,
               conversationId: conversation.id,
               stageId: defaultStage.id,
@@ -270,7 +276,11 @@ export async function messageHandler(
           if (!isEcho) {
             await tx.ticket.update({
               where: { id: ticket.id },
-              data: { windowExpiresAt, windowOpen: true },
+              data: {
+                ...(config.projectId ? { projectId: config.projectId } : {}),
+                windowExpiresAt,
+                windowOpen: true,
+              },
             })
           }
         }

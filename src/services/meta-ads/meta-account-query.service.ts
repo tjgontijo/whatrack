@@ -6,31 +6,11 @@ interface ListMetaAdAccountsParams {
   sync: boolean
 }
 
-export async function listMetaAdAccounts(params: ListMetaAdAccountsParams) {
-  if (params.sync) {
-    const connections = await prisma.metaConnection.findMany({
-      where: {
-        organizationId: params.organizationId,
-        status: 'ACTIVE',
-      },
-      select: { id: true },
-    })
-
-    for (const connection of connections) {
-      await metaAdAccountService.syncAdAccounts(connection.id)
-    }
-  }
-
-  return prisma.metaAdAccount.findMany({
-    where: { organizationId: params.organizationId },
-    orderBy: { adAccountName: 'asc' },
-  })
-}
-
 interface ToggleMetaAdAccountParams {
   organizationId: string
   routeId: string
-  isActive: boolean
+  isActive?: boolean
+  projectId?: string | null
 }
 
 export async function toggleMetaAdAccount(params: ToggleMetaAdAccountParams) {
@@ -46,6 +26,66 @@ export async function toggleMetaAdAccount(params: ToggleMetaAdAccountParams) {
     return { error: 'Conta não encontrada' as const, status: 404 as const }
   }
 
-  const updated = await metaAdAccountService.toggleAccount(account.id, params.isActive)
+  if (typeof params.projectId !== 'undefined' && params.projectId !== null) {
+    const project = await prisma.project.findFirst({
+      where: {
+        id: params.projectId,
+        organizationId: params.organizationId,
+      },
+      select: { id: true },
+    })
+
+    if (!project) {
+      return { error: 'Projeto não encontrado' as const, status: 404 as const }
+    }
+  }
+
+  const updated = await metaAdAccountService.toggleAccount(account.id, {
+    isActive: params.isActive,
+    projectId: params.projectId,
+  })
+
   return { data: updated }
+}
+
+export async function listMetaAdAccounts(params: ListMetaAdAccountsParams) {
+  if (params.sync) {
+    const connections = await prisma.metaConnection.findMany({
+      where: {
+        organizationId: params.organizationId,
+        status: 'ACTIVE',
+      },
+      select: { id: true },
+    })
+
+    for (const connection of connections) {
+      await metaAdAccountService.syncAdAccounts(connection.id)
+    }
+  }
+
+  const accounts = await prisma.metaAdAccount.findMany({
+    where: { organizationId: params.organizationId },
+    orderBy: { adAccountName: 'asc' },
+    select: {
+      id: true,
+      adAccountId: true,
+      adAccountName: true,
+      isActive: true,
+      projectId: true,
+      project: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  })
+
+  return accounts.map((account) => ({
+    id: account.id,
+    adAccountId: account.adAccountId,
+    adAccountName: account.adAccountName,
+    isActive: account.isActive,
+    projectId: account.projectId,
+    projectName: account.project?.name ?? null,
+  }))
 }

@@ -3,6 +3,7 @@ import { apiError } from '@/lib/utils/api-response'
 import { revalidateTag } from 'next/cache'
 
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
+import { resolveProjectScope } from '@/server/project/project-scope'
 import { updateTicketSchema } from '@/schemas/tickets/ticket-schemas'
 import { getTicketById, updateTicketAndTrackCapi } from '@/services/tickets/ticket.service'
 import { logger } from '@/lib/utils/logger'
@@ -45,9 +46,18 @@ export async function PATCH(
       return apiError('Dados inválidos', 400, undefined, { details: parsed.error.flatten() })
     }
 
+    const projectId =
+      typeof parsed.data.projectId !== 'undefined'
+        ? await resolveProjectScope({
+            organizationId: access.organizationId,
+            projectId: parsed.data.projectId,
+          })
+        : undefined
+
     const result = await updateTicketAndTrackCapi({
       organizationId: access.organizationId,
       ticketId,
+      projectId,
       stageId: parsed.data.stageId,
       assigneeId: parsed.data.assigneeId,
       dealValue: parsed.data.dealValue,

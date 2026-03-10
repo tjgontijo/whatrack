@@ -10,10 +10,11 @@ export type FunnelSummary = {
 
 export async function buildFunnel(
   organizationId: string,
-  dateRange?: DateRange
+  dateRange?: DateRange,
+  projectId?: string | null
 ): Promise<FunnelSummary> {
   const [leads, schedules, attendances] = await Promise.all([
-    buildLeadsCount(organizationId, dateRange),
+    buildLeadsCount(organizationId, dateRange, projectId),
     buildAppointmentsCount(organizationId, dateRange),
     buildAttendancesCount(organizationId, dateRange),
   ])
@@ -21,8 +22,15 @@ export async function buildFunnel(
   return { leads, schedules, attendances }
 }
 
-async function buildLeadsCount(organizationId: string, dateRange?: DateRange) {
-  const where: Prisma.LeadWhereInput = { organizationId }
+async function buildLeadsCount(
+  organizationId: string,
+  dateRange?: DateRange,
+  projectId?: string | null,
+) {
+  const where: Prisma.LeadWhereInput = {
+    organizationId,
+    ...(projectId ? { projectId } : {}),
+  }
 
   if (dateRange) {
     where.createdAt = { gte: dateRange.gte, lte: dateRange.lte }

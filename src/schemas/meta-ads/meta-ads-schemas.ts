@@ -30,9 +30,18 @@ export const metaRouteParamsSchema = z.object({
   id: z.string().min(1),
 }).strict()
 
-export const metaAdAccountToggleBodySchema = z.object({
-  isActive: z.boolean(),
-}).strict()
+export const metaAdAccountToggleBodySchema = z
+  .object({
+    isActive: z.boolean().optional(),
+    projectId: z.string().trim().min(1).nullable().optional(),
+  })
+  .strict()
+  .refine(
+    (value) => typeof value.isActive === 'boolean' || 'projectId' in value,
+    {
+      message: 'At least one field must be provided',
+    }
+  )
 
 export const metaPixelCreateBodySchema = z.object({
   name: z.string().trim().min(1),

@@ -2,6 +2,7 @@ import { Prisma } from '@db/client'
 
 import { prisma } from '@/lib/db/prisma'
 import { isDateRangePreset, resolveDateRange } from '@/lib/date/date-range'
+import { ensureProjectBelongsToOrganization } from '@/server/project/project-scope'
 import {
   type CreateLeadInput,
   type LeadsQueryInput,
@@ -23,16 +24,19 @@ export class LeadConflictError extends Error {
 
 export type CreateLeadParams = {
   organizationId: string
+  projectId?: string | null
   input: CreateLeadInput
 }
 
 export type ListLeadsParams = {
   organizationId: string
-} & LeadsQueryInput
+  projectId?: string | null
+} & Omit<LeadsQueryInput, 'projectId'>
 
 export type UpdateLeadParams = {
   organizationId: string
   leadId: string
+  projectId?: string | null
   input: UpdateLeadInput
 }
 
@@ -63,10 +67,21 @@ function rethrowLeadConflict(error: unknown): never {
 }
 
 export async function createLead(params: CreateLeadParams) {
+  const projectId =
+    typeof params.input.projectId !== 'undefined' ? params.input.projectId : params.projectId
+
+  if (projectId) {
+    const project = await ensureProjectBelongsToOrganization(params.organizationId, projectId)
+    if (!project) {
+      throw new Error('Projeto inválido para esta organização')
+    }
+  }
+
   try {
     return await prisma.lead.create({
       data: {
         organizationId: params.organizationId,
+        projectId: projectId ?? null,
         name: params.input.name,
         phone: params.input.phone,
         mail: params.input.mail || null,
@@ -100,7 +115,10 @@ export async function listLeads(params: ListLeadsParams) {
     filters.push({ createdAt: { gte: range.gte, lte: range.lte } })
   }
 
-  const baseWhere: Prisma.LeadWhereInput = { organizationId: params.organizationId }
+  const baseWhere: Prisma.LeadWhereInput = {
+    organizationId: params.organizationId,
+    ...(params.projectId ? { projectId: params.projectId } : {}),
+  }
   const where: Prisma.LeadWhereInput =
     filters.length > 0 ? { AND: [baseWhere, ...filters] } : baseWhere
 
@@ -116,6 +134,12 @@ export async function listLeads(params: ListLeadsParams) {
         phone: true,
         mail: true,
         waId: true,
+        projectId: true,
+        project: {
+          select: {
+            name: true,
+          },
+        },
         createdAt: true,
       },
     }),
@@ -123,7 +147,11 @@ export async function listLeads(params: ListLeadsParams) {
   ])
 
   return leadsResponseSchema.parse({
-    items,
+    items: items.map((item) => ({
+      ...item,
+      projectId: item.projectId,
+      projectName: item.project?.name ?? null,
+    })),
     total,
     page: params.page,
     pageSize: params.pageSize,
@@ -152,6 +180,16 @@ export async function updateLead(params: UpdateLeadParams) {
     return null
   }
 
+  const projectId =
+    typeof params.input.projectId !== 'undefined' ? params.input.projectId : params.projectId
+
+  if (projectId) {
+    const project = await ensureProjectBelongsToOrganization(params.organizationId, projectId)
+    if (!project) {
+      throw new Error('Projeto inválido para esta organização')
+    }
+  }
+
   try {
     return await prisma.lead.update({
       where: { id: params.leadId },
@@ -160,6 +198,7 @@ export async function updateLead(params: UpdateLeadParams) {
         phone: params.input.phone,
         mail: params.input.mail ?? undefined,
         waId: params.input.waId,
+        ...(typeof projectId !== 'undefined' ? { projectId } : {}),
       },
     })
   } catch (error) {

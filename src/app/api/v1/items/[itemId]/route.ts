@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/utils/api-response'
 
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import { resolveProjectScope } from '@/server/project/project-scope'
 import { updateItemSchema } from '@/schemas/items/item-schemas'
 import { deleteItem, getItemById, updateItem } from '@/services/items/item.service'
 import { logger } from '@/lib/utils/logger'
@@ -44,6 +45,13 @@ export async function PUT(
   try {
     const body = await req.json()
     const validated = updateItemSchema.parse(body)
+    const projectId =
+      typeof validated.projectId !== 'undefined'
+        ? await resolveProjectScope({
+            organizationId,
+            projectId: validated.projectId,
+          })
+        : undefined
 
     const updated = await updateItem({
       organizationId,
@@ -51,6 +59,7 @@ export async function PUT(
       name: validated.name,
       categoryId: validated.categoryId,
       active: validated.active,
+      projectId,
     })
 
     if ('error' in updated) {

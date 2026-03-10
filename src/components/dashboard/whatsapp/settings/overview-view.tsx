@@ -24,6 +24,7 @@ import Link from 'next/link'
 import { parsePhoneNumberFromString } from 'libphonenumber-js'
 import * as Flags from 'country-flag-icons/react/3x2'
 import type { WhatsAppPhoneNumber } from '@/types/whatsapp/whatsapp'
+import { ProjectSelector } from '@/components/dashboard/projects/project-selector'
 
 interface OverviewViewProps {
   phone: WhatsAppPhoneNumber
@@ -58,6 +59,19 @@ export function OverviewView({ phone }: OverviewViewProps) {
     },
   })
 
+  const assignProjectMutation = useMutation({
+    mutationFn: (projectId: string | null) =>
+      whatsappApi.assignProject(phone.configId!, projectId, orgId!),
+    onSuccess: () => {
+      toast.success('Projeto da instância atualizado')
+      queryClient.invalidateQueries({ queryKey: ['whatsapp', 'phone-numbers', orgId] })
+      queryClient.invalidateQueries({ queryKey: ['whatsapp', 'phone', phone.id, orgId] })
+    },
+    onError: (error: Error) => {
+      toast.error('Erro ao atualizar projeto', { description: error.message })
+    },
+  })
+
   const needsActivation = phone.status !== 'CONNECTED'
 
   const reviewStatus = {
@@ -83,6 +97,30 @@ export function OverviewView({ phone }: OverviewViewProps) {
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-2 w-full space-y-6 pb-8 duration-500">
+      <Card className="bg-muted/20 border-none shadow-none">
+        <CardHeader className="pb-2 pt-4">
+          <CardDescription className="text-[10px] font-bold uppercase tracking-wider">
+            Projeto operacional
+          </CardDescription>
+          <CardTitle className="text-base">Cliente vinculado a esta instância</CardTitle>
+        </CardHeader>
+        <CardContent className="pb-4">
+          {phone.configId ? (
+            <ProjectSelector
+              organizationId={orgId}
+              value={phone.projectId}
+              onChange={(projectId) => assignProjectMutation.mutate(projectId)}
+              disabled={assignProjectMutation.isPending}
+              className="max-w-sm rounded-xl"
+            />
+          ) : (
+            <p className="text-muted-foreground text-sm">
+              Esta instância ainda não foi materializada no banco local.
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
       {needsActivation && (
         <Alert
           variant="destructive"

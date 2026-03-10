@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { apiError } from '@/lib/utils/api-response'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import { resolveProjectScope } from '@/server/project/project-scope'
 import { updateItemCategorySchema } from '@/schemas/items/item-category-schemas'
 import {
   deleteItemCategory,
@@ -55,12 +56,20 @@ export async function PUT(
   try {
     const body = await req.json()
     const validated = updateItemCategorySchema.parse(body)
+    const projectId =
+      typeof validated.projectId !== 'undefined'
+        ? await resolveProjectScope({
+            organizationId,
+            projectId: validated.projectId,
+          })
+        : undefined
 
     const updated = await updateItemCategory({
       organizationId,
       categoryId,
       name: validated.name,
       active: validated.active,
+      projectId,
     })
 
     if ('error' in updated) {

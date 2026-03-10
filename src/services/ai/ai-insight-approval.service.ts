@@ -29,6 +29,11 @@ export async function approveAiInsight(params: ApproveAiInsightParams) {
       id: true,
       organizationId: true,
       ticketId: true,
+      ticket: {
+        select: {
+          projectId: true,
+        },
+      },
       payload: true,
       status: true,
     },
@@ -92,6 +97,7 @@ export async function approveAiInsight(params: ApproveAiInsightParams) {
         const category = await prisma.itemCategory.create({
           data: {
             organizationId: params.organizationId,
+            projectId: insight.ticket?.projectId ?? null,
             name: mutableInput.newItem.newCategoryName,
             active: true,
           },
@@ -102,6 +108,7 @@ export async function approveAiInsight(params: ApproveAiInsightParams) {
       const createdItem = await prisma.item.create({
         data: {
           organizationId: params.organizationId,
+          projectId: insight.ticket?.projectId ?? null,
           name: mutableInput.newItem.name,
           categoryId: categoryId ?? null,
           active: true,
@@ -137,6 +144,7 @@ export async function approveAiInsight(params: ApproveAiInsightParams) {
         await tx.sale.create({
           data: {
             organizationId: params.organizationId,
+            projectId: insight.ticket?.projectId ?? null,
             ticketId: insight.ticketId,
             totalAmount: dealValue,
             status: 'completed',

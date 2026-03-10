@@ -51,6 +51,7 @@ export async function historyHandler(payload: any): Promise<void> {
     select: {
       id: true,
       organizationId: true,
+      projectId: true,
       historySyncStartedAt: true,
     },
   })
@@ -123,6 +124,7 @@ export async function historyHandler(payload: any): Promise<void> {
         },
         create: {
           organizationId: config.organizationId,
+          projectId: config.projectId,
           waId,
           phone: normalizedPhone,
           pushName: username,
@@ -130,6 +132,7 @@ export async function historyHandler(payload: any): Promise<void> {
           lastSyncedAt: new Date(),
         },
         update: {
+          ...(config.projectId ? { projectId: config.projectId } : {}),
           lastSyncedAt: new Date(),
           // Don't override source if already set
           pushName: username ?? undefined,

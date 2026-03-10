@@ -20,6 +20,7 @@ import {
   Kanban,
   Sparkles,
   ShieldCheck,
+  FolderKanban,
 } from 'lucide-react'
 
 import {
@@ -62,6 +63,7 @@ const ICON_MAP = {
   Kanban,
   Sparkles,
   ShieldCheck,
+  FolderKanban,
 } as const
 
 type NavItem = {
@@ -103,7 +105,7 @@ export function SidebarClient({ navItems, session: initialSession }: SidebarClie
   )
 
   const dataItems = navItems.filter((item) =>
-    ['Users', 'Kanban', 'ShoppingBag', 'Package', 'Meta'].includes(item.icon)
+    ['FolderKanban', 'Users', 'Kanban', 'ShoppingBag', 'Package', 'Meta'].includes(item.icon)
   )
 
   const isSuperAdmin = isOwner(session?.user?.role)

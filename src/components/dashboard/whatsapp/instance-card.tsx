@@ -59,6 +59,11 @@ export function InstanceCard({ phone }: InstanceCardProps) {
             </div>
 
             <div className="mb-4 flex items-center gap-2">
+              {phone.projectName ? (
+                <Badge variant="outline" className="border-blue-200 bg-blue-50 text-blue-700">
+                  {phone.projectName}
+                </Badge>
+              ) : null}
               <Badge variant="outline" className={`border font-semibold ${qualityColor}`}>
                 {qualityLabel}
               </Badge>

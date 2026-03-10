@@ -4,6 +4,7 @@ import { revalidateTag } from 'next/cache'
 
 import { updateSaleSchema } from '@/schemas/sales/sale-schemas'
 import { deleteSale, updateSale } from '@/services/sales/sale.service'
+import { resolveProjectScope } from '@/server/project/project-scope'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { logger } from '@/lib/utils/logger'
 
@@ -19,10 +20,18 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ sale
   try {
     const body = await req.json()
     const validated = updateSaleSchema.parse(body)
+    const projectId =
+      typeof validated.projectId !== 'undefined'
+        ? await resolveProjectScope({
+            organizationId,
+            projectId: validated.projectId,
+          })
+        : undefined
     const updated = await updateSale({
       organizationId,
       saleId,
       userId,
+      projectId,
       input: validated,
     })
     if (!updated) {

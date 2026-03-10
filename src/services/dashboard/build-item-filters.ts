@@ -10,15 +10,26 @@ export type ItemFilters = {
   itemsByCategory: Record<string, ItemFilterOption[]>
 }
 
-export async function buildItemFilters(organizationId: string): Promise<ItemFilters> {
+export async function buildItemFilters(
+  organizationId: string,
+  projectId?: string | null,
+): Promise<ItemFilters> {
   const categories = await prisma.itemCategory.findMany({
-    where: { active: true, organizationId },
+    where: {
+      active: true,
+      organizationId,
+      ...(projectId ? { projectId } : {}),
+    },
     orderBy: { name: 'asc' },
     select: {
       id: true,
       name: true,
       items: {
-        where: { active: true, organizationId },
+        where: {
+          active: true,
+          organizationId,
+          ...(projectId ? { projectId } : {}),
+        },
         orderBy: { name: 'asc' },
         select: { id: true, name: true },
       },

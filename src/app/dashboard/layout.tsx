@@ -8,11 +8,13 @@ import { DashboardHeader } from '@/components/dashboard/layout/header'
 import { HeaderActionsProvider } from '@/components/dashboard/layout/header-actions'
 import { OrganizationSelectorGate } from '@/components/dashboard/organization/organization-selector'
 import { OnboardingDialog } from '@/components/dashboard/organization/onboarding-dialog'
+import { ProjectContextGate } from '@/components/dashboard/projects/project-context-gate'
 import { DashboardSidebar } from '@/components/dashboard/sidebar/sidebar'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { getServerSession } from '@/server/auth/server-session'
 import { getCurrentOrganizationId } from '@/server/organization/get-current-organization-id'
 import { isOrganizationIdentityComplete } from '@/server/organization/is-identity-complete'
+import { getCurrentProjectId } from '@/server/project/get-current-project-id'
 
 export const dynamic = 'force-dynamic'
 
@@ -48,6 +50,8 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
   let hasOrganization = false
   let identityComplete = false
+  let projects: Array<{ id: string; name: string }> = []
+  let activeProjectId: string | null = null
 
   if (organizationId) {
     const organization = await prisma.organization.findUnique({
@@ -58,6 +62,15 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     if (organization) {
       hasOrganization = true
       identityComplete = await isOrganizationIdentityComplete(organizationId)
+      activeProjectId = await getCurrentProjectId(organizationId)
+      projects = await prisma.project.findMany({
+        where: { organizationId },
+        select: {
+          id: true,
+          name: true,
+        },
+        orderBy: { name: 'asc' },
+      })
     }
   }
 
@@ -74,6 +87,13 @@ export default async function DashboardLayout({ children }: { children: ReactNod
               <DashboardContent>
                 <div className="mx-auto w-full min-w-0">
                   {hasOrganization ? <OrganizationSelectorGate /> : null}
+                  {hasOrganization && organizationId ? (
+                    <ProjectContextGate
+                      organizationId={organizationId}
+                      projects={projects}
+                      activeProjectId={activeProjectId}
+                    />
+                  ) : null}
                   {children}
                 </div>
               </DashboardContent>

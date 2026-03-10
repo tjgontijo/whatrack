@@ -72,10 +72,31 @@ export class MetaAdAccountService {
   /**
    * Toggle Ad Account Tracking
    */
-  async toggleAccount(accountId: string, isActive: boolean) {
+  async toggleAccount(
+    accountId: string,
+    input: {
+      isActive?: boolean
+      projectId?: string | null
+    },
+  ) {
     return await prisma.metaAdAccount.update({
       where: { id: accountId },
-      data: { isActive },
+      data: {
+        ...(typeof input.isActive === 'boolean' ? { isActive: input.isActive } : {}),
+        ...(typeof input.projectId !== 'undefined' ? { projectId: input.projectId } : {}),
+      },
+      select: {
+        id: true,
+        adAccountId: true,
+        adAccountName: true,
+        isActive: true,
+        projectId: true,
+        project: {
+          select: {
+            name: true,
+          },
+        },
+      },
     })
   }
 

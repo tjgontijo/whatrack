@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/utils/api-response'
+import { resolveProjectScope } from '@/server/project/project-scope'
 
 import { updateLeadSchema } from '@/schemas/leads/lead-schemas'
 import {
@@ -44,10 +45,18 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ lead
   try {
     const body = await req.json()
     const validated = updateLeadSchema.parse(body)
+    const projectId =
+      typeof validated.projectId !== 'undefined'
+        ? await resolveProjectScope({
+            organizationId,
+            projectId: validated.projectId,
+          })
+        : undefined
 
     const updated = await updateLead({
       organizationId,
       leadId,
+      projectId,
       input: validated,
     })
     if (!updated) {

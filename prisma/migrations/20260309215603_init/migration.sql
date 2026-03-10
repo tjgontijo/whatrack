@@ -203,6 +203,17 @@ CREATE TABLE "organization" (
 );
 
 -- CreateTable
+CREATE TABLE "projects" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "organizationId" UUID NOT NULL,
+    "name" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "projects_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "organization_profiles" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "organizationId" UUID NOT NULL,
@@ -296,6 +307,7 @@ CREATE TABLE "invitation" (
 CREATE TABLE "leads" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "organizationId" UUID NOT NULL,
+    "projectId" UUID,
     "name" TEXT,
     "mail" TEXT,
     "phone" TEXT,
@@ -341,6 +353,7 @@ CREATE TABLE "conversations" (
 CREATE TABLE "tickets" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "organizationId" UUID NOT NULL,
+    "projectId" UUID,
     "conversationId" UUID NOT NULL,
     "stageId" UUID NOT NULL,
     "windowExpiresAt" TIMESTAMP(3),
@@ -386,6 +399,7 @@ CREATE TABLE "ticket_stages" (
 CREATE TABLE "sales" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "organizationId" UUID NOT NULL,
+    "projectId" UUID,
     "totalAmount" DECIMAL(12,2),
     "profit" DECIMAL(12,2),
     "discount" DECIMAL(12,2),
@@ -421,6 +435,7 @@ CREATE TABLE "sale_items" (
 CREATE TABLE "items" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "organizationId" UUID NOT NULL,
+    "projectId" UUID,
     "categoryId" UUID,
     "name" TEXT NOT NULL,
     "active" BOOLEAN NOT NULL DEFAULT true,
@@ -434,6 +449,7 @@ CREATE TABLE "items" (
 CREATE TABLE "item_categories" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "organizationId" UUID NOT NULL,
+    "projectId" UUID,
     "name" TEXT NOT NULL,
     "active" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -484,6 +500,7 @@ CREATE TABLE "organization_companies" (
 CREATE TABLE "whatsapp_configs" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "organizationId" UUID NOT NULL,
+    "projectId" UUID,
     "connectionId" UUID,
     "wabaId" TEXT,
     "phoneId" TEXT,
@@ -665,6 +682,7 @@ CREATE TABLE "meta_connections" (
 CREATE TABLE "meta_ad_accounts" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "organizationId" UUID NOT NULL,
+    "projectId" UUID,
     "connectionId" UUID NOT NULL,
     "adAccountId" TEXT NOT NULL,
     "adAccountName" TEXT NOT NULL,
@@ -1119,6 +1137,12 @@ CREATE INDEX "ticket_tracking_metaAdId_idx" ON "ticket_tracking"("metaAdId");
 CREATE UNIQUE INDEX "organization_slug_key" ON "organization"("slug");
 
 -- CreateIndex
+CREATE INDEX "projects_organizationId_idx" ON "projects"("organizationId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "projects_organizationId_name_key" ON "projects"("organizationId", "name");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "organization_profiles_organizationId_key" ON "organization_profiles"("organizationId");
 
 -- CreateIndex
@@ -1164,6 +1188,12 @@ CREATE UNIQUE INDEX "member_permission_overrides_memberId_permissionKey_key" ON 
 CREATE INDEX "leads_organizationId_idx" ON "leads"("organizationId");
 
 -- CreateIndex
+CREATE INDEX "leads_projectId_idx" ON "leads"("projectId");
+
+-- CreateIndex
+CREATE INDEX "leads_organizationId_projectId_idx" ON "leads"("organizationId", "projectId");
+
+-- CreateIndex
 CREATE INDEX "leads_source_idx" ON "leads"("source");
 
 -- CreateIndex
@@ -1185,6 +1215,12 @@ CREATE UNIQUE INDEX "conversations_leadId_instanceId_key" ON "conversations"("le
 CREATE INDEX "tickets_organizationId_idx" ON "tickets"("organizationId");
 
 -- CreateIndex
+CREATE INDEX "tickets_projectId_idx" ON "tickets"("projectId");
+
+-- CreateIndex
+CREATE INDEX "tickets_organizationId_projectId_idx" ON "tickets"("organizationId", "projectId");
+
+-- CreateIndex
 CREATE INDEX "tickets_conversationId_idx" ON "tickets"("conversationId");
 
 -- CreateIndex
@@ -1201,6 +1237,12 @@ CREATE UNIQUE INDEX "ticket_stages_organizationId_name_key" ON "ticket_stages"("
 
 -- CreateIndex
 CREATE INDEX "sales_organizationId_idx" ON "sales"("organizationId");
+
+-- CreateIndex
+CREATE INDEX "sales_projectId_idx" ON "sales"("projectId");
+
+-- CreateIndex
+CREATE INDEX "sales_organizationId_projectId_idx" ON "sales"("organizationId", "projectId");
 
 -- CreateIndex
 CREATE INDEX "sales_createdAt_idx" ON "sales"("createdAt");
@@ -1221,6 +1263,12 @@ CREATE INDEX "sale_items_itemId_idx" ON "sale_items"("itemId");
 CREATE INDEX "items_organizationId_idx" ON "items"("organizationId");
 
 -- CreateIndex
+CREATE INDEX "items_projectId_idx" ON "items"("projectId");
+
+-- CreateIndex
+CREATE INDEX "items_organizationId_projectId_idx" ON "items"("organizationId", "projectId");
+
+-- CreateIndex
 CREATE INDEX "items_active_idx" ON "items"("active");
 
 -- CreateIndex
@@ -1228,6 +1276,12 @@ CREATE UNIQUE INDEX "items_organizationId_name_key" ON "items"("organizationId",
 
 -- CreateIndex
 CREATE INDEX "item_categories_organizationId_idx" ON "item_categories"("organizationId");
+
+-- CreateIndex
+CREATE INDEX "item_categories_projectId_idx" ON "item_categories"("projectId");
+
+-- CreateIndex
+CREATE INDEX "item_categories_organizationId_projectId_idx" ON "item_categories"("organizationId", "projectId");
 
 -- CreateIndex
 CREATE INDEX "item_categories_active_idx" ON "item_categories"("active");
@@ -1258,6 +1312,12 @@ CREATE UNIQUE INDEX "whatsapp_configs_phoneId_key" ON "whatsapp_configs"("phoneI
 
 -- CreateIndex
 CREATE INDEX "whatsapp_configs_connectionId_idx" ON "whatsapp_configs"("connectionId");
+
+-- CreateIndex
+CREATE INDEX "whatsapp_configs_projectId_idx" ON "whatsapp_configs"("projectId");
+
+-- CreateIndex
+CREATE INDEX "whatsapp_configs_organizationId_projectId_idx" ON "whatsapp_configs"("organizationId", "projectId");
 
 -- CreateIndex
 CREATE INDEX "whatsapp_configs_processed_idx" ON "whatsapp_configs"("processed");
@@ -1354,6 +1414,12 @@ CREATE INDEX "whatsapp_messages_timestamp_idx" ON "whatsapp_messages"("timestamp
 
 -- CreateIndex
 CREATE UNIQUE INDEX "meta_connections_organizationId_fbUserId_key" ON "meta_connections"("organizationId", "fbUserId");
+
+-- CreateIndex
+CREATE INDEX "meta_ad_accounts_projectId_idx" ON "meta_ad_accounts"("projectId");
+
+-- CreateIndex
+CREATE INDEX "meta_ad_accounts_organizationId_projectId_idx" ON "meta_ad_accounts"("organizationId", "projectId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "meta_ad_accounts_organizationId_adAccountId_key" ON "meta_ad_accounts"("organizationId", "adAccountId");
@@ -1551,6 +1617,9 @@ ALTER TABLE "account" ADD CONSTRAINT "account_userId_fkey" FOREIGN KEY ("userId"
 ALTER TABLE "ticket_tracking" ADD CONSTRAINT "ticket_tracking_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "tickets"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "projects" ADD CONSTRAINT "projects_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "organization_profiles" ADD CONSTRAINT "organization_profiles_onboardingStatus_fkey" FOREIGN KEY ("onboardingStatus") REFERENCES "onboarding_statuses"("name") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -1581,6 +1650,9 @@ ALTER TABLE "invitation" ADD CONSTRAINT "invitation_organizationId_fkey" FOREIGN
 ALTER TABLE "leads" ADD CONSTRAINT "leads_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "leads" ADD CONSTRAINT "leads_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "projects"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "conversations" ADD CONSTRAINT "conversations_instanceId_fkey" FOREIGN KEY ("instanceId") REFERENCES "whatsapp_configs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -1599,6 +1671,9 @@ ALTER TABLE "tickets" ADD CONSTRAINT "tickets_conversationId_fkey" FOREIGN KEY (
 ALTER TABLE "tickets" ADD CONSTRAINT "tickets_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "tickets" ADD CONSTRAINT "tickets_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "projects"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "tickets" ADD CONSTRAINT "tickets_stageId_fkey" FOREIGN KEY ("stageId") REFERENCES "ticket_stages"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -1606,6 +1681,9 @@ ALTER TABLE "ticket_stages" ADD CONSTRAINT "ticket_stages_organizationId_fkey" F
 
 -- AddForeignKey
 ALTER TABLE "sales" ADD CONSTRAINT "sales_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "sales" ADD CONSTRAINT "sales_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "projects"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "sales" ADD CONSTRAINT "sales_status_fkey" FOREIGN KEY ("status") REFERENCES "sale_statuses"("name") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -1629,7 +1707,13 @@ ALTER TABLE "items" ADD CONSTRAINT "items_categoryId_fkey" FOREIGN KEY ("categor
 ALTER TABLE "items" ADD CONSTRAINT "items_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "items" ADD CONSTRAINT "items_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "projects"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "item_categories" ADD CONSTRAINT "item_categories_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "item_categories" ADD CONSTRAINT "item_categories_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "projects"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "organization_companies" ADD CONSTRAINT "organization_companies_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1639,6 +1723,9 @@ ALTER TABLE "whatsapp_configs" ADD CONSTRAINT "whatsapp_configs_connectionId_fke
 
 -- AddForeignKey
 ALTER TABLE "whatsapp_configs" ADD CONSTRAINT "whatsapp_configs_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "whatsapp_configs" ADD CONSTRAINT "whatsapp_configs_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "projects"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "whatsapp_onboarding" ADD CONSTRAINT "whatsapp_onboarding_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1696,6 +1783,9 @@ ALTER TABLE "meta_ad_accounts" ADD CONSTRAINT "meta_ad_accounts_connectionId_fke
 
 -- AddForeignKey
 ALTER TABLE "meta_ad_accounts" ADD CONSTRAINT "meta_ad_accounts_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "meta_ad_accounts" ADD CONSTRAINT "meta_ad_accounts_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "projects"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "meta_pixels" ADD CONSTRAINT "meta_pixels_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
