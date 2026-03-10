@@ -10,7 +10,7 @@ Proposto. Implementa o controle de acesso na UI com separacao clara entre:
 
 Complementa o [24_PRD_FRONTEND_OVERHAUL.md](/Users/thiago/www/whatrack/docs/PRD/24_PRD_FRONTEND_OVERHAUL.md).
 
-**Depende de:** PRD 24 (estrutura de navegacao e settings pages novas)
+**Depende de:** PRD 24 (estrutura principal do dashboard) e [ARCHITECTURE_ACCESS_MODEL.md](/Users/thiago/www/whatrack/docs/ARCHITECTURE_ACCESS_MODEL.md)
 
 ---
 
@@ -38,8 +38,8 @@ Referencia de arquitetura:
 **O que falta:**
 
 - O sidebar so protege 3 items hardcoded
-- As novas settings pages (PRD 24) nao tem guard nenhum
-- A nav lateral de settings nao filtra por papel
+- As novas settings pages do workspace ainda nao usam guard de workspace de forma consistente
+- A nav lateral de settings ainda nao filtra por papel/permissao do workspace
 
 ---
 
@@ -186,11 +186,11 @@ const settingsPersonalItems = [
 ]
 
 const settingsWorkspaceItems = [
-  { label: 'Organizacao', href: '/dashboard/settings/organizacao', show: isAdmin },
+  { label: 'Organizacao', href: '/dashboard/settings/organizacao', show: can('manage:organization') },
   { label: 'Equipe',      href: '/dashboard/settings/equipe',      show: can('manage:members') },
   { label: 'Integracoes', href: '/dashboard/settings/integracoes', show: can('manage:integrations') },
   { label: 'Pipeline',    href: '/dashboard/settings/pipeline',    show: can('manage:settings') },
-  { label: 'IA Studio',   href: '/dashboard/settings/ia-studio',  show: can('manage:ai') },
+  { label: 'IA Studio',   href: '/dashboard/settings/ia-studio',   show: can('manage:ai') },
   { label: 'Catalogo',    href: '/dashboard/settings/catalogo',    show: can('manage:items') },
   { label: 'Assinatura',  href: '/dashboard/settings/assinatura',  show: isOwner },
   { label: 'Auditoria',   href: '/dashboard/settings/auditoria',   show: can('view:audit') },
@@ -269,7 +269,7 @@ import { validatePermissionAccess } from '@/server/auth/validate-organization-ac
 import { redirect } from 'next/navigation'
 
 export default async function OrganizacaoPage() {
-  const access = await validatePermissionAccess(request, 'manage:organization')
+  const access = await validatePermissionAccess('manage:organization')
   if (!access.hasAccess) {
     redirect('/dashboard')
   }
@@ -286,7 +286,7 @@ import { validateOwnerAccess } from '@/server/auth/validate-organization-access'
 import { redirect } from 'next/navigation'
 
 export default async function AssinaturaPage() {
-  const access = await validateOwnerAccess(request)
+  const access = await validateOwnerAccess()
   if (!access.hasAccess) {
     redirect('/dashboard')
   }
@@ -311,28 +311,30 @@ Papel global fica reservado para a secao `SISTEMA`.
 | `/dashboard/settings/equipe` | Workspace admin+ | `validatePermissionAccess(..., 'manage:members')` |
 | `/dashboard/settings/integracoes` | Workspace admin+ | `validatePermissionAccess(..., 'manage:integrations')` |
 | `/dashboard/settings/pipeline` | Workspace admin+ | `validatePermissionAccess(..., 'manage:settings')` |
-| `/dashboard/settings/ia-studio` | Admin+ | `isAdmin(session.user.role)` |
-| `/dashboard/settings/catalogo` | Admin+ | `isAdmin(session.user.role)` |
-| `/dashboard/settings/assinatura` | Owner | `isOwner(session.user.role)` |
-| `/dashboard/settings/auditoria` | Admin+ | `isAdmin(session.user.role)` |
+| `/dashboard/settings/ia-studio` | Workspace admin+ | `validatePermissionAccess(..., 'manage:ai')` |
+| `/dashboard/settings/catalogo` | Workspace admin+ | `validatePermissionAccess(..., 'manage:items')` |
+| `/dashboard/settings/assinatura` | Workspace owner | `validateOwnerAccess(...)` |
+| `/dashboard/settings/auditoria` | Workspace admin+ | `validatePermissionAccess(..., 'view:audit')` |
 
 ### 4. Settings layout — nav lateral condicional
 
 O `layout.tsx` de `/dashboard/settings` renderiza a nav lateral. Ele e um
-Server Component e pode checar o papel direto da sessao:
+Server Component e nao deve depender de arrays exportados do sidebar client.
+
+Ele precisa montar sua propria estrutura a partir do acesso do workspace resolvido
+no servidor.
 
 ```tsx
 // src/app/dashboard/settings/layout.tsx
 
-import { getServerSession } from '@/lib/auth/server'
-import { isOwner, isAdmin } from '@/lib/auth/rbac/roles'
+import { requireWorkspacePageAccess } from '@/server/auth/require-workspace-page-access'
 
 export default async function SettingsLayout({ children }: { children: React.ReactNode }) {
-  const session = await getServerSession()
-  if (!session) redirect('/sign-in')
+  const access = await requireWorkspacePageAccess()
 
-  const owner = isOwner(session.user.role)
-  const admin = isAdmin(session.user.role)  // true para owner ou admin
+  const can = (permission: Permission) => access.permissions.has(permission)
+  const owner = access.role === 'owner'
+  const admin = access.role === 'owner' || access.role === 'admin'
 
   const personalItems = [
     { label: 'Perfil',    href: '/dashboard/settings/perfil' },
@@ -340,14 +342,14 @@ export default async function SettingsLayout({ children }: { children: React.Rea
   ]
 
   const workspaceItems = [
-    { label: 'Organizacao', href: '/dashboard/settings/organizacao', show: admin },
-    { label: 'Equipe',      href: '/dashboard/settings/equipe',      show: admin },
-    { label: 'Integracoes', href: '/dashboard/settings/integracoes', show: admin },
-    { label: 'Pipeline',    href: '/dashboard/settings/pipeline',    show: admin },
-    { label: 'IA Studio',   href: '/dashboard/settings/ia-studio',  show: admin },
-    { label: 'Catalogo',    href: '/dashboard/settings/catalogo',    show: admin },
+    { label: 'Organizacao', href: '/dashboard/settings/organizacao', show: can('manage:organization') },
+    { label: 'Equipe',      href: '/dashboard/settings/equipe',      show: can('manage:members') },
+    { label: 'Integracoes', href: '/dashboard/settings/integracoes', show: can('manage:integrations') },
+    { label: 'Pipeline',    href: '/dashboard/settings/pipeline',    show: can('manage:settings') },
+    { label: 'IA Studio',   href: '/dashboard/settings/ia-studio',   show: can('manage:ai') },
+    { label: 'Catalogo',    href: '/dashboard/settings/catalogo',    show: can('manage:items') },
     { label: 'Assinatura',  href: '/dashboard/settings/assinatura',  show: owner },
-    { label: 'Auditoria',   href: '/dashboard/settings/auditoria',   show: admin },
+    { label: 'Auditoria',   href: '/dashboard/settings/auditoria',   show: can('view:audit') },
   ].filter(i => i.show)
 
   return (
@@ -369,36 +371,38 @@ export default async function SettingsLayout({ children }: { children: React.Rea
 Vantagem de usar Server Component no layout: sem loading state, sem flash de
 permissoes, a nav ja vem renderizada com os items corretos desde o servidor.
 
+**Importante:** nao exportar `settingsWorkspaceItems` do `sidebar-client.tsx`.
+O sidebar client e client-side e usa `useAuthorization()`.
+O settings layout e server-side e deve montar sua propria nav a partir do acesso resolvido no servidor.
+
 ### 5. Feedback ao usuario sem permissao
 
 Quando o usuario acessa uma rota sem permissao (via URL direta), o redirect
 deve incluir um toast de feedback.
 
-**Padrao com searchParam:**
+**Padrao recomendado: cookie flash (sem `useEffect`)**
+
+O projeto proibe `useEffect` para orquestracao de fluxo e feedback de bootstrap.
+Portanto, o feedback de permissao negada deve usar flash cookie ou payload
+server-side consumido no primeiro render.
 
 ```tsx
 // Na page restrita:
-if (!isAdmin(session.user.role)) {
-  redirect('/dashboard?error=permission_denied')
-}
+redirect('/dashboard')
 
-// No dashboard/layout.tsx ou dashboard/page.tsx:
-const searchParams = useSearchParams()
-const error = searchParams.get('error')
+// Antes do redirect, gravar flash cookie:
+setFlashCookie('permission_denied', 'Voce nao tem permissao para acessar esta pagina.')
 
-useEffect(() => {
-  if (error === 'permission_denied') {
-    toast.error('Voce nao tem permissao para acessar esta pagina.')
-  }
-}, [error])
+// No destino server-first:
+const flash = await consumeFlashCookie()
+return <DashboardPage flash={flash} />
 ```
 
-**Alternativa com cookie flash (sem useEffect):**
+Se o app ainda nao tiver helper de flash message, a primeira fase pode ficar
+apenas no redirect simples. O importante e:
 
-Usar `cookies()` do Next.js para passar a mensagem de erro e consumir no
-primeiro render do componente de destino. Mais limpo para Server Components.
-
-Para este PRD, o searchParam e aceitavel como primeira implementacao.
+- nao introduzir `useEffect`
+- nao usar `searchParams + useEffect` como estrategia de feedback
 
 ---
 
@@ -409,23 +413,22 @@ MODIFICAR:
   src/components/dashboard/sidebar/sidebar-client.tsx
     - adicionar useAuthorization()
     - adicionar items do sidebar com .show por permissao
-    - exportar settingsWorkspaceItems para reusar no settings layout
 
 CRIAR:
   src/app/dashboard/settings/layout.tsx
-    - nav lateral Server Component com items filtrados por papel
+    - nav lateral Server Component com items filtrados por permissao do workspace
 
 CRIAR/MODIFICAR (guard em cada page):
   src/app/dashboard/settings/perfil/page.tsx          → requireAuth
   src/app/dashboard/settings/seguranca/page.tsx       → requireAuth
-  src/app/dashboard/settings/organizacao/page.tsx     → isAdmin
-  src/app/dashboard/settings/equipe/page.tsx          → isAdmin
-  src/app/dashboard/settings/integracoes/page.tsx     → isAdmin
-  src/app/dashboard/settings/pipeline/page.tsx        → isAdmin (ja tem, manter)
-  src/app/dashboard/settings/ia-studio/page.tsx       → isAdmin
-  src/app/dashboard/settings/catalogo/page.tsx        → isAdmin
-  src/app/dashboard/settings/assinatura/page.tsx      → isOwner
-  src/app/dashboard/settings/auditoria/page.tsx       → isAdmin
+  src/app/dashboard/settings/organizacao/page.tsx     → validatePermissionAccess('manage:organization')
+  src/app/dashboard/settings/equipe/page.tsx          → validatePermissionAccess('manage:members')
+  src/app/dashboard/settings/integracoes/page.tsx     → validatePermissionAccess('manage:integrations')
+  src/app/dashboard/settings/pipeline/page.tsx        → validatePermissionAccess('manage:settings')
+  src/app/dashboard/settings/ia-studio/page.tsx       → validatePermissionAccess('manage:ai')
+  src/app/dashboard/settings/catalogo/page.tsx        → validatePermissionAccess('manage:items')
+  src/app/dashboard/settings/assinatura/page.tsx      → validateOwnerAccess
+  src/app/dashboard/settings/auditoria/page.tsx       → validatePermissionAccess('view:audit')
 
 MODIFICAR:
   src/app/dashboard/ia/page.tsx
@@ -440,7 +443,7 @@ MODIFICAR:
 2. Adicionar `useAuthorization()` no `sidebar-client.tsx` e montar `mainNavItems` com `.show`
 3. Adicionar guards em cada `page.tsx` de settings (ordem: mais restritivo primeiro — assinatura, depois admin+)
 4. Condicionar aba Uso e Custo no `/dashboard/ia`
-5. Adicionar feedback de permissao negada (searchParam + toast no dashboard)
+5. Adicionar feedback de permissao negada via flash cookie server-side
 
 ---
 
@@ -448,19 +451,19 @@ MODIFICAR:
 
 Para cada papel, validar manualmente (ou via teste e2e):
 
-**Como usuario com papel `user`:**
+**Como membro `user` do workspace:**
 - [ ] Sidebar mostra apenas items com permissao `view:*` (todos para user basico)
 - [ ] Settings lateral mostra apenas Perfil e Seguranca
 - [ ] Acesso a `/dashboard/settings/equipe` → redirect para /dashboard com toast
 - [ ] Acesso a `/dashboard/settings/assinatura` → redirect para /dashboard com toast
 - [ ] Aba "Uso e Custo" nao aparece em IA Copilot
 
-**Como usuario com papel `admin`:**
+**Como membro `admin` do workspace:**
 - [ ] Settings lateral mostra Workspace completo menos Assinatura
 - [ ] Acesso a `/dashboard/settings/assinatura` → redirect com toast
 - [ ] Aba "Uso e Custo" aparece em IA Copilot
 
-**Como usuario com papel `owner`:**
+**Como membro `owner` do workspace:**
 - [ ] Settings lateral mostra tudo incluindo Assinatura
 - [ ] Todas as rotas de settings acessiveis sem redirect
 
@@ -472,11 +475,11 @@ Para cada papel, validar manualmente (ou via teste e2e):
 ## Criterios de Aceite
 
 - [ ] `sidebar-client.tsx` usa `useAuthorization()` para filtrar items do sidebar
-- [ ] Nav lateral de settings e um Server Component com filtro por `session.user.role`
-- [ ] Toda settings page com restricao tem guard de servidor (`isAdmin` ou `isOwner`)
+- [ ] Nav lateral de settings e um Server Component com filtro por permissao do workspace
+- [ ] Toda settings page de workspace com restricao tem guard de servidor por workspace
 - [ ] Aba Uso e Custo no IA Copilot condicional a `isAdmin`
 - [ ] Acesso por URL direta a rota restrita redireciona para /dashboard
-- [ ] Usuario `user` nao ve Assinatura nem secao Workspace em nenhum caminho da UI
+- [ ] Membro `user` do workspace nao ve Assinatura nem secoes criticas do workspace na UI
 - [ ] `npm run build` sem erros
 - [ ] `npm run lint` sem erros
 
@@ -487,4 +490,4 @@ Para cada papel, validar manualmente (ou via teste e2e):
 - Permissoes granulares por recurso (ex: ver apenas leads do proprio projeto)
 - Override de permissoes por membro (ja existe no backend, UI fica em PRD futuro)
 - Autenticacao do cliente final da agencia (fora do produto por ora)
-- Roles customizados refletidos na nav (a nav usa os 3 papeis do sistema)
+- Roles customizados refletidos na nav (a nav usa permissoes efetivas do workspace)
