@@ -354,7 +354,7 @@ Gatilhos de email por comportamento:
 - dia 11 do trial → email de urgencia para upgrade
 - dia 14 do trial → email de conversao final
 
-Detalhe do funil de email esta em `22_PRD_EMAIL_FUNNEL.md` (a criar).
+Detalhe do funil de email sera tratado em PRD dedicado (a criar apos PRD 22).
 
 ## UX Target
 
@@ -581,7 +581,7 @@ Dimensoes:
 
 - implementar read-only mode para trial expirado
 - CTA de upgrade persistente
-- disparar emails de re-engagement por comportamento (PRD 22)
+- disparar emails de re-engagement por comportamento (PRD de email funnel, a criar)
 
 ### Fase 5. Conversao trial → pago
 
@@ -596,7 +596,7 @@ Dimensoes:
 - free plan permanente
 - automacao completa de CRM no onboarding inicial
 - definicao de valores de pricing (PRD 21)
-- funil de email detalhado (PRD 22)
+- funil de email detalhado (PRD dedicado, a criar apos PRD 22)
 
 ## Criterios de Aceite
 
