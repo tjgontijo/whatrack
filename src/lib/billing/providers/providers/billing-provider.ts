@@ -8,7 +8,7 @@
  * - Subscription management (cancel, update)
  */
 
-export type PaymentMethod = 'card' | 'pix' | 'boleto'
+export type PaymentMethod = 'card'
 
 export type SubscriptionStatus = 'active' | 'paused' | 'canceled' | 'past_due'
 
@@ -74,6 +74,12 @@ export interface SubscriptionDetails {
    * Whether the subscription is scheduled to cancel at the end of the period
    */
   cancelAtPeriodEnd?: boolean
+
+  items?: Array<{
+    stripeSubscriptionItemId: string | null
+    priceId: string | null
+    quantity: number
+  }>
 }
 
 export interface WebhookPayload {
@@ -145,20 +151,26 @@ export interface PaymentProvider {
   updateSubscriptionPlan(subscriptionId: string, newPlanType: string): Promise<void>
 
   /**
+   * Sync the managed billing items for a subscription.
+   */
+  syncSubscriptionItems?(params: {
+    subscriptionId: string
+    items: Array<{
+      planId: string
+      stripePriceId: string
+      quantity: number
+    }>
+  }): Promise<
+    Array<{
+      planId: string
+      stripeSubscriptionItemId: string | null
+      quantity: number
+    }>
+  >
+
+  /**
    * Create a customer portal session when supported by the provider
    */
   createPortalSession?(customerId: string, returnUrl: string): Promise<string>
 
-  /**
-   * Create an additional invoice item for the customer's next invoice.
-   * Used for overage charges calculated locally by the app.
-   */
-  createInvoiceItem?(params: {
-    customerId: string
-    amountInCents: number
-    currency: string
-    description: string
-    metadata?: Record<string, string>
-    idempotencyKey?: string
-  }): Promise<{ id: string }>
 }

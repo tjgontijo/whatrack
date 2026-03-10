@@ -65,6 +65,10 @@ function buildPageHref(
     params.set('syncStatus', filters.syncStatus)
   }
 
+  if (filters.kind !== 'all') {
+    params.set('kind', filters.kind)
+  }
+
   return `/dashboard/settings/billing?${params.toString()}`
 }
 
@@ -178,6 +182,16 @@ export function BillingPlanList({ data, filters }: BillingPlanListProps) {
             <option value="error">Com erro</option>
           </select>
 
+          <select
+            name="kind"
+            defaultValue={filters.kind}
+            className="border-input bg-background h-10 rounded-md border px-3 text-sm"
+          >
+            <option value="all">Todo tipo</option>
+            <option value="base">Plano base</option>
+            <option value="addon">Add-ons</option>
+          </select>
+
           <Button type="submit" variant="outline">
             Filtrar
           </Button>
@@ -217,7 +231,7 @@ export function BillingPlanList({ data, filters }: BillingPlanListProps) {
             <TableRow>
               <TableHead>Plano</TableHead>
               <TableHead>Preço</TableHead>
-              <TableHead>Limites</TableHead>
+              <TableHead>Modelo</TableHead>
               <TableHead>Sync Stripe</TableHead>
               <TableHead>Assinaturas</TableHead>
               <TableHead>Status</TableHead>
@@ -265,18 +279,20 @@ export function BillingPlanList({ data, filters }: BillingPlanListProps) {
                         {formatMoney(plan.monthlyPrice, plan.currency)}
                       </span>
                       <span className="text-muted-foreground text-xs">
-                        + {formatMoney(plan.overagePricePerEvent, plan.currency)} por
-                        evento extra
+                        {plan.kind === 'base'
+                          ? `${plan.trialDays} dias grátis`
+                          : 'Cobrado por quantidade'}
                       </span>
                     </div>
                   </TableCell>
 
                   <TableCell className="align-top">
                     <div className="text-sm leading-6">
-                      <div>{plan.eventLimitPerMonth} eventos/mês</div>
-                      <div>{plan.maxWhatsAppNumbers} WhatsApps</div>
-                      <div>{plan.maxAdAccounts} contas Meta</div>
-                      <div>{plan.maxTeamMembers} membros</div>
+                      <div>{plan.kind === 'base' ? 'Plano base' : 'Add-on'}</div>
+                      {plan.addonType ? <div>{plan.addonType}</div> : null}
+                      <div>{plan.includedProjects} projetos incluídos</div>
+                      <div>{plan.includedWhatsAppPerProject} WhatsApp/projeto</div>
+                      <div>{plan.includedMetaAdAccountsPerProject} Meta/projeto</div>
                     </div>
                   </TableCell>
 

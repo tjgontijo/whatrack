@@ -1,6 +1,10 @@
 import { prisma } from '@/lib/db/prisma'
 import { metaAccessTokenService } from './access-token.service'
 import axios from 'axios'
+import {
+  assertMetaAdAccountAllowedForProject,
+  syncOrganizationSubscriptionItems,
+} from '@/services/billing/billing-subscription.service'
 
 function requireEnv(name: string): string {
   const value = process.env[name]
@@ -79,7 +83,30 @@ export class MetaAdAccountService {
       projectId?: string | null
     },
   ) {
-    return await prisma.metaAdAccount.update({
+    const existing = await prisma.metaAdAccount.findUnique({
+      where: { id: accountId },
+      select: {
+        id: true,
+        organizationId: true,
+        projectId: true,
+      },
+    })
+
+    if (!existing) {
+      throw new Error('Conta Meta Ads não encontrada')
+    }
+
+    const nextProjectId = typeof input.projectId !== 'undefined' ? input.projectId : existing.projectId
+    const nextIsActive = typeof input.isActive === 'boolean' ? input.isActive : true
+
+    if (nextIsActive) {
+      await assertMetaAdAccountAllowedForProject({
+        organizationId: existing.organizationId,
+        projectId: nextProjectId ?? null,
+      })
+    }
+
+    const updated = await prisma.metaAdAccount.update({
       where: { id: accountId },
       data: {
         ...(typeof input.isActive === 'boolean' ? { isActive: input.isActive } : {}),
@@ -98,6 +125,10 @@ export class MetaAdAccountService {
         },
       },
     })
+
+    await syncOrganizationSubscriptionItems(existing.organizationId)
+
+    return updated
   }
 
   /**

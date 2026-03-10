@@ -48,18 +48,23 @@ export async function POST(req: Request) {
     const subscription = await prisma.billingSubscription.findFirst({
       where: {
         organizationId: access.organizationId,
-        status: 'ACTIVE',
+        status: 'active',
+      },
+      select: {
+        plan: {
+          select: {
+            slug: true,
+          },
+        },
       },
     })
 
     const quotas = {
-      starter: 5,
-      pro: 50,
-      agency: 500,
+      platform_base: 50,
     }
 
-    const tier = (subscription?.planType || 'starter') as keyof typeof quotas
-    const quota = quotas[tier] || 5
+    const tier = (subscription?.plan?.slug || 'platform_base') as keyof typeof quotas
+    const quota = quotas[tier] || quotas.platform_base
 
     if (monthlyAuditCount >= quota) {
       logger.warn(

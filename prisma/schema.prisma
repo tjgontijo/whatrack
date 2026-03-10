@@ -1195,26 +1195,18 @@ model OrgAuditLog {
 model BillingSubscription {
   id             String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   organizationId String @db.Uuid
-  planId         String?  // Reference to BillingPlan for admin-managed plans
+  planId         String?
 
   // Provider
   provider               String
-  providerCustomerId     String  @unique  // ID do customer no provider
-  providerSubscriptionId String? @unique // ID da subscription no provider
+  providerCustomerId     String  @unique
+  providerSubscriptionId String? @unique
 
-  // Plan
-  planType             String   // 'starter' | 'pro' | 'agency'
-  eventLimitPerMonth   Int      // 200, 500, custom
-  overagePricePerEvent Decimal  @db.Decimal(6, 2)
-
-  // Billing cycle (30 dias a partir da assinatura, não calendário)
+  // Billing cycle
   billingCycleStartDate DateTime
   billingCycleEndDate   DateTime
   nextResetDate         DateTime
   trialEndsAt           DateTime?
-
-  // Usage (reset a cada ciclo)
-  eventsUsedInCurrentCycle Int @default(0)
 
   // Status
   status              String                    @default("active") // 'active' | 'paused' | 'canceled' | 'past_due'
@@ -1225,8 +1217,7 @@ model BillingSubscription {
   updatedAt  DateTime  @updatedAt
   canceledAt DateTime?
 
-  eventUsages    BillingEventUsage[]
-  cycleCloseouts BillingCycleCloseout[]
+  items          BillingSubscriptionItem[]
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   plan           BillingPlan? @relation(fields: [planId], references: [id], onDelete: SetNull)
 
@@ -1236,58 +1227,24 @@ model BillingSubscription {
   @@map("billing_subscriptions")
 }
 
-model BillingEventUsage {
-  id             String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  subscriptionId String @db.Uuid
-
-  eventType     String  // 'lead_qualified' | 'purchase_confirmed' | custom_slug
-  externalId    String?
-  eventCount    Int     @default(1)
-  isOverage     Boolean @default(false)
-  chargedAmount Decimal @db.Decimal(10, 2) // 0 se dentro do limite; overage se acima
-
-  // billingCycle = mês de início do ciclo (ex: '2026-02' para ciclo 27/02–27/03)
-  billingCycle String   // YYYY-MM
-  recordedAt   DateTime @default(now())
-  createdAt    DateTime @default(now())
+model BillingSubscriptionItem {
+  id                       String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  subscriptionId           String @db.Uuid
+  planId                   String
+  stripeSubscriptionItemId String? @unique
+  quantity                 Int    @default(0)
+  unitPrice                Decimal @db.Decimal(10, 2)
+  currency                 String  @default("BRL")
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
 
   subscription BillingSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  plan         BillingPlan         @relation(fields: [planId], references: [id], onDelete: Cascade)
 
+  @@unique([subscriptionId, planId])
   @@index([subscriptionId])
-  @@index([billingCycle])
-  @@index([eventType])
-  @@index([externalId])
-  @@unique([subscriptionId, externalId])
-  @@map("billing_event_usages")
-}
-
-model BillingCycleCloseout {
-  id                    String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  subscriptionId        String @db.Uuid
-  billingCycle          String
-  cycleStartDate        DateTime
-  cycleEndDate          DateTime
-  eventsUsed            Int
-  eventLimit            Int
-  overageEvents         Int
-  unitPrice             Decimal @db.Decimal(10, 2)
-  amountCharged         Decimal @db.Decimal(10, 2)
-  currency              String  @default("BRL")
-  provider              String
-  providerInvoiceItemId String?
-  status                String
-  errorMessage          String?
-  processedAt           DateTime?
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-
-  subscription BillingSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
-
-  @@unique([subscriptionId, cycleStartDate, cycleEndDate])
-  @@index([status])
-  @@index([billingCycle])
-  @@index([subscriptionId])
-  @@map("billing_cycle_closeouts")
+  @@index([planId])
+  @@map("billing_subscription_items")
 }
 
 model BillingWebhookLog {
@@ -1313,63 +1270,33 @@ model BillingWebhookLog {
   @@map("billing_webhook_logs")
 }
 
-model BillingPlanTemplate {
-  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-
-  slug        String  @unique  // 'starter' | 'pro' | 'agency'
-  name        String
-  description String?
-
-  eventLimitPerMonth   Int
-  overagePricePerEvent Decimal @db.Decimal(6, 2)
-  monthlyPrice         Decimal @db.Decimal(8, 2)
-
-  maxWhatsAppNumbers Int    @default(1)
-  maxAdAccounts      Int    @default(1)
-  maxTeamMembers     Int    @default(1)
-  supportLevel       String @default("email")  // 'email' | 'priority' | 'dedicated'
-
-  // Referências por provider
-  polarProductId  String?
-  asaasProductId  String?
-  stripeProductId String?
-  stripePriceId   String?
-
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([slug])
-  @@index([isActive])
-  @@map("billing_plan_templates")
-}
-
 model BillingPlan {
   id String @id @default(cuid())
 
   // Identificação
-  name        String @unique      // "Starter"
-  slug        String @unique      // "starter"
+  name        String @unique
+  slug        String @unique
   description String?
 
+  kind        String  // 'base' | 'addon'
+  addonType   String? // 'project' | 'whatsapp_number' | 'meta_ad_account'
+
   // Preço
-  monthlyPrice Decimal @db.Decimal(10, 2)  // 97.00
+  monthlyPrice Decimal @db.Decimal(10, 2)
   currency     String  @default("BRL")
 
-  // Limites de Eventos
-  eventLimitPerMonth    Int
-  overagePricePerEvent  Decimal @db.Decimal(5, 2)   // 0.25
-
-  // Quotas
-  maxWhatsAppNumbers    Int
-  maxAdAccounts         Int
-  maxTeamMembers        Int
-  supportLevel          String   // "email" | "priority" | "dedicated"
+  // Entitlements
+  includedProjects              Int    @default(0)
+  includedWhatsAppPerProject    Int    @default(0)
+  includedMetaAdAccountsPerProject Int @default(0)
+  includedConversionsPerProject Int    @default(0)
+  includedAiCreditsPerProject   Int    @default(0)
+  supportLevel                  String
 
   // Stripe Sync
   stripeProductId       String?  @unique
   stripePriceId         String?  @unique
-  syncStatus            String   @default("pending")  // "synced" | "pending" | "error"
+  syncStatus            String   @default("pending")
   syncError             String?
   syncedAt              DateTime?
 
@@ -1391,8 +1318,11 @@ model BillingPlan {
   // Relations
   history               BillingPlanHistory[]
   subscriptions         BillingSubscription[]
+  subscriptionItems     BillingSubscriptionItem[]
 
   @@index([slug])
+  @@index([kind])
+  @@index([addonType])
   @@index([isActive])
   @@index([stripeProductId])
   @@map("billing_plans")

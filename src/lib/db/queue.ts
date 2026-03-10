@@ -21,7 +21,6 @@ export type JobType =
   | 'whatsapp-health-check'
   | 'webhook-retry'
   | 'ai-classifier'
-  | 'billing-close-cycles'
 
 interface JobExecution {
   jobId: string

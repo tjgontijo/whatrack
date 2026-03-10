@@ -23,12 +23,17 @@ function serializeSubscription(
     billingCycleStartDate: subscription.billingCycleStartDate.toISOString(),
     billingCycleEndDate: subscription.billingCycleEndDate.toISOString(),
     nextResetDate: subscription.nextResetDate.toISOString(),
-    eventLimitPerMonth: subscription.eventLimitPerMonth,
-    eventsUsedInCurrentCycle: subscription.eventsUsedInCurrentCycle,
+    trialEndsAt: subscription.trialEndsAt?.toISOString() ?? null,
     createdAt: subscription.createdAt.toISOString(),
     canceledAt: subscription.canceledAt?.toISOString() ?? null,
     provider: subscription.provider ?? undefined,
     providerSubscriptionId: subscription.providerSubscriptionId ?? undefined,
+    items: subscription.items.map((item) => ({
+      ...item,
+      kind: item.kind as SubscriptionResponse['items'][number]['kind'],
+      addonType: item.addonType as SubscriptionResponse['items'][number]['addonType'],
+    })),
+    entitlements: subscription.entitlements,
   }
 }
 

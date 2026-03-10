@@ -11,9 +11,7 @@ import type {
 } from '@/schemas/billing/billing-plan-schemas'
 import { buildBillingPlanPresentation } from './billing-plan-catalog.service'
 
-function buildBillingPlanWhere(
-  query: BillingPlanListQuery,
-): Prisma.BillingPlanWhereInput {
+function buildBillingPlanWhere(query: BillingPlanListQuery): Prisma.BillingPlanWhereInput {
   const search = query.query?.trim()
 
   return {
@@ -29,11 +27,10 @@ function buildBillingPlanWhere(
     ...(query.status === 'active'
       ? { isActive: true, deletedAt: null }
       : query.status === 'inactive'
-        ? {
-            OR: [{ isActive: false }, { deletedAt: { not: null } }],
-          }
+        ? { OR: [{ isActive: false }, { deletedAt: { not: null } }] }
         : {}),
     ...(query.syncStatus !== 'all' ? { syncStatus: query.syncStatus } : {}),
+    ...(query.kind !== 'all' ? { kind: query.kind } : {}),
   }
 }
 
@@ -43,13 +40,15 @@ function mapBillingPlan(
     name: string
     slug: string
     description: string | null
+    kind: string
+    addonType: string | null
     monthlyPrice: { toString(): string }
     currency: string
-    eventLimitPerMonth: number
-    overagePricePerEvent: { toString(): string }
-    maxWhatsAppNumbers: number
-    maxAdAccounts: number
-    maxTeamMembers: number
+    includedProjects: number
+    includedWhatsAppPerProject: number
+    includedMetaAdAccountsPerProject: number
+    includedConversionsPerProject: number
+    includedAiCreditsPerProject: number
     supportLevel: string
     stripeProductId: string | null
     stripePriceId: string | null
@@ -66,13 +65,13 @@ function mapBillingPlan(
     updatedAt: Date
     _count: {
       subscriptions: number
+      subscriptionItems: number
     }
   },
 ): BillingPlanListItem {
   const presentation = buildBillingPlanPresentation({
     ...plan,
     monthlyPrice: plan.monthlyPrice as Prisma.Decimal,
-    overagePricePerEvent: plan.overagePricePerEvent as Prisma.Decimal,
   })
 
   return {
@@ -80,6 +79,8 @@ function mapBillingPlan(
     name: plan.name,
     slug: plan.slug,
     description: plan.description,
+    kind: plan.kind as BillingPlanListItem['kind'],
+    addonType: plan.addonType as BillingPlanListItem['addonType'],
     subtitle: presentation.subtitle,
     cta: presentation.cta,
     trialDays: presentation.trialDays,
@@ -87,11 +88,11 @@ function mapBillingPlan(
     additionals: presentation.additionals,
     monthlyPrice: plan.monthlyPrice.toString(),
     currency: plan.currency,
-    eventLimitPerMonth: plan.eventLimitPerMonth,
-    overagePricePerEvent: plan.overagePricePerEvent.toString(),
-    maxWhatsAppNumbers: plan.maxWhatsAppNumbers,
-    maxAdAccounts: plan.maxAdAccounts,
-    maxTeamMembers: plan.maxTeamMembers,
+    includedProjects: plan.includedProjects,
+    includedWhatsAppPerProject: plan.includedWhatsAppPerProject,
+    includedMetaAdAccountsPerProject: plan.includedMetaAdAccountsPerProject,
+    includedConversionsPerProject: plan.includedConversionsPerProject,
+    includedAiCreditsPerProject: plan.includedAiCreditsPerProject,
     supportLevel: plan.supportLevel,
     stripeProductId: plan.stripeProductId,
     stripePriceId: plan.stripePriceId,
@@ -105,13 +106,47 @@ function mapBillingPlan(
     deletedAt: plan.deletedAt?.toISOString() ?? null,
     createdAt: plan.createdAt.toISOString(),
     updatedAt: plan.updatedAt.toISOString(),
-    subscriptionCount: plan._count.subscriptions,
+    subscriptionCount: plan._count.subscriptions + plan._count.subscriptionItems,
   }
 }
 
-export async function listBillingPlans(
-  query: BillingPlanListQuery,
-): Promise<BillingPlanListResponse> {
+const planSelect = {
+  id: true,
+  name: true,
+  slug: true,
+  description: true,
+  kind: true,
+  addonType: true,
+  monthlyPrice: true,
+  currency: true,
+  includedProjects: true,
+  includedWhatsAppPerProject: true,
+  includedMetaAdAccountsPerProject: true,
+  includedConversionsPerProject: true,
+  includedAiCreditsPerProject: true,
+  supportLevel: true,
+  stripeProductId: true,
+  stripePriceId: true,
+  syncStatus: true,
+  syncError: true,
+  syncedAt: true,
+  isActive: true,
+  isHighlighted: true,
+  contactSalesOnly: true,
+  displayOrder: true,
+  metadata: true,
+  deletedAt: true,
+  createdAt: true,
+  updatedAt: true,
+  _count: {
+    select: {
+      subscriptions: true,
+      subscriptionItems: true,
+    },
+  },
+} as const
+
+export async function listBillingPlans(query: BillingPlanListQuery): Promise<BillingPlanListResponse> {
   const where = buildBillingPlanWhere(query)
   const skip = (query.page - 1) * query.pageSize
 
@@ -121,38 +156,7 @@ export async function listBillingPlans(
       orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }],
       skip,
       take: query.pageSize,
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        description: true,
-        monthlyPrice: true,
-        currency: true,
-        eventLimitPerMonth: true,
-        overagePricePerEvent: true,
-        maxWhatsAppNumbers: true,
-        maxAdAccounts: true,
-        maxTeamMembers: true,
-        supportLevel: true,
-        stripeProductId: true,
-        stripePriceId: true,
-        syncStatus: true,
-        syncError: true,
-        syncedAt: true,
-        isActive: true,
-        isHighlighted: true,
-        contactSalesOnly: true,
-        displayOrder: true,
-        metadata: true,
-        deletedAt: true,
-        createdAt: true,
-        updatedAt: true,
-        _count: {
-          select: {
-            subscriptions: true,
-          },
-        },
-      },
+      select: planSelect,
     }),
     prisma.billingPlan.count({ where }),
   ])
@@ -169,38 +173,7 @@ export async function listBillingPlans(
 export async function getBillingPlanDetail(planId: string): Promise<BillingPlanDetail | null> {
   const plan = await prisma.billingPlan.findUnique({
     where: { id: planId },
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      description: true,
-      monthlyPrice: true,
-      currency: true,
-      eventLimitPerMonth: true,
-      overagePricePerEvent: true,
-      maxWhatsAppNumbers: true,
-      maxAdAccounts: true,
-      maxTeamMembers: true,
-      supportLevel: true,
-      stripeProductId: true,
-      stripePriceId: true,
-      syncStatus: true,
-      syncError: true,
-      syncedAt: true,
-      isActive: true,
-      isHighlighted: true,
-      contactSalesOnly: true,
-      displayOrder: true,
-      metadata: true,
-      deletedAt: true,
-      createdAt: true,
-      updatedAt: true,
-      _count: {
-        select: {
-          subscriptions: true,
-        },
-      },
-    },
+    select: planSelect,
   })
 
   return plan ? mapBillingPlan(plan) : null

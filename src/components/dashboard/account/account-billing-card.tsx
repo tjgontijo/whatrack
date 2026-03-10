@@ -85,10 +85,10 @@ export function AccountBillingCard({
 
           <div className="rounded-lg border border-border bg-muted/30 p-4">
             <p className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
-              Limite mensal
+              Clientes incluídos
             </p>
             <p className="mt-1 text-lg font-semibold text-foreground">
-              {subscription.eventLimitPerMonth.toLocaleString('pt-BR')}
+              {subscription.entitlements.includedProjects.toLocaleString('pt-BR')}
             </p>
           </div>
         </div>

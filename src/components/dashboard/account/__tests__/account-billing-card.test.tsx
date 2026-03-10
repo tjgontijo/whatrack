@@ -10,24 +10,35 @@ describe('AccountBillingCard', () => {
         subscription={{
           id: 'sub-1',
           organizationId: 'org-1',
-          planType: 'pro',
+          planType: 'platform_base',
+          planName: 'WhaTrack Base',
           status: 'active',
           canceledAtPeriodEnd: false,
           billingCycleStartDate: '2026-03-01T00:00:00.000Z',
           billingCycleEndDate: '2026-03-31T00:00:00.000Z',
           nextResetDate: '2026-03-31T00:00:00.000Z',
-          eventLimitPerMonth: 500,
-          eventsUsedInCurrentCycle: 42,
           createdAt: '2026-03-01T00:00:00.000Z',
           canceledAt: null,
           provider: 'stripe',
           providerSubscriptionId: 'bill-1',
+          items: [],
+          entitlements: {
+            includedProjects: 3,
+            activeProjects: 2,
+            additionalProjects: 0,
+            includedWhatsAppPerProject: 1,
+            additionalWhatsAppNumbers: 0,
+            includedMetaAdAccountsPerProject: 1,
+            additionalMetaAdAccounts: 0,
+            includedConversionsPerProject: 300,
+            includedAiCreditsPerProject: 10000,
+          },
         }}
       />,
     )
 
     expect(screen.getByText('Plano atual')).toBeInTheDocument()
-    expect(screen.getByText('Pro')).toBeInTheDocument()
+    expect(screen.getByText('WhaTrack Base')).toBeInTheDocument()
     expect(screen.getByText('Ativo')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Abrir billing' })).toHaveAttribute(
       'href',
@@ -52,19 +63,30 @@ describe('AccountBillingCard', () => {
         subscription={{
           id: 'sub-1',
           organizationId: 'org-1',
-          planType: 'starter',
+          planType: 'platform_base',
+          planName: 'WhaTrack Base',
           status: 'active',
           canceledAtPeriodEnd: false,
           billingCycleStartDate: '2026-03-01T00:00:00.000Z',
           billingCycleEndDate: '2026-03-31T00:00:00.000Z',
           nextResetDate: '2026-03-31T00:00:00.000Z',
           trialEndsAt: '2099-03-31T00:00:00.000Z',
-          eventLimitPerMonth: 200,
-          eventsUsedInCurrentCycle: 0,
           createdAt: '2026-03-01T00:00:00.000Z',
           canceledAt: null,
           provider: 'stripe',
           providerSubscriptionId: null,
+          items: [],
+          entitlements: {
+            includedProjects: 3,
+            activeProjects: 1,
+            additionalProjects: 0,
+            includedWhatsAppPerProject: 1,
+            additionalWhatsAppNumbers: 0,
+            includedMetaAdAccountsPerProject: 1,
+            additionalMetaAdAccounts: 0,
+            includedConversionsPerProject: 300,
+            includedAiCreditsPerProject: 10000,
+          },
         }}
       />,
     )

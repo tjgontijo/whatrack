@@ -1,6 +1,10 @@
 import { prisma } from '@/lib/db/prisma'
 import { resolveAccessToken } from '@/lib/whatsapp/token-crypto'
 import { MetaCloudService } from '@/services/whatsapp/meta-cloud.service'
+import {
+  assertWhatsAppAllowedForProject,
+  syncOrganizationSubscriptionItems,
+} from '@/services/billing/billing-subscription.service'
 
 interface DisconnectWhatsAppConfigParams {
   organizationId: string
@@ -46,6 +50,8 @@ export async function disconnectWhatsAppConfig(params: DisconnectWhatsAppConfigP
       disconnectedBy: params.userId || null,
     },
   })
+
+  await syncOrganizationSubscriptionItems(params.organizationId)
 
   return { success: true as const }
 }
@@ -176,6 +182,11 @@ export async function assignWhatsAppConfigProject(input: {
   }
 
   if (input.projectId) {
+    await assertWhatsAppAllowedForProject({
+      organizationId: input.organizationId,
+      projectId: input.projectId,
+    })
+
     const project = await prisma.project.findFirst({
       where: {
         id: input.projectId,
@@ -193,6 +204,8 @@ export async function assignWhatsAppConfigProject(input: {
     where: { id: input.configId },
     data: { projectId: input.projectId },
   })
+
+  await syncOrganizationSubscriptionItems(input.organizationId)
 
   return { data: updated }
 }

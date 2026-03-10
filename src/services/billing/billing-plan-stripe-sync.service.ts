@@ -34,6 +34,8 @@ export async function syncBillingPlanToStripe(
       name: true,
       slug: true,
       description: true,
+      kind: true,
+      addonType: true,
       monthlyPrice: true,
       currency: true,
       stripeProductId: true,
@@ -57,6 +59,8 @@ export async function syncBillingPlanToStripe(
           metadata: {
             planId: plan.id,
             slug: plan.slug,
+            kind: plan.kind,
+            addonType: plan.addonType ?? '',
           },
         })
       : await stripe.products.create({
@@ -66,6 +70,8 @@ export async function syncBillingPlanToStripe(
           metadata: {
             planId: plan.id,
             slug: plan.slug,
+            kind: plan.kind,
+            addonType: plan.addonType ?? '',
           },
         })
 
@@ -80,11 +86,16 @@ export async function syncBillingPlanToStripe(
       const price = await stripe.prices.create({
         currency: plan.currency.toLowerCase(),
         unit_amount: toCents(plan.monthlyPrice),
-        recurring: { interval: 'month' },
+        recurring: {
+          interval: 'month',
+          usage_type: 'licensed',
+        },
         product: product.id,
         metadata: {
           planId: plan.id,
           slug: plan.slug,
+          kind: plan.kind,
+          addonType: plan.addonType ?? '',
         },
       })
 

@@ -28,7 +28,7 @@ function buildPlanMetadata(input: {
   return {
     subtitle: input.subtitle ?? null,
     cta: input.cta ?? null,
-    trialDays: input.trialDays ?? 7,
+    trialDays: input.trialDays ?? 14,
     features: input.features ?? [],
     additionals: input.additionals ?? [],
   }
@@ -42,7 +42,8 @@ function isStripeRelevantChange(
     monthlyPrice: Prisma.Decimal
     currency: string
     isActive: boolean
-    contactSalesOnly: boolean
+    kind: string
+    addonType: string | null
   },
   incoming: BillingPlanUpdateInput,
 ) {
@@ -55,8 +56,8 @@ function isStripeRelevantChange(
     (incoming.currency !== undefined &&
       incoming.currency.toUpperCase() !== existing.currency.toUpperCase()) ||
     (incoming.isActive !== undefined && incoming.isActive !== existing.isActive) ||
-    (incoming.contactSalesOnly !== undefined &&
-      incoming.contactSalesOnly !== existing.contactSalesOnly)
+    (incoming.kind !== undefined && incoming.kind !== existing.kind) ||
+    (incoming.addonType !== undefined && incoming.addonType !== existing.addonType)
   )
 }
 
@@ -77,19 +78,21 @@ export async function createBillingPlan(input: BillingPlanCreateInput, userId: s
       name: input.name,
       slug: input.slug,
       description: input.description ?? null,
+      kind: input.kind,
+      addonType: input.kind === 'addon' ? input.addonType ?? null : null,
       monthlyPrice: new Prisma.Decimal(input.monthlyPrice),
       currency: input.currency.toUpperCase(),
-      eventLimitPerMonth: input.eventLimitPerMonth,
-      overagePricePerEvent: new Prisma.Decimal(input.overagePricePerEvent),
-      maxWhatsAppNumbers: input.maxWhatsAppNumbers,
-      maxAdAccounts: input.maxAdAccounts,
-      maxTeamMembers: input.maxTeamMembers,
+      includedProjects: input.includedProjects,
+      includedWhatsAppPerProject: input.includedWhatsAppPerProject,
+      includedMetaAdAccountsPerProject: input.includedMetaAdAccountsPerProject,
+      includedConversionsPerProject: input.includedConversionsPerProject,
+      includedAiCreditsPerProject: input.includedAiCreditsPerProject,
       supportLevel: input.supportLevel,
       displayOrder: input.displayOrder,
       isActive: input.isActive,
       isHighlighted: input.isHighlighted,
       contactSalesOnly: input.contactSalesOnly,
-      syncStatus: input.contactSalesOnly ? 'pending' : 'pending',
+      syncStatus: 'pending',
       metadata: buildPlanMetadata(input),
       createdBy: userId,
     },
@@ -103,10 +106,10 @@ export async function createBillingPlan(input: BillingPlanCreateInput, userId: s
     after: {
       name: plan.name,
       slug: plan.slug,
+      kind: plan.kind,
+      addonType: plan.addonType,
       monthlyPrice: plan.monthlyPrice.toString(),
       currency: plan.currency,
-      eventLimitPerMonth: plan.eventLimitPerMonth,
-      overagePricePerEvent: plan.overagePricePerEvent.toString(),
       metadata: plan.metadata,
     },
   })
@@ -126,13 +129,10 @@ export async function updateBillingPlan(
       name: true,
       slug: true,
       description: true,
+      kind: true,
+      addonType: true,
       monthlyPrice: true,
       currency: true,
-      eventLimitPerMonth: true,
-      overagePricePerEvent: true,
-      maxWhatsAppNumbers: true,
-      maxAdAccounts: true,
-      maxTeamMembers: true,
       supportLevel: true,
       displayOrder: true,
       isActive: true,
@@ -167,14 +167,6 @@ export async function updateBillingPlan(
     }
   }
 
-  const nextMetadata = buildPlanMetadata({
-    subtitle: input.subtitle ?? undefined,
-    cta: input.cta ?? undefined,
-    trialDays: input.trialDays ?? undefined,
-    features: input.features ?? undefined,
-    additionals: input.additionals ?? undefined,
-  })
-
   const shouldResetSync = isStripeRelevantChange(existing, input)
 
   await prisma.billingPlan.update({
@@ -183,21 +175,27 @@ export async function updateBillingPlan(
       ...(input.name !== undefined ? { name: input.name } : {}),
       ...(input.slug !== undefined ? { slug: input.slug } : {}),
       ...(input.description !== undefined ? { description: input.description ?? null } : {}),
+      ...(input.kind !== undefined ? { kind: input.kind } : {}),
+      ...(input.addonType !== undefined
+        ? { addonType: input.kind === 'base' ? null : input.addonType ?? null }
+        : {}),
       ...(input.monthlyPrice !== undefined
         ? { monthlyPrice: new Prisma.Decimal(input.monthlyPrice) }
         : {}),
       ...(input.currency !== undefined ? { currency: input.currency.toUpperCase() } : {}),
-      ...(input.eventLimitPerMonth !== undefined
-        ? { eventLimitPerMonth: input.eventLimitPerMonth }
+      ...(input.includedProjects !== undefined ? { includedProjects: input.includedProjects } : {}),
+      ...(input.includedWhatsAppPerProject !== undefined
+        ? { includedWhatsAppPerProject: input.includedWhatsAppPerProject }
         : {}),
-      ...(input.overagePricePerEvent !== undefined
-        ? { overagePricePerEvent: new Prisma.Decimal(input.overagePricePerEvent) }
+      ...(input.includedMetaAdAccountsPerProject !== undefined
+        ? { includedMetaAdAccountsPerProject: input.includedMetaAdAccountsPerProject }
         : {}),
-      ...(input.maxWhatsAppNumbers !== undefined
-        ? { maxWhatsAppNumbers: input.maxWhatsAppNumbers }
+      ...(input.includedConversionsPerProject !== undefined
+        ? { includedConversionsPerProject: input.includedConversionsPerProject }
         : {}),
-      ...(input.maxAdAccounts !== undefined ? { maxAdAccounts: input.maxAdAccounts } : {}),
-      ...(input.maxTeamMembers !== undefined ? { maxTeamMembers: input.maxTeamMembers } : {}),
+      ...(input.includedAiCreditsPerProject !== undefined
+        ? { includedAiCreditsPerProject: input.includedAiCreditsPerProject }
+        : {}),
       ...(input.supportLevel !== undefined ? { supportLevel: input.supportLevel } : {}),
       ...(input.displayOrder !== undefined ? { displayOrder: input.displayOrder } : {}),
       ...(input.isActive !== undefined ? { isActive: input.isActive } : {}),
@@ -205,7 +203,19 @@ export async function updateBillingPlan(
       ...(input.contactSalesOnly !== undefined
         ? { contactSalesOnly: input.contactSalesOnly }
         : {}),
-      metadata: nextMetadata,
+      ...(Object.keys(input).some((key) =>
+        ['subtitle', 'cta', 'trialDays', 'features', 'additionals'].includes(key),
+      )
+        ? {
+            metadata: buildPlanMetadata({
+              subtitle: input.subtitle ?? undefined,
+              cta: input.cta ?? undefined,
+              trialDays: input.trialDays ?? undefined,
+              features: input.features ?? undefined,
+              additionals: input.additionals ?? undefined,
+            }),
+          }
+        : {}),
       ...(shouldResetSync
         ? {
             syncStatus: 'pending',
@@ -224,7 +234,6 @@ export async function updateBillingPlan(
     before: {
       ...existing,
       monthlyPrice: existing.monthlyPrice.toString(),
-      overagePricePerEvent: existing.overagePricePerEvent.toString(),
     },
     after: input,
     metadata: {
@@ -271,9 +280,9 @@ export async function archiveBillingPlan(planId: string, userId: string) {
     before: existing,
     after: {
       isActive: false,
-      deletedAt: true,
+      deletedAt: new Date().toISOString(),
     },
   })
 
-  return getBillingPlanDetail(planId)
+  return { success: true as const }
 }

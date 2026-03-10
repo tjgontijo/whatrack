@@ -1,17 +1,7 @@
-/**
- * Billing Domain Zod Schemas
- *
- * Validates all billing-related requests and responses.
- */
-
 import { z } from 'zod'
 
-// ============================================
-// Checkout Schemas
-// ============================================
-
 export const checkoutRequestSchema = z.object({
-  planType: z.string().trim().min(1).max(60),
+  planType: z.literal('platform_base'),
   redirectPath: z.string().max(2048).optional(),
 })
 
@@ -20,9 +10,27 @@ export const checkoutResponseSchema = z.object({
   provider: z.string(),
 })
 
-// ============================================
-// Subscription Schemas
-// ============================================
+export const subscriptionItemSchema = z.object({
+  planSlug: z.string(),
+  planName: z.string(),
+  kind: z.enum(['base', 'addon']),
+  addonType: z.enum(['project', 'whatsapp_number', 'meta_ad_account']).nullable(),
+  quantity: z.number().int().min(0),
+  unitPrice: z.number(),
+  currency: z.string(),
+})
+
+export const entitlementSummarySchema = z.object({
+  includedProjects: z.number().int().min(0),
+  activeProjects: z.number().int().min(0),
+  additionalProjects: z.number().int().min(0),
+  includedWhatsAppPerProject: z.number().int().min(0),
+  additionalWhatsAppNumbers: z.number().int().min(0),
+  includedMetaAdAccountsPerProject: z.number().int().min(0),
+  additionalMetaAdAccounts: z.number().int().min(0),
+  includedConversionsPerProject: z.number().int().min(0),
+  includedAiCreditsPerProject: z.number().int().min(0),
+})
 
 export const subscriptionResponseSchema = z.object({
   id: z.string(),
@@ -35,42 +43,13 @@ export const subscriptionResponseSchema = z.object({
   billingCycleEndDate: z.string().datetime(),
   nextResetDate: z.string().datetime(),
   trialEndsAt: z.string().datetime().nullable().optional(),
-  eventLimitPerMonth: z.number(),
-  eventsUsedInCurrentCycle: z.number(),
   createdAt: z.string().datetime(),
   canceledAt: z.string().datetime().nullable().optional(),
   provider: z.string().optional(),
-  providerSubscriptionId: z.string().optional(),
+  providerSubscriptionId: z.string().nullable().optional(),
+  items: z.array(subscriptionItemSchema),
+  entitlements: entitlementSummarySchema,
 })
-
-// ============================================
-// Usage Schemas
-// ============================================
-
-export const usageResponseSchema = z.object({
-  used: z.number().int().min(0),
-  limit: z.number().int().min(1),
-  overage: z.number().min(0),
-  nextResetDate: z.string().datetime(),
-})
-
-// ============================================
-// Event Recording Schemas
-// ============================================
-
-export const eventRecordingRequestSchema = z.object({
-  eventType: z.enum(['lead_qualified', 'purchase_confirmed']),
-  externalId: z.string().optional(),
-})
-
-export const eventRecordingResponseSchema = z.object({
-  recorded: z.boolean(),
-  timestamp: z.string().datetime(),
-})
-
-// ============================================
-// Cancel Schemas
-// ============================================
 
 export const cancelRequestSchema = z.object({
   atPeriodEnd: z.boolean().optional().default(false),
@@ -82,10 +61,6 @@ export const cancelResponseSchema = z.object({
   canceledAt: z.string().datetime().nullable().optional(),
 })
 
-// ============================================
-// Portal Schemas
-// ============================================
-
 export const portalRequestSchema = z.object({
   returnUrl: z.string().max(2048).optional(),
 })
@@ -94,16 +69,9 @@ export const portalResponseSchema = z.object({
   url: z.string().url(),
 })
 
-// ============================================
-// Type Inference
-// ============================================
-
 export type CheckoutRequest = z.infer<typeof checkoutRequestSchema>
 export type CheckoutResponse = z.infer<typeof checkoutResponseSchema>
 export type SubscriptionResponse = z.infer<typeof subscriptionResponseSchema>
-export type UsageResponse = z.infer<typeof usageResponseSchema>
-export type EventRecordingRequest = z.infer<typeof eventRecordingRequestSchema>
-export type EventRecordingResponse = z.infer<typeof eventRecordingResponseSchema>
 export type CancelRequest = z.infer<typeof cancelRequestSchema>
 export type CancelResponse = z.infer<typeof cancelResponseSchema>
 export type PortalRequest = z.infer<typeof portalRequestSchema>

@@ -16,10 +16,6 @@ vi.mock('@/components/dashboard/billing/billing-status', () => ({
   BillingStatus: () => <div>billing-status</div>,
 }))
 
-vi.mock('@/components/dashboard/billing/usage-progress', () => ({
-  UsageProgress: () => <div>usage-progress</div>,
-}))
-
 vi.mock('@/components/dashboard/billing/plan-selector', () => ({
   PlanSelector: () => <div>plan-selector</div>,
 }))
@@ -47,7 +43,6 @@ describe('BillingPageContent', () => {
 
     expect(content).toHaveClass('space-y-6')
     expect(screen.getByText('billing-status')).toBeInTheDocument()
-    expect(screen.getByText('usage-progress')).toBeInTheDocument()
   })
 
   it('keeps plan selection visible while the local trial is active', () => {
@@ -67,7 +62,6 @@ describe('BillingPageContent', () => {
     render(<BillingPageContent availablePlans={[]} />)
 
     expect(screen.getByText('billing-status')).toBeInTheDocument()
-    expect(screen.getByText('usage-progress')).toBeInTheDocument()
     expect(screen.getByText('plan-selector')).toBeInTheDocument()
   })
 })

@@ -4,16 +4,19 @@ import Link from 'next/link'
 import { useState, useTransition } from 'react'
 import { motion } from 'motion/react'
 import {
-  CreditCard,
   AlertCircle,
   CheckCircle,
   Clock,
+  CreditCard,
   ExternalLink,
-  CalendarDays,
-  Zap,
   Loader2,
+  MessageCircleMore,
+  Megaphone,
+  FolderKanban,
+  Sparkles,
 } from 'lucide-react'
 import { toast } from 'sonner'
+
 import { Button } from '@/components/ui/button'
 import { useBillingSubscription } from '@/hooks/billing/use-billing-subscription'
 import { apiFetch } from '@/lib/api-client'
@@ -23,47 +26,40 @@ import { getBillingStatusLabel } from '@/lib/billing/subscription-status'
 
 type SubscriptionStatusValue = 'active' | 'paused' | 'canceled' | 'past_due'
 
-interface StatusConfig {
-  label: string
-  icon: React.ElementType
-  pill: string
-  dot: string
-  banner?: string
-  bannerTone?: 'danger' | 'warning' | 'info'
-}
-
-const statusConfig: Record<SubscriptionStatusValue, StatusConfig> = {
+const statusConfig: Record<
+  SubscriptionStatusValue,
+  {
+    label: string
+    pill: string
+    dot: string
+    banner?: string
+    bannerTone?: 'danger' | 'warning' | 'info'
+  }
+> = {
   active: {
     label: 'Ativo',
-    icon: CheckCircle,
     pill: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/25',
     dot: 'bg-emerald-500',
   },
   canceled: {
     label: 'Cancelado',
-    icon: AlertCircle,
     pill: 'bg-destructive/10 text-destructive border-destructive/25',
     dot: 'bg-destructive',
-    banner:
-      'Assinatura cancelada — o acesso será encerrado em breve.',
+    banner: 'Assinatura cancelada — o acesso será encerrado em breve.',
     bannerTone: 'danger',
   },
   past_due: {
     label: 'Pagamento pendente',
-    icon: AlertCircle,
     pill: 'bg-destructive/10 text-destructive border-destructive/25',
     dot: 'bg-destructive',
-    banner:
-      'Pagamento pendente — atualize o método de pagamento para continuar.',
+    banner: 'Pagamento pendente — atualize o método de pagamento para continuar.',
     bannerTone: 'danger',
   },
   paused: {
     label: getBillingStatusLabel('paused'),
-    icon: Clock,
     pill: 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/25',
     dot: 'bg-amber-500',
-    banner:
-      'Estamos confirmando o pagamento com o provedor. Sua assinatura será ativada automaticamente.',
+    banner: 'Estamos confirmando a assinatura com a Stripe.',
     bannerTone: 'warning',
   },
 }
@@ -73,6 +69,13 @@ const bannerToneClass = {
   warning: 'border-amber-500/15 bg-amber-500/5 text-amber-700 dark:text-amber-400',
   info: 'border-primary/15 bg-primary/5 text-primary',
 } as const
+
+function formatMoney(value: number) {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }).format(value)
+}
 
 export function BillingStatus() {
   const { subscription, isLoading, error } = useBillingSubscription()
@@ -94,11 +97,7 @@ export function BillingStatus() {
         })) as { url: string }
         window.location.href = data.url
       } catch (err) {
-        toast.error(
-          err instanceof Error
-            ? err.message
-            : 'Não foi possível abrir o portal da Stripe.',
-        )
+        toast.error(err instanceof Error ? err.message : 'Não foi possível abrir o portal da Stripe.')
       }
     })
   }
@@ -111,21 +110,17 @@ export function BillingStatus() {
   const trialActive =
     subscription.trialEndsAt != null && new Date(subscription.trialEndsAt).getTime() > Date.now()
   const localTrial = trialActive && !subscription.providerSubscriptionId
-  const nextResetDate = new Date(subscription.nextResetDate)
-  const daysUntilReset = Math.ceil(
-    (nextResetDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
-  )
   const cancellationScheduled = status === 'active' && subscription.canceledAtPeriodEnd
   const bannerMessage = cancellationScheduled
     ? 'Renovação cancelada — seu acesso segue ativo até o fim do ciclo atual.'
     : localTrial && subscription.trialEndsAt
-      ? `Teste grátis ativo até ${formatDate(new Date(subscription.trialEndsAt), 'dd/MM/yyyy')}.`
-    : config.banner
-  const bannerTone = cancellationScheduled
-    ? 'warning'
-    : localTrial
-      ? 'info'
-      : (config.bannerTone ?? 'danger')
+      ? `Trial ativo até ${formatDate(new Date(subscription.trialEndsAt), 'dd/MM/yyyy')}.`
+      : config.banner
+  const bannerTone = cancellationScheduled ? 'warning' : localTrial ? 'info' : (config.bannerTone ?? 'danger')
+  const entitlements = subscription.entitlements
+  const activeAddons = subscription.items.filter(
+    (item) => item.kind === 'addon' && item.quantity > 0,
+  )
 
   return (
     <>
@@ -135,27 +130,21 @@ export function BillingStatus() {
         transition={{ duration: 0.3 }}
         className="overflow-hidden rounded-xl border border-border bg-card"
       >
-        {/* Banner de alerta para estados críticos */}
         {bannerMessage && (
-          <div
-            className={`flex items-center gap-2.5 border-b px-6 py-3 ${bannerToneClass[bannerTone]}`}
-          >
+          <div className={`flex items-center gap-2.5 border-b px-6 py-3 ${bannerToneClass[bannerTone]}`}>
             <AlertCircle className="h-4 w-4 shrink-0" />
             <p className="text-sm">{bannerMessage}</p>
           </div>
         )}
 
-        <div className="p-6 sm:p-8">
-          {/* Header */}
+        <div className="space-y-6 p-6 sm:p-8">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
               <CreditCard className="h-5 w-5 text-primary" />
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <h3 className="text-base font-semibold text-foreground">
-                  Plano {planName}
-                </h3>
+                <h3 className="text-base font-semibold text-foreground">{planName}</h3>
                 <span
                   className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium ${config.pill}`}
                 >
@@ -164,68 +153,120 @@ export function BillingStatus() {
                 </span>
               </div>
               <p className="mt-0.5 text-sm text-muted-foreground">
-                Assinatura recorrente mensal
+                Base {formatMoney(subscription.items.find((item) => item.kind === 'base')?.unitPrice ?? 497)}
+                {' '}por mês
               </p>
             </div>
           </div>
 
-          {/* Métricas */}
-          <div className="mt-6 grid grid-cols-2 divide-x divide-border overflow-hidden rounded-lg border border-border bg-muted/40 sm:grid-cols-3">
-            <div className="flex flex-col gap-0.5 p-4">
-              <div className="mb-1 flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                <Zap className="h-3 w-3" />
-                Limite mensal
+          <div className="grid gap-3 md:grid-cols-3">
+            <div className="rounded-xl border border-border bg-muted/30 p-4">
+              <div className="mb-2 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                <FolderKanban className="h-3.5 w-3.5" />
+                Clientes ativos
               </div>
-              <div className="text-xl font-bold text-foreground">
-                {subscription.eventLimitPerMonth.toLocaleString('pt-BR')}
+              <div className="text-2xl font-semibold text-foreground">
+                {entitlements.activeProjects}
+                <span className="text-base font-normal text-muted-foreground">
+                  {' '}de {entitlements.includedProjects}
+                </span>
               </div>
-              <div className="text-xs text-muted-foreground">eventos / mês</div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {entitlements.additionalProjects > 0
+                  ? `${entitlements.additionalProjects} projeto(s) extra faturável(is)`
+                  : 'Dentro da franquia base'}
+              </p>
             </div>
 
-            <div className="flex flex-col gap-0.5 p-4">
-              <div className="mb-1 flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                <CalendarDays className="h-3 w-3" />
-                Próximo reset
+            <div className="rounded-xl border border-border bg-muted/30 p-4">
+              <div className="mb-2 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                <MessageCircleMore className="h-3.5 w-3.5" />
+                WhatsApp extra
               </div>
-              <div className="text-xl font-bold text-foreground">
-                {formatDate(nextResetDate, 'dd/MM')}
+              <div className="text-2xl font-semibold text-foreground">
+                {entitlements.additionalWhatsAppNumbers}
               </div>
-              <div className="text-xs text-muted-foreground">
-                {formatDate(nextResetDate, 'yyyy')}
+              <p className="mt-1 text-xs text-muted-foreground">
+                {entitlements.includedWhatsAppPerProject} incluído por cliente
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-border bg-muted/30 p-4">
+              <div className="mb-2 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                <Megaphone className="h-3.5 w-3.5" />
+                Meta Ads extra
+              </div>
+              <div className="text-2xl font-semibold text-foreground">
+                {entitlements.additionalMetaAdAccounts}
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {entitlements.includedMetaAdAccountsPerProject} incluída por cliente
+              </p>
+            </div>
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-2">
+            <div className="rounded-xl border border-border bg-muted/30 p-4">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Franquia por cliente
+              </p>
+              <div className="mt-3 space-y-2 text-sm text-foreground">
+                <p>{entitlements.includedConversionsPerProject} conversões rastreadas / mês</p>
+                <p>{entitlements.includedAiCreditsPerProject.toLocaleString('pt-BR')} créditos de IA / mês</p>
               </div>
             </div>
 
-            <div className="col-span-2 flex flex-col gap-0.5 border-t border-border p-4 sm:col-span-1 sm:border-t-0">
-              <div className="mb-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                Dias restantes
-              </div>
-              <div
-                className={`text-xl font-bold ${daysUntilReset <= 5 ? 'text-amber-700 dark:text-amber-400' : 'text-foreground'}`}
-              >
-                {daysUntilReset}
-              </div>
-              <div className="text-xs text-muted-foreground">
-                até o próximo ciclo
+            <div className="rounded-xl border border-border bg-muted/30 p-4">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Add-ons ativos
+              </p>
+              <div className="mt-3 space-y-2 text-sm text-foreground">
+                {activeAddons.length > 0 ? (
+                  activeAddons.map((item) => (
+                    <p key={item.planSlug}>
+                      {item.planName}: {item.quantity} × {formatMoney(item.unitPrice)}
+                    </p>
+                  ))
+                ) : (
+                  <p className="text-muted-foreground">Nenhum add-on faturável no momento.</p>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Ações */}
-          <div className="mt-6 flex flex-wrap gap-2">
+          <div className="grid gap-3 md:grid-cols-2">
+            <div className="rounded-xl border border-border bg-muted/30 p-4">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Próximo ciclo
+              </p>
+              <p className="mt-2 text-lg font-semibold text-foreground">
+                {formatDate(new Date(subscription.nextResetDate), 'dd/MM/yyyy')}
+              </p>
+            </div>
+            <div className="rounded-xl border border-border bg-muted/30 p-4">
+              <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                <Sparkles className="h-3.5 w-3.5" />
+                Trial e expansão
+              </div>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Durante o trial você libera 1 cliente com 1 WhatsApp e 1 conta Meta Ads. No plano pago, extras são faturados automaticamente.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
             {!localTrial ? (
-              <Button
-                onClick={handleOpenPortal}
-                disabled={isOpeningPortal}
-                size="sm"
-                variant="outline"
-              >
-                {isOpeningPortal && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
-                {!isOpeningPortal && <ExternalLink className="mr-1.5 h-3.5 w-3.5" />}
+              <Button onClick={handleOpenPortal} disabled={isOpeningPortal} size="sm" variant="outline">
+                {isOpeningPortal ? (
+                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
+                )}
                 Gerenciar assinatura
               </Button>
             ) : (
               <Button asChild size="sm" variant="outline">
-                <Link href="/dashboard/billing">Escolher plano</Link>
+                <Link href="/dashboard/billing">Ativar plano</Link>
               </Button>
             )}
 

@@ -70,14 +70,6 @@ export const DEFAULT_RATE_LIMITS: Record<string, RateLimitConfig> = {
     burst: { limit: 2, windowSeconds: 60 }, // 2 per minute
   },
 
-  // Billing closeout: Restrictive (cron job)
-  '/api/v1/cron/billing/close-cycles': {
-    enabled: true,
-    ip: { limit: 60, windowSeconds: 3600 },
-    org: { limit: 100, windowSeconds: 3600 },
-    burst: { limit: 2, windowSeconds: 60 },
-  },
-
   // Centrifugo token: Authenticated users, token generation (1h validity)
   '/api/v1/centrifugo/token': {
     enabled: true,
@@ -99,14 +91,6 @@ export const DEFAULT_RATE_LIMITS: Record<string, RateLimitConfig> = {
     ip: { limit: 50, windowSeconds: 3600 }, // 50 per hour
     org: { limit: 200, windowSeconds: 3600 }, // 200 per hour
     burst: { limit: 15, windowSeconds: 60 }, // 15 per minute (increased from 5)
-  },
-
-  // Billing events: High-volume from app events
-  '/api/v1/billing/events': {
-    enabled: true,
-    ip: { limit: 10000, windowSeconds: 3600 }, // 10000 per hour (app-driven)
-    org: { limit: 50000, windowSeconds: 3600 }, // 50000 per hour (app-driven)
-    burst: { limit: 500, windowSeconds: 60 }, // 500 per minute
   },
 
   // Default for unmapped endpoints

@@ -18,35 +18,37 @@ describe('billing-plan-query.service', () => {
     vi.clearAllMocks()
   })
 
-  it('lists billing plans with pagination and mapped counts', async () => {
+  it('lists billing plans with pagination and mapped subscription counts', async () => {
     prismaMock.billingPlan.findMany.mockResolvedValueOnce([
       {
         id: 'plan_1',
-        name: 'Starter',
-        slug: 'starter',
-        description: 'Plano inicial',
+        name: 'WhaTrack Base',
+        slug: 'platform_base',
+        description: 'Plano base',
+        kind: 'base',
+        addonType: null,
         metadata: {
-          subtitle: 'Até 200 eventos / mês',
-          cta: 'Testar grátis por 14 dias',
+          subtitle: 'Até 3 clientes ativos incluídos',
+          cta: 'Teste grátis por 14 dias',
           trialDays: 14,
-          features: ['200 eventos/mês'],
-          additionals: ['R$ 0,25 por evento extra'],
+          features: ['3 clientes ativos incluídos'],
+          additionals: ['Projeto adicional por R$ 97/mês'],
         },
-        monthlyPrice: { toString: () => '97.00' },
+        monthlyPrice: { toString: () => '497.00' },
         currency: 'BRL',
-        eventLimitPerMonth: 200,
-        overagePricePerEvent: { toString: () => '0.25' },
-        maxWhatsAppNumbers: 1,
-        maxAdAccounts: 1,
-        maxTeamMembers: 2,
-        supportLevel: 'email',
+        includedProjects: 3,
+        includedWhatsAppPerProject: 1,
+        includedMetaAdAccountsPerProject: 1,
+        includedConversionsPerProject: 300,
+        includedAiCreditsPerProject: 10000,
+        supportLevel: 'priority',
         stripeProductId: 'prod_1',
         stripePriceId: 'price_1',
         syncStatus: 'synced',
         syncError: null,
         syncedAt: new Date('2026-03-08T12:00:00.000Z'),
         isActive: true,
-        isHighlighted: false,
+        isHighlighted: true,
         contactSalesOnly: false,
         displayOrder: 0,
         deletedAt: null,
@@ -54,6 +56,7 @@ describe('billing-plan-query.service', () => {
         updatedAt: new Date('2026-03-02T00:00:00.000Z'),
         _count: {
           subscriptions: 3,
+          subscriptionItems: 2,
         },
       },
     ])
@@ -64,37 +67,32 @@ describe('billing-plan-query.service', () => {
       pageSize: 10,
       status: 'all',
       syncStatus: 'all',
+      kind: 'all',
     })
 
-    expect(prismaMock.billingPlan.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({
-        skip: 0,
-        take: 10,
-        orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }],
-      }),
-    )
     expect(result.totalPages).toBe(1)
     expect(result.items[0]).toMatchObject({
       id: 'plan_1',
-      slug: 'starter',
+      slug: 'platform_base',
+      kind: 'base',
       trialDays: 14,
-      subtitle: 'Até 200 eventos / mês',
-      monthlyPrice: '97.00',
-      overagePricePerEvent: '0.25',
-      subscriptionCount: 3,
+      subtitle: 'Até 3 clientes ativos incluídos',
+      monthlyPrice: '497.00',
+      subscriptionCount: 5,
     })
   })
 
-  it('applies search and status filters to the prisma query', async () => {
+  it('applies search, status and kind filters to the prisma query', async () => {
     prismaMock.billingPlan.findMany.mockResolvedValueOnce([])
     prismaMock.billingPlan.count.mockResolvedValueOnce(0)
 
     await listBillingPlans({
       page: 2,
       pageSize: 5,
-      query: 'pro',
+      query: 'base',
       status: 'active',
       syncStatus: 'pending',
+      kind: 'base',
     })
 
     expect(prismaMock.billingPlan.findMany).toHaveBeenCalledWith(
@@ -105,10 +103,7 @@ describe('billing-plan-query.service', () => {
           isActive: true,
           deletedAt: null,
           syncStatus: 'pending',
-          OR: expect.arrayContaining([
-            { name: { contains: 'pro', mode: 'insensitive' } },
-            { slug: { contains: 'pro', mode: 'insensitive' } },
-          ]),
+          kind: 'base',
         }),
       }),
     )

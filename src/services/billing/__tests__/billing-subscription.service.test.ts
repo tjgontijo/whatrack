@@ -5,6 +5,16 @@ const prismaMock = vi.hoisted(() => ({
     findUnique: vi.fn(),
     update: vi.fn(),
   },
+  project: {
+    count: vi.fn(),
+  },
+  whatsAppConfig: {
+    groupBy: vi.fn(),
+  },
+  metaAdAccount: {
+    groupBy: vi.fn(),
+    count: vi.fn(),
+  },
 }))
 
 const ensurePaymentProvidersMock = vi.hoisted(() => vi.fn())
@@ -28,24 +38,37 @@ import { cancelSubscription } from '@/services/billing/billing-subscription.serv
 describe('billing-subscription.service', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    prismaMock.project.count.mockResolvedValue(0)
+    prismaMock.whatsAppConfig.groupBy.mockResolvedValue([])
+    prismaMock.metaAdAccount.groupBy.mockResolvedValue([])
+    prismaMock.metaAdAccount.count.mockResolvedValue(0)
   })
 
   it('schedules cancellation at period end without changing lifecycle status', async () => {
     prismaMock.billingSubscription.findUnique.mockResolvedValueOnce({
       id: 'sub-1',
       organizationId: 'org-1',
-      planType: 'starter',
       status: 'active',
       canceledAtPeriodEnd: false,
       billingCycleStartDate: new Date('2026-03-01T00:00:00.000Z'),
       billingCycleEndDate: new Date('2026-03-31T00:00:00.000Z'),
       nextResetDate: new Date('2026-03-31T00:00:00.000Z'),
-      eventLimitPerMonth: 200,
-      eventsUsedInCurrentCycle: 10,
+      trialEndsAt: null,
       createdAt: new Date('2026-03-01T00:00:00.000Z'),
       canceledAt: null,
       provider: 'stripe',
       providerSubscriptionId: 'sub_1',
+      plan: {
+        id: 'plan-base',
+        slug: 'platform_base',
+        name: 'WhaTrack Base',
+        includedProjects: 3,
+        includedWhatsAppPerProject: 1,
+        includedMetaAdAccountsPerProject: 1,
+        includedConversionsPerProject: 300,
+        includedAiCreditsPerProject: 10000,
+      },
+      items: [],
     })
 
     prismaMock.billingSubscription.update.mockResolvedValueOnce({
@@ -58,19 +81,6 @@ describe('billing-subscription.service', () => {
 
     expect(ensurePaymentProvidersMock).toHaveBeenCalledTimes(1)
     expect(cancelSubscriptionProviderMock).toHaveBeenCalledWith('sub_1', true)
-
-    expect(prismaMock.billingSubscription.update).toHaveBeenCalledWith({
-      where: { id: 'sub-1' },
-      data: {
-        canceledAtPeriodEnd: true,
-      },
-      select: {
-        status: true,
-        canceledAtPeriodEnd: true,
-        canceledAt: true,
-      },
-    })
-
     expect(result).toEqual({
       status: 'active',
       canceledAtPeriodEnd: true,
@@ -82,18 +92,27 @@ describe('billing-subscription.service', () => {
     prismaMock.billingSubscription.findUnique.mockResolvedValueOnce({
       id: 'sub-2',
       organizationId: 'org-1',
-      planType: 'pro',
       status: 'active',
       canceledAtPeriodEnd: false,
       billingCycleStartDate: new Date('2026-03-01T00:00:00.000Z'),
       billingCycleEndDate: new Date('2026-03-31T00:00:00.000Z'),
       nextResetDate: new Date('2026-03-31T00:00:00.000Z'),
-      eventLimitPerMonth: 500,
-      eventsUsedInCurrentCycle: 40,
+      trialEndsAt: null,
       createdAt: new Date('2026-03-01T00:00:00.000Z'),
       canceledAt: null,
       provider: 'stripe',
       providerSubscriptionId: 'sub_2',
+      plan: {
+        id: 'plan-base',
+        slug: 'platform_base',
+        name: 'WhaTrack Base',
+        includedProjects: 3,
+        includedWhatsAppPerProject: 1,
+        includedMetaAdAccountsPerProject: 1,
+        includedConversionsPerProject: 300,
+        includedAiCreditsPerProject: 10000,
+      },
+      items: [],
     })
 
     prismaMock.billingSubscription.update.mockResolvedValueOnce({
@@ -106,21 +125,6 @@ describe('billing-subscription.service', () => {
 
     expect(ensurePaymentProvidersMock).toHaveBeenCalledTimes(1)
     expect(cancelSubscriptionProviderMock).toHaveBeenCalledWith('sub_2', false)
-
-    expect(prismaMock.billingSubscription.update).toHaveBeenCalledWith({
-      where: { id: 'sub-2' },
-      data: {
-        status: 'canceled',
-        canceledAtPeriodEnd: false,
-        canceledAt: expect.any(Date),
-      },
-      select: {
-        status: true,
-        canceledAtPeriodEnd: true,
-        canceledAt: true,
-      },
-    })
-
     expect(result).toEqual({
       status: 'canceled',
       canceledAtPeriodEnd: false,

@@ -4,7 +4,6 @@ import { useOrganization } from '@/hooks/organization/use-organization'
 import { useBillingSubscription } from '@/hooks/billing/use-billing-subscription'
 import type { PublicBillingPlan } from '@/schemas/billing/billing-plan-schemas'
 import { BillingStatus } from './billing-status'
-import { UsageProgress } from './usage-progress'
 import { PlanSelector } from './plan-selector'
 
 interface BillingPageContentProps {
@@ -41,7 +40,6 @@ export function BillingPageContent({ availablePlans }: BillingPageContentProps) 
   return (
     <div className="space-y-6" data-testid="billing-page-content">
       <BillingStatus />
-      <UsageProgress />
       {localTrial ? <PlanSelector plans={availablePlans} /> : null}
     </div>
   )

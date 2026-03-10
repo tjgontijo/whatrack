@@ -17,34 +17,37 @@ describe('billing-plan-catalog.service', () => {
     vi.clearAllMocks()
   })
 
-  it('maps public plans with trial and metadata fallback', async () => {
+  it('maps public base plans with included entitlements', async () => {
     prismaMock.billingPlan.findMany.mockResolvedValueOnce([
       {
         id: 'plan_1',
-        name: 'Starter',
-        slug: 'starter',
-        description: 'Plano inicial',
-        monthlyPrice: 97,
+        name: 'WhaTrack Base',
+        slug: 'platform_base',
+        description: 'Plano base',
+        kind: 'base',
+        addonType: null,
+        monthlyPrice: 497,
         currency: 'BRL',
-        eventLimitPerMonth: 200,
-        overagePricePerEvent: 0.25,
-        maxWhatsAppNumbers: 1,
-        maxAdAccounts: 1,
-        maxTeamMembers: 2,
-        supportLevel: 'email',
+        includedProjects: 3,
+        includedWhatsAppPerProject: 1,
+        includedMetaAdAccountsPerProject: 1,
+        includedConversionsPerProject: 300,
+        includedAiCreditsPerProject: 10000,
+        supportLevel: 'priority',
         stripeProductId: 'prod_1',
         stripePriceId: 'price_1',
         syncStatus: 'synced',
         syncError: null,
         syncedAt: null,
         isActive: true,
-        isHighlighted: false,
+        isHighlighted: true,
         contactSalesOnly: false,
         displayOrder: 0,
         metadata: {
           trialDays: 14,
-          cta: 'Testar grátis por 14 dias',
-          features: ['200 eventos/mês'],
+          cta: 'Teste grátis por 14 dias',
+          features: ['3 clientes ativos incluídos'],
+          additionals: ['Projeto adicional por R$ 97/mês'],
         },
         deletedAt: null,
         createdAt: new Date(),
@@ -55,10 +58,12 @@ describe('billing-plan-catalog.service', () => {
     const result = await listPublicBillingPlans()
 
     expect(result[0]).toMatchObject({
-      slug: 'starter',
+      slug: 'platform_base',
+      kind: 'base',
       trialDays: 14,
-      cta: 'Testar grátis por 14 dias',
-      features: ['200 eventos/mês'],
+      includedProjects: 3,
+      includedConversionsPerProject: 300,
+      includedAiCreditsPerProject: 10000,
     })
   })
 })

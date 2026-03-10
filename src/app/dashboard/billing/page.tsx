@@ -9,7 +9,7 @@ import { listPublicBillingPlans } from '@/services/billing/billing-plan-catalog.
 
 export const metadata = {
   title: 'Assinatura | WhaTrack',
-  description: 'Gerencie sua assinatura e acompanhe o uso de eventos.',
+  description: 'Gerencie sua assinatura, clientes ativos e add-ons operacionais.',
 }
 
 export default async function BillingPage() {
@@ -19,7 +19,7 @@ export default async function BillingPage() {
     <PageShell maxWidth="5xl">
       <PageHeader
         title="Assinatura"
-        description="Gerencie seu plano e acompanhe o uso de eventos."
+        description="Gerencie seu plano base, clientes ativos e extras operacionais."
         icon={CreditCard}
       />
 

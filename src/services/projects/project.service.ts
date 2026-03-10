@@ -1,6 +1,10 @@
 import { Prisma } from '@db/client'
 
 import { prisma } from '@/lib/db/prisma'
+import {
+  assertProjectCreationAllowed,
+  syncOrganizationSubscriptionItems,
+} from '@/services/billing/billing-subscription.service'
 import type {
   ProjectAssociationCounts,
   ProjectCreateInput,
@@ -141,6 +145,8 @@ export async function createProject(input: {
   organizationId: string
   data: ProjectCreateInput
 }): Promise<ProjectListItem | Extract<ProjectError, { status: 409 }>> {
+  await assertProjectCreationAllowed(input.organizationId)
+
   const isUnique = await ensureUniqueProjectName({
     organizationId: input.organizationId,
     name: input.data.name,
@@ -173,6 +179,8 @@ export async function createProject(input: {
       },
     },
   })
+
+  await syncOrganizationSubscriptionItems(input.organizationId)
 
   return mapProject(created)
 }
@@ -426,6 +434,8 @@ export async function deleteProject(input: {
       where: { id: input.projectId },
     }),
   ])
+
+  await syncOrganizationSubscriptionItems(input.organizationId)
 
   return { success: true }
 }

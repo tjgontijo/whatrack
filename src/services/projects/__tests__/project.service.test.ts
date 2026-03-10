@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const prismaMock = vi.hoisted(() => ({
+  billingSubscription: {
+    findUnique: vi.fn(),
+  },
   project: {
     findMany: vi.fn(),
     count: vi.fn(),
@@ -48,6 +51,7 @@ describe('project.service', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     prismaMock.$transaction.mockImplementation(async (operations: unknown[]) => operations)
+    prismaMock.billingSubscription.findUnique.mockResolvedValue(null)
   })
 
   it('lists projects with mapped counts and pagination', async () => {
@@ -108,7 +112,7 @@ describe('project.service', () => {
   })
 
   it('creates a project when the name is unique', async () => {
-    prismaMock.project.findFirst.mockResolvedValueOnce(null)
+    prismaMock.project.findFirst.mockResolvedValue(null)
     prismaMock.project.create.mockResolvedValueOnce({
       id: 'project_1',
       name: 'Cliente Novo',
@@ -145,7 +149,7 @@ describe('project.service', () => {
   })
 
   it('rejects delete without force when the project has associations', async () => {
-    prismaMock.project.findFirst.mockResolvedValueOnce({
+    prismaMock.project.findFirst.mockResolvedValue({
       id: 'project_1',
       _count: {
         whatsappConfigs: 1,
@@ -180,7 +184,7 @@ describe('project.service', () => {
   })
 
   it('forces delete by nullifying projectId on related records before deleting', async () => {
-    prismaMock.project.findFirst.mockResolvedValueOnce({
+    prismaMock.project.findFirst.mockResolvedValue({
       id: 'project_1',
       _count: {
         whatsappConfigs: 1,

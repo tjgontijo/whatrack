@@ -2,6 +2,12 @@ import { z } from 'zod'
 
 export const billingPlanSyncStatuses = ['pending', 'synced', 'error'] as const
 export const billingPlanSupportLevels = ['email', 'priority', 'dedicated'] as const
+export const billingPlanKinds = ['base', 'addon'] as const
+export const billingPlanAddonTypes = [
+  'project',
+  'whatsapp_number',
+  'meta_ad_account',
+] as const
 
 export const billingPlanMetadataSchema = z.object({
   subtitle: z.string().trim().max(160).nullable().optional(),
@@ -17,6 +23,7 @@ export const billingPlanListQuerySchema = z.object({
   query: z.string().trim().max(120).optional(),
   status: z.enum(['all', 'active', 'inactive']).default('all'),
   syncStatus: z.enum(['all', ...billingPlanSyncStatuses]).default('all'),
+  kind: z.enum(['all', ...billingPlanKinds]).default('all'),
 })
 
 const billingPlanBaseSchema = z.object({
@@ -25,34 +32,56 @@ const billingPlanBaseSchema = z.object({
     .string()
     .trim()
     .min(2)
-    .max(40)
-    .regex(/^[a-z0-9-]+$/, 'Use apenas letras minúsculas, números e hífen'),
+    .max(64)
+    .regex(/^[a-z0-9_-]+$/, 'Use apenas letras minúsculas, números, hífen e underscore'),
   description: z.string().trim().max(280).nullable().optional(),
+  kind: z.enum(billingPlanKinds),
+  addonType: z.enum(billingPlanAddonTypes).nullable().optional(),
   monthlyPrice: z.coerce.number().min(0).max(999999),
   currency: z.string().trim().min(3).max(3).default('BRL'),
-  eventLimitPerMonth: z.coerce.number().int().min(0).max(999999),
-  overagePricePerEvent: z.coerce.number().min(0).max(9999),
-  maxWhatsAppNumbers: z.coerce.number().int().min(0).max(999),
-  maxAdAccounts: z.coerce.number().int().min(0).max(999),
-  maxTeamMembers: z.coerce.number().int().min(1).max(9999),
-  supportLevel: z.enum(billingPlanSupportLevels),
-  displayOrder: z.coerce.number().int().min(0).max(999),
+  includedProjects: z.coerce.number().int().min(0).max(999).default(0),
+  includedWhatsAppPerProject: z.coerce.number().int().min(0).max(999).default(0),
+  includedMetaAdAccountsPerProject: z.coerce.number().int().min(0).max(999).default(0),
+  includedConversionsPerProject: z.coerce.number().int().min(0).max(999999).default(0),
+  includedAiCreditsPerProject: z.coerce.number().int().min(0).max(99999999).default(0),
+  supportLevel: z.enum(billingPlanSupportLevels).default('priority'),
+  displayOrder: z.coerce.number().int().min(0).max(999).default(0),
   isHighlighted: z.boolean().default(false),
   contactSalesOnly: z.boolean().default(false),
-  trialDays: z.coerce.number().int().min(0).max(30).default(7),
+  trialDays: z.coerce.number().int().min(0).max(30).default(14),
   subtitle: z.string().trim().max(160).nullable().optional(),
   cta: z.string().trim().max(80).nullable().optional(),
   features: z.array(z.string().trim().min(1).max(160)).max(12).default([]),
   additionals: z.array(z.string().trim().min(1).max(160)).max(12).default([]),
 })
 
-export const billingPlanCreateSchema = billingPlanBaseSchema.extend({
-  isActive: z.boolean().default(true),
-})
+export const billingPlanCreateSchema = billingPlanBaseSchema
+  .superRefine((value, ctx) => {
+    if (value.kind === 'base' && value.addonType) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Plano base não pode ter tipo de add-on',
+        path: ['addonType'],
+      })
+    }
 
-export const billingPlanUpdateSchema = billingPlanBaseSchema.partial().extend({
-  isActive: z.boolean().optional(),
-})
+    if (value.kind === 'addon' && !value.addonType) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Add-on precisa informar o tipo',
+        path: ['addonType'],
+      })
+    }
+  })
+  .extend({
+    isActive: z.boolean().default(true),
+  })
+
+export const billingPlanUpdateSchema = billingPlanBaseSchema
+  .partial()
+  .extend({
+    isActive: z.boolean().optional(),
+  })
 
 export const billingPlanArchiveSchema = z.object({
   archived: z.literal(true).default(true),
@@ -76,6 +105,8 @@ export const billingPlanListItemSchema = z.object({
   name: z.string(),
   slug: z.string(),
   description: z.string().nullable(),
+  kind: z.enum(billingPlanKinds),
+  addonType: z.enum(billingPlanAddonTypes).nullable(),
   subtitle: z.string().nullable(),
   cta: z.string().nullable(),
   trialDays: z.number().int().min(0),
@@ -83,11 +114,11 @@ export const billingPlanListItemSchema = z.object({
   additionals: z.array(z.string()),
   monthlyPrice: z.string(),
   currency: z.string(),
-  eventLimitPerMonth: z.number().int(),
-  overagePricePerEvent: z.string(),
-  maxWhatsAppNumbers: z.number().int(),
-  maxAdAccounts: z.number().int(),
-  maxTeamMembers: z.number().int(),
+  includedProjects: z.number().int(),
+  includedWhatsAppPerProject: z.number().int(),
+  includedMetaAdAccountsPerProject: z.number().int(),
+  includedConversionsPerProject: z.number().int(),
+  includedAiCreditsPerProject: z.number().int(),
   supportLevel: z.string(),
   stripeProductId: z.string().nullable(),
   stripePriceId: z.string().nullable(),
@@ -145,6 +176,8 @@ export const publicBillingPlanSchema = z.object({
   slug: z.string(),
   name: z.string(),
   description: z.string().nullable(),
+  kind: z.enum(billingPlanKinds),
+  addonType: z.enum(billingPlanAddonTypes).nullable(),
   subtitle: z.string().nullable(),
   cta: z.string(),
   trialDays: z.number().int().min(0),
@@ -152,11 +185,11 @@ export const publicBillingPlanSchema = z.object({
   additionals: z.array(z.string()),
   monthlyPrice: z.number(),
   currency: z.string(),
-  eventLimitPerMonth: z.number().int(),
-  overagePricePerEvent: z.number(),
-  maxWhatsAppNumbers: z.number().int(),
-  maxAdAccounts: z.number().int(),
-  maxTeamMembers: z.number().int(),
+  includedProjects: z.number().int(),
+  includedWhatsAppPerProject: z.number().int(),
+  includedMetaAdAccountsPerProject: z.number().int(),
+  includedConversionsPerProject: z.number().int(),
+  includedAiCreditsPerProject: z.number().int(),
   supportLevel: z.string(),
   isHighlighted: z.boolean(),
   contactSalesOnly: z.boolean(),

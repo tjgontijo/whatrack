@@ -905,14 +905,10 @@ CREATE TABLE "billing_subscriptions" (
     "provider" TEXT NOT NULL,
     "providerCustomerId" TEXT NOT NULL,
     "providerSubscriptionId" TEXT,
-    "planType" TEXT NOT NULL,
-    "eventLimitPerMonth" INTEGER NOT NULL,
-    "overagePricePerEvent" DECIMAL(6,2) NOT NULL,
     "billingCycleStartDate" TIMESTAMP(3) NOT NULL,
     "billingCycleEndDate" TIMESTAMP(3) NOT NULL,
     "nextResetDate" TIMESTAMP(3) NOT NULL,
     "trialEndsAt" TIMESTAMP(3),
-    "eventsUsedInCurrentCycle" INTEGER NOT NULL DEFAULT 0,
     "status" TEXT NOT NULL DEFAULT 'active',
     "canceledAtPeriodEnd" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -923,43 +919,18 @@ CREATE TABLE "billing_subscriptions" (
 );
 
 -- CreateTable
-CREATE TABLE "billing_event_usages" (
+CREATE TABLE "billing_subscription_items" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "subscriptionId" UUID NOT NULL,
-    "eventType" TEXT NOT NULL,
-    "externalId" TEXT,
-    "eventCount" INTEGER NOT NULL DEFAULT 1,
-    "isOverage" BOOLEAN NOT NULL DEFAULT false,
-    "chargedAmount" DECIMAL(10,2) NOT NULL,
-    "billingCycle" TEXT NOT NULL,
-    "recordedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "billing_event_usages_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "billing_cycle_closeouts" (
-    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "subscriptionId" UUID NOT NULL,
-    "billingCycle" TEXT NOT NULL,
-    "cycleStartDate" TIMESTAMP(3) NOT NULL,
-    "cycleEndDate" TIMESTAMP(3) NOT NULL,
-    "eventsUsed" INTEGER NOT NULL,
-    "eventLimit" INTEGER NOT NULL,
-    "overageEvents" INTEGER NOT NULL,
+    "planId" TEXT NOT NULL,
+    "stripeSubscriptionItemId" TEXT,
+    "quantity" INTEGER NOT NULL DEFAULT 0,
     "unitPrice" DECIMAL(10,2) NOT NULL,
-    "amountCharged" DECIMAL(10,2) NOT NULL,
     "currency" TEXT NOT NULL DEFAULT 'BRL',
-    "provider" TEXT NOT NULL,
-    "providerInvoiceItemId" TEXT,
-    "status" TEXT NOT NULL,
-    "errorMessage" TEXT,
-    "processedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "billing_cycle_closeouts_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "billing_subscription_items_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -980,42 +951,20 @@ CREATE TABLE "billing_webhook_logs" (
 );
 
 -- CreateTable
-CREATE TABLE "billing_plan_templates" (
-    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "slug" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "description" TEXT,
-    "eventLimitPerMonth" INTEGER NOT NULL,
-    "overagePricePerEvent" DECIMAL(6,2) NOT NULL,
-    "monthlyPrice" DECIMAL(8,2) NOT NULL,
-    "maxWhatsAppNumbers" INTEGER NOT NULL DEFAULT 1,
-    "maxAdAccounts" INTEGER NOT NULL DEFAULT 1,
-    "maxTeamMembers" INTEGER NOT NULL DEFAULT 1,
-    "supportLevel" TEXT NOT NULL DEFAULT 'email',
-    "polarProductId" TEXT,
-    "asaasProductId" TEXT,
-    "stripeProductId" TEXT,
-    "stripePriceId" TEXT,
-    "isActive" BOOLEAN NOT NULL DEFAULT true,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "billing_plan_templates_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "billing_plans" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
     "description" TEXT,
+    "kind" TEXT NOT NULL,
+    "addonType" TEXT,
     "monthlyPrice" DECIMAL(10,2) NOT NULL,
     "currency" TEXT NOT NULL DEFAULT 'BRL',
-    "eventLimitPerMonth" INTEGER NOT NULL,
-    "overagePricePerEvent" DECIMAL(5,2) NOT NULL,
-    "maxWhatsAppNumbers" INTEGER NOT NULL,
-    "maxAdAccounts" INTEGER NOT NULL,
-    "maxTeamMembers" INTEGER NOT NULL,
+    "includedProjects" INTEGER NOT NULL DEFAULT 0,
+    "includedWhatsAppPerProject" INTEGER NOT NULL DEFAULT 0,
+    "includedMetaAdAccountsPerProject" INTEGER NOT NULL DEFAULT 0,
+    "includedConversionsPerProject" INTEGER NOT NULL DEFAULT 0,
+    "includedAiCreditsPerProject" INTEGER NOT NULL DEFAULT 0,
     "supportLevel" TEXT NOT NULL,
     "stripeProductId" TEXT,
     "stripePriceId" TEXT,
@@ -1524,31 +1473,16 @@ CREATE INDEX "billing_subscriptions_nextResetDate_idx" ON "billing_subscriptions
 CREATE UNIQUE INDEX "billing_subscriptions_organizationId_key" ON "billing_subscriptions"("organizationId");
 
 -- CreateIndex
-CREATE INDEX "billing_event_usages_subscriptionId_idx" ON "billing_event_usages"("subscriptionId");
+CREATE UNIQUE INDEX "billing_subscription_items_stripeSubscriptionItemId_key" ON "billing_subscription_items"("stripeSubscriptionItemId");
 
 -- CreateIndex
-CREATE INDEX "billing_event_usages_billingCycle_idx" ON "billing_event_usages"("billingCycle");
+CREATE INDEX "billing_subscription_items_subscriptionId_idx" ON "billing_subscription_items"("subscriptionId");
 
 -- CreateIndex
-CREATE INDEX "billing_event_usages_eventType_idx" ON "billing_event_usages"("eventType");
+CREATE INDEX "billing_subscription_items_planId_idx" ON "billing_subscription_items"("planId");
 
 -- CreateIndex
-CREATE INDEX "billing_event_usages_externalId_idx" ON "billing_event_usages"("externalId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "billing_event_usages_subscriptionId_externalId_key" ON "billing_event_usages"("subscriptionId", "externalId");
-
--- CreateIndex
-CREATE INDEX "billing_cycle_closeouts_status_idx" ON "billing_cycle_closeouts"("status");
-
--- CreateIndex
-CREATE INDEX "billing_cycle_closeouts_billingCycle_idx" ON "billing_cycle_closeouts"("billingCycle");
-
--- CreateIndex
-CREATE INDEX "billing_cycle_closeouts_subscriptionId_idx" ON "billing_cycle_closeouts"("subscriptionId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "billing_cycle_closeouts_subscriptionId_cycleStartDate_cycle_key" ON "billing_cycle_closeouts"("subscriptionId", "cycleStartDate", "cycleEndDate");
+CREATE UNIQUE INDEX "billing_subscription_items_subscriptionId_planId_key" ON "billing_subscription_items"("subscriptionId", "planId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "billing_webhook_logs_eventId_key" ON "billing_webhook_logs"("eventId");
@@ -1561,15 +1495,6 @@ CREATE INDEX "billing_webhook_logs_provider_idx" ON "billing_webhook_logs"("prov
 
 -- CreateIndex
 CREATE INDEX "billing_webhook_logs_createdAt_idx" ON "billing_webhook_logs"("createdAt");
-
--- CreateIndex
-CREATE UNIQUE INDEX "billing_plan_templates_slug_key" ON "billing_plan_templates"("slug");
-
--- CreateIndex
-CREATE INDEX "billing_plan_templates_slug_idx" ON "billing_plan_templates"("slug");
-
--- CreateIndex
-CREATE INDEX "billing_plan_templates_isActive_idx" ON "billing_plan_templates"("isActive");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "billing_plans_name_key" ON "billing_plans"("name");
@@ -1585,6 +1510,12 @@ CREATE UNIQUE INDEX "billing_plans_stripePriceId_key" ON "billing_plans"("stripe
 
 -- CreateIndex
 CREATE INDEX "billing_plans_slug_idx" ON "billing_plans"("slug");
+
+-- CreateIndex
+CREATE INDEX "billing_plans_kind_idx" ON "billing_plans"("kind");
+
+-- CreateIndex
+CREATE INDEX "billing_plans_addonType_idx" ON "billing_plans"("addonType");
 
 -- CreateIndex
 CREATE INDEX "billing_plans_isActive_idx" ON "billing_plans"("isActive");
@@ -1854,10 +1785,10 @@ ALTER TABLE "billing_subscriptions" ADD CONSTRAINT "billing_subscriptions_organi
 ALTER TABLE "billing_subscriptions" ADD CONSTRAINT "billing_subscriptions_planId_fkey" FOREIGN KEY ("planId") REFERENCES "billing_plans"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "billing_event_usages" ADD CONSTRAINT "billing_event_usages_subscriptionId_fkey" FOREIGN KEY ("subscriptionId") REFERENCES "billing_subscriptions"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "billing_subscription_items" ADD CONSTRAINT "billing_subscription_items_subscriptionId_fkey" FOREIGN KEY ("subscriptionId") REFERENCES "billing_subscriptions"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "billing_cycle_closeouts" ADD CONSTRAINT "billing_cycle_closeouts_subscriptionId_fkey" FOREIGN KEY ("subscriptionId") REFERENCES "billing_subscriptions"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "billing_subscription_items" ADD CONSTRAINT "billing_subscription_items_planId_fkey" FOREIGN KEY ("planId") REFERENCES "billing_plans"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "billing_plan_history" ADD CONSTRAINT "billing_plan_history_planId_fkey" FOREIGN KEY ("planId") REFERENCES "billing_plans"("id") ON DELETE CASCADE ON UPDATE CASCADE;

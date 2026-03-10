@@ -37,42 +37,44 @@ describe('billing-plan.service', () => {
     vi.clearAllMocks()
   })
 
-  it('creates a billing plan and writes audit log', async () => {
+  it('creates a base billing plan and writes audit log', async () => {
     prismaMock.billingPlan.findFirst.mockResolvedValueOnce(null)
     prismaMock.billingPlan.create.mockResolvedValueOnce({
       id: 'plan_1',
-      name: 'Starter',
-      slug: 'starter',
-      monthlyPrice: { toString: () => '97.00' },
+      name: 'WhaTrack Base',
+      slug: 'platform_base',
+      kind: 'base',
+      addonType: null,
+      monthlyPrice: { toString: () => '497.00' },
       currency: 'BRL',
-      eventLimitPerMonth: 200,
-      overagePricePerEvent: { toString: () => '0.25' },
       metadata: {},
     })
     getBillingPlanDetailMock.mockResolvedValueOnce({ id: 'plan_1' })
 
     const result = await createBillingPlan(
       {
-        name: 'Starter',
-        slug: 'starter',
-        description: 'Plano inicial',
-        subtitle: 'Até 200 eventos / mês',
-        cta: 'Testar grátis por 14 dias',
-        monthlyPrice: 97,
+        name: 'WhaTrack Base',
+        slug: 'platform_base',
+        description: 'Plano base para agências',
+        kind: 'base',
+        addonType: null,
+        subtitle: 'Até 3 clientes ativos incluídos',
+        cta: 'Teste grátis por 14 dias',
+        monthlyPrice: 497,
         currency: 'BRL',
-        eventLimitPerMonth: 200,
-        overagePricePerEvent: 0.25,
-        maxWhatsAppNumbers: 1,
-        maxAdAccounts: 1,
-        maxTeamMembers: 2,
-        supportLevel: 'email',
+        includedProjects: 3,
+        includedWhatsAppPerProject: 1,
+        includedMetaAdAccountsPerProject: 1,
+        includedConversionsPerProject: 300,
+        includedAiCreditsPerProject: 10000,
+        supportLevel: 'priority',
         displayOrder: 0,
-        isHighlighted: false,
+        isHighlighted: true,
         contactSalesOnly: false,
         isActive: true,
         trialDays: 14,
-        features: ['200 eventos/mês'],
-        additionals: ['R$ 0,25 por evento extra'],
+        features: ['3 clientes ativos incluídos'],
+        additionals: ['Projeto adicional por R$ 97/mês'],
       },
       'user-1',
     )
@@ -85,20 +87,17 @@ describe('billing-plan.service', () => {
   it('marks sync as pending when a stripe-relevant field changes', async () => {
     prismaMock.billingPlan.findUnique.mockResolvedValueOnce({
       id: 'plan_1',
-      name: 'Starter',
-      slug: 'starter',
-      description: 'Plano inicial',
-      monthlyPrice: 97,
+      name: 'WhaTrack Base',
+      slug: 'platform_base',
+      description: 'Plano base',
+      kind: 'base',
+      addonType: null,
+      monthlyPrice: 497,
       currency: 'BRL',
-      eventLimitPerMonth: 200,
-      overagePricePerEvent: 0.25,
-      maxWhatsAppNumbers: 1,
-      maxAdAccounts: 1,
-      maxTeamMembers: 2,
-      supportLevel: 'email',
+      supportLevel: 'priority',
       displayOrder: 0,
       isActive: true,
-      isHighlighted: false,
+      isHighlighted: true,
       contactSalesOnly: false,
       stripeProductId: 'prod_1',
       stripePriceId: 'price_1',
@@ -113,8 +112,7 @@ describe('billing-plan.service', () => {
     await updateBillingPlan(
       'plan_1',
       {
-        monthlyPrice: 197,
-        trialDays: 14,
+        monthlyPrice: 597,
       },
       'user-1',
     )
@@ -134,13 +132,12 @@ describe('billing-plan.service', () => {
   it('archives a billing plan with soft delete semantics', async () => {
     prismaMock.billingPlan.findUnique.mockResolvedValueOnce({
       id: 'plan_1',
-      name: 'Starter',
-      slug: 'starter',
+      name: 'WhaTrack Base',
+      slug: 'platform_base',
       deletedAt: null,
       isActive: true,
     })
     prismaMock.billingPlan.update.mockResolvedValueOnce({})
-    getBillingPlanDetailMock.mockResolvedValueOnce({ id: 'plan_1', isActive: false })
 
     const result = await archiveBillingPlan('plan_1', 'user-1')
 
@@ -151,6 +148,6 @@ describe('billing-plan.service', () => {
         deletedAt: expect.any(Date),
       },
     })
-    expect(result).toEqual({ id: 'plan_1', isActive: false })
+    expect(result).toEqual({ success: true })
   })
 })

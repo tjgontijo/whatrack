@@ -32,12 +32,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       billingCycleEndDate: subscription.billingCycleEndDate.toISOString(),
       nextResetDate: subscription.nextResetDate.toISOString(),
       trialEndsAt: subscription.trialEndsAt?.toISOString() ?? null,
-      eventLimitPerMonth: subscription.eventLimitPerMonth,
-      eventsUsedInCurrentCycle: subscription.eventsUsedInCurrentCycle,
       createdAt: subscription.createdAt.toISOString(),
       canceledAt: subscription.canceledAt?.toISOString() ?? null,
       provider: subscription.provider,
-      providerSubscriptionId: subscription.providerSubscriptionId,
+      providerSubscriptionId: subscription.providerSubscriptionId ?? null,
+      items: subscription.items,
+      entitlements: subscription.entitlements,
     })
 
     return apiSuccess(response)

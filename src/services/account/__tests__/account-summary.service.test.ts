@@ -88,18 +88,42 @@ describe('getAccountSummary', () => {
     getActiveSubscriptionMock.mockResolvedValueOnce({
       id: 'sub-1',
       organizationId: 'org-1',
-      planType: 'starter',
+      planType: 'platform_base',
+      plan: {
+        name: 'WhaTrack Base',
+      },
       status: 'active',
       canceledAtPeriodEnd: false,
       billingCycleStartDate: new Date('2026-03-01T00:00:00.000Z'),
       billingCycleEndDate: new Date('2026-03-31T00:00:00.000Z'),
       nextResetDate: new Date('2026-03-31T00:00:00.000Z'),
-      eventLimitPerMonth: 200,
-      eventsUsedInCurrentCycle: 10,
+      trialEndsAt: null,
       createdAt: new Date('2026-03-01T00:00:00.000Z'),
       canceledAt: null,
       provider: 'stripe',
       providerSubscriptionId: 'sub-1',
+      items: [
+        {
+          planSlug: 'platform_base',
+          planName: 'WhaTrack Base',
+          kind: 'base',
+          addonType: null,
+          quantity: 1,
+          unitPrice: 497,
+          currency: 'BRL',
+        },
+      ],
+      entitlements: {
+        includedProjects: 3,
+        activeProjects: 1,
+        additionalProjects: 0,
+        includedWhatsAppPerProject: 1,
+        additionalWhatsAppNumbers: 0,
+        includedMetaAdAccountsPerProject: 1,
+        additionalMetaAdAccounts: 0,
+        includedConversionsPerProject: 300,
+        includedAiCreditsPerProject: 10000,
+      },
     })
 
     const result = await getAccountSummary({
@@ -109,7 +133,7 @@ describe('getAccountSummary', () => {
 
     expect(result.account?.email).toBe('thiago@whatrack.com')
     expect(result.organization?.currentUserRole).toBe('owner')
-    expect(result.subscription?.planType).toBe('starter')
+    expect(result.subscription?.planType).toBe('platform_base')
     expect(getOrganizationMeMock).toHaveBeenCalledWith({
       organizationId: 'org-1',
       memberId: 'member-1',

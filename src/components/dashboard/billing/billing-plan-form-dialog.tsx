@@ -13,18 +13,14 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { apiFetch } from '@/lib/api-client'
 import {
+  billingPlanAddonTypes,
   billingPlanCreateSchema,
+  billingPlanKinds,
   billingPlanSupportLevels,
   type BillingPlanListItem,
 } from '@/schemas/billing/billing-plan-schemas'
@@ -68,6 +64,7 @@ export function BillingPlanFormDialog({
   const {
     control,
     register,
+    watch,
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
@@ -77,46 +74,52 @@ export function BillingPlanFormDialog({
       name: plan?.name ?? '',
       slug: plan?.slug ?? '',
       description: plan?.description ?? '',
+      kind: plan?.kind ?? 'base',
+      addonType: plan?.addonType ?? null,
       subtitle: plan?.subtitle ?? '',
       cta: plan?.cta ?? '',
       monthlyPrice: Number(plan?.monthlyPrice ?? 0),
       currency: plan?.currency ?? 'BRL',
-      eventLimitPerMonth: plan?.eventLimitPerMonth ?? 200,
-      overagePricePerEvent: Number(plan?.overagePricePerEvent ?? 0),
-      maxWhatsAppNumbers: plan?.maxWhatsAppNumbers ?? 1,
-      maxAdAccounts: plan?.maxAdAccounts ?? 1,
-      maxTeamMembers: plan?.maxTeamMembers ?? 1,
-      supportLevel: (plan?.supportLevel as BillingPlanFormValues['supportLevel']) ?? 'email',
+      includedProjects: plan?.includedProjects ?? 0,
+      includedWhatsAppPerProject: plan?.includedWhatsAppPerProject ?? 0,
+      includedMetaAdAccountsPerProject: plan?.includedMetaAdAccountsPerProject ?? 0,
+      includedConversionsPerProject: plan?.includedConversionsPerProject ?? 0,
+      includedAiCreditsPerProject: plan?.includedAiCreditsPerProject ?? 0,
+      supportLevel: (plan?.supportLevel as BillingPlanFormValues['supportLevel']) ?? 'priority',
       displayOrder: plan?.displayOrder ?? 0,
       isHighlighted: plan?.isHighlighted ?? false,
       contactSalesOnly: plan?.contactSalesOnly ?? false,
       isActive: plan?.isActive ?? true,
-      trialDays: plan?.trialDays ?? 7,
+      trialDays: plan?.trialDays ?? 14,
       featuresText: toLines(plan?.features ?? []),
       additionalsText: toLines(plan?.additionals ?? []),
     },
   })
+
+  const kind = watch('kind')
 
   useEffect(() => {
     reset({
       name: plan?.name ?? '',
       slug: plan?.slug ?? '',
       description: plan?.description ?? '',
+      kind: plan?.kind ?? 'base',
+      addonType: plan?.addonType ?? null,
       subtitle: plan?.subtitle ?? '',
       cta: plan?.cta ?? '',
       monthlyPrice: Number(plan?.monthlyPrice ?? 0),
       currency: plan?.currency ?? 'BRL',
-      eventLimitPerMonth: plan?.eventLimitPerMonth ?? 200,
-      overagePricePerEvent: Number(plan?.overagePricePerEvent ?? 0),
-      maxWhatsAppNumbers: plan?.maxWhatsAppNumbers ?? 1,
-      maxAdAccounts: plan?.maxAdAccounts ?? 1,
-      maxTeamMembers: plan?.maxTeamMembers ?? 1,
-      supportLevel: (plan?.supportLevel as BillingPlanFormValues['supportLevel']) ?? 'email',
+      includedProjects: plan?.includedProjects ?? 0,
+      includedWhatsAppPerProject: plan?.includedWhatsAppPerProject ?? 0,
+      includedMetaAdAccountsPerProject: plan?.includedMetaAdAccountsPerProject ?? 0,
+      includedConversionsPerProject: plan?.includedConversionsPerProject ?? 0,
+      includedAiCreditsPerProject: plan?.includedAiCreditsPerProject ?? 0,
+      supportLevel: (plan?.supportLevel as BillingPlanFormValues['supportLevel']) ?? 'priority',
       displayOrder: plan?.displayOrder ?? 0,
       isHighlighted: plan?.isHighlighted ?? false,
       contactSalesOnly: plan?.contactSalesOnly ?? false,
       isActive: plan?.isActive ?? true,
-      trialDays: plan?.trialDays ?? 7,
+      trialDays: plan?.trialDays ?? 14,
       featuresText: toLines(plan?.features ?? []),
       additionalsText: toLines(plan?.additionals ?? []),
     })
@@ -124,25 +127,20 @@ export function BillingPlanFormDialog({
 
   const close = () => onOpenChange(false)
 
-  const submit = async (
-    values: BillingPlanFormValues,
-  ) => {
+  const submit = async (values: BillingPlanFormValues) => {
     try {
       const payload = billingPlanCreateSchema.parse({
         ...values,
         features: fromLines(values.featuresText),
         additionals: fromLines(values.additionalsText),
+        addonType: values.kind === 'addon' ? values.addonType : null,
       })
 
       await apiFetch(
-        isEditMode
-          ? `/api/v1/system/billing-plans/${plan!.id}`
-          : '/api/v1/system/billing-plans',
+        isEditMode ? `/api/v1/system/billing-plans/${plan!.id}` : '/api/v1/system/billing-plans',
         {
           method: isEditMode ? 'PATCH' : 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         },
       )
@@ -161,7 +159,7 @@ export function BillingPlanFormDialog({
       open={open}
       onOpenChange={onOpenChange}
       title={isEditMode ? 'Editar plano' : 'Novo plano'}
-      subtitle="Gerencie preço, trial, quotas e a apresentação do plano no produto."
+      subtitle="Gerencie plano base e add-ons do modelo de agência."
       icon={Layers3}
       showFooter={false}
       desktopDirection="right"
@@ -169,16 +167,12 @@ export function BillingPlanFormDialog({
       maxWidth="max-w-[920px]"
       desktopPanelWidthClassName="data-[side=right]:!w-[min(96vw,980px)] data-[side=right]:sm:!max-w-none"
     >
-      <form
-        key={plan?.id ?? (open ? 'new' : 'closed')}
-        className="space-y-8"
-        onSubmit={handleSubmit(submit)}
-      >
+      <form className="space-y-8" onSubmit={handleSubmit(submit)}>
         <FieldGroup className="grid gap-4 lg:grid-cols-2">
           <Field>
             <FieldLabel htmlFor="billing-plan-name">Nome *</FieldLabel>
             <FieldContent>
-              <Input id="billing-plan-name" placeholder="Starter" {...register('name')} />
+              <Input id="billing-plan-name" placeholder="WhaTrack" {...register('name')} />
               <FieldError errors={[errors.name]} />
             </FieldContent>
           </Field>
@@ -186,9 +180,63 @@ export function BillingPlanFormDialog({
           <Field>
             <FieldLabel htmlFor="billing-plan-slug">Slug *</FieldLabel>
             <FieldContent>
-              <Input id="billing-plan-slug" placeholder="starter" {...register('slug')} />
-              <FieldDescription>Usado como identificador técnico do plano.</FieldDescription>
+              <Input id="billing-plan-slug" placeholder="platform_base" {...register('slug')} />
               <FieldError errors={[errors.slug]} />
+            </FieldContent>
+          </Field>
+        </FieldGroup>
+
+        <FieldGroup className="grid gap-4 lg:grid-cols-2">
+          <Field>
+            <FieldLabel>Tipo *</FieldLabel>
+            <FieldContent>
+              <Controller
+                control={control}
+                name="kind"
+                render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {billingPlanKinds.map((kindValue) => (
+                        <SelectItem key={kindValue} value={kindValue}>
+                          {kindValue === 'base' ? 'Plano base' : 'Add-on'}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </FieldContent>
+          </Field>
+
+          <Field>
+            <FieldLabel>Tipo de add-on</FieldLabel>
+            <FieldContent>
+              <Controller
+                control={control}
+                name="addonType"
+                render={({ field }) => (
+                  <Select
+                    value={field.value ?? undefined}
+                    onValueChange={(value) => field.onChange(value)}
+                    disabled={kind !== 'addon'}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {billingPlanAddonTypes.map((addonType) => (
+                        <SelectItem key={addonType} value={addonType}>
+                          {addonType}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              <FieldError errors={[errors.addonType]} />
             </FieldContent>
           </Field>
         </FieldGroup>
@@ -196,11 +244,7 @@ export function BillingPlanFormDialog({
         <Field>
           <FieldLabel htmlFor="billing-plan-description">Descrição</FieldLabel>
           <FieldContent>
-            <Textarea
-              id="billing-plan-description"
-              placeholder="Descrição curta para o dashboard e landing."
-              {...register('description')}
-            />
+            <Textarea id="billing-plan-description" {...register('description')} />
             <FieldError errors={[errors.description]} />
           </FieldContent>
         </Field>
@@ -209,13 +253,7 @@ export function BillingPlanFormDialog({
           <Field>
             <FieldLabel htmlFor="billing-plan-monthly-price">Preço mensal *</FieldLabel>
             <FieldContent>
-              <Input
-                id="billing-plan-monthly-price"
-                type="number"
-                step="0.01"
-                min="0"
-                {...register('monthlyPrice', { valueAsNumber: true })}
-              />
+              <Input id="billing-plan-monthly-price" type="number" step="0.01" min="0" {...register('monthlyPrice', { valueAsNumber: true })} />
               <FieldError errors={[errors.monthlyPrice]} />
             </FieldContent>
           </Field>
@@ -231,12 +269,7 @@ export function BillingPlanFormDialog({
           <Field>
             <FieldLabel htmlFor="billing-plan-trial-days">Dias grátis *</FieldLabel>
             <FieldContent>
-              <Input
-                id="billing-plan-trial-days"
-                type="number"
-                min="0"
-                {...register('trialDays', { valueAsNumber: true })}
-              />
+              <Input id="billing-plan-trial-days" type="number" min="0" {...register('trialDays', { valueAsNumber: true })} />
               <FieldError errors={[errors.trialDays]} />
             </FieldContent>
           </Field>
@@ -244,130 +277,91 @@ export function BillingPlanFormDialog({
           <Field>
             <FieldLabel htmlFor="billing-plan-display-order">Ordem *</FieldLabel>
             <FieldContent>
-              <Input
-                id="billing-plan-display-order"
-                type="number"
-                min="0"
-                {...register('displayOrder', { valueAsNumber: true })}
-              />
+              <Input id="billing-plan-display-order" type="number" min="0" {...register('displayOrder', { valueAsNumber: true })} />
               <FieldError errors={[errors.displayOrder]} />
             </FieldContent>
           </Field>
         </FieldGroup>
 
-        <FieldGroup className="grid gap-4 lg:grid-cols-4">
+        <FieldGroup className="grid gap-4 lg:grid-cols-5">
           <Field>
-            <FieldLabel htmlFor="billing-plan-events">Eventos/mês *</FieldLabel>
+            <FieldLabel htmlFor="billing-plan-projects">Projetos incluídos *</FieldLabel>
             <FieldContent>
-              <Input
-                id="billing-plan-events"
-                type="number"
-                min="0"
-                {...register('eventLimitPerMonth', { valueAsNumber: true })}
-              />
-              <FieldError errors={[errors.eventLimitPerMonth]} />
+              <Input id="billing-plan-projects" type="number" min="0" {...register('includedProjects', { valueAsNumber: true })} />
+              <FieldError errors={[errors.includedProjects]} />
             </FieldContent>
           </Field>
 
           <Field>
-            <FieldLabel htmlFor="billing-plan-overage">Excedente por evento *</FieldLabel>
+            <FieldLabel htmlFor="billing-plan-whatsapp">WhatsApp/projeto *</FieldLabel>
             <FieldContent>
-              <Input
-                id="billing-plan-overage"
-                type="number"
-                step="0.01"
-                min="0"
-                {...register('overagePricePerEvent', { valueAsNumber: true })}
-              />
-              <FieldError errors={[errors.overagePricePerEvent]} />
+              <Input id="billing-plan-whatsapp" type="number" min="0" {...register('includedWhatsAppPerProject', { valueAsNumber: true })} />
+              <FieldError errors={[errors.includedWhatsAppPerProject]} />
             </FieldContent>
           </Field>
 
           <Field>
-            <FieldLabel htmlFor="billing-plan-whatsapp">WhatsApps *</FieldLabel>
+            <FieldLabel htmlFor="billing-plan-meta">Meta Ads/projeto *</FieldLabel>
             <FieldContent>
-              <Input
-                id="billing-plan-whatsapp"
-                type="number"
-                min="0"
-                {...register('maxWhatsAppNumbers', { valueAsNumber: true })}
-              />
-              <FieldError errors={[errors.maxWhatsAppNumbers]} />
+              <Input id="billing-plan-meta" type="number" min="0" {...register('includedMetaAdAccountsPerProject', { valueAsNumber: true })} />
+              <FieldError errors={[errors.includedMetaAdAccountsPerProject]} />
             </FieldContent>
           </Field>
 
           <Field>
-            <FieldLabel htmlFor="billing-plan-ads">Contas Meta *</FieldLabel>
+            <FieldLabel htmlFor="billing-plan-conversions">Conversões/projeto *</FieldLabel>
             <FieldContent>
-              <Input
-                id="billing-plan-ads"
-                type="number"
-                min="0"
-                {...register('maxAdAccounts', { valueAsNumber: true })}
-              />
-              <FieldError errors={[errors.maxAdAccounts]} />
+              <Input id="billing-plan-conversions" type="number" min="0" {...register('includedConversionsPerProject', { valueAsNumber: true })} />
+              <FieldError errors={[errors.includedConversionsPerProject]} />
+            </FieldContent>
+          </Field>
+
+          <Field>
+            <FieldLabel htmlFor="billing-plan-ai">Créditos IA/projeto *</FieldLabel>
+            <FieldContent>
+              <Input id="billing-plan-ai" type="number" min="0" {...register('includedAiCreditsPerProject', { valueAsNumber: true })} />
+              <FieldError errors={[errors.includedAiCreditsPerProject]} />
             </FieldContent>
           </Field>
         </FieldGroup>
 
-        <FieldGroup className="grid gap-4 lg:grid-cols-2">
-          <Field>
-            <FieldLabel htmlFor="billing-plan-team">Membros da equipe *</FieldLabel>
-            <FieldContent>
-              <Input
-                id="billing-plan-team"
-                type="number"
-                min="1"
-                {...register('maxTeamMembers', { valueAsNumber: true })}
-              />
-              <FieldError errors={[errors.maxTeamMembers]} />
-            </FieldContent>
-          </Field>
-
-          <Field>
-            <FieldLabel>Nível de suporte *</FieldLabel>
-            <FieldContent>
-              <Controller
-                control={control}
-                name="supportLevel"
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {billingPlanSupportLevels.map((level) => (
-                        <SelectItem key={level} value={level}>
-                          {level}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              <FieldError errors={[errors.supportLevel]} />
-            </FieldContent>
-          </Field>
-        </FieldGroup>
+        <Field>
+          <FieldLabel>Nível de suporte *</FieldLabel>
+          <FieldContent>
+            <Controller
+              control={control}
+              name="supportLevel"
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {billingPlanSupportLevels.map((level) => (
+                      <SelectItem key={level} value={level}>
+                        {level}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            <FieldError errors={[errors.supportLevel]} />
+          </FieldContent>
+        </Field>
 
         <FieldGroup className="grid gap-4 lg:grid-cols-2">
           <Field>
             <FieldLabel htmlFor="billing-plan-subtitle">Subtítulo</FieldLabel>
             <FieldContent>
-              <Input
-                id="billing-plan-subtitle"
-                placeholder="Até 200 eventos / mês"
-                {...register('subtitle')}
-              />
-              <FieldError errors={[errors.subtitle]} />
+              <Input id="billing-plan-subtitle" {...register('subtitle')} />
             </FieldContent>
           </Field>
 
           <Field>
             <FieldLabel htmlFor="billing-plan-cta">CTA</FieldLabel>
             <FieldContent>
-              <Input id="billing-plan-cta" placeholder="Testar grátis por 14 dias" {...register('cta')} />
-              <FieldError errors={[errors.cta]} />
+              <Input id="billing-plan-cta" {...register('cta')} />
             </FieldContent>
           </Field>
         </FieldGroup>
@@ -376,88 +370,67 @@ export function BillingPlanFormDialog({
           <Field>
             <FieldLabel htmlFor="billing-plan-features">Features</FieldLabel>
             <FieldContent>
-              <Textarea
-                id="billing-plan-features"
-                rows={8}
-                placeholder={'Um item por linha\n1 número de WhatsApp\n1 conta Meta Ads'}
-                {...register('featuresText')}
-              />
-              <FieldDescription>Uma linha por benefício exibido na UI.</FieldDescription>
+              <Textarea id="billing-plan-features" rows={7} {...register('featuresText')} />
             </FieldContent>
           </Field>
-
           <Field>
             <FieldLabel htmlFor="billing-plan-additionals">Adicionais</FieldLabel>
             <FieldContent>
-              <Textarea
-                id="billing-plan-additionals"
-                rows={8}
-                placeholder={'Uma linha por adicional\nR$ 0,25 por evento extra'}
-                {...register('additionalsText')}
-              />
-              <FieldDescription>Use para observações comerciais e extras.</FieldDescription>
+              <Textarea id="billing-plan-additionals" rows={7} {...register('additionalsText')} />
             </FieldContent>
           </Field>
         </FieldGroup>
 
-        <div className="grid gap-3 rounded-2xl border border-border p-4 md:grid-cols-2">
-          <div className="flex items-center justify-between rounded-xl border border-border p-3">
-            <div>
-              <Label className="text-sm font-medium">Plano ativo</Label>
-              <p className="text-muted-foreground text-xs">Disponível para novas contratações.</p>
-            </div>
-            <Controller
-              control={control}
-              name="isActive"
-              render={({ field }) => (
-                <Switch checked={field.value} onCheckedChange={field.onChange} />
-              )}
-            />
-          </div>
-
-          <div className="flex items-center justify-between rounded-xl border border-border p-3">
-            <div>
-              <Label className="text-sm font-medium">Plano em destaque</Label>
-              <p className="text-muted-foreground text-xs">Recebe destaque visual na UI.</p>
-            </div>
-            <Controller
-              control={control}
-              name="isHighlighted"
-              render={({ field }) => (
-                <Switch checked={field.value} onCheckedChange={field.onChange} />
-              )}
-            />
-          </div>
-
-          <div className="rounded-xl border border-border p-3 md:col-span-2">
-            <div className="flex items-start justify-between gap-3">
+        <FieldGroup className="grid gap-6 lg:grid-cols-3">
+          <Field>
+            <FieldContent className="flex items-center justify-between rounded-lg border border-border p-4">
               <div>
-                <Label className="text-sm font-medium">Contato comercial</Label>
-                <p className="text-muted-foreground mt-1 text-xs">
-                  Use quando o plano não deve ir para self-serve no checkout.
-                </p>
+                <FieldLabel className="text-sm font-medium">Plano ativo</FieldLabel>
+                <FieldDescription>Disponível para contratação.</FieldDescription>
               </div>
+              <Controller
+                control={control}
+                name="isActive"
+                render={({ field }) => <Switch checked={field.value} onCheckedChange={field.onChange} />}
+              />
+            </FieldContent>
+          </Field>
 
+          <Field>
+            <FieldContent className="flex items-center justify-between rounded-lg border border-border p-4">
+              <div>
+                <FieldLabel className="text-sm font-medium">Destaque</FieldLabel>
+                <FieldDescription>Destacar no catálogo.</FieldDescription>
+              </div>
+              <Controller
+                control={control}
+                name="isHighlighted"
+                render={({ field }) => <Switch checked={field.value} onCheckedChange={field.onChange} />}
+              />
+            </FieldContent>
+          </Field>
+
+          <Field>
+            <FieldContent className="flex items-center justify-between rounded-lg border border-border p-4">
+              <div>
+                <FieldLabel className="text-sm font-medium">Sob consulta</FieldLabel>
+                <FieldDescription>Fluxo comercial manual.</FieldDescription>
+              </div>
               <Controller
                 control={control}
                 name="contactSalesOnly"
-                render={({ field }) => (
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={(checked) => field.onChange(Boolean(checked))}
-                  />
-                )}
+                render={({ field }) => <Switch checked={field.value} onCheckedChange={field.onChange} />}
               />
-            </div>
-          </div>
-        </div>
+            </FieldContent>
+          </Field>
+        </FieldGroup>
 
-        <div className="flex justify-end gap-2 pt-2">
+        <div className="flex items-center justify-end gap-3 border-t border-border pt-6">
           <Button type="button" variant="outline" onClick={close} disabled={isSubmitting}>
             Cancelar
           </Button>
           <Button type="submit" disabled={isSubmitting}>
-            {isEditMode ? 'Salvar alterações' : 'Criar plano'}
+            {isSubmitting ? 'Salvando...' : isEditMode ? 'Salvar alterações' : 'Criar plano'}
           </Button>
         </div>
       </form>

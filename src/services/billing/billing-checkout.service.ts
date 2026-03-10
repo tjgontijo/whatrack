@@ -101,8 +101,8 @@ export async function createCheckoutSession(
 interface CheckoutCustomerContext {
   userEmail: string
   userName: string
-  userPhone: string
-  userTaxId: string
+  userPhone?: string
+  userTaxId?: string
   isPerson: boolean
 }
 
@@ -141,20 +141,11 @@ async function resolveCheckoutCustomerContext(
     throw new BillingCheckoutError('User email and name are required for checkout', 400)
   }
 
-  if (!user.phone) {
-    throw new BillingCheckoutError('User phone is required for checkout', 400)
-  }
-
-  const taxId = orgProfile?.cpf || orgCompany?.cnpj
-  if (!taxId) {
-    throw new BillingCheckoutError('Organization tax ID (CPF or CNPJ) is required for checkout', 400)
-  }
-
   return {
     userEmail: user.email,
     userName: user.name,
-    userPhone: user.phone,
-    userTaxId: taxId,
+    userPhone: user.phone ?? undefined,
+    userTaxId: orgProfile?.cpf || orgCompany?.cnpj || undefined,
     isPerson: Boolean(orgProfile?.cpf),
   }
 }

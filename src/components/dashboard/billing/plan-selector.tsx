@@ -26,6 +26,7 @@ export function PlanSelector({
   showHeader = true,
 }: PlanSelectorProps) {
   const { data: org } = useOrganization()
+  const basePlans = plans.filter((plan) => plan.kind === 'base')
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
   const [state, setState] = useState<CheckoutState>('idle')
 
@@ -78,7 +79,7 @@ export function PlanSelector({
 
       {/* Cards de plano */}
       <div className="grid gap-3 sm:grid-cols-3">
-        {plans.map((plan, index) => {
+        {basePlans.map((plan, index) => {
           const isLoadingThis = state === 'loading' && selectedPlan === plan.id
           const isErrorThis = state === 'error' && selectedPlan === plan.id
 
@@ -134,11 +135,9 @@ export function PlanSelector({
                           /mês
                         </span>
                       </div>
-                      {plan.overagePricePerEvent > 0 && (
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          + R$ {plan.overagePricePerEvent.toFixed(2)} por evento extra
-                        </p>
-                      )}
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Inclui {plan.includedProjects} cliente(s) ativo(s)
+                      </p>
                     </>
                   ) : (
                     <div className="text-lg font-semibold text-primary">

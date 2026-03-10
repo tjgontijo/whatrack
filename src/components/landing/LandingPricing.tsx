@@ -57,6 +57,7 @@ function CheckoutButton({ plan, variant }: CheckoutButtonProps) {
 }
 
 export function LandingPricing({ variant = 'generic', plans }: LandingPricingProps) {
+  const displayPlans = plans.filter((plan) => plan.kind === 'base')
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-100px' })
 
@@ -140,8 +141,8 @@ export function LandingPricing({ variant = 'generic', plans }: LandingPricingPro
         </motion.div>
 
         {/* Pricing cards */}
-        <div className="grid gap-8 lg:grid-cols-3">
-          {plans.map((plan, i) => (
+        <div className="grid gap-8 lg:grid-cols-1">
+          {displayPlans.map((plan, i) => (
             <motion.div
               key={plan.name}
               initial={{ opacity: 0, y: 40 }}
@@ -203,12 +204,9 @@ export function LandingPricing({ variant = 'generic', plans }: LandingPricingPro
                         <span className="text-lg text-zinc-400">/mês</span>
                       </div>
 
-                      {/* Overage pricing */}
-                      {plan.overagePricePerEvent > 0 && (
-                        <div className="mt-3 text-sm text-zinc-400">
-                          <span>R$ {plan.overagePricePerEvent.toFixed(2)} por evento extra</span>
-                        </div>
-                      )}
+                      <div className="mt-3 text-sm text-zinc-400">
+                        <span>{plan.includedProjects} clientes ativos incluídos</span>
+                      </div>
                     </>
                   )}
                 </div>

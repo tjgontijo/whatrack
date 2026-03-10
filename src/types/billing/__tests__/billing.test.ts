@@ -11,14 +11,19 @@ import {
 
 describe('billing type contract', () => {
   it('defines the supported plan catalogs for launch', () => {
-    expect(BILLING_PLAN_TYPES).toEqual(['starter', 'pro', 'agency'])
-    expect(SELF_SERVE_PLAN_TYPES).toEqual(['starter', 'pro'])
+    expect(BILLING_PLAN_TYPES).toEqual([
+      'platform_base',
+      'additional_project',
+      'additional_whatsapp_number',
+      'additional_meta_ad_account',
+    ])
+    expect(SELF_SERVE_PLAN_TYPES).toEqual(['platform_base'])
   })
 
   it('accepts known plans and rejects unsupported checkout plans', () => {
-    expect(isPlanType('agency')).toBe(true)
-    expect(isSelfServePlanType('starter')).toBe(true)
-    expect(isSelfServePlanType('agency')).toBe(false)
+    expect(isPlanType('additional_project')).toBe(true)
+    expect(isSelfServePlanType('platform_base')).toBe(true)
+    expect(isSelfServePlanType('additional_project')).toBe(false)
     expect(isPlanType('enterprise')).toBe(false)
   })
 })
