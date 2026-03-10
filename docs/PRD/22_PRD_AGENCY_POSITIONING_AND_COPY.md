@@ -4,6 +4,8 @@
 
 Proposto. Este documento define o reposicionamento de copy do WhaTrack para o ICP de agencias e gestores de trafego.
 
+**Dependencia:** PRD 21 (modelo de pricing por projeto) deve estar fechado. A copy reflete o modelo comercial definido la.
+
 ## Objetivo
 
 Alinhar a comunicacao do produto, da landing e do onboarding ao ICP correto:
@@ -148,6 +150,8 @@ Arquivos-alvo provaveis:
 - `src/components/landing/LandingCTA.tsx`
 - `src/components/landing/LandingHeader.tsx`
 - paginas em `src/app/(public)/solucoes/*`
+- `src/app/layout.tsx` (meta tags, title, OG tags)
+- `src/app/(public)/page.tsx` ou equivalente (meta tags da landing)
 
 ### Auth e onboarding
 
@@ -289,14 +293,15 @@ A copy de pricing e billing deve deixar claro:
 - o que e cobrado como add-on operacional
 - que creditos e conversoes pertencem ao projeto, nao ao numero extra
 
-## Critérios de Aceite
+## Criterios de Aceite
 
 - landing principal fala claramente com agencias/gestores de trafego
 - copy principal fala de atribuicao, ROI e prova de resultado
 - auth e onboarding deixam claro que a conta e da agencia
 - o primeiro cliente aparece como projeto no discurso do produto
 - nao restam referencias ativas ao posicionamento B2C generico
-- nao restam referencias ativas ao billing antigo (`Starter`, `Pro`, `Agency`, `7 dias`) se o PRD 21 for adotado
+- nao restam referencias ativas ao billing antigo (`Starter`, `Pro`, `Agency`, `7 dias`)
+- meta tags (title, description, OG tags) refletem posicionamento de agencia
 
 ## Fora de Escopo
 
@@ -305,7 +310,7 @@ A copy de pricing e billing deve deixar claro:
 - manifesto de marca
 - funil de email detalhado
 
-## Ordem de Execução Recomendada
+## Ordem de Execucao Recomendada
 
 1. Ajustar `types.ts` da landing
 2. Ajustar hero, CTA e pricing
