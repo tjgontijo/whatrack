@@ -123,6 +123,7 @@ export interface PaymentProvider {
     userPhone?: string
     userTaxId?: string
     isPerson?: boolean
+    skipTrial?: boolean
   }): Promise<CheckoutSession>
 
   /**

@@ -46,9 +46,10 @@ export class StripeProvider implements PaymentProvider {
     userPhone?: string
     userTaxId?: string
     isPerson?: boolean
+    skipTrial?: boolean
   }): Promise<CheckoutSession> {
     try {
-      const { organizationId, planType, successUrl, userEmail } = params
+      const { organizationId, planType, successUrl, userEmail, skipTrial } = params
       const plan = await requireCheckoutReadyBillingPlan(planType)
       const presentation = buildBillingPlanPresentation(plan)
 
@@ -74,7 +75,7 @@ export class StripeProvider implements PaymentProvider {
             organizationId,
             planType,
           },
-          ...(presentation.trialDays > 0
+          ...(!skipTrial && presentation.trialDays > 0
             ? {
                 trial_period_days: presentation.trialDays,
               }

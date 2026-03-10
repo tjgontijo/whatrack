@@ -54,6 +54,8 @@ export function AccountBillingCard({
   }
 
   const planName = formatPlanLabel(subscription.planName, subscription.planType)
+  const trialActive =
+    subscription.trialEndsAt != null && new Date(subscription.trialEndsAt).getTime() > Date.now()
 
   return (
     <Card>
@@ -77,7 +79,7 @@ export function AccountBillingCard({
               Status
             </p>
             <p className="mt-1 text-lg font-semibold text-foreground">
-              {getBillingStatusLabel(subscription.status)}
+              {trialActive ? 'Teste grátis ativo' : getBillingStatusLabel(subscription.status)}
             </p>
           </div>
 

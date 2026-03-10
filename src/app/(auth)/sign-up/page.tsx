@@ -15,7 +15,11 @@ import { authClient } from '@/lib/auth/auth-client'
 import { signUpSchema, type SignUpData } from '@/schemas/auth/sign-up'
 import { getAuthErrorMessage } from '@/lib/auth/error-messages'
 import { acceptOrganizationInvitation, buildInvitationQuery } from '@/lib/auth/invitation-client'
-import { resolveInternalPath } from '@/lib/utils/internal-path'
+import {
+  buildFunnelQueryString,
+  readFunnelIntent,
+  resolvePostAuthPath,
+} from '@/lib/funnel/funnel-intent'
 
 type SignUpErrorShape = {
   code?: string
@@ -39,11 +43,10 @@ export default function SignUpPage() {
   const searchParams = useSearchParams()
   const invitationId = searchParams.get('invitationId')
   const nextParam = searchParams.get('next')
-  const invitationQuery = useMemo(
-    () => buildInvitationQuery(invitationId, nextParam),
-    [invitationId, nextParam]
-  )
-  const nextPath = resolveInternalPath(nextParam, '/dashboard')
+  const funnelIntent = readFunnelIntent(searchParams)
+  const invitationQuery = useMemo(() => buildInvitationQuery(invitationId, nextParam), [invitationId, nextParam])
+  const funnelQuery = useMemo(() => buildFunnelQueryString(funnelIntent), [funnelIntent])
+  const nextPath = resolvePostAuthPath(nextParam, funnelIntent)
 
   const form = useForm<SignUpData>({
     resolver: zodResolver(signUpSchema),
@@ -110,7 +113,7 @@ export default function SignUpPage() {
       <div className="text-left">
         <h1 className="text-foreground text-3xl font-bold tracking-tight">Crie sua conta</h1>
         <p className="text-muted-foreground mt-2 text-sm font-medium">
-          Comece a rastrear seus leads em minutos
+          Comece seu teste grátis e configure o primeiro cliente da sua agência em minutos
         </p>
       </div>
 
@@ -213,7 +216,7 @@ export default function SignUpPage() {
       <div className="text-muted-foreground border-border/50 border-t pt-2 text-center text-sm lg:pt-4">
         Já tem uma conta?{' '}
         <Link
-          href={`/sign-in${invitationQuery}`}
+          href={`/sign-in${invitationQuery}${funnelQuery ? `${invitationQuery ? '&' : '?'}${funnelQuery.slice(1)}` : ''}`}
           className="text-foreground hover:text-primary font-bold tracking-wide transition-colors hover:underline"
         >
           Fazer login

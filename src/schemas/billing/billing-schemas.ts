@@ -34,6 +34,7 @@ export const subscriptionResponseSchema = z.object({
   billingCycleStartDate: z.string().datetime(),
   billingCycleEndDate: z.string().datetime(),
   nextResetDate: z.string().datetime(),
+  trialEndsAt: z.string().datetime().nullable().optional(),
   eventLimitPerMonth: z.number(),
   eventsUsedInCurrentCycle: z.number(),
   createdAt: z.string().datetime(),

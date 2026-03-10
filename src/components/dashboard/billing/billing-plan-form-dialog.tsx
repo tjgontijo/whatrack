@@ -366,7 +366,7 @@ export function BillingPlanFormDialog({
           <Field>
             <FieldLabel htmlFor="billing-plan-cta">CTA</FieldLabel>
             <FieldContent>
-              <Input id="billing-plan-cta" placeholder="Testar grátis por 7 dias" {...register('cta')} />
+              <Input id="billing-plan-cta" placeholder="Testar grátis por 14 dias" {...register('cta')} />
               <FieldError errors={[errors.cta]} />
             </FieldContent>
           </Field>

@@ -15,7 +15,11 @@ import { Button } from '@/components/ui/button'
 import { authClient } from '@/lib/auth/auth-client'
 import { getAuthErrorMessage } from '@/lib/auth/error-messages'
 import { acceptOrganizationInvitation, buildInvitationQuery } from '@/lib/auth/invitation-client'
-import { resolveInternalPath } from '@/lib/utils/internal-path'
+import {
+  buildFunnelQueryString,
+  readFunnelIntent,
+  resolvePostAuthPath,
+} from '@/lib/funnel/funnel-intent'
 
 const loginSchema = z.object({
   email: z.string().trim().min(1, 'Informe o seu email.').email('Email inválido.'),
@@ -27,16 +31,33 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>
 
+type LoginErrorShape = {
+  code?: string
+  message?: string
+}
+
+function normalizeLoginError(error: unknown): LoginErrorShape {
+  if (!error || typeof error !== 'object') {
+    return {}
+  }
+
+  const candidate = error as { code?: unknown; message?: unknown }
+
+  return {
+    code: typeof candidate.code === 'string' ? candidate.code : undefined,
+    message: typeof candidate.message === 'string' ? candidate.message : undefined,
+  }
+}
+
 export default function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const invitationId = searchParams.get('invitationId')
   const nextParam = searchParams.get('next')
-  const invitationQuery = useMemo(
-    () => buildInvitationQuery(invitationId, nextParam),
-    [invitationId, nextParam]
-  )
-  const nextPath = resolveInternalPath(nextParam, '/dashboard')
+  const funnelIntent = readFunnelIntent(searchParams)
+  const invitationQuery = useMemo(() => buildInvitationQuery(invitationId, nextParam), [invitationId, nextParam])
+  const funnelQuery = useMemo(() => buildFunnelQueryString(funnelIntent), [funnelIntent])
+  const nextPath = resolvePostAuthPath(nextParam, funnelIntent)
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -54,9 +75,10 @@ export default function LoginPage() {
       })
 
       if (error) {
+        const normalizedError = normalizeLoginError(error)
         const errorMessage = getAuthErrorMessage(
-          (error as any)?.code,
-          (error as any)?.message || 'Não foi possível acessar sua conta.'
+          normalizedError.code,
+          normalizedError.message || 'Não foi possível acessar sua conta.'
         )
         toast.error(errorMessage)
         return
@@ -160,7 +182,7 @@ export default function LoginPage() {
       <div className="text-muted-foreground pt-4 text-center text-sm">
         Não tem uma conta?{' '}
         <Link
-          href={`/sign-up${invitationQuery}`}
+          href={`/sign-up${invitationQuery}${funnelQuery ? `${invitationQuery ? '&' : '?'}${funnelQuery.slice(1)}` : ''}`}
           className="text-foreground hover:text-primary font-bold tracking-wide transition-colors hover:underline"
         >
           Criar conta gratuita

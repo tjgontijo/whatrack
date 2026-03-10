@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { appendFunnelIntent } from '@/lib/funnel/funnel-intent'
 import { ArrowRight, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { LandingContent } from './types'
@@ -79,7 +80,7 @@ export function LandingHero({ content }: LandingHeroProps) {
               className="group h-14 bg-gradient-to-r from-emerald-500 to-emerald-600 px-8 text-base font-semibold text-white shadow-lg shadow-emerald-500/25 transition-all hover:shadow-xl hover:shadow-emerald-500/40"
               asChild
             >
-              <Link href="/sign-up">
+              <Link href={appendFunnelIntent('/sign-up', { intent: 'start-trial', source: 'hero' })}>
                 {content.ctaPrimary}
                 <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
               </Link>

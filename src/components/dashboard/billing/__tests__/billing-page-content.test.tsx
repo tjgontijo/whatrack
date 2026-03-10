@@ -49,4 +49,25 @@ describe('BillingPageContent', () => {
     expect(screen.getByText('billing-status')).toBeInTheDocument()
     expect(screen.getByText('usage-progress')).toBeInTheDocument()
   })
+
+  it('keeps plan selection visible while the local trial is active', () => {
+    useOrganizationMock.mockReturnValue({
+      data: { id: 'org-1' },
+      isLoading: false,
+    })
+    useBillingSubscriptionMock.mockReturnValue({
+      subscription: {
+        id: 'sub-1',
+        trialEndsAt: '2099-03-31T00:00:00.000Z',
+        providerSubscriptionId: null,
+      },
+      isLoading: false,
+    })
+
+    render(<BillingPageContent availablePlans={[]} />)
+
+    expect(screen.getByText('billing-status')).toBeInTheDocument()
+    expect(screen.getByText('usage-progress')).toBeInTheDocument()
+    expect(screen.getByText('plan-selector')).toBeInTheDocument()
+  })
 })

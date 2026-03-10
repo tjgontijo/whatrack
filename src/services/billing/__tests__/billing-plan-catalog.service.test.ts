@@ -42,8 +42,8 @@ describe('billing-plan-catalog.service', () => {
         contactSalesOnly: false,
         displayOrder: 0,
         metadata: {
-          trialDays: 7,
-          cta: 'Testar grátis por 7 dias',
+          trialDays: 14,
+          cta: 'Testar grátis por 14 dias',
           features: ['200 eventos/mês'],
         },
         deletedAt: null,
@@ -56,8 +56,8 @@ describe('billing-plan-catalog.service', () => {
 
     expect(result[0]).toMatchObject({
       slug: 'starter',
-      trialDays: 7,
-      cta: 'Testar grátis por 7 dias',
+      trialDays: 14,
+      cta: 'Testar grátis por 14 dias',
       features: ['200 eventos/mês'],
     })
   })

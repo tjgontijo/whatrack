@@ -45,4 +45,30 @@ describe('AccountBillingCard', () => {
     )
     expect(screen.queryByText('Escolha um plano para seguir com a configuração.')).not.toBeInTheDocument()
   })
+
+  it('shows local trial status when the organization is in the free trial window', () => {
+    render(
+      <AccountBillingCard
+        subscription={{
+          id: 'sub-1',
+          organizationId: 'org-1',
+          planType: 'starter',
+          status: 'active',
+          canceledAtPeriodEnd: false,
+          billingCycleStartDate: '2026-03-01T00:00:00.000Z',
+          billingCycleEndDate: '2026-03-31T00:00:00.000Z',
+          nextResetDate: '2026-03-31T00:00:00.000Z',
+          trialEndsAt: '2099-03-31T00:00:00.000Z',
+          eventLimitPerMonth: 200,
+          eventsUsedInCurrentCycle: 0,
+          createdAt: '2026-03-01T00:00:00.000Z',
+          canceledAt: null,
+          provider: 'stripe',
+          providerSubscriptionId: null,
+        }}
+      />,
+    )
+
+    expect(screen.getByText('Teste grátis ativo')).toBeInTheDocument()
+  })
 })

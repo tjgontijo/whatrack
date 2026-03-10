@@ -63,6 +63,12 @@ export async function createCheckoutSession(
 
   try {
     const provider = providerRegistry.getActive()
+    const existingSubscription = await prisma.billingSubscription.findUnique({
+      where: { organizationId: params.organizationId },
+      select: {
+        id: true,
+      },
+    })
 
     const session = await provider.createCheckoutSession({
       organizationId: params.organizationId,
@@ -74,6 +80,7 @@ export async function createCheckoutSession(
       userPhone: customerContext.userPhone,
       userTaxId: customerContext.userTaxId,
       isPerson: customerContext.isPerson,
+      skipTrial: Boolean(existingSubscription),
     })
 
     logger.info(

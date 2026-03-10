@@ -15,7 +15,7 @@ import { listPublicBillingPlans } from '@/services/billing/billing-plan-catalog.
 export const metadata: Metadata = {
   title: 'WhaTrack para Lançadores | ROI em tempo real no seu lançamento',
   description:
-    'Rastreie do clique no anúncio até o fechamento no WhatsApp. Veja o ROI durante o carrinho aberto. Teste grátis por 7 dias.',
+    'Rastreie do clique no anúncio até o fechamento no WhatsApp. Veja o ROI durante o carrinho aberto. Teste grátis por 14 dias.',
   openGraph: {
     title: 'WhaTrack para Lançadores | ROI em tempo real no seu lançamento',
     description:

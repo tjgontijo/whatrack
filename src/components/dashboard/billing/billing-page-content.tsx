@@ -14,6 +14,9 @@ interface BillingPageContentProps {
 export function BillingPageContent({ availablePlans }: BillingPageContentProps) {
   const { data: org, isLoading: orgLoading } = useOrganization()
   const { subscription, isLoading } = useBillingSubscription()
+  const trialActive =
+    subscription?.trialEndsAt != null && new Date(subscription.trialEndsAt).getTime() > Date.now()
+  const localTrial = Boolean(subscription && trialActive && !subscription.providerSubscriptionId)
 
   if (orgLoading || isLoading) {
     return null // Skeleton exibido pelo Suspense
@@ -35,11 +38,11 @@ export function BillingPageContent({ availablePlans }: BillingPageContentProps) 
     return <PlanSelector plans={availablePlans} />
   }
 
-  // Se tem subscription, mostrar status + uso
   return (
     <div className="space-y-6" data-testid="billing-page-content">
       <BillingStatus />
       <UsageProgress />
+      {localTrial ? <PlanSelector plans={availablePlans} /> : null}
     </div>
   )
 }

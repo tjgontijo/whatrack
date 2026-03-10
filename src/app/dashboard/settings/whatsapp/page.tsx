@@ -10,8 +10,6 @@ import { whatsappApi } from '@/lib/whatsapp/client'
 import { useWhatsAppOnboarding } from '@/hooks/whatsapp/use-whatsapp-onboarding'
 import { InstanceCard } from '@/components/dashboard/whatsapp/instance-card'
 import { EmbeddedSignupButton } from '@/components/dashboard/whatsapp/embedded-signup-button'
-import { OrganizationIdentityDrawer } from '@/components/dashboard/organization/organization-identity-drawer'
-import { INTEGRATION_IDENTITY_REQUIRED_MESSAGE } from '@/lib/constants/http-headers'
 import type { WhatsAppPhoneNumber } from '@/types/whatsapp/whatsapp'
 
 import { useOrganization } from '@/hooks/organization/use-organization'
@@ -23,8 +21,7 @@ export default function WhatsAppSettingsPage() {
   const orgId = org?.id
 
   const hasOrganization = completionQuery.data?.hasOrganization ?? false
-  const identityComplete = completionQuery.data?.identityComplete ?? false
-  const canLoadInstances = completionQuery.isSuccess && hasOrganization && identityComplete && !!orgId
+  const canLoadInstances = completionQuery.isSuccess && hasOrganization && !!orgId
 
   const {
     data: phoneNumbers,
@@ -55,9 +52,7 @@ export default function WhatsAppSettingsPage() {
 
   const rawErrorMessage = error instanceof Error ? error.message : ''
   const unauthorizedError = /unauthorized|não autenticado|acesso negado/i.test(rawErrorMessage)
-  const errorMessage = unauthorizedError
-    ? INTEGRATION_IDENTITY_REQUIRED_MESSAGE
-    : rawErrorMessage || 'Houve um problema ao conectar com a API da Meta.'
+  const errorMessage = rawErrorMessage || 'Houve um problema ao conectar com a API da Meta.'
 
   return (
     <TemplateMainShell className="flex h-[calc(100vh-2rem)] flex-col">
@@ -129,7 +124,7 @@ export default function WhatsAppSettingsPage() {
               Tentar novamente
             </Button>
           </div>
-        ) : !hasOrganization || !identityComplete ? (
+        ) : !hasOrganization ? (
           <div className="mx-auto flex h-full w-full max-w-3xl flex-col items-center justify-center gap-5 py-12">
             <div className="w-full rounded-lg border border-amber-300 bg-amber-50 px-5 py-4">
               <div className="flex items-start gap-3">
@@ -139,22 +134,11 @@ export default function WhatsAppSettingsPage() {
                     Cadastro da organização pendente
                   </h3>
                   <p className="text-sm text-amber-800/90">
-                    Para conectar instâncias do WhatsApp, finalize os dados da organização (PF/PJ +
-                    documento).
+                    Crie sua organização e o primeiro projeto para começar a conectar instâncias do WhatsApp.
                   </p>
                 </div>
               </div>
             </div>
-
-            <OrganizationIdentityDrawer
-              hasOrganization={hasOrganization}
-              onCompleted={handleRefresh}
-              trigger={
-                <Button size="sm" className="h-9 gap-2 font-semibold">
-                  Concluir cadastro da organização
-                </Button>
-              }
-            />
           </div>
         ) : isLoading ? (
           <div className="flex h-64 flex-col items-center justify-center gap-3">
@@ -174,17 +158,6 @@ export default function WhatsAppSettingsPage() {
               <Button onClick={() => refetch()} variant="outline" size="sm">
                 Tentar novamente
               </Button>
-              {(unauthorizedError || !identityComplete || !hasOrganization) && (
-                <OrganizationIdentityDrawer
-                  hasOrganization={hasOrganization}
-                  onCompleted={handleRefresh}
-                  trigger={
-                    <Button size="sm" variant="secondary">
-                      Concluir dados da organização
-                    </Button>
-                  }
-                />
-              )}
             </div>
           </div>
         ) : !phoneNumbers || phoneNumbers.length === 0 ? (

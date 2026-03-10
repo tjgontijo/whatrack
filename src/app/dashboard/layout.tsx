@@ -7,7 +7,6 @@ import { DashboardContent } from '@/components/dashboard/layout/dashboard-conten
 import { DashboardHeader } from '@/components/dashboard/layout/header'
 import { HeaderActionsProvider } from '@/components/dashboard/layout/header-actions'
 import { OrganizationSelectorGate } from '@/components/dashboard/organization/organization-selector'
-import { OnboardingDialog } from '@/components/dashboard/organization/onboarding-dialog'
 import { ProjectContextGate } from '@/components/dashboard/projects/project-context-gate'
 import { DashboardSidebar } from '@/components/dashboard/sidebar/sidebar'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
@@ -74,6 +73,10 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     }
   }
 
+  if (!hasOrganization || (hasOrganization && projects.length === 0)) {
+    redirect('/welcome')
+  }
+
   return (
     <HeaderActionsProvider>
       <SidebarProvider>
@@ -99,7 +102,6 @@ export default async function DashboardLayout({ children }: { children: ReactNod
               </DashboardContent>
             </main>
 
-            <OnboardingDialog open={!hasOrganization} />
           </SidebarInset>
         </div>
 

@@ -27,8 +27,8 @@ describe('billing-plan-query.service', () => {
         description: 'Plano inicial',
         metadata: {
           subtitle: 'Até 200 eventos / mês',
-          cta: 'Testar grátis por 7 dias',
-          trialDays: 7,
+          cta: 'Testar grátis por 14 dias',
+          trialDays: 14,
           features: ['200 eventos/mês'],
           additionals: ['R$ 0,25 por evento extra'],
         },
@@ -77,7 +77,7 @@ describe('billing-plan-query.service', () => {
     expect(result.items[0]).toMatchObject({
       id: 'plan_1',
       slug: 'starter',
-      trialDays: 7,
+      trialDays: 14,
       subtitle: 'Até 200 eventos / mês',
       monthlyPrice: '97.00',
       overagePricePerEvent: '0.25',

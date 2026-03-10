@@ -12,7 +12,7 @@ import { prisma } from '@/lib/db/prisma'
 import { Prisma } from '@db/client'
 import type { SubscriptionStatus } from '@/types/billing/billing'
 import { isSubscriptionStatus } from '@/types/billing/billing'
-import { getBillingPlanBySlug } from './billing-plan-catalog.service'
+import { getBillingPlanBySlug, getDefaultTrialBillingPlan } from './billing-plan-catalog.service'
 
 const BILLING_CYCLE_DAYS = 30
 
@@ -56,6 +56,12 @@ export interface CreateSubscriptionParams {
   nextResetDate?: Date
   trialEndsAt?: Date | null
   canceledAtPeriodEnd?: boolean
+}
+
+export interface StartOrganizationTrialParams {
+  organizationId: string
+  planType?: string
+  trialDays?: number
 }
 
 /**
@@ -130,6 +136,67 @@ export async function createSubscription(
       data: subscriptionData,
     })
   }
+}
+
+export async function startOrganizationTrial(params: StartOrganizationTrialParams) {
+  const existing = await prisma.billingSubscription.findUnique({
+    where: { organizationId: params.organizationId },
+    select: {
+      id: true,
+      organizationId: true,
+      planType: true,
+      trialEndsAt: true,
+      providerSubscriptionId: true,
+      status: true,
+    },
+  })
+
+  if (existing) {
+    return existing
+  }
+
+  const plan = params.planType
+    ? await getBillingPlanBySlug(params.planType)
+    : await getDefaultTrialBillingPlan()
+
+  if (!plan) {
+    throw new Error('Billing plan not found for trial start')
+  }
+
+  const cycleStartDate = new Date()
+  const cycleEndDate = new Date(cycleStartDate)
+  cycleEndDate.setDate(cycleEndDate.getDate() + (params.trialDays ?? 14))
+
+  await prisma.billingSubscription.create({
+    data: {
+      organizationId: params.organizationId,
+      provider: 'stripe',
+      providerCustomerId: `trial_${params.organizationId}`,
+      providerSubscriptionId: null,
+      planType: plan.slug,
+      planId: plan.id,
+      eventLimitPerMonth: plan.eventLimitPerMonth,
+      overagePricePerEvent: new Prisma.Decimal(plan.overagePricePerEvent.toString()),
+      billingCycleStartDate: cycleStartDate,
+      billingCycleEndDate: cycleEndDate,
+      nextResetDate: cycleEndDate,
+      trialEndsAt: cycleEndDate,
+      status: 'active',
+      canceledAtPeriodEnd: false,
+    },
+  })
+
+  return prisma.billingSubscription.findUniqueOrThrow({
+    where: { organizationId: params.organizationId },
+    select: {
+      id: true,
+      organizationId: true,
+      planType: true,
+      trialEndsAt: true,
+      providerSubscriptionId: true,
+      status: true,
+    },
+  })
 }
 
 /**

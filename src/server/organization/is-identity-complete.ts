@@ -18,7 +18,8 @@ export type OrganizationIdentityStatus = {
 }
 
 export function requiresIdentityForIntegrationPath(pathname: string): boolean {
-  return pathname.startsWith('/api/v1/whatsapp') || pathname.startsWith('/api/v1/meta-ads')
+  void pathname
+  return false
 }
 
 export async function getOrganizationIdentityStatus(

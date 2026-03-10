@@ -1,23 +1,14 @@
 'use client'
 
-import { Check, Loader2, AlertCircle } from 'lucide-react'
+import { Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { LandingVariant } from './types'
 import { motion } from 'motion/react'
 import { useInView } from 'motion/react'
-import { useRef, useState } from 'react'
+import { useRef } from 'react'
 import { useSession } from '@/lib/auth/auth-client'
 import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
-import { useOrganization } from '@/hooks/organization/use-organization'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
+import { appendFunnelIntent } from '@/lib/funnel/funnel-intent'
 import type { PublicBillingPlan } from '@/schemas/billing/billing-plan-schemas'
 
 interface LandingPricingProps {
@@ -25,143 +16,43 @@ interface LandingPricingProps {
   plans: PublicBillingPlan[]
 }
 
-type CheckoutState = 'idle' | 'loading' | 'error'
-
 interface CheckoutButtonProps {
   plan: PublicBillingPlan
+  variant: LandingVariant
 }
 
-function CheckoutButton({ plan }: CheckoutButtonProps) {
-  const [state, setState] = useState<CheckoutState>('idle')
-  const [showAuthDialog, setShowAuthDialog] = useState(false)
+function CheckoutButton({ plan, variant }: CheckoutButtonProps) {
   const { data: session } = useSession()
-  const { data: org } = useOrganization()
   const router = useRouter()
 
   async function handleCheckout() {
-    // Não autenticado — mostrar diálogo de autenticação
-    if (!session?.user) {
-      setShowAuthDialog(true)
-      return
-    }
-
-    // Sem organização ativa
-    if (!org?.id) {
-      toast.error('Selecione uma organização antes de continuar')
-      return
-    }
-
-    // Agency plan — abrir contato
     if (plan.contactSalesOnly) {
       window.location.href = 'mailto:contato@whatrack.com?subject=Plano Agency - WhaTrack'
       return
     }
 
-    setState('loading')
-
-    try {
-      // Fazer requisição para criar checkout
-      const response = await fetch('/api/v1/billing/checkout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          [ORGANIZATION_HEADER]: org.id,
-        },
-        body: JSON.stringify({
-          planType: plan.slug,
-          redirectPath: '/dashboard/billing',
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error('Erro ao criar checkout')
-      }
-
-      const data = await response.json()
-
-      // Redirecionar para o checkout (AbacatePay irá redirecionar)
-      if (data.url) {
-        window.location.href = data.url
-      }
-    } catch (error) {
-      setState('error')
-      toast.error('Erro ao processar checkout. Tente novamente.')
-      setTimeout(() => setState('idle'), 3000)
-    }
+    const path = session?.user ? '/welcome' : '/sign-up'
+    router.push(
+      appendFunnelIntent(path, {
+        intent: 'start-trial',
+        segment: variant,
+        source: 'pricing',
+        campaign: plan.slug,
+      }),
+    )
   }
-
-  function handleSignIn() {
-    setShowAuthDialog(false)
-    router.push(`/sign-in?next=${encodeURIComponent('/dashboard/billing')}`)
-  }
-
-  function handleSignUp() {
-    setShowAuthDialog(false)
-    router.push(`/sign-up?next=${encodeURIComponent('/dashboard/billing')}`)
-  }
-
-  const isLoading = state === 'loading'
-  const isError = state === 'error'
 
   return (
-    <>
-      <Button
-        onClick={handleCheckout}
-        disabled={isLoading}
-        className={`h-12 w-full rounded-xl font-semibold transition-all ${plan.isHighlighted
-            ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/40 disabled:opacity-70'
-            : 'border border-zinc-700 bg-zinc-800 text-white hover:bg-zinc-700 disabled:opacity-70'
-          } ${isError ? 'ring-2 ring-red-500/50' : ''}`}
-      >
-        {isLoading ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Aguarde...
-          </>
-        ) : isError ? (
-          <>
-            <AlertCircle className="mr-2 h-4 w-4" />
-            Tentar novamente
-          </>
-        ) : (
-          plan.cta
-        )}
-      </Button>
-
-      <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
-        <DialogContent showCloseButton className="border-zinc-800 bg-zinc-900">
-          <DialogHeader>
-            <DialogTitle className="text-white">
-              Assinar plano {plan.name}
-            </DialogTitle>
-            <DialogDescription className="text-zinc-400">
-              Escolha como você deseja continuar
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-3">
-            <Button
-              onClick={handleSignIn}
-              variant="outline"
-              className="h-11 w-full border-zinc-700 bg-zinc-800 text-white hover:bg-zinc-700"
-            >
-              Entrar na minha conta
-            </Button>
-
-            <Button
-              onClick={handleSignUp}
-              className="h-11 w-full bg-gradient-to-r from-emerald-500 to-emerald-600 text-white hover:from-emerald-600 hover:to-emerald-700"
-            >
-              Criar uma conta
-            </Button>
-          </div>
-
-          <p className="text-center text-xs text-zinc-500">
-            Você será direcionado para selecionar seu plano após o login ou registro.
-          </p>
-        </DialogContent>
-      </Dialog>
-    </>
+    <Button
+      onClick={handleCheckout}
+      className={`h-12 w-full rounded-xl font-semibold transition-all ${
+        plan.isHighlighted
+          ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/40 disabled:opacity-70'
+          : 'border border-zinc-700 bg-zinc-800 text-white hover:bg-zinc-700 disabled:opacity-70'
+      }`}
+    >
+      {plan.contactSalesOnly ? plan.cta : 'Começar grátis'}
+    </Button>
   )
 }
 
@@ -173,19 +64,19 @@ export function LandingPricing({ variant = 'generic', plans }: LandingPricingPro
     generic: {
       title: 'Se paga na primeira venda que você consegue rastrear.',
       subtitle:
-        'Comece grátis por 7 dias. Veja o resultado antes de decidir. Sem fidelidade, cancele quando quiser.',
+        'Comece grátis por 14 dias. Veja o resultado antes de decidir. Sem fidelidade, cancele quando quiser.',
     },
     agencias: {
       title: 'Basic',
-      subtitle: 'Gerencie múltiplos clientes em um único painel. Teste grátis por 7 dias.',
+      subtitle: 'Gerencie múltiplos clientes em um único painel. Teste grátis por 14 dias.',
     },
     lancadores: {
       title: 'Business',
-      subtitle: 'ROI em tempo real durante o carrinho aberto. Teste grátis por 7 dias.',
+      subtitle: 'ROI em tempo real durante o carrinho aberto. Teste grátis por 14 dias.',
     },
     empresas: {
       title: 'Planos para sua empresa',
-      subtitle: 'Simples de usar, sem complicação. Teste grátis por 7 dias.',
+      subtitle: 'Simples de usar, sem complicação. Teste grátis por 14 dias.',
     },
   }
 
@@ -260,10 +151,11 @@ export function LandingPricing({ variant = 'generic', plans }: LandingPricingPro
                 duration: 0.8,
                 ease: [0.22, 1, 0.36, 1],
               }}
-              className={`group relative overflow-hidden rounded-3xl transition-all ${plan.isHighlighted
+              className={`group relative overflow-hidden rounded-3xl transition-all ${
+                plan.isHighlighted
                 ? 'bg-gradient-to-b from-emerald-950/50 to-zinc-900 ring-2 ring-emerald-500/50'
                 : 'bg-zinc-900/50 ring-1 ring-zinc-800 hover:ring-zinc-700'
-                }`}
+              }`}
             >
               {/* Glow effect for highlighted plan */}
               {plan.isHighlighted && (
@@ -323,7 +215,7 @@ export function LandingPricing({ variant = 'generic', plans }: LandingPricingPro
 
                 {/* CTA Button */}
                 <div className="mb-8">
-                  <CheckoutButton plan={plan} />
+                  <CheckoutButton plan={plan} variant={variant} />
                 </div>
 
                 {/* Features */}
@@ -342,14 +234,16 @@ export function LandingPricing({ variant = 'generic', plans }: LandingPricingPro
                       className="flex items-start gap-3"
                     >
                       <div
-                        className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full ${plan.isHighlighted
+                        className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full ${
+                          plan.isHighlighted
                           ? 'bg-emerald-500/20'
                           : 'bg-zinc-800'
-                          }`}
+                        }`}
                       >
                         <Check
-                          className={`h-3.5 w-3.5 ${plan.isHighlighted ? 'text-emerald-400' : 'text-zinc-400'
-                            }`}
+                          className={`h-3.5 w-3.5 ${
+                            plan.isHighlighted ? 'text-emerald-400' : 'text-zinc-400'
+                          }`}
                         />
                       </div>
                       <span className="text-sm leading-relaxed text-zinc-300">

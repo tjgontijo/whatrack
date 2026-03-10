@@ -31,6 +31,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       billingCycleStartDate: subscription.billingCycleStartDate.toISOString(),
       billingCycleEndDate: subscription.billingCycleEndDate.toISOString(),
       nextResetDate: subscription.nextResetDate.toISOString(),
+      trialEndsAt: subscription.trialEndsAt?.toISOString() ?? null,
       eventLimitPerMonth: subscription.eventLimitPerMonth,
       eventsUsedInCurrentCycle: subscription.eventsUsedInCurrentCycle,
       createdAt: subscription.createdAt.toISOString(),

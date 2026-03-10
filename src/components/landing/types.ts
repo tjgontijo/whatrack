@@ -66,7 +66,7 @@ export const LANDING_CONTENT: Record<LandingVariant, LandingContent> = {
       highlightedText: 'E sem esse dado, otimiza errado.',
       subheadline:
         'Entre o clique no anúncio e a venda na conversa existe um buraco. O WhaTrack conecta cada conversa à campanha que gerou o clique e envia eventos reais de Lead e Purchase via API de Conversão. O algoritmo para de aprender com curioso e começa a aprender com comprador.',
-      ctaPrimary: 'Testar grátis por 7 dias',
+      ctaPrimary: 'Testar grátis por 14 dias',
       ctaSecondary: 'Ver como funciona',
       highlights: [
         'API Oficial do WhatsApp',
@@ -181,9 +181,9 @@ export const LANDING_CONTENT: Record<LandingVariant, LandingContent> = {
       headline: 'Pare de anunciar no escuro.',
       subheadline:
         'Recupere o rastro das suas vendas e transforme o WhatsApp no seu canal de maior performance com dados reais via API.',
-      ctaPrimary: 'Testar grátis por 7 dias',
+      ctaPrimary: 'Testar grátis por 14 dias',
       ctaSecondary: 'Falar com o time',
-      microcopy: '7 dias grátis · Sem cartão · Setup em 5 minutos',
+      microcopy: '14 dias grátis · Sem cartão · Setup em 5 minutos',
     },
   },
 
@@ -308,7 +308,7 @@ export const LANDING_CONTENT: Record<LandingVariant, LandingContent> = {
     cta: {
       headline: 'Pare de perder clientes por falta de prova.',
       subheadline:
-        'Conecte a conta de um cliente agora e veja os dados aparecendo hoje. Se não funcionar em 7 dias, cancele sem pagar.',
+        'Conecte a conta de um cliente agora e veja os dados aparecendo hoje. Se não funcionar em 14 dias, cancele sem pagar.',
       ctaPrimary: 'Testar com meu cliente',
       ctaSecondary: 'Ver planos para agências',
       microcopy: 'Setup em 5 min · Sem cartão para testar · Múltiplos clientes no mesmo painel',
@@ -436,7 +436,7 @@ export const LANDING_CONTENT: Record<LandingVariant, LandingContent> = {
     cta: {
       headline: 'Seu próximo lançamento com ROI claro.',
       subheadline:
-        'Configure agora e tenha os dados prontos quando o carrinho abrir. Teste grátis por 7 dias.',
+        'Configure agora e tenha os dados prontos quando o carrinho abrir. Teste grátis por 14 dias.',
       ctaPrimary: 'Configurar para meu lançamento',
       ctaSecondary: 'Ver planos',
       microcopy: 'Setup em 5 min · Dados em tempo real · Cancela quando quiser',
@@ -564,7 +564,7 @@ export const LANDING_CONTENT: Record<LandingVariant, LandingContent> = {
     cta: {
       headline: 'Pare de gastar sem saber se funciona.',
       subheadline:
-        'Conecte agora e veja de onde vêm seus clientes. Teste grátis por 7 dias, sem compromisso.',
+        'Conecte agora e veja de onde vêm seus clientes. Teste grátis por 14 dias, sem compromisso.',
       ctaPrimary: 'Começar a ver meus clientes',
       ctaSecondary: 'Ver planos e preços',
       microcopy: 'Fácil de configurar · Sem compromisso · Cancela quando quiser',

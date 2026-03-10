@@ -44,7 +44,7 @@ export function useOrganizationCompletion() {
   const isModuleBlocked = (module: IntegrationModule) => {
     const payload = query.data
     if (!payload) return false
-    if (!payload.hasOrganization || !payload.identityComplete) return true
+    if (!payload.hasOrganization) return true
 
     return payload.blockedModules?.includes(module) ?? false
   }

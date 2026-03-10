@@ -86,13 +86,13 @@ export function buildBillingPlanPresentation(plan: BillingPlanRecord) {
       : `Até ${plan.eventLimitPerMonth.toLocaleString('pt-BR')} eventos / mês`)
   const cta =
     metadata.cta ??
-    (plan.contactSalesOnly ? 'Falar com vendas' : 'Testar grátis por 7 dias')
+    (plan.contactSalesOnly ? 'Falar com vendas' : 'Testar grátis por 14 dias')
   const trialDays =
     typeof metadata.trialDays === 'number'
       ? metadata.trialDays
       : plan.contactSalesOnly
         ? 0
-        : 7
+        : 14
   const features =
     toArray(metadata.features).length > 0
       ? toArray(metadata.features)
@@ -219,6 +219,24 @@ export async function getBillingPlanByStripePriceId(priceId: string) {
   })
 }
 
+export async function getDefaultTrialBillingPlan() {
+  const plan = await prisma.billingPlan.findFirst({
+    where: {
+      isActive: true,
+      deletedAt: null,
+      contactSalesOnly: false,
+    },
+    orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }],
+    select: billingPlanSelect,
+  })
+
+  if (!plan) {
+    throw new BillingPlanCatalogError('Nenhum plano self-serve disponível para iniciar trial', 409)
+  }
+
+  return plan
+}
+
 export async function requireCheckoutReadyBillingPlan(slug: string) {
   const plan = await getBillingPlanBySlug(slug)
 
@@ -236,4 +254,3 @@ export async function requireCheckoutReadyBillingPlan(slug: string) {
 
   return plan
 }
-

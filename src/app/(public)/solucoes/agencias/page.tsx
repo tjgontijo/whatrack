@@ -15,7 +15,7 @@ import { listPublicBillingPlans } from '@/services/billing/billing-plan-catalog.
 export const metadata: Metadata = {
   title: 'WhaTrack para Agências | Prove o ROI dos seus clientes',
   description:
-    'Conecte os anúncios do seu cliente às vendas no WhatsApp. Mostre relatórios de ROI que ninguém questiona. Teste grátis por 7 dias.',
+    'Conecte os anúncios do seu cliente às vendas no WhatsApp. Mostre relatórios de ROI que ninguém questiona. Teste grátis por 14 dias.',
   openGraph: {
     title: 'WhaTrack para Agências | Prove o ROI dos seus clientes',
     description:

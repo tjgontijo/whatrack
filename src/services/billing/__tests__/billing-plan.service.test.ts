@@ -57,7 +57,7 @@ describe('billing-plan.service', () => {
         slug: 'starter',
         description: 'Plano inicial',
         subtitle: 'Até 200 eventos / mês',
-        cta: 'Testar grátis por 7 dias',
+        cta: 'Testar grátis por 14 dias',
         monthlyPrice: 97,
         currency: 'BRL',
         eventLimitPerMonth: 200,
@@ -70,7 +70,7 @@ describe('billing-plan.service', () => {
         isHighlighted: false,
         contactSalesOnly: false,
         isActive: true,
-        trialDays: 7,
+        trialDays: 14,
         features: ['200 eventos/mês'],
         additionals: ['R$ 0,25 por evento extra'],
       },
@@ -114,7 +114,7 @@ describe('billing-plan.service', () => {
       'plan_1',
       {
         monthlyPrice: 197,
-        trialDays: 7,
+        trialDays: 14,
       },
       'user-1',
     )

@@ -7,6 +7,7 @@ import { LandingContent } from './types'
 import { motion } from 'motion/react'
 import { useInView } from 'motion/react'
 import { useRef } from 'react'
+import { appendFunnelIntent } from '@/lib/funnel/funnel-intent'
 
 interface LandingCTAProps {
   content: LandingContent['cta']
@@ -96,7 +97,7 @@ export function LandingCTA({ content }: LandingCTAProps) {
             className="group h-14 w-full bg-white px-8 text-base font-bold text-emerald-600 shadow-lg shadow-black/20 transition-all hover:bg-zinc-100 hover:shadow-xl hover:shadow-black/30 sm:flex-1"
             asChild
           >
-            <Link href="/sign-up">
+            <Link href={appendFunnelIntent('/sign-up', { intent: 'start-trial', source: 'cta' })}>
               {content.ctaPrimary}
               <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
             </Link>
@@ -135,13 +136,13 @@ export function LandingCTA({ content }: LandingCTAProps) {
           >
             {[
               'Sem cartão de crédito',
-              '7 dias grátis',
+              '14 dias grátis',
               'Cancele quando quiser',
               'Setup em 5 minutos',
               'API Oficial do WhatsApp',
             ].concat([
               'Sem cartão de crédito',
-              '7 dias grátis',
+              '14 dias grátis',
               'Cancele quando quiser',
               'Setup em 5 minutos',
               'API Oficial do WhatsApp',

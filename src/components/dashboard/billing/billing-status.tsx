@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import Link from 'next/link'
+import { useState, useTransition } from 'react'
 import { motion } from 'motion/react'
 import {
   CreditCard,
@@ -19,7 +20,6 @@ import { apiFetch } from '@/lib/api-client'
 import { BillingCancelDialog } from './billing-cancel-dialog'
 import { formatDate } from '@/lib/date/format-date'
 import { getBillingStatusLabel } from '@/lib/billing/subscription-status'
-import { useTransition } from 'react'
 
 type SubscriptionStatusValue = 'active' | 'paused' | 'canceled' | 'past_due'
 
@@ -29,6 +29,7 @@ interface StatusConfig {
   pill: string
   dot: string
   banner?: string
+  bannerTone?: 'danger' | 'warning' | 'info'
 }
 
 const statusConfig: Record<SubscriptionStatusValue, StatusConfig> = {
@@ -45,6 +46,7 @@ const statusConfig: Record<SubscriptionStatusValue, StatusConfig> = {
     dot: 'bg-destructive',
     banner:
       'Assinatura cancelada — o acesso será encerrado em breve.',
+    bannerTone: 'danger',
   },
   past_due: {
     label: 'Pagamento pendente',
@@ -53,6 +55,7 @@ const statusConfig: Record<SubscriptionStatusValue, StatusConfig> = {
     dot: 'bg-destructive',
     banner:
       'Pagamento pendente — atualize o método de pagamento para continuar.',
+    bannerTone: 'danger',
   },
   paused: {
     label: getBillingStatusLabel('paused'),
@@ -61,8 +64,15 @@ const statusConfig: Record<SubscriptionStatusValue, StatusConfig> = {
     dot: 'bg-amber-500',
     banner:
       'Estamos confirmando o pagamento com o provedor. Sua assinatura será ativada automaticamente.',
+    bannerTone: 'warning',
   },
 }
+
+const bannerToneClass = {
+  danger: 'border-destructive/15 bg-destructive/5 text-destructive',
+  warning: 'border-amber-500/15 bg-amber-500/5 text-amber-700 dark:text-amber-400',
+  info: 'border-primary/15 bg-primary/5 text-primary',
+} as const
 
 export function BillingStatus() {
   const { subscription, isLoading, error } = useBillingSubscription()
@@ -98,6 +108,9 @@ export function BillingStatus() {
   const status = subscription.status as SubscriptionStatusValue
   const config = statusConfig[status]
   const planName = subscription.planName || subscription.planType
+  const trialActive =
+    subscription.trialEndsAt != null && new Date(subscription.trialEndsAt).getTime() > Date.now()
+  const localTrial = trialActive && !subscription.providerSubscriptionId
   const nextResetDate = new Date(subscription.nextResetDate)
   const daysUntilReset = Math.ceil(
     (nextResetDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
@@ -105,7 +118,14 @@ export function BillingStatus() {
   const cancellationScheduled = status === 'active' && subscription.canceledAtPeriodEnd
   const bannerMessage = cancellationScheduled
     ? 'Renovação cancelada — seu acesso segue ativo até o fim do ciclo atual.'
+    : localTrial && subscription.trialEndsAt
+      ? `Teste grátis ativo até ${formatDate(new Date(subscription.trialEndsAt), 'dd/MM/yyyy')}.`
     : config.banner
+  const bannerTone = cancellationScheduled
+    ? 'warning'
+    : localTrial
+      ? 'info'
+      : (config.bannerTone ?? 'danger')
 
   return (
     <>
@@ -117,9 +137,11 @@ export function BillingStatus() {
       >
         {/* Banner de alerta para estados críticos */}
         {bannerMessage && (
-          <div className="flex items-center gap-2.5 border-b border-destructive/15 bg-destructive/5 px-6 py-3">
-            <AlertCircle className="h-4 w-4 shrink-0 text-destructive" />
-            <p className="text-sm text-destructive">{bannerMessage}</p>
+          <div
+            className={`flex items-center gap-2.5 border-b px-6 py-3 ${bannerToneClass[bannerTone]}`}
+          >
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            <p className="text-sm">{bannerMessage}</p>
           </div>
         )}
 
@@ -190,18 +212,24 @@ export function BillingStatus() {
 
           {/* Ações */}
           <div className="mt-6 flex flex-wrap gap-2">
-            <Button
-              onClick={handleOpenPortal}
-              disabled={isOpeningPortal}
-              size="sm"
-              variant="outline"
-            >
-              {isOpeningPortal && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
-              {!isOpeningPortal && <ExternalLink className="mr-1.5 h-3.5 w-3.5" />}
-              Gerenciar assinatura
-            </Button>
+            {!localTrial ? (
+              <Button
+                onClick={handleOpenPortal}
+                disabled={isOpeningPortal}
+                size="sm"
+                variant="outline"
+              >
+                {isOpeningPortal && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
+                {!isOpeningPortal && <ExternalLink className="mr-1.5 h-3.5 w-3.5" />}
+                Gerenciar assinatura
+              </Button>
+            ) : (
+              <Button asChild size="sm" variant="outline">
+                <Link href="/dashboard/billing">Escolher plano</Link>
+              </Button>
+            )}
 
-            {status !== 'canceled' && !subscription.canceledAtPeriodEnd && (
+            {!localTrial && status !== 'canceled' && !subscription.canceledAtPeriodEnd && (
               <Button
                 onClick={() => setShowCancelDialog(true)}
                 size="sm"

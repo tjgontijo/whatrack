@@ -549,6 +549,6 @@ export async function getOrganizationCompletion(input: {
     organizationId,
     identityComplete: identity.identityComplete,
     entityType: identity.entityType,
-    blockedModules: identity.identityComplete ? [] : ['whatsapp', 'metaAds'],
+    blockedModules: [],
   }
 }
