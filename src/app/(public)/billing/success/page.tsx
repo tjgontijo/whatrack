@@ -14,6 +14,7 @@ export default function BillingSuccessPage() {
   const router = useRouter()
   const planName = searchParams.get('planName') || searchParams.get('plan') || 'WhaTrack'
   const nextPath = resolveInternalPath(searchParams.get('next'), '/dashboard/billing')
+  const normalizedPlanName = planName === 'platform_base' ? 'plano base' : planName
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -74,12 +75,12 @@ export default function BillingSuccessPage() {
           className="text-center"
         >
           <h1 className="mb-4 font-geist text-4xl font-bold sm:text-5xl">
-            Bem-vindo ao <span className="text-emerald-400">{planName}!</span>
+            Assinatura confirmada para sua <span className="text-emerald-400">agência</span>
           </h1>
 
           <p className="mx-auto mb-12 max-w-2xl text-lg text-zinc-400">
-            Sua assinatura está ativa e pronta para usar. Você agora tem acesso total aos
-            recursos do plano {planName}.
+            Seu acesso ao {normalizedPlanName} está ativo. Agora você já pode operar clientes,
+            conectar WhatsApp e Meta Ads e provar o que realmente gera resultado.
           </p>
         </motion.div>
 
@@ -91,9 +92,9 @@ export default function BillingSuccessPage() {
           className="mb-12 grid w-full max-w-2xl gap-4 sm:grid-cols-3"
         >
           {[
-            { label: 'Começar agora', desc: 'Acesso imediato' },
-            { label: 'Suporte incluso', desc: 'Estamos aqui para ajudar' },
-            { label: 'Cancele quando quiser', desc: 'Sem compromisso' },
+            { label: 'Clientes ativos', desc: 'Comece pelo primeiro cliente agora' },
+            { label: 'Operação guiada', desc: 'Conecte WhatsApp e Meta Ads com clareza' },
+            { label: 'Expansão simples', desc: 'Adicione clientes e extras quando precisar' },
           ].map((item, idx) => (
             <motion.div
               key={item.label}
@@ -119,15 +120,15 @@ export default function BillingSuccessPage() {
             onClick={() => router.push(nextPath)}
             className="h-12 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-8 font-semibold text-white shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/40"
           >
-            Ir para o Dashboard
+            Ir para billing
           </Button>
 
           <Button
-            onClick={() => router.push('/dashboard')}
+            onClick={() => router.push('/welcome')}
             variant="outline"
             className="h-12 rounded-xl border-zinc-700 px-8 font-semibold text-white hover:bg-zinc-900"
           >
-            Explorar WhaTrack
+            Configurar primeiro cliente
           </Button>
         </motion.div>
 
@@ -138,7 +139,7 @@ export default function BillingSuccessPage() {
           transition={{ delay: 1.2, duration: 0.6 }}
           className="mt-12 text-sm text-zinc-500"
         >
-          Redirecionando para o dashboard em <span className="font-semibold">5 segundos</span>...
+          Redirecionando em <span className="font-semibold">5 segundos</span>...
         </motion.p>
       </div>
     </div>

@@ -72,7 +72,7 @@ export function LandingHeader({ variant: _variant = 'generic' }: LandingHeaderPr
             asChild
           >
             <Link href={appendFunnelIntent('/sign-up', { intent: 'start-trial', source: 'header' })}>
-              Testar Grátis
+              Teste grátis
             </Link>
           </Button>
         </div>

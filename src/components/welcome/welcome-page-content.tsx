@@ -26,17 +26,17 @@ export function WelcomePageContent({ state }: WelcomePageContentProps) {
     <div className="mx-auto grid w-full max-w-4xl gap-8 px-4 py-12 sm:px-6 lg:px-8">
       <div className="space-y-3">
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-600">
-          Welcome
+          Ativação inicial
         </p>
         <h1 className="text-4xl font-bold tracking-tight text-foreground">
           {needsLightweightOnboarding
-            ? 'Vamos preparar seu workspace'
+            ? 'Vamos preparar sua agência'
             : 'Seu trial já está ativo'}
         </h1>
         <p className="max-w-2xl text-base text-muted-foreground sm:text-lg">
           {needsLightweightOnboarding
-            ? 'Crie sua agência, abra o primeiro projeto e comece a validar o WhaTrack em uma operação real.'
-            : 'Seu próximo passo é atingir o activation milestone: conectar WhatsApp e Meta Ads para o primeiro cliente.'}
+            ? 'Crie sua agência, abra o primeiro cliente e comece a validar o WhaTrack em uma operação real.'
+            : 'Seu próximo passo é conectar WhatsApp e Meta Ads do primeiro cliente para chegar ao activation milestone.'}
         </p>
       </div>
 

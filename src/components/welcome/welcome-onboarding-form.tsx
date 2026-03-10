@@ -77,10 +77,10 @@ export function WelcomeOnboardingForm({
   return (
     <Card className="border-border/70 bg-background/95 shadow-sm">
       <CardHeader>
-        <CardTitle>Comece seu teste grátis</CardTitle>
+        <CardTitle>Crie sua agência e o primeiro cliente</CardTitle>
         <CardDescription>
-          Precisamos só do básico para criar sua agência, abrir o primeiro projeto e liberar 14 dias
-          grátis sem cartão de crédito.
+          Precisamos só do básico para abrir sua operação no WhaTrack, criar o primeiro cliente e liberar 14 dias
+          grátis sem cartão.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -91,7 +91,7 @@ export function WelcomeOnboardingForm({
               id="welcome-owner-name"
               {...form.register('ownerName')}
               disabled={isSubmitting}
-              placeholder="Quem vai operar a plataforma"
+              placeholder="Quem vai operar a conta da agência"
             />
             <FieldError errors={[form.formState.errors.ownerName]} />
           </Field>
@@ -102,7 +102,7 @@ export function WelcomeOnboardingForm({
               id="welcome-agency-name"
               {...form.register('agencyName')}
               disabled={isSubmitting}
-              placeholder="Nome da sua operação"
+              placeholder="Nome da sua agência"
             />
             <FieldError errors={[form.formState.errors.agencyName]} />
           </Field>
@@ -113,13 +113,13 @@ export function WelcomeOnboardingForm({
               id="welcome-project-name"
               {...form.register('projectName')}
               disabled={isSubmitting}
-              placeholder="Nome do primeiro projeto/cliente"
+              placeholder="Nome do primeiro cliente que você quer acompanhar"
             />
             <FieldError errors={[form.formState.errors.projectName]} />
           </Field>
 
           <Button type="submit" disabled={isSubmitting} className="h-11">
-            {isSubmitting ? 'Preparando seu workspace...' : 'Iniciar teste grátis'}
+            {isSubmitting ? 'Preparando sua agência...' : 'Criar agência e começar trial'}
           </Button>
         </form>
       </CardContent>

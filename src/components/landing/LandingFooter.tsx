@@ -33,8 +33,8 @@ export function LandingFooter() {
             </Link>
 
             <p className="max-w-sm text-base leading-relaxed text-zinc-600 dark:text-zinc-400">
-              Rastreamento inteligente de vendas para WhatsApp. Conecte seus anúncios às
-              vendas reais e tome decisões baseadas em dados.
+              Plataforma para agências e gestores conectarem Meta Ads ao WhatsApp, provarem
+              resultado para seus clientes e operarem múltiplas contas no mesmo painel.
             </p>
 
             {/* Social links would go here if needed */}

@@ -30,17 +30,16 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             </div>
 
             <Badge className="pointer-events-none mb-6 border-white/20 bg-white/10 text-white">
-              Para Lançadores & Agências
+              Para agências e gestores de tráfego
             </Badge>
 
             <h1 className="text-4xl font-extrabold leading-[1.15] tracking-tight text-white xl:text-5xl">
-              Venda mais no orgânico e escale no pago.
+              Prove para cada cliente o que realmente vende no WhatsApp.
             </h1>
             <p className="mt-6 w-11/12 text-lg font-medium leading-relaxed text-white/70">
-              A plataforma definitiva que une{' '}
-              <span className="text-white">Inteligência Artificial</span> no WhatsApp às
-              campanhas do <span className="text-white">Meta Ads</span>. Envie as marcações
-              perfeitas e treine seu pixel com compradores reais.
+              Conecte <span className="text-white">Meta Ads</span> e{' '}
+              <span className="text-white">WhatsApp</span>, rastreie conversões reais e entregue
+              relatórios de ROI que ajudam sua agência a reter clientes e justificar budget.
             </p>
           </div>
 
@@ -58,8 +57,8 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
                 />
               ))}
               <div className="flex flex-col pl-8">
-                <span className="text-sm font-bold text-white">+2.000 operações</span>
-                <span className="text-xs text-white/60">já escalaram conosco.</span>
+                <span className="text-sm font-bold text-white">Múltiplos clientes no mesmo painel</span>
+                <span className="text-xs text-white/60">trial sem cartão e setup em poucos minutos.</span>
               </div>
             </div>
           </div>

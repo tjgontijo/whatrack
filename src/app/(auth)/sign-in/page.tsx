@@ -114,7 +114,7 @@ export default function LoginPage() {
       <div className="text-left">
         <h1 className="text-foreground text-3xl font-bold tracking-tight">Acesse sua conta</h1>
         <p className="text-muted-foreground mt-2 text-sm font-medium">
-          Entre com seu email e senha para continuar
+          Entre para conectar clientes, provar ROI e acompanhar o que realmente vende no WhatsApp
         </p>
       </div>
 
@@ -185,7 +185,7 @@ export default function LoginPage() {
           href={`/sign-up${invitationQuery}${funnelQuery ? `${invitationQuery ? '&' : '?'}${funnelQuery.slice(1)}` : ''}`}
           className="text-foreground hover:text-primary font-bold tracking-wide transition-colors hover:underline"
         >
-          Criar conta gratuita
+          Começar teste grátis
         </Link>
       </div>
     </div>

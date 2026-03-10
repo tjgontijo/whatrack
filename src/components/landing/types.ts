@@ -195,12 +195,12 @@ export const LANDING_CONTENT: Record<LandingVariant, LandingContent> = {
       highlightedText: 'Com números, não com desculpas.',
       subheadline:
         'O WhaTrack conecta os anúncios do seu cliente às vendas no WhatsApp. Você vê qual campanha vendeu, quanto vendeu, e mostra um relatório que ninguém questiona.',
-      ctaPrimary: 'Ver vendas reais do meu cliente',
-      ctaSecondary: 'Como funciona em 2 minutos',
+      ctaPrimary: 'Teste grátis por 14 dias',
+      ctaSecondary: 'Ver como funciona',
       highlights: [
-        '"Descobri que 70% das vendas vinham de 2 campanhas"',
+        'Relatório claro para mostrar ao cliente',
         'Relatório pronto para enviar ao cliente',
-        'Conecta em 5 minutos, sem TI do cliente',
+        'Setup em 5 minutos, sem cartão',
       ],
     },
     problem: {
@@ -309,7 +309,7 @@ export const LANDING_CONTENT: Record<LandingVariant, LandingContent> = {
       headline: 'Pare de perder clientes por falta de prova.',
       subheadline:
         'Conecte a conta de um cliente agora e veja os dados aparecendo hoje. Se não funcionar em 14 dias, cancele sem pagar.',
-      ctaPrimary: 'Testar com meu cliente',
+      ctaPrimary: 'Teste grátis por 14 dias',
       ctaSecondary: 'Ver planos para agências',
       microcopy: 'Setup em 5 min · Sem cartão para testar · Múltiplos clientes no mesmo painel',
     },

@@ -61,7 +61,7 @@ export function LandingCTA({ content }: LandingCTAProps) {
         >
           <Sparkles className="h-4 w-4 text-white" />
           <span className="text-sm font-semibold text-white">
-            Mais de 500 empresas já transformaram suas vendas
+            Feito para agências e gestores provarem ROI sem planilha
           </span>
         </motion.div>
 
@@ -137,15 +137,15 @@ export function LandingCTA({ content }: LandingCTAProps) {
             {[
               'Sem cartão de crédito',
               '14 dias grátis',
-              'Cancele quando quiser',
+              '1 cliente incluso no trial',
               'Setup em 5 minutos',
-              'API Oficial do WhatsApp',
+              'Meta Ads + WhatsApp',
             ].concat([
               'Sem cartão de crédito',
               '14 dias grátis',
-              'Cancele quando quiser',
+              '1 cliente incluso no trial',
               'Setup em 5 minutos',
-              'API Oficial do WhatsApp',
+              'Meta Ads + WhatsApp',
             ]).map((item, i) => (
               <div
                 key={`${item}-${i}`}

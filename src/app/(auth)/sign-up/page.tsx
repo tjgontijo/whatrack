@@ -111,9 +111,9 @@ export default function SignUpPage() {
       data-testid="sign-up-page"
     >
       <div className="text-left">
-        <h1 className="text-foreground text-3xl font-bold tracking-tight">Crie sua conta</h1>
+        <h1 className="text-foreground text-3xl font-bold tracking-tight">Crie a conta da sua agência</h1>
         <p className="text-muted-foreground mt-2 text-sm font-medium">
-          Comece seu teste grátis e configure o primeiro cliente da sua agência em minutos
+          Inicie 14 dias grátis, crie o primeiro cliente e conecte Meta Ads + WhatsApp em poucos minutos
         </p>
       </div>
 
@@ -208,7 +208,7 @@ export default function SignUpPage() {
             className="shadow-primary/20 mt-6 h-12 w-full text-sm font-semibold shadow-md transition-all hover:-translate-y-0.5 lg:mt-8"
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'Criando conta...' : 'Criar conta gratuitamente'}
+            {isSubmitting ? 'Criando conta...' : 'Começar teste grátis'}
           </Button>
         </form>
       </Form>
@@ -219,7 +219,7 @@ export default function SignUpPage() {
           href={`/sign-in${invitationQuery}${funnelQuery ? `${invitationQuery ? '&' : '?'}${funnelQuery.slice(1)}` : ''}`}
           className="text-foreground hover:text-primary font-bold tracking-wide transition-colors hover:underline"
         >
-          Fazer login
+          Entrar na plataforma
         </Link>
       </div>
     </div>

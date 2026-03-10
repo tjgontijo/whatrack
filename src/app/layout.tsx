@@ -8,8 +8,15 @@ import { getMessages } from '@/lib/i18n/messages'
 import Providers from '@/components/shared/providers'
 
 export const metadata: Metadata = {
-  title: 'Whatrack',
-  description: 'Trackeamento avançado do seu comercial',
+  title: 'WhaTrack | Prove o ROI dos seus clientes no WhatsApp',
+  description:
+    'Plataforma para agências e gestores de tráfego conectarem Meta Ads ao WhatsApp, rastrearem conversões e provarem resultado para cada cliente.',
+  openGraph: {
+    title: 'WhaTrack | Prove o ROI dos seus clientes no WhatsApp',
+    description:
+      'Conecte Meta Ads e WhatsApp, rastreie conversões reais e mostre relatórios de ROI que seus clientes entendem.',
+    type: 'website',
+  },
 }
 
 export default async function RootLayout({

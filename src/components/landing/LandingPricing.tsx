@@ -27,7 +27,7 @@ function CheckoutButton({ plan, variant }: CheckoutButtonProps) {
 
   async function handleCheckout() {
     if (plan.contactSalesOnly) {
-      window.location.href = 'mailto:contato@whatrack.com?subject=Plano Agency - WhaTrack'
+      window.location.href = 'mailto:contato@whatrack.com?subject=Plano customizado - WhaTrack'
       return
     }
 
@@ -51,7 +51,7 @@ function CheckoutButton({ plan, variant }: CheckoutButtonProps) {
           : 'border border-zinc-700 bg-zinc-800 text-white hover:bg-zinc-700 disabled:opacity-70'
       }`}
     >
-      {plan.contactSalesOnly ? plan.cta : 'Começar grátis'}
+      {plan.contactSalesOnly ? plan.cta : 'Teste grátis por 14 dias'}
     </Button>
   )
 }
@@ -68,8 +68,9 @@ export function LandingPricing({ variant = 'generic', plans }: LandingPricingPro
         'Comece grátis por 14 dias. Veja o resultado antes de decidir. Sem fidelidade, cancele quando quiser.',
     },
     agencias: {
-      title: 'Basic',
-      subtitle: 'Gerencie múltiplos clientes em um único painel. Teste grátis por 14 dias.',
+      title: 'Preço simples para operar clientes com prova de ROI.',
+      subtitle:
+        'O plano base inclui 3 clientes ativos. Projeto extra, WhatsApp extra e Meta Ads extra entram como add-on operacional.',
     },
     lancadores: {
       title: 'Business',
@@ -274,7 +275,7 @@ export function LandingPricing({ variant = 'generic', plans }: LandingPricingPro
           className="mt-16 text-center"
         >
           <p className="text-sm text-zinc-500">
-            Mais de 500 empresas já rastreiam suas vendas com WhaTrack
+            Agências e gestores usam o WhaTrack para mostrar o que realmente vende no WhatsApp
           </p>
         </motion.div>
       </div>
