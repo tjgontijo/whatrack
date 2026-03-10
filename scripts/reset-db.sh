@@ -53,13 +53,13 @@ else
 fi
 
 # 7. Build da Aplicação
-print_box "🚀 Gerando build da aplicação..."
-if npm run build; then
-  echo -e "${GREEN}✅ Build compilou com sucesso!${NC}"
-else
-  echo -e "${RED}❌ Erro ao gerar build${NC}"
-  exit 1
-fi
+# print_box "🚀 Gerando build da aplicação..."
+# if npm run build; then
+#   echo -e "${GREEN}✅ Build compilou com sucesso!${NC}"
+# else
+#   echo -e "${RED}❌ Erro ao gerar build${NC}"
+#   exit 1
+# fi
 
 echo ""
 echo -e "${GREEN}╔════════════════════════════════════════════════════════════════╗${NC}"
