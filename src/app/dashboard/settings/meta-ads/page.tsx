@@ -1,12 +1,10 @@
-import { headers } from 'next/headers'
-import { auth } from '@/lib/auth/auth'
 import { prisma } from '@/lib/db/prisma'
 import { MetaAdsSettingsContent } from '@/components/dashboard/meta-ads/settings/meta-ads-settings-content'
+import { requireWorkspacePageAccess } from '@/server/auth/require-workspace-page-access'
 
 export default async function MetaAdsSettingsPage() {
-  const reqHeaders = await headers()
-  const session = await auth.api.getSession({ headers: reqHeaders })
-  const organizationId = session?.session?.activeOrganizationId
+  const access = await requireWorkspacePageAccess({ permissions: 'manage:integrations' })
+  const organizationId = access.organizationId
 
   if (!organizationId) {
     return <MetaAdsSettingsContent organizationId={undefined} />

@@ -40,6 +40,7 @@ import {
 import { WhatsAppIcon, MetaIcon } from '@/components/shared/icons'
 import { authClient, useSession } from '@/lib/auth/auth-client'
 import { isAdmin, isOwner } from '@/lib/auth/rbac/roles'
+import { useAuthorization } from '@/hooks/auth/use-authorization'
 import { UserDropdownMenu } from './user-dropdown-menu'
 
 // Icon mapping for dynamic nav items
@@ -83,6 +84,7 @@ export function SidebarClient({ navItems, session: initialSession }: SidebarClie
   const { isMobile, setOpenMobile } = useSidebar()
   const { data: clientSession } = useSession()
   const session = initialSession || clientSession
+  const authorization = useAuthorization()
 
   const { data: activeOrg } = authClient.useActiveOrganization()
   const { data: organizations } = authClient.useListOrganizations()
@@ -108,8 +110,37 @@ export function SidebarClient({ navItems, session: initialSession }: SidebarClie
     ['FolderKanban', 'Users', 'Kanban', 'ShoppingBag', 'Package', 'Meta'].includes(item.icon)
   )
 
+  const navPermissionByHref: Record<string, Parameters<typeof authorization.can>[0]> = {
+    '/dashboard': 'view:dashboard',
+    '/dashboard/analytics': 'view:analytics',
+    '/dashboard/whatsapp/inbox': 'view:whatsapp',
+    '/dashboard/projects': 'view:leads',
+    '/dashboard/leads': 'view:leads',
+    '/dashboard/approvals': 'view:ai',
+    '/dashboard/tickets': 'view:tickets',
+    '/dashboard/sales': 'view:sales',
+    '/dashboard/items': 'view:items',
+    '/dashboard/item-categories': 'view:items',
+    '/dashboard/meta-ads/campaigns': 'view:meta',
+  }
+
   const isSuperAdmin = isOwner(session?.user?.role)
   const canManageBillingCatalog = isAdmin(session?.user?.role)
+  const isWorkspaceAuthLoading = authorization.isLoading
+
+  const canViewWorkspaceItem = (permission: Parameters<typeof authorization.can>[0]) =>
+    isWorkspaceAuthLoading || authorization.can(permission)
+
+  const canViewOrganizationSettings =
+    isWorkspaceAuthLoading ||
+    authorization.isAdmin ||
+    authorization.can('manage:organization') ||
+    authorization.can('manage:members')
+
+  const canViewBilling =
+    isWorkspaceAuthLoading ||
+    authorization.isOwner ||
+    authorization.can('manage:organization')
 
   const isWhatsAppActive = pathname.startsWith('/dashboard/settings/whatsapp')
 
@@ -155,6 +186,10 @@ export function SidebarClient({ navItems, session: initialSession }: SidebarClie
           <SidebarGroupContent>
             <SidebarMenu>
               {platformItems.map((item) => {
+                const requiredPermission = navPermissionByHref[item.href]
+                if (requiredPermission && !canViewWorkspaceItem(requiredPermission)) {
+                  return null
+                }
                 const Icon = ICON_MAP[item.icon as keyof typeof ICON_MAP]
                 const isActive = pathname === item.href
                 return (
@@ -170,18 +205,20 @@ export function SidebarClient({ navItems, session: initialSession }: SidebarClie
               })}
 
               {/* ROI Meta Ads Item */}
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  tooltip="ROI Meta Ads"
-                  isActive={pathname === '/dashboard/meta-ads'}
-                >
-                  <Link href="/dashboard/meta-ads" onClick={handleNavClick}>
-                    <BarChart3 className="h-4 w-4" />
-                    <span>ROI Meta Ads</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {canViewWorkspaceItem('view:meta') && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    tooltip="ROI Meta Ads"
+                    isActive={pathname === '/dashboard/meta-ads'}
+                  >
+                    <Link href="/dashboard/meta-ads" onClick={handleNavClick}>
+                      <BarChart3 className="h-4 w-4" />
+                      <span>ROI Meta Ads</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -192,6 +229,10 @@ export function SidebarClient({ navItems, session: initialSession }: SidebarClie
           <SidebarGroupContent>
             <SidebarMenu>
               {dataItems.map((item) => {
+                const requiredPermission = navPermissionByHref[item.href]
+                if (requiredPermission && !canViewWorkspaceItem(requiredPermission)) {
+                  return null
+                }
                 const Icon = ICON_MAP[item.icon as keyof typeof ICON_MAP]
                 const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`)
                 return (
@@ -214,18 +255,20 @@ export function SidebarClient({ navItems, session: initialSession }: SidebarClie
           <SidebarGroupLabel>Conta</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  tooltip="Billing"
-                  isActive={pathname === '/dashboard/billing'}
-                >
-                  <Link href="/dashboard/billing" onClick={handleNavClick}>
-                    <CreditCard className="h-4 w-4" />
-                    <span>Billing</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {canViewBilling && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    tooltip="Assinatura"
+                    isActive={pathname === '/dashboard/billing'}
+                  >
+                    <Link href="/dashboard/billing" onClick={handleNavClick}>
+                      <CreditCard className="h-4 w-4" />
+                      <span>Assinatura</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -248,88 +291,100 @@ export function SidebarClient({ navItems, session: initialSession }: SidebarClie
                 </SidebarMenuButton>
               </SidebarMenuItem>
 
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  tooltip="Organização"
-                  isActive={pathname === '/dashboard/equipe' || pathname.startsWith('/dashboard/equipe/')}
-                >
-                  <Link href="/dashboard/equipe" onClick={handleNavClick}>
-                    <Users className="h-4 w-4" />
-                    <span>Organização</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {canViewOrganizationSettings && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    tooltip="Organização"
+                    isActive={pathname === '/dashboard/equipe' || pathname.startsWith('/dashboard/equipe/')}
+                  >
+                    <Link href="/dashboard/equipe" onClick={handleNavClick}>
+                      <Users className="h-4 w-4" />
+                      <span>Organização</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
 
               {/* WhatsApp Item */}
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  tooltip="WhatsApp"
-                  isActive={isWhatsAppActive && !pathname.includes('/webhooks')}
-                >
-                  <Link href="/dashboard/settings/whatsapp" onClick={handleNavClick}>
-                    <ICON_MAP.WhatsApp className="h-4 w-4" />
-                    <span>WhatsApp</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {canViewWorkspaceItem('manage:integrations') && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    tooltip="WhatsApp"
+                    isActive={isWhatsAppActive && !pathname.includes('/webhooks')}
+                  >
+                    <Link href="/dashboard/settings/whatsapp" onClick={handleNavClick}>
+                      <ICON_MAP.WhatsApp className="h-4 w-4" />
+                      <span>WhatsApp</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
 
               {/* Meta Ads Item */}
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  tooltip="Meta Ads"
-                  isActive={pathname.startsWith('/dashboard/settings/meta-ads')}
-                >
-                  <Link href="/dashboard/settings/meta-ads" onClick={handleNavClick}>
-                    <ICON_MAP.Meta className="h-4 w-4" />
-                    <span>Meta Ads</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {canViewWorkspaceItem('manage:integrations') && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    tooltip="Meta Ads"
+                    isActive={pathname.startsWith('/dashboard/settings/meta-ads')}
+                  >
+                    <Link href="/dashboard/settings/meta-ads" onClick={handleNavClick}>
+                      <ICON_MAP.Meta className="h-4 w-4" />
+                      <span>Meta Ads</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
 
               {/* Pipeline Item */}
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  tooltip="Pipeline"
-                  isActive={pathname === '/dashboard/settings/pipeline'}
-                >
-                  <Link href="/dashboard/settings/pipeline" onClick={handleNavClick}>
-                    <Kanban className="h-4 w-4" />
-                    <span>Pipeline</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {canViewWorkspaceItem('manage:settings') && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    tooltip="Pipeline"
+                    isActive={pathname === '/dashboard/settings/pipeline'}
+                  >
+                    <Link href="/dashboard/settings/pipeline" onClick={handleNavClick}>
+                      <Kanban className="h-4 w-4" />
+                      <span>Pipeline</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
 
               {/* IA Copilot Settings */}
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  tooltip="AI Studio Beta"
-                  isActive={pathname === '/dashboard/settings/ai'}
-                >
-                  <Link href="/dashboard/settings/ai" onClick={handleNavClick}>
-                    <Sparkles className="h-4 w-4" />
-                    <span>AI Studio Beta</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {canViewWorkspaceItem('manage:ai') && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    tooltip="AI Studio Beta"
+                    isActive={pathname === '/dashboard/settings/ai'}
+                  >
+                    <Link href="/dashboard/settings/ai" onClick={handleNavClick}>
+                      <Sparkles className="h-4 w-4" />
+                      <span>AI Studio Beta</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
 
               {/* Audit Logs Settings */}
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  tooltip="Logs de Auditoria"
-                  isActive={pathname === '/dashboard/settings/audit-logs'}
-                >
-                  <Link href="/dashboard/settings/audit-logs" onClick={handleNavClick}>
-                    <ShieldCheck className="h-4 w-4" />
-                    <span>Auditoria</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {canViewWorkspaceItem('view:audit') && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    tooltip="Logs de Auditoria"
+                    isActive={pathname === '/dashboard/settings/audit-logs'}
+                  >
+                    <Link href="/dashboard/settings/audit-logs" onClick={handleNavClick}>
+                      <ShieldCheck className="h-4 w-4" />
+                      <span>Auditoria</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
 
               {/* Webhook Meta Item (Only for Super Admin) */}
               {isSuperAdmin && (

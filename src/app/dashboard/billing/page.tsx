@@ -6,6 +6,7 @@ import { PageContent } from '@/components/dashboard/layout/page-content'
 import { BillingPageSkeleton } from '@/components/dashboard/billing/billing-page-skeleton'
 import { BillingPageContent } from '@/components/dashboard/billing/billing-page-content'
 import { listPublicBillingPlans } from '@/services/billing/billing-plan-catalog.service'
+import { requireWorkspacePageAccess } from '@/server/auth/require-workspace-page-access'
 
 export const metadata = {
   title: 'Assinatura | WhaTrack',
@@ -13,6 +14,7 @@ export const metadata = {
 }
 
 export default async function BillingPage() {
+  await requireWorkspacePageAccess({ requireOwner: true })
   const availablePlans = await listPublicBillingPlans()
 
   return (

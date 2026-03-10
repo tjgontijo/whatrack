@@ -1,10 +1,11 @@
-'use client'
-
 import { Building2 } from 'lucide-react'
 import { PageShell, PageHeader, PageContent } from '@/components/dashboard/layout'
 import { CompanyDataSection } from '@/components/dashboard/settings/company-data-section'
+import { requireWorkspacePageAccess } from '@/server/auth/require-workspace-page-access'
 
-export default function OrganizationSettingsPage() {
+export default async function OrganizationSettingsPage() {
+  await requireWorkspacePageAccess({ permissions: 'manage:organization' })
+
   return (
     <PageShell maxWidth="3xl">
       <PageHeader

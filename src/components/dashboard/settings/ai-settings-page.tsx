@@ -1,0 +1,163 @@
+'use client'
+
+import React from 'react'
+import Link from 'next/link'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Bot, Edit2, Plus, Puzzle, Sparkles, Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
+
+import { PageContent, PageHeader, PageShell } from '@/components/dashboard/layout'
+import { EmptyState, LoadingCard } from '@/components/dashboard/states'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { useOrganization } from '@/hooks/organization/use-organization'
+import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
+
+export function AiSettingsPage() {
+  const queryClient = useQueryClient()
+  const { data: org } = useOrganization()
+  const orgId = org?.id
+
+  const { data: agents = [], isLoading } = useQuery({
+    queryKey: ['ai-agents', orgId],
+    enabled: !!orgId,
+    queryFn: async () => {
+      const res = await fetch('/api/v1/ai-agents', {
+        headers: {
+          [ORGANIZATION_HEADER]: orgId!,
+        },
+      })
+      if (!res.ok) throw new Error('Erro ao carregar agentes de IA.')
+      const data = await res.json()
+      return data.agents || []
+    },
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: async ({ id, name }: { id: string; name: string }) => {
+      const res = await fetch(`/api/v1/ai-agents/${id}`, {
+        method: 'DELETE',
+        headers: {
+          [ORGANIZATION_HEADER]: orgId!,
+        },
+      })
+      if (!res.ok) throw new Error()
+      return name
+    },
+    onSuccess: (name) => {
+      toast.success(`Agente "${name}" apagado com sucesso.`)
+      queryClient.invalidateQueries({ queryKey: ['ai-agents'] })
+    },
+    onError: () => {
+      toast.error('Erro ao apagar agente.')
+    },
+  })
+
+  const handleDelete = (id: string, name: string) => {
+    if (!confirm(`Tem certeza que deseja apagar o agente "${name}"?`)) return
+    deleteMutation.mutate({ id, name })
+  }
+
+  return (
+    <PageShell>
+      <PageHeader
+        title="AI Studio Beta"
+        description="Configuração avançada de agentes e skills. O fluxo principal da V1 continua sendo revisão humana em IA Copilot."
+        icon={Sparkles}
+        actions={
+          <div className="flex items-center gap-2">
+            <Button variant="outline" asChild className="gap-2">
+              <Link href="/dashboard/settings/ai/skills">
+                <Puzzle className="h-4 w-4" /> Skills
+              </Link>
+            </Button>
+            <Button asChild className="gap-2">
+              <Link href="/dashboard/settings/ai/new">
+                <Plus className="h-4 w-4" /> Novo Agente
+              </Link>
+            </Button>
+          </div>
+        }
+      />
+
+      <PageContent>
+        {isLoading && (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <LoadingCard />
+            <LoadingCard />
+            <LoadingCard />
+          </div>
+        )}
+
+        {!isLoading && agents.length === 0 && (
+          <EmptyState
+            icon={Bot}
+            title="Nenhum Agente Criado"
+            description="Você ainda não possui agentes configurados. Use este espaço para ajustes avançados depois de validar o fluxo principal de aprovações."
+            action={
+              <Button asChild>
+                <Link href="/dashboard/settings/ai/new">Criar Meu Primeiro Agente</Link>
+              </Button>
+            }
+          />
+        )}
+
+        {!isLoading && agents.length > 0 && (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {agents.map((agent: any) => (
+              <Card key={agent.id} className="flex flex-col">
+                <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+                  <div className="space-y-1">
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <Bot className="text-primary h-5 w-5" />
+                      {agent.name}
+                    </CardTitle>
+                    <div className="mt-2 flex items-center gap-2">
+                      <Badge
+                        variant={agent.isActive ? 'default' : 'secondary'}
+                        className={agent.isActive ? 'bg-green-600 hover:bg-green-700' : ''}
+                      >
+                        {agent.isActive ? 'Ativo' : 'Pausado'}
+                      </Badge>
+                      <span className="text-muted-foreground text-xs">{agent.model}</span>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="flex-1 py-4">
+                  <p className="text-muted-foreground line-clamp-3 text-sm">{agent.leanPrompt}</p>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <Badge variant="outline" className="text-[10px] uppercase">
+                      {agent.triggers?.length || 0} Triggers
+                    </Badge>
+                    <Badge variant="outline" className="text-[10px] uppercase">
+                      {agent.schemaFields?.length || 0} Campos
+                    </Badge>
+                    <Badge variant="outline" className="text-[10px] uppercase">
+                      {agent.skillBindings?.length || 0} Skills
+                    </Badge>
+                  </div>
+                </CardContent>
+                <CardFooter className="flex items-center justify-between gap-2 border-t pt-4">
+                  <Button variant="ghost" size="sm" asChild className="flex-1">
+                    <Link href={`/dashboard/settings/ai/${agent.id}`}>
+                      <Edit2 className="mr-2 h-4 w-4" /> Editar
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDelete(agent.id, agent.name)}
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10 flex-1"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" /> Apagar
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        )}
+      </PageContent>
+    </PageShell>
+  )
+}

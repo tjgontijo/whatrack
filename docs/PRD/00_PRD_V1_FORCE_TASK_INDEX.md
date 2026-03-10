@@ -44,6 +44,10 @@ Decisões fechadas:
 21. `21_PRD_PRICING_INSTANCE_MODEL.md`
 22. `22_PRD_AGENCY_POSITIONING_AND_COPY.md`
 23. `23_PRD_PROJECT_PIVOT_EXECUTION_PLAN.md`
+24. `24_PRD_FRONTEND_OVERHAUL.md`
+25. `25_PRD_DASHBOARD_UX_NAVIGATION.md` (documento de apoio, consolidado no PRD 24)
+26. `26_PRD_DESIGN_SYSTEM_STANDARDIZATION.md` (documento de apoio, consolidado no PRD 24)
+27. `27_PRD_RBAC_FRONTEND.md`
 
 ## Leitura Real do Produto
 
@@ -138,3 +142,7 @@ Frentes abertas após o fechamento do launch imediato:
 - `21_PRD_PRICING_INSTANCE_MODEL.md`
 - `22_PRD_AGENCY_POSITIONING_AND_COPY.md`
 - `23_PRD_PROJECT_PIVOT_EXECUTION_PLAN.md`
+- `24_PRD_FRONTEND_OVERHAUL.md`
+- `25_PRD_DASHBOARD_UX_NAVIGATION.md` (documento de apoio)
+- `26_PRD_DESIGN_SYSTEM_STANDARDIZATION.md` (documento de apoio)
+- `27_PRD_RBAC_FRONTEND.md`
