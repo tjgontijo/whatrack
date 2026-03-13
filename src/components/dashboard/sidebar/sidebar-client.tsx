@@ -24,6 +24,7 @@ import {
   ScrollText,
   CreditCard,
   Paintbrush,
+  Webhook,
 } from 'lucide-react'
 
 import type { Permission } from '@/lib/auth/rbac/roles'
@@ -413,6 +414,21 @@ export function SidebarClient({
                     <Link href="/dashboard/settings/audit" onClick={handleNavClick}>
                       <ScrollText className="h-4 w-4" />
                       <span>Auditoria</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ) : null}
+
+              {(session?.user?.role === 'admin' || session?.user?.role === 'owner') ? (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname.startsWith('/dashboard/settings/webhooks')}
+                    tooltip="Webhooks"
+                  >
+                    <Link href="/dashboard/settings/webhooks/whatsapp" onClick={handleNavClick}>
+                      <Webhook className="h-4 w-4" />
+                      <span>Webhooks</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
