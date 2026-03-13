@@ -1,8 +1,2 @@
 export { default as ClientLeadsTable } from './client-leads-table'
 export { NewLeadDrawer } from './new-lead-drawer'
-export { DataToolbar } from './data-toolbar'
-export { TemplateMainHeader } from './template-main-header'
-export { TemplateMainShell } from './template-main-shell'
-export * from './template-main-header'
-export * from './template-main-shell'
-export * from './data-toolbar'

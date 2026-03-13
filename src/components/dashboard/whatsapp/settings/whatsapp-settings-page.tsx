@@ -1,19 +1,20 @@
 'use client'
 
 import Link from 'next/link'
+import { useDeferredValue, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { AlertTriangle, Loader2, Phone, Plus, RefreshCw } from 'lucide-react'
+import { AlertTriangle, Loader2, Phone, Plus, RefreshCw, SearchX } from 'lucide-react'
 
+import { DataToolbar } from '@/components/dashboard/layout'
 import { EmbeddedSignupButton } from '@/components/dashboard/whatsapp/embedded-signup-button'
 import { InstanceCard } from '@/components/dashboard/whatsapp/instance-card'
-import { DataToolbar } from '@/components/dashboard/leads'
 import { Button } from '@/components/ui/button'
-import { useOrganizationCompletion } from '@/hooks/organization/use-organization-completion'
+import { authClient } from '@/lib/auth/auth-client'
+import { whatsappApi } from '@/lib/whatsapp/client'
 import { useOrganization } from '@/hooks/organization/use-organization'
+import { useOrganizationCompletion } from '@/hooks/organization/use-organization-completion'
 import { useIsMobile } from '@/hooks/ui/use-mobile'
 import { useWhatsAppOnboarding } from '@/hooks/whatsapp/use-whatsapp-onboarding'
-import { whatsappApi } from '@/lib/whatsapp/client'
-import { authClient } from '@/lib/auth/auth-client'
 import type { WhatsAppPhoneNumber } from '@/types/whatsapp/whatsapp'
 
 export function WhatsAppSettingsPage({ organizationId: propOrgId }: { organizationId?: string }) {
@@ -21,6 +22,9 @@ export function WhatsAppSettingsPage({ organizationId: propOrgId }: { organizati
   const completionQuery = useOrganizationCompletion()
   const { data: org } = useOrganization()
   const { data: session } = authClient.useSession()
+  const [searchValue, setSearchValue] = useState('')
+  const deferredSearch = useDeferredValue(searchValue)
+
   const orgId = propOrgId || org?.id
   const isSuperAdmin = session?.user?.role === 'owner'
 
@@ -46,12 +50,34 @@ export function WhatsAppSettingsPage({ organizationId: propOrgId }: { organizati
     void refetch()
   }
 
-  const { status: onboardingStatus, sdkReady, startOnboarding } =
-    useWhatsAppOnboarding(handleRefresh)
+  const {
+    status: onboardingStatus,
+    sdkReady,
+    startOnboarding,
+  } = useWhatsAppOnboarding(handleRefresh)
   const isOnboarding = onboardingStatus === 'pending'
 
   const rawErrorMessage = error instanceof Error ? error.message : ''
   const errorMessage = rawErrorMessage || 'Houve um problema ao conectar com a API da Meta.'
+  const normalizedSearch = deferredSearch.trim().toLowerCase()
+  const filteredPhoneNumbers =
+    phoneNumbers?.filter((phone) => {
+      if (!normalizedSearch) {
+        return true
+      }
+
+      const searchableValue = [
+        phone.verified_name,
+        phone.display_phone_number,
+        phone.projectName,
+        phone.status,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase()
+
+      return searchableValue.includes(normalizedSearch)
+    }) ?? []
 
   return (
     <div className="flex min-h-[calc(100vh-16rem)] flex-col">
@@ -59,9 +85,7 @@ export function WhatsAppSettingsPage({ organizationId: propOrgId }: { organizati
         <div className="flex items-center gap-2">
           {isSuperAdmin ? (
             <Button variant="outline" size="sm" className="h-8 gap-2 font-semibold" asChild>
-              <Link href="/dashboard/settings/webhooks/whatsapp">
-                {!isMobile && 'Webhooks'}
-              </Link>
+              <Link href="/dashboard/settings/webhooks/whatsapp">{!isMobile && 'Webhooks'}</Link>
             </Button>
           ) : null}
           <Button
@@ -83,8 +107,8 @@ export function WhatsAppSettingsPage({ organizationId: propOrgId }: { organizati
 
       <div className="border-border bg-background/50 supports-[backdrop-filter]:bg-background/50 border-b px-6 backdrop-blur">
         <DataToolbar
-          searchValue=""
-          onSearchChange={() => {}}
+          searchValue={searchValue}
+          onSearchChange={setSearchValue}
           searchPlaceholder="Buscar instância..."
           actions={
             <Button
@@ -122,9 +146,7 @@ export function WhatsAppSettingsPage({ organizationId: propOrgId }: { organizati
             </div>
             <div>
               <h3 className="text-lg font-semibold">Não foi possível validar a organização</h3>
-              <p className="text-muted-foreground text-sm">
-                Atualize a página e tente novamente.
-              </p>
+              <p className="text-muted-foreground text-sm">Atualize a página e tente novamente.</p>
             </div>
             <Button onClick={handleRefresh} variant="outline" size="sm">
               Tentar novamente
@@ -171,9 +193,24 @@ export function WhatsAppSettingsPage({ organizationId: propOrgId }: { organizati
           <div className="mx-auto flex h-full max-w-2xl flex-col items-center justify-center py-12">
             <EmbeddedSignupButton onSuccess={handleRefresh} />
           </div>
+        ) : filteredPhoneNumbers.length === 0 ? (
+          <div className="mx-auto flex h-full max-w-2xl flex-col items-center justify-center gap-4 py-12 text-center">
+            <div className="bg-muted flex h-12 w-12 items-center justify-center rounded-full">
+              <SearchX className="text-muted-foreground h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold">Nenhuma instância encontrada</h3>
+              <p className="text-muted-foreground text-sm">
+                Ajuste o termo da busca para localizar outra instância.
+              </p>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => setSearchValue('')}>
+              Limpar busca
+            </Button>
+          </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
-            {phoneNumbers.map((phone) => (
+            {filteredPhoneNumbers.map((phone) => (
               <InstanceCard key={phone.id} phone={phone} />
             ))}
           </div>

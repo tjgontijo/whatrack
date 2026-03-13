@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils/utils'
 
 interface DataToolbarProps {
   filters?: React.ReactNode
-  actions?: React.ReactNode // Extra view actions like "Display options"
+  actions?: React.ReactNode
   className?: string
   searchValue?: string
   onSearchChange?: (value: string) => void
@@ -37,14 +37,14 @@ export function DataToolbar({
             placeholder={searchPlaceholder || 'Search...'}
             className="bg-muted/50 focus-visible:bg-background focus-visible:ring-ring h-8 rounded-full border-transparent pl-9 text-xs focus-visible:ring-1"
             value={searchValue}
-            onChange={(e) => onSearchChange?.(e.target.value)}
+            onChange={(event) => onSearchChange?.(event.target.value)}
           />
         </div>
         <div className="bg-border mx-2 h-4 w-[1px]" />
         {filters}
       </div>
 
-      {actions && <div className="flex items-center gap-2">{actions}</div>}
+      {actions ? <div className="flex items-center gap-2">{actions}</div> : null}
     </div>
   )
 }

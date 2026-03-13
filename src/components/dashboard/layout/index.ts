@@ -1,3 +1,7 @@
 export { PageShell } from './page-shell'
 export { PageHeader } from './page-header'
 export { PageContent } from './page-content'
+export { SectionShell } from './section-shell'
+export { SectionHeader } from './section-header'
+export { SectionTabsList, SectionTabsTrigger } from './section-tabs'
+export { DataToolbar } from './data-toolbar'

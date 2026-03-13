@@ -1,10 +1,10 @@
 import { WebhooksView } from '@/components/dashboard/whatsapp/settings/webhooks-view'
-import { TemplateMainShell } from '@/components/dashboard/leads'
+import { SectionShell } from '@/components/dashboard/layout'
 
 export default function WebhooksPage() {
   return (
-    <TemplateMainShell>
+    <SectionShell>
       <WebhooksView />
-    </TemplateMainShell>
+    </SectionShell>
   )
 }
