@@ -59,7 +59,7 @@ export function WhatsAppSettingsPage({ organizationId: propOrgId }: { organizati
         <div className="flex items-center gap-2">
           {isSuperAdmin ? (
             <Button variant="outline" size="sm" className="h-8 gap-2 font-semibold" asChild>
-              <Link href="/dashboard/settings/whatsapp/webhooks">
+              <Link href="/dashboard/settings/webhooks/whatsapp">
                 {!isMobile && 'Webhooks'}
               </Link>
             </Button>
