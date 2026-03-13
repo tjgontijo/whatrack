@@ -6,6 +6,40 @@ import {
   syncOrganizationSubscriptionItems,
 } from '@/services/billing/billing-subscription.service'
 
+const PENDING_PHONE_ID_PREFIX = 'pending_'
+
+function isPendingPhoneId(phoneId: string | null | undefined): phoneId is string {
+  return typeof phoneId === 'string' && phoneId.startsWith(PENDING_PHONE_ID_PREFIX)
+}
+
+function buildPendingPhonePlaceholder(config: {
+  phoneId: string | null
+  wabaId: string | null
+  verifiedName: string | null
+  displayPhone: string | null
+}) {
+  return {
+    id: config.phoneId || `${PENDING_PHONE_ID_PREFIX}${config.wabaId || 'unknown'}`,
+    verified_name: config.verifiedName || 'WhatsApp Business',
+    display_phone_number: config.displayPhone || 'Número em configuração',
+    quality_rating: 'UNKNOWN' as const,
+    code_verification_status: 'NOT_VERIFIED' as const,
+    platform_type: 'CLOUD_API' as const,
+    throughput: {
+      level: 'STANDARD' as const,
+    },
+    webhook_configuration: {
+      application: 'WhaTrack',
+      whatsapp_business_account: config.wabaId || '',
+    },
+    name_status: 'PENDING_REVIEW' as const,
+    new_name_status: 'PENDING_REVIEW' as const,
+    status: 'PENDING' as const,
+    account_mode: 'LIVE' as const,
+    wabaId: config.wabaId,
+  }
+}
+
 interface DisconnectWhatsAppConfigParams {
   organizationId: string
   userId?: string | null
@@ -99,13 +133,29 @@ export async function listWhatsAppPhoneNumbers(organizationId: string) {
   const configs = await MetaCloudService.getAllConfigs(organizationId)
   const configByPhoneId = new Map(
     configs
-      .filter((config) => config.phoneId)
+      .filter((config) => config.phoneId && !isPendingPhoneId(config.phoneId))
       .map((config) => [
         config.phoneId!,
         {
           configId: config.id,
           projectId: config.projectId,
           projectName: config.project?.name ?? null,
+        },
+      ]),
+  )
+  const pendingConfigByWabaId = new Map(
+    configs
+      .filter((config) => config.wabaId && isPendingPhoneId(config.phoneId))
+      .map((config) => [
+        config.wabaId!,
+        {
+          configId: config.id,
+          projectId: config.projectId,
+          projectName: config.project?.name ?? null,
+          phoneId: config.phoneId,
+          wabaId: config.wabaId,
+          verifiedName: config.verifiedName,
+          displayPhone: config.displayPhone,
         },
       ]),
   )
@@ -132,7 +182,17 @@ export async function listWhatsAppPhoneNumbers(organizationId: string) {
         accessToken: token || undefined,
       })
 
-      allPhoneNumbers.push(...numbers)
+      if (numbers.length === 0) {
+        const pendingConfig = pendingConfigByWabaId.get(wabaId)
+        if (pendingConfig) {
+          allPhoneNumbers.push(buildPendingPhonePlaceholder(pendingConfig))
+        }
+        continue
+      }
+
+      allPhoneNumbers.push(
+        ...numbers.map((phone: Record<string, unknown>) => ({ ...phone, wabaId })),
+      )
     } catch {
       // ignore WABA-specific failures
     }
@@ -146,15 +206,26 @@ export async function listWhatsAppPhoneNumbers(organizationId: string) {
 
     return acc
   }, {})
+  const assignedPendingConfigIds = new Set<string>()
 
   return {
     data: {
       phoneNumbers: Object.values(uniqueById).map((phone) => {
         const id = typeof phone.id === 'string' ? phone.id : ''
-        const config = configByPhoneId.get(id)
+        const wabaId = typeof phone.wabaId === 'string' ? phone.wabaId : ''
+        const directConfig = configByPhoneId.get(id)
+        const pendingConfig = wabaId ? pendingConfigByWabaId.get(wabaId) : undefined
+        let config = directConfig
+
+        if (!config && pendingConfig && !assignedPendingConfigIds.has(pendingConfig.configId)) {
+          assignedPendingConfigIds.add(pendingConfig.configId)
+          config = pendingConfig
+        }
+
+        const { wabaId: _, ...phoneData } = phone
 
         return {
-          ...phone,
+          ...phoneData,
           configId: config?.configId ?? null,
           projectId: config?.projectId ?? null,
           projectName: config?.projectName ?? null,

@@ -10,6 +10,12 @@ interface CreateOnboardingSessionResult {
   expiresIn: number
 }
 
+const PENDING_PHONE_ID_PREFIX = 'pending_'
+
+function buildPendingPhoneId(wabaId: string): string {
+  return `${PENDING_PHONE_ID_PREFIX}${wabaId}`
+}
+
 export async function createWhatsAppOnboardingSession(
   organizationId: string,
   baseUrl?: string
@@ -187,6 +193,46 @@ export async function handleWhatsAppOnboardingCallback(
         })
       } catch {
         phones = []
+      }
+
+      if (phones.length === 0) {
+        const pendingPhoneId = buildPendingPhoneId(waba.wabaId)
+
+        await prisma.whatsAppConfig.upsert({
+          where: { phoneId: pendingPhoneId },
+          create: {
+            organizationId: onboarding.organizationId,
+            connectionId: connection.id,
+            wabaId: waba.wabaId,
+            phoneId: pendingPhoneId,
+            displayPhone: 'Número em configuração',
+            verifiedName: waba.wabaName,
+            accessToken: encryptedToken,
+            accessTokenEncrypted: true,
+            status: 'pending',
+            connectedAt: new Date(),
+          },
+          update: {
+            organizationId: onboarding.organizationId,
+            connectionId: connection.id,
+            wabaId: waba.wabaId,
+            displayPhone: 'Número em configuração',
+            verifiedName: waba.wabaName,
+            accessToken: encryptedToken,
+            accessTokenEncrypted: true,
+            status: 'pending',
+            connectedAt: new Date(),
+            disconnectedAt: null,
+          },
+        })
+      } else {
+        await prisma.whatsAppConfig.deleteMany({
+          where: {
+            organizationId: onboarding.organizationId,
+            wabaId: waba.wabaId,
+            phoneId: buildPendingPhoneId(waba.wabaId),
+          },
+        })
       }
 
       for (const phone of phones) {

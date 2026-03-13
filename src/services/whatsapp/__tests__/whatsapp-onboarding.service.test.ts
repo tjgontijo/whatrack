@@ -1,6 +1,15 @@
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const createIdMock = vi.hoisted(() => vi.fn())
+const encryptionMock = vi.hoisted(() => ({
+  encrypt: vi.fn(),
+}))
+const metaCloudMock = vi.hoisted(() => ({
+  exchangeCodeForToken: vi.fn(),
+  listWabas: vi.fn(),
+  listPhoneNumbers: vi.fn(),
+  subscribeToWaba: vi.fn(),
+}))
 const prismaMock = vi.hoisted(() => ({
   whatsAppOnboarding: {
     create: vi.fn(),
@@ -13,6 +22,7 @@ const prismaMock = vi.hoisted(() => ({
   },
   whatsAppConfig: {
     upsert: vi.fn(),
+    deleteMany: vi.fn(),
   },
   whatsAppAuditLog: {
     create: vi.fn(),
@@ -28,16 +38,17 @@ vi.mock('@/lib/db/prisma', () => ({
 }))
 
 vi.mock('@/lib/utils/encryption', () => ({
-  encryption: {
-    encrypt: vi.fn(),
-  },
+  encryption: encryptionMock,
 }))
 
 vi.mock('@/services/whatsapp/meta-cloud.service', () => ({
-  MetaCloudService: {},
+  MetaCloudService: metaCloudMock,
 }))
 
-import { createWhatsAppOnboardingSession } from '@/services/whatsapp/whatsapp-onboarding.service'
+import {
+  createWhatsAppOnboardingSession,
+  handleWhatsAppOnboardingCallback,
+} from '@/services/whatsapp/whatsapp-onboarding.service'
 
 const ORIGINAL_ENV = process.env
 
@@ -93,5 +104,64 @@ describe('whatsapp-onboarding.service', () => {
     expect(parsedUrl.searchParams.get('state')).toBe('track-123')
     expect(result.trackingCode).toBe('track-123')
     expect(result.expiresIn).toBe(86400)
+  })
+
+  it('materializes a pending config when onboarding finishes before Meta exposes phone numbers', async () => {
+    prismaMock.whatsAppOnboarding.findUnique.mockResolvedValue({
+      id: 'onboarding-1',
+      organizationId: 'org-123',
+      expiresAt: new Date(Date.now() + 60_000),
+    })
+    metaCloudMock.exchangeCodeForToken.mockResolvedValue({
+      access_token: 'meta-token',
+    })
+    metaCloudMock.listWabas.mockResolvedValue([
+      {
+        wabaId: 'waba-123',
+        wabaName: 'Acme Support',
+        businessId: 'business-123',
+      },
+    ])
+    metaCloudMock.listPhoneNumbers.mockResolvedValue([])
+    metaCloudMock.subscribeToWaba.mockResolvedValue(undefined)
+    encryptionMock.encrypt.mockReturnValue('encrypted-token')
+    prismaMock.whatsAppConnection.upsert.mockResolvedValue({ id: 'connection-1' })
+    prismaMock.whatsAppConfig.upsert.mockResolvedValue(undefined)
+    prismaMock.whatsAppAuditLog.create.mockResolvedValue(undefined)
+    prismaMock.whatsAppOnboarding.update.mockResolvedValue(undefined)
+
+    const result = await handleWhatsAppOnboardingCallback({
+      code: 'meta-code',
+      state: 'track-123',
+      error: null,
+      errorDescription: null,
+    })
+
+    expect(prismaMock.whatsAppConfig.upsert).toHaveBeenCalledWith({
+      where: { phoneId: 'pending_waba-123' },
+      create: expect.objectContaining({
+        organizationId: 'org-123',
+        connectionId: 'connection-1',
+        wabaId: 'waba-123',
+        phoneId: 'pending_waba-123',
+        verifiedName: 'Acme Support',
+        accessToken: 'encrypted-token',
+        accessTokenEncrypted: true,
+        status: 'pending',
+        connectedAt: expect.any(Date),
+      }),
+      update: expect.objectContaining({
+        organizationId: 'org-123',
+        connectionId: 'connection-1',
+        wabaId: 'waba-123',
+        verifiedName: 'Acme Support',
+        accessToken: 'encrypted-token',
+        accessTokenEncrypted: true,
+        status: 'pending',
+        connectedAt: expect.any(Date),
+        disconnectedAt: null,
+      }),
+    })
+    expect(result).toEqual({ success: true, totalPhones: 0 })
   })
 })
