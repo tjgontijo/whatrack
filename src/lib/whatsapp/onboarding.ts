@@ -17,6 +17,10 @@ export function buildWhatsAppEmbeddedSignupUrl(
     sessionInfo: { trackingCode },
   }
 
+  if (url.searchParams.get('state') !== trackingCode) {
+    url.searchParams.set('state', trackingCode)
+  }
+
   url.searchParams.set('extras', JSON.stringify(extras))
 
   return url.toString()

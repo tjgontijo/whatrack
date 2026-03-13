@@ -1,8 +1,20 @@
 import { handleWhatsAppOnboardingCallback } from '@/services/whatsapp/whatsapp-onboarding.service'
 
-const APP_URL = process.env.APP_URL
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;')
+}
 
-const RESPONSE_HTML = (status: 'success' | 'error', message?: string) => `
+const RESPONSE_HTML = (status: 'success' | 'error', message?: string) => {
+  const safeMessage = message ?? ''
+  const serializedStatus = JSON.stringify(status)
+  const serializedMessage = JSON.stringify(safeMessage)
+
+  return `
   <!DOCTYPE html>
   <html>
     <body>
@@ -10,24 +22,29 @@ const RESPONSE_HTML = (status: 'success' | 'error', message?: string) => `
         if (window.opener) {
           window.opener.postMessage({ 
             type: 'WA_CALLBACK_STATUS', 
-            status: '${status}',
-            message: '${message || ''}' 
+            status: ${serializedStatus},
+            message: ${serializedMessage} 
           }, window.location.origin);
-          
-          window.opener.postMessage({ type: 'WA_CALLBACK_SUCCESS' }, window.location.origin);
+
+          ${
+            status === 'success'
+              ? "window.opener.postMessage({ type: 'WA_CALLBACK_SUCCESS' }, window.location.origin);"
+              : ''
+          }
           
           window.close();
         } else {
-          window.location.href = '/dashboard/settings/integrations?tab=whatsapp&status=${status}&message=${encodeURIComponent(message || '')}';
+          window.location.href = '/dashboard/settings/integrations?tab=whatsapp&status=${status}&message=${encodeURIComponent(safeMessage)}';
         }
       </script>
       <div style="font-family: sans-serif; text-align: center; padding: 40px;">
         <h2>${status === 'success' ? 'Conectado!' : 'Erro na Conexão'}</h2>
-        <p>${status === 'success' ? 'Pode fechar esta janela.' : message}</p>
+        <p>${status === 'success' ? 'Pode fechar esta janela.' : escapeHtml(safeMessage)}</p>
       </div>
     </body>
   </html>
 `
+}
 
 export async function GET(request: Request) {
   try {
