@@ -11,11 +11,19 @@ import {
   Kanban,
   LayoutDashboard,
   MessageSquare,
-  Settings,
   ShoppingBag,
   Sparkles,
   Users,
   Plug,
+  UserCircle,
+  Shield,
+  Building2,
+  GitBranch,
+  Bot,
+  Package,
+  ScrollText,
+  CreditCard,
+  Paintbrush,
 } from 'lucide-react'
 
 import type { Permission } from '@/lib/auth/rbac/roles'
@@ -51,7 +59,13 @@ const ICON_MAP = {
   Sparkles,
   FolderKanban,
   Plug,
-  Settings,
+  UserCircle,
+  Shield,
+  Building2,
+  GitBranch,
+  Bot,
+  Package,
+  ScrollText,
 } as const
 
 type NavItem = {
@@ -250,6 +264,65 @@ export function SidebarClient({
           <SidebarGroupLabel>Configurações</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={
+                    pathname === '/dashboard/settings' ||
+                    pathname.startsWith('/dashboard/settings/profile')
+                  }
+                  tooltip="Perfil"
+                >
+                  <Link href="/dashboard/settings/profile" onClick={handleNavClick}>
+                    <UserCircle className="h-4 w-4" />
+                    <span>Perfil</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname === '/dashboard/settings/profile' && typeof window !== 'undefined' && window.location.hash === '#seguranca'}
+                  tooltip="Segurança"
+                >
+                  <Link href="/dashboard/settings/profile#seguranca" onClick={handleNavClick}>
+                    <Shield className="h-4 w-4" />
+                    <span>Segurança</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              {canViewWorkspaceItem('manage:organization') ? (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname.startsWith('/dashboard/settings/organization')}
+                    tooltip="Organização"
+                  >
+                    <Link href="/dashboard/settings/organization" onClick={handleNavClick}>
+                      <Building2 className="h-4 w-4" />
+                      <span>Organização</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ) : null}
+
+              {canViewWorkspaceItem('manage:members') ? (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname.startsWith('/dashboard/settings/team')}
+                    tooltip="Equipe"
+                  >
+                    <Link href="/dashboard/settings/team" onClick={handleNavClick}>
+                      <Users className="h-4 w-4" />
+                      <span>Equipe</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ) : null}
+
               {canViewWorkspaceItem('manage:integrations') ? (
                 <SidebarMenuItem>
                   <SidebarMenuButton
@@ -269,24 +342,59 @@ export function SidebarClient({
                 </SidebarMenuItem>
               ) : null}
 
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={pathname.startsWith('/dashboard/settings/team')}
-                  tooltip="Equipe"
-                >
-                  <Link href="/dashboard/settings/team" onClick={handleNavClick}>
-                    <Users className="h-4 w-4" />
-                    <span>Equipe</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {canViewWorkspaceItem('manage:settings') ? (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname.startsWith('/dashboard/settings/pipeline')}
+                    tooltip="Pipeline"
+                  >
+                    <Link href="/dashboard/settings/pipeline" onClick={handleNavClick}>
+                      <GitBranch className="h-4 w-4" />
+                      <span>Pipeline</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ) : null}
+
+              {canViewWorkspaceItem('manage:ai') ? (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname.startsWith('/dashboard/settings/ai-studio')}
+                    tooltip="IA Studio"
+                  >
+                    <Link href="/dashboard/settings/ai-studio" onClick={handleNavClick}>
+                      <Bot className="h-4 w-4" />
+                      <span>IA Studio</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ) : null}
+
+              {canViewWorkspaceItem('manage:items') ? (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname.startsWith('/dashboard/settings/catalog')}
+                    tooltip="Catálogo"
+                  >
+                    <Link href="/dashboard/settings/catalog" onClick={handleNavClick}>
+                      <Package className="h-4 w-4" />
+                      <span>Catálogo</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ) : null}
 
               <SidebarMenuItem>
                 <SidebarMenuButton
                   asChild
-                  isActive={pathname.startsWith('/dashboard/settings/subscription') || pathname.startsWith('/dashboard/settings/billing')}
-                  tooltip="Assinatura & Faturamento"
+                  isActive={
+                    pathname.startsWith('/dashboard/settings/subscription') ||
+                    pathname.startsWith('/dashboard/settings/billing')
+                  }
+                  tooltip="Assinatura"
                 >
                   <Link href="/dashboard/settings/subscription" onClick={handleNavClick}>
                     <ShoppingBag className="h-4 w-4" />
@@ -295,18 +403,50 @@ export function SidebarClient({
                 </SidebarMenuButton>
               </SidebarMenuItem>
 
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={pathname === '/dashboard/settings' || pathname.startsWith('/dashboard/settings/profile')}
-                  tooltip="Configurações da Conta"
-                >
-                  <Link href="/dashboard/settings/profile" onClick={handleNavClick}>
-                    <Settings className="h-4 w-4" />
-                    <span>Configurações</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {canViewWorkspaceItem('view:audit') ? (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname.startsWith('/dashboard/settings/audit')}
+                    tooltip="Auditoria"
+                  >
+                    <Link href="/dashboard/settings/audit" onClick={handleNavClick}>
+                      <ScrollText className="h-4 w-4" />
+                      <span>Auditoria</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ) : null}
+
+              {(session?.user?.role === 'admin' || session?.user?.role === 'owner') ? (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname.startsWith('/dashboard/settings/billing')}
+                    tooltip="Planos e Cobrança"
+                  >
+                    <Link href="/dashboard/settings/billing" onClick={handleNavClick}>
+                      <CreditCard className="h-4 w-4" />
+                      <span>Planos e Cobrança</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ) : null}
+
+              {session?.user?.role === 'owner' ? (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname.startsWith('/dashboard/design-system')}
+                    tooltip="Design System"
+                  >
+                    <Link href="/dashboard/design-system" onClick={handleNavClick}>
+                      <Paintbrush className="h-4 w-4" />
+                      <span>Design System</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ) : null}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
