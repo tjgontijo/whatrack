@@ -29,14 +29,17 @@ export class MetaAccessTokenService {
   /**
    * Exchange OAuth Code for Short-Lived User Access Token
    */
-  async getShortLivedToken(code: string): Promise<string> {
+  async getShortLivedToken(code: string, redirectUri?: string): Promise<string> {
     const response = await axios.get(
       `https://graph.facebook.com/${requireEnv('META_API_VERSION')}/oauth/access_token`,
       {
         params: {
           client_id: requireEnv('META_ADS_APP_ID'),
           client_secret: requireEnv('META_ADS_APP_SECRET'),
-          redirect_uri: requireEnv('META_OAUTH_REDIRECT_URI'),
+          redirect_uri:
+            redirectUri ||
+            process.env.META_OAUTH_REDIRECT_URI ||
+            `${process.env.APP_URL}/api/v1/meta-ads/callback`,
           code,
         },
       }

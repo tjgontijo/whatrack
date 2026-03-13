@@ -50,7 +50,8 @@ export async function GET(req: NextRequest) {
     )
   }
 
-  const result = await completeMetaAdsOAuthCallback(code, stateToken)
+  const redirectUri = new URL('/api/v1/meta-ads/callback', req.url).toString()
+  const result = await completeMetaAdsOAuthCallback(code, stateToken, redirectUri)
 
   if (!result.success) {
     return NextResponse.redirect(

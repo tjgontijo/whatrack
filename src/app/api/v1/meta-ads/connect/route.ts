@@ -14,8 +14,9 @@ export async function GET(req: NextRequest) {
   }
 
   const clientId = process.env.META_ADS_APP_ID
+  const origin = req.nextUrl.origin
   const redirectUri =
-    process.env.META_OAUTH_REDIRECT_URI || `${process.env.APP_URL}/api/v1/meta-ads/callback`
+    process.env.META_OAUTH_REDIRECT_URI || `${origin}/api/v1/meta-ads/callback`
 
   if (!clientId) {
     logger.error('[MetaAdsConnect] META_ADS_APP_ID not configured')

@@ -40,7 +40,7 @@ export function IntegrationsHub({
       </TabsList>
 
       <TabsContent value="whatsapp" className="mt-0 outline-none">
-        <WhatsAppSettingsPage />
+        <WhatsAppSettingsPage organizationId={organizationId} />
       </TabsContent>
 
       <TabsContent value="meta-ads" className="mt-0 outline-none">

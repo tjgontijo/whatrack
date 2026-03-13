@@ -20,7 +20,8 @@ type CompleteMetaAdsOAuthResult =
 
 export async function completeMetaAdsOAuthCallback(
   code: string,
-  stateToken: string
+  stateToken: string,
+  redirectUri?: string
 ): Promise<CompleteMetaAdsOAuthResult> {
   const stateData = await consumeMetaOAuthState(stateToken)
   if (!stateData) {
@@ -28,7 +29,7 @@ export async function completeMetaAdsOAuthCallback(
   }
 
   try {
-    const shortLivedToken = await metaAccessTokenService.getShortLivedToken(code)
+    const shortLivedToken = await metaAccessTokenService.getShortLivedToken(code, redirectUri)
     const connection = await metaAccessTokenService.upsertConnection(
       stateData.organizationId,
       shortLivedToken

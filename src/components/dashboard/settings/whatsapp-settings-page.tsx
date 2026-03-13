@@ -16,12 +16,12 @@ import { whatsappApi } from '@/lib/whatsapp/client'
 import { authClient } from '@/lib/auth/auth-client'
 import type { WhatsAppPhoneNumber } from '@/types/whatsapp/whatsapp'
 
-export function WhatsAppSettingsPage() {
+export function WhatsAppSettingsPage({ organizationId: propOrgId }: { organizationId?: string }) {
   const isMobile = useIsMobile()
   const completionQuery = useOrganizationCompletion()
   const { data: org } = useOrganization()
   const { data: session } = authClient.useSession()
-  const orgId = org?.id
+  const orgId = propOrgId || org?.id
   const isSuperAdmin = session?.user?.role === 'owner'
 
   const hasOrganization = completionQuery.data?.hasOrganization ?? false

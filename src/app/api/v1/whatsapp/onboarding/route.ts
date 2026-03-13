@@ -16,7 +16,10 @@ export async function GET(request: NextRequest) {
       return apiError(access.error || 'Unauthorized', 401)
     }
 
-    const result = await createWhatsAppOnboardingSession(access.organizationId)
+    const result = await createWhatsAppOnboardingSession(
+      access.organizationId,
+      request.nextUrl.origin
+    )
 
     if ('error' in result) {
       logger.error({ err: result.error }, '[Onboarding] Missing configuration')

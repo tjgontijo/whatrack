@@ -16,7 +16,7 @@ export async function GET(request: Request) {
       state: url.searchParams.get('state'),
       error: url.searchParams.get('error'),
       errorDescription: url.searchParams.get('error_description'),
-    })
+    }, url.origin)
 
     if (!result.success) {
       return redirectToError(result.message)

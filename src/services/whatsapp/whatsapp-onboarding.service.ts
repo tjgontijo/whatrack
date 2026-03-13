@@ -11,7 +11,8 @@ interface CreateOnboardingSessionResult {
 }
 
 export async function createWhatsAppOnboardingSession(
-  organizationId: string
+  organizationId: string,
+  baseUrl?: string
 ): Promise<CreateOnboardingSessionResult | { error: string }> {
   const trackingCode = createId()
   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000)
@@ -27,7 +28,7 @@ export async function createWhatsAppOnboardingSession(
 
   const metaAppId = process.env.NEXT_PUBLIC_META_APP_ID
   const metaConfigId = process.env.NEXT_PUBLIC_META_CONFIG_ID
-  const appUrl = process.env.APP_URL
+  const appUrl = baseUrl || process.env.APP_URL
 
   if (!metaAppId || !metaConfigId || !appUrl) {
     return {
@@ -78,7 +79,8 @@ async function markOnboardingFailed(
 }
 
 export async function handleWhatsAppOnboardingCallback(
-  input: HandleOnboardingCallbackInput
+  input: HandleOnboardingCallbackInput,
+  baseUrl?: string
 ): Promise<HandleOnboardingCallbackResult> {
   if (input.error) {
     const message = `${input.error}: ${input.errorDescription || 'Unknown error'}`
@@ -120,7 +122,8 @@ export async function handleWhatsAppOnboardingCallback(
 
   let accessToken = ''
   try {
-    const tokenData = await MetaCloudService.exchangeCodeForToken(input.code)
+    const redirectUri = baseUrl ? `${baseUrl}/api/v1/whatsapp/onboarding/callback` : undefined
+    const tokenData = await MetaCloudService.exchangeCodeForToken(input.code, redirectUri)
     accessToken = tokenData.access_token
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Token exchange failed'

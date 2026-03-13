@@ -227,24 +227,6 @@ export function SidebarClient({
           <SidebarGroupLabel>Captação</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {canViewWorkspaceItem('manage:integrations') ? (
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={
-                      pathname.startsWith('/dashboard/settings/integrations') ||
-                      pathname.startsWith('/dashboard/settings/whatsapp') ||
-                      pathname.startsWith('/dashboard/settings/meta-ads')
-                    }
-                    tooltip="Integrações"
-                  >
-                    <Link href="/dashboard/settings/integrations" onClick={handleNavClick}>
-                      <Plug className="h-4 w-4" />
-                      <span>Integrações</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ) : null}
               {renderNavGroup(acquisitionItems)}
             </SidebarMenu>
           </SidebarGroupContent>
@@ -268,11 +250,56 @@ export function SidebarClient({
           <SidebarGroupLabel>Configurações</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
+              {canViewWorkspaceItem('manage:integrations') ? (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={
+                      pathname.startsWith('/dashboard/settings/integrations') ||
+                      pathname.startsWith('/dashboard/settings/whatsapp') ||
+                      pathname.startsWith('/dashboard/settings/meta-ads')
+                    }
+                    tooltip="Integrações"
+                  >
+                    <Link href="/dashboard/settings/integrations" onClick={handleNavClick}>
+                      <Plug className="h-4 w-4" />
+                      <span>Integrações</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ) : null}
+
               <SidebarMenuItem>
                 <SidebarMenuButton
                   asChild
-                  isActive={pathname.startsWith('/dashboard/settings')}
-                  tooltip="Configurações"
+                  isActive={pathname.startsWith('/dashboard/settings/team')}
+                  tooltip="Equipe"
+                >
+                  <Link href="/dashboard/settings/team" onClick={handleNavClick}>
+                    <Users className="h-4 w-4" />
+                    <span>Equipe</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname.startsWith('/dashboard/settings/subscription') || pathname.startsWith('/dashboard/settings/billing')}
+                  tooltip="Assinatura & Faturamento"
+                >
+                  <Link href="/dashboard/settings/subscription" onClick={handleNavClick}>
+                    <ShoppingBag className="h-4 w-4" />
+                    <span>Assinatura</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname === '/dashboard/settings' || pathname.startsWith('/dashboard/settings/profile')}
+                  tooltip="Configurações da Conta"
                 >
                   <Link href="/dashboard/settings/profile" onClick={handleNavClick}>
                     <Settings className="h-4 w-4" />
