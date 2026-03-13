@@ -37,13 +37,13 @@ export async function createWhatsAppOnboardingSession(
     }
   }
 
-  const onboardingUrl = new URL('https://business.facebook.com/messaging/whatsapp/onboard/')
-  onboardingUrl.searchParams.set('app_id', metaAppId)
-  onboardingUrl.searchParams.set('config_id', metaConfigId)
+  const onboardingUrl = new URL('https://www.facebook.com/dialog/oauth')
+  onboardingUrl.searchParams.set('client_id', metaAppId)
   onboardingUrl.searchParams.set('redirect_uri', `${appUrl}/api/v1/whatsapp/onboarding/callback`)
   onboardingUrl.searchParams.set('state', trackingCode)
+  onboardingUrl.searchParams.set('scope', 'whatsapp_business_management,business_management')
   onboardingUrl.searchParams.set('response_type', 'code')
-  onboardingUrl.searchParams.set('display', 'popup')
+  onboardingUrl.searchParams.set('config_id', metaConfigId)
 
   return {
     onboardingUrl: onboardingUrl.toString(),

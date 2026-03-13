@@ -79,15 +79,17 @@ describe('whatsapp-onboarding.service', () => {
 
     const parsedUrl = new URL(result.onboardingUrl)
 
-    expect(parsedUrl.origin).toBe('https://business.facebook.com')
-    expect(parsedUrl.pathname).toBe('/messaging/whatsapp/onboard/')
-    expect(parsedUrl.searchParams.get('app_id')).toBe('app-123')
+    expect(parsedUrl.origin).toBe('https://www.facebook.com')
+    expect(parsedUrl.pathname).toBe('/dialog/oauth')
+    expect(parsedUrl.searchParams.get('client_id')).toBe('app-123')
     expect(parsedUrl.searchParams.get('config_id')).toBe('config-456')
     expect(parsedUrl.searchParams.get('redirect_uri')).toBe(
       'https://whatrack.com/api/v1/whatsapp/onboarding/callback'
     )
+    expect(parsedUrl.searchParams.get('scope')).toBe(
+      'whatsapp_business_management,business_management'
+    )
     expect(parsedUrl.searchParams.get('response_type')).toBe('code')
-    expect(parsedUrl.searchParams.get('display')).toBe('popup')
     expect(parsedUrl.searchParams.get('state')).toBe('track-123')
     expect(result.trackingCode).toBe('track-123')
     expect(result.expiresIn).toBe(86400)

@@ -49,7 +49,7 @@ export class MetaCloudService {
 
     const appId = process.env.NEXT_PUBLIC_META_APP_ID
     const finalRedirectUri =
-      redirectUri || `https://whatrack.com/dashboard/settings/whatsapp/`
+      redirectUri || `${process.env.APP_URL}/api/v1/whatsapp/onboarding/callback`
 
     logger.info({ context: { url, appId, redirectUri: finalRedirectUri, code: code.substring(0, 10) + '...' } }, '[MetaCloudService] Exchanging code for token')
 

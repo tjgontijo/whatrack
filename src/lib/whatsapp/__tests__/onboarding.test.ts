@@ -13,14 +13,14 @@ describe('whatsapp onboarding helpers', () => {
 
   it('adds extras without duplicating the state param', () => {
     const url = buildWhatsAppEmbeddedSignupUrl(
-      'https://business.facebook.com/messaging/whatsapp/onboard/?app_id=app-id&config_id=config-id&state=track-123',
+      'https://www.facebook.com/dialog/oauth?client_id=app-id&config_id=config-id&state=track-123',
       'track-123'
     )
 
     const parsed = new URL(url)
 
-    expect(parsed.origin).toBe('https://business.facebook.com')
-    expect(parsed.pathname).toBe('/messaging/whatsapp/onboard/')
+    expect(parsed.origin).toBe('https://www.facebook.com')
+    expect(parsed.pathname).toBe('/dialog/oauth')
     expect(parsed.searchParams.getAll('state')).toEqual(['track-123'])
     expect(parsed.searchParams.get('extras')).toContain('"featureType":"whatsapp_business_app_onboarding"')
     expect(parsed.searchParams.get('extras')).toContain('"trackingCode":"track-123"')
