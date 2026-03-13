@@ -54,7 +54,7 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
     const claimInProgress = useRef(false);
 
     // Função para fazer o claim (compartilhada entre os métodos)
-    const claimWaba = useCallback((wabaId?: string, phoneNumberId?: string, code?: string) => {
+    const claimWaba = useCallback((wabaId?: string, phoneNumberId?: string, code?: string, redirectUri?: string) => {
         if (claimInProgress.current) {
             console.log('[Onboarding] Claim já em progresso, ignorando...');
             return;
@@ -65,7 +65,7 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
 
         fetch('/api/v1/whatsapp/claim-waba', {
             method: 'POST',
-            body: JSON.stringify({ wabaId, phoneNumberId, code }),
+            body: JSON.stringify({ wabaId, phoneNumberId, code, redirectUri }),
             headers: { 'Content-Type': 'application/json' }
         })
             .then((response) => response.json().then((result) => ({ ok: response.ok, result })))
@@ -180,7 +180,8 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
                 console.log('[Redirect] Dados recebidos do popup:', { callbackStatus, hasCode: !!code, wabaId });
 
                 if (callbackStatus === 'success' && (code || wabaId)) {
-                    claimWaba(wabaId, undefined, code);
+                    const redirectUri = `${window.location.origin}/dashboard/settings/whatsapp/`;
+                    claimWaba(wabaId, undefined, code, redirectUri);
                 } else if (callbackStatus === 'error' || callbackError) {
                     setStatus('idle');
                     toast.error('Conexão recusada ou erro na Meta.');
@@ -306,7 +307,10 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
                         console.log('[FB-SDK] Code obtido:', code.substring(0, 20) + '...');
                         console.log('[FB-SDK] Dados pendentes:', { wabaId, phoneNumberId });
 
-                        claimWaba(wabaId, phoneNumberId, code);
+                        // Para o SDK, o redirectUri não é usado no login, mas o exchange pode precisar.
+                        // Usamos o padrão do app.
+                        const redirectUri = `${window.location.origin}/dashboard/settings/whatsapp/`;
+                        claimWaba(wabaId, phoneNumberId, code, redirectUri);
                     } else {
                         console.log('[FB-SDK] Login cancelado ou sem code');
                         setStatus('idle');

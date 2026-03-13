@@ -27,7 +27,7 @@ export async function POST(request: Request) {
         }
 
         const orgId = session.session.activeOrganizationId
-        const { wabaId, code, phoneNumberId } = await request.json()
+        const { wabaId, code, phoneNumberId, redirectUri } = await request.json()
 
         if (!wabaId) {
             console.error('[ClaimWaba] MISSING WABA ID in request')
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
         // 1. If we have a code, exchange it for a token
         if (code) {
             try {
-                const tokenData = await MetaCloudService.exchangeCodeForToken(code)
+                const tokenData = await MetaCloudService.exchangeCodeForToken(code, redirectUri)
                 clientAccessToken = tokenData.access_token
                 if (tokenData.expires_in) {
                     tokenExpiresAt = new Date(Date.now() + tokenData.expires_in * 1000)
