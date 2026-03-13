@@ -1,7 +1,5 @@
-import { Plug } from 'lucide-react'
-
 import { IntegrationsHub } from '@/components/dashboard/integrations/integrations-hub'
-import { PageContent, PageHeader, PageShell } from '@/components/dashboard/layout'
+import { TemplateMainShell } from '@/components/dashboard/leads'
 import { requireWorkspacePageAccess } from '@/server/auth/require-workspace-page-access'
 
 type IntegrationsPageProps = {
@@ -22,16 +20,8 @@ export default async function IntegrationsPage({
   const tab = normalizeTab((await searchParams)?.tab)
 
   return (
-    <PageShell>
-      <PageHeader
-        title="Integrações"
-        description="Centralize WhatsApp e Meta Ads em um único hub de configuração por projeto."
-        icon={Plug}
-      />
-
-      <PageContent>
-        <IntegrationsHub organizationId={access.organizationId} initialTab={tab} />
-      </PageContent>
-    </PageShell>
+    <TemplateMainShell>
+      <IntegrationsHub organizationId={access.organizationId} initialTab={tab} />
+    </TemplateMainShell>
   )
 }
