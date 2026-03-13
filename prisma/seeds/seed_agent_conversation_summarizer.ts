@@ -1,4 +1,4 @@
-import type { PrismaClient } from '@db/client'
+import type { PrismaClient } from '@generated/prisma/client'
 
 const AGENT = {
   name: 'Resumidor de Conversa',

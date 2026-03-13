@@ -1,4 +1,5 @@
 import { SidebarClient } from './sidebar-client'
+import type { Permission } from '@/lib/auth/rbac/roles'
 
 type NavItem = {
   title: string
@@ -6,7 +7,23 @@ type NavItem = {
   icon: string
 }
 
-export function DashboardSidebar({ session }: { session?: any }) {
+type DashboardSidebarProps = {
+  session?: any
+  organizationId: string
+  organizationName: string
+  projects: Array<{ id: string; name: string }>
+  activeProjectId: string | null
+  permissions: Permission[]
+}
+
+export function DashboardSidebar({
+  session,
+  organizationId,
+  organizationName,
+  projects,
+  activeProjectId,
+  permissions,
+}: DashboardSidebarProps) {
   const navItems: NavItem[] = [
     { title: 'Dashboard', href: '/dashboard', icon: 'LayoutDashboard' },
     { title: 'Analytics', href: '/dashboard/analytics', icon: 'BarChart3' },
@@ -19,5 +36,16 @@ export function DashboardSidebar({ session }: { session?: any }) {
     { title: 'IA Copilot', href: '/dashboard/ia', icon: 'Sparkles' },
   ]
 
-  return <SidebarClient navItems={navItems} navigationLabel="Navegação" session={session} />
+  return (
+    <SidebarClient
+      navItems={navItems}
+      navigationLabel="Navegação"
+      session={session}
+      organizationId={organizationId}
+      organizationName={organizationName}
+      projects={projects}
+      activeProjectId={activeProjectId}
+      permissions={permissions}
+    />
+  )
 }

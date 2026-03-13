@@ -1,19 +1,19 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Loader2, Search, Building2, AlertCircle, CheckCircle2, Users } from 'lucide-react'
+import { Loader2, Search, AlertCircle, CheckCircle2, Users } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { formatCnpj, isValidCnpjFormat, stripCnpj } from '@/lib/mask/cnpj'
 import { apiFetch } from '@/lib/api-client'
 import { authClient } from '@/lib/auth/auth-client'
+import { SettingsSection } from './settings-section'
 
 
 type CompanyState = 'empty' | 'loading' | 'preview' | 'saved' | 'error'
@@ -166,21 +166,11 @@ export function CompanyDataSection() {
   const isSaving = saveMutation.isPending
 
   return (
-    <div className="grid grid-cols-1 gap-6 pt-8 first:pt-0 md:grid-cols-3">
-      <div className="md:col-span-1">
-        <h3 className="flex items-center gap-2 text-lg font-medium leading-none">
-          <Building2 className="h-5 w-5" />
-          Dados Fiscais (CNPJ)
-        </h3>
-        <p className="text-muted-foreground mt-2 text-sm">
-          Vincule os dados oficiais da empresa via Receita Federal para emissão de notas fiscais e
-          adequação à LGPD.
-        </p>
-      </div>
-
-      <div className="md:col-span-2">
-        <Card className="shadow-sm">
-          <CardContent className="space-y-4 p-6">
+    <SettingsSection
+      title="Dados Fiscais (CNPJ)"
+      description="Vincule os dados oficiais da empresa via Receita Federal para emissão de notas fiscais e adequação à LGPD."
+    >
+      <div className="space-y-4">
             {/* Estado: Loading inicial */}
             {state === 'loading' && (
               <div className="flex items-center justify-center py-8">
@@ -402,9 +392,7 @@ export function CompanyDataSection() {
                 </div>
               </div>
             )}
-          </CardContent>
-        </Card>
       </div>
-    </div>
+    </SettingsSection>
   )
 }

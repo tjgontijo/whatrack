@@ -26,7 +26,7 @@ export const billingPlanListQuerySchema = z.object({
   kind: z.enum(['all', ...billingPlanKinds]).default('all'),
 })
 
-const billingPlanBaseSchema = z.object({
+export const billingPlanBaseSchema = z.object({
   name: z.string().trim().min(2).max(60),
   slug: z
     .string()

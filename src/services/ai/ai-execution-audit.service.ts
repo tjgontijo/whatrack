@@ -1,5 +1,5 @@
 import { Agent } from '@mastra/core/agent'
-import { Prisma } from '@db/client'
+import { Prisma } from '@generated/prisma/client'
 import { z } from 'zod'
 import { prisma } from '@/lib/db/prisma'
 import { resolveModel } from './ai-execution.service'

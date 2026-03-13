@@ -1,4 +1,4 @@
-import type { PrismaClient } from '@db/client'
+import type { PrismaClient } from '@generated/prisma/client'
 import { DEFAULT_TICKET_STAGES } from '@/lib/constants/ticket-stages'
 
 export async function seedTicketStages(prisma: PrismaClient) {

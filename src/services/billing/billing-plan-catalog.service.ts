@@ -1,4 +1,4 @@
-import type { Prisma } from '@db/client'
+import type { Prisma } from '@generated/prisma/client'
 
 import { prisma } from '@/lib/db/prisma'
 import {
@@ -45,6 +45,15 @@ export class BillingPlanCatalogError extends Error {
     super(message)
     this.name = 'BillingPlanCatalogError'
   }
+}
+
+function isMissingBillingPlanTableError(error: unknown) {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    (error as { code?: string }).code === 'P2021'
+  )
 }
 
 function toArray(value: unknown): string[] {
@@ -182,21 +191,31 @@ export const billingPlanSelect = {
 export async function listPublicBillingPlans(options?: {
   selfServeOnly?: boolean
 }): Promise<PublicBillingPlan[]> {
-  const plans = await prisma.billingPlan.findMany({
-    where: {
-      isActive: true,
-      deletedAt: null,
-      ...(options?.selfServeOnly ? { kind: 'base', contactSalesOnly: false } : {}),
-      OR: [
-        { contactSalesOnly: true },
-        {
-          AND: [{ stripePriceId: { not: null } }, { syncStatus: 'synced' }],
-        },
-      ],
-    },
-    orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }],
-    select: billingPlanSelect,
-  })
+  let plans: BillingPlanRecord[]
+
+  try {
+    plans = await prisma.billingPlan.findMany({
+      where: {
+        isActive: true,
+        deletedAt: null,
+        ...(options?.selfServeOnly ? { kind: 'base', contactSalesOnly: false } : {}),
+        OR: [
+          { contactSalesOnly: true },
+          {
+            AND: [{ stripePriceId: { not: null } }, { syncStatus: 'synced' }],
+          },
+        ],
+      },
+      orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }],
+      select: billingPlanSelect,
+    })
+  } catch (error) {
+    if (isMissingBillingPlanTableError(error)) {
+      return []
+    }
+
+    throw error
+  }
 
   return plans.map(mapBillingPlanToPublic)
 }

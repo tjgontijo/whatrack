@@ -1,65 +1,28 @@
-import { FolderKanban } from 'lucide-react'
-import { redirect } from 'next/navigation'
+import { Suspense } from 'react'
+import { RefreshCw } from 'lucide-react'
 
 import { ProjectList } from '@/components/dashboard/projects/project-list'
-import { PageContent } from '@/components/dashboard/layout/page-content'
-import { PageHeader } from '@/components/dashboard/layout/page-header'
-import { PageShell } from '@/components/dashboard/layout/page-shell'
-import { projectListQuerySchema } from '@/schemas/projects/project-schemas'
-import { listProjects } from '@/services/projects/project.service'
-import { getServerSession } from '@/server/auth/server-session'
-import { getCurrentOrganizationId } from '@/server/organization/get-current-organization-id'
-
-type ProjectsPageProps = {
-  searchParams?: Promise<Record<string, string | string[] | undefined>>
-}
-
-function normalizeSearchParams(
-  searchParams: Record<string, string | string[] | undefined>,
-) {
-  return Object.fromEntries(
-    Object.entries(searchParams).map(([key, value]) => [
-      key,
-      Array.isArray(value) ? value[0] : value,
-    ]),
-  )
-}
 
 export const metadata = {
   title: 'Projetos | WhaTrack',
   description: 'Organize os clientes operacionais da sua agência como projetos dentro do WhaTrack.',
 }
 
-export default async function ProjectsPage({ searchParams }: ProjectsPageProps) {
-  const session = await getServerSession()
-
-  if (!session?.user) {
-    redirect('/sign-in')
-  }
-
-  const organizationId = await getCurrentOrganizationId(session.user.id)
-  if (!organizationId) {
-    redirect('/dashboard')
-  }
-
-  const rawSearchParams = normalizeSearchParams((await searchParams) ?? {})
-  const filters = projectListQuerySchema.parse(rawSearchParams)
-  const data = await listProjects({
-    organizationId,
-    query: filters,
-  })
-
+function ProjectsPageFallback() {
   return (
-    <PageShell maxWidth="7xl">
-      <PageHeader
-        title="Projetos"
-        description="Cada projeto representa um cliente operacional da sua agência, com seus próprios canais e dados."
-        icon={FolderKanban}
-      />
+    <div className="text-muted-foreground flex h-[400px] w-full items-center justify-center rounded-xl border border-dashed">
+      <RefreshCw className="mr-2 h-4 w-4 animate-spin opacity-50" />
+      <span className="text-sm font-medium">Carregando projetos...</span>
+    </div>
+  )
+}
 
-      <PageContent>
-        <ProjectList data={data} filters={filters} />
-      </PageContent>
-    </PageShell>
+export default function ProjectsPage() {
+  return (
+    <div className="bg-muted/5 flex h-full w-full flex-col rounded-xl sm:bg-transparent">
+      <Suspense fallback={<ProjectsPageFallback />}>
+        <ProjectList />
+      </Suspense>
+    </div>
   )
 }

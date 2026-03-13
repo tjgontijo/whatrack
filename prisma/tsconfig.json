@@ -17,10 +17,10 @@
       "@/*": [
         "../src/*"
       ],
-      "@db": [
+      "@generated/prisma": [
         "./generated/prisma/index"
       ],
-      "@db/*": [
+      "@generated/prisma/*": [
         "./generated/prisma/*"
       ]
     },

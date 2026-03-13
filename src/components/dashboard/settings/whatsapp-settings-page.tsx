@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useQuery } from '@tanstack/react-query'
 import { AlertTriangle, Loader2, Phone, Plus, RefreshCw } from 'lucide-react'
 
@@ -12,13 +13,16 @@ import { useOrganization } from '@/hooks/organization/use-organization'
 import { useIsMobile } from '@/hooks/ui/use-mobile'
 import { useWhatsAppOnboarding } from '@/hooks/whatsapp/use-whatsapp-onboarding'
 import { whatsappApi } from '@/lib/whatsapp/client'
+import { authClient } from '@/lib/auth/auth-client'
 import type { WhatsAppPhoneNumber } from '@/types/whatsapp/whatsapp'
 
 export function WhatsAppSettingsPage() {
   const isMobile = useIsMobile()
   const completionQuery = useOrganizationCompletion()
   const { data: org } = useOrganization()
+  const { data: session } = authClient.useSession()
   const orgId = org?.id
+  const isSuperAdmin = session?.user?.role === 'owner'
 
   const hasOrganization = completionQuery.data?.hasOrganization ?? false
   const canLoadInstances = completionQuery.isSuccess && hasOrganization && !!orgId
@@ -52,20 +56,29 @@ export function WhatsAppSettingsPage() {
   return (
     <div className="flex min-h-[calc(100vh-16rem)] flex-col">
       <div className="mb-4 flex justify-end">
-        <Button
-          variant="default"
-          size="sm"
-          className="h-8 gap-2 font-bold shadow-sm"
-          onClick={startOnboarding}
-          disabled={!sdkReady || isOnboarding || completionQuery.isLoading}
-        >
-          {isOnboarding ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Plus className="h-4 w-4" />
-          )}
-          {!isMobile && 'Nova Instância'}
-        </Button>
+        <div className="flex items-center gap-2">
+          {isSuperAdmin ? (
+            <Button variant="outline" size="sm" className="h-8 gap-2 font-semibold" asChild>
+              <Link href="/dashboard/settings/whatsapp/webhooks">
+                {!isMobile && 'Webhooks'}
+              </Link>
+            </Button>
+          ) : null}
+          <Button
+            variant="default"
+            size="sm"
+            className="h-8 gap-2 font-bold shadow-sm"
+            onClick={startOnboarding}
+            disabled={!sdkReady || isOnboarding || completionQuery.isLoading}
+          >
+            {isOnboarding ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Plus className="h-4 w-4" />
+            )}
+            {!isMobile && 'Nova Instância'}
+          </Button>
+        </div>
       </div>
 
       <div className="border-border bg-background/50 supports-[backdrop-filter]:bg-background/50 border-b px-6 backdrop-blur">

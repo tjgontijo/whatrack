@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useDeferredValue, useEffect, useMemo, useState, useTransition } from 'react'
+import { useDeferredValue, useMemo, useState } from 'react'
 import { FolderKanban, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
@@ -22,46 +22,12 @@ import type {
 import { CrudEmptyState } from '@/components/dashboard/crud/crud-data-view'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { useCrudInfiniteQuery } from '@/hooks/ui/use-crud-infinite-query'
 import { apiFetch } from '@/lib/api-client'
 import type {
   ProjectListItem,
-  ProjectListQuery,
-  ProjectListResponse,
 } from '@/schemas/projects/project-schemas'
 import { ProjectFormDialog } from './project-form-dialog'
-
-type ProjectListProps = {
-  data: ProjectListResponse
-  filters: ProjectListQuery
-}
-
-function buildPageHref(filters: ProjectListQuery, page: number) {
-  const params = new URLSearchParams()
-  params.set('page', String(page))
-  params.set('pageSize', String(filters.pageSize))
-
-  if (filters.query) {
-    params.set('query', filters.query)
-  }
-
-  return `/dashboard/projects?${params.toString()}`
-}
-
-function buildProjectsHref(
-  page: number,
-  pageSize: number,
-  query?: string,
-) {
-  const params = new URLSearchParams()
-  params.set('page', String(page))
-  params.set('pageSize', String(pageSize))
-
-  if (query) {
-    params.set('query', query)
-  }
-
-  return `/dashboard/projects?${params.toString()}`
-}
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat('pt-BR', {
@@ -148,18 +114,34 @@ const cardConfig: CardConfig<ProjectListItem> = {
   ),
 }
 
-export function ProjectList({ data, filters }: ProjectListProps) {
+export function ProjectList() {
   const router = useRouter()
-  const [isRouting, startTransition] = useTransition()
   const [view, setView] = useState<ViewType>('list')
-  const [searchInput, setSearchInput] = useState(filters.query ?? '')
+  const [searchInput, setSearchInput] = useState('')
   const [editingProject, setEditingProject] = useState<ProjectListItem | null>(null)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [deletingProjectId, setDeletingProjectId] = useState<string | null>(null)
   const deferredSearch = useDeferredValue(searchInput)
+
+  const filters = useMemo(() => {
+    const query = deferredSearch.trim()
+
+    return {
+      ...(query.length >= 2 ? { query } : {}),
+    }
+  }, [deferredSearch])
+
+  const { data, total, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
+    useCrudInfiniteQuery<ProjectListItem>({
+      queryKey: ['projects'],
+      endpoint: '/api/v1/projects',
+      pageSize: 24,
+      filters,
+    })
+
   const totalOperationalRecords = useMemo(
     () =>
-      data.items.reduce(
+      data.reduce(
         (acc, item) =>
           acc +
           item.counts.whatsappCount +
@@ -167,26 +149,10 @@ export function ProjectList({ data, filters }: ProjectListProps) {
           item.counts.leadCount +
           item.counts.ticketCount +
           item.counts.saleCount,
-        0,
+        0
       ),
-    [data.items],
+    [data]
   )
-
-  const hasPreviousPage = data.page > 1
-  const hasNextPage = data.page < data.totalPages
-
-  useEffect(() => {
-    const nextQuery = deferredSearch.trim()
-    const currentQuery = filters.query ?? ''
-
-    if (nextQuery === currentQuery) {
-      return
-    }
-
-    startTransition(() => {
-      router.replace(buildProjectsHref(1, filters.pageSize, nextQuery || undefined))
-    })
-  }, [deferredSearch, filters.pageSize, filters.query, router])
 
   async function handleDelete(project: ProjectListItem) {
     try {
@@ -259,6 +225,7 @@ export function ProjectList({ data, filters }: ProjectListProps) {
       <CrudPageShell
         title="Projetos"
         icon={FolderKanban}
+        showTitle={false}
         onAdd={() => setIsCreateOpen(true)}
         view={view}
         setView={setView}
@@ -266,8 +233,9 @@ export function ProjectList({ data, filters }: ProjectListProps) {
         searchInput={searchInput}
         onSearchChange={setSearchInput}
         searchPlaceholder="Buscar por nome do projeto..."
-        totalItems={data.total}
-        isLoading={isRouting}
+        totalItems={total}
+        isFetchingMore={isFetchingNextPage}
+        isLoading={isLoading}
         actions={
           <div className="text-muted-foreground text-xs uppercase tracking-widest">
             <span className="text-foreground font-bold">{totalOperationalRecords}</span> registros operacionais
@@ -275,7 +243,7 @@ export function ProjectList({ data, filters }: ProjectListProps) {
         }
       >
         <CrudDataView
-          data={data.items}
+          data={data}
           view={view}
           emptyView={
             <CrudEmptyState
@@ -285,39 +253,21 @@ export function ProjectList({ data, filters }: ProjectListProps) {
           }
           tableView={
             <CrudListView
-              data={data.items}
+              data={data}
               columns={columns}
               rowActions={rowActions}
+              onEndReached={hasNextPage ? fetchNextPage : undefined}
             />
           }
           cardView={
             <CrudCardView
-              data={data.items}
+              data={data}
               config={cardConfig}
               rowActions={rowActions}
+              onEndReached={hasNextPage ? fetchNextPage : undefined}
             />
           }
         />
-
-        {data.totalPages > 1 ? (
-          <div className="flex items-center justify-between gap-3 px-6 pb-6">
-            <Button asChild variant="outline" disabled={!hasPreviousPage}>
-              <Link href={hasPreviousPage ? buildPageHref(filters, data.page - 1) : '#'}>
-                Página anterior
-              </Link>
-            </Button>
-
-            <p className="text-muted-foreground text-sm">
-              Exibindo página {data.page} de {Math.max(data.totalPages, 1)}
-            </p>
-
-            <Button asChild variant="outline" disabled={!hasNextPage}>
-              <Link href={hasNextPage ? buildPageHref(filters, data.page + 1) : '#'}>
-                Próxima página
-              </Link>
-            </Button>
-          </div>
-        ) : null}
       </CrudPageShell>
 
       <ProjectFormDialog

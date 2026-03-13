@@ -1,4 +1,4 @@
-import type { PrismaClient } from '@db/client'
+import type { PrismaClient } from '@generated/prisma/client'
 
 type CoreSkillDefinition = {
   slug: string

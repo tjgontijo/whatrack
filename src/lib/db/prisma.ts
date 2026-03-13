@@ -1,4 +1,4 @@
-import { PrismaClient } from '@db'
+import { PrismaClient } from '@/lib/db/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { auditService } from '@/services/audit/audit.service'
 

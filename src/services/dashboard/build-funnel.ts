@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/db/prisma'
-import type { Prisma } from '@db/client'
+import type { Prisma } from '@generated/prisma/client'
 import type { DateRange } from '@/lib/date/date-range'
 
 export type FunnelSummary = {

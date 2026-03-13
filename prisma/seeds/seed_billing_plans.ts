@@ -1,4 +1,4 @@
-import { Prisma, PrismaClient } from '@db/client'
+import { Prisma, PrismaClient } from '@generated/prisma/client'
 
 export async function seedBillingPlans(prisma: PrismaClient) {
   console.log('🛳️  Seeding billing plans...')

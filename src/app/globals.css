@@ -37,6 +37,11 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@theme {
+  --breakpoint-3xl: 1920px; /* 2K / large monitors */
+  --breakpoint-4xl: 2560px; /* 4K / ultrawide */
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

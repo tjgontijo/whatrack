@@ -1,4 +1,4 @@
-import type { Prisma, PrismaClient } from '@db/client'
+import type { Prisma, PrismaClient } from '@generated/prisma/client'
 
 type PrismaClientLike = PrismaClient | Prisma.TransactionClient
 

@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Controller, useForm } from 'react-hook-form'
@@ -19,6 +18,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { apiFetch } from '@/lib/api-client'
 import {
   billingPlanAddonTypes,
+  billingPlanBaseSchema,
   billingPlanCreateSchema,
   billingPlanKinds,
   billingPlanSupportLevels,
@@ -31,9 +31,38 @@ type BillingPlanFormDialogProps = {
   plan?: BillingPlanListItem | null
   onSuccess?: () => void
 }
+  
+function buildDefaultValues(plan?: BillingPlanListItem | null): BillingPlanFormInput {
+  return {
+    name: plan?.name ?? '',
+    slug: plan?.slug ?? '',
+    description: plan?.description ?? '',
+    kind: plan?.kind ?? 'base',
+    addonType: plan?.addonType ?? null,
+    subtitle: plan?.subtitle ?? '',
+    cta: plan?.cta ?? '',
+    monthlyPrice: Number(plan?.monthlyPrice ?? 0),
+    currency: plan?.currency ?? 'BRL',
+    includedProjects: plan?.includedProjects ?? 0,
+    includedWhatsAppPerProject: plan?.includedWhatsAppPerProject ?? 0,
+    includedMetaAdAccountsPerProject: plan?.includedMetaAdAccountsPerProject ?? 0,
+    includedConversionsPerProject: plan?.includedConversionsPerProject ?? 0,
+    includedAiCreditsPerProject: plan?.includedAiCreditsPerProject ?? 0,
+    supportLevel: (plan?.supportLevel as BillingPlanFormValues['supportLevel']) ?? 'priority',
+    displayOrder: plan?.displayOrder ?? 0,
+    isHighlighted: plan?.isHighlighted ?? false,
+    contactSalesOnly: plan?.contactSalesOnly ?? false,
+    isActive: plan?.isActive ?? true,
+    trialDays: plan?.trialDays ?? 14,
+    featuresText: toLines(plan?.features ?? []),
+    additionalsText: toLines(plan?.additionals ?? []),
+  }
+}
 
-const billingPlanFormSchema = billingPlanCreateSchema
-  .omit({ features: true, additionals: true })
+const billingPlanFormSchema = billingPlanBaseSchema
+  .extend({
+    isActive: z.boolean().default(true),
+  })
   .extend({
     featuresText: z.string().optional().default(''),
     additionalsText: z.string().optional().default(''),
@@ -59,6 +88,25 @@ export function BillingPlanFormDialog({
   plan,
   onSuccess,
 }: BillingPlanFormDialogProps) {
+  const formKey = `${plan?.id ?? 'new'}:${open ? 'open' : 'closed'}`
+
+  return (
+    <BillingPlanFormDialogContent
+      key={formKey}
+      open={open}
+      onOpenChange={onOpenChange}
+      plan={plan}
+      onSuccess={onSuccess}
+    />
+  )
+}
+
+function BillingPlanFormDialogContent({
+  open,
+  onOpenChange,
+  plan,
+  onSuccess,
+}: BillingPlanFormDialogProps) {
   const isEditMode = Boolean(plan)
 
   const {
@@ -70,60 +118,10 @@ export function BillingPlanFormDialog({
     formState: { errors, isSubmitting },
   } = useForm<BillingPlanFormInput, undefined, BillingPlanFormValues>({
     resolver: zodResolver(billingPlanFormSchema),
-    defaultValues: {
-      name: plan?.name ?? '',
-      slug: plan?.slug ?? '',
-      description: plan?.description ?? '',
-      kind: plan?.kind ?? 'base',
-      addonType: plan?.addonType ?? null,
-      subtitle: plan?.subtitle ?? '',
-      cta: plan?.cta ?? '',
-      monthlyPrice: Number(plan?.monthlyPrice ?? 0),
-      currency: plan?.currency ?? 'BRL',
-      includedProjects: plan?.includedProjects ?? 0,
-      includedWhatsAppPerProject: plan?.includedWhatsAppPerProject ?? 0,
-      includedMetaAdAccountsPerProject: plan?.includedMetaAdAccountsPerProject ?? 0,
-      includedConversionsPerProject: plan?.includedConversionsPerProject ?? 0,
-      includedAiCreditsPerProject: plan?.includedAiCreditsPerProject ?? 0,
-      supportLevel: (plan?.supportLevel as BillingPlanFormValues['supportLevel']) ?? 'priority',
-      displayOrder: plan?.displayOrder ?? 0,
-      isHighlighted: plan?.isHighlighted ?? false,
-      contactSalesOnly: plan?.contactSalesOnly ?? false,
-      isActive: plan?.isActive ?? true,
-      trialDays: plan?.trialDays ?? 14,
-      featuresText: toLines(plan?.features ?? []),
-      additionalsText: toLines(plan?.additionals ?? []),
-    },
+    defaultValues: buildDefaultValues(plan),
   })
 
   const kind = watch('kind')
-
-  useEffect(() => {
-    reset({
-      name: plan?.name ?? '',
-      slug: plan?.slug ?? '',
-      description: plan?.description ?? '',
-      kind: plan?.kind ?? 'base',
-      addonType: plan?.addonType ?? null,
-      subtitle: plan?.subtitle ?? '',
-      cta: plan?.cta ?? '',
-      monthlyPrice: Number(plan?.monthlyPrice ?? 0),
-      currency: plan?.currency ?? 'BRL',
-      includedProjects: plan?.includedProjects ?? 0,
-      includedWhatsAppPerProject: plan?.includedWhatsAppPerProject ?? 0,
-      includedMetaAdAccountsPerProject: plan?.includedMetaAdAccountsPerProject ?? 0,
-      includedConversionsPerProject: plan?.includedConversionsPerProject ?? 0,
-      includedAiCreditsPerProject: plan?.includedAiCreditsPerProject ?? 0,
-      supportLevel: (plan?.supportLevel as BillingPlanFormValues['supportLevel']) ?? 'priority',
-      displayOrder: plan?.displayOrder ?? 0,
-      isHighlighted: plan?.isHighlighted ?? false,
-      contactSalesOnly: plan?.contactSalesOnly ?? false,
-      isActive: plan?.isActive ?? true,
-      trialDays: plan?.trialDays ?? 14,
-      featuresText: toLines(plan?.features ?? []),
-      additionalsText: toLines(plan?.additionals ?? []),
-    })
-  }, [plan, reset, open])
 
   const close = () => onOpenChange(false)
 

@@ -1,4 +1,4 @@
-import { Prisma } from '@db/client'
+import { Prisma } from '@generated/prisma/client'
 import Stripe from 'stripe'
 
 import { env } from '@/lib/env/env'

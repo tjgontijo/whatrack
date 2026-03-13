@@ -3,7 +3,7 @@ import { getServerSession } from '@/server/auth/server-session'
 import { requireWorkspacePageAccess } from '@/server/auth/require-workspace-page-access'
 import { listEffectivePermissionsForUser } from '@/server/organization/organization-rbac.service'
 import type { Permission } from '@/lib/auth/rbac/roles'
-import { SettingsNav } from '@/components/dashboard/settings/settings-nav'
+import { SettingsLayoutShell } from '@/components/dashboard/settings/settings-layout-shell'
 
 type SettingsLayoutProps = {
   children: ReactNode
@@ -51,13 +51,5 @@ export default async function SettingsLayout({ children }: SettingsLayoutProps) 
     ...(systemItems.length > 0 ? [{ title: 'Sistema', items: systemItems }] : []),
   ]
 
-  return (
-    <div className="flex min-h-full gap-6">
-      <aside className="bg-background hidden h-fit w-64 shrink-0 rounded-xl border p-4 md:sticky md:top-4 md:block">
-        <SettingsNav sections={sections} />
-      </aside>
-
-      <div className="min-w-0 flex-1">{children}</div>
-    </div>
-  )
+  return <SettingsLayoutShell sections={sections}>{children}</SettingsLayoutShell>
 }

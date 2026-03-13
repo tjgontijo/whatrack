@@ -22,14 +22,14 @@ export default async function IntegrationsPage({
   const tab = normalizeTab((await searchParams)?.tab)
 
   return (
-    <PageShell maxWidth="7xl">
+    <PageShell>
       <PageHeader
         title="Integrações"
         description="Centralize WhatsApp e Meta Ads em um único hub de configuração por projeto."
         icon={Plug}
       />
 
-      <PageContent className="px-0 pb-0">
+      <PageContent>
         <IntegrationsHub organizationId={access.organizationId} initialTab={tab} />
       </PageContent>
     </PageShell>

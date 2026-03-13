@@ -66,4 +66,10 @@ describe('billing-plan-catalog.service', () => {
       includedAiCreditsPerProject: 10000,
     })
   })
+
+  it('returns an empty catalog when billing tables are not ready yet', async () => {
+    prismaMock.billingPlan.findMany.mockRejectedValueOnce({ code: 'P2021' })
+
+    await expect(listPublicBillingPlans()).resolves.toEqual([])
+  })
 })

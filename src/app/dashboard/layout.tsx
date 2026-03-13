@@ -7,11 +7,12 @@ import { DashboardContent } from '@/components/dashboard/layout/dashboard-conten
 import { DashboardHeader } from '@/components/dashboard/layout/header'
 import { HeaderActionsProvider } from '@/components/dashboard/layout/header-actions'
 import { OrganizationSelectorGate } from '@/components/dashboard/organization/organization-selector'
-import { ProjectContextGate } from '@/components/dashboard/projects/project-context-gate'
 import { DashboardSidebar } from '@/components/dashboard/sidebar/sidebar'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
+import type { Permission } from '@/lib/auth/rbac/roles'
 import { getServerSession } from '@/server/auth/server-session'
 import { getCurrentOrganizationId } from '@/server/organization/get-current-organization-id'
+import { listEffectivePermissionsForUser } from '@/server/organization/organization-rbac.service'
 import { isOrganizationIdentityComplete } from '@/server/organization/is-identity-complete'
 import { getCurrentProjectId } from '@/server/project/get-current-project-id'
 
@@ -51,15 +52,18 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   let identityComplete = false
   let projects: Array<{ id: string; name: string }> = []
   let activeProjectId: string | null = null
+  let organizationName = ''
+  let permissions: Permission[] = []
 
   if (organizationId) {
     const organization = await prisma.organization.findUnique({
       where: { id: organizationId },
-      select: { id: true },
+      select: { id: true, name: true },
     })
 
     if (organization) {
       hasOrganization = true
+      organizationName = organization.name
       identityComplete = await isOrganizationIdentityComplete(organizationId)
       activeProjectId = await getCurrentProjectId(organizationId)
       projects = await prisma.project.findMany({
@@ -70,6 +74,12 @@ export default async function DashboardLayout({ children }: { children: ReactNod
         },
         orderBy: { name: 'asc' },
       })
+
+      const effectivePermissions = await listEffectivePermissionsForUser({
+        userId: session.user.id,
+        organizationId,
+      })
+      permissions = (effectivePermissions?.effectivePermissions ?? []) as Permission[]
     }
   }
 
@@ -81,22 +91,22 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     <HeaderActionsProvider>
       <SidebarProvider>
         <div className="bg-background flex min-h-screen w-full">
-          <DashboardSidebar session={session} />
+          <DashboardSidebar
+            session={session}
+            organizationId={organizationId!}
+            organizationName={organizationName}
+            projects={projects}
+            activeProjectId={activeProjectId}
+            permissions={permissions}
+          />
 
           <SidebarInset className="min-w-0">
             <DashboardHeader hasOrganization={hasOrganization} identityComplete={identityComplete} />
 
-            <main className="min-w-0 flex-1 overflow-y-auto overflow-x-hidden px-4 py-2">
+            <main className="min-w-0 flex-1 overflow-y-auto overflow-x-hidden px-4 py-2 3xl:px-6">
               <DashboardContent>
-                <div className="mx-auto w-full min-w-0">
+                <div className="mx-auto w-full min-w-0 max-w-screen-4xl">
                   {hasOrganization ? <OrganizationSelectorGate /> : null}
-                  {hasOrganization && organizationId ? (
-                    <ProjectContextGate
-                      organizationId={organizationId}
-                      projects={projects}
-                      activeProjectId={activeProjectId}
-                    />
-                  ) : null}
                   {children}
                 </div>
               </DashboardContent>

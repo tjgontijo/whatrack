@@ -30,7 +30,7 @@ const ROUTE_LABELS: Record<string, string> = {
   settings: 'Configurações',
   'settings/integrations': 'Integrações',
   'settings/whatsapp': 'WhatsApp',
-  'settings/whatsapp/webhooks': 'Webhook Meta',
+  'settings/whatsapp/webhooks': 'Webhooks do WhatsApp',
   'settings/billing': 'Planos e Cobrança',
   'settings/profile': 'Perfil',
   'settings/organization': 'Organização',
@@ -109,7 +109,7 @@ export function DashboardHeader({ hasOrganization, identityComplete }: Dashboard
   const breadcrumbs = generateBreadcrumbs(pathname)
 
   return (
-    <header className="bg-background flex h-[65px] shrink-0 items-center gap-2 border-b px-4">
+    <header className="bg-background flex h-[65px] shrink-0 items-center gap-2 border-b px-4 3xl:px-6">
       <SidebarTrigger className="-ml-1" />
       <Separator orientation="vertical" className="mr-2 h-4" />
 

@@ -5,7 +5,7 @@
  */
 
 import { NextResponse } from 'next/server'
-import { Prisma } from '@db/client'
+import { Prisma } from '@generated/prisma/client'
 
 import { apiError } from '@/lib/utils/api-response'
 import { getOrSyncUser } from '@/server/auth/server'

@@ -70,3 +70,4 @@ node_modules/
 
 # Mastra local storage artifacts
 mastra.db*
+.npm-cache/

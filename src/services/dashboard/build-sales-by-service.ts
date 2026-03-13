@@ -1,4 +1,4 @@
-import type { Prisma } from '@db/client'
+import type { Prisma } from '@generated/prisma/client'
 import { prisma } from '@/lib/db/prisma'
 
 export async function buildSalesByService(where: Prisma.SaleWhereInput) {

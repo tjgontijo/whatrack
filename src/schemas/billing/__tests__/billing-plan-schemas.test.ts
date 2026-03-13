@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  billingPlanBaseSchema,
   billingPlanCreateSchema,
   billingPlanListQuerySchema,
   billingPlanListResponseSchema,
@@ -92,6 +93,32 @@ describe('billing-plan-schemas', () => {
       trialDays: 0,
       features: ['1 cliente ativo adicional'],
       additionals: [],
+    })
+
+    expect(parsed.success).toBe(true)
+  })
+
+  it('exposes a base schema that can be extended without relying on refined omit', () => {
+    const parsed = billingPlanBaseSchema.safeParse({
+      name: 'WhaTrack Base',
+      slug: 'platform_base',
+      description: 'Plano base',
+      kind: 'base',
+      addonType: null,
+      monthlyPrice: 497,
+      currency: 'BRL',
+      includedProjects: 3,
+      includedWhatsAppPerProject: 1,
+      includedMetaAdAccountsPerProject: 1,
+      includedConversionsPerProject: 300,
+      includedAiCreditsPerProject: 10000,
+      supportLevel: 'priority',
+      displayOrder: 0,
+      isHighlighted: true,
+      contactSalesOnly: false,
+      trialDays: 14,
+      features: ['3 clientes ativos incluídos'],
+      additionals: ['Projeto extra por R$ 97/mês'],
     })
 
     expect(parsed.success).toBe(true)
