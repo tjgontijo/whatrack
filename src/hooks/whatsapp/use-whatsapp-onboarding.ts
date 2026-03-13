@@ -7,6 +7,7 @@ import { apiFetch } from '@/lib/api-client'
 import {
   buildWhatsAppEmbeddedSignupUrl,
   isWhatsAppEmbeddedSignupConfigured,
+  WHATSAPP_ONBOARDING_RESULT_STORAGE_KEY,
 } from '@/lib/whatsapp/onboarding'
 
 export type OnboardingStatus = 'idle' | 'pending' | 'success'
@@ -22,6 +23,21 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
   const callbackHandledRef = useRef(false)
   const callbackStatusRef = useRef<'success' | 'error' | null>(null)
   const sdkReady = isWhatsAppEmbeddedSignupConfigured()
+
+  const consumeStoredResult = useCallback(() => {
+    if (typeof window === 'undefined') return null
+
+    const raw = window.localStorage.getItem(WHATSAPP_ONBOARDING_RESULT_STORAGE_KEY)
+    if (!raw) return null
+
+    window.localStorage.removeItem(WHATSAPP_ONBOARDING_RESULT_STORAGE_KEY)
+
+    try {
+      return JSON.parse(raw) as { status?: 'success' | 'error'; message?: string }
+    } catch {
+      return null
+    }
+  }, [])
 
   const clearState = useCallback(() => {
     if (onFocusRef.current) {
@@ -62,6 +78,19 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
     clearState()
   }, [clearState, onSuccess])
 
+  const handleStoredResult = useCallback(() => {
+    const storedResult = consumeStoredResult()
+    if (!storedResult?.status) return false
+
+    if (storedResult.status === 'error') {
+      handleFailure(storedResult.message || 'Falha ao conectar com a Meta.')
+      return true
+    }
+
+    handleSuccess()
+    return true
+  }, [consumeStoredResult, handleFailure, handleSuccess])
+
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.origin !== window.location.origin) return
@@ -83,9 +112,18 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
       }
     }
 
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key !== WHATSAPP_ONBOARDING_RESULT_STORAGE_KEY || !event.newValue) return
+      handleStoredResult()
+    }
+
     window.addEventListener('message', handleMessage)
-    return () => window.removeEventListener('message', handleMessage)
-  }, [handleFailure, handleSuccess])
+    window.addEventListener('storage', handleStorage)
+    return () => {
+      window.removeEventListener('message', handleMessage)
+      window.removeEventListener('storage', handleStorage)
+    }
+  }, [handleFailure, handleStoredResult, handleSuccess])
 
   const startOnboarding = useCallback(async () => {
     if (isCompletionLoading) {
@@ -115,6 +153,9 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
     setError(null)
     callbackHandledRef.current = false
     callbackStatusRef.current = null
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem(WHATSAPP_ONBOARDING_RESULT_STORAGE_KEY)
+    }
     clearState()
 
     try {
@@ -148,6 +189,10 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
         onFocusRef.current = null
         popupRef.current = null
 
+        if (handleStoredResult()) {
+          return
+        }
+
         if (callbackStatusRef.current === 'success') {
           handleSuccess()
           return
@@ -169,6 +214,7 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
     activeOrg?.id,
     clearState,
     handleFailure,
+    handleStoredResult,
     handleSuccess,
     integrationBlockMessage,
     isCompletionLoading,
@@ -186,6 +232,9 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
       setError(null)
       callbackHandledRef.current = false
       callbackStatusRef.current = null
+      if (typeof window !== 'undefined') {
+        window.localStorage.removeItem(WHATSAPP_ONBOARDING_RESULT_STORAGE_KEY)
+      }
       clearState()
     },
     setError,

@@ -1,4 +1,5 @@
 import { handleWhatsAppOnboardingCallback } from '@/services/whatsapp/whatsapp-onboarding.service'
+import { WHATSAPP_ONBOARDING_RESULT_STORAGE_KEY } from '@/lib/whatsapp/onboarding'
 
 function escapeHtml(value: string): string {
   return value
@@ -13,29 +14,41 @@ const RESPONSE_HTML = (status: 'success' | 'error', message?: string) => {
   const safeMessage = message ?? ''
   const serializedStatus = JSON.stringify(status)
   const serializedMessage = JSON.stringify(safeMessage)
+  const serializedStorageKey = JSON.stringify(WHATSAPP_ONBOARDING_RESULT_STORAGE_KEY)
+  const serializedStoragePayload = JSON.stringify(
+    JSON.stringify({ status, message: safeMessage })
+  )
+  const redirectTarget = `/dashboard/settings/integrations?tab=whatsapp&status=${status}&message=${encodeURIComponent(safeMessage)}`
+  const serializedRedirectTarget = JSON.stringify(redirectTarget)
 
   return `
   <!DOCTYPE html>
   <html>
     <body>
       <script>
-        if (window.opener) {
-          window.opener.postMessage({ 
-            type: 'WA_CALLBACK_STATUS', 
-            status: ${serializedStatus},
-            message: ${serializedMessage} 
-          }, window.location.origin);
+        try {
+          window.localStorage.setItem(${serializedStorageKey}, ${serializedStoragePayload});
+        } catch {}
 
-          ${
-            status === 'success'
-              ? "window.opener.postMessage({ type: 'WA_CALLBACK_SUCCESS' }, window.location.origin);"
-              : ''
-          }
-          
-          window.close();
-        } else {
-          window.location.href = '/dashboard/settings/integrations?tab=whatsapp&status=${status}&message=${encodeURIComponent(safeMessage)}';
+        if (window.opener) {
+          try {
+            window.opener.postMessage({ 
+              type: 'WA_CALLBACK_STATUS', 
+              status: ${serializedStatus},
+              message: ${serializedMessage} 
+            }, window.location.origin);
+
+            ${
+              status === 'success'
+                ? "window.opener.postMessage({ type: 'WA_CALLBACK_SUCCESS' }, window.location.origin);"
+                : ''
+            }
+          } catch {}
         }
+
+        try { window.close(); } catch {}
+
+        window.location.href = ${serializedRedirectTarget};
       </script>
       <div style="font-family: sans-serif; text-align: center; padding: 40px;">
         <h2>${status === 'success' ? 'Conectado!' : 'Erro na Conexão'}</h2>
