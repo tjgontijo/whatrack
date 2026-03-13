@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { toast } from 'sonner'
 import { useOrganizationCompletion } from '@/hooks/organization/use-organization-completion'
 import { META_ADS_CONNECT_PATH } from '@/lib/meta-ads/client'
@@ -17,6 +17,26 @@ export function useMetaAdsOnboarding(organizationId: string | undefined, onSucce
     }
     popupRef.current = null
   }, [])
+
+  // Listener de mensagens do popup (Callback)
+  const handleSuccess = useCallback(() => {
+    setIsPending(false)
+    toast.success('Meta Ads conectado com sucesso!')
+    onSuccess?.()
+    clearState()
+  }, [onSuccess, clearState])
+
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) return
+      if (event.data?.type === 'meta-ads-oauth-success') {
+        handleSuccess()
+      }
+    }
+
+    window.addEventListener('message', handleMessage)
+    return () => window.removeEventListener('message', handleMessage)
+  }, [handleSuccess])
 
   const startOnboarding = useCallback(() => {
     if (isCompletionLoading) {
