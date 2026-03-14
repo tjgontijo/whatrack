@@ -14,7 +14,7 @@ O dashboard no commit `cca4a08` era percebido como mais agradavel e mais "premiu
 2. navegacao lateral mais densa e mais utilitaria
 3. moldura estrutural da aplicacao com menos silencio visual
 
-O objetivo deste PRD nao e fazer rollback do produto. O objetivo e recuperar a linguagem visual que fazia o sistema parecer mais refinado, mantendo:
+O objetivo deste PRD nao e fazer rollback do produto nem reconstruir tela por tela o estado antigo. O objetivo e recuperar a linguagem visual que fazia o sistema parecer mais refinado, mantendo:
 
 - RBAC
 - seletor de projeto
@@ -75,6 +75,12 @@ Este PRD nao cobre:
 
 Se reduzirmos a saturacao da moldura global do dashboard, simplificarmos a sidebar e recuperarmos uma hierarquia visual mais neutra e mais espaçada, a percepcao de qualidade volta sem precisar abrir mao das capacidades adicionadas depois de `cca4a08`.
 
+Corolario pratico:
+
+- a referencia antiga serve para orientar linguagem visual
+- a execucao deve acontecer por sistema visual compartilhado
+- telas novas devem nascer dentro desse padrao, sem depender de comparacao historica
+
 ---
 
 ## Usuario e contexto
@@ -96,9 +102,9 @@ O dashboard precisa privilegiar legibilidade prolongada, orientacao rapida e sen
 
 ---
 
-## Comparativo: antes vs hoje
+## Referencia de linguagem: antes vs hoje
 
-### Antes (`cca4a08`)
+### Referencia anterior (`cca4a08`)
 
 - base cromatica mais neutra
 - acento mais contido
@@ -106,13 +112,31 @@ O dashboard precisa privilegiar legibilidade prolongada, orientacao rapida e sen
 - mais sensacao de produto premium
 - maior leveza visual
 
-### Hoje
+### Estado atual
 
 - cor de marca aplicada com mais agressividade
 - sidebar mais longa e mais segmentada
 - mais badges, labels e pontos de atencao permanentes
 - casca da aplicacao mais densa
 - melhor cobertura funcional, pior sensacao visual
+
+---
+
+## Decisao estrutural: padrao, nao replicacao
+
+Nao vamos validar o redesign tela por tela tomando `cca4a08` como espelho, porque o produto atual ja possui telas, modulos e responsabilidades que nao existiam naquele ponto.
+
+Logo, a restauracao da identidade visual deve ser guiada por um padrao canonico do dashboard.
+
+Esse padrao precisa responder:
+
+- como o dashboard usa cor
+- como o dashboard organiza navegacao
+- como o dashboard define densidade
+- como o dashboard desenha shells, cards, tabelas e formularios
+- como telas novas devem parecer "nativas" do produto
+
+`cca4a08` vira referencia de sensacao, nao blueprint de interface.
 
 ---
 
@@ -168,6 +192,22 @@ Resultado esperado:
 - conteudo principal volta a liderar a atencao
 - sensacao geral de maturidade aumenta
 
+### Decisao 4: toda tela nova deve herdar a identidade visual pelo sistema base
+
+O produto nao pode depender de "bom gosto local" por tela.
+
+Diretriz:
+
+- identidade visual precisa estar embutida em tokens, shells e componentes compartilhados
+- novas paginas devem se encaixar no sistema sem precisar de tratamento artesanal completo
+- desvios visuais passam a ser excecao justificada, nao padrao de evolucao
+
+Resultado esperado:
+
+- menor deriva visual com o tempo
+- maior consistencia entre modulos antigos e novos
+- menos necessidade de revisao estetica tela a tela
+
 ---
 
 ## Escopo
@@ -181,6 +221,7 @@ Resultado esperado:
 5. tokens de superficie, borda, accent e estados
 6. regras de espacamento e densidade dos componentes compartilhados
 7. alinhamento visual das paginas de settings mais acessadas
+8. definicao do padrao canonico para telas novas do dashboard
 
 ### Fora de escopo nesta fase
 
@@ -193,6 +234,26 @@ Resultado esperado:
 ---
 
 ## Requisitos do produto
+
+### 0. Padrao canonico de identidade visual
+
+O dashboard precisa ter um padrao visual declarativo que possa ser aplicado em telas existentes e novas.
+
+Esse padrao deve cobrir no minimo:
+
+- tema e tokens
+- comportamento visual de sidebar e header
+- shells por tipo de pagina
+- hierarquia de secoes
+- estilo de cards
+- tabelas e toolbars
+- formularios e blocos de configuracao
+- badges, estados e destaques
+
+Validacao:
+
+- uma tela nova deve conseguir ser implementada usando esse sistema sem inventar linguagem visual propria
+- uma tela existente deve poder ser alinhada ao padrao com diff incremental
 
 ### 1. Tema visual
 
@@ -264,6 +325,56 @@ Requisitos:
 
 ---
 
+## Padrao canonico proposto
+
+### 1. Cor
+
+- base neutra
+- accent restrito
+- marca reservada para foco, CTA, selecionado e sucesso
+- warning e destructive com uso semanticamente controlado
+
+### 2. Navegacao
+
+- sidebar como estrutura de orientacao primaria
+- grupos com poucas palavras e baixa interferencia visual
+- itens secundarios agrupados sem excesso de divisores
+- configuracoes com visual mais calmo que o conteudo operacional
+
+### 3. Shells
+
+- um shell para paginas de leitura e overview
+- um shell para CRUD/lista operacional
+- um shell para settings e configuracoes
+- casos especiais documentados explicitamente
+
+### 4. Superficies
+
+- cards com hierarquia clara
+- bordas discretas
+- sombras leves
+- espacamento previsivel entre blocos
+
+### 5. Densidade
+
+- titulos respiram
+- tabelas nao parecem apertadas
+- formularios nao parecem inflados
+- toolbar, filtros e cards seguem o mesmo ritmo vertical
+
+### 6. Estados
+
+- badge, selected, hover, focus e empty states seguem uma mesma gramatica visual
+- destaque visual proporcional a importancia da acao
+
+### 7. Telas novas
+
+- toda tela nova precisa escolher um shell canonicamente suportado
+- toda tela nova deve usar os tokens e componentes-base
+- novos estilos livres so entram se houver necessidade real de produto
+
+---
+
 ## Proposta de entrega em fases
 
 ### Fase 1 — Foundation visual
@@ -281,7 +392,7 @@ Entregas:
 
 Criterio de sucesso:
 
-- o dashboard ja parece mais proximo de `cca4a08` apenas abrindo 3 a 5 telas principais
+- o dashboard ja transmite a nova identidade apenas pela moldura compartilhada e pelos componentes-base, sem depender de refazer todas as telas
 
 ### Fase 2 — Navegacao e configuracoes
 
@@ -317,7 +428,7 @@ Entregas:
 
 Criterio de sucesso:
 
-- as paginas principais compartilham a mesma linguagem visual sem parecer remendadas
+- as paginas principais compartilham a mesma linguagem visual e o padrao fica aplicavel tambem a telas novas
 
 ---
 
@@ -325,11 +436,12 @@ Criterio de sucesso:
 
 ### Criterios visuais
 
-1. O dashboard precisa parecer visualmente mais proximo de `cca4a08` do que do estado atual.
+1. O dashboard precisa parecer visualmente mais proximo da linguagem de `cca4a08` do que do estado atual.
 2. A paleta principal do dashboard precisa ser predominantemente neutra.
 3. A sidebar deve transmitir menos densidade sem perder navegabilidade.
 4. O header deve competir menos com o conteudo principal.
 5. Settings devem parecer parte do mesmo sistema premium.
+6. Uma tela nova do dashboard deve conseguir seguir o padrao sem criar identidade visual paralela.
 
 ### Criterios funcionais
 
@@ -343,6 +455,7 @@ Criterio de sucesso:
 1. Priorizar mudancas em tokens e componentes compartilhados antes de mexer em paginas isoladas.
 2. Evitar hardcode de cor em novos ajustes.
 3. Reutilizar os shells compartilhados existentes, ajustando-os em vez de multiplicar variacoes.
+4. Formalizar o padrao no `design-system` do dashboard para consulta e auditoria.
 
 ---
 
@@ -352,10 +465,11 @@ Criterio de sucesso:
 
 - feedback interno: "mais premium", "mais leve", "mais organizado"
 - menor comentario espontaneo de "painel carregado"
-- comparativo visual aprovado com referencia em `cca4a08`
+- validacao da nova linguagem visual como padrao do produto, e nao apenas como ajuste de telas isoladas
 
 ### Quantitativas
 
+- tokens, shells e componentes-base atualizados e adotados nas telas prioritarias
 - no minimo 5 telas-chave revisadas e aprovadas visualmente
 - zero regressao funcional nos fluxos principais de navegacao
 - zero criacao de shell paralelo desnecessario
@@ -368,6 +482,7 @@ Criterio de sucesso:
 2. Mexer em tokens globais e abrir regressao visual em paginas nao auditadas.
 3. Tentar resolver tudo por pagina, em vez de corrigir primeiro a moldura compartilhada.
 4. Confundir "menos carregado" com "menos informativo".
+5. Repetir a deriva visual no futuro por falta de um padrao explicitado.
 
 ---
 
@@ -376,7 +491,8 @@ Criterio de sucesso:
 1. Tratar `cca4a08` como referencia de linguagem, nao como rollback literal.
 2. Comecar por tokens e shells compartilhados.
 3. Validar sempre em light e dark.
-4. Revisar visualmente pelo menos:
+4. Documentar o padrao na rota de `design-system` do dashboard.
+5. Revisar visualmente pelo menos:
    - `/dashboard`
    - `/dashboard/analytics`
    - `/dashboard/projects`
@@ -388,7 +504,7 @@ Criterio de sucesso:
 ## Dependencias
 
 - alinhamento de direcao visual: "neutral-first" com marca por acento
-- disponibilidade para validacao comparativa por screenshots
+- disponibilidade para validacao do sistema visual compartilhado
 - eventual uso da rota `/dashboard/design-system` como pagina de auditoria visual
 
 ---
@@ -398,9 +514,10 @@ Criterio de sucesso:
 1. Ajustar tokens globais de cor e superficie.
 2. Ajustar sidebar e header.
 3. Ajustar shells compartilhados.
-4. Revisar settings prioritarios.
-5. Revisar paginas-chave do dashboard.
-6. Fazer rodada final de polimento visual.
+4. Formalizar o padrao no `design-system`.
+5. Revisar settings prioritarios.
+6. Revisar paginas-chave do dashboard.
+7. Fazer rodada final de polimento visual.
 
 ---
 
