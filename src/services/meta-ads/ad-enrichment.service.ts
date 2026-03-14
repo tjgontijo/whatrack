@@ -31,14 +31,13 @@ export class MetaAdEnrichmentService {
         metaEnrichmentStatus: true,
         ticket: {
           select: {
+            id: true,
             organizationId: true,
-            organization: {
+            projectId: true,
+            project: {
               select: {
-                metaConnections: {
-                  where: { status: 'ACTIVE' },
-                  take: 1,
-                  select: { id: true },
-                },
+                id: true,
+                organizationId: true,
               },
             },
           },
@@ -49,12 +48,26 @@ export class MetaAdEnrichmentService {
     if (!tracking || !tracking.metaAdId) return
     if (tracking.metaEnrichmentStatus === 'SUCCESS') return
 
-    // Use the first active connection found for the organization
-    // (In a more complex setup, we'd find the one that has access to this specific ad)
-    const connection = tracking.ticket.organization.metaConnections[0]
+    if (!tracking.ticket.project || tracking.ticket.project.organizationId !== tracking.ticket.organizationId) {
+      logger.warn(
+        `[Enrichment] Ticket ${ticketId} has invalid project reference.`
+      )
+      return
+    }
+
+    // Use the first active connection found for the ticket's project
+    const connection = await prisma.metaConnection.findFirst({
+      where: {
+        organizationId: tracking.ticket.organizationId,
+        projectId: tracking.ticket.projectId,
+        status: 'ACTIVE',
+      },
+      select: { id: true },
+    })
+
     if (!connection) {
       logger.warn(
-        `[Enrichment] No active Meta connection for organization ${tracking.ticket.organizationId}`
+        `[Enrichment] No active Meta connection for project ${tracking.ticket.projectId} in organization ${tracking.ticket.organizationId}`
       )
       return
     }

@@ -6,6 +6,9 @@ const prismaMock = vi.hoisted(() => ({
     update: vi.fn(),
     findMany: vi.fn(),
   },
+  metaConnection: {
+    findFirst: vi.fn(),
+  },
 }))
 
 const metaAccessTokenServiceMock = vi.hoisted(() => ({
@@ -51,8 +54,10 @@ describe('ad-enrichment.service', () => {
       metaAdId: null,
       metaEnrichmentStatus: 'PENDING',
       ticket: {
+        id: 'ticket-1',
         organizationId: 'org-1',
-        organization: { metaConnections: [{ id: 'conn-1' }] },
+        projectId: 'proj-1',
+        project: { id: 'proj-1', organizationId: 'org-1' },
       },
     })
 
@@ -67,10 +72,14 @@ describe('ad-enrichment.service', () => {
       metaAdId: 'ad-1',
       metaEnrichmentStatus: 'PENDING',
       ticket: {
+        id: 'ticket-1',
         organizationId: 'org-1',
-        organization: { metaConnections: [{ id: 'conn-1' }] },
+        projectId: 'proj-1',
+        project: { id: 'proj-1', organizationId: 'org-1' },
       },
     })
+
+    prismaMock.metaConnection.findFirst.mockResolvedValueOnce({ id: 'conn-1' })
 
     metaAccessTokenServiceMock.getDecryptedToken.mockResolvedValueOnce('token-1')
 

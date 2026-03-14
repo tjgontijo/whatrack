@@ -3,6 +3,7 @@ import { NextRequest } from 'next/server'
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { metaConnectionDeleteQuerySchema } from '@/schemas/meta-ads/meta-ads-schemas'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
+import { resolveProjectScope } from '@/server/project/project-scope'
 import {
   deleteMetaConnection,
   listMetaConnections,
@@ -15,7 +16,17 @@ export async function GET(req: NextRequest) {
     return apiError(access.error ?? 'Unauthorized', 401)
   }
 
-  const connections = await listMetaConnections(access.organizationId)
+  const { searchParams } = new URL(req.url)
+  const projectId = await resolveProjectScope({
+    organizationId: access.organizationId,
+    projectId: searchParams.get('projectId') ?? undefined,
+  })
+
+  if (!projectId) {
+    return apiError('Project not found', 400)
+  }
+
+  const connections = await listMetaConnections(access.organizationId, projectId)
   return apiSuccess(connections)
 }
 

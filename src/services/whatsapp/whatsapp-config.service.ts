@@ -90,10 +90,11 @@ export async function disconnectWhatsAppConfig(params: DisconnectWhatsAppConfigP
   return { success: true as const }
 }
 
-export async function listWhatsAppInstances(organizationId: string, projectId?: string) {
+export async function listWhatsAppInstances(organizationId: string, projectId: string) {
   const instances = await prisma.whatsAppConfig.findMany({
     where: {
       organizationId,
+      projectId,
       status: 'connected',
     },
     select: {

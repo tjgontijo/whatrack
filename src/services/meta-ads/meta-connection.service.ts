@@ -1,9 +1,9 @@
 import { prisma } from '@/lib/db/prisma'
 import { auditService } from '@/services/audit/audit.service'
 
-export async function listMetaConnections(organizationId: string) {
+export async function listMetaConnections(organizationId: string, projectId: string) {
   return prisma.metaConnection.findMany({
-    where: { organizationId },
+    where: { organizationId, projectId },
     select: {
       id: true,
       fbUserId: true,

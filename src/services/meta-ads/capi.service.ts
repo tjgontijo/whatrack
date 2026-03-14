@@ -30,15 +30,11 @@ export class MetaCapiService {
       select: {
         id: true,
         organizationId: true,
-        organization: {
+        projectId: true,
+        project: {
           select: {
-            metaPixels: {
-              select: {
-                pixelId: true,
-                capiToken: true,
-              },
-              where: { isActive: true },
-            },
+            id: true,
+            organizationId: true,
           },
         },
         conversation: {
@@ -66,11 +62,26 @@ export class MetaCapiService {
       return
     }
 
-    // 1. Find the active Pixels for the organization
-    let targetPixels = ticket.organization.metaPixels
+    if (!ticket.project || ticket.project.organizationId !== ticket.organizationId) {
+      logger.warn(`[CAPI] Ticket ${ticketId} has invalid project reference.`)
+      return
+    }
+
+    // 1. Find the active Pixels for the ticket's project only
+    const targetPixels = await prisma.metaPixel.findMany({
+      where: {
+        organizationId: ticket.organizationId,
+        projectId: ticket.projectId,
+        isActive: true,
+      },
+      select: {
+        pixelId: true,
+        capiToken: true,
+      },
+    })
 
     if (!targetPixels || targetPixels.length === 0) {
-      logger.warn(`[CAPI] No Pixels found for organization ${ticket.organizationId}.`)
+      logger.warn(`[CAPI] No Pixels found for project ${ticket.projectId} in organization ${ticket.organizationId}.`)
       return
     }
 

@@ -22,9 +22,9 @@ interface DeleteMetaPixelParams {
   routeId: string
 }
 
-export async function listMetaPixels(organizationId: string, projectId?: string) {
+export async function listMetaPixels(organizationId: string, projectId: string) {
   return prisma.metaPixel.findMany({
-    where: { organizationId },
+    where: { organizationId, projectId },
     orderBy: { createdAt: 'desc' },
   })
 }

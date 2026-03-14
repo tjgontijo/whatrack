@@ -3,6 +3,7 @@ import { metaAdAccountService } from '@/services/meta-ads/ad-account.service'
 
 interface ListMetaAdAccountsParams {
   organizationId: string
+  projectId?: string
   sync: boolean
 }
 
@@ -53,6 +54,7 @@ export async function listMetaAdAccounts(params: ListMetaAdAccountsParams) {
     const connections = await prisma.metaConnection.findMany({
       where: {
         organizationId: params.organizationId,
+        ...(params.projectId ? { projectId: params.projectId } : {}),
         status: 'ACTIVE',
       },
       select: { id: true },
@@ -64,7 +66,10 @@ export async function listMetaAdAccounts(params: ListMetaAdAccountsParams) {
   }
 
   const accounts = await prisma.metaAdAccount.findMany({
-    where: { organizationId: params.organizationId },
+    where: {
+      organizationId: params.organizationId,
+      ...(params.projectId ? { projectId: params.projectId } : {}),
+    },
     orderBy: { adAccountName: 'asc' },
     select: {
       id: true,

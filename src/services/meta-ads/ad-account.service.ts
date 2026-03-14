@@ -133,12 +133,13 @@ export class MetaAdAccountService {
   }
 
   /**
-   * Get active accounts for an organization
+   * Get active accounts for an organization and project
    */
-  async getActiveAccounts(organizationId: string) {
+  async getActiveAccounts(organizationId: string, projectId: string) {
     return await prisma.metaAdAccount.findMany({
       where: {
         organizationId,
+        projectId,
         isActive: true,
       },
       select: {
