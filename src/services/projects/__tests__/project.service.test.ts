@@ -46,6 +46,7 @@ import {
   listProjects,
   updateProject,
 } from '@/services/projects/project.service'
+import { archiveProject } from '@/services/projects/project-archive.service'
 
 describe('project.service', () => {
   beforeEach(() => {
@@ -225,5 +226,71 @@ describe('project.service', () => {
       error: 'Já existe um projeto com este nome',
       status: 409,
     })
+  })
+})
+
+describe('project-archive.service', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('archives a project by marking it as archived with timestamp', async () => {
+    const now = new Date()
+    prismaMock.project.findFirst.mockResolvedValue({
+      id: 'project_1',
+      isArchived: false,
+    })
+    prismaMock.project.update.mockResolvedValue({
+      id: 'project_1',
+      isArchived: true,
+      archivedAt: now,
+    })
+
+    const result = await archiveProject({
+      organizationId: 'org_1',
+      projectId: 'project_1',
+    })
+
+    expect(prismaMock.project.update).toHaveBeenCalledWith({
+      where: { id: 'project_1' },
+      data: expect.objectContaining({
+        isArchived: true,
+        archivedAt: expect.any(Date),
+      }),
+    })
+    expect(result).toEqual({ success: true })
+  })
+
+  it('rejects archive if project not found', async () => {
+    prismaMock.project.findFirst.mockResolvedValue(null)
+
+    const result = await archiveProject({
+      organizationId: 'org_1',
+      projectId: 'project_1',
+    })
+
+    expect(result).toEqual({
+      error: 'Projeto não encontrado',
+      status: 404,
+    })
+    expect(prismaMock.project.update).not.toHaveBeenCalled()
+  })
+
+  it('rejects archive if project is already archived', async () => {
+    prismaMock.project.findFirst.mockResolvedValue({
+      id: 'project_1',
+      isArchived: true,
+    })
+
+    const result = await archiveProject({
+      organizationId: 'org_1',
+      projectId: 'project_1',
+    })
+
+    expect(result).toEqual({
+      error: 'Projeto já foi arquivado',
+      status: 409,
+    })
+    expect(prismaMock.project.update).not.toHaveBeenCalled()
   })
 })
