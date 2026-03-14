@@ -135,14 +135,12 @@
   --radius: 0.5rem;
 
   /* Backgrounds */
-  --background: oklch(0.975 0.004 150);
-  /* Quase branco com toque verde */
-  --foreground: oklch(0.13 0.025 155);
-  /* Quase preto esverdeado */
+  --background: oklch(0.975 0 0);
+  --foreground: oklch(0.13 0 0);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.13 0.025 155);
+  --card-foreground: oklch(0.13 0 0);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.13 0.025 155);
+  --popover-foreground: oklch(0.13 0 0);
 
   /* Primary — Verde WhaTrack */
   --primary: oklch(0.60 0.20 150);
@@ -150,20 +148,20 @@
   --primary-foreground: oklch(0.98 0 0);
 
   /* Secondary / Muted */
-  --secondary: oklch(0.94 0.012 150);
-  --secondary-foreground: oklch(0.22 0.025 155);
-  --muted: oklch(0.94 0.012 150);
-  --muted-foreground: oklch(0.44 0.018 155);
-  --accent: oklch(0.91 0.025 150);
-  --accent-foreground: oklch(0.22 0.025 155);
+  --secondary: oklch(0.94 0 0);
+  --secondary-foreground: oklch(0.22 0 0);
+  --muted: oklch(0.94 0 0);
+  --muted-foreground: oklch(0.44 0 0);
+  --accent: oklch(0.92 0 0);
+  --accent-foreground: oklch(0.22 0 0);
 
   /* Destructive */
   --destructive: oklch(0.52 0.22 25);
   --destructive-foreground: oklch(0.98 0 0);
 
   /* Borders & Inputs */
-  --border: oklch(0.86 0.012 150);
-  --input: oklch(0.86 0.012 150);
+  --border: oklch(0.87 0 0);
+  --input: oklch(0.87 0 0);
   --ring: oklch(0.60 0.20 150);
 
   /* Charts — alinhados à paleta WhaTrack */
@@ -179,13 +177,13 @@
   /* Vermelho suave (danger) */
 
   /* Sidebar Light */
-  --sidebar: oklch(0.965 0.008 150);
-  --sidebar-foreground: oklch(0.13 0.025 155);
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: oklch(0.13 0 0);
   --sidebar-primary: oklch(0.60 0.20 150);
   --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.91 0.025 150);
-  --sidebar-accent-foreground: oklch(0.60 0.20 150);
-  --sidebar-border: oklch(0.88 0.012 150);
+  --sidebar-accent: oklch(0.94 0 0);
+  --sidebar-accent-foreground: oklch(0.13 0 0);
+  --sidebar-border: oklch(0.90 0 0);
   --sidebar-ring: oklch(0.60 0.20 150);
 
   /* Semantic */
