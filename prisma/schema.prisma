@@ -271,14 +271,19 @@ model Project {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  organization    Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  leads           Lead[]
-  tickets         Ticket[]
-  sales           Sale[]
-  items           Item[]
-  itemCategories  ItemCategory[]
-  whatsappConfigs WhatsAppConfig[]
-  metaAdAccounts  MetaAdAccount[]
+  organization           Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  leads                  Lead[]
+  tickets                Ticket[]
+  sales                  Sale[]
+  items                  Item[]
+  itemCategories         ItemCategory[]
+  whatsappConfigs        WhatsAppConfig[]
+  metaAdAccounts         MetaAdAccount[]
+  metaConnections        MetaConnection[]
+  metaPixels             MetaPixel[]
+  whatsAppConnections    WhatsAppConnection[]
+  whatsappOnboardings    WhatsAppOnboarding[]
+  metaConversionEvents   MetaConversionEvent[]
 
   @@unique([organizationId, name])
   @@index([organizationId])
@@ -699,7 +704,7 @@ model WhatsAppConfig {
   conversations          Conversation[]
   connection             WhatsAppConnection? @relation(fields: [connectionId], references: [id], onDelete: Cascade)
   organization           Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  project                Project?            @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  project                Project?            @relation(fields: [projectId], references: [id], onDelete: Restrict)
   messages               Message[]
 
   @@index([connectionId])
@@ -713,6 +718,7 @@ model WhatsAppConfig {
 model WhatsAppOnboarding {
   id                String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   organizationId    String                   @db.Uuid
+  projectId         String?                  @db.Uuid
   trackingCode      String                   @unique
   authorizationCode String?
   status            String                   @default("pending")
@@ -728,8 +734,11 @@ model WhatsAppOnboarding {
   createdAt         DateTime                 @default(now())
   updatedAt         DateTime                 @updatedAt
   organization      Organization             @relation("WhatsAppOnboardings", fields: [organizationId], references: [id], onDelete: Cascade)
+  project           Project?                 @relation(fields: [projectId], references: [id], onDelete: Cascade)
   statusRef         WhatsAppOnboardingStatus @relation(fields: [status], references: [name])
 
+  @@index([projectId])
+  @@index([organizationId, projectId])
   @@index([organizationId])
   @@index([trackingCode])
   @@index([status])
@@ -740,6 +749,7 @@ model WhatsAppOnboarding {
 model WhatsAppConnection {
   id                String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   organizationId    String                   @db.Uuid
+  projectId         String?                  @db.Uuid
   wabaId            String
   ownerBusinessId   String?
   phoneNumberId     String?
@@ -755,10 +765,14 @@ model WhatsAppConnection {
   configs           WhatsAppConfig[]
   healthStatusRef   WhatsAppHealthStatus     @relation("ConnectionHealthStatus", fields: [healthStatus], references: [name])
   organization      Organization             @relation("WhatsAppConnections", fields: [organizationId], references: [id], onDelete: Cascade)
+  project           Project?                 @relation(fields: [projectId], references: [id], onDelete: Restrict)
   statusRef         WhatsAppConnectionStatus @relation(fields: [status], references: [name])
   healthChecks      WhatsAppHealth[]
 
+  @@unique([projectId, wabaId])
   @@unique([organizationId, wabaId])
+  @@index([projectId])
+  @@index([organizationId, projectId])
   @@index([status])
   @@index([phoneNumberId])
   @@map("whatsapp_connections")
@@ -882,6 +896,7 @@ model Message {
 model MetaConnection {
   id             String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   organizationId String @db.Uuid
+  projectId      String? @db.Uuid
 
   fbUserId       String // ID do usuário no Facebook
   fbUserName     String // Nome exibido (ex: "Thiago Gontijo")
@@ -893,9 +908,12 @@ model MetaConnection {
   updatedAt DateTime @updatedAt
 
   organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project?        @relation(fields: [projectId], references: [id], onDelete: Restrict)
   adAccounts   MetaAdAccount[] // Contas importadas/vinculadas a este token
 
+  @@unique([projectId, fbUserId])
   @@unique([organizationId, fbUserId]) // Um usuário FB só conecta 1x por org
+  @@index([organizationId, projectId])
   @@map("meta_connections")
 }
 
@@ -915,8 +933,9 @@ model MetaAdAccount {
 
   connection   MetaConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
   organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  project      Project?       @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  project      Project?       @relation(fields: [projectId], references: [id], onDelete: Restrict)
 
+  @@unique([projectId, adAccountId])
   @@unique([organizationId, adAccountId])
   @@index([projectId])
   @@index([organizationId, projectId])
@@ -926,6 +945,7 @@ model MetaAdAccount {
 model MetaPixel {
   id             String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   organizationId String @db.Uuid
+  projectId      String? @db.Uuid
 
   name      String? // Nome opcional
   pixelId   String // Dataset/Pixel ID para envio CAPI
@@ -936,14 +956,19 @@ model MetaPixel {
   updatedAt DateTime @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project?     @relation(fields: [projectId], references: [id], onDelete: Restrict)
 
+  @@unique([projectId, pixelId])
   @@unique([organizationId, pixelId])
+  @@index([projectId])
+  @@index([organizationId, projectId])
   @@map("meta_pixels")
 }
 
 model MetaConversionEvent {
   id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   organizationId String   @db.Uuid
+  projectId      String?  @db.Uuid
   ticketId       String   @db.Uuid
   eventName      String // LeadSubmitted | Purchase
   status         String   @default("PENDING") // PENDING | SENT | FAILED | SKIPPED_NO_CTWA | SKIPPED_DUPLICATE_LEAD
@@ -959,8 +984,11 @@ model MetaConversionEvent {
   sentAt         DateTime @default(now())
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project?     @relation(fields: [projectId], references: [id], onDelete: Restrict)
 
   @@unique([ticketId, eventName])
+  @@index([projectId])
+  @@index([organizationId, projectId])
   @@index([organizationId])
   @@map("meta_conversion_events")
 }
