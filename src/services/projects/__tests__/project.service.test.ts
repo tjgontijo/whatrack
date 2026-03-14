@@ -65,6 +65,8 @@ describe('project.service', () => {
         _count: {
           whatsappConfigs: 1,
           metaAdAccounts: 2,
+          metaConnections: 0,
+          metaPixels: 0,
           leads: 12,
           tickets: 4,
           sales: 3,
@@ -122,6 +124,8 @@ describe('project.service', () => {
       _count: {
         whatsappConfigs: 0,
         metaAdAccounts: 0,
+        metaConnections: 0,
+        metaPixels: 0,
         leads: 0,
         tickets: 0,
         sales: 0,
@@ -155,6 +159,8 @@ describe('project.service', () => {
       _count: {
         whatsappConfigs: 1,
         metaAdAccounts: 0,
+        metaConnections: 0,
+        metaPixels: 0,
         leads: 0,
         tickets: 0,
         sales: 0,
@@ -175,6 +181,8 @@ describe('project.service', () => {
       counts: {
         whatsappCount: 1,
         metaAdsCount: 0,
+        metaConnectionCount: 0,
+        metaPixelCount: 0,
         leadCount: 0,
         ticketCount: 0,
         saleCount: 0,
@@ -190,6 +198,8 @@ describe('project.service', () => {
       _count: {
         whatsappConfigs: 1,
         metaAdAccounts: 1,
+        metaConnections: 2,
+        metaPixels: 3,
         leads: 2,
         tickets: 1,
         sales: 1,
