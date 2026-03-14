@@ -71,12 +71,12 @@ describe('whatsapp-onboarding.service', () => {
   it('creates a hosted embedded signup session with the expected URL contract', async () => {
     prismaMock.whatsAppOnboarding.create.mockResolvedValue(undefined)
 
-    const result = await createWhatsAppOnboardingSession('org-123', undefined)
+    const result = await createWhatsAppOnboardingSession('org-123', 'proj-123')
 
     expect(prismaMock.whatsAppOnboarding.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
         organizationId: 'org-123',
-        projectId: null,
+        projectId: 'proj-123',
         trackingCode: 'track-123',
         status: 'pending',
         expiresAt: expect.any(Date),
@@ -111,7 +111,7 @@ describe('whatsapp-onboarding.service', () => {
     prismaMock.whatsAppOnboarding.findUnique.mockResolvedValue({
       id: 'onboarding-1',
       organizationId: 'org-123',
-      projectId: null,
+      projectId: 'proj-123',
       expiresAt: new Date(Date.now() + 60_000),
     })
     metaCloudMock.exchangeCodeForToken.mockResolvedValue({
@@ -143,7 +143,7 @@ describe('whatsapp-onboarding.service', () => {
       where: { phoneId: 'pending_waba-123' },
       create: expect.objectContaining({
         organizationId: 'org-123',
-        projectId: null,
+        projectId: 'proj-123',
         connectionId: 'connection-1',
         wabaId: 'waba-123',
         phoneId: 'pending_waba-123',
@@ -155,7 +155,7 @@ describe('whatsapp-onboarding.service', () => {
       }),
       update: expect.objectContaining({
         organizationId: 'org-123',
-        projectId: null,
+        projectId: 'proj-123',
         connectionId: 'connection-1',
         wabaId: 'waba-123',
         verifiedName: 'Acme Support',

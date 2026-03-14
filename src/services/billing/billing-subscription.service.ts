@@ -74,7 +74,6 @@ async function getOrganizationResourceCounts(organizationId: string) {
       by: ['projectId'],
       where: {
         organizationId,
-        projectId: { not: null },
         status: 'connected',
       },
       _count: { _all: true },
@@ -83,7 +82,6 @@ async function getOrganizationResourceCounts(organizationId: string) {
       by: ['projectId'],
       where: {
         organizationId,
-        projectId: { not: null },
         isActive: true,
       },
       _count: { _all: true },

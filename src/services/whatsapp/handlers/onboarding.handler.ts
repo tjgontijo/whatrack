@@ -71,6 +71,7 @@ export async function onboardingHandler(payload: any, eventType: string): Promis
         },
         create: {
           organizationId: onboarding.organizationId,
+          projectId: onboarding.projectId,
           wabaId,
           ownerBusinessId,
           phoneNumberId: value.waba_info?.phone_number_id,

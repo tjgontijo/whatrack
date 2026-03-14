@@ -674,7 +674,7 @@ model OrganizationCompany {
 model WhatsAppConfig {
   id                     String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   organizationId         String              @db.Uuid
-  projectId              String?             @db.Uuid
+  projectId              String              @db.Uuid
   connectionId           String?             @db.Uuid
   wabaId                 String?
   phoneId                String?             @unique
@@ -706,7 +706,7 @@ model WhatsAppConfig {
   conversations          Conversation[]
   connection             WhatsAppConnection? @relation(fields: [connectionId], references: [id], onDelete: Cascade)
   organization           Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  project                Project?            @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  project                Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
   messages               Message[]
 
   @@index([connectionId])
@@ -720,7 +720,7 @@ model WhatsAppConfig {
 model WhatsAppOnboarding {
   id                String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   organizationId    String                   @db.Uuid
-  projectId         String?                  @db.Uuid
+  projectId         String                   @db.Uuid
   trackingCode      String                   @unique
   authorizationCode String?
   status            String                   @default("pending")
@@ -736,7 +736,7 @@ model WhatsAppOnboarding {
   createdAt         DateTime                 @default(now())
   updatedAt         DateTime                 @updatedAt
   organization      Organization             @relation("WhatsAppOnboardings", fields: [organizationId], references: [id], onDelete: Cascade)
-  project           Project?                 @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project           Project                  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   statusRef         WhatsAppOnboardingStatus @relation(fields: [status], references: [name])
 
   @@index([projectId])
@@ -751,7 +751,7 @@ model WhatsAppOnboarding {
 model WhatsAppConnection {
   id                String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   organizationId    String                   @db.Uuid
-  projectId         String?                  @db.Uuid
+  projectId         String                   @db.Uuid
   wabaId            String
   ownerBusinessId   String?
   phoneNumberId     String?
@@ -767,7 +767,7 @@ model WhatsAppConnection {
   configs           WhatsAppConfig[]
   healthStatusRef   WhatsAppHealthStatus     @relation("ConnectionHealthStatus", fields: [healthStatus], references: [name])
   organization      Organization             @relation("WhatsAppConnections", fields: [organizationId], references: [id], onDelete: Cascade)
-  project           Project?                 @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  project           Project                  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   statusRef         WhatsAppConnectionStatus @relation(fields: [status], references: [name])
   healthChecks      WhatsAppHealth[]
 
@@ -898,7 +898,7 @@ model Message {
 model MetaConnection {
   id             String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   organizationId String @db.Uuid
-  projectId      String? @db.Uuid
+  projectId      String @db.Uuid
 
   fbUserId       String // ID do usuário no Facebook
   fbUserName     String // Nome exibido (ex: "Thiago Gontijo")
@@ -910,7 +910,7 @@ model MetaConnection {
   updatedAt DateTime @updatedAt
 
   organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  project      Project?        @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  project      Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
   adAccounts   MetaAdAccount[] // Contas importadas/vinculadas a este token
 
   @@unique([projectId, fbUserId])
@@ -922,7 +922,7 @@ model MetaConnection {
 model MetaAdAccount {
   id             String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   organizationId String @db.Uuid
-  projectId      String? @db.Uuid
+  projectId      String @db.Uuid
   connectionId   String @db.Uuid // Qual token usar para acessar essa conta?
 
   adAccountId   String // "act_123456"
@@ -935,7 +935,7 @@ model MetaAdAccount {
 
   connection   MetaConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
   organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  project      Project?       @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  project      Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, adAccountId])
   @@unique([organizationId, adAccountId])
@@ -947,7 +947,7 @@ model MetaAdAccount {
 model MetaPixel {
   id             String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   organizationId String @db.Uuid
-  projectId      String? @db.Uuid
+  projectId      String @db.Uuid
 
   name      String? // Nome opcional
   pixelId   String // Dataset/Pixel ID para envio CAPI
@@ -958,7 +958,7 @@ model MetaPixel {
   updatedAt DateTime @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  project      Project?     @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  project      Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, pixelId])
   @@unique([organizationId, pixelId])

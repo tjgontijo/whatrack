@@ -7,7 +7,7 @@ const OAUTH_STATE_TTL_SECONDS = 600
 interface MetaOAuthStatePayload {
   organizationId: string
   userId: string
-  projectId?: string
+  projectId: string
 }
 
 export async function createMetaOAuthState(payload: MetaOAuthStatePayload): Promise<string> {
@@ -17,9 +17,7 @@ export async function createMetaOAuthState(payload: MetaOAuthStatePayload): Prom
   const stateData: MetaOAuthStatePayload = {
     organizationId: payload.organizationId,
     userId: payload.userId,
-  }
-  if (payload.projectId) {
-    stateData.projectId = payload.projectId
+    projectId: payload.projectId,
   }
 
   await redis.setex(
@@ -44,11 +42,10 @@ export async function consumeMetaOAuthState(stateToken: string): Promise<MetaOAu
 
   try {
     const parsed = JSON.parse(stateRaw) as MetaOAuthStatePayload
-    if (!parsed.organizationId || !parsed.userId) {
+    if (!parsed.organizationId || !parsed.userId || !parsed.projectId) {
       return null
     }
 
-    // projectId is optional and may be included
     return {
       organizationId: parsed.organizationId,
       userId: parsed.userId,

@@ -62,8 +62,8 @@ export class MetaCapiService {
       return
     }
 
-    if (!ticket.project || ticket.project.organizationId !== ticket.organizationId) {
-      logger.warn(`[CAPI] Ticket ${ticketId} has invalid project reference.`)
+    if (!ticket.projectId || !ticket.project || ticket.project.organizationId !== ticket.organizationId) {
+      logger.warn(`[CAPI] Ticket ${ticketId} has invalid or missing project reference.`)
       return
     }
 

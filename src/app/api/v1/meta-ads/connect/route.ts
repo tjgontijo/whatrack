@@ -24,19 +24,21 @@ export async function GET(req: NextRequest) {
     return apiError('Server configuration error', 500)
   }
 
-  // Extract projectId from query params if provided
-  const projectId = req.nextUrl.searchParams.get('projectId') ?? undefined
+  // Extract projectId from query params - REQUIRED
+  const projectId = req.nextUrl.searchParams.get('projectId')
 
-  // Verify project belongs to organization if projectId is provided
-  if (projectId) {
-    const project = await prisma.project.findUnique({
-      where: { id: projectId },
-      select: { organizationId: true },
-    })
+  if (!projectId) {
+    return apiError('projectId is required', 400)
+  }
 
-    if (!project || project.organizationId !== access.organizationId) {
-      return apiError('Project not found or does not belong to your organization', 404)
-    }
+  // Verify project belongs to organization
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    select: { organizationId: true },
+  })
+
+  if (!project || project.organizationId !== access.organizationId) {
+    return apiError('Project not found or does not belong to your organization', 404)
   }
 
   const stateToken = await createMetaOAuthState({

@@ -241,6 +241,11 @@ export async function assignWhatsAppConfigProject(input: {
   configId: string
   projectId: string | null
 }) {
+  // Phase 6: projectId is now NOT NULL - require a valid project
+  if (!input.projectId) {
+    return { error: 'projectId é obrigatório' as const, status: 400 as const }
+  }
+
   const config = await prisma.whatsAppConfig.findFirst({
     where: {
       id: input.configId,
@@ -253,23 +258,21 @@ export async function assignWhatsAppConfigProject(input: {
     return { error: 'Instância não encontrada' as const, status: 404 as const }
   }
 
-  if (input.projectId) {
-    await assertWhatsAppAllowedForProject({
+  await assertWhatsAppAllowedForProject({
+    organizationId: input.organizationId,
+    projectId: input.projectId,
+  })
+
+  const project = await prisma.project.findFirst({
+    where: {
+      id: input.projectId,
       organizationId: input.organizationId,
-      projectId: input.projectId,
-    })
+    },
+    select: { id: true },
+  })
 
-    const project = await prisma.project.findFirst({
-      where: {
-        id: input.projectId,
-        organizationId: input.organizationId,
-      },
-      select: { id: true },
-    })
-
-    if (!project) {
-      return { error: 'Projeto não encontrado' as const, status: 404 as const }
-    }
+  if (!project) {
+    return { error: 'Projeto não encontrado' as const, status: 404 as const }
   }
 
   const updated = await prisma.whatsAppConfig.update({

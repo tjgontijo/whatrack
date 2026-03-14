@@ -395,20 +395,8 @@ export async function deleteProject(input: {
   }
 
   await prisma.$transaction([
-    prisma.whatsAppConfig.updateMany({
-      where: {
-        organizationId: input.organizationId,
-        projectId: input.projectId,
-      },
-      data: { projectId: null },
-    }),
-    prisma.metaAdAccount.updateMany({
-      where: {
-        organizationId: input.organizationId,
-        projectId: input.projectId,
-      },
-      data: { projectId: null },
-    }),
+    // Phase 6: Integration assets now have CASCADE delete (projectId is NOT NULL)
+    // WhatsAppConfig has CASCADE delete, so it will be deleted automatically
     prisma.lead.updateMany({
       where: {
         organizationId: input.organizationId,

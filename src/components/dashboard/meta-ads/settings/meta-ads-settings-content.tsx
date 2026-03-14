@@ -83,7 +83,7 @@ export function MetaAdsSettingsContent({
     }: {
       id: string
       isActive?: boolean
-      projectId?: string | null
+      projectId?: string
     }) => {
       return metaAdsClient.toggleAdAccount(id, { isActive, projectId }, organizationId!)
     },
@@ -277,9 +277,9 @@ export function MetaAdsSettingsContent({
                               <td className="px-6 py-4">
                                 <ProjectSelector
                                   organizationId={organizationId}
-                                  value={acc.projectId}
+                                  value={acc.projectId ?? undefined}
                                   onChange={(projectId) =>
-                                    toggleMutation.mutate({ id: acc.id, projectId })
+                                    toggleMutation.mutate({ id: acc.id, projectId: projectId ?? undefined })
                                   }
                                   disabled={toggleMutation.isPending}
                                   className="h-8 rounded-xl text-xs"

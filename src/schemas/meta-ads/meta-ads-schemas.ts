@@ -33,11 +33,11 @@ export const metaRouteParamsSchema = z.object({
 export const metaAdAccountToggleBodySchema = z
   .object({
     isActive: z.boolean().optional(),
-    projectId: z.string().trim().min(1).nullable().optional(),
+    projectId: z.string().trim().min(1).optional(),
   })
   .strict()
   .refine(
-    (value) => typeof value.isActive === 'boolean' || 'projectId' in value,
+    (value) => typeof value.isActive === 'boolean' || typeof value.projectId === 'string',
     {
       message: 'At least one field must be provided',
     }

@@ -27,11 +27,27 @@ export async function POST(request: Request) {
         }
 
         const orgId = session.session.activeOrganizationId
-        const { wabaId, code, phoneNumberId, redirectUri } = await request.json()
+        const { wabaId, code, phoneNumberId, redirectUri, projectId } = await request.json()
 
         if (!wabaId) {
             console.error('[ClaimWaba] MISSING WABA ID in request')
             return NextResponse.json({ error: 'WABA ID is required' }, { status: 400 })
+        }
+
+        if (!projectId) {
+            console.error('[ClaimWaba] MISSING PROJECT ID in request')
+            return NextResponse.json({ error: 'projectId is required' }, { status: 400 })
+        }
+
+        // Validate project belongs to organization
+        const project = await prisma.project.findUnique({
+            where: { id: projectId },
+            select: { organizationId: true }
+        })
+
+        if (!project || project.organizationId !== orgId) {
+            console.error('[ClaimWaba] Project not found or does not belong to organization')
+            return NextResponse.json({ error: 'Project not found or does not belong to your organization' }, { status: 404 })
         }
 
         console.log(`[ClaimWaba] REQUEST RECEIVED:`, { wabaId, orgId, hasCode: !!code, phoneNumberId })
@@ -122,6 +138,7 @@ export async function POST(request: Request) {
             },
             create: {
                 organizationId: orgId,
+                projectId,
                 wabaId,
                 phoneId: primaryPhone?.id,
                 accessToken: tokenToStore,

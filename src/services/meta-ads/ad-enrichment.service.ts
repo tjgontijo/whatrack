@@ -48,9 +48,9 @@ export class MetaAdEnrichmentService {
     if (!tracking || !tracking.metaAdId) return
     if (tracking.metaEnrichmentStatus === 'SUCCESS') return
 
-    if (!tracking.ticket.project || tracking.ticket.project.organizationId !== tracking.ticket.organizationId) {
+    if (!tracking.ticket.projectId || !tracking.ticket.project || tracking.ticket.project.organizationId !== tracking.ticket.organizationId) {
       logger.warn(
-        `[Enrichment] Ticket ${ticketId} has invalid project reference.`
+        `[Enrichment] Ticket ${ticketId} has invalid or missing project reference.`
       )
       return
     }

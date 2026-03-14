@@ -35,6 +35,16 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    const { searchParams } = new URL(req.url)
+    const projectId = await resolveProjectScope({
+      organizationId: access.organizationId,
+      projectId: searchParams.get('projectId') ?? undefined,
+    })
+
+    if (!projectId) {
+      return apiError('projectId is required', 400)
+    }
+
     const parsed = metaPixelCreateBodySchema.safeParse(await req.json())
     if (!parsed.success) {
       return apiError('Missing required fields', 400, undefined, {
@@ -44,6 +54,7 @@ export async function POST(req: NextRequest) {
 
     const pixel = await createMetaPixel({
       organizationId: access.organizationId,
+      projectId,
       ...parsed.data,
     })
 

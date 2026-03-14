@@ -29,6 +29,12 @@ export class MetaAdAccountService {
 
     if (!connection) throw new Error('Meta Connection not found')
 
+    // Use provided projectId or fall back to connection's projectId
+    const effectiveProjectId = projectId || connection.projectId
+    if (!effectiveProjectId) {
+      throw new Error('projectId is required (neither provided nor on connection)')
+    }
+
     const token = await metaAccessTokenService.getDecryptedToken(connectionId)
 
     // Fetch accounts available to this user
@@ -57,14 +63,15 @@ export class MetaAdAccountService {
         update: {
           adAccountName: acc.name,
           connectionId: connection.id,
+          projectId: effectiveProjectId,
         },
         create: {
           organizationId: connection.organizationId,
+          projectId: effectiveProjectId,
           connectionId: connection.id,
           adAccountId: acc.id,
           adAccountName: acc.name,
           isActive: false, // Default is inactive
-          ...(typeof projectId !== 'undefined' ? { projectId } : {}),
         },
       })
     }
@@ -81,7 +88,7 @@ export class MetaAdAccountService {
     accountId: string,
     input: {
       isActive?: boolean
-      projectId?: string | null
+      projectId?: string
     },
   ) {
     const existing = await prisma.metaAdAccount.findUnique({
@@ -103,7 +110,7 @@ export class MetaAdAccountService {
     if (nextIsActive) {
       await assertMetaAdAccountAllowedForProject({
         organizationId: existing.organizationId,
-        projectId: nextProjectId ?? null,
+        projectId: nextProjectId,
       })
     }
 

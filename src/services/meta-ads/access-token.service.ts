@@ -120,7 +120,7 @@ export class MetaAccessTokenService {
   async upsertConnection(
     organizationId: string,
     accessToken: string,
-    projectId?: string
+    projectId: string
   ) {
     const debug = await this.debugToken(accessToken)
     if (!debug.is_valid) throw new Error('Invalid Meta Access Token')
@@ -142,17 +142,17 @@ export class MetaAccessTokenService {
         accessToken: encryptedToken,
         tokenExpiresAt: expiresAt,
         status: 'ACTIVE',
+        projectId,
         updatedAt: new Date(),
-        ...(typeof projectId !== 'undefined' ? { projectId } : {}),
       },
       create: {
         organizationId,
+        projectId,
         fbUserId: userInfo.id,
         fbUserName: userInfo.name,
         accessToken: encryptedToken,
         tokenExpiresAt: expiresAt,
         status: 'ACTIVE',
-        ...(typeof projectId !== 'undefined' ? { projectId } : {}),
       },
     })
   }

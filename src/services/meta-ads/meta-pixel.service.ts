@@ -5,7 +5,7 @@ interface CreateMetaPixelParams {
   pixelId?: string
   capiToken?: string
   name?: string
-  projectId?: string
+  projectId: string
 }
 
 interface UpdateMetaPixelParams {
@@ -35,10 +35,10 @@ export async function createMetaPixel(params: CreateMetaPixelParams) {
   return prisma.metaPixel.create({
     data: {
       organizationId: params.organizationId,
+      projectId: params.projectId,
       pixelId: fallbackPixelId,
       capiToken: params.capiToken || '',
       name: params.name,
-      ...(typeof params.projectId !== 'undefined' ? { projectId: params.projectId } : {}),
     },
   })
 }

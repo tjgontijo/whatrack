@@ -11,7 +11,7 @@ interface ToggleMetaAdAccountParams {
   organizationId: string
   routeId: string
   isActive?: boolean
-  projectId?: string | null
+  projectId?: string
 }
 
 export async function toggleMetaAdAccount(params: ToggleMetaAdAccountParams) {
@@ -27,7 +27,7 @@ export async function toggleMetaAdAccount(params: ToggleMetaAdAccountParams) {
     return { error: 'Conta não encontrada' as const, status: 404 as const }
   }
 
-  if (typeof params.projectId !== 'undefined' && params.projectId !== null) {
+  if (typeof params.projectId !== 'undefined') {
     const project = await prisma.project.findFirst({
       where: {
         id: params.projectId,
