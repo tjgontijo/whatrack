@@ -1,9 +1,13 @@
 /**
- * Hook para obter o projeto ativo a partir do better-auth session
+ * Hook para obter o projeto ativo
  *
- * Usa o authClient (better-auth/react) e expõe apenas o id do projeto.
+ * Prioriza: session.activeProjectId → cookie PROJECT_COOKIE
+ * Usa fallback para cookie porque better-auth cliente não inclui
+ * campos customizados automaticamente (activeProjectId é custom no servidor).
  */
+import { useCallback, useEffect, useState } from 'react'
 import { useSession } from '@/lib/auth/auth-client'
+import { PROJECT_COOKIE } from '@/lib/constants/http-headers'
 
 interface ProjectSummary {
   id: string
@@ -15,13 +19,34 @@ export function useProject(): {
   error: unknown
 } {
   const { data: session, isPending, error } = useSession()
+  const [projectId, setProjectId] = useState<string | null>(null)
 
-  // Extract activeProjectId from session
-  const activeProjectId =
-    (session?.session as { activeProjectId?: string })?.activeProjectId ?? null
+  const getProjectIdFromCookie = useCallback(() => {
+    if (typeof window === 'undefined') return null
 
-  const projectData: ProjectSummary | null = activeProjectId
-    ? { id: activeProjectId }
+    const cookies = document.cookie
+      .split('; ')
+      .find((row) => row.startsWith(`${PROJECT_COOKIE}=`))
+      ?.split('=')[1]
+
+    return cookies || null
+  }, [])
+
+  useEffect(() => {
+    // Try session first (filled by server if available)
+    const sessionProjectId = (session?.session as { activeProjectId?: string })?.activeProjectId
+
+    if (sessionProjectId) {
+      setProjectId(sessionProjectId)
+    } else {
+      // Fallback to cookie
+      const cookieProjectId = getProjectIdFromCookie()
+      setProjectId(cookieProjectId)
+    }
+  }, [session?.session, getProjectIdFromCookie])
+
+  const projectData: ProjectSummary | null = projectId
+    ? { id: projectId }
     : null
 
   return {
