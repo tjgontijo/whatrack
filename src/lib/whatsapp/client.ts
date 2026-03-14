@@ -103,7 +103,7 @@ export const whatsappApi = {
     templateName: string,
     orgId: string,
     language?: string,
-    variables?: string[],
+    variables?: Array<{ name: string; value: string }>,
   ): Promise<SendTemplateResponse> {
     const res = await fetch('/api/v1/whatsapp/send-template', {
       method: 'POST',

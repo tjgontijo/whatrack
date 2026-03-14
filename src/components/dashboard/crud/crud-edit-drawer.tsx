@@ -140,7 +140,7 @@ export function CrudEditDrawer({
   return (
     <Drawer open={open} onOpenChange={onOpenChange} shouldScaleBackground={false} direction={mobileDirection}>
       <DrawerContent
-        className="bg-background h-[100dvh] max-h-none rounded-none border-none transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] will-change-transform data-[vaul-drawer-direction=bottom]:mt-0 data-[vaul-drawer-direction=bottom]:max-h-none"
+        className="bg-background h-[100dvh] rounded-none border-none transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] will-change-transform data-[vaul-drawer-direction=bottom]:!mt-0 data-[vaul-drawer-direction=bottom]:!max-h-none"
       >
         <div className={cn('mx-auto flex h-full w-full flex-col overflow-hidden', maxWidth)}>
           <DrawerHeader className="shrink-0 items-start border-b px-6 pb-4 pt-6 text-left">

@@ -54,7 +54,12 @@ export function SendTestView({ phone }: SendTestViewProps) {
         template,
         orgId!,
         selectedTemplate?.language,
-        variables.length > 0 ? variables : undefined,
+        variables.length > 0
+          ? templateVariables.map((v, i) => ({
+              name: v.replace(/\{\{|\}\}/g, ''),
+              value: variables[i] ?? '',
+            }))
+          : undefined,
       ),
 
     onSuccess: (data) => {

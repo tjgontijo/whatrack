@@ -10,7 +10,7 @@ interface SendTemplateParams {
   to: string
   templateName: string
   language?: string
-  variables?: string[]
+  variables?: Array<{ name: string; value: string }>
   accessToken?: string
 }
 
@@ -213,7 +213,12 @@ export class MetaCloudService {
         ? [
             {
               type: 'body',
-              parameters: variables.map((v) => ({ type: 'text', text: v })),
+              parameters: variables.map(({ name, value }) => {
+                const isPositional = /^\d+$/.test(name)
+                return isPositional
+                  ? { type: 'text', text: value }
+                  : { type: 'text', parameter_name: name, text: value }
+              }),
             },
           ]
         : undefined
