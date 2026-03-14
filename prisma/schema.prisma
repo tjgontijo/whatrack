@@ -131,6 +131,7 @@ model Session {
   createdAt            DateTime @default(now())
   updatedAt            DateTime @default(now()) @updatedAt
   activeOrganizationId String?  @db.Uuid
+  activeProjectId      String?  @db.Uuid
   user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
