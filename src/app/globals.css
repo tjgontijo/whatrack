@@ -203,14 +203,11 @@
 .dark {
   /* Backgrounds — baseados no #0A0C0F e #111418 do site */
   --background: oklch(0.13 0.022 255);
-  /* Navy escuro, fundo da landing */
-  --foreground: oklch(0.96 0.005 150);
-  /* Branco levemente esverdeado */
+  --foreground: oklch(0.96 0 0);
   --card: oklch(0.17 0.025 255);
-  /* Surface elevada */
-  --card-foreground: oklch(0.96 0.005 150);
+  --card-foreground: oklch(0.96 0 0);
   --popover: oklch(0.17 0.025 255);
-  --popover-foreground: oklch(0.96 0.005 150);
+  --popover-foreground: oklch(0.96 0 0);
 
   /* Primary — Verde brilhante WhaTrack no escuro */
   --primary: oklch(0.72 0.22 150);
@@ -220,11 +217,11 @@
 
   /* Secondary / Muted */
   --secondary: oklch(0.22 0.025 255);
-  --secondary-foreground: oklch(0.96 0.005 150);
+  --secondary-foreground: oklch(0.96 0 0);
   --muted: oklch(0.22 0.025 255);
   --muted-foreground: oklch(0.65 0.015 200);
   --accent: oklch(0.25 0.03 255);
-  --accent-foreground: oklch(0.96 0.005 150);
+  --accent-foreground: oklch(0.96 0 0);
 
   /* Destructive */
   --destructive: oklch(0.62 0.22 25);
@@ -249,11 +246,11 @@
 
   /* Sidebar Dark — levemente mais claro que o fundo */
   --sidebar: oklch(0.17 0.025 255);
-  --sidebar-foreground: oklch(0.96 0.005 150);
+  --sidebar-foreground: oklch(0.96 0 0);
   --sidebar-primary: oklch(0.72 0.22 150);
   --sidebar-primary-foreground: oklch(0.10 0.02 155);
   --sidebar-accent: oklch(0.25 0.03 255);
-  --sidebar-accent-foreground: oklch(0.72 0.22 150);
+  --sidebar-accent-foreground: oklch(0.96 0 0);
   --sidebar-border: oklch(1 0 0 / 8%);
   --sidebar-ring: oklch(0.72 0.22 150);
 
