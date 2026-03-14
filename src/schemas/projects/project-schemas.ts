@@ -28,6 +28,8 @@ export const projectCurrentUpdateSchema = z.object({
 export const projectAssociationCountsSchema = z.object({
   whatsappCount: z.number().int().min(0),
   metaAdsCount: z.number().int().min(0),
+  metaConnectionCount: z.number().int().min(0),
+  metaPixelCount: z.number().int().min(0),
   leadCount: z.number().int().min(0),
   ticketCount: z.number().int().min(0),
   saleCount: z.number().int().min(0),

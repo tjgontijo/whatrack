@@ -23,6 +23,8 @@ type ProjectSummaryRow = {
   _count: {
     whatsappConfigs: number
     metaAdAccounts: number
+    metaConnections: number
+    metaPixels: number
     leads: number
     tickets: number
     sales: number
@@ -63,6 +65,8 @@ function mapProjectCounts(input: ProjectSummaryRow['_count']): ProjectAssociatio
   return {
     whatsappCount: input.whatsappConfigs,
     metaAdsCount: input.metaAdAccounts,
+    metaConnectionCount: input.metaConnections,
+    metaPixelCount: input.metaPixels,
     leadCount: input.leads,
     ticketCount: input.tickets,
     saleCount: input.sales,
@@ -120,6 +124,8 @@ export async function listProjects(input: {
           select: {
             whatsappConfigs: true,
             metaAdAccounts: true,
+            metaConnections: true,
+            metaPixels: true,
             leads: true,
             tickets: true,
             sales: true,
@@ -170,6 +176,8 @@ export async function createProject(input: {
         select: {
           whatsappConfigs: true,
           metaAdAccounts: true,
+          metaConnections: true,
+          metaPixels: true,
           leads: true,
           tickets: true,
           sales: true,
@@ -203,6 +211,8 @@ export async function getProjectById(input: {
         select: {
           whatsappConfigs: true,
           metaAdAccounts: true,
+          metaConnections: true,
+          metaPixels: true,
           leads: true,
           tickets: true,
           sales: true,
@@ -326,6 +336,8 @@ export async function updateProject(input: {
         select: {
           whatsappConfigs: true,
           metaAdAccounts: true,
+          metaConnections: true,
+          metaPixels: true,
           leads: true,
           tickets: true,
           sales: true,
@@ -355,6 +367,8 @@ export async function deleteProject(input: {
         select: {
           whatsappConfigs: true,
           metaAdAccounts: true,
+          metaConnections: true,
+          metaPixels: true,
           leads: true,
           tickets: true,
           sales: true,
