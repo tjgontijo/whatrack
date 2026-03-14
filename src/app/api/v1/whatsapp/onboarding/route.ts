@@ -16,8 +16,26 @@ export async function GET(request: NextRequest) {
       return apiError(access.error || 'Unauthorized', 401)
     }
 
+    const projectId = request.nextUrl.searchParams.get('projectId') ?? undefined
+
+    // Validate projectId belongs to organization if provided
+    if (projectId) {
+      const project = await import('@/lib/db/prisma').then(m => m.prisma.project.findFirst({
+        where: {
+          id: projectId,
+          organizationId: access.organizationId,
+        },
+        select: { id: true },
+      }))
+
+      if (!project) {
+        return apiError('Projeto não encontrado ou não pertence à sua organização', 400)
+      }
+    }
+
     const result = await createWhatsAppOnboardingSession(
       access.organizationId,
+      projectId,
       request.nextUrl.origin
     )
 

@@ -18,6 +18,7 @@ function buildPendingPhoneId(wabaId: string): string {
 
 export async function createWhatsAppOnboardingSession(
   organizationId: string,
+  projectId?: string,
   baseUrl?: string
 ): Promise<CreateOnboardingSessionResult | { error: string }> {
   const trackingCode = createId()
@@ -26,6 +27,7 @@ export async function createWhatsAppOnboardingSession(
   await prisma.whatsAppOnboarding.create({
     data: {
       organizationId,
+      projectId: projectId || null,
       trackingCode,
       expiresAt,
       status: 'pending',
@@ -166,6 +168,7 @@ export async function handleWhatsAppOnboardingCallback(
         },
         create: {
           organizationId: onboarding.organizationId,
+          projectId: onboarding.projectId || null,
           wabaId: waba.wabaId,
           ownerBusinessId: waba.businessId,
           status: 'active',
@@ -202,6 +205,7 @@ export async function handleWhatsAppOnboardingCallback(
           where: { phoneId: pendingPhoneId },
           create: {
             organizationId: onboarding.organizationId,
+            projectId: onboarding.projectId || null,
             connectionId: connection.id,
             wabaId: waba.wabaId,
             phoneId: pendingPhoneId,
@@ -214,6 +218,7 @@ export async function handleWhatsAppOnboardingCallback(
           },
           update: {
             organizationId: onboarding.organizationId,
+            projectId: onboarding.projectId || null,
             connectionId: connection.id,
             wabaId: waba.wabaId,
             displayPhone: 'Número em configuração',
@@ -240,6 +245,7 @@ export async function handleWhatsAppOnboardingCallback(
           where: { phoneId: phone.id },
           create: {
             organizationId: onboarding.organizationId,
+            projectId: onboarding.projectId || null,
             connectionId: connection.id,
             wabaId: waba.wabaId,
             phoneId: phone.id,
@@ -252,6 +258,7 @@ export async function handleWhatsAppOnboardingCallback(
           },
           update: {
             organizationId: onboarding.organizationId,
+            projectId: onboarding.projectId || null,
             connectionId: connection.id,
             displayPhone: phone.display_phone_number,
             verifiedName: phone.verified_name,
