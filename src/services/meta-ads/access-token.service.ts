@@ -117,7 +117,11 @@ export class MetaAccessTokenService {
   /**
    * Save or Update Meta Connection for an organization
    */
-  async upsertConnection(organizationId: string, accessToken: string) {
+  async upsertConnection(
+    organizationId: string,
+    accessToken: string,
+    projectId?: string
+  ) {
     const debug = await this.debugToken(accessToken)
     if (!debug.is_valid) throw new Error('Invalid Meta Access Token')
 
@@ -139,6 +143,7 @@ export class MetaAccessTokenService {
         tokenExpiresAt: expiresAt,
         status: 'ACTIVE',
         updatedAt: new Date(),
+        ...(typeof projectId !== 'undefined' ? { projectId } : {}),
       },
       create: {
         organizationId,
@@ -147,6 +152,7 @@ export class MetaAccessTokenService {
         accessToken: encryptedToken,
         tokenExpiresAt: expiresAt,
         status: 'ACTIVE',
+        ...(typeof projectId !== 'undefined' ? { projectId } : {}),
       },
     })
   }

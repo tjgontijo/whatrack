@@ -5,6 +5,7 @@ interface CreateMetaPixelParams {
   pixelId?: string
   capiToken?: string
   name?: string
+  projectId?: string
 }
 
 interface UpdateMetaPixelParams {
@@ -21,7 +22,7 @@ interface DeleteMetaPixelParams {
   routeId: string
 }
 
-export async function listMetaPixels(organizationId: string) {
+export async function listMetaPixels(organizationId: string, projectId?: string) {
   return prisma.metaPixel.findMany({
     where: { organizationId },
     orderBy: { createdAt: 'desc' },
@@ -37,6 +38,7 @@ export async function createMetaPixel(params: CreateMetaPixelParams) {
       pixelId: fallbackPixelId,
       capiToken: params.capiToken || '',
       name: params.name,
+      ...(typeof params.projectId !== 'undefined' ? { projectId: params.projectId } : {}),
     },
   })
 }

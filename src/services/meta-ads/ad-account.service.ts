@@ -22,7 +22,7 @@ export class MetaAdAccountService {
   /**
    * Fetch Ad Accounts from Meta API and sync with local DB
    */
-  async syncAdAccounts(connectionId: string) {
+  async syncAdAccounts(connectionId: string, projectId?: string) {
     const connection = await prisma.metaConnection.findUnique({
       where: { id: connectionId },
     })
@@ -64,6 +64,7 @@ export class MetaAdAccountService {
           adAccountId: acc.id,
           adAccountName: acc.name,
           isActive: false, // Default is inactive
+          ...(typeof projectId !== 'undefined' ? { projectId } : {}),
         },
       })
     }
