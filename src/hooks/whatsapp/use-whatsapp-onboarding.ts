@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
 import { useOrganizationCompletion } from '@/hooks/organization/use-organization-completion'
+import { useProject } from '@/hooks/project/use-project'
 import { authClient } from '@/lib/auth/auth-client'
 import { apiFetch } from '@/lib/api-client'
 import {
@@ -14,11 +15,11 @@ export type OnboardingStatus = 'idle' | 'pending' | 'success'
 
 export function useWhatsAppOnboarding(onSuccess?: () => void) {
   const { data: activeOrg } = authClient.useActiveOrganization()
+  const { data: project } = useProject()
   const { isLoading: isCompletionLoading, isModuleBlocked, integrationBlockMessage } =
     useOrganizationCompletion()
   const [status, setStatus] = useState<OnboardingStatus>('idle')
   const [error, setError] = useState<string | null>(null)
-  const [defaultProjectId, setDefaultProjectId] = useState<string | null>(null)
   const popupRef = useRef<Window | null>(null)
   const onFocusRef = useRef<(() => void) | null>(null)
   const callbackHandledRef = useRef(false)
@@ -93,27 +94,6 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
   }, [consumeStoredResult, handleFailure, handleSuccess])
 
   useEffect(() => {
-    const fetchDefaultProject = async () => {
-      if (!activeOrg?.id) return
-
-      try {
-        const response = await apiFetch(`/api/v1/organizations/${activeOrg.id}/projects`, {
-          method: 'GET',
-          orgId: activeOrg.id,
-        })
-
-        if (Array.isArray(response) && response.length > 0) {
-          setDefaultProjectId(response[0].id)
-        }
-      } catch {
-        // Silently fail - defaultProjectId will remain null
-      }
-    }
-
-    fetchDefaultProject()
-  }, [activeOrg?.id])
-
-  useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.origin !== window.location.origin) return
 
@@ -170,6 +150,8 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
       setError('Configuração da Meta não encontrada.')
       return
     }
+
+    const defaultProjectId = project?.id ?? null
 
     if (!defaultProjectId) {
       setError('Nenhum projeto encontrado. Crie um projeto antes de conectar WhatsApp.')
@@ -243,7 +225,7 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
   }, [
     activeOrg?.id,
     clearState,
-    defaultProjectId,
+    project?.id,
     handleFailure,
     handleStoredResult,
     handleSuccess,
