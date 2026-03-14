@@ -18,6 +18,7 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
     useOrganizationCompletion()
   const [status, setStatus] = useState<OnboardingStatus>('idle')
   const [error, setError] = useState<string | null>(null)
+  const [defaultProjectId, setDefaultProjectId] = useState<string | null>(null)
   const popupRef = useRef<Window | null>(null)
   const onFocusRef = useRef<(() => void) | null>(null)
   const callbackHandledRef = useRef(false)
@@ -92,6 +93,27 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
   }, [consumeStoredResult, handleFailure, handleSuccess])
 
   useEffect(() => {
+    const fetchDefaultProject = async () => {
+      if (!activeOrg?.id) return
+
+      try {
+        const response = await apiFetch(`/api/v1/organizations/${activeOrg.id}/projects`, {
+          method: 'GET',
+          orgId: activeOrg.id,
+        })
+
+        if (Array.isArray(response) && response.length > 0) {
+          setDefaultProjectId(response[0].id)
+        }
+      } catch {
+        // Silently fail - defaultProjectId will remain null
+      }
+    }
+
+    fetchDefaultProject()
+  }, [activeOrg?.id])
+
+  useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.origin !== window.location.origin) return
 
@@ -149,6 +171,11 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
       return
     }
 
+    if (!defaultProjectId) {
+      setError('Nenhum projeto encontrado. Crie um projeto antes de conectar WhatsApp.')
+      return
+    }
+
     setStatus('pending')
     setError(null)
     callbackHandledRef.current = false
@@ -159,10 +186,13 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
     clearState()
 
     try {
-      const { onboardingUrl, trackingCode } = await apiFetch('/api/v1/whatsapp/onboarding', {
-        method: 'GET',
-        orgId: activeOrg.id,
-      })
+      const { onboardingUrl, trackingCode } = await apiFetch(
+        `/api/v1/whatsapp/onboarding?projectId=${defaultProjectId}`,
+        {
+          method: 'GET',
+          orgId: activeOrg.id,
+        }
+      )
       const url = buildWhatsAppEmbeddedSignupUrl(onboardingUrl, trackingCode)
 
       const width = 800
@@ -213,6 +243,7 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
   }, [
     activeOrg?.id,
     clearState,
+    defaultProjectId,
     handleFailure,
     handleStoredResult,
     handleSuccess,
