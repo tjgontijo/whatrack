@@ -96,19 +96,8 @@ export async function POST(request: Request) {
         }
 
         // 4. Encrypt access token before storage
-        let tokenToStore = clientAccessToken || null
-        let isEncrypted = false
-
-        if (tokenToStore) {
-            const encrypted = encryptToken(tokenToStore)
-            if (encrypted) {
-                tokenToStore = encrypted
-                isEncrypted = true
-                console.log('[ClaimWaba] Access token encrypted for storage')
-            } else {
-                console.warn('[ClaimWaba] TOKEN_ENCRYPTION_KEY not set, storing token in plaintext')
-            }
-        }
+        const tokenToStore = clientAccessToken ? encryptToken(clientAccessToken) : null
+        const isEncrypted = !!tokenToStore
 
         // 5. Criar ou atualizar a configuração no banco
         console.log('[ClaimWaba] Upserting config in DB...')

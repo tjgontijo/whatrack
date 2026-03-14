@@ -9,7 +9,6 @@ const algorithm = 'aes-256-gcm'
  * Format: v{N}:{iv}:{authTag}:{ciphertext}
  *
  * Key configuration:
- *   TOKEN_ENCRYPTION_KEY          — The current active key (64-char hex)
  *   ENCRYPTION_KEYS               — JSON map of versioned keys: {"v1":"hex...","v2":"hex..."}
  *   ENCRYPTION_CURRENT_VERSION    — Which version to use for new encryptions (default: "v1")
  *
@@ -47,16 +46,12 @@ export class TokenEncryption {
       }
     }
 
-    // Default key source when ENCRYPTION_KEYS is not provided.
-    if (!this.keys.has('v1')) {
-      const keyHex = process.env.TOKEN_ENCRYPTION_KEY
-      if (!keyHex || keyHex.length !== 64) {
-        throw new Error(
-          'TOKEN_ENCRYPTION_KEY must be a 64-char hex string (256 bits). ' +
-            "Generate with: node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\""
-        )
-      }
-      this.keys.set('v1', Buffer.from(keyHex, 'hex'))
+    if (this.keys.size === 0) {
+      throw new Error(
+        '[Encryption] ENCRYPTION_KEYS is required. ' +
+        'Set it as a JSON map: ENCRYPTION_KEYS=\'{"v1":"<64-char hex>"}\'. ' +
+        "Generate a key with: node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\""
+      )
     }
 
     this.currentVersion = process.env.ENCRYPTION_CURRENT_VERSION || 'v1'

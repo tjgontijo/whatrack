@@ -30,7 +30,7 @@ export async function POST(request: Request) {
       phoneId: config.phoneId,
       to: parsed.data.to,
       templateName: parsed.data.templateName,
-      accessToken: config.accessToken ?? undefined,
+      accessToken: MetaCloudService.getAccessTokenForConfig(config) || undefined,
     })
 
     return NextResponse.json({ success: true, result })

@@ -21,7 +21,7 @@ export async function GET(request: Request) {
 
     const templates = await MetaCloudService.getTemplates({
       wabaId: config.wabaId,
-      accessToken: config.accessToken ?? undefined,
+      accessToken: MetaCloudService.getAccessTokenForConfig(config) || undefined,
     })
 
     return NextResponse.json({ templates })
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
     const result = await MetaCloudService.createTemplate({
       wabaId: config.wabaId,
       template: body,
-      accessToken: config.accessToken ?? undefined,
+      accessToken: MetaCloudService.getAccessTokenForConfig(config) || undefined,
     })
 
     return NextResponse.json(result)
@@ -87,7 +87,7 @@ export async function PUT(request: Request) {
     const result = await MetaCloudService.editTemplate({
       templateId,
       components,
-      accessToken: config.accessToken ?? undefined,
+      accessToken: MetaCloudService.getAccessTokenForConfig(config) || undefined,
     })
 
     return NextResponse.json(result)
@@ -121,7 +121,7 @@ export async function DELETE(request: Request) {
     const result = await MetaCloudService.deleteTemplate({
       wabaId: config.wabaId,
       name,
-      accessToken: config.accessToken ?? undefined,
+      accessToken: MetaCloudService.getAccessTokenForConfig(config) || undefined,
     })
 
     return NextResponse.json(result)

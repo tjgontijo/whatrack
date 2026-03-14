@@ -77,9 +77,6 @@ const envSchema = z.object({
   RESEND_FROM: z.string().optional(),
 
   // 9. Security, Encryption & Jobs
-  // TOKEN_ENCRYPTION_KEY is a legacy fallback used by encryption.ts when ENCRYPTION_KEYS is absent.
-  // Prefer ENCRYPTION_KEYS for all environments.
-  TOKEN_ENCRYPTION_KEY: z.string().min(32).optional(),
   ENCRYPTION_KEYS: z.string().min(1, 'ENCRYPTION_KEYS is required'),
   ENCRYPTION_CURRENT_VERSION: z.string().default('v1'),
 
