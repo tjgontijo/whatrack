@@ -14,10 +14,18 @@ export async function createMetaOAuthState(payload: MetaOAuthStatePayload): Prom
   const stateToken = randomUUID()
   const redis = getRedis()
 
+  const stateData: MetaOAuthStatePayload = {
+    organizationId: payload.organizationId,
+    userId: payload.userId,
+  }
+  if (payload.projectId) {
+    stateData.projectId = payload.projectId
+  }
+
   await redis.setex(
     `oauth_state:${stateToken}`,
     OAUTH_STATE_TTL_SECONDS,
-    JSON.stringify({ organizationId: payload.organizationId, userId: payload.userId })
+    JSON.stringify(stateData)
   )
 
   return stateToken
