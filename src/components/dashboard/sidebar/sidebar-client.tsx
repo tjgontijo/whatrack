@@ -16,7 +16,6 @@ import {
   Users,
   Plug,
   UserCircle,
-  Shield,
   Building2,
   GitBranch,
   Bot,
@@ -61,7 +60,6 @@ const ICON_MAP = {
   FolderKanban,
   Plug,
   UserCircle,
-  Shield,
   Building2,
   GitBranch,
   Bot,
@@ -281,20 +279,7 @@ export function SidebarClient({
                 </SidebarMenuButton>
               </SidebarMenuItem>
 
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={pathname === '/dashboard/settings/profile' && typeof window !== 'undefined' && window.location.hash === '#seguranca'}
-                  tooltip="Segurança"
-                >
-                  <Link href="/dashboard/settings/profile#seguranca" onClick={handleNavClick}>
-                    <Shield className="h-4 w-4" />
-                    <span>Segurança</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              {canViewWorkspaceItem('manage:organization') ? (
+{canViewWorkspaceItem('manage:organization') ? (
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     asChild
@@ -418,8 +403,15 @@ export function SidebarClient({
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ) : null}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
 
-              {(session?.user?.role === 'admin' || session?.user?.role === 'owner') ? (
+        {(session?.user?.role === 'admin' || session?.user?.role === 'owner') ? (
+          <SidebarGroup>
+            <SidebarGroupLabel>Admin</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     asChild
@@ -432,9 +424,7 @@ export function SidebarClient({
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-              ) : null}
 
-              {(session?.user?.role === 'admin' || session?.user?.role === 'owner') ? (
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     asChild
@@ -447,25 +437,25 @@ export function SidebarClient({
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-              ) : null}
 
-              {session?.user?.role === 'owner' ? (
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={pathname.startsWith('/dashboard/design-system')}
-                    tooltip="Design System"
-                  >
-                    <Link href="/dashboard/design-system" onClick={handleNavClick}>
-                      <Paintbrush className="h-4 w-4" />
-                      <span>Design System</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ) : null}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+                {session?.user?.role === 'owner' ? (
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={pathname.startsWith('/dashboard/design-system')}
+                      tooltip="Design System"
+                    >
+                      <Link href="/dashboard/design-system" onClick={handleNavClick}>
+                        <Paintbrush className="h-4 w-4" />
+                        <span>Design System</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ) : null}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ) : null}
       </SidebarContent>
 
       <SidebarFooter className="border-t">
