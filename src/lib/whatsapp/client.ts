@@ -98,14 +98,20 @@ export const whatsappApi = {
   /**
    * Envia uma mensagem usando um template
    */
-  async sendTemplate(to: string, templateName: string, orgId: string): Promise<SendTemplateResponse> {
+  async sendTemplate(
+    to: string,
+    templateName: string,
+    orgId: string,
+    language?: string,
+    variables?: string[],
+  ): Promise<SendTemplateResponse> {
     const res = await fetch('/api/v1/whatsapp/send-template', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         [ORGANIZATION_HEADER]: orgId,
       },
-      body: JSON.stringify({ to, templateName }),
+      body: JSON.stringify({ to, templateName, language, variables }),
     })
     if (!res.ok) {
       const error = await res.json()

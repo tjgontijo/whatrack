@@ -29,6 +29,7 @@ export function SendTestView({ phone }: SendTestViewProps) {
   const orgId = org?.id
   const [recipientPhone, setRecipientPhone] = React.useState('')
   const [selectedTemplateName, setSelectedTemplateName] = React.useState('')
+  const [variables, setVariables] = React.useState<string[]>([])
   const [lastResponse, setLastResponse] = React.useState<any>(null)
 
   const { data: templates } = useQuery<WhatsAppTemplate[]>({
@@ -40,9 +41,21 @@ export function SendTestView({ phone }: SendTestViewProps) {
   const approvedTemplates = templates?.filter((t) => t.status === 'APPROVED') || []
   const selectedTemplate = approvedTemplates.find((t) => t.name === selectedTemplateName)
 
+  const templateVariableCount = React.useMemo(() => {
+    const bodyText = selectedTemplate?.components?.find((c) => c.type === 'BODY')?.text || ''
+    const matches = bodyText.match(/\{\{\d+\}\}/g) || []
+    return matches.length
+  }, [selectedTemplate])
+
   const sendMutation = useMutation({
     mutationFn: ({ to, template }: { to: string; template: string }) =>
-      whatsappApi.sendTemplate(to, template, orgId!),
+      whatsappApi.sendTemplate(
+        to,
+        template,
+        orgId!,
+        selectedTemplate?.language,
+        variables.length > 0 ? variables : undefined,
+      ),
 
     onSuccess: (data) => {
       setLastResponse(data)
@@ -84,7 +97,13 @@ export function SendTestView({ phone }: SendTestViewProps) {
           <CardContent className="space-y-6 p-6">
             <div className="space-y-2">
               <Label htmlFor="template">Template Aprovado</Label>
-              <Select value={selectedTemplateName} onValueChange={setSelectedTemplateName}>
+              <Select
+                value={selectedTemplateName}
+                onValueChange={(v) => {
+                  setSelectedTemplateName(v)
+                  setVariables([])
+                }}
+              >
                 <SelectTrigger className="h-11">
                   <SelectValue placeholder="Selecione um template..." />
                 </SelectTrigger>
@@ -106,6 +125,27 @@ export function SendTestView({ phone }: SendTestViewProps) {
                 Mostrando apenas templates aprovados pela Meta
               </p>
             </div>
+
+            {templateVariableCount > 0 && (
+              <div className="space-y-2">
+                <Label>Variáveis do Template</Label>
+                {Array.from({ length: templateVariableCount }, (_, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <span className="text-muted-foreground w-8 text-right text-xs font-mono">{`{{${i + 1}}}`}</span>
+                    <Input
+                      placeholder={`Valor para {{${i + 1}}}`}
+                      className="h-9"
+                      value={variables[i] ?? ''}
+                      onChange={(e) => {
+                        const next = [...variables]
+                        next[i] = e.target.value
+                        setVariables(next)
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="phone">Telefone do Destinatário</Label>

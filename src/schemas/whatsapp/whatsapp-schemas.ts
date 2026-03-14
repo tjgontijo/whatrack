@@ -13,6 +13,8 @@ export const whatsappChatMessagesQuerySchema = z.object({
 export const whatsappSendTemplateSchema = z.object({
   to: z.string().min(1),
   templateName: z.string().min(1),
+  language: z.string().min(1).default('pt_BR'),
+  variables: z.array(z.string()).optional(),
 })
 
 export const whatsappWebhookVerifySchema = z.object({

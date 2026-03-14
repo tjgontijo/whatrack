@@ -10,6 +10,7 @@ interface SendTemplateParams {
   to: string
   templateName: string
   language?: string
+  variables?: string[]
   accessToken?: string
 }
 
@@ -200,11 +201,22 @@ export class MetaCloudService {
     phoneId,
     to,
     templateName,
-    language = 'en_US',
+    language = 'pt_BR',
+    variables,
     accessToken,
   }: SendTemplateParams) {
     const token = accessToken || this.accessToken
     const url = `${GRAPH_API_URL}/${API_VERSION}/${phoneId}/messages`
+
+    const templateComponents =
+      variables && variables.length > 0
+        ? [
+            {
+              type: 'body',
+              parameters: variables.map((v) => ({ type: 'text', text: v })),
+            },
+          ]
+        : undefined
 
     const payload = {
       messaging_product: 'whatsapp',
@@ -215,6 +227,7 @@ export class MetaCloudService {
         language: {
           code: language,
         },
+        ...(templateComponents ? { components: templateComponents } : {}),
       },
     }
 
