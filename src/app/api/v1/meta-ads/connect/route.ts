@@ -5,6 +5,7 @@ import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { buildMetaAdsAuthorizeUrl } from '@/services/meta-ads/meta-oauth.service'
 import { createMetaOAuthState } from '@/services/meta-ads/meta-oauth-state.service'
 import { logger } from '@/lib/utils/logger'
+import { prisma } from '@/lib/db/prisma'
 
 export async function GET(req: NextRequest) {
   const access = await validateFullAccess(req)
@@ -23,9 +24,25 @@ export async function GET(req: NextRequest) {
     return apiError('Server configuration error', 500)
   }
 
+  // Extract projectId from query params if provided
+  const projectId = req.nextUrl.searchParams.get('projectId') ?? undefined
+
+  // Verify project belongs to organization if projectId is provided
+  if (projectId) {
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+      select: { organizationId: true },
+    })
+
+    if (!project || project.organizationId !== access.organizationId) {
+      return apiError('Project not found or does not belong to your organization', 404)
+    }
+  }
+
   const stateToken = await createMetaOAuthState({
     organizationId: access.organizationId,
     userId: access.userId,
+    projectId,
   })
 
   const authUrl = buildMetaAdsAuthorizeUrl({

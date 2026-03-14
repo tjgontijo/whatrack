@@ -32,10 +32,11 @@ export async function completeMetaAdsOAuthCallback(
     const shortLivedToken = await metaAccessTokenService.getShortLivedToken(code, redirectUri)
     const connection = await metaAccessTokenService.upsertConnection(
       stateData.organizationId,
-      shortLivedToken
+      shortLivedToken,
+      stateData.projectId
     )
 
-    await metaAdAccountService.syncAdAccounts(connection.id)
+    await metaAdAccountService.syncAdAccounts(connection.id, stateData.projectId)
 
     void auditService.log({
       organizationId: stateData.organizationId,

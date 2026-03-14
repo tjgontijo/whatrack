@@ -7,6 +7,7 @@ const OAUTH_STATE_TTL_SECONDS = 600
 interface MetaOAuthStatePayload {
   organizationId: string
   userId: string
+  projectId?: string
 }
 
 export async function createMetaOAuthState(payload: MetaOAuthStatePayload): Promise<string> {
@@ -39,7 +40,12 @@ export async function consumeMetaOAuthState(stateToken: string): Promise<MetaOAu
       return null
     }
 
-    return parsed
+    // projectId is optional and may be included
+    return {
+      organizationId: parsed.organizationId,
+      userId: parsed.userId,
+      projectId: parsed.projectId,
+    }
   } catch {
     return null
   }
