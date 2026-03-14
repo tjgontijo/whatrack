@@ -27,11 +27,11 @@ export function TemplatePreview({
     }
 
     let preview = bodyText
-    const matches = bodyText.match(/\{\{(\d+)\}\}/g) || []
+    const matches = bodyText.match(/\{\{[\w.]+\}\}/g) || []
 
     matches.forEach((match) => {
-      const varNumber = match.replace(/\{\{|\}\}/g, '')
-      const sample = samples[varNumber] || match
+      const varKey = match.replace(/\{\{|\}\}/g, '')
+      const sample = samples[varKey] || match
       preview = preview.replaceAll(match, sample)
     })
 

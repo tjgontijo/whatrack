@@ -325,6 +325,7 @@ export function TemplatesView({ phone: _phone }: TemplatesViewProps) {
           icon={MessageSquare}
           maxWidth="max-w-[95vw]"
           showFooter={false}
+          desktopDirection="right"
         >
           <TemplateEditorForm template={selectedTemplate} onClose={() => setEditorOpen(false)} />
         </CrudEditDrawer>

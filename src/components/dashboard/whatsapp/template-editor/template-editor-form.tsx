@@ -101,12 +101,8 @@ export function TemplateEditorForm({ template, onClose }: TemplateEditorFormProp
   const samples = form.watch('samples') || {}
 
   const variables = React.useMemo(() => {
-    const matches = bodyText?.match(/\{\{(\d+)\}\}/g) || []
-    return Array.from(new Set(matches)).sort((a, b) => {
-      const numA = parseInt(a.replace(/\{\{|\}\}/g, ''))
-      const numB = parseInt(b.replace(/\{\{|\}\}/g, ''))
-      return numA - numB
-    })
+    const matches = bodyText?.match(/\{\{[\w.]+\}\}/g) || []
+    return Array.from(new Set(matches))
   }, [bodyText])
 
   const mutation = useMutation({

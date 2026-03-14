@@ -41,10 +41,10 @@ export function SendTestView({ phone }: SendTestViewProps) {
   const approvedTemplates = templates?.filter((t) => t.status === 'APPROVED') || []
   const selectedTemplate = approvedTemplates.find((t) => t.name === selectedTemplateName)
 
-  const templateVariableCount = React.useMemo(() => {
+  const templateVariables = React.useMemo(() => {
     const bodyText = selectedTemplate?.components?.find((c) => c.type === 'BODY')?.text || ''
-    const matches = bodyText.match(/\{\{\d+\}\}/g) || []
-    return matches.length
+    const matches = bodyText.match(/\{\{[\w.]+\}\}/g) || []
+    return Array.from(new Set(matches))
   }, [selectedTemplate])
 
   const sendMutation = useMutation({
@@ -126,14 +126,14 @@ export function SendTestView({ phone }: SendTestViewProps) {
               </p>
             </div>
 
-            {templateVariableCount > 0 && (
+            {templateVariables.length > 0 && (
               <div className="space-y-2">
                 <Label>Variáveis do Template</Label>
-                {Array.from({ length: templateVariableCount }, (_, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <span className="text-muted-foreground w-8 text-right text-xs font-mono">{`{{${i + 1}}}`}</span>
+                {templateVariables.map((v, i) => (
+                  <div key={v} className="flex items-center gap-2">
+                    <span className="text-muted-foreground w-fit shrink-0 text-right text-xs font-mono">{v}</span>
                     <Input
-                      placeholder={`Valor para {{${i + 1}}}`}
+                      placeholder={`Valor para ${v}`}
                       className="h-9"
                       value={variables[i] ?? ''}
                       onChange={(e) => {
