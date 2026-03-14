@@ -177,20 +177,12 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
       )
       const url = buildWhatsAppEmbeddedSignupUrl(onboardingUrl, trackingCode)
 
-      const width = 800
-      const height = 700
-      const left = window.screen.width / 2 - width / 2
-      const top = window.screen.height / 2 - height / 2
-
-      popupRef.current = window.open(
-        url,
-        'whatsapp_onboarding',
-        `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no`
-      )
+      // Open in new tab instead of popup
+      popupRef.current = window.open(url, '_blank')
 
       if (!popupRef.current) {
         setStatus('idle')
-        setError('O popup foi bloqueado. Permita popups para este site e tente novamente.')
+        setError('Não foi possível abrir a nova aba. Verifique se popups estão permitidos.')
         return
       }
 
@@ -211,7 +203,7 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
         }
 
         if (!callbackHandledRef.current) {
-          handleFailure('Conexão cancelada. Popup foi fechado antes de concluir o processo.')
+          handleFailure('Conexão cancelada. A aba de onboarding foi fechada antes de concluir o processo.')
         }
       }
 
