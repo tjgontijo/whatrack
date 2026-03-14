@@ -31,24 +31,8 @@ export async function POST(request: Request) {
       data: parsed.data,
     })
 
-    // Update session with activeOrganizationId and activeProjectId
-    const session = await getServerSession(request)
-    if (session?.session?.id) {
-      try {
-        await prisma.session.update({
-          where: { id: session.session.id },
-          data: {
-            activeOrganizationId: result.organization.id,
-            activeProjectId: result.project.id,
-          },
-        })
-      } catch (error) {
-        logger.error({ err: error }, '[api/onboarding/welcome] Failed to update session')
-        // Continue even if session update fails, cookies are fallback
-      }
-    }
-
-    // Keep cookies as fallback for backward compatibility
+    // Set cookies for organization and project selection
+    // activeProjectId is managed by the application via PROJECT_COOKIE
     const cookieStore = await cookies()
     cookieStore.set(ORGANIZATION_COOKIE, result.organization.id, {
       path: '/',

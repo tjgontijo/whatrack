@@ -94,22 +94,6 @@ export async function getServerSession(request?: Request) {
       }
     }
 
-    // Load activeProjectId from database if session exists
-    if (session?.session?.id) {
-      try {
-        const dbSession = await prisma.session.findUnique({
-          where: { id: session.session.id },
-          select: { activeProjectId: true },
-        })
-
-        if (dbSession?.activeProjectId) {
-          ;(session.session as any).activeProjectId = dbSession.activeProjectId
-        }
-      } catch (error) {
-        logger.error({ err: error }, '[auth] Failed to load activeProjectId from session')
-      }
-    }
-
     return session
   } catch (error) {
     logger.error({ err: error }, '[auth] Failed to get server session')

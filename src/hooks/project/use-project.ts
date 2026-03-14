@@ -1,12 +1,13 @@
 /**
- * Hook para obter o projeto ativo
+ * Hook para obter o projeto ativo da aplicação
  *
- * Prioriza: session.activeProjectId → cookie PROJECT_COOKIE
- * Usa fallback para cookie porque better-auth cliente não inclui
- * campos customizados automaticamente (activeProjectId é custom no servidor).
+ * Lee o activeProjectId do cookie PROJECT_COOKIE, que é gerenciado
+ * pela aplicação (não pelo better-auth).
+ *
+ * O projeto ativo é selecionado pelo usuário no seletor de projeto
+ * na sidebar e persistido via PATCH /api/v1/projects/current.
  */
 import { useCallback, useEffect, useState } from 'react'
-import { useSession } from '@/lib/auth/auth-client'
 import { PROJECT_COOKIE } from '@/lib/constants/http-headers'
 
 interface ProjectSummary {
@@ -18,32 +19,25 @@ export function useProject(): {
   isLoading: boolean
   error: unknown
 } {
-  const { data: session, isPending, error } = useSession()
   const [projectId, setProjectId] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   const getProjectIdFromCookie = useCallback(() => {
     if (typeof window === 'undefined') return null
 
-    const cookies = document.cookie
+    const cookieValue = document.cookie
       .split('; ')
       .find((row) => row.startsWith(`${PROJECT_COOKIE}=`))
       ?.split('=')[1]
 
-    return cookies || null
+    return cookieValue || null
   }, [])
 
   useEffect(() => {
-    // Try session first (filled by server if available)
-    const sessionProjectId = (session?.session as { activeProjectId?: string })?.activeProjectId
-
-    if (sessionProjectId) {
-      setProjectId(sessionProjectId)
-    } else {
-      // Fallback to cookie
-      const cookieProjectId = getProjectIdFromCookie()
-      setProjectId(cookieProjectId)
-    }
-  }, [session?.session, getProjectIdFromCookie])
+    const id = getProjectIdFromCookie()
+    setProjectId(id)
+    setIsLoading(false)
+  }, [getProjectIdFromCookie])
 
   const projectData: ProjectSummary | null = projectId
     ? { id: projectId }
@@ -51,7 +45,7 @@ export function useProject(): {
 
   return {
     data: projectData,
-    isLoading: isPending,
-    error,
+    isLoading,
+    error: null,
   }
 }

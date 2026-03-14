@@ -9,7 +9,6 @@ import {
 } from '@/schemas/projects/project-schemas'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { getCurrentProjectId } from '@/server/project/get-current-project-id'
-import { getServerSession } from '@/server/auth/server'
 
 export async function GET(request: Request) {
   try {
@@ -77,21 +76,8 @@ export async function PATCH(request: Request) {
         return apiError('Projeto não encontrado', 404)
       }
 
-      // Update session with activeProjectId
-      const session = await getServerSession(request)
-      if (session?.session?.id) {
-        try {
-          await prisma.session.update({
-            where: { id: session.session.id },
-            data: { activeProjectId: project.id },
-          })
-        } catch (error) {
-          logger.error({ err: error }, '[api/projects/current] Failed to update session activeProjectId')
-          // Continue even if session update fails, cookie is fallback
-        }
-      }
-
-      // Keep cookie as fallback for backward compatibility
+      // Update cookie for project selection
+      // activeProjectId is managed via PROJECT_COOKIE cookie, not session
       const cookieStore = await cookies()
       cookieStore.set(PROJECT_COOKIE, project.id, {
         path: '/',
@@ -105,21 +91,8 @@ export async function PATCH(request: Request) {
       })
     }
 
-    // Update session to clear activeProjectId
-    const session = await getServerSession(request)
-    if (session?.session?.id) {
-      try {
-        await prisma.session.update({
-          where: { id: session.session.id },
-          data: { activeProjectId: null },
-        })
-      } catch (error) {
-        logger.error({ err: error }, '[api/projects/current] Failed to clear session activeProjectId')
-        // Continue even if session update fails, cookie is fallback
-      }
-    }
-
-    // Keep cookie clearing as fallback
+    // Clear cookie for project selection
+    // activeProjectId is managed via PROJECT_COOKIE cookie, not session
     const cookieStore = await cookies()
     cookieStore.delete(PROJECT_COOKIE)
 
