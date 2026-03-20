@@ -13,7 +13,7 @@ export default function BillingSuccessPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const planName = searchParams.get('planName') || searchParams.get('plan') || 'WhaTrack'
-  const nextPath = resolveInternalPath(searchParams.get('next'), '/dashboard/billing')
+  const nextPath = resolveInternalPath(searchParams.get('next'), '/welcome')
   const normalizedPlanName = planName === 'platform_base' ? 'plano base' : planName
 
   useEffect(() => {
@@ -120,7 +120,7 @@ export default function BillingSuccessPage() {
             onClick={() => router.push(nextPath)}
             className="h-12 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-8 font-semibold text-white shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/40"
           >
-            Ir para billing
+            Continuar
           </Button>
 
           <Button

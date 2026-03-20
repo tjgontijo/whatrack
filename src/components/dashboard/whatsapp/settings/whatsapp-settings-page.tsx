@@ -13,6 +13,7 @@ import { authClient } from '@/lib/auth/auth-client'
 import { whatsappApi } from '@/lib/whatsapp/client'
 import { useOrganization } from '@/hooks/organization/use-organization'
 import { useOrganizationCompletion } from '@/hooks/organization/use-organization-completion'
+import { useRequiredProjectPath } from '@/hooks/project/project-route-context'
 import { useIsMobile } from '@/hooks/ui/use-mobile'
 import { useWhatsAppOnboarding } from '@/hooks/whatsapp/use-whatsapp-onboarding'
 import type { WhatsAppPhoneNumber } from '@/types/whatsapp/whatsapp'
@@ -21,6 +22,7 @@ export function WhatsAppSettingsPage({ organizationId: propOrgId }: { organizati
   const isMobile = useIsMobile()
   const completionQuery = useOrganizationCompletion()
   const { data: org } = useOrganization()
+  const webhooksPath = useRequiredProjectPath('/settings/webhooks/whatsapp')
   const { data: session } = authClient.useSession()
   const [searchValue, setSearchValue] = useState('')
   const deferredSearch = useDeferredValue(searchValue)
@@ -85,7 +87,7 @@ export function WhatsAppSettingsPage({ organizationId: propOrgId }: { organizati
         <div className="flex items-center gap-2">
           {isSuperAdmin ? (
             <Button variant="outline" size="sm" className="h-8 gap-2 font-semibold" asChild>
-              <Link href="/dashboard/settings/webhooks/whatsapp">{!isMobile && 'Webhooks'}</Link>
+              <Link href={webhooksPath}>{!isMobile && 'Webhooks'}</Link>
             </Button>
           ) : null}
           <Button

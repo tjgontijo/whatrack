@@ -31,10 +31,12 @@ interface OverviewViewProps {
 }
 
 import { useOrganization } from '@/hooks/organization/use-organization'
+import { useRequiredProjectPath } from '@/hooks/project/project-route-context'
 
 export function OverviewView({ phone }: OverviewViewProps) {
   const queryClient = useQueryClient()
   const { data: org } = useOrganization()
+  const whatsappSettingsPath = useRequiredProjectPath('/settings/whatsapp')
   const orgId = org?.id
 
   const { data: accountInfo } = useQuery({
@@ -246,7 +248,7 @@ export function OverviewView({ phone }: OverviewViewProps) {
               asChild
               className="shadow-primary/10 h-10 w-full rounded-lg text-sm font-bold shadow-md"
             >
-              <Link href={`/dashboard/settings/whatsapp/${phone.id}/templates`}>
+              <Link href={`${whatsappSettingsPath}/${phone.id}/templates`}>
                 <MessageSquare className="mr-2 h-4 w-4" />
                 Abrir Templates
               </Link>
@@ -276,7 +278,7 @@ export function OverviewView({ phone }: OverviewViewProps) {
               variant="outline"
               className="h-10 w-full rounded-lg border-2 text-sm font-bold"
             >
-              <Link href={`/dashboard/settings/whatsapp/${phone.id}/settings`}>
+              <Link href={`${whatsappSettingsPath}/${phone.id}/settings`}>
                 <UserCircle className="mr-2 h-4 w-4" />
                 Editar Perfil
               </Link>
@@ -309,7 +311,7 @@ export function OverviewView({ phone }: OverviewViewProps) {
               variant="outline"
               className="h-10 w-full rounded-lg border-2 text-sm font-bold"
             >
-              <Link href={`/dashboard/settings/whatsapp/${phone.id}/send-test`}>
+              <Link href={`${whatsappSettingsPath}/${phone.id}/send-test`}>
                 <Send className="mr-2 h-4 w-4" />
                 Testar Agora
               </Link>

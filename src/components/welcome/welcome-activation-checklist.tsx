@@ -10,6 +10,7 @@ import { useProjectRouteContext } from '@/hooks/project/project-route-context'
 
 type WelcomeActivationChecklistProps = {
   projectName: string
+  projectPath: string | null
   trialEndsAt: string | null
   trialExpired: boolean
   trialDaysRemaining: number | null
@@ -54,6 +55,7 @@ function ChecklistItem(props: {
 
 export function WelcomeActivationChecklist({
   projectName,
+  projectPath,
   trialEndsAt,
   trialExpired,
   trialDaysRemaining,
@@ -63,7 +65,7 @@ export function WelcomeActivationChecklist({
   const activationMilestoneReached = checklist.whatsappConnected && checklist.metaAdsConnected
   const basePath = routeContext
     ? `/${routeContext.organizationSlug}/${routeContext.projectSlug}`
-    : '/dashboard'
+    : projectPath ?? '/welcome'
 
   return (
     <div className="grid gap-6">

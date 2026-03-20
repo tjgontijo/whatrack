@@ -4,8 +4,8 @@ import { resolveInternalPath, sanitizeInternalPath } from '@/lib/utils/internal-
 
 describe('internal path helpers', () => {
   it('accepts local application paths with query string and hash', () => {
-    expect(sanitizeInternalPath('/dashboard/billing?plan=pro#checkout')).toBe(
-      '/dashboard/billing?plan=pro#checkout'
+    expect(sanitizeInternalPath('/acme/projeto-a/billing?plan=pro#checkout')).toBe(
+      '/acme/projeto-a/billing?plan=pro#checkout'
     )
   })
 
@@ -16,7 +16,16 @@ describe('internal path helpers', () => {
   })
 
   it('falls back to a safe internal path when needed', () => {
-    expect(resolveInternalPath('https://evil.com', '/dashboard')).toBe('/dashboard')
-    expect(resolveInternalPath('/dashboard/billing', '/dashboard')).toBe('/dashboard/billing')
+    expect(resolveInternalPath('https://evil.com', '/welcome')).toBe('/welcome')
+    expect(resolveInternalPath('/acme/projeto-a/billing', '/welcome')).toBe(
+      '/acme/projeto-a/billing'
+    )
+  })
+
+  it('rewrites legacy workspace paths to welcome', () => {
+    expect(resolveInternalPath('/dashboard/billing?plan=pro', '/welcome')).toBe(
+      '/welcome?plan=pro'
+    )
+    expect(resolveInternalPath('/app', '/welcome')).toBe('/welcome')
   })
 })

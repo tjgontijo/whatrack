@@ -154,7 +154,7 @@ function buildCheckoutUrls(
   params: CreateCheckoutSessionParams,
   planName: string,
 ) {
-  const redirectPath = resolveInternalPath(params.redirectPath, '/dashboard/billing')
+  const redirectPath = resolveInternalPath(params.redirectPath, '/welcome')
   const successUrl = new URL('/billing/success', params.origin)
   successUrl.searchParams.set('plan', params.planType)
   successUrl.searchParams.set('planName', planName)

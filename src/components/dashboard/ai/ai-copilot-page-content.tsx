@@ -7,6 +7,7 @@ import { Sparkles } from 'lucide-react'
 import { PageContent, PageHeader, PageShell } from '@/components/dashboard/layout'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAuthorization } from '@/hooks/auth/use-authorization'
+import { useRequiredProjectPath } from '@/hooks/project/project-route-context'
 import { AiApprovalsContent } from './ai-approvals-content'
 import { AiUsageContent } from './ai-usage-content'
 
@@ -20,6 +21,7 @@ export function AiCopilotPageContent({ initialTab }: AiCopilotPageContentProps) 
   const router = useRouter()
   const searchParams = useSearchParams()
   const authorization = useAuthorization()
+  const aiPath = useRequiredProjectPath('/ia')
   const canViewUsage = authorization.isLoading || authorization.isAdmin
 
   const selectedTab = useMemo(() => {
@@ -51,7 +53,7 @@ export function AiCopilotPageContent({ initialTab }: AiCopilotPageContentProps) 
             }
 
             const query = params.toString()
-            router.replace(query ? `/dashboard/ia?${query}` : '/dashboard/ia')
+            router.replace(query ? `${aiPath}?${query}` : aiPath)
           }}
           className="gap-6"
         >

@@ -28,6 +28,7 @@ import type {
   BillingPlanListQuery,
   BillingPlanListResponse,
 } from '@/schemas/billing/billing-plan-schemas'
+import { useRequiredProjectPath } from '@/hooks/project/project-route-context'
 import { apiFetch } from '@/lib/api-client'
 import { BillingPlanFormDialog } from './billing-plan-form-dialog'
 import { BillingPlanHistorySheet } from './billing-plan-history-sheet'
@@ -46,6 +47,7 @@ function formatMoney(value: string, currency: string) {
 }
 
 function buildPageHref(
+  basePath: string,
   filters: BillingPlanListQuery,
   page: number,
 ) {
@@ -69,15 +71,16 @@ function buildPageHref(
     params.set('kind', filters.kind)
   }
 
-  return `/dashboard/settings/billing?${params.toString()}`
+  return `${basePath}?${params.toString()}`
 }
 
 export function BillingPlanList({ data, filters }: BillingPlanListProps) {
   const router = useRouter()
+  const billingSettingsPath = useRequiredProjectPath('/settings/billing')
   const hasPreviousPage = data.page > 1
   const hasNextPage = data.page < data.totalPages
-  const previousHref = buildPageHref(filters, Math.max(1, data.page - 1))
-  const nextHref = buildPageHref(filters, data.page + 1)
+  const previousHref = buildPageHref(billingSettingsPath, filters, Math.max(1, data.page - 1))
+  const nextHref = buildPageHref(billingSettingsPath, filters, data.page + 1)
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null)
   const [historyPlanId, setHistoryPlanId] = useState<string | null>(null)
   const [syncingPlanId, setSyncingPlanId] = useState<string | null>(null)

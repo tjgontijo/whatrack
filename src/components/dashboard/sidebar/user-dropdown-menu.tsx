@@ -20,6 +20,7 @@ import {
   DropdownMenuPortal,
 } from '@/components/ui/dropdown-menu'
 import { SidebarMenuButton } from '@/components/ui/sidebar'
+import { useRequiredProjectPath } from '@/hooks/project/project-route-context'
 import { authClient } from '@/lib/auth/auth-client'
 
 interface UserDropdownMenuProps {
@@ -30,6 +31,7 @@ interface UserDropdownMenuProps {
 
 export function UserDropdownMenu({ userName, userEmail, userImage }: UserDropdownMenuProps) {
   const router = useRouter()
+  const settingsPath = useRequiredProjectPath('/settings/profile')
   const { setTheme } = useTheme()
   const [mounted, setMounted] = React.useState(false)
   const [avatarError, setAvatarError] = React.useState(false)
@@ -132,7 +134,7 @@ export function UserDropdownMenu({ userName, userEmail, userImage }: UserDropdow
         <DropdownMenuSeparator />
 
         <DropdownMenuGroup>
-          <DropdownMenuItem onSelect={() => handleNavigate('/dashboard/settings')}>
+          <DropdownMenuItem onSelect={() => handleNavigate(settingsPath)}>
             <Settings className="mr-2 h-4 w-4" />
             Configurações
           </DropdownMenuItem>

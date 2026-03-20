@@ -30,6 +30,7 @@ import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Separator } from '@/components/ui/separator'
 import { useUpdateAgentSkillBindings } from '@/hooks/ai/use-agent-skill-bindings'
+import { useRequiredProjectPath } from '@/hooks/project/project-route-context'
 import type { AiSkill } from '@/types/ai/ai-skill'
 import type { FormSkillBinding } from '@/types/ai/ai-agent-skill'
 
@@ -182,6 +183,7 @@ export function AgentSkillBindings({ allSkills, value, onChange, agentId }: Agen
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
   )
   const autoSave = useUpdateAgentSkillBindings(agentId ?? '')
+  const aiSkillsPath = useRequiredProjectPath('/settings/ai/skills')
 
   const systemBindings = value.filter((b) => b.skill.source === 'SYSTEM')
   const customBindings = value.filter((b) => b.skill.source === 'CUSTOM')
@@ -281,7 +283,7 @@ export function AgentSkillBindings({ allSkills, value, onChange, agentId }: Agen
         <Separator className="my-3" />
 
         <Button variant="ghost" size="sm" className="w-full border border-dashed text-xs" asChild>
-          <Link href="/dashboard/settings/ai/skills">
+          <Link href={aiSkillsPath}>
             <Plus className="mr-1.5 h-3.5 w-3.5" />
             Criar nova skill
           </Link>
@@ -339,7 +341,7 @@ export function AgentSkillBindings({ allSkills, value, onChange, agentId }: Agen
 
         <div className="mt-3 flex items-center justify-end">
           <Button variant="link" size="sm" className="text-muted-foreground h-auto p-0 text-xs" asChild>
-            <Link href="/dashboard/settings/ai/skills">
+            <Link href={aiSkillsPath}>
               Gerenciar biblioteca de skills
               <ExternalLink className="ml-1 h-3 w-3" />
             </Link>

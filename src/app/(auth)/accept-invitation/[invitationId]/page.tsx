@@ -113,7 +113,7 @@ export default function AcceptInvitationPage() {
       await acceptOrganizationInvitation(invitationId)
 
       toast.success('Conta criada e convite aceito com sucesso!')
-      router.push('/dashboard')
+      router.push('/welcome')
     } catch (error) {
       toast.error(
         error instanceof Error

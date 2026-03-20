@@ -29,7 +29,7 @@ import { IntegrationsHub } from '@/components/dashboard/integrations/integration
 describe('IntegrationsHub', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    pathnameMock.mockReturnValue('/dashboard/settings/integrations')
+    pathnameMock.mockReturnValue('/acme/projeto-a/settings/integrations')
     searchParamsMock.mockReturnValue(new URLSearchParams())
   })
 
@@ -50,7 +50,7 @@ describe('IntegrationsHub', () => {
     await user.click(screen.getByRole('tab', { name: 'Meta Ads' }))
 
     expect(replaceMock).toHaveBeenCalledWith(
-      '/dashboard/settings/integrations?tab=meta-ads&project=alpha',
+      '/acme/projeto-a/settings/integrations?tab=meta-ads&project=alpha',
       { scroll: false }
     )
   })

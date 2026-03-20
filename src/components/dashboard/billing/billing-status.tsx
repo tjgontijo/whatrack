@@ -19,6 +19,7 @@ import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import { useBillingSubscription } from '@/hooks/billing/use-billing-subscription'
+import { useRequiredProjectPath } from '@/hooks/project/project-route-context'
 import { apiFetch } from '@/lib/api-client'
 import { BillingCancelDialog } from './billing-cancel-dialog'
 import { formatDate } from '@/lib/date/format-date'
@@ -79,6 +80,7 @@ function formatMoney(value: number) {
 
 export function BillingStatus() {
   const { subscription, isLoading, error } = useBillingSubscription()
+  const billingPath = useRequiredProjectPath('/billing')
   const [showCancelDialog, setShowCancelDialog] = useState(false)
   const [isOpeningPortal, startTransition] = useTransition()
 
@@ -92,7 +94,7 @@ export function BillingStatus() {
         const data = (await apiFetch('/api/v1/billing/portal', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ returnUrl: '/dashboard/billing' }),
+          body: JSON.stringify({ returnUrl: billingPath }),
           orgId: subscription.organizationId,
         })) as { url: string }
         window.location.href = data.url
@@ -266,7 +268,7 @@ export function BillingStatus() {
               </Button>
             ) : (
               <Button asChild size="sm" variant="outline">
-                <Link href="/dashboard/billing">Ativar plano</Link>
+                <Link href={billingPath}>Ativar plano</Link>
               </Button>
             )}
 

@@ -1,9 +1,19 @@
 import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+const useRequiredProjectPathMock = vi.hoisted(() => vi.fn())
+
+vi.mock('@/hooks/project/project-route-context', () => ({
+  useRequiredProjectPath: useRequiredProjectPathMock,
+}))
 
 import { AccountBillingCard } from '@/components/dashboard/account/account-billing-card'
 
 describe('AccountBillingCard', () => {
+  beforeEach(() => {
+    useRequiredProjectPathMock.mockReturnValue('/acme/projeto-a/settings/subscription')
+  })
+
   it('shows the contracted plan details when a subscription exists', () => {
     render(
       <AccountBillingCard
@@ -42,7 +52,7 @@ describe('AccountBillingCard', () => {
     expect(screen.getByText('Ativo')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Abrir assinatura' })).toHaveAttribute(
       'href',
-      '/dashboard/settings/subscription',
+      '/acme/projeto-a/settings/subscription',
     )
   })
 
@@ -52,7 +62,7 @@ describe('AccountBillingCard', () => {
     expect(screen.getByText('Nenhum plano ativo')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Abrir assinatura' })).toHaveAttribute(
       'href',
-      '/dashboard/settings/subscription',
+      '/acme/projeto-a/settings/subscription',
     )
     expect(screen.queryByText('Escolha um plano para seguir com a configuração.')).not.toBeInTheDocument()
   })

@@ -22,6 +22,7 @@ import type {
 import { CrudEmptyState } from '@/components/dashboard/crud/crud-data-view'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { useRequiredProjectPath } from '@/hooks/project/project-route-context'
 import { useCrudInfiniteQuery } from '@/hooks/ui/use-crud-infinite-query'
 import { apiFetch } from '@/lib/api-client'
 import type {
@@ -43,56 +44,6 @@ function buildAssociationSummary(project: ProjectListItem) {
     `${project.counts.leadCount} leads`,
   ].join(' · ')
 }
-
-const columns: ColumnDef<ProjectListItem>[] = [
-  {
-    key: 'name',
-    label: 'Projeto',
-    render: (project) => (
-      <div className="space-y-1">
-        <Link href={`/dashboard/projects/${project.id}`} className="font-medium hover:underline">
-          {project.name}
-        </Link>
-        <div className="text-muted-foreground text-xs">
-          {buildAssociationSummary(project)}
-        </div>
-      </div>
-    ),
-  },
-  {
-    key: 'whatsapp',
-    label: 'WhatsApp',
-    width: 120,
-    render: (project) => <Badge variant="outline">{project.counts.whatsappCount}</Badge>,
-  },
-  {
-    key: 'metaAds',
-    label: 'Meta Ads',
-    width: 120,
-    render: (project) => <Badge variant="outline">{project.counts.metaAdsCount}</Badge>,
-  },
-  {
-    key: 'crm',
-    label: 'CRM',
-    render: (project) => (
-      <div className="text-sm text-muted-foreground">
-        <span>{project.counts.leadCount} leads</span>
-        <span className="mx-2">·</span>
-        <span>{project.counts.ticketCount} tickets</span>
-        <span className="mx-2">·</span>
-        <span>{project.counts.saleCount} vendas</span>
-      </div>
-    ),
-  },
-  {
-    key: 'updatedAt',
-    label: 'Última atualização',
-    width: 180,
-    render: (project) => (
-      <span className="text-sm text-muted-foreground">{formatDate(project.updatedAt)}</span>
-    ),
-  },
-]
 
 const cardConfig: CardConfig<ProjectListItem> = {
   icon: () => <FolderKanban className="h-6 w-6 text-emerald-600" />,
@@ -116,6 +67,7 @@ const cardConfig: CardConfig<ProjectListItem> = {
 
 export function ProjectList() {
   const router = useRouter()
+  const projectsPath = useRequiredProjectPath('/projects')
   const [view, setView] = useState<ViewType>('list')
   const [searchInput, setSearchInput] = useState('')
   const [editingProject, setEditingProject] = useState<ProjectListItem | null>(null)
@@ -152,6 +104,59 @@ export function ProjectList() {
         0
       ),
     [data]
+  )
+
+  const columns = useMemo<ColumnDef<ProjectListItem>[]>(
+    () => [
+      {
+        key: 'name',
+        label: 'Projeto',
+        render: (project) => (
+          <div className="space-y-1">
+            <Link href={`${projectsPath}/${project.id}`} className="font-medium hover:underline">
+              {project.name}
+            </Link>
+            <div className="text-muted-foreground text-xs">
+              {buildAssociationSummary(project)}
+            </div>
+          </div>
+        ),
+      },
+      {
+        key: 'whatsapp',
+        label: 'WhatsApp',
+        width: 120,
+        render: (project) => <Badge variant="outline">{project.counts.whatsappCount}</Badge>,
+      },
+      {
+        key: 'metaAds',
+        label: 'Meta Ads',
+        width: 120,
+        render: (project) => <Badge variant="outline">{project.counts.metaAdsCount}</Badge>,
+      },
+      {
+        key: 'crm',
+        label: 'CRM',
+        render: (project) => (
+          <div className="text-sm text-muted-foreground">
+            <span>{project.counts.leadCount} leads</span>
+            <span className="mx-2">·</span>
+            <span>{project.counts.ticketCount} tickets</span>
+            <span className="mx-2">·</span>
+            <span>{project.counts.saleCount} vendas</span>
+          </div>
+        ),
+      },
+      {
+        key: 'updatedAt',
+        label: 'Última atualização',
+        width: 180,
+        render: (project) => (
+          <span className="text-sm text-muted-foreground">{formatDate(project.updatedAt)}</span>
+        ),
+      },
+    ],
+    [projectsPath],
   )
 
   async function handleDelete(project: ProjectListItem) {

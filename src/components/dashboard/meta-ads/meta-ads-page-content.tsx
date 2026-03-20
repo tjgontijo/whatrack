@@ -5,9 +5,10 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { BarChart3, RefreshCw } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 
-import { MetaAdsCampaignsClient } from '@/app/[organizationSlug]/[projectSlug]/meta-ads/campaigns/client'
+import { MetaAdsCampaignsClient } from '@/app/(dashboard)/[organizationSlug]/[projectSlug]/meta-ads/campaigns/client'
 import { MetaROIContent } from '@/components/dashboard/meta-ads/dashboard/meta-roi-content'
 import { PageContent, PageHeader, PageShell } from '@/components/dashboard/layout'
+import { useRequiredProjectPath } from '@/hooks/project/project-route-context'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { authClient } from '@/lib/auth/auth-client'
@@ -23,6 +24,7 @@ const DEFAULT_TAB = 'overview'
 export function MetaAdsPageContent({ initialTab }: MetaAdsPageContentProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const metaAdsPath = useRequiredProjectPath('/meta-ads')
   const { data: organization } = authClient.useActiveOrganization()
   const organizationId = organization?.id
 
@@ -75,7 +77,7 @@ export function MetaAdsPageContent({ initialTab }: MetaAdsPageContentProps) {
             }
 
             const query = params.toString()
-            router.replace(query ? `/dashboard/meta-ads?${query}` : '/dashboard/meta-ads')
+            router.replace(query ? `${metaAdsPath}?${query}` : metaAdsPath)
           }}
           className="gap-6"
         >

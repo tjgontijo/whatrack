@@ -45,9 +45,9 @@ describe('funnel-intent', () => {
     )
   })
 
-  it('prefers an explicit internal next path when present', () => {
-    expect(resolvePostAuthPath('/dashboard/projects', { intent: 'start-trial' })).toBe(
-      '/dashboard/projects',
+  it('rewrites legacy /app next paths to welcome with the same funnel intent', () => {
+    expect(resolvePostAuthPath('/app', { intent: 'start-trial' })).toBe(
+      '/welcome?intent=start-trial',
     )
   })
 })

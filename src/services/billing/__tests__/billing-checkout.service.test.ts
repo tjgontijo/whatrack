@@ -87,15 +87,15 @@ describe('billing-checkout.service', () => {
       userId: 'user-1',
       planType: 'platform_base',
       origin: 'https://whatrack.com',
-      redirectPath: '/dashboard/billing',
+      redirectPath: '/acme/projeto-a/billing',
     })
 
     expect(providerMock.createCheckoutSession).toHaveBeenCalledWith({
       organizationId: 'org-1',
       planType: 'platform_base',
       successUrl:
-        'https://whatrack.com/billing/success?plan=platform_base&planName=WhaTrack+Base&next=%2Fdashboard%2Fbilling',
-      returnUrl: 'https://whatrack.com/dashboard/billing',
+        'https://whatrack.com/billing/success?plan=platform_base&planName=WhaTrack+Base&next=%2Facme%2Fprojeto-a%2Fbilling',
+      returnUrl: 'https://whatrack.com/acme/projeto-a/billing',
       userEmail: 'owner@whatrack.com',
       userName: 'Thiago',
       userPhone: '11999999999',

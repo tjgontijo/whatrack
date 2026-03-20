@@ -16,7 +16,6 @@ import { Separator } from '@/components/ui/separator'
 import { HeaderActionsSlot } from './header-actions'
 import { OrganizationStatusBadge } from '@/components/dashboard/organization/organization-status-badge'
 
-// Route labels mapping (excluding /dashboard prefix)
 const ROUTE_LABELS: Record<string, string> = {
   '': 'Visão Geral',
   analytics: 'Analytics',
@@ -74,32 +73,25 @@ type BreadcrumbItemData = {
 }
 
 function generateBreadcrumbs(pathname: string): BreadcrumbItemData[] {
-  const withoutDashboard = pathname.startsWith('/dashboard')
-    ? pathname.replace(/^\/dashboard\/?/, '')
-    : pathname
-        .split('/')
-        .filter(Boolean)
-        .slice(2)
-        .join('/')
+  const segments = pathname.split('/').filter(Boolean)
+  const workspaceBaseSegments = segments.slice(0, 2)
+  const workspaceBasePath = workspaceBaseSegments.length === 2 ? `/${workspaceBaseSegments.join('/')}` : pathname
+  const workspaceSegments = segments.slice(2)
 
-  if (!withoutDashboard) {
-    return [{ label: 'Visão Geral', href: pathname.startsWith('/dashboard') ? '/dashboard' : pathname, isCurrentPage: true }]
+  if (workspaceSegments.length === 0) {
+    return [{ label: 'Visão Geral', href: workspaceBasePath, isCurrentPage: true }]
   }
 
-  const segments = withoutDashboard.split('/').filter(Boolean)
   const breadcrumbs: BreadcrumbItemData[] = []
-
   let currentPath = ''
 
-  segments.forEach((segment, index) => {
+  workspaceSegments.forEach((segment, index) => {
     currentPath += (currentPath ? '/' : '') + segment
-    const isLast = index === segments.length - 1
+    const isLast = index === workspaceSegments.length - 1
 
     breadcrumbs.push({
       label: getRouteLabel(segment, currentPath),
-      href: pathname.startsWith('/dashboard')
-        ? `/dashboard/${currentPath}`
-        : `/${pathname.split('/').filter(Boolean).slice(0, 2).join('/')}/${currentPath}`,
+      href: `${workspaceBasePath}/${currentPath}`,
       isCurrentPage: isLast,
     })
   })

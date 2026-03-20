@@ -15,11 +15,13 @@ import { formatPayloadHumanly, formatPhoneNumber } from './webhook-payload-forma
 import { WebhookLogDetailDialog } from './webhook-log-detail-dialog'
 
 import { useOrganization } from '@/hooks/organization/use-organization'
+import { useRequiredProjectPath } from '@/hooks/project/project-route-context'
 import { SectionHeader, SectionTabsList, SectionTabsTrigger } from '@/components/dashboard/layout'
 
 export function WebhooksView() {
   const { data: session } = authClient.useSession()
   const { data: org } = useOrganization()
+  const homePath = useRequiredProjectPath()
   const orgId = org?.id
   const isSuperAdmin = session?.user?.role === 'owner'
   const [showVerifyToken, setShowVerifyToken] = useState(false)
@@ -60,7 +62,7 @@ export function WebhooksView() {
           eventos.
         </p>
         <Button variant="outline" className="mt-6" asChild>
-          <Link href="/dashboard">Voltar ao Início</Link>
+          <Link href={homePath}>Voltar ao Início</Link>
         </Button>
       </div>
     )

@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 
 import { getServerSession } from '@/server/auth/server-session'
+import { resolveDefaultWorkspacePath } from '@/server/navigation/resolve-default-workspace-path'
 import { getWelcomeState } from '@/services/onboarding/welcome-query.service'
 import { WelcomePageContent } from '@/components/welcome/welcome-page-content'
 
@@ -27,7 +28,8 @@ export default async function WelcomePage() {
     activationMilestoneReached &&
     !state.trialExpired
   ) {
-    redirect('/dashboard')
+    const defaultWorkspacePath = await resolveDefaultWorkspacePath(session.user.id)
+    redirect(defaultWorkspacePath ?? '/welcome')
   }
 
   return (

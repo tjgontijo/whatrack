@@ -4,6 +4,7 @@ import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useRequiredProjectPath } from '@/hooks/project/project-route-context'
 import { getBillingStatusLabel } from '@/lib/billing/subscription-status'
 import type { SubscriptionResponse } from '@/schemas/billing/billing-schemas'
 
@@ -23,6 +24,8 @@ function formatPlanLabel(planName: string | null | undefined, planType: string) 
 export function AccountBillingCard({
   subscription,
 }: AccountBillingCardProps) {
+  const subscriptionPath = useRequiredProjectPath('/settings/subscription')
+
   if (!subscription) {
     return (
       <Card>
@@ -42,10 +45,10 @@ export function AccountBillingCard({
 
           <div className="flex flex-wrap gap-2">
             <Button asChild>
-              <Link href="/dashboard/settings/subscription">Abrir assinatura</Link>
+              <Link href={subscriptionPath}>Abrir assinatura</Link>
             </Button>
             <Button asChild variant="outline">
-              <Link href="/dashboard/settings/subscription">Ver planos</Link>
+              <Link href={subscriptionPath}>Ver planos</Link>
             </Button>
           </div>
         </CardContent>
@@ -95,10 +98,10 @@ export function AccountBillingCard({
 
         <div className="flex flex-wrap gap-2">
           <Button asChild>
-            <Link href="/dashboard/settings/subscription">Abrir assinatura</Link>
+            <Link href={subscriptionPath}>Abrir assinatura</Link>
           </Button>
           <Button asChild variant="outline">
-            <Link href="/dashboard/settings/subscription">Ver planos e limites</Link>
+            <Link href={subscriptionPath}>Ver planos e limites</Link>
           </Button>
         </div>
       </CardContent>

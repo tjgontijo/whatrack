@@ -12,7 +12,7 @@ describe('proxy policy', () => {
     expect(isPublicPagePath('/')).toBe(true)
     expect(isPublicPagePath('/billing/success')).toBe(true)
     expect(isPublicPagePath('/solucoes/agencias')).toBe(true)
-    expect(isPublicPagePath('/dashboard')).toBe(false)
+    expect(isPublicPagePath('/acme/projeto-a')).toBe(false)
   })
 
   it('matches only explicit public apis and callbacks', () => {
@@ -29,8 +29,8 @@ describe('proxy policy', () => {
 
   it('preserves a safe next param when redirecting to sign-in', () => {
     expect(isAuthPagePath('/sign-in')).toBe(true)
-    expect(buildSignInRedirectPath('/dashboard/billing', '?plan=pro')).toBe(
-      '/sign-in?next=%2Fdashboard%2Fbilling%3Fplan%3Dpro'
+    expect(buildSignInRedirectPath('/acme/projeto-a/billing', '?plan=pro')).toBe(
+      '/sign-in?next=%2Facme%2Fprojeto-a%2Fbilling%3Fplan%3Dpro'
     )
   })
 })

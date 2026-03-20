@@ -18,7 +18,7 @@ const RESPONSE_HTML = (status: 'success' | 'error', message?: string) => {
   const serializedStoragePayload = JSON.stringify(
     JSON.stringify({ status, message: safeMessage })
   )
-  const redirectTarget = `/dashboard/settings/integrations?tab=whatsapp&status=${status}&message=${encodeURIComponent(safeMessage)}`
+  const redirectTarget = `/welcome?integration=whatsapp&status=${status}&message=${encodeURIComponent(safeMessage)}`
   const serializedRedirectTarget = JSON.stringify(redirectTarget)
 
   return `

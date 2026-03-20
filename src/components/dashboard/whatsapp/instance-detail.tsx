@@ -14,6 +14,7 @@ import * as Flags from 'country-flag-icons/react/3x2'
 import { OverviewView } from '@/components/dashboard/whatsapp/settings/overview-view'
 
 import { useOrganization } from '@/hooks/organization/use-organization'
+import { useRequiredProjectPath } from '@/hooks/project/project-route-context'
 
 interface InstanceDetailProps {
   phoneId: string
@@ -23,6 +24,7 @@ export function InstanceDetail({ phoneId }: InstanceDetailProps) {
   const isMobile = useIsMobile()
   const router = useRouter()
   const { data: org } = useOrganization()
+  const whatsappSettingsPath = useRequiredProjectPath('/settings/whatsapp')
   const orgId = org?.id
 
   const { data: phone, isLoading } = useQuery({
@@ -44,7 +46,7 @@ export function InstanceDetail({ phoneId }: InstanceDetailProps) {
     return (
       <div className="flex h-[400px] flex-col items-center justify-center gap-4">
         <h2 className="text-xl font-bold">Instância não encontrada</h2>
-        <Button variant="outline" onClick={() => router.push('/dashboard/settings/whatsapp')}>
+        <Button variant="outline" onClick={() => router.push(whatsappSettingsPath)}>
           Voltar para lista
         </Button>
       </div>

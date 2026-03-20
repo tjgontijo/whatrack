@@ -14,6 +14,7 @@ export async function getWelcomeState(input: {
       organization: null,
       projects: [],
       activeProjectId: null,
+      activeProjectPath: null,
       activeProjectName: null,
       trialEndsAt: null,
       trialExpired: false,
@@ -29,12 +30,12 @@ export async function getWelcomeState(input: {
   const [organization, projects, subscription] = await Promise.all([
     prisma.organization.findUnique({
       where: { id: organizationId },
-      select: { id: true, name: true },
+      select: { id: true, name: true, slug: true },
     }),
     prisma.project.findMany({
       where: { organizationId },
       orderBy: { name: 'asc' },
-      select: { id: true, name: true },
+      select: { id: true, name: true, slug: true },
     }),
     prisma.billingSubscription.findUnique({
       where: { organizationId },
@@ -46,8 +47,10 @@ export async function getWelcomeState(input: {
   ])
 
   const activeProjectId = (await getCurrentProjectId(organizationId)) ?? projects[0]?.id ?? null
-  const activeProjectName =
-    projects.find((project) => project.id === activeProjectId)?.name ?? null
+  const activeProject = projects.find((project) => project.id === activeProjectId) ?? null
+  const activeProjectName = activeProject?.name ?? null
+  const activeProjectPath =
+    organization?.slug && activeProject?.slug ? `/${organization.slug}/${activeProject.slug}` : null
 
   const [whatsappConnected, metaAdsConnected, trackedConversationDetected] = activeProjectId
     ? await Promise.all([
@@ -94,6 +97,7 @@ export async function getWelcomeState(input: {
     organization,
     projects,
     activeProjectId,
+    activeProjectPath,
     activeProjectName,
     trialEndsAt: trialEndsAt?.toISOString() ?? null,
     trialExpired,

@@ -14,13 +14,15 @@ describe('buildInvitationQuery', () => {
   })
 
   it('keeps invitation and next params when they are safe', () => {
-    expect(buildInvitationQuery('inv-123', '/dashboard/billing')).toBe(
-      '?invitationId=inv-123&next=%2Fdashboard%2Fbilling'
+    expect(buildInvitationQuery('inv-123', '/acme/projeto-a/billing')).toBe(
+      '?invitationId=inv-123&next=%2Facme%2Fprojeto-a%2Fbilling'
     )
   })
 
   it('supports preserving only the next path', () => {
-    expect(buildInvitationQuery(null, '/dashboard/billing')).toBe('?next=%2Fdashboard%2Fbilling')
+    expect(buildInvitationQuery(null, '/acme/projeto-a/billing')).toBe(
+      '?next=%2Facme%2Fprojeto-a%2Fbilling'
+    )
   })
 
   it('drops unsafe next paths', () => {

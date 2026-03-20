@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Phone, CheckCircle2, ArrowRight } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { useRequiredProjectPath } from '@/hooks/project/project-route-context'
 import type { WhatsAppPhoneNumber } from '@/types/whatsapp/whatsapp'
 
 interface InstanceCardProps {
@@ -12,6 +13,7 @@ interface InstanceCardProps {
 
 export function InstanceCard({ phone }: InstanceCardProps) {
   const isConnected = phone.status === 'CONNECTED'
+  const whatsappSettingsPath = useRequiredProjectPath('/settings/whatsapp')
 
   // Tradução amigável do nível de qualidade
   const qualityLabel =
@@ -31,7 +33,7 @@ export function InstanceCard({ phone }: InstanceCardProps) {
     }[phone.quality_rating] || 'text-slate-600 bg-slate-500/10 border-slate-200'
 
   return (
-    <Link href={`/dashboard/settings/whatsapp/${phone.id}`} className="group block h-full">
+    <Link href={`${whatsappSettingsPath}/${phone.id}`} className="group block h-full">
       <Card className="hover:border-primary/50 relative h-full overflow-hidden transition-all hover:shadow-sm">
         <div
           className={`absolute left-0 top-0 h-full w-1 ${isConnected ? 'bg-green-500' : 'bg-yellow-500'}`}

@@ -21,6 +21,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { useRequiredProjectPath } from '@/hooks/project/project-route-context'
 import type { ProjectDetail } from '@/schemas/projects/project-schemas'
 
 type ProjectDetailProps = {
@@ -54,6 +55,8 @@ function SummaryCard(props: {
 }
 
 export function ProjectDetailView({ project }: ProjectDetailProps) {
+  const projectsPath = useRequiredProjectPath('/projects')
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -72,7 +75,7 @@ export function ProjectDetailView({ project }: ProjectDetailProps) {
         </div>
 
         <Button asChild variant="outline">
-          <Link href="/dashboard/projects">Voltar para projetos</Link>
+          <Link href={projectsPath}>Voltar para projetos</Link>
         </Button>
       </div>
 

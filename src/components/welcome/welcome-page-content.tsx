@@ -4,9 +4,10 @@ import { WelcomeOnboardingForm } from './welcome-onboarding-form'
 type WelcomePageContentProps = {
   state: {
     ownerName: string | null
-    organization: { id: string; name: string } | null
-    projects: Array<{ id: string; name: string }>
+    organization: { id: string; name: string; slug: string } | null
+    projects: Array<{ id: string; name: string; slug: string }>
     activeProjectId: string | null
+    activeProjectPath: string | null
     activeProjectName: string | null
     trialEndsAt: string | null
     trialExpired: boolean
@@ -48,6 +49,7 @@ export function WelcomePageContent({ state }: WelcomePageContentProps) {
       ) : (
         <WelcomeActivationChecklist
           projectName={state.activeProjectName ?? state.projects[0]?.name ?? 'Operação principal'}
+          projectPath={state.activeProjectPath}
           trialEndsAt={state.trialEndsAt}
           trialExpired={state.trialExpired}
           trialDaysRemaining={state.trialDaysRemaining}

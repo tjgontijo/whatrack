@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 
 import { getPermissionCandidates, isAdmin, isOwner, type Permission } from '@/lib/auth/rbac/roles'
 import { getServerSession } from '@/server/auth/server-session'
+import { resolveDefaultWorkspacePath } from '@/server/navigation/resolve-default-workspace-path'
 import { validateOrganizationAccess } from '@/server/auth/validate-organization-access'
 import { listEffectivePermissionsForUser } from '@/server/organization/organization-rbac.service'
 
@@ -24,6 +25,11 @@ function toArray<T>(value: T | T[] | undefined): T[] {
   return Array.isArray(value) ? value : [value]
 }
 
+async function redirectToDefaultWorkspace(userId: string): Promise<never> {
+  const fallbackPath = await resolveDefaultWorkspacePath(userId)
+  redirect(fallbackPath ?? '/welcome')
+}
+
 export async function requireWorkspacePageAccess(
   options: RequireWorkspacePageAccessOptions = {}
 ): Promise<WorkspacePageAccess> {
@@ -36,29 +42,33 @@ export async function requireWorkspacePageAccess(
   const organizationId = session.session?.activeOrganizationId
 
   if (!organizationId) {
-    redirect('/dashboard')
+    await redirectToDefaultWorkspace(session.user.id)
   }
 
-  const validation = await validateOrganizationAccess(session.user.id, organizationId)
+  const activeOrganizationId = organizationId as string
+  const validation = await validateOrganizationAccess(session.user.id, activeOrganizationId)
 
   if (!validation.hasAccess || !validation.role || !validation.memberId) {
-    redirect('/dashboard')
+    await redirectToDefaultWorkspace(session.user.id)
   }
 
   if (options.requireOwner && !isOwner(validation.role)) {
-    redirect('/dashboard')
+    await redirectToDefaultWorkspace(session.user.id)
   }
 
   if (options.requireAdmin && !isAdmin(validation.role)) {
-    redirect('/dashboard')
+    await redirectToDefaultWorkspace(session.user.id)
   }
+
+  const memberId = validation.memberId as string
+  const role = validation.role as string
 
   const requiredPermissions = toArray(options.permissions)
 
   if (requiredPermissions.length > 0) {
     const effective = await listEffectivePermissionsForUser({
       userId: session.user.id,
-      organizationId,
+      organizationId: activeOrganizationId,
     })
 
     const effectiveSet = new Set(effective?.effectivePermissions ?? [])
@@ -74,15 +84,15 @@ export async function requireWorkspacePageAccess(
     })
 
     if (missing.length > 0) {
-      redirect('/dashboard')
+      await redirectToDefaultWorkspace(session.user.id)
     }
   }
 
   return {
     userId: session.user.id,
-    organizationId,
-    memberId: validation.memberId,
-    role: validation.role,
+    organizationId: activeOrganizationId,
+    memberId,
+    role,
     globalRole: session.user.role ?? undefined,
   }
 }

@@ -7,6 +7,7 @@ import { motion } from 'motion/react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils/utils'
 import { useOrganization } from '@/hooks/organization/use-organization'
+import { useRequiredProjectPath } from '@/hooks/project/project-route-context'
 import { apiFetch } from '@/lib/api-client'
 import type { PublicBillingPlan } from '@/schemas/billing/billing-plan-schemas'
 
@@ -22,10 +23,11 @@ interface PlanSelectorProps {
 export function PlanSelector({
   plans,
   onClose: _,
-  redirectPath = '/dashboard/billing',
+  redirectPath,
   showHeader = true,
 }: PlanSelectorProps) {
   const { data: org } = useOrganization()
+  const defaultRedirectPath = useRequiredProjectPath('/billing')
   const basePlans = plans.filter((plan) => plan.kind === 'base')
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
   const [state, setState] = useState<CheckoutState>('idle')
@@ -52,7 +54,7 @@ export function PlanSelector({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ planType: plan.slug, redirectPath }),
+        body: JSON.stringify({ planType: plan.slug, redirectPath: redirectPath ?? defaultRedirectPath }),
         orgId: org.id,
       })
 

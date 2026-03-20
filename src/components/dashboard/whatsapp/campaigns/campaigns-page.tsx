@@ -20,6 +20,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { authClient } from '@/lib/auth/auth-client'
+import { useRequiredProjectPath } from '@/hooks/project/project-route-context'
 import { apiFetch } from '@/lib/api-client'
 import { useProject } from '@/hooks/project/use-project'
 import { CampaignFormDrawer } from './campaign-form-drawer'
@@ -93,8 +94,13 @@ function formatDate(value: string | null) {
   }).format(new Date(value))
 }
 
-export function CampaignsPage() {
+type CampaignsPageProps = {
+  initialCreateOpen?: boolean
+}
+
+export function CampaignsPage({ initialCreateOpen = false }: CampaignsPageProps = {}) {
   const router = useRouter()
+  const campaignsPath = useRequiredProjectPath('/whatsapp/campaigns')
   const { data: activeOrg } = authClient.useActiveOrganization()
   const { data: activeProject } = useProject()
   const organizationId = activeOrg?.id
@@ -102,7 +108,7 @@ export function CampaignsPage() {
 
   const [view, setView] = React.useState<ViewType>('list')
   const [searchInput, setSearchInput] = React.useState('')
-  const [isCreateOpen, setIsCreateOpen] = React.useState(false)
+  const [isCreateOpen, setIsCreateOpen] = React.useState(initialCreateOpen)
   const deferredSearch = useDeferredValue(searchInput)
 
   const { data, isLoading, refetch } = useQuery<CampaignsResponse>({
@@ -134,7 +140,7 @@ export function CampaignsPage() {
       label: 'Campanha',
       render: (campaign) => (
         <div className="space-y-1">
-          <Link href={`/dashboard/whatsapp/campaigns/${campaign.id}`} className="font-medium hover:underline">
+          <Link href={`${campaignsPath}/${campaign.id}`} className="font-medium hover:underline">
             {campaign.name}
           </Link>
           <div className="text-muted-foreground text-xs">
@@ -196,7 +202,7 @@ export function CampaignsPage() {
         {campaign.scheduledAt ? `Agendada: ${formatDate(campaign.scheduledAt)}` : formatDate(campaign.createdAt)}
       </span>
     ),
-    onClick: (campaign) => router.push(`/dashboard/whatsapp/campaigns/${campaign.id}`),
+    onClick: (campaign) => router.push(`${campaignsPath}/${campaign.id}`),
   }
 
   const counters = data?.counters

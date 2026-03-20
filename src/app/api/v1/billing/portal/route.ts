@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
 
     const returnPath = resolveInternalPath(
       parsed.data.returnUrl,
-      '/dashboard/billing',
+      '/welcome',
     )
     const returnUrl = new URL(returnPath, req.nextUrl.origin).toString()
 

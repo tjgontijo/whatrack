@@ -12,11 +12,15 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { useOrganization } from '@/hooks/organization/use-organization'
+import { useRequiredProjectPath } from '@/hooks/project/project-route-context'
 import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 
 export function AiSettingsPage() {
   const queryClient = useQueryClient()
   const { data: org } = useOrganization()
+  const aiSkillsPath = useRequiredProjectPath('/settings/ai/skills')
+  const newAgentPath = useRequiredProjectPath('/settings/ai/new')
+  const aiSettingsPath = useRequiredProjectPath('/settings/ai')
   const orgId = org?.id
 
   const { data: agents = [], isLoading } = useQuery({
@@ -68,12 +72,12 @@ export function AiSettingsPage() {
         actions={
           <div className="flex items-center gap-2">
             <Button variant="outline" asChild className="gap-2">
-              <Link href="/dashboard/settings/ai/skills">
+              <Link href={aiSkillsPath}>
                 <Puzzle className="h-4 w-4" /> Skills
               </Link>
             </Button>
             <Button asChild className="gap-2">
-              <Link href="/dashboard/settings/ai/new">
+              <Link href={newAgentPath}>
                 <Plus className="h-4 w-4" /> Novo Agente
               </Link>
             </Button>
@@ -97,7 +101,7 @@ export function AiSettingsPage() {
             description="Você ainda não possui agentes configurados. Use este espaço para ajustes avançados depois de validar o fluxo principal de aprovações."
             action={
               <Button asChild>
-                <Link href="/dashboard/settings/ai/new">Criar Meu Primeiro Agente</Link>
+                <Link href={newAgentPath}>Criar Meu Primeiro Agente</Link>
               </Button>
             }
           />
@@ -140,7 +144,7 @@ export function AiSettingsPage() {
                 </CardContent>
                 <CardFooter className="flex items-center justify-between gap-2 border-t pt-4">
                   <Button variant="ghost" size="sm" asChild className="flex-1">
-                    <Link href={`/dashboard/settings/ai/${agent.id}`}>
+                    <Link href={`${aiSettingsPath}/${agent.id}`}>
                       <Edit2 className="mr-2 h-4 w-4" /> Editar
                     </Link>
                   </Button>
