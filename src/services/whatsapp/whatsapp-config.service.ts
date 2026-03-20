@@ -8,6 +8,20 @@ import {
 
 const PENDING_PHONE_ID_PREFIX = 'pending_'
 
+type WhatsAppPhoneNumberWithConfig = {
+  id: string
+  configId: string | null
+  projectId: string | null
+  projectName: string | null
+  verified_name: string
+  display_phone_number: string
+  status: 'CONNECTED' | 'DISCONNECTED' | 'FLAGGED' | 'MIGRATED' | 'PENDING' | 'RESTRICTED'
+  webhook_configuration?: {
+    application: string
+    whatsapp_business_account: string
+  }
+}
+
 function isPendingPhoneId(phoneId: string | null | undefined): phoneId is string {
   return typeof phoneId === 'string' && phoneId.startsWith(PENDING_PHONE_ID_PREFIX)
 }
@@ -92,7 +106,8 @@ export async function disconnectWhatsAppConfig(params: DisconnectWhatsAppConfigP
 
 export async function listWhatsAppInstances(organizationId: string, projectId: string) {
   const phoneNumbersResponse = await listWhatsAppPhoneNumbers(organizationId)
-  const instances = phoneNumbersResponse.data.phoneNumbers
+  const phoneNumbers = phoneNumbersResponse.data.phoneNumbers as WhatsAppPhoneNumberWithConfig[]
+  const instances = phoneNumbers
     .filter((phone) => {
       return (
         phone.projectId === projectId &&
