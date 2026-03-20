@@ -45,5 +45,5 @@ export default async function AppEntryPage() {
     redirect('/welcome')
   }
 
-  redirect(`/app/${member.organization.slug}/${firstProject.slug}/dashboard`)
+  redirect(`/${member.organization.slug}/${firstProject.slug}`)
 }

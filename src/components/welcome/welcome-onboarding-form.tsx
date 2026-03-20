@@ -43,8 +43,8 @@ export function WelcomeOnboardingForm({
         },
         body: JSON.stringify(values),
       })) as {
-        organization: { id: string }
-        project: { id: string }
+        organization: { id: string; slug: string }
+        project: { id: string; slug: string }
       }
 
       document.cookie = `${ORGANIZATION_COOKIE}=${payload.organization.id}; path=/; max-age=31536000; SameSite=Lax`
@@ -61,7 +61,7 @@ export function WelcomeOnboardingForm({
       toast.success('Conta preparada com sucesso')
 
       startTransition(() => {
-        router.replace('/welcome')
+        router.replace(`/${payload.organization.slug}/${payload.project.slug}`)
         router.refresh()
       })
     } catch (error) {

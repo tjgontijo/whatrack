@@ -1,368 +1,62 @@
-'use client'
+import { redirect } from 'next/navigation'
 
-import * as React from 'react'
-import { z } from 'zod'
-import { useQuery } from '@tanstack/react-query'
-import { BarChart3, RefreshCw, SlidersHorizontal } from 'lucide-react'
+import { prisma } from '@/lib/db/prisma'
+import { getServerSession } from '@/server/auth/server-session'
+import { getCurrentOrganizationId } from '@/server/organization/get-current-organization-id'
+import { getCurrentProjectId } from '@/server/project/get-current-project-id'
 
-import { Button } from '@/components/ui/button'
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
-import { PageShell, PageHeader, PageContent } from '@/components/dashboard/layout'
-import { FilterSelect } from '@/components/dashboard/filters'
-import { DashboardMetricCard, DashboardMetricGrid } from '@/components/dashboard/charts/card'
-import { DashboardPieChart } from '@/components/dashboard/charts/pie'
-import { FunnelChart } from '@/components/dashboard/charts/funnel-chart'
-import { formatCurrencyBRL } from '@/lib/mask/formatters'
-import { authClient } from '@/lib/auth/auth-client'
-import { apiFetch } from '@/lib/api-client'
-import { buildDashboardSummaryQuery } from '@/lib/dashboard/summary-query'
+export const dynamic = 'force-dynamic'
 
-import {
-  dashboardSummaryResponseSchema,
-  type DashboardSummaryResponse,
-} from '@/schemas/dashboard/dashboard-summary'
+export default async function DashboardEntryPage() {
+  const session = await getServerSession()
 
-const NO_TRAFFIC_SOURCE_VALUE = '__no-source__'
+  if (!session) {
+    redirect('/sign-in')
+  }
 
-const filterOptionSchema = z.object({
-  label: z.string(),
-  value: z.string(),
-})
+  const organizationId = await getCurrentOrganizationId(session.user.id)
 
-const dashboardFiltersSchema = z.object({
-  period: z.string(),
-  trafficSource: z.string(),
-  trafficType: z.string(),
-  itemCategory: z.string(),
-  item: z.string(),
-})
+  if (!organizationId) {
+    redirect('/welcome')
+  }
 
-type FilterOption = z.infer<typeof filterOptionSchema>
-type DashboardFilters = z.infer<typeof dashboardFiltersSchema>
+  const [organization, project] = await Promise.all([
+    prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: { slug: true },
+    }),
+    (async () => {
+      const currentProjectId = await getCurrentProjectId(organizationId)
 
-const periodOptions = filterOptionSchema.array().parse([
-  { label: 'Hoje', value: 'today' },
-  { label: 'Ontem', value: 'yesterday' },
-  { label: 'Últimos 3 dias', value: '3d' },
-  { label: 'Últimos 7 dias', value: '7d' },
-  { label: 'Últimos 15 dias', value: '15d' },
-  { label: 'Últimos 30 dias', value: '30d' },
-  { label: 'Últimos 60 dias', value: '60d' },
-  { label: 'Últimos 90 dias', value: '90d' },
-  { label: 'Este mês', value: 'thisMonth' },
-  { label: 'Mês anterior', value: 'lastMonth' },
-  { label: 'Intervalo customizado', value: 'custom' },
-]) satisfies FilterOption[]
+      if (currentProjectId) {
+        const currentProject = await prisma.project.findFirst({
+          where: {
+            id: currentProjectId,
+            organizationId,
+            isArchived: false,
+          },
+          select: { slug: true },
+        })
 
-const defaultFilters: DashboardFilters = dashboardFiltersSchema.parse({
-  period: periodOptions.find((option) => option.value === '7d')?.value ?? '7d',
-  trafficSource: 'any',
-  trafficType: 'any',
-  itemCategory: 'any',
-  item: 'any',
-})
-
-export default function DashboardPage() {
-  const { data: activeOrg } = authClient.useActiveOrganization()
-  const organizationId = activeOrg?.id
-  const [filters, setFilters] = React.useState<DashboardFilters>(defaultFilters)
-  const [isFilterSheetOpen, setIsFilterSheetOpen] = React.useState(false)
-
-  const handleFilterChange = React.useCallback(
-    <K extends keyof DashboardFilters>(key: K, value: DashboardFilters[K]) => {
-      setFilters((prev) => ({ ...prev, [key]: value }))
-    },
-    []
-  )
-
-  const { data, isFetching, refetch } = useQuery<DashboardSummaryResponse>({
-    queryKey: ['dashboard-summary', filters, organizationId],
-    enabled: !!organizationId,
-    queryFn: async () => {
-      if (!organizationId) {
-        throw new Error('Organização não encontrada')
+        if (currentProject) {
+          return currentProject
+        }
       }
 
-      const query = buildDashboardSummaryQuery(filters)
-      const data = await apiFetch(`/api/v1/dashboard/summary?${query}`, {
-        orgId: organizationId,
+      return prisma.project.findFirst({
+        where: {
+          organizationId,
+          isArchived: false,
+        },
+        orderBy: { createdAt: 'asc' },
+        select: { slug: true },
       })
-      return dashboardSummaryResponseSchema.parse(data)
-    },
-    staleTime: 2 * 60 * 1000,
-  })
+    })(),
+  ])
 
+  if (!organization || !project) {
+    redirect('/welcome')
+  }
 
-  const pieData = data?.salesByService ?? []
-  const itemFilters = data?.itemFilters
-
-  const itemCategoryOptions = React.useMemo<FilterOption[]>(() => {
-    if (!itemFilters) return [{ label: 'Qualquer', value: 'any' }]
-    return itemFilters.categories
-  }, [itemFilters])
-
-  const itemOptions = React.useMemo<FilterOption[]>(() => {
-    if (!itemFilters) return [{ label: 'Qualquer', value: 'any' }]
-    const category = filters.itemCategory || 'any'
-    const options =
-      itemFilters.itemsByCategory[category] ?? itemFilters.itemsByCategory.any
-    return (options as FilterOption[]) ?? [{ label: 'Qualquer', value: 'any' }]
-  }, [filters.itemCategory, itemFilters])
-
-  const funnelSteps = React.useMemo(() => {
-    const funnel = data?.funnel
-    return [
-      { label: 'Leads', value: funnel?.leads ?? 0 },
-      { label: 'Agendamentos', value: funnel?.schedules ?? 0 },
-      { label: 'Comparecimentos', value: funnel?.attendances ?? 0 },
-      { label: 'Vendas', value: funnel?.sales ?? 0 },
-    ]
-  }, [data?.funnel])
-
-  const trafficTypeOptions = React.useMemo<FilterOption[]>(() => {
-    const types = data?.trafficTypes ?? ['any']
-
-    const mapped: FilterOption[] = types.map((value) => {
-      if (value === 'any') return { label: 'Qualquer', value: 'any' }
-      if (value === 'paid') return { label: 'Pago', value: 'paid' }
-      if (value === 'organic') return { label: 'Orgânico', value: 'organic' }
-      return { label: value, value }
-    })
-
-    const deduped = mapped.filter(
-      (option, index, self) => self.findIndex((item) => item.value === option.value) === index
-    )
-
-    return deduped
-  }, [data?.trafficTypes])
-
-  const trafficSourceOptions = React.useMemo<FilterOption[]>(() => {
-    const sources = data?.trafficSources ?? []
-    const mapped = sources.map((source) =>
-      source == null
-        ? { label: 'Sem origem', value: NO_TRAFFIC_SOURCE_VALUE }
-        : { label: source, value: source }
-    )
-
-    const deduped = mapped.filter(
-      (option, index, self) => self.findIndex((item) => item.value === option.value) === index
-    )
-
-    const options: FilterOption[] = [{ label: 'Qualquer', value: 'any' }, ...deduped]
-
-    if (
-      filters.trafficSource !== 'any' &&
-      !options.some((option) => option.value === filters.trafficSource)
-    ) {
-      const fallbackLabel =
-        filters.trafficSource === NO_TRAFFIC_SOURCE_VALUE ? 'Sem origem' : filters.trafficSource
-      return [{ label: fallbackLabel, value: filters.trafficSource }, ...options]
-    }
-
-    return options
-  }, [data?.trafficSources, filters.trafficSource])
-
-  return (
-    <PageShell>
-      <PageHeader
-        title="Visão Geral"
-        description="Acompanhe suas métricas em tempo real"
-        icon={BarChart3}
-        actions={
-          <>
-            <Button variant="ghost" size="sm" onClick={() => void refetch()}>
-              <RefreshCw className="h-4 w-4" />
-            </Button>
-
-            {/* Mobile Filters Button */}
-            <Sheet open={isFilterSheetOpen} onOpenChange={setIsFilterSheetOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="sm" className="md:hidden">
-                  <SlidersHorizontal className="h-4 w-4" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="bottom" className="h-auto max-h-[85vh] overflow-y-auto px-4 py-6">
-                <SheetHeader className="mb-8">
-                  <SheetTitle>Filtros</SheetTitle>
-                </SheetHeader>
-                <div className="space-y-8">
-                  <FilterSelect
-                    label="Período"
-                    value={filters.period}
-                    options={periodOptions}
-                    onValueChange={(value) => handleFilterChange('period', value)}
-                  />
-                  <FilterSelect
-                    label="Tipo de tráfego"
-                    value={filters.trafficType}
-                    options={trafficTypeOptions}
-                    onValueChange={(value) => handleFilterChange('trafficType', value)}
-                  />
-                  <FilterSelect
-                    label="Fonte de tráfego"
-                    value={filters.trafficSource}
-                    options={trafficSourceOptions}
-                    onValueChange={(value) => handleFilterChange('trafficSource', value)}
-                  />
-                  <FilterSelect
-                    label="Categoria de item"
-                    value={filters.itemCategory}
-                    options={itemCategoryOptions}
-                    onValueChange={(value) => {
-                      handleFilterChange('itemCategory', value)
-                      handleFilterChange('item', 'any')
-                    }}
-                  />
-                  <FilterSelect
-                    label="Item"
-                    value={filters.item}
-                    options={itemOptions}
-                    onValueChange={(value) => handleFilterChange('item', value)}
-                    disabled={filters.itemCategory === 'any'}
-                  />
-                  <Button onClick={() => setIsFilterSheetOpen(false)} className="mt-6 w-full">
-                    Aplicar Filtros
-                  </Button>
-                </div>
-              </SheetContent>
-            </Sheet>
-          </>
-        }
-      />
-
-      <PageContent className="space-y-6">
-        {/* Desktop Filters */}
-        <section
-          className="border-border/60 bg-card hidden rounded-lg border p-6 shadow-sm md:block"
-          data-testid="dashboard-filters"
-        >
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-            <FilterSelect
-              label="Período"
-              value={filters.period}
-              options={periodOptions}
-              onValueChange={(value) => handleFilterChange('period', value)}
-            />
-            <FilterSelect
-              label="Tipo de tráfego"
-              value={filters.trafficType}
-              options={trafficTypeOptions}
-              onValueChange={(value) => handleFilterChange('trafficType', value)}
-            />
-            <FilterSelect
-              label="Fonte de tráfego"
-              value={filters.trafficSource}
-              options={trafficSourceOptions}
-              onValueChange={(value) => handleFilterChange('trafficSource', value)}
-            />
-            <FilterSelect
-              label="Categoria de item"
-              value={filters.itemCategory}
-              options={itemCategoryOptions}
-              onValueChange={(value) => {
-                handleFilterChange('itemCategory', value)
-                handleFilterChange('item', 'any')
-              }}
-            />
-            <FilterSelect
-              label="Item"
-              value={filters.item}
-              options={itemOptions}
-              onValueChange={(value) => handleFilterChange('item', value)}
-              disabled={filters.itemCategory === 'any'}
-            />
-          </div>
-        </section>
-
-        <section className="border-border/60 bg-card rounded-lg border p-6 shadow-sm">
-          <DashboardMetricGrid>
-            <DashboardMetricCard
-              title="Faturamento"
-              value={<span>{formatCurrencyBRL(data?.netRevenue ?? 0)}</span>}
-              isLoading={isFetching}
-            />
-            <DashboardMetricCard
-              title="Investimento em Anúncios"
-              value={<span>{formatCurrencyBRL(data?.investment ?? 0)}</span>}
-              isLoading={isFetching}
-            />
-            <DashboardMetricCard
-              title="Custo dos Itens"
-              value={<span>{formatCurrencyBRL(data?.itemsCost ?? 0)}</span>}
-              isLoading={isFetching}
-            />
-            <DashboardMetricCard
-              title="Lucro Bruto"
-              value={<span>{formatCurrencyBRL(data?.grossProfit ?? 0)}</span>}
-              isLoading={isFetching}
-            />
-            <div className="border-border/50 bg-card rounded-lg border p-6 shadow-sm backdrop-blur-sm transition hover:-translate-y-0.5 hover:shadow-md md:col-span-1 md:row-span-3 xl:col-span-1 xl:row-span-3">
-              <header className="flex items-center justify-between">
-                <h3 className="text-muted-foreground text-sm font-semibold">
-                  Distribuição de vendas por serviço
-                </h3>
-              </header>
-              <div className="mt-4">
-                {isFetching ? (
-                  <div className="flex h-[300px] items-center justify-center">
-                    <div className="border-muted-foreground/40 border-t-foreground h-12 w-12 animate-spin rounded-full border-2" />
-                  </div>
-                ) : (
-                  <DashboardPieChart
-                    data={pieData}
-                    className="border-none bg-transparent p-0 shadow-none"
-                    height={300}
-                  />
-                )}
-              </div>
-            </div>
-            <DashboardMetricCard
-              title="Lucro Líquido"
-              value={<span>{formatCurrencyBRL(data?.netProfit ?? 0)}</span>}
-              isLoading={isFetching}
-            />
-            <DashboardMetricCard
-              title="ROAS (Faturamento / Investimento)"
-              value={<span>{data?.roas != null ? data.roas.toFixed(2) : '—'}</span>}
-              isLoading={isFetching}
-            />
-            <DashboardMetricCard
-              title="ROI (Lucro / Investimento)"
-              value={<span>{data?.roi != null ? data.roi.toFixed(2) : '—'}</span>}
-              isLoading={isFetching}
-            />
-            <DashboardMetricCard
-              title="CAC"
-              value={
-                <span>{data?.cards.cac != null ? formatCurrencyBRL(data.cards.cac) : '—'}</span>
-              }
-              isLoading={isFetching}
-            />
-            <DashboardMetricCard
-              title="Ticket Médio"
-              value={
-                <span>
-                  {data?.cards.ticket != null ? formatCurrencyBRL(data.cards.ticket) : '—'}
-                </span>
-              }
-              isLoading={isFetching}
-            />
-            <DashboardMetricCard
-              title="Número de Vendas"
-              value={<span>{data?.sales ?? 0}</span>}
-              isLoading={isFetching}
-            />
-            <DashboardMetricCard
-              title="Serviços Prestados"
-              value={<span>{data?.servicesCount ?? 0}</span>}
-              isLoading={isFetching}
-            />
-            <div className="md:col-span-2 md:row-span-2 xl:col-span-4 xl:row-span-2">
-              <FunnelChart steps={funnelSteps} />
-            </div>
-          </DashboardMetricGrid>
-        </section>
-      </PageContent>
-    </PageShell>
-  )
+  redirect(`/${organization.slug}/${project.slug}`)
 }

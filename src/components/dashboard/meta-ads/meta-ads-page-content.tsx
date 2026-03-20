@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { BarChart3, RefreshCw } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 
-import { MetaAdsCampaignsClient } from '@/app/dashboard/meta-ads/campaigns/client'
+import { MetaAdsCampaignsClient } from '@/app/[organizationSlug]/[projectSlug]/meta-ads/campaigns/client'
 import { MetaROIContent } from '@/components/dashboard/meta-ads/dashboard/meta-roi-content'
 import { PageContent, PageHeader, PageShell } from '@/components/dashboard/layout'
 import { Button } from '@/components/ui/button'

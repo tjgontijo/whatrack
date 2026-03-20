@@ -6,6 +6,7 @@ import { CheckCircle2, CircleDashed, ArrowRight, Clock3 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useProjectRouteContext } from '@/hooks/project/project-route-context'
 
 type WelcomeActivationChecklistProps = {
   projectName: string
@@ -58,7 +59,11 @@ export function WelcomeActivationChecklist({
   trialDaysRemaining,
   checklist,
 }: WelcomeActivationChecklistProps) {
+  const routeContext = useProjectRouteContext()
   const activationMilestoneReached = checklist.whatsappConnected && checklist.metaAdsConnected
+  const basePath = routeContext
+    ? `/${routeContext.organizationSlug}/${routeContext.projectSlug}`
+    : '/dashboard'
 
   return (
     <div className="grid gap-6">
@@ -91,7 +96,7 @@ export function WelcomeActivationChecklist({
             done={checklist.whatsappConnected}
             title="Conectar WhatsApp"
             description="Conecte o número do cliente em modo de coexistência para começar a rastrear as conversas."
-            href="/dashboard/settings/whatsapp"
+            href={`${basePath}/settings/whatsapp`}
             cta="Conectar WhatsApp"
           />
 
@@ -99,7 +104,7 @@ export function WelcomeActivationChecklist({
             done={checklist.metaAdsConnected}
             title="Conectar Meta Ads"
             description="Associe a conta de anúncios do cliente para fechar o caminho do anúncio até a conversa."
-            href="/dashboard/settings/meta-ads"
+            href={`${basePath}/settings/meta-ads`}
             cta="Conectar Meta Ads"
           />
 
@@ -107,7 +112,7 @@ export function WelcomeActivationChecklist({
             done={checklist.trackedConversationDetected}
             title="Ver a primeira conversa rastreada"
             description="Esse é o aha moment. Ele acontece quando a campanha começar a gerar cliques reais para o WhatsApp."
-            href="/dashboard/tickets"
+            href={`${basePath}/tickets`}
             cta="Ver tickets"
           />
 
@@ -127,14 +132,14 @@ export function WelcomeActivationChecklist({
 
           <div className="flex flex-wrap gap-2">
             <Button asChild>
-              <Link href="/dashboard">
+              <Link href={basePath}>
                 Ir para o dashboard
                 <ArrowRight className="ml-1.5 h-4 w-4" />
               </Link>
             </Button>
 
             <Button asChild variant="outline">
-              <Link href="/dashboard/billing">Gerenciar trial e upgrade</Link>
+              <Link href={`${basePath}/billing`}>Gerenciar trial e upgrade</Link>
             </Button>
           </div>
         </CardContent>

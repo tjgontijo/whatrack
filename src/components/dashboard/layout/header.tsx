@@ -74,10 +74,16 @@ type BreadcrumbItemData = {
 }
 
 function generateBreadcrumbs(pathname: string): BreadcrumbItemData[] {
-  const withoutDashboard = pathname.replace(/^\/dashboard\/?/, '')
+  const withoutDashboard = pathname.startsWith('/dashboard')
+    ? pathname.replace(/^\/dashboard\/?/, '')
+    : pathname
+        .split('/')
+        .filter(Boolean)
+        .slice(2)
+        .join('/')
 
   if (!withoutDashboard) {
-    return [{ label: 'Visão Geral', href: '/dashboard', isCurrentPage: true }]
+    return [{ label: 'Visão Geral', href: pathname.startsWith('/dashboard') ? '/dashboard' : pathname, isCurrentPage: true }]
   }
 
   const segments = withoutDashboard.split('/').filter(Boolean)
@@ -91,7 +97,9 @@ function generateBreadcrumbs(pathname: string): BreadcrumbItemData[] {
 
     breadcrumbs.push({
       label: getRouteLabel(segment, currentPath),
-      href: `/dashboard/${currentPath}`,
+      href: pathname.startsWith('/dashboard')
+        ? `/dashboard/${currentPath}`
+        : `/${pathname.split('/').filter(Boolean).slice(0, 2).join('/')}/${currentPath}`,
       isCurrentPage: isLast,
     })
   })

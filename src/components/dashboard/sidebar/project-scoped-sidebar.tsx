@@ -84,8 +84,8 @@ export function ProjectScopedSidebar({
   const { isMobile, setOpenMobile } = useSidebar()
   const permissionSet = new Set(permissions)
 
-  const basePath = `/app/${organizationSlug}/${projectSlug}`
-  const dashboardPath = `${basePath}/dashboard`
+  const basePath = `/${organizationSlug}/${projectSlug}`
+  const dashboardPath = basePath
 
   const navItems: NavItem[] = [
     { title: 'Dashboard', href: dashboardPath, icon: 'LayoutDashboard' },
@@ -183,12 +183,12 @@ export function ProjectScopedSidebar({
 
                 const currentSuffix = pathname.startsWith(basePath)
                   ? pathname.slice(basePath.length)
-                  : '/dashboard'
-                const nextSuffix = currentSuffix || '/dashboard'
+                  : ''
+                const nextSuffix = currentSuffix || ''
                 const nextSearch = searchParams.toString()
 
                 router.push(
-                  `/app/${organizationSlug}/${targetProject.slug}${nextSuffix}${nextSearch ? `?${nextSearch}` : ''}`,
+                  `/${organizationSlug}/${targetProject.slug}${nextSuffix}${nextSearch ? `?${nextSearch}` : ''}`,
                 )
               }
             }}
