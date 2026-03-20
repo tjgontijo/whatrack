@@ -73,6 +73,7 @@ describe('status.handler', () => {
     expect(updateRecipientStatusFromWebhookMock).toHaveBeenCalledWith({
       wamid: 'wamid-1',
       status: 'failed',
+      eventTimestamp: '1774041839',
       failureReason:
         'Message failed to send because there were one or more errors related to your payment method. (Meta 131042)',
     })

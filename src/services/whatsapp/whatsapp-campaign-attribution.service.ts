@@ -56,16 +56,25 @@ export async function attributeInboundMessageToCampaign(params: {
 export async function updateRecipientStatusFromWebhook(params: {
   wamid: string
   status: string
+  eventTimestamp?: string | null
   failureReason?: string | null
 }): Promise<void> {
   try {
     const recipient = await prisma.whatsAppCampaignRecipient.findFirst({
       where: { metaWamid: params.wamid },
-      select: { id: true, status: true, dispatchGroupId: true, campaignId: true },
+      select: {
+        id: true,
+        status: true,
+        sentAt: true,
+        deliveredAt: true,
+        readAt: true,
+        failedAt: true,
+        dispatchGroupId: true,
+        campaignId: true,
+      },
     })
 
     if (!recipient) return
-    if (recipient.status === 'RESPONDED') return
 
     const statusMap: Record<string, string> = {
       sent: 'SENT',
@@ -76,6 +85,8 @@ export async function updateRecipientStatusFromWebhook(params: {
 
     const recipientStatus = statusMap[params.status]
     if (!recipientStatus) return
+
+    const eventDate = resolveMetaEventDate(params.eventTimestamp)
 
     const statusPriority: Record<string, number> = {
       PENDING: 0,
@@ -90,21 +101,46 @@ export async function updateRecipientStatusFromWebhook(params: {
     const currentPriority = statusPriority[recipient.status] ?? 0
     const nextPriority = statusPriority[recipientStatus] ?? 0
 
-    if (params.status !== 'failed' && nextPriority <= currentPriority) {
-      return
+    const updateData: Record<string, unknown> = {}
+
+    if (
+      params.status === 'failed' ||
+      (recipient.status !== 'RESPONDED' && nextPriority > currentPriority)
+    ) {
+      updateData.status = recipientStatus
     }
 
-    const updateData: Record<string, unknown> = { status: recipientStatus }
+    if (!recipient.sentAt) {
+      updateData.sentAt = eventDate
+    }
 
-    if (params.status === 'sent') {
-      updateData.sentAt = new Date()
+    if (params.status === 'delivered' || params.status === 'read') {
+      if (!recipient.deliveredAt) {
+        updateData.deliveredAt = eventDate
+      }
+    }
+
+    if (params.status === 'read') {
+      if (!recipient.readAt) {
+        updateData.readAt = eventDate
+      }
     } else if (params.status === 'delivered') {
-      updateData.deliveredAt = new Date()
-    } else if (params.status === 'read') {
-      updateData.readAt = new Date()
+      if (!recipient.sentAt) {
+        updateData.sentAt = eventDate
+      }
     } else if (params.status === 'failed') {
-      updateData.failedAt = new Date()
+      if (!recipient.failedAt) {
+        updateData.failedAt = eventDate
+      }
       updateData.failureReason = params.failureReason || 'Falha informada pelo webhook da Meta'
+    }
+
+    if (params.status === 'sent' && recipient.sentAt) {
+      delete updateData.sentAt
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return
     }
 
     await prisma.whatsAppCampaignRecipient.update({
@@ -209,4 +245,12 @@ function normalizePhone(phone: string): string {
     return digits
   }
   return digits
+}
+
+function resolveMetaEventDate(value?: string | null): Date {
+  const parsed = value ? Number(value) : NaN
+  if (Number.isFinite(parsed) && parsed > 0) {
+    return new Date(parsed * 1000)
+  }
+  return new Date()
 }

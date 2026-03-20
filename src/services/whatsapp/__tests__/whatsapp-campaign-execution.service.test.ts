@@ -64,7 +64,10 @@ describe('whatsapp-campaign-execution.service', () => {
     expect(result.failed).toBe(0)
     expect(prismaMock.whatsAppCampaignRecipient.update).toHaveBeenCalledWith({
       where: { id: 'recipient-1' },
-      data: { metaWamid: 'wamid-1' },
+      data: {
+        metaWamid: 'wamid-1',
+        sentAt: expect.any(Date),
+      },
     })
     expect(prismaMock.whatsAppCampaignDispatchGroup.update).toHaveBeenLastCalledWith({
       where: { id: 'group-1' },

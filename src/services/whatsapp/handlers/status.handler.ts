@@ -59,6 +59,7 @@ export async function statusHandler(payload: any): Promise<void> {
       await updateRecipientStatusFromWebhook({
         wamid,
         status: newStatus,
+        eventTimestamp: timestamp,
         failureReason,
       }).catch((err) =>
         logger.error({ err, wamid }, '[StatusHandler] Failed to update campaign recipient status')

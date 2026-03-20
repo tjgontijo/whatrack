@@ -21,7 +21,10 @@ const prismaMock = vi.hoisted(() => ({
 vi.mock('@/lib/db/prisma', () => ({ prisma: prismaMock }))
 vi.mock('@/lib/utils/logger', () => ({ logger: { info: vi.fn(), error: vi.fn() } }))
 
-import { attributeInboundMessageToCampaign } from '@/services/whatsapp/whatsapp-campaign-attribution.service'
+import {
+  attributeInboundMessageToCampaign,
+  updateRecipientStatusFromWebhook,
+} from '@/services/whatsapp/whatsapp-campaign-attribution.service'
 
 describe('whatsapp-campaign-attribution.service', () => {
   beforeEach(() => {
@@ -65,6 +68,42 @@ describe('whatsapp-campaign-attribution.service', () => {
         status: 'RESPONDED',
         respondedAt: messageTimestamp,
         leadId: 'lead-1',
+      },
+    })
+  })
+
+  it('backfills sentAt from the webhook timestamp when delivery arrives before sent status', async () => {
+    prismaMock.whatsAppCampaignRecipient.findFirst.mockResolvedValue({
+      id: 'recipient-2',
+      status: 'PENDING',
+      sentAt: null,
+      deliveredAt: null,
+      readAt: null,
+      failedAt: null,
+      dispatchGroupId: 'group-1',
+      campaignId: 'campaign-1',
+    })
+    prismaMock.whatsAppCampaignRecipient.update.mockResolvedValue({})
+    prismaMock.whatsAppCampaignDispatchGroup.findMany.mockResolvedValue([
+      { status: 'DELIVERED', metaWamid: 'wamid-2' },
+    ])
+    prismaMock.whatsAppCampaignDispatchGroup.update.mockResolvedValue({})
+    prismaMock.whatsAppCampaign.findMany.mockResolvedValue([{ status: 'COMPLETED' }])
+    prismaMock.whatsAppCampaign.update.mockResolvedValue({})
+
+    await updateRecipientStatusFromWebhook({
+      wamid: 'wamid-2',
+      status: 'delivered',
+      eventTimestamp: '1774046930',
+    })
+
+    const expectedDate = new Date(1774046930 * 1000)
+    expect(prismaMock.whatsAppCampaignRecipient.update).toHaveBeenCalledWith({
+      where: { id: 'recipient-2' },
+      data: {
+        status: 'DELIVERED',
+        sentAt: expectedDate,
+        deliveredAt: expectedDate,
       },
     })
   })
