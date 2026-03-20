@@ -12,6 +12,13 @@ import { useRequiredProjectPath } from '@/hooks/project/project-route-context'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   Table,
@@ -137,12 +144,31 @@ interface CampaignPageProps {
   params: Promise<{ campaignId: string }>
 }
 
-function hasRecipientReadStatus(recipient: RecipientsResponse['items'][number]) {
-  return Boolean(recipient.readAt) || ['READ', 'RESPONDED'].includes(recipient.status)
+type CampaignRecipient = RecipientsResponse['items'][number]
+
+function formatLifecycleTimestamp(value: string | null) {
+  return value ? new Date(value).toLocaleString('pt-BR') : '—'
+}
+
+function parseFailureReason(reason: string | null) {
+  if (!reason) return { code: null as string | null, message: null as string | null }
+
+  const match = reason.match(/\(Meta\s+(\d+)\)\s*$/)
+  if (!match) {
+    return { code: null, message: reason }
+  }
+
+  return {
+    code: match[1],
+    message: reason.replace(/\s*\(Meta\s+\d+\)\s*$/, ''),
+  }
 }
 
 export default function CampaignDetailPage({ params }: CampaignPageProps) {
   const [recipientPage, setRecipientPage] = React.useState(1)
+  const [selectedFailureRecipient, setSelectedFailureRecipient] = React.useState<CampaignRecipient | null>(
+    null
+  )
   const queryClient = useQueryClient()
   const campaignsPath = useRequiredProjectPath('/whatsapp/campaigns')
   const { data: activeOrg } = authClient.useActiveOrganization()
@@ -227,6 +253,10 @@ export default function CampaignDetailPage({ params }: CampaignPageProps) {
       </div>
     )
   }
+
+  const selectedFailure = selectedFailureRecipient
+    ? parseFailureReason(selectedFailureRecipient.failureReason)
+    : { code: null, message: null }
 
   return (
     <div className="space-y-6">
@@ -385,10 +415,10 @@ export default function CampaignDetailPage({ params }: CampaignPageProps) {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Telefone</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Leu?</TableHead>
-                      <TableHead>Enviado em</TableHead>
-                      <TableHead>Entregue em</TableHead>
+                      <TableHead>Enviado</TableHead>
+                      <TableHead>Entregue</TableHead>
+                      <TableHead>Lido</TableHead>
+                      <TableHead>Respondido</TableHead>
                       <TableHead>Falha</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -396,24 +426,30 @@ export default function CampaignDetailPage({ params }: CampaignPageProps) {
                     {recipients.items.map((r) => (
                       <TableRow key={r.id}>
                         <TableCell className="font-mono text-sm">{r.phone}</TableCell>
-                        <TableCell>
-                          <Badge variant={STATUS_VARIANTS[r.status] || 'secondary'}>
-                            {STATUS_LABELS[r.status] || r.status}
-                          </Badge>
+                        <TableCell className="text-xs">
+                          {formatLifecycleTimestamp(r.sentAt)}
                         </TableCell>
                         <TableCell className="text-xs">
-                          <Badge variant={hasRecipientReadStatus(r) ? 'secondary' : 'outline'}>
-                            {hasRecipientReadStatus(r) ? 'Sim' : 'Não'}
-                          </Badge>
+                          {formatLifecycleTimestamp(r.deliveredAt)}
                         </TableCell>
                         <TableCell className="text-xs">
-                          {r.sentAt ? new Date(r.sentAt).toLocaleString('pt-BR') : '—'}
+                          {formatLifecycleTimestamp(r.readAt)}
                         </TableCell>
                         <TableCell className="text-xs">
-                          {r.deliveredAt ? new Date(r.deliveredAt).toLocaleString('pt-BR') : '—'}
+                          {formatLifecycleTimestamp(r.respondedAt)}
                         </TableCell>
-                        <TableCell className="text-xs text-red-600">
-                          {r.failureReason || '—'}
+                        <TableCell className="text-xs">
+                          {r.failureReason ? (
+                            <Button
+                              variant="link"
+                              className="text-destructive h-auto p-0 text-xs"
+                              onClick={() => setSelectedFailureRecipient(r)}
+                            >
+                              Ver erro
+                            </Button>
+                          ) : (
+                            '—'
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -445,6 +481,50 @@ export default function CampaignDetailPage({ params }: CampaignPageProps) {
               </CardContent>
             </Card>
           )}
+
+          <Dialog
+            open={Boolean(selectedFailureRecipient)}
+            onOpenChange={(open) => {
+              if (!open) {
+                setSelectedFailureRecipient(null)
+              }
+            }}
+          >
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Falha no envio</DialogTitle>
+                <DialogDescription>
+                  {selectedFailureRecipient
+                    ? `Telefone ${selectedFailureRecipient.phone}`
+                    : 'Detalhes da falha reportada pela Meta.'}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 text-sm">
+                <div className="rounded-2xl border p-4">
+                  <p className="text-muted-foreground mb-1 text-xs uppercase tracking-wide">
+                    Mensagem
+                  </p>
+                  <p>{selectedFailure.message || 'Falha informada pelo webhook da Meta.'}</p>
+                </div>
+                {selectedFailure.code ? (
+                  <div className="rounded-2xl border p-4">
+                    <p className="text-muted-foreground mb-1 text-xs uppercase tracking-wide">
+                      Código Meta
+                    </p>
+                    <p className="font-mono">{selectedFailure.code}</p>
+                  </div>
+                ) : null}
+                {selectedFailureRecipient?.metaWamid ? (
+                  <div className="rounded-2xl border p-4">
+                    <p className="text-muted-foreground mb-1 text-xs uppercase tracking-wide">
+                      WAMID
+                    </p>
+                    <p className="font-mono break-all">{selectedFailureRecipient.metaWamid}</p>
+                  </div>
+                ) : null}
+              </div>
+            </DialogContent>
+          </Dialog>
         </>
       ) : null}
     </div>
