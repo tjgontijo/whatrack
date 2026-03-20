@@ -90,6 +90,19 @@ describe('whatsapp-campaign-schemas', () => {
       })
       expect(result.success).toBe(false)
     })
+
+    it('rejects imported phones in spreadsheet scientific notation', () => {
+      const result = whatsappCampaignCreateSchema.safeParse({
+        name: 'Import Campaign',
+        projectId: '550e8400-e29b-41d4-a716-446655440000',
+        audience: {
+          source: 'IMPORT',
+          importedPhones: ['5,56198E+12'],
+        },
+      })
+
+      expect(result.success).toBe(false)
+    })
   })
 
   describe('whatsappCampaignDispatchSchema', () => {
@@ -132,6 +145,15 @@ describe('whatsapp-campaign-schemas', () => {
         campaignId: '550e8400-e29b-41d4-a716-446655440000',
         rows: [],
       })
+      expect(result.success).toBe(false)
+    })
+
+    it('rejects phones in spreadsheet scientific notation', () => {
+      const result = whatsappCampaignImportSchema.safeParse({
+        campaignId: '550e8400-e29b-41d4-a716-446655440000',
+        rows: [{ phone: '5,56198E+12' }],
+      })
+
       expect(result.success).toBe(false)
     })
   })

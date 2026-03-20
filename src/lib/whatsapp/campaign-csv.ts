@@ -30,6 +30,10 @@ function normalizeColumnName(value: string): string {
     .replace(/\s+/g, '_')
 }
 
+function isScientificNotation(value: string): boolean {
+  return /(^|[^\w])\d+(?:[.,]\d+)?e[+-]?\d+($|[^\w])/i.test(value.trim())
+}
+
 function detectDelimiter(text: string): ',' | ';' | '\t' {
   const firstLine = text
     .split(/\r?\n/)
@@ -147,6 +151,15 @@ function normalizePhone(phone: string): string {
   return phone.replace(/\D/g, '')
 }
 
+function isValidCampaignPhone(phone: string): boolean {
+  if (!phone.trim() || isScientificNotation(phone)) {
+    return false
+  }
+
+  const digits = normalizePhone(phone)
+  return digits.length >= 10
+}
+
 export function buildCampaignCsvPreview(
   rows: Array<Record<string, string>>,
   mapping: CampaignCsvMapping,
@@ -159,17 +172,12 @@ export function buildCampaignCsvPreview(
 
   for (const row of rows) {
     const phone = (row[mapping.phoneColumn] || '').trim()
-    if (!phone) {
+    if (!isValidCampaignPhone(phone)) {
       invalidRows++
       continue
     }
 
     const normalizedPhone = normalizePhone(phone)
-    if (!normalizedPhone) {
-      invalidRows++
-      continue
-    }
-
     if (seenPhones.has(normalizedPhone)) {
       duplicates++
       continue

@@ -1,13 +1,12 @@
 'use client'
 
 import React from 'react'
-import { FileSpreadsheet, Phone, TableProperties } from 'lucide-react'
+import { FileSpreadsheet, Phone, TableProperties, UploadCloud } from 'lucide-react'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import {
   Select,
@@ -47,6 +46,16 @@ export function CampaignWizardStepRecipients({
   onPhoneColumnChange,
   onVariableColumnChange,
 }: CampaignWizardStepRecipientsProps) {
+  const fileInputRef = React.useRef<HTMLInputElement | null>(null)
+
+  const clearSelectedFile = React.useCallback(() => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+
+    onFileSelected(null)
+  }, [onFileSelected])
+
   const handleDownloadModel = React.useCallback(() => {
     const csvModel = buildCampaignTemplateCsvModel(templateVariableNames)
     const blob = new Blob([csvModel], { type: 'text/csv;charset=utf-8' })
@@ -65,36 +74,78 @@ export function CampaignWizardStepRecipients({
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader>
-          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <FileSpreadsheet className="h-4 w-4" />
-                Importar CSV
-              </CardTitle>
+        <CardHeader className="gap-3">
+          <div className="flex items-start gap-3">
+            <div className="bg-muted text-foreground flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border">
+              <FileSpreadsheet className="h-4 w-4" />
             </div>
-            {templateVariableNames.length > 0 && (
-              <Button type="button" variant="outline" onClick={handleDownloadModel}>
-                Baixar modelo do template
-              </Button>
-            )}
+            <div className="space-y-1">
+              <CardTitle>Importar destinatários</CardTitle>
+              <CardDescription>
+                Envie um CSV com a coluna `telefone` e as variáveis do template para montar a campanha.
+              </CardDescription>
+            </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="space-y-2">
-            <Label htmlFor="campaign-csv">Arquivo CSV</Label>
-            <Input
-              id="campaign-csv"
-              type="file"
-              accept=".csv,text/csv"
-              onChange={(event) => onFileSelected(event.target.files?.[0] || null)}
-            />
+        <CardContent className="space-y-4">
+          <input
+            ref={fileInputRef}
+            id="campaign-csv"
+            type="file"
+            accept=".csv,text/csv"
+            className="sr-only"
+            onChange={(event) => onFileSelected(event.target.files?.[0] || null)}
+          />
+
+          <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="bg-muted/20 hover:bg-muted/40 flex min-h-28 w-full items-center justify-between gap-4 rounded-xl border border-dashed px-4 py-4 text-left transition-colors"
+            >
+              <div className="flex items-start gap-3">
+                <div className="bg-background flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border">
+                  <UploadCloud className="h-4 w-4" />
+                </div>
+                <div className="space-y-1">
+                  <p className="font-medium">
+                    {parsedCsv ? 'Trocar arquivo CSV' : 'Selecionar arquivo CSV'}
+                  </p>
+                  <p className="text-muted-foreground text-sm">
+                    {parsedCsv
+                      ? `${parsedCsv.rows.length} linhas lidas e ${parsedCsv.columns.length} colunas detectadas`
+                      : 'Escolha a planilha exportada em CSV para mapear telefone e variáveis'}
+                  </p>
+                </div>
+              </div>
+              <span className="text-muted-foreground shrink-0 text-xs uppercase tracking-[0.18em]">
+                .csv
+              </span>
+            </button>
+
+            <div className="flex flex-col gap-2">
+              {templateVariableNames.length > 0 && (
+                <Button type="button" variant="outline" onClick={handleDownloadModel}>
+                  Baixar modelo
+                </Button>
+              )}
+              {parsedCsv && (
+                <Button type="button" variant="ghost" onClick={clearSelectedFile}>
+                  Remover arquivo
+                </Button>
+              )}
+            </div>
           </div>
-          <p className="text-muted-foreground text-xs">
-            Faça upload da planilha com uma coluna de telefone e colunas para as variáveis do template.
-          </p>
+
+          <Alert>
+            <AlertTitle>Formate as colunas como texto</AlertTitle>
+            <AlertDescription>
+              Antes de salvar o CSV no Excel ou Google Sheets, deixe a coluna de telefone e as variáveis
+              formatadas como texto. Isso evita valores como `5,56198E+12` e preserva o número completo.
+            </AlertDescription>
+          </Alert>
           {templateVariableNames.length > 0 && (
-            <p className="text-muted-foreground text-xs">
+            <p className="text-muted-foreground text-xs leading-relaxed">
               O modelo já inclui a coluna `telefone` e as variáveis do template em formato `;`. Exemplo:{' '}
               {['telefone', ...templateVariableNames].join(';')}
             </p>

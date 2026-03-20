@@ -60,6 +60,31 @@ describe('campaign-csv', () => {
     ])
   })
 
+  it('marks spreadsheet scientific notation phone numbers as invalid', () => {
+    const rows = [
+      { telefone: '5,56198E+12', nome: 'Maria' },
+      { telefone: '5511888888888', nome: 'Joao' },
+    ]
+
+    const result = buildCampaignCsvPreview(
+      rows,
+      {
+        phoneColumn: 'telefone',
+        variableColumns: { nome: 'nome' },
+      },
+      ['nome'],
+    )
+
+    expect(result.validRows).toBe(1)
+    expect(result.invalidRows).toBe(1)
+    expect(result.mappedRecipients).toEqual([
+      {
+        phone: '5511888888888',
+        variables: [{ name: 'nome', value: 'Joao' }],
+      },
+    ])
+  })
+
   it('builds a csv model from template variables', () => {
     const result = buildCampaignTemplateCsvModel([
       'nome_do_cliente',

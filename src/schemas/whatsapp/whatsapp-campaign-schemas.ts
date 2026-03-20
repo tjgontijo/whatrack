@@ -1,5 +1,24 @@
 import { z } from 'zod'
 
+function isScientificNotationPhone(value: string): boolean {
+  return /(^|[^\w])\d+(?:[.,]\d+)?e[+-]?\d+($|[^\w])/i.test(value.trim())
+}
+
+function isValidCampaignPhone(value: string): boolean {
+  const trimmed = value.trim()
+  if (!trimmed || isScientificNotationPhone(trimmed)) {
+    return false
+  }
+
+  const digits = trimmed.replace(/\D/g, '')
+  return digits.length >= 10
+}
+
+const campaignPhoneSchema = z
+  .string()
+  .min(1)
+  .refine((value) => isValidCampaignPhone(value), 'Telefone inválido. Use a coluna formatada como texto no CSV.')
+
 export const whatsappCampaignTypeSchema = z.enum(['MARKETING', 'OPERATIONAL'])
 export const campaignStatusSchema = z.enum([
   'DRAFT',
@@ -55,11 +74,11 @@ export const whatsappCampaignCreateSchema = z.object({
           projectId: z.string().uuid().optional(),
         })
         .optional(),
-      importedPhones: z.array(z.string().min(1)).optional(),
+      importedPhones: z.array(campaignPhoneSchema).optional(),
       importedVariables: z
         .array(
           z.object({
-            phone: z.string().min(1),
+            phone: campaignPhoneSchema,
             variables: z.array(z.object({ name: z.string(), value: z.string() })).optional(),
           })
         )
@@ -100,11 +119,11 @@ export const whatsappCampaignPreviewAudienceSchema = z.object({
           projectId: z.string().uuid().optional(),
         })
         .optional(),
-      importedPhones: z.array(z.string().min(1)).optional(),
+      importedPhones: z.array(campaignPhoneSchema).optional(),
       importedVariables: z
         .array(
           z.object({
-            phone: z.string().min(1),
+            phone: campaignPhoneSchema,
             variables: z.array(z.object({ name: z.string(), value: z.string() })).optional(),
           })
         )
@@ -131,7 +150,7 @@ export const whatsappCampaignImportSchema = z.object({
   rows: z
     .array(
       z.object({
-        phone: z.string().min(1),
+        phone: campaignPhoneSchema,
         variables: z.array(z.object({ name: z.string(), value: z.string() })).optional(),
       })
     )
