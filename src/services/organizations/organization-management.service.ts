@@ -2,6 +2,7 @@ import { Prisma } from '@generated/prisma/client'
 import { nanoid } from 'nanoid'
 
 import { prisma } from '@/lib/db/prisma'
+import { normalizeSlug } from '@/lib/utils/slug'
 import { auditService } from '@/services/audit/audit.service'
 import { calculateMetrics } from '@/services/onboarding-metrics/metrics-calculator'
 import { ensureCoreSkillsForOrganization } from '@/services/ai/ai-skill-provisioning.service'
@@ -32,8 +33,29 @@ async function ensureOnboardingStatuses() {
   )
 }
 
-function generateUniqueSlug(): string {
-  return `org-${nanoid(10)}`
+function buildOrganizationSlug(name: string): string {
+  return normalizeSlug(name) || `org-${nanoid(10)}`
+}
+
+async function resolveAvailableOrganizationSlug(input: {
+  name: string
+  currentOrganizationId?: string | null
+}) {
+  const baseSlug = buildOrganizationSlug(input.name)
+
+  for (let index = 0; index < 100; index += 1) {
+    const candidate = index === 0 ? baseSlug : `${baseSlug}-${index + 2}`
+    const existingOrganization = await prisma.organization.findFirst({
+      where: { slug: candidate },
+      select: { id: true },
+    })
+
+    if (!existingOrganization || existingOrganization.id === input.currentOrganizationId) {
+      return candidate
+    }
+  }
+
+  return `${baseSlug}-${nanoid(6).toLowerCase()}`
 }
 
 function parseOptionalDate(value?: string | null): Date | null {
@@ -104,7 +126,7 @@ export async function createOrganizationFromOnboarding(input: {
     companyName: companyData?.nomeFantasia,
     legalName: companyData?.razaoSocial,
   })
-  const slug = generateUniqueSlug()
+  const slug = await resolveAvailableOrganizationSlug({ name: organizationName })
 
   if (input.data.entityType === 'company') {
     const uf = companyData?.uf?.trim().toUpperCase() ?? ''
@@ -240,7 +262,7 @@ export async function getOrCreateCurrentOrganization(input: {
   if (!member) {
     const fallbackName =
       input.user.name?.trim() || (input.user.email?.split('@')[0] ?? '').trim() || 'Minha organizacao'
-    const slug = generateUniqueSlug()
+    const slug = await resolveAvailableOrganizationSlug({ name: fallbackName })
 
     const organization = await prisma.$transaction(async (tx) => {
       const createdOrganization = await tx.organization.create({
