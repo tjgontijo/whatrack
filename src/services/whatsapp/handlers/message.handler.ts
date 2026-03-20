@@ -4,6 +4,7 @@ import { publishToCentrifugo } from '@/lib/centrifugo/server'
 import { metaAdEnrichmentService } from '@/services/meta-ads/ad-enrichment.service'
 import { enqueueForClassification } from '@/services/ai/ai-classifier.scheduler'
 import { logger } from '@/lib/utils/logger'
+import { attributeInboundMessageToCampaign } from '@/services/whatsapp/whatsapp-campaign-attribution.service'
 
 const WINDOW_MS = 24 * 60 * 60 * 1000
 const DEFAULT_EXPIRATION_DAYS = 30
@@ -418,7 +419,11 @@ export async function messageHandler(
                 metaAdEnrichmentService
                   .enrichTicket(ticket.id)
                   .catch((err) =>
-                    logger.error({ err }, `[Enrichment] Fire-and-forget failed for ticket ${ticket.id}`))
+                    logger.error(
+                      { err },
+                      `[Enrichment] Fire-and-forget failed for ticket ${ticket.id}`
+                    )
+                  )
               }
             } else {
               // Update Existing Tracking (Last-Touch)
@@ -453,7 +458,11 @@ export async function messageHandler(
                 metaAdEnrichmentService
                   .enrichTicket(ticket.id)
                   .catch((err) =>
-                    logger.error({ err }, `[Enrichment] Update enrichment failed for ticket ${ticket.id}`))
+                    logger.error(
+                      { err },
+                      `[Enrichment] Update enrichment failed for ticket ${ticket.id}`
+                    )
+                  )
               }
             }
           }
@@ -479,7 +488,19 @@ export async function messageHandler(
         // Fire-and-forget: enqueue resets the debounce timer on every new message
         if (!isEcho && ticket.messagesCount >= 3) {
           enqueueForClassification(ticket.id, config.organizationId).catch((err) =>
-            logger.error({ err: err }, '[MessageHandler] Failed to enqueue AI classification'),
+            logger.error({ err: err }, '[MessageHandler] Failed to enqueue AI classification')
+          )
+        }
+
+        // Campaign attribution — fire-and-forget
+        if (!isEcho) {
+          attributeInboundMessageToCampaign({
+            phone: contactPhone,
+            organizationId: config.organizationId,
+            messageId: createdMessage.id,
+            leadId: lead.id,
+          }).catch((err) =>
+            logger.error({ err }, '[MessageHandler] Failed to attribute to campaign')
           )
         }
       })

@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/db/prisma'
 import { publishToCentrifugo } from '@/lib/centrifugo/server'
 import { logger } from '@/lib/utils/logger'
+import { updateRecipientStatusFromWebhook } from '@/services/whatsapp/whatsapp-campaign-attribution.service'
 
 /**
  * Status Handler
@@ -107,6 +108,11 @@ export async function statusHandler(payload: any): Promise<void> {
         status: newStatus,
         timestamp,
       })
+
+      // Campaign attribution — fire-and-forget
+      updateRecipientStatusFromWebhook({ wamid, status: newStatus }).catch((err) =>
+        logger.error({ err }, '[StatusHandler] Failed to update campaign recipient status')
+      )
 
       logger.info(`[StatusHandler] ✓ Published status update for ${wamid}`)
     } catch (error) {

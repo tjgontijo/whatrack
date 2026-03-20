@@ -98,24 +98,28 @@ model WhatsAppAuditAction {
 }
 
 model User {
-  id              String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name            String
-  email           String       @unique
-  phone           String?      @unique
-  emailVerified   Boolean?     @default(true)
-  image           String?
-  role            String       @default("user")
-  banned          Boolean      @default(false)
-  banReason       String?
-  banExpires      DateTime?
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @default(now()) @updatedAt
-  accounts        Account[]
-  invitations     Invitation[]
-  members         Member[]
-  sessions        Session[]
-  assignedTickets Ticket[]       @relation("TicketAssignee")
-  orgAuditLogs    OrgAuditLog[]
+  id                 String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name               String
+  email              String                     @unique
+  phone              String?                    @unique
+  emailVerified      Boolean?                   @default(true)
+  image              String?
+  role               String                     @default("user")
+  banned             Boolean                    @default(false)
+  banReason          String?
+  banExpires         DateTime?
+  createdAt          DateTime                   @default(now())
+  updatedAt          DateTime                   @default(now()) @updatedAt
+  accounts           Account[]
+  invitations        Invitation[]
+  members            Member[]
+  sessions           Session[]
+  assignedTickets    Ticket[]                   @relation("TicketAssignee")
+  orgAuditLogs       OrgAuditLog[]
+  createdCampaigns   WhatsAppCampaign[]         @relation("CampaignCreator")
+  approvedCampaigns  WhatsAppCampaign[]         @relation("CampaignApprover")
+  cancelledCampaigns WhatsAppCampaign[]         @relation("CampaignCanceller")
+  campaignApprovals  WhatsAppCampaignApproval[]
 
   @@map("user")
 }
@@ -249,43 +253,45 @@ model Organization {
   aiConversionApprovals AiConversionApproval[]
 
   // AI Platform Relations
-  aiAgents      AiAgent[]
-  aiInsights    AiInsight[]
+  aiAgents       AiAgent[]
+  aiInsights     AiInsight[]
   aiInsightCosts AiInsightCost[]
-  aiSkills      AiSkill[]
+  aiSkills       AiSkill[]
 
   // Audit
-  orgAuditLogs       OrgAuditLog[]
-  organizationRoles  OrganizationRole[]
+  orgAuditLogs      OrgAuditLog[]
+  organizationRoles OrganizationRole[]
 
   // Billing
   billingSubscription BillingSubscription?
+  whatsAppCampaigns   WhatsAppCampaign[]
 
   @@map("organization")
 }
 
 model Project {
-  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId String   @db.Uuid
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String    @db.Uuid
   name           String
-  isArchived     Boolean  @default(false)
+  isArchived     Boolean   @default(false)
   archivedAt     DateTime?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
-  organization           Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  leads                  Lead[]
-  tickets                Ticket[]
-  sales                  Sale[]
-  items                  Item[]
-  itemCategories         ItemCategory[]
-  whatsappConfigs        WhatsAppConfig[]
-  metaAdAccounts         MetaAdAccount[]
-  metaConnections        MetaConnection[]
-  metaPixels             MetaPixel[]
-  whatsAppConnections    WhatsAppConnection[]
-  whatsappOnboardings    WhatsAppOnboarding[]
-  metaConversionEvents   MetaConversionEvent[]
+  organization         Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  leads                Lead[]
+  tickets              Ticket[]
+  sales                Sale[]
+  items                Item[]
+  itemCategories       ItemCategory[]
+  whatsappConfigs      WhatsAppConfig[]
+  metaAdAccounts       MetaAdAccount[]
+  metaConnections      MetaConnection[]
+  metaPixels           MetaPixel[]
+  whatsAppConnections  WhatsAppConnection[]
+  whatsappOnboardings  WhatsAppOnboarding[]
+  metaConversionEvents MetaConversionEvent[]
+  whatsAppCampaigns    WhatsAppCampaign[]
 
   @@unique([organizationId, name])
   @@index([organizationId])
@@ -325,14 +331,14 @@ model OrganizationProfile {
 }
 
 model Member {
-  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId String       @db.Uuid
-  userId         String       @db.Uuid
-  role           String
-  createdAt      DateTime
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  id                  String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId      String                     @db.Uuid
+  userId              String                     @db.Uuid
+  role                String
+  createdAt           DateTime
+  organization        Organization               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   permissionOverrides MemberPermissionOverride[]
-  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([organizationId, role])
   @@map("member")
@@ -424,10 +430,11 @@ model Lead {
   totalTickets   Int       @default(0)
   lifetimeValue  Decimal   @default(0) @db.Decimal(12, 2)
 
-  conversations Conversation[]
-  organization  Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  project       Project?       @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  messages      Message[]
+  conversations              Conversation[]
+  organization               Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project                    Project?                    @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  messages                   Message[]
+  whatsAppCampaignRecipients WhatsAppCampaignRecipient[]
 
   @@unique([organizationId, phone])
   @@unique([organizationId, waId])
@@ -672,42 +679,43 @@ model OrganizationCompany {
 }
 
 model WhatsAppConfig {
-  id                     String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId         String              @db.Uuid
-  projectId              String              @db.Uuid
-  connectionId           String?             @db.Uuid
-  wabaId                 String?
-  phoneId                String?             @unique
-  accessToken            String?
-  displayPhone           String?
-  verifiedName           String?
-  status                 String              @default("pending")
-  authorizationCode      String?
-  accessTokenEncrypted   Boolean             @default(false)
-  tokenExpiresAt         DateTime?
-  tokenLastCheckedAt     DateTime?
-  tokenStatus            String?
-  connectedAt            DateTime?
-  disconnectedAt         DateTime?
-  disconnectedBy         String?             @db.Uuid
-  lastWebhookAt          DateTime?
-  processed              Boolean             @default(false)
-  processingError        String?
-  retryCount             Int                 @default(0)
-  historySyncStatus      String?
-  historySyncStartedAt   DateTime?
-  historySyncCompletedAt DateTime?
-  historySyncProgress    Int                 @default(0)
-  historySyncPhase       Int?
-  historySyncChunkOrder  Int?
-  historySyncError       String?
-  createdAt              DateTime            @default(now())
-  updatedAt              DateTime            @updatedAt
-  conversations          Conversation[]
-  connection             WhatsAppConnection? @relation(fields: [connectionId], references: [id], onDelete: Cascade)
-  organization           Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  project                Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  messages               Message[]
+  id                             String                          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId                 String                          @db.Uuid
+  projectId                      String                          @db.Uuid
+  connectionId                   String?                         @db.Uuid
+  wabaId                         String?
+  phoneId                        String?                         @unique
+  accessToken                    String?
+  displayPhone                   String?
+  verifiedName                   String?
+  status                         String                          @default("pending")
+  authorizationCode              String?
+  accessTokenEncrypted           Boolean                         @default(false)
+  tokenExpiresAt                 DateTime?
+  tokenLastCheckedAt             DateTime?
+  tokenStatus                    String?
+  connectedAt                    DateTime?
+  disconnectedAt                 DateTime?
+  disconnectedBy                 String?                         @db.Uuid
+  lastWebhookAt                  DateTime?
+  processed                      Boolean                         @default(false)
+  processingError                String?
+  retryCount                     Int                             @default(0)
+  historySyncStatus              String?
+  historySyncStartedAt           DateTime?
+  historySyncCompletedAt         DateTime?
+  historySyncProgress            Int                             @default(0)
+  historySyncPhase               Int?
+  historySyncChunkOrder          Int?
+  historySyncError               String?
+  createdAt                      DateTime                        @default(now())
+  updatedAt                      DateTime                        @updatedAt
+  conversations                  Conversation[]
+  connection                     WhatsAppConnection?             @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  organization                   Organization                    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project                        Project                         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  messages                       Message[]
+  whatsAppCampaignDispatchGroups WhatsAppCampaignDispatchGroup[]
 
   @@index([connectionId])
   @@index([projectId])
@@ -858,33 +866,167 @@ model WhatsAppHistorySync {
   errorMessage  String?
   lastPayloadAt DateTime?
   createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @default(now()) @updatedAt
+  updatedAt     DateTime  @updatedAt
 
   @@map("whatsapp_history_syncs")
 }
 
+model WhatsAppCampaign {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String    @db.Uuid
+  projectId      String    @db.Uuid
+  name           String
+  type           String    @default("MARKETING")
+  status         String    @default("DRAFT")
+  scheduledAt    DateTime?
+  startedAt      DateTime?
+  completedAt    DateTime?
+  templateName   String?
+  templateLang   String    @default("pt_BR")
+  metadata       Json?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  createdById    String    @db.Uuid
+  approvedById   String?   @db.Uuid
+  approvedAt     DateTime?
+  cancelledAt    DateTime?
+  cancelledById  String?   @db.Uuid
+
+  organization               Organization                    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project                    Project                         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdBy                  User                            @relation("CampaignCreator", fields: [createdById], references: [id])
+  approvedBy                 User?                           @relation("CampaignApprover", fields: [approvedById], references: [id])
+  cancelledBy                User?                           @relation("CampaignCanceller", fields: [cancelledById], references: [id])
+  dispatchGroups             WhatsAppCampaignDispatchGroup[]
+  imports                    WhatsAppCampaignImport[]
+  approvals                  WhatsAppCampaignApproval[]
+  whatsAppCampaignRecipients WhatsAppCampaignRecipient[]
+
+  @@index([organizationId])
+  @@index([projectId])
+  @@index([organizationId, projectId])
+  @@index([status])
+  @@index([scheduledAt])
+  @@map("whatsapp_campaigns")
+}
+
+model WhatsAppCampaignDispatchGroup {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  campaignId     String   @db.Uuid
+  configId       String   @db.Uuid
+  templateName   String
+  templateLang   String   @default("pt_BR")
+  variables      Json?
+  order          Int      @default(0)
+  status         String   @default("PENDING")
+  processedCount Int      @default(0)
+  successCount   Int      @default(0)
+  failCount      Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  campaign   WhatsAppCampaign            @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  config     WhatsAppConfig              @relation(fields: [configId], references: [id], onDelete: Cascade)
+  recipients WhatsAppCampaignRecipient[]
+
+  @@index([campaignId])
+  @@index([configId])
+  @@index([status])
+  @@map("whatsapp_campaign_dispatch_groups")
+}
+
+model WhatsAppCampaignRecipient {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  dispatchGroupId String    @db.Uuid
+  campaignId      String    @db.Uuid
+  leadId          String?   @db.Uuid
+  phone           String
+  normalizedPhone String
+  variables       Json?
+  status          String    @default("PENDING")
+  metaWamid       String?
+  sentAt          DateTime?
+  deliveredAt     DateTime?
+  readAt          DateTime?
+  failedAt        DateTime?
+  failureReason   String?
+  respondedAt     DateTime?
+  exclusionReason String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  dispatchGroup WhatsAppCampaignDispatchGroup @relation(fields: [dispatchGroupId], references: [id], onDelete: Cascade)
+  campaign      WhatsAppCampaign              @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  lead          Lead?                         @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  messages      Message[]
+
+  @@unique([campaignId, normalizedPhone])
+  @@index([campaignId])
+  @@index([dispatchGroupId])
+  @@index([leadId])
+  @@index([phone])
+  @@index([normalizedPhone])
+  @@index([status])
+  @@map("whatsapp_campaign_recipients")
+}
+
+model WhatsAppCampaignImport {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  campaignId    String   @db.Uuid
+  fileName      String
+  totalRows     Int      @default(0)
+  processedRows Int      @default(0)
+  status        String   @default("PENDING")
+  errorMessage  String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  campaign WhatsAppCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId])
+  @@map("whatsapp_campaign_imports")
+}
+
+model WhatsAppCampaignApproval {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  campaignId String   @db.Uuid
+  userId     String   @db.Uuid
+  action     String
+  comment    String?
+  createdAt  DateTime @default(now())
+
+  campaign WhatsAppCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  user     User             @relation(fields: [userId], references: [id])
+
+  @@index([campaignId])
+  @@index([userId])
+  @@map("whatsapp_campaign_approvals")
+}
+
 model Message {
-  id                 String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  wamid              String         @unique
-  leadId             String         @db.Uuid
-  instanceId         String         @db.Uuid
-  conversationId     String?        @map("conversation_uuid") @db.Uuid
-  ticketId           String?        @db.Uuid
-  direction          String
-  type               String
-  body               String?
-  mediaUrl           String?
-  status             String
-  timestamp          DateTime
-  metaConversationId String?        @map("conversationId")
-  source             String         @default("live")
-  rawMeta            Json?
-  createdAt          DateTime       @default(now())
-  updatedAt          DateTime       @updatedAt
-  conversation       Conversation?  @relation(fields: [conversationId], references: [id])
-  instance           WhatsAppConfig @relation(fields: [instanceId], references: [id], onDelete: Cascade)
-  lead               Lead           @relation(fields: [leadId], references: [id], onDelete: Cascade)
-  ticket             Ticket?        @relation(fields: [ticketId], references: [id])
+  id                  String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  wamid               String                     @unique
+  leadId              String                     @db.Uuid
+  instanceId          String                     @db.Uuid
+  conversationId      String?                    @map("conversation_uuid") @db.Uuid
+  ticketId            String?                    @db.Uuid
+  campaignRecipientId String?                    @db.Uuid
+  direction           String
+  type                String
+  body                String?
+  mediaUrl            String?
+  status              String
+  timestamp           DateTime
+  metaConversationId  String?                    @map("conversationId")
+  source              String                     @default("live")
+  rawMeta             Json?
+  createdAt           DateTime                   @default(now())
+  updatedAt           DateTime                   @updatedAt
+  conversation        Conversation?              @relation(fields: [conversationId], references: [id])
+  instance            WhatsAppConfig             @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  lead                Lead                       @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  ticket              Ticket?                    @relation(fields: [ticketId], references: [id])
+  campaignRecipient   WhatsAppCampaignRecipient? @relation(fields: [campaignRecipientId], references: [id], onDelete: SetNull)
 
   @@index([leadId])
   @@index([instanceId])
@@ -892,6 +1034,7 @@ model Message {
   @@index([ticketId])
   @@index([source])
   @@index([timestamp])
+  @@index([campaignRecipientId])
   @@map("whatsapp_messages")
 }
 
@@ -1013,11 +1156,11 @@ model AiConversionApproval {
   organizationId String @db.Uuid
   ticketId       String @db.Uuid
 
-  eventName   String // "LeadSubmitted" | "Purchase"
-  itemName    String?
-  dealValue   Decimal? @db.Decimal(12, 2)
-  confidence  Float    @default(1.0)
-  reasoning   String?
+  eventName  String // "LeadSubmitted" | "Purchase"
+  itemName   String?
+  dealValue  Decimal? @db.Decimal(12, 2)
+  confidence Float    @default(1.0)
+  reasoning  String?
 
   status String @default("PENDING") // PENDING, APPROVED, REJECTED
 
@@ -1084,10 +1227,10 @@ model AiAgent {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  triggers     AiTrigger[]
-  schemaFields AiSchemaField[]
-  insights     AiInsight[]
+  organization  Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  triggers      AiTrigger[]
+  schemaFields  AiSchemaField[]
+  insights      AiInsight[]
   skillBindings AiAgentSkill[]
 
   @@unique([organizationId, name])
@@ -1108,7 +1251,7 @@ model AiSkill {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   bindings     AiAgentSkill[]
 
   @@unique([organizationId, slug])
@@ -1194,9 +1337,9 @@ model AiInsight {
 }
 
 model OrgAuditLog {
-  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId String?      @db.Uuid    // nullable: suporte a eventos globais (ex: registro)
-  userId         String?      @db.Uuid    // nullable: suporte a ações de sistema
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String?  @db.Uuid // nullable: suporte a eventos globais (ex: registro)
+  userId         String?  @db.Uuid // nullable: suporte a ações de sistema
   action         String
   resourceType   String
   resourceId     String?
@@ -1206,10 +1349,10 @@ model OrgAuditLog {
   userAgent      String?
   requestId      String?
   metadata       Json?
-  createdAt      DateTime     @default(now())
+  createdAt      DateTime @default(now())
 
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  user           User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([organizationId])
   @@index([userId])
@@ -1223,8 +1366,8 @@ model OrgAuditLog {
 // ============================================
 
 model BillingSubscription {
-  id             String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId String @db.Uuid
+  id             String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String  @db.Uuid
   planId         String?
 
   // Provider
@@ -1241,15 +1384,15 @@ model BillingSubscription {
   // Status
   status              String                    @default("active") // 'active' | 'paused' | 'canceled' | 'past_due'
   statusRef           BillingSubscriptionStatus @relation(fields: [status], references: [name])
-  canceledAtPeriodEnd Boolean @default(false)
+  canceledAtPeriodEnd Boolean                   @default(false)
 
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
   canceledAt DateTime?
 
-  items          BillingSubscriptionItem[]
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  plan           BillingPlan? @relation(fields: [planId], references: [id], onDelete: SetNull)
+  items        BillingSubscriptionItem[]
+  organization Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plan         BillingPlan?              @relation(fields: [planId], references: [id], onDelete: SetNull)
 
   @@unique([organizationId])
   @@index([status])
@@ -1258,13 +1401,13 @@ model BillingSubscription {
 }
 
 model BillingSubscriptionItem {
-  id                       String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  subscriptionId           String @db.Uuid
+  id                       String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  subscriptionId           String   @db.Uuid
   planId                   String
-  stripeSubscriptionItemId String? @unique
-  quantity                 Int    @default(0)
-  unitPrice                Decimal @db.Decimal(10, 2)
-  currency                 String  @default("BRL")
+  stripeSubscriptionItemId String?  @unique
+  quantity                 Int      @default(0)
+  unitPrice                Decimal  @db.Decimal(10, 2)
+  currency                 String   @default("BRL")
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
 
@@ -1280,10 +1423,10 @@ model BillingSubscriptionItem {
 model BillingWebhookLog {
   id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
 
-  provider    String
-  eventType   String  // 'subscription.created' | 'charge.paid' | etc
-  payload     Json
-  eventId     String? @unique  // ID do evento no provider (deduplicação)
+  provider  String
+  eventType String // 'subscription.created' | 'charge.paid' | etc
+  payload   Json
+  eventId   String? @unique // ID do evento no provider (deduplicação)
 
   isProcessed     Boolean   @default(false)
   processingError String?
@@ -1304,51 +1447,51 @@ model BillingPlan {
   id String @id @default(cuid())
 
   // Identificação
-  name        String @unique
-  slug        String @unique
+  name        String  @unique
+  slug        String  @unique
   description String?
 
-  kind        String  // 'base' | 'addon'
-  addonType   String? // 'project' | 'whatsapp_number' | 'meta_ad_account'
+  kind      String // 'base' | 'addon'
+  addonType String? // 'project' | 'whatsapp_number' | 'meta_ad_account'
 
   // Preço
   monthlyPrice Decimal @db.Decimal(10, 2)
   currency     String  @default("BRL")
 
   // Entitlements
-  includedProjects              Int    @default(0)
-  includedWhatsAppPerProject    Int    @default(0)
-  includedMetaAdAccountsPerProject Int @default(0)
-  includedConversionsPerProject Int    @default(0)
-  includedAiCreditsPerProject   Int    @default(0)
-  supportLevel                  String
+  includedProjects                 Int    @default(0)
+  includedWhatsAppPerProject       Int    @default(0)
+  includedMetaAdAccountsPerProject Int    @default(0)
+  includedConversionsPerProject    Int    @default(0)
+  includedAiCreditsPerProject      Int    @default(0)
+  supportLevel                     String
 
   // Stripe Sync
-  stripeProductId       String?  @unique
-  stripePriceId         String?  @unique
-  syncStatus            String   @default("pending")
-  syncError             String?
-  syncedAt              DateTime?
+  stripeProductId String?   @unique
+  stripePriceId   String?   @unique
+  syncStatus      String    @default("pending")
+  syncError       String?
+  syncedAt        DateTime?
 
   // Display
-  isActive              Boolean  @default(true)
-  displayOrder          Int      @default(0)
-  isHighlighted         Boolean  @default(false)
-  contactSalesOnly      Boolean  @default(false)
+  isActive         Boolean @default(true)
+  displayOrder     Int     @default(0)
+  isHighlighted    Boolean @default(false)
+  contactSalesOnly Boolean @default(false)
 
   // Metadata
-  metadata              Json?
+  metadata Json?
 
   // Audit
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-  createdBy             String?
-  deletedAt             DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  createdBy String?
+  deletedAt DateTime?
 
   // Relations
-  history               BillingPlanHistory[]
-  subscriptions         BillingSubscription[]
-  subscriptionItems     BillingSubscriptionItem[]
+  history           BillingPlanHistory[]
+  subscriptions     BillingSubscription[]
+  subscriptionItems BillingSubscriptionItem[]
 
   @@index([slug])
   @@index([kind])
@@ -1365,56 +1508,56 @@ model BillingPlanHistory {
   plan   BillingPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
 
   // Ação
-  action String   // "created" | "updated" | "synced" | "deleted"
+  action String // "created" | "updated" | "synced" | "deleted"
 
   // Valores
   oldValues Json?
   newValues Json?
 
   // Stripe Sync
-  syncAction  String?
-  syncResult  Json?
-  syncError   String?
+  syncAction String?
+  syncResult Json?
+  syncError  String?
 
   // Audit
-  changedBy   String?
-  changedAt   DateTime @default(now())
+  changedBy String?
+  changedAt DateTime @default(now())
 
   @@index([planId, changedAt])
   @@map("billing_plan_history")
 }
 
 model AiInsightCost {
-  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId String   @db.Uuid
-  aiInsightId    String   @db.Uuid
+  id             String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String @db.Uuid
+  aiInsightId    String @db.Uuid
 
   // Context
-  feature        String   // "meta-ads-audit", "ticket-analysis", etc
-  operation      String   // "account-analysis", "conversation-idle", etc
-  agentName      String   // "Meta Ads Analyst", "Sale Detector", etc
-  eventType      String   // "META_ADS_AUDIT_REQUESTED", "CONVERSATION_IDLE_3M", etc
+  feature   String // "meta-ads-audit", "ticket-analysis", etc
+  operation String // "account-analysis", "conversation-idle", etc
+  agentName String // "Meta Ads Analyst", "Sale Detector", etc
+  eventType String // "META_ADS_AUDIT_REQUESTED", "CONVERSATION_IDLE_3M", etc
 
   // Tokens & Cost
-  inputTokens    Int
-  outputTokens   Int
-  totalTokens    Int      // computed: input + output
-  modelUsed      String   // "openai/gpt-4o-mini", "groq/mixtral-8x7b"
-  inputCost      Decimal  @db.Decimal(10, 6) // tokens * rate / 1M
-  outputCost     Decimal  @db.Decimal(10, 6) // tokens * rate / 1M
-  totalCost      Decimal  @db.Decimal(10, 6) // inputCost + outputCost
+  inputTokens  Int
+  outputTokens Int
+  totalTokens  Int // computed: input + output
+  modelUsed    String // "openai/gpt-4o-mini", "groq/mixtral-8x7b"
+  inputCost    Decimal @db.Decimal(10, 6) // tokens * rate / 1M
+  outputCost   Decimal @db.Decimal(10, 6) // tokens * rate / 1M
+  totalCost    Decimal @db.Decimal(10, 6) // inputCost + outputCost
 
   // Performance
-  latencyMs      Int?     // tempo total da execução
-  status         String   // "success", "error", "timeout"
-  errorMessage   String?
+  latencyMs    Int? // tempo total da execução
+  status       String // "success", "error", "timeout"
+  errorMessage String?
 
   // Audit
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  insight        AiInsight    @relation(fields: [aiInsightId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  insight      AiInsight    @relation(fields: [aiInsightId], references: [id], onDelete: Cascade)
 
   @@index([organizationId, createdAt])
   @@index([feature, createdAt])

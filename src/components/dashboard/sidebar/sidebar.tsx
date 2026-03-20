@@ -29,6 +29,7 @@ export function DashboardSidebar({
     { title: 'Analytics', href: '/dashboard/analytics', icon: 'BarChart3' },
     { title: 'Meta Ads', href: '/dashboard/meta-ads', icon: 'Meta' },
     { title: 'Mensagens', href: '/dashboard/whatsapp/inbox', icon: 'MessageSquare' },
+    { title: 'Campanhas', href: '/dashboard/whatsapp/campaigns', icon: 'Megaphone' },
     { title: 'Projetos', href: '/dashboard/projects', icon: 'FolderKanban' },
     { title: 'Leads', href: '/dashboard/leads', icon: 'Users' },
     { title: 'Tickets', href: '/dashboard/tickets', icon: 'Kanban' },

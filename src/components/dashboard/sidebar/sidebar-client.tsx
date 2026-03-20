@@ -11,6 +11,7 @@ import {
   Kanban,
   LayoutDashboard,
   MessageSquare,
+  Megaphone,
   ShoppingBag,
   Sparkles,
   Users,
@@ -51,6 +52,7 @@ const ICON_MAP = {
   LayoutDashboard,
   Users,
   MessageSquare,
+  Megaphone,
   ShoppingBag,
   BarChart3,
   Meta: MetaIcon,
@@ -108,7 +110,9 @@ export function SidebarClient({
     ['/dashboard', '/dashboard/analytics'].includes(item.href)
   )
   const acquisitionItems = navItems.filter((item) =>
-    ['/dashboard/meta-ads', '/dashboard/whatsapp/inbox'].includes(item.href)
+    ['/dashboard/meta-ads', '/dashboard/whatsapp/inbox', '/dashboard/whatsapp/campaigns'].includes(
+      item.href
+    )
   )
   const crmItems = navItems.filter((item) =>
     ['/dashboard/projects', '/dashboard/leads', '/dashboard/tickets', '/dashboard/sales'].includes(
@@ -121,6 +125,7 @@ export function SidebarClient({
     '/dashboard': 'view:dashboard',
     '/dashboard/analytics': 'view:analytics',
     '/dashboard/whatsapp/inbox': 'view:whatsapp',
+    '/dashboard/whatsapp/campaigns': 'view:whatsapp',
     '/dashboard/meta-ads': 'view:meta',
     '/dashboard/projects': 'view:leads',
     '/dashboard/leads': 'view:leads',
@@ -212,8 +217,8 @@ export function SidebarClient({
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarGroup className="px-2 pt-3 pb-2 group-data-[collapsible=icon]:hidden">
-          <p className="mb-1.5 px-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+        <SidebarGroup className="px-2 pb-2 pt-3 group-data-[collapsible=icon]:hidden">
+          <p className="text-muted-foreground mb-1.5 px-2 text-[10px] font-semibold uppercase tracking-wide">
             Projeto ativo
           </p>
           <ProjectSelector
@@ -239,9 +244,7 @@ export function SidebarClient({
         <SidebarGroup>
           <SidebarGroupLabel>Captação</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
-              {renderNavGroup(acquisitionItems)}
-            </SidebarMenu>
+            <SidebarMenu>{renderNavGroup(acquisitionItems)}</SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
@@ -279,7 +282,7 @@ export function SidebarClient({
                 </SidebarMenuButton>
               </SidebarMenuItem>
 
-{canViewWorkspaceItem('manage:organization') ? (
+              {canViewWorkspaceItem('manage:organization') ? (
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     asChild
@@ -407,7 +410,7 @@ export function SidebarClient({
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {(session?.user?.role === 'admin' || session?.user?.role === 'owner') ? (
+        {session?.user?.role === 'admin' || session?.user?.role === 'owner' ? (
           <SidebarGroup>
             <SidebarGroupLabel>Admin</SidebarGroupLabel>
             <SidebarGroupContent>
