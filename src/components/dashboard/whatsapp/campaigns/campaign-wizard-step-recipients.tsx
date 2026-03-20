@@ -29,6 +29,7 @@ interface CampaignWizardStepRecipientsProps {
   phoneColumn: string
   variableColumns: Record<string, string>
   onFileSelected: (file: File | null) => void
+  onClearFileError: () => void
   onPhoneColumnChange: (value: string) => void
   onVariableColumnChange: (name: string, value: string) => void
 }
@@ -42,6 +43,7 @@ export function CampaignWizardStepRecipients({
   phoneColumn,
   variableColumns,
   onFileSelected,
+  onClearFileError,
   onPhoneColumnChange,
   onVariableColumnChange,
 }: CampaignWizardStepRecipientsProps) {
@@ -57,6 +59,10 @@ export function CampaignWizardStepRecipients({
   }, [onFileSelected])
 
   const handleSelectFile = React.useCallback(() => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+
     fileInputRef.current?.click()
   }, [])
 
@@ -79,6 +85,9 @@ export function CampaignWizardStepRecipients({
     (event: React.DragEvent<HTMLDivElement>) => {
       event.preventDefault()
       setIsDragging(false)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
       const file = event.dataTransfer.files?.[0] || null
       onFileSelected(file)
     },
@@ -127,7 +136,11 @@ export function CampaignWizardStepRecipients({
             onDragLeave={handleDragLeave}
             className={[
               'relative min-h-52 rounded-2xl border border-dashed p-6 text-left transition-colors outline-none',
-              isDragging ? 'border-primary bg-primary/5' : 'bg-muted/10 hover:bg-muted/20',
+              fileError
+                ? 'border-destructive/50 bg-destructive/5 hover:bg-destructive/10'
+                : isDragging
+                  ? 'border-primary bg-primary/5'
+                  : 'bg-muted/10 hover:bg-muted/20',
             ].join(' ')}
           >
             <div className="flex h-full min-h-40 flex-col items-center justify-center text-center">
@@ -135,14 +148,16 @@ export function CampaignWizardStepRecipients({
                 {parsedCsv ? <FileSpreadsheet className="h-5 w-5" /> : <UploadCloud className="h-5 w-5" />}
               </div>
               <p className="text-base font-medium">
-                {parsedCsv ? 'Arquivo CSV carregado' : 'Arraste seu CSV aqui'}
+                {parsedCsv ? 'Arquivo CSV carregado' : fileError ? 'Arquivo rejeitado' : 'Arraste seu CSV aqui'}
               </p>
-              <p className="text-muted-foreground mt-2 text-sm">
+              <p className={`mt-2 text-sm ${fileError ? 'text-destructive' : 'text-muted-foreground'}`}>
                 {parsedCsv
                   ? `${parsedCsv.rows.length} linhas lidas e ${parsedCsv.columns.length} colunas detectadas`
+                  : fileError
+                    ? fileError
                   : 'ou clique para selecionar um arquivo'}
               </p>
-              {parsedCsv && (
+              {parsedCsv ? (
                 <button
                   type="button"
                   onClick={(event) => {
@@ -153,7 +168,21 @@ export function CampaignWizardStepRecipients({
                 >
                   limpar arquivo
                 </button>
-              )}
+              ) : fileError ? (
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    if (fileInputRef.current) {
+                      fileInputRef.current.value = ''
+                    }
+                    onClearFileError()
+                  }}
+                  className="text-muted-foreground hover:text-foreground mt-4 text-sm underline underline-offset-4"
+                >
+                  limpar erro
+                </button>
+              ) : null}
             </div>
 
             {templateVariableNames.length > 0 && (
@@ -171,13 +200,6 @@ export function CampaignWizardStepRecipients({
           </div>
         </CardContent>
       </Card>
-
-      {fileError && (
-        <Alert variant="destructive">
-          <AlertTitle>Erro ao ler o arquivo</AlertTitle>
-          <AlertDescription>{fileError}</AlertDescription>
-        </Alert>
-      )}
 
       {parsedCsv && (
         <>

@@ -156,13 +156,26 @@ function normalizePhone(phone: string): string {
   return phone.replace(/\D/g, '')
 }
 
-function isValidCampaignPhone(phone: string): boolean {
-  if (!phone.trim() || isScientificNotation(phone)) {
-    return false
+function getCampaignPhoneValidationError(phone: string): string | null {
+  const trimmed = phone.trim()
+  if (!trimmed) {
+    return 'o telefone está vazio'
   }
 
-  const digits = normalizePhone(phone)
-  return digits.length >= 10
+  if (isScientificNotation(trimmed)) {
+    return `o telefone "${trimmed}" está em notação científica`
+  }
+
+  const digits = normalizePhone(trimmed)
+  if (digits.length < 10) {
+    return `o telefone "${trimmed}" não tem dígitos suficientes`
+  }
+
+  return null
+}
+
+function isValidCampaignPhone(phone: string): boolean {
+  return getCampaignPhoneValidationError(phone) === null
 }
 
 function buildTemplateModelColumns(templateVariableNames: string[]): string[] {
@@ -192,8 +205,9 @@ export function validateCampaignCsvModel(
 
   const invalidPhoneIndex = parsed.rows.findIndex((row) => !isValidCampaignPhone(row.telefone || ''))
   if (invalidPhoneIndex >= 0) {
+    const phoneError = getCampaignPhoneValidationError(parsed.rows[invalidPhoneIndex]?.telefone || '')
     throw new Error(
-      `Linha ${invalidPhoneIndex + 2} inválida na coluna telefone. Revise o CSV e envie novamente.`,
+      `Linha ${invalidPhoneIndex + 2} inválida: ${phoneError}.`,
     )
   }
 

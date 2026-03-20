@@ -119,4 +119,12 @@ describe('campaign-csv', () => {
       'CSV fora do padrão do modelo. Baixe o modelo e envie o arquivo novamente.',
     )
   })
+
+  it('explains when the phone is in spreadsheet scientific notation', () => {
+    const parsed = parseCampaignCsv('telefone;nome_do_cliente\n5,56198E+12;Maria')
+
+    expect(() => validateCampaignCsvModel(parsed, ['nome_do_cliente'])).toThrow(
+      'Linha 2 inválida: o telefone "5,56198E+12" está em notação científica.',
+    )
+  })
 })

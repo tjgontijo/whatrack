@@ -253,7 +253,7 @@ export function CampaignFormDrawer({ open, onOpenChange, onSuccess }: CampaignFo
         throw new Error('O CSV está vazio ou não possui cabeçalho/linhas válidas.')
       }
 
-       const validatedModel = validateCampaignCsvModel(parsed, templateVariableNames)
+      const validatedModel = validateCampaignCsvModel(parsed, templateVariableNames)
 
       setParsedCsv(parsed)
       setFileError(null)
@@ -266,6 +266,13 @@ export function CampaignFormDrawer({ open, onOpenChange, onSuccess }: CampaignFo
       setFileError(error instanceof Error ? error.message : 'Falha ao ler o arquivo CSV.')
     }
   }
+
+  const handleClearFileError = React.useCallback(() => {
+    setFileError(null)
+    setParsedCsv(null)
+    setPhoneColumn('')
+    setVariableColumns({})
+  }, [])
 
   const canAdvanceFromStep1 =
     hasActiveProject &&
@@ -351,6 +358,7 @@ export function CampaignFormDrawer({ open, onOpenChange, onSuccess }: CampaignFo
             phoneColumn={phoneColumn}
             variableColumns={variableColumns}
             onFileSelected={handleFileSelected}
+            onClearFileError={handleClearFileError}
             onPhoneColumnChange={setPhoneColumn}
             onVariableColumnChange={(name, value) =>
               setVariableColumns((current) => ({ ...current, [name]: value }))
