@@ -5,8 +5,7 @@ import { FileSpreadsheet, Phone, TableProperties, UploadCloud } from 'lucide-rea
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import {
   Select,
@@ -47,6 +46,7 @@ export function CampaignWizardStepRecipients({
   onVariableColumnChange,
 }: CampaignWizardStepRecipientsProps) {
   const fileInputRef = React.useRef<HTMLInputElement | null>(null)
+  const [isDragging, setIsDragging] = React.useState(false)
 
   const clearSelectedFile = React.useCallback(() => {
     if (fileInputRef.current) {
@@ -55,6 +55,10 @@ export function CampaignWizardStepRecipients({
 
     onFileSelected(null)
   }, [onFileSelected])
+
+  const handleSelectFile = React.useCallback(() => {
+    fileInputRef.current?.click()
+  }, [])
 
   const handleDownloadModel = React.useCallback(() => {
     const csvModel = buildCampaignTemplateCsvModel(templateVariableNames)
@@ -71,21 +75,32 @@ export function CampaignWizardStepRecipients({
     URL.revokeObjectURL(url)
   }, [templateName, templateVariableNames])
 
+  const handleDrop = React.useCallback(
+    (event: React.DragEvent<HTMLDivElement>) => {
+      event.preventDefault()
+      setIsDragging(false)
+      const file = event.dataTransfer.files?.[0] || null
+      onFileSelected(file)
+    },
+    [onFileSelected],
+  )
+
+  const handleDragOver = React.useCallback((event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    setIsDragging(true)
+  }, [])
+
+  const handleDragLeave = React.useCallback((event: React.DragEvent<HTMLDivElement>) => {
+    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+      setIsDragging(false)
+    }
+  }, [])
+
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader className="gap-3">
-          <div className="flex items-start gap-3">
-            <div className="bg-muted text-foreground flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border">
-              <FileSpreadsheet className="h-4 w-4" />
-            </div>
-            <div className="space-y-1">
-              <CardTitle>Importar destinatários</CardTitle>
-              <CardDescription>
-                Envie um CSV com a coluna `telefone` e as variáveis do template para montar a campanha.
-              </CardDescription>
-            </div>
-          </div>
+        <CardHeader>
+          <CardTitle>Importar destinatários</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <input
@@ -97,59 +112,63 @@ export function CampaignWizardStepRecipients({
             onChange={(event) => onFileSelected(event.target.files?.[0] || null)}
           />
 
-          <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="bg-muted/20 hover:bg-muted/40 flex min-h-28 w-full items-center justify-between gap-4 rounded-xl border border-dashed px-4 py-4 text-left transition-colors"
-            >
-              <div className="flex items-start gap-3">
-                <div className="bg-background flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border">
-                  <UploadCloud className="h-4 w-4" />
-                </div>
-                <div className="space-y-1">
-                  <p className="font-medium">
-                    {parsedCsv ? 'Trocar arquivo CSV' : 'Selecionar arquivo CSV'}
-                  </p>
-                  <p className="text-muted-foreground text-sm">
-                    {parsedCsv
-                      ? `${parsedCsv.rows.length} linhas lidas e ${parsedCsv.columns.length} colunas detectadas`
-                      : 'Escolha a planilha exportada em CSV para mapear telefone e variáveis'}
-                  </p>
-                </div>
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={handleSelectFile}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault()
+                handleSelectFile()
+              }
+            }}
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            className={[
+              'relative min-h-52 rounded-2xl border border-dashed p-6 text-left transition-colors outline-none',
+              isDragging ? 'border-primary bg-primary/5' : 'bg-muted/10 hover:bg-muted/20',
+            ].join(' ')}
+          >
+            <div className="flex h-full min-h-40 flex-col items-center justify-center text-center">
+              <div className="bg-background mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border">
+                {parsedCsv ? <FileSpreadsheet className="h-5 w-5" /> : <UploadCloud className="h-5 w-5" />}
               </div>
-              <span className="text-muted-foreground shrink-0 text-xs uppercase tracking-[0.18em]">
-                .csv
-              </span>
-            </button>
-
-            <div className="flex flex-col gap-2">
-              {templateVariableNames.length > 0 && (
-                <Button type="button" variant="outline" onClick={handleDownloadModel}>
-                  Baixar modelo
-                </Button>
-              )}
+              <p className="text-base font-medium">
+                {parsedCsv ? 'Arquivo CSV carregado' : 'Arraste seu CSV aqui'}
+              </p>
+              <p className="text-muted-foreground mt-2 text-sm">
+                {parsedCsv
+                  ? `${parsedCsv.rows.length} linhas lidas e ${parsedCsv.columns.length} colunas detectadas`
+                  : 'ou clique para selecionar um arquivo'}
+              </p>
               {parsedCsv && (
-                <Button type="button" variant="ghost" onClick={clearSelectedFile}>
-                  Remover arquivo
-                </Button>
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    clearSelectedFile()
+                  }}
+                  className="text-muted-foreground hover:text-foreground mt-4 text-sm underline underline-offset-4"
+                >
+                  limpar arquivo
+                </button>
               )}
             </div>
-          </div>
 
-          <Alert>
-            <AlertTitle>Formate as colunas como texto</AlertTitle>
-            <AlertDescription>
-              Antes de salvar o CSV no Excel ou Google Sheets, deixe a coluna de telefone e as variáveis
-              formatadas como texto. Isso evita valores como `5,56198E+12` e preserva o número completo.
-            </AlertDescription>
-          </Alert>
-          {templateVariableNames.length > 0 && (
-            <p className="text-muted-foreground text-xs leading-relaxed">
-              O modelo já inclui a coluna `telefone` e as variáveis do template em formato `;`. Exemplo:{' '}
-              {['telefone', ...templateVariableNames].join(';')}
-            </p>
-          )}
+            {templateVariableNames.length > 0 && (
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation()
+                  handleDownloadModel()
+                }}
+                className="text-muted-foreground hover:text-foreground absolute right-5 bottom-4 text-sm underline underline-offset-4"
+              >
+                baixar modelo
+              </button>
+            )}
+          </div>
         </CardContent>
       </Card>
 

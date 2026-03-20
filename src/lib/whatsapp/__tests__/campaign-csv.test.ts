@@ -4,6 +4,7 @@ import {
   buildCampaignCsvPreview,
   buildCampaignTemplateCsvModel,
   parseCampaignCsv,
+  validateCampaignCsvModel,
 } from '@/lib/whatsapp/campaign-csv'
 
 describe('campaign-csv', () => {
@@ -93,5 +94,29 @@ describe('campaign-csv', () => {
     ])
 
     expect(result).toBe('telefone;nome_do_cliente;numero_do_pedido;link_google_drive')
+  })
+
+  it('validates a csv using the template model contract', () => {
+    const parsed = parseCampaignCsv(
+      'telefone;nome_do_cliente;numero_do_pedido\n5511999999999;Maria;123',
+    )
+
+    const result = validateCampaignCsvModel(parsed, ['nome_do_cliente', 'numero_do_pedido'])
+
+    expect(result).toEqual({
+      phoneColumn: 'telefone',
+      variableColumns: {
+        nome_do_cliente: 'nome_do_cliente',
+        numero_do_pedido: 'numero_do_pedido',
+      },
+    })
+  })
+
+  it('rejects csv outside the expected model', () => {
+    const parsed = parseCampaignCsv('phone;name\n5511999999999;Maria')
+
+    expect(() => validateCampaignCsvModel(parsed, ['nome_do_cliente'])).toThrow(
+      'CSV fora do padrão do modelo. Baixe o modelo e envie o arquivo novamente.',
+    )
   })
 })

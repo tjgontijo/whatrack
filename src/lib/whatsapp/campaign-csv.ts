@@ -23,6 +23,11 @@ export interface CampaignCsvPreviewResult {
   mappedRecipients: CampaignMappedRecipient[]
 }
 
+export interface CampaignCsvModelValidationResult {
+  phoneColumn: string
+  variableColumns: Record<string, string>
+}
+
 function normalizeColumnName(value: string): string {
   return value
     .trim()
@@ -160,6 +165,48 @@ function isValidCampaignPhone(phone: string): boolean {
   return digits.length >= 10
 }
 
+function buildTemplateModelColumns(templateVariableNames: string[]): string[] {
+  return [
+    'telefone',
+    ...Array.from(
+      new Set(templateVariableNames.map((variableName) => normalizeColumnName(variableName)).filter(Boolean)),
+    ),
+  ]
+}
+
+export function validateCampaignCsvModel(
+  parsed: CampaignCsvParseResult,
+  templateVariableNames: string[],
+): CampaignCsvModelValidationResult {
+  const expectedColumns = buildTemplateModelColumns(templateVariableNames)
+
+  if (parsed.columns.length !== expectedColumns.length) {
+    throw new Error('CSV fora do padrão do modelo. Baixe o modelo e envie o arquivo novamente.')
+  }
+
+  for (let index = 0; index < expectedColumns.length; index++) {
+    if (parsed.columns[index] !== expectedColumns[index]) {
+      throw new Error('CSV fora do padrão do modelo. Baixe o modelo e envie o arquivo novamente.')
+    }
+  }
+
+  const invalidPhoneIndex = parsed.rows.findIndex((row) => !isValidCampaignPhone(row.telefone || ''))
+  if (invalidPhoneIndex >= 0) {
+    throw new Error(
+      `Linha ${invalidPhoneIndex + 2} inválida na coluna telefone. Revise o CSV e envie novamente.`,
+    )
+  }
+
+  return {
+    phoneColumn: 'telefone',
+    variableColumns: Object.fromEntries(
+      expectedColumns
+        .filter((column) => column !== 'telefone')
+        .map((column) => [column, column]),
+    ),
+  }
+}
+
 export function buildCampaignCsvPreview(
   rows: Array<Record<string, string>>,
   mapping: CampaignCsvMapping,
@@ -204,12 +251,7 @@ export function buildCampaignCsvPreview(
 }
 
 export function buildCampaignTemplateCsvModel(templateVariableNames: string[]): string {
-  const columns = [
-    'telefone',
-    ...Array.from(
-      new Set(templateVariableNames.map((variableName) => normalizeColumnName(variableName)).filter(Boolean)),
-    ),
-  ]
+  const columns = buildTemplateModelColumns(templateVariableNames)
 
   return columns.join(';')
 }

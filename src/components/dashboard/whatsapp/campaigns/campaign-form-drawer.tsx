@@ -11,7 +11,12 @@ import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { authClient } from '@/lib/auth/auth-client'
 import { apiFetch } from '@/lib/api-client'
-import { parseCampaignCsv, buildCampaignCsvPreview, type CampaignCsvParseResult } from '@/lib/whatsapp/campaign-csv'
+import {
+  parseCampaignCsv,
+  buildCampaignCsvPreview,
+  validateCampaignCsvModel,
+  type CampaignCsvParseResult,
+} from '@/lib/whatsapp/campaign-csv'
 import { whatsappApi } from '@/lib/whatsapp/client'
 import { useProject } from '@/hooks/project/use-project'
 import type { WhatsAppTemplate } from '@/types/whatsapp/whatsapp'
@@ -248,12 +253,16 @@ export function CampaignFormDrawer({ open, onOpenChange, onSuccess }: CampaignFo
         throw new Error('O CSV está vazio ou não possui cabeçalho/linhas válidas.')
       }
 
+       const validatedModel = validateCampaignCsvModel(parsed, templateVariableNames)
+
       setParsedCsv(parsed)
       setFileError(null)
-      setPhoneColumn('')
-      setVariableColumns({})
+      setPhoneColumn(validatedModel.phoneColumn)
+      setVariableColumns(validatedModel.variableColumns)
     } catch (error) {
       setParsedCsv(null)
+      setPhoneColumn('')
+      setVariableColumns({})
       setFileError(error instanceof Error ? error.message : 'Falha ao ler o arquivo CSV.')
     }
   }
