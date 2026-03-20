@@ -6,6 +6,7 @@ export async function attributeInboundMessageToCampaign(params: {
   organizationId: string
   messageId: string
   leadId: string
+  messageTimestamp: Date
 }): Promise<void> {
   try {
     const normalizedPhone = normalizePhone(params.phone)
@@ -17,7 +18,7 @@ export async function attributeInboundMessageToCampaign(params: {
           organizationId: params.organizationId,
           status: { in: ['PROCESSING', 'COMPLETED'] },
         },
-        status: { in: ['SENT', 'DELIVERED'] },
+        status: { in: ['SENT', 'DELIVERED', 'READ'] },
       },
       select: { id: true, campaignId: true },
     })
@@ -28,7 +29,7 @@ export async function attributeInboundMessageToCampaign(params: {
       where: { id: recipient.id },
       data: {
         status: 'RESPONDED',
-        respondedAt: new Date(),
+        respondedAt: params.messageTimestamp,
         leadId: params.leadId,
       },
     })

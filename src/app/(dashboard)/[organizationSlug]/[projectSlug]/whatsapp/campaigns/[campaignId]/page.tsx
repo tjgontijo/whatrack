@@ -118,6 +118,7 @@ interface RecipientsResponse {
     status: string
     sentAt: string | null
     deliveredAt: string | null
+    readAt: string | null
     failedAt: string | null
     failureReason: string | null
     respondedAt: string | null
@@ -134,6 +135,10 @@ interface RecipientsResponse {
 
 interface CampaignPageProps {
   params: Promise<{ campaignId: string }>
+}
+
+function hasRecipientReadStatus(recipient: RecipientsResponse['items'][number]) {
+  return Boolean(recipient.readAt) || ['READ', 'RESPONDED'].includes(recipient.status)
 }
 
 export default function CampaignDetailPage({ params }: CampaignPageProps) {
@@ -381,6 +386,7 @@ export default function CampaignDetailPage({ params }: CampaignPageProps) {
                     <TableRow>
                       <TableHead>Telefone</TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead>Leu?</TableHead>
                       <TableHead>Enviado em</TableHead>
                       <TableHead>Entregue em</TableHead>
                       <TableHead>Falha</TableHead>
@@ -393,6 +399,11 @@ export default function CampaignDetailPage({ params }: CampaignPageProps) {
                         <TableCell>
                           <Badge variant={STATUS_VARIANTS[r.status] || 'secondary'}>
                             {STATUS_LABELS[r.status] || r.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-xs">
+                          <Badge variant={hasRecipientReadStatus(r) ? 'secondary' : 'outline'}>
+                            {hasRecipientReadStatus(r) ? 'Sim' : 'Não'}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-xs">

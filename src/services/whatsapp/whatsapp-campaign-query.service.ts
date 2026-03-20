@@ -48,6 +48,7 @@ export interface RecipientListItem {
   status: string
   sentAt: string | null
   deliveredAt: string | null
+  readAt: string | null
   failedAt: string | null
   failureReason: string | null
   respondedAt: string | null
@@ -261,6 +262,7 @@ export async function listRecipients(
     status: r.status,
     sentAt: r.sentAt?.toISOString() || null,
     deliveredAt: r.deliveredAt?.toISOString() || null,
+    readAt: r.readAt?.toISOString() || null,
     failedAt: r.failedAt?.toISOString() || null,
     failureReason: r.failureReason,
     respondedAt: r.respondedAt?.toISOString() || null,

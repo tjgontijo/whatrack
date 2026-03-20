@@ -499,6 +499,7 @@ export async function messageHandler(
             organizationId: config.organizationId,
             messageId: createdMessage.id,
             leadId: lead.id,
+            messageTimestamp,
           }).catch((err) =>
             logger.error({ err }, '[MessageHandler] Failed to attribute to campaign')
           )
