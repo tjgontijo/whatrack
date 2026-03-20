@@ -2,36 +2,36 @@
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- CreateTable
-CREATE TABLE "user_roles" (
+CREATE TABLE "auth_user_roles" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "name" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "user_roles_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "auth_user_roles_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "onboarding_statuses" (
+CREATE TABLE "org_onboarding_statuses" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "name" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "onboarding_statuses_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "org_onboarding_statuses_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "sale_statuses" (
+CREATE TABLE "crm_sale_statuses" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "name" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "sale_statuses_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "crm_sale_statuses_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -90,7 +90,7 @@ CREATE TABLE "whatsapp_audit_actions" (
 );
 
 -- CreateTable
-CREATE TABLE "user" (
+CREATE TABLE "auth_user" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "name" TEXT NOT NULL,
     "email" TEXT NOT NULL,
@@ -104,11 +104,11 @@ CREATE TABLE "user" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "user_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "auth_user_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "session" (
+CREATE TABLE "auth_session" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "expiresAt" TIMESTAMP(3) NOT NULL,
     "token" TEXT NOT NULL,
@@ -119,13 +119,12 @@ CREATE TABLE "session" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "activeOrganizationId" UUID,
-    "activeProjectId" UUID,
 
-    CONSTRAINT "session_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "auth_session_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "account" (
+CREATE TABLE "auth_account" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "accountId" TEXT NOT NULL,
     "providerId" TEXT NOT NULL,
@@ -140,11 +139,11 @@ CREATE TABLE "account" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "account_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "auth_account_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "verification" (
+CREATE TABLE "auth_verification" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "identifier" TEXT NOT NULL,
     "value" TEXT NOT NULL,
@@ -152,11 +151,11 @@ CREATE TABLE "verification" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "verification_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "auth_verification_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "ticket_tracking" (
+CREATE TABLE "crm_ticket_tracking" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "ticketId" UUID NOT NULL,
     "utmSource" TEXT,
@@ -188,11 +187,11 @@ CREATE TABLE "ticket_tracking" (
     "ipAddress" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "ticket_tracking_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "crm_ticket_tracking_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "organization" (
+CREATE TABLE "org_organizations" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "name" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
@@ -200,24 +199,25 @@ CREATE TABLE "organization" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "organization_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "org_organizations_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "projects" (
+CREATE TABLE "crm_projects" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "organizationId" UUID NOT NULL,
     "name" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
     "isArchived" BOOLEAN NOT NULL DEFAULT false,
     "archivedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "projects_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "crm_projects_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "organization_profiles" (
+CREATE TABLE "org_profiles" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "organizationId" UUID NOT NULL,
     "cpf" TEXT,
@@ -242,22 +242,22 @@ CREATE TABLE "organization_profiles" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "organization_profiles_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "org_profiles_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "member" (
+CREATE TABLE "org_members" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "organizationId" UUID NOT NULL,
     "userId" UUID NOT NULL,
     "role" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "member_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "org_members_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "organization_roles" (
+CREATE TABLE "org_roles" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "organizationId" UUID NOT NULL,
     "key" TEXT NOT NULL,
@@ -267,22 +267,22 @@ CREATE TABLE "organization_roles" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "organization_roles_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "org_roles_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "organization_role_permissions" (
+CREATE TABLE "org_role_permissions" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "organizationRoleId" UUID NOT NULL,
     "permissionKey" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "organization_role_permissions_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "org_role_permissions_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "member_permission_overrides" (
+CREATE TABLE "org_member_permission_overrides" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "memberId" UUID NOT NULL,
     "permissionKey" TEXT NOT NULL,
@@ -290,11 +290,11 @@ CREATE TABLE "member_permission_overrides" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "member_permission_overrides_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "org_member_permission_overrides_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "invitation" (
+CREATE TABLE "org_invitations" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "organizationId" UUID NOT NULL,
     "email" TEXT NOT NULL,
@@ -303,11 +303,11 @@ CREATE TABLE "invitation" (
     "expiresAt" TIMESTAMP(3) NOT NULL,
     "inviterId" UUID NOT NULL,
 
-    CONSTRAINT "invitation_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "org_invitations_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "leads" (
+CREATE TABLE "crm_leads" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "organizationId" UUID NOT NULL,
     "projectId" UUID,
@@ -328,11 +328,11 @@ CREATE TABLE "leads" (
     "totalTickets" INTEGER NOT NULL DEFAULT 0,
     "lifetimeValue" DECIMAL(12,2) NOT NULL DEFAULT 0,
 
-    CONSTRAINT "leads_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "crm_leads_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "conversations" (
+CREATE TABLE "crm_conversations" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "organizationId" UUID NOT NULL,
     "leadId" UUID NOT NULL,
@@ -349,11 +349,11 @@ CREATE TABLE "conversations" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "conversations_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "crm_conversations_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "tickets" (
+CREATE TABLE "crm_tickets" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "organizationId" UUID NOT NULL,
     "projectId" UUID,
@@ -380,11 +380,11 @@ CREATE TABLE "tickets" (
     "source" TEXT NOT NULL DEFAULT 'incoming_message',
     "originatedFrom" TEXT,
 
-    CONSTRAINT "tickets_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "crm_tickets_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "ticket_stages" (
+CREATE TABLE "crm_ticket_stages" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "organizationId" UUID NOT NULL,
     "name" TEXT NOT NULL,
@@ -395,11 +395,11 @@ CREATE TABLE "ticket_stages" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "ticket_stages_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "crm_ticket_stages_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "sales" (
+CREATE TABLE "crm_sales" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "organizationId" UUID NOT NULL,
     "projectId" UUID,
@@ -415,11 +415,11 @@ CREATE TABLE "sales" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "sales_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "crm_sales_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "sale_items" (
+CREATE TABLE "crm_sale_items" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "organizationId" UUID NOT NULL,
     "saleId" UUID NOT NULL,
@@ -431,11 +431,11 @@ CREATE TABLE "sale_items" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "sale_items_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "crm_sale_items_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "items" (
+CREATE TABLE "crm_items" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "organizationId" UUID NOT NULL,
     "projectId" UUID,
@@ -445,11 +445,11 @@ CREATE TABLE "items" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "items_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "crm_items_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "item_categories" (
+CREATE TABLE "crm_item_categories" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "organizationId" UUID NOT NULL,
     "projectId" UUID,
@@ -458,11 +458,11 @@ CREATE TABLE "item_categories" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "item_categories_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "crm_item_categories_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "organization_companies" (
+CREATE TABLE "org_companies" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "organizationId" UUID NOT NULL,
     "cnpj" TEXT NOT NULL,
@@ -496,7 +496,7 @@ CREATE TABLE "organization_companies" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "organization_companies_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "org_companies_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -640,9 +640,104 @@ CREATE TABLE "whatsapp_history_syncs" (
     "errorMessage" TEXT,
     "lastPayloadAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "whatsapp_history_syncs_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "whatsapp_campaigns" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "organizationId" UUID NOT NULL,
+    "projectId" UUID NOT NULL,
+    "name" TEXT NOT NULL,
+    "type" TEXT NOT NULL DEFAULT 'MARKETING',
+    "status" TEXT NOT NULL DEFAULT 'DRAFT',
+    "scheduledAt" TIMESTAMP(3),
+    "startedAt" TIMESTAMP(3),
+    "completedAt" TIMESTAMP(3),
+    "templateName" TEXT,
+    "templateLang" TEXT NOT NULL DEFAULT 'pt_BR',
+    "metadata" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "createdById" UUID NOT NULL,
+    "approvedById" UUID,
+    "approvedAt" TIMESTAMP(3),
+    "cancelledAt" TIMESTAMP(3),
+    "cancelledById" UUID,
+
+    CONSTRAINT "whatsapp_campaigns_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "whatsapp_campaign_dispatch_groups" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "campaignId" UUID NOT NULL,
+    "configId" UUID NOT NULL,
+    "templateName" TEXT NOT NULL,
+    "templateLang" TEXT NOT NULL DEFAULT 'pt_BR',
+    "variables" JSONB,
+    "order" INTEGER NOT NULL DEFAULT 0,
+    "status" TEXT NOT NULL DEFAULT 'PENDING',
+    "processedCount" INTEGER NOT NULL DEFAULT 0,
+    "successCount" INTEGER NOT NULL DEFAULT 0,
+    "failCount" INTEGER NOT NULL DEFAULT 0,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "whatsapp_campaign_dispatch_groups_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "whatsapp_campaign_recipients" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "dispatchGroupId" UUID NOT NULL,
+    "campaignId" UUID NOT NULL,
+    "leadId" UUID,
+    "phone" TEXT NOT NULL,
+    "normalizedPhone" TEXT NOT NULL,
+    "variables" JSONB,
+    "status" TEXT NOT NULL DEFAULT 'PENDING',
+    "metaWamid" TEXT,
+    "sentAt" TIMESTAMP(3),
+    "deliveredAt" TIMESTAMP(3),
+    "readAt" TIMESTAMP(3),
+    "failedAt" TIMESTAMP(3),
+    "failureReason" TEXT,
+    "respondedAt" TIMESTAMP(3),
+    "exclusionReason" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "whatsapp_campaign_recipients_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "whatsapp_campaign_imports" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "campaignId" UUID NOT NULL,
+    "fileName" TEXT NOT NULL,
+    "totalRows" INTEGER NOT NULL DEFAULT 0,
+    "processedRows" INTEGER NOT NULL DEFAULT 0,
+    "status" TEXT NOT NULL DEFAULT 'PENDING',
+    "errorMessage" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "whatsapp_campaign_imports_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "whatsapp_campaign_approvals" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "campaignId" UUID NOT NULL,
+    "userId" UUID NOT NULL,
+    "action" TEXT NOT NULL,
+    "comment" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "whatsapp_campaign_approvals_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -653,6 +748,7 @@ CREATE TABLE "whatsapp_messages" (
     "instanceId" UUID NOT NULL,
     "conversation_uuid" UUID,
     "ticketId" UUID,
+    "campaignRecipientId" UUID,
     "direction" TEXT NOT NULL,
     "type" TEXT NOT NULL,
     "body" TEXT,
@@ -1034,13 +1130,13 @@ CREATE TABLE "ai_insight_costs" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "user_roles_name_key" ON "user_roles"("name");
+CREATE UNIQUE INDEX "auth_user_roles_name_key" ON "auth_user_roles"("name");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "onboarding_statuses_name_key" ON "onboarding_statuses"("name");
+CREATE UNIQUE INDEX "org_onboarding_statuses_name_key" ON "org_onboarding_statuses"("name");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "sale_statuses_name_key" ON "sale_statuses"("name");
+CREATE UNIQUE INDEX "crm_sale_statuses_name_key" ON "crm_sale_statuses"("name");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "billing_subscription_statuses_name_key" ON "billing_subscription_statuses"("name");
@@ -1058,211 +1154,211 @@ CREATE UNIQUE INDEX "whatsapp_health_statuses_name_key" ON "whatsapp_health_stat
 CREATE UNIQUE INDEX "whatsapp_audit_actions_name_key" ON "whatsapp_audit_actions"("name");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "user_email_key" ON "user"("email");
+CREATE UNIQUE INDEX "auth_user_email_key" ON "auth_user"("email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "user_phone_key" ON "user"("phone");
+CREATE UNIQUE INDEX "auth_user_phone_key" ON "auth_user"("phone");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "session_token_key" ON "session"("token");
+CREATE UNIQUE INDEX "auth_session_token_key" ON "auth_session"("token");
 
 -- CreateIndex
-CREATE INDEX "session_userId_idx" ON "session"("userId");
+CREATE INDEX "auth_session_userId_idx" ON "auth_session"("userId");
 
 -- CreateIndex
-CREATE INDEX "account_userId_idx" ON "account"("userId");
+CREATE INDEX "auth_account_userId_idx" ON "auth_account"("userId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "account_providerId_accountId_key" ON "account"("providerId", "accountId");
+CREATE UNIQUE INDEX "auth_account_providerId_accountId_key" ON "auth_account"("providerId", "accountId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ticket_tracking_ticketId_key" ON "ticket_tracking"("ticketId");
+CREATE UNIQUE INDEX "crm_ticket_tracking_ticketId_key" ON "crm_ticket_tracking"("ticketId");
 
 -- CreateIndex
-CREATE INDEX "ticket_tracking_utmSource_idx" ON "ticket_tracking"("utmSource");
+CREATE INDEX "crm_ticket_tracking_utmSource_idx" ON "crm_ticket_tracking"("utmSource");
 
 -- CreateIndex
-CREATE INDEX "ticket_tracking_sourceType_idx" ON "ticket_tracking"("sourceType");
+CREATE INDEX "crm_ticket_tracking_sourceType_idx" ON "crm_ticket_tracking"("sourceType");
 
 -- CreateIndex
-CREATE INDEX "ticket_tracking_ctwaclid_idx" ON "ticket_tracking"("ctwaclid");
+CREATE INDEX "crm_ticket_tracking_ctwaclid_idx" ON "crm_ticket_tracking"("ctwaclid");
 
 -- CreateIndex
-CREATE INDEX "ticket_tracking_metaAdId_idx" ON "ticket_tracking"("metaAdId");
+CREATE INDEX "crm_ticket_tracking_metaAdId_idx" ON "crm_ticket_tracking"("metaAdId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "organization_slug_key" ON "organization"("slug");
+CREATE UNIQUE INDEX "org_organizations_slug_key" ON "org_organizations"("slug");
 
 -- CreateIndex
-CREATE INDEX "projects_organizationId_idx" ON "projects"("organizationId");
+CREATE INDEX "crm_projects_organizationId_idx" ON "crm_projects"("organizationId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "projects_organizationId_name_key" ON "projects"("organizationId", "name");
+CREATE UNIQUE INDEX "crm_projects_organizationId_slug_key" ON "crm_projects"("organizationId", "slug");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "organization_profiles_organizationId_key" ON "organization_profiles"("organizationId");
+CREATE UNIQUE INDEX "org_profiles_organizationId_key" ON "org_profiles"("organizationId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "organization_profiles_cpf_key" ON "organization_profiles"("cpf");
+CREATE UNIQUE INDEX "org_profiles_cpf_key" ON "org_profiles"("cpf");
 
 -- CreateIndex
-CREATE INDEX "member_organizationId_role_idx" ON "member"("organizationId", "role");
+CREATE INDEX "org_members_organizationId_role_idx" ON "org_members"("organizationId", "role");
 
 -- CreateIndex
-CREATE INDEX "organization_roles_organizationId_idx" ON "organization_roles"("organizationId");
+CREATE INDEX "org_roles_organizationId_idx" ON "org_roles"("organizationId");
 
 -- CreateIndex
-CREATE INDEX "organization_roles_isSystem_idx" ON "organization_roles"("isSystem");
+CREATE INDEX "org_roles_isSystem_idx" ON "org_roles"("isSystem");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "organization_roles_organizationId_key_key" ON "organization_roles"("organizationId", "key");
+CREATE UNIQUE INDEX "org_roles_organizationId_key_key" ON "org_roles"("organizationId", "key");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "organization_roles_organizationId_name_key" ON "organization_roles"("organizationId", "name");
+CREATE UNIQUE INDEX "org_roles_organizationId_name_key" ON "org_roles"("organizationId", "name");
 
 -- CreateIndex
-CREATE INDEX "organization_role_permissions_organizationRoleId_idx" ON "organization_role_permissions"("organizationRoleId");
+CREATE INDEX "org_role_permissions_organizationRoleId_idx" ON "org_role_permissions"("organizationRoleId");
 
 -- CreateIndex
-CREATE INDEX "organization_role_permissions_permissionKey_idx" ON "organization_role_permissions"("permissionKey");
+CREATE INDEX "org_role_permissions_permissionKey_idx" ON "org_role_permissions"("permissionKey");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "organization_role_permissions_organizationRoleId_permission_key" ON "organization_role_permissions"("organizationRoleId", "permissionKey");
+CREATE UNIQUE INDEX "org_role_permissions_organizationRoleId_permissionKey_key" ON "org_role_permissions"("organizationRoleId", "permissionKey");
 
 -- CreateIndex
-CREATE INDEX "member_permission_overrides_memberId_idx" ON "member_permission_overrides"("memberId");
+CREATE INDEX "org_member_permission_overrides_memberId_idx" ON "org_member_permission_overrides"("memberId");
 
 -- CreateIndex
-CREATE INDEX "member_permission_overrides_permissionKey_idx" ON "member_permission_overrides"("permissionKey");
+CREATE INDEX "org_member_permission_overrides_permissionKey_idx" ON "org_member_permission_overrides"("permissionKey");
 
 -- CreateIndex
-CREATE INDEX "member_permission_overrides_effect_idx" ON "member_permission_overrides"("effect");
+CREATE INDEX "org_member_permission_overrides_effect_idx" ON "org_member_permission_overrides"("effect");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "member_permission_overrides_memberId_permissionKey_key" ON "member_permission_overrides"("memberId", "permissionKey");
+CREATE UNIQUE INDEX "org_member_permission_overrides_memberId_permissionKey_key" ON "org_member_permission_overrides"("memberId", "permissionKey");
 
 -- CreateIndex
-CREATE INDEX "leads_organizationId_idx" ON "leads"("organizationId");
+CREATE INDEX "crm_leads_organizationId_idx" ON "crm_leads"("organizationId");
 
 -- CreateIndex
-CREATE INDEX "leads_projectId_idx" ON "leads"("projectId");
+CREATE INDEX "crm_leads_projectId_idx" ON "crm_leads"("projectId");
 
 -- CreateIndex
-CREATE INDEX "leads_organizationId_projectId_idx" ON "leads"("organizationId", "projectId");
+CREATE INDEX "crm_leads_organizationId_projectId_idx" ON "crm_leads"("organizationId", "projectId");
 
 -- CreateIndex
-CREATE INDEX "leads_source_idx" ON "leads"("source");
+CREATE INDEX "crm_leads_source_idx" ON "crm_leads"("source");
 
 -- CreateIndex
-CREATE INDEX "leads_isActive_idx" ON "leads"("isActive");
+CREATE INDEX "crm_leads_isActive_idx" ON "crm_leads"("isActive");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "leads_organizationId_phone_key" ON "leads"("organizationId", "phone");
+CREATE UNIQUE INDEX "crm_leads_organizationId_phone_key" ON "crm_leads"("organizationId", "phone");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "leads_organizationId_remote_jid_key" ON "leads"("organizationId", "remote_jid");
+CREATE UNIQUE INDEX "crm_leads_organizationId_remote_jid_key" ON "crm_leads"("organizationId", "remote_jid");
 
 -- CreateIndex
-CREATE INDEX "conversations_organizationId_idx" ON "conversations"("organizationId");
+CREATE INDEX "crm_conversations_organizationId_idx" ON "crm_conversations"("organizationId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "conversations_leadId_instanceId_key" ON "conversations"("leadId", "instanceId");
+CREATE UNIQUE INDEX "crm_conversations_leadId_instanceId_key" ON "crm_conversations"("leadId", "instanceId");
 
 -- CreateIndex
-CREATE INDEX "tickets_organizationId_idx" ON "tickets"("organizationId");
+CREATE INDEX "crm_tickets_organizationId_idx" ON "crm_tickets"("organizationId");
 
 -- CreateIndex
-CREATE INDEX "tickets_projectId_idx" ON "tickets"("projectId");
+CREATE INDEX "crm_tickets_projectId_idx" ON "crm_tickets"("projectId");
 
 -- CreateIndex
-CREATE INDEX "tickets_organizationId_projectId_idx" ON "tickets"("organizationId", "projectId");
+CREATE INDEX "crm_tickets_organizationId_projectId_idx" ON "crm_tickets"("organizationId", "projectId");
 
 -- CreateIndex
-CREATE INDEX "tickets_conversationId_idx" ON "tickets"("conversationId");
+CREATE INDEX "crm_tickets_conversationId_idx" ON "crm_tickets"("conversationId");
 
 -- CreateIndex
-CREATE INDEX "tickets_status_idx" ON "tickets"("status");
+CREATE INDEX "crm_tickets_status_idx" ON "crm_tickets"("status");
 
 -- CreateIndex
-CREATE INDEX "tickets_stageId_idx" ON "tickets"("stageId");
+CREATE INDEX "crm_tickets_stageId_idx" ON "crm_tickets"("stageId");
 
 -- CreateIndex
-CREATE INDEX "ticket_stages_organizationId_order_idx" ON "ticket_stages"("organizationId", "order");
+CREATE INDEX "crm_ticket_stages_organizationId_order_idx" ON "crm_ticket_stages"("organizationId", "order");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ticket_stages_organizationId_name_key" ON "ticket_stages"("organizationId", "name");
+CREATE UNIQUE INDEX "crm_ticket_stages_organizationId_name_key" ON "crm_ticket_stages"("organizationId", "name");
 
 -- CreateIndex
-CREATE INDEX "sales_organizationId_idx" ON "sales"("organizationId");
+CREATE INDEX "crm_sales_organizationId_idx" ON "crm_sales"("organizationId");
 
 -- CreateIndex
-CREATE INDEX "sales_projectId_idx" ON "sales"("projectId");
+CREATE INDEX "crm_sales_projectId_idx" ON "crm_sales"("projectId");
 
 -- CreateIndex
-CREATE INDEX "sales_organizationId_projectId_idx" ON "sales"("organizationId", "projectId");
+CREATE INDEX "crm_sales_organizationId_projectId_idx" ON "crm_sales"("organizationId", "projectId");
 
 -- CreateIndex
-CREATE INDEX "sales_createdAt_idx" ON "sales"("createdAt");
+CREATE INDEX "crm_sales_createdAt_idx" ON "crm_sales"("createdAt");
 
 -- CreateIndex
-CREATE INDEX "sales_ticketId_idx" ON "sales"("ticketId");
+CREATE INDEX "crm_sales_ticketId_idx" ON "crm_sales"("ticketId");
 
 -- CreateIndex
-CREATE INDEX "sale_items_organizationId_idx" ON "sale_items"("organizationId");
+CREATE INDEX "crm_sale_items_organizationId_idx" ON "crm_sale_items"("organizationId");
 
 -- CreateIndex
-CREATE INDEX "sale_items_saleId_idx" ON "sale_items"("saleId");
+CREATE INDEX "crm_sale_items_saleId_idx" ON "crm_sale_items"("saleId");
 
 -- CreateIndex
-CREATE INDEX "sale_items_itemId_idx" ON "sale_items"("itemId");
+CREATE INDEX "crm_sale_items_itemId_idx" ON "crm_sale_items"("itemId");
 
 -- CreateIndex
-CREATE INDEX "items_organizationId_idx" ON "items"("organizationId");
+CREATE INDEX "crm_items_organizationId_idx" ON "crm_items"("organizationId");
 
 -- CreateIndex
-CREATE INDEX "items_projectId_idx" ON "items"("projectId");
+CREATE INDEX "crm_items_projectId_idx" ON "crm_items"("projectId");
 
 -- CreateIndex
-CREATE INDEX "items_organizationId_projectId_idx" ON "items"("organizationId", "projectId");
+CREATE INDEX "crm_items_organizationId_projectId_idx" ON "crm_items"("organizationId", "projectId");
 
 -- CreateIndex
-CREATE INDEX "items_active_idx" ON "items"("active");
+CREATE INDEX "crm_items_active_idx" ON "crm_items"("active");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "items_organizationId_name_key" ON "items"("organizationId", "name");
+CREATE UNIQUE INDEX "crm_items_organizationId_name_key" ON "crm_items"("organizationId", "name");
 
 -- CreateIndex
-CREATE INDEX "item_categories_organizationId_idx" ON "item_categories"("organizationId");
+CREATE INDEX "crm_item_categories_organizationId_idx" ON "crm_item_categories"("organizationId");
 
 -- CreateIndex
-CREATE INDEX "item_categories_projectId_idx" ON "item_categories"("projectId");
+CREATE INDEX "crm_item_categories_projectId_idx" ON "crm_item_categories"("projectId");
 
 -- CreateIndex
-CREATE INDEX "item_categories_organizationId_projectId_idx" ON "item_categories"("organizationId", "projectId");
+CREATE INDEX "crm_item_categories_organizationId_projectId_idx" ON "crm_item_categories"("organizationId", "projectId");
 
 -- CreateIndex
-CREATE INDEX "item_categories_active_idx" ON "item_categories"("active");
+CREATE INDEX "crm_item_categories_active_idx" ON "crm_item_categories"("active");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "item_categories_organizationId_name_key" ON "item_categories"("organizationId", "name");
+CREATE UNIQUE INDEX "crm_item_categories_organizationId_name_key" ON "crm_item_categories"("organizationId", "name");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "organization_companies_organizationId_key" ON "organization_companies"("organizationId");
+CREATE UNIQUE INDEX "org_companies_organizationId_key" ON "org_companies"("organizationId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "organization_companies_cnpj_key" ON "organization_companies"("cnpj");
+CREATE UNIQUE INDEX "org_companies_cnpj_key" ON "org_companies"("cnpj");
 
 -- CreateIndex
-CREATE INDEX "organization_companies_cnaeCode_idx" ON "organization_companies"("cnaeCode");
+CREATE INDEX "org_companies_cnaeCode_idx" ON "org_companies"("cnaeCode");
 
 -- CreateIndex
-CREATE INDEX "organization_companies_porte_idx" ON "organization_companies"("porte");
+CREATE INDEX "org_companies_porte_idx" ON "org_companies"("porte");
 
 -- CreateIndex
-CREATE INDEX "organization_companies_uf_idx" ON "organization_companies"("uf");
+CREATE INDEX "org_companies_uf_idx" ON "org_companies"("uf");
 
 -- CreateIndex
-CREATE INDEX "organization_companies_situacao_idx" ON "organization_companies"("situacao");
+CREATE INDEX "org_companies_situacao_idx" ON "org_companies"("situacao");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "whatsapp_configs_phoneId_key" ON "whatsapp_configs"("phoneId");
@@ -1364,6 +1460,60 @@ CREATE INDEX "whatsapp_audit_logs_trackingCode_idx" ON "whatsapp_audit_logs"("tr
 CREATE INDEX "whatsapp_audit_logs_connectionId_idx" ON "whatsapp_audit_logs"("connectionId");
 
 -- CreateIndex
+CREATE INDEX "whatsapp_campaigns_organizationId_idx" ON "whatsapp_campaigns"("organizationId");
+
+-- CreateIndex
+CREATE INDEX "whatsapp_campaigns_projectId_idx" ON "whatsapp_campaigns"("projectId");
+
+-- CreateIndex
+CREATE INDEX "whatsapp_campaigns_organizationId_projectId_idx" ON "whatsapp_campaigns"("organizationId", "projectId");
+
+-- CreateIndex
+CREATE INDEX "whatsapp_campaigns_status_idx" ON "whatsapp_campaigns"("status");
+
+-- CreateIndex
+CREATE INDEX "whatsapp_campaigns_scheduledAt_idx" ON "whatsapp_campaigns"("scheduledAt");
+
+-- CreateIndex
+CREATE INDEX "whatsapp_campaign_dispatch_groups_campaignId_idx" ON "whatsapp_campaign_dispatch_groups"("campaignId");
+
+-- CreateIndex
+CREATE INDEX "whatsapp_campaign_dispatch_groups_configId_idx" ON "whatsapp_campaign_dispatch_groups"("configId");
+
+-- CreateIndex
+CREATE INDEX "whatsapp_campaign_dispatch_groups_status_idx" ON "whatsapp_campaign_dispatch_groups"("status");
+
+-- CreateIndex
+CREATE INDEX "whatsapp_campaign_recipients_campaignId_idx" ON "whatsapp_campaign_recipients"("campaignId");
+
+-- CreateIndex
+CREATE INDEX "whatsapp_campaign_recipients_dispatchGroupId_idx" ON "whatsapp_campaign_recipients"("dispatchGroupId");
+
+-- CreateIndex
+CREATE INDEX "whatsapp_campaign_recipients_leadId_idx" ON "whatsapp_campaign_recipients"("leadId");
+
+-- CreateIndex
+CREATE INDEX "whatsapp_campaign_recipients_phone_idx" ON "whatsapp_campaign_recipients"("phone");
+
+-- CreateIndex
+CREATE INDEX "whatsapp_campaign_recipients_normalizedPhone_idx" ON "whatsapp_campaign_recipients"("normalizedPhone");
+
+-- CreateIndex
+CREATE INDEX "whatsapp_campaign_recipients_status_idx" ON "whatsapp_campaign_recipients"("status");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "whatsapp_campaign_recipients_campaignId_normalizedPhone_key" ON "whatsapp_campaign_recipients"("campaignId", "normalizedPhone");
+
+-- CreateIndex
+CREATE INDEX "whatsapp_campaign_imports_campaignId_idx" ON "whatsapp_campaign_imports"("campaignId");
+
+-- CreateIndex
+CREATE INDEX "whatsapp_campaign_approvals_campaignId_idx" ON "whatsapp_campaign_approvals"("campaignId");
+
+-- CreateIndex
+CREATE INDEX "whatsapp_campaign_approvals_userId_idx" ON "whatsapp_campaign_approvals"("userId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "whatsapp_messages_wamid_key" ON "whatsapp_messages"("wamid");
 
 -- CreateIndex
@@ -1383,6 +1533,9 @@ CREATE INDEX "whatsapp_messages_source_idx" ON "whatsapp_messages"("source");
 
 -- CreateIndex
 CREATE INDEX "whatsapp_messages_timestamp_idx" ON "whatsapp_messages"("timestamp");
+
+-- CreateIndex
+CREATE INDEX "whatsapp_messages_campaignRecipientId_idx" ON "whatsapp_messages"("campaignRecipientId");
 
 -- CreateIndex
 CREATE INDEX "meta_connections_organizationId_projectId_idx" ON "meta_connections"("organizationId", "projectId");
@@ -1586,130 +1739,130 @@ CREATE INDEX "ai_insight_costs_status_createdAt_idx" ON "ai_insight_costs"("stat
 CREATE INDEX "ai_insight_costs_organizationId_eventType_createdAt_idx" ON "ai_insight_costs"("organizationId", "eventType", "createdAt");
 
 -- AddForeignKey
-ALTER TABLE "session" ADD CONSTRAINT "session_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "auth_session" ADD CONSTRAINT "auth_session_userId_fkey" FOREIGN KEY ("userId") REFERENCES "auth_user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "account" ADD CONSTRAINT "account_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "auth_account" ADD CONSTRAINT "auth_account_userId_fkey" FOREIGN KEY ("userId") REFERENCES "auth_user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ticket_tracking" ADD CONSTRAINT "ticket_tracking_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "tickets"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "crm_ticket_tracking" ADD CONSTRAINT "crm_ticket_tracking_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "crm_tickets"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "projects" ADD CONSTRAINT "projects_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "crm_projects" ADD CONSTRAINT "crm_projects_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "organization_profiles" ADD CONSTRAINT "organization_profiles_onboardingStatus_fkey" FOREIGN KEY ("onboardingStatus") REFERENCES "onboarding_statuses"("name") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "org_profiles" ADD CONSTRAINT "org_profiles_onboardingStatus_fkey" FOREIGN KEY ("onboardingStatus") REFERENCES "org_onboarding_statuses"("name") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "organization_profiles" ADD CONSTRAINT "organization_profiles_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "org_profiles" ADD CONSTRAINT "org_profiles_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "member" ADD CONSTRAINT "member_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "org_members" ADD CONSTRAINT "org_members_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "member" ADD CONSTRAINT "member_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "org_members" ADD CONSTRAINT "org_members_userId_fkey" FOREIGN KEY ("userId") REFERENCES "auth_user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "organization_roles" ADD CONSTRAINT "organization_roles_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "org_roles" ADD CONSTRAINT "org_roles_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "organization_role_permissions" ADD CONSTRAINT "organization_role_permissions_organizationRoleId_fkey" FOREIGN KEY ("organizationRoleId") REFERENCES "organization_roles"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "org_role_permissions" ADD CONSTRAINT "org_role_permissions_organizationRoleId_fkey" FOREIGN KEY ("organizationRoleId") REFERENCES "org_roles"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "member_permission_overrides" ADD CONSTRAINT "member_permission_overrides_memberId_fkey" FOREIGN KEY ("memberId") REFERENCES "member"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "org_member_permission_overrides" ADD CONSTRAINT "org_member_permission_overrides_memberId_fkey" FOREIGN KEY ("memberId") REFERENCES "org_members"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "invitation" ADD CONSTRAINT "invitation_inviterId_fkey" FOREIGN KEY ("inviterId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "org_invitations" ADD CONSTRAINT "org_invitations_inviterId_fkey" FOREIGN KEY ("inviterId") REFERENCES "auth_user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "invitation" ADD CONSTRAINT "invitation_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "org_invitations" ADD CONSTRAINT "org_invitations_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "leads" ADD CONSTRAINT "leads_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "crm_leads" ADD CONSTRAINT "crm_leads_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "leads" ADD CONSTRAINT "leads_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "projects"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "crm_leads" ADD CONSTRAINT "crm_leads_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "conversations" ADD CONSTRAINT "conversations_instanceId_fkey" FOREIGN KEY ("instanceId") REFERENCES "whatsapp_configs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "crm_conversations" ADD CONSTRAINT "crm_conversations_instanceId_fkey" FOREIGN KEY ("instanceId") REFERENCES "whatsapp_configs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "conversations" ADD CONSTRAINT "conversations_leadId_fkey" FOREIGN KEY ("leadId") REFERENCES "leads"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "crm_conversations" ADD CONSTRAINT "crm_conversations_leadId_fkey" FOREIGN KEY ("leadId") REFERENCES "crm_leads"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "conversations" ADD CONSTRAINT "conversations_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "crm_conversations" ADD CONSTRAINT "crm_conversations_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "tickets" ADD CONSTRAINT "tickets_assigneeId_fkey" FOREIGN KEY ("assigneeId") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "crm_tickets" ADD CONSTRAINT "crm_tickets_assigneeId_fkey" FOREIGN KEY ("assigneeId") REFERENCES "auth_user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "tickets" ADD CONSTRAINT "tickets_conversationId_fkey" FOREIGN KEY ("conversationId") REFERENCES "conversations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "crm_tickets" ADD CONSTRAINT "crm_tickets_conversationId_fkey" FOREIGN KEY ("conversationId") REFERENCES "crm_conversations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "tickets" ADD CONSTRAINT "tickets_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "crm_tickets" ADD CONSTRAINT "crm_tickets_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "tickets" ADD CONSTRAINT "tickets_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "projects"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "crm_tickets" ADD CONSTRAINT "crm_tickets_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "tickets" ADD CONSTRAINT "tickets_stageId_fkey" FOREIGN KEY ("stageId") REFERENCES "ticket_stages"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "crm_tickets" ADD CONSTRAINT "crm_tickets_stageId_fkey" FOREIGN KEY ("stageId") REFERENCES "crm_ticket_stages"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ticket_stages" ADD CONSTRAINT "ticket_stages_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "crm_ticket_stages" ADD CONSTRAINT "crm_ticket_stages_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "sales" ADD CONSTRAINT "sales_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "crm_sales" ADD CONSTRAINT "crm_sales_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "sales" ADD CONSTRAINT "sales_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "projects"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "crm_sales" ADD CONSTRAINT "crm_sales_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "sales" ADD CONSTRAINT "sales_status_fkey" FOREIGN KEY ("status") REFERENCES "sale_statuses"("name") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "crm_sales" ADD CONSTRAINT "crm_sales_status_fkey" FOREIGN KEY ("status") REFERENCES "crm_sale_statuses"("name") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "sales" ADD CONSTRAINT "sales_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "tickets"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "crm_sales" ADD CONSTRAINT "crm_sales_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "crm_tickets"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "sale_items" ADD CONSTRAINT "sale_items_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "crm_sale_items" ADD CONSTRAINT "crm_sale_items_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "sale_items" ADD CONSTRAINT "sale_items_itemId_fkey" FOREIGN KEY ("itemId") REFERENCES "items"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "crm_sale_items" ADD CONSTRAINT "crm_sale_items_itemId_fkey" FOREIGN KEY ("itemId") REFERENCES "crm_items"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "sale_items" ADD CONSTRAINT "sale_items_saleId_fkey" FOREIGN KEY ("saleId") REFERENCES "sales"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "crm_sale_items" ADD CONSTRAINT "crm_sale_items_saleId_fkey" FOREIGN KEY ("saleId") REFERENCES "crm_sales"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "items" ADD CONSTRAINT "items_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "item_categories"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "crm_items" ADD CONSTRAINT "crm_items_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "crm_item_categories"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "items" ADD CONSTRAINT "items_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "crm_items" ADD CONSTRAINT "crm_items_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "items" ADD CONSTRAINT "items_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "projects"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "crm_items" ADD CONSTRAINT "crm_items_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "item_categories" ADD CONSTRAINT "item_categories_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "crm_item_categories" ADD CONSTRAINT "crm_item_categories_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "item_categories" ADD CONSTRAINT "item_categories_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "projects"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "crm_item_categories" ADD CONSTRAINT "crm_item_categories_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "organization_companies" ADD CONSTRAINT "organization_companies_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "org_companies" ADD CONSTRAINT "org_companies_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "whatsapp_configs" ADD CONSTRAINT "whatsapp_configs_connectionId_fkey" FOREIGN KEY ("connectionId") REFERENCES "whatsapp_connections"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "whatsapp_configs" ADD CONSTRAINT "whatsapp_configs_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "whatsapp_configs" ADD CONSTRAINT "whatsapp_configs_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "whatsapp_configs" ADD CONSTRAINT "whatsapp_configs_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "whatsapp_configs" ADD CONSTRAINT "whatsapp_configs_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "whatsapp_onboarding" ADD CONSTRAINT "whatsapp_onboarding_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "whatsapp_onboarding" ADD CONSTRAINT "whatsapp_onboarding_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "whatsapp_onboarding" ADD CONSTRAINT "whatsapp_onboarding_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "whatsapp_onboarding" ADD CONSTRAINT "whatsapp_onboarding_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "whatsapp_onboarding" ADD CONSTRAINT "whatsapp_onboarding_status_fkey" FOREIGN KEY ("status") REFERENCES "whatsapp_onboarding_statuses"("name") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -1718,10 +1871,10 @@ ALTER TABLE "whatsapp_onboarding" ADD CONSTRAINT "whatsapp_onboarding_status_fke
 ALTER TABLE "whatsapp_connections" ADD CONSTRAINT "whatsapp_connections_healthStatus_fkey" FOREIGN KEY ("healthStatus") REFERENCES "whatsapp_health_statuses"("name") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "whatsapp_connections" ADD CONSTRAINT "whatsapp_connections_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "whatsapp_connections" ADD CONSTRAINT "whatsapp_connections_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "whatsapp_connections" ADD CONSTRAINT "whatsapp_connections_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "whatsapp_connections" ADD CONSTRAINT "whatsapp_connections_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "whatsapp_connections" ADD CONSTRAINT "whatsapp_connections_status_fkey" FOREIGN KEY ("status") REFERENCES "whatsapp_connection_statuses"("name") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -1730,13 +1883,13 @@ ALTER TABLE "whatsapp_connections" ADD CONSTRAINT "whatsapp_connections_status_f
 ALTER TABLE "whatsapp_health" ADD CONSTRAINT "whatsapp_health_connectionId_fkey" FOREIGN KEY ("connectionId") REFERENCES "whatsapp_connections"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "whatsapp_health" ADD CONSTRAINT "whatsapp_health_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "whatsapp_health" ADD CONSTRAINT "whatsapp_health_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "whatsapp_health" ADD CONSTRAINT "whatsapp_health_status_fkey" FOREIGN KEY ("status") REFERENCES "whatsapp_health_statuses"("name") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "whatsapp_webhook_logs" ADD CONSTRAINT "whatsapp_webhook_logs_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "whatsapp_webhook_logs" ADD CONSTRAINT "whatsapp_webhook_logs_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "whatsapp_audit_logs" ADD CONSTRAINT "whatsapp_audit_logs_action_fkey" FOREIGN KEY ("action") REFERENCES "whatsapp_audit_actions"("name") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -1745,61 +1898,103 @@ ALTER TABLE "whatsapp_audit_logs" ADD CONSTRAINT "whatsapp_audit_logs_action_fke
 ALTER TABLE "whatsapp_audit_logs" ADD CONSTRAINT "whatsapp_audit_logs_connectionId_fkey" FOREIGN KEY ("connectionId") REFERENCES "whatsapp_connections"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "whatsapp_audit_logs" ADD CONSTRAINT "whatsapp_audit_logs_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "whatsapp_audit_logs" ADD CONSTRAINT "whatsapp_audit_logs_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "whatsapp_messages" ADD CONSTRAINT "whatsapp_messages_conversation_uuid_fkey" FOREIGN KEY ("conversation_uuid") REFERENCES "conversations"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "whatsapp_campaigns" ADD CONSTRAINT "whatsapp_campaigns_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "whatsapp_campaigns" ADD CONSTRAINT "whatsapp_campaigns_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "whatsapp_campaigns" ADD CONSTRAINT "whatsapp_campaigns_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "auth_user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "whatsapp_campaigns" ADD CONSTRAINT "whatsapp_campaigns_approvedById_fkey" FOREIGN KEY ("approvedById") REFERENCES "auth_user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "whatsapp_campaigns" ADD CONSTRAINT "whatsapp_campaigns_cancelledById_fkey" FOREIGN KEY ("cancelledById") REFERENCES "auth_user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "whatsapp_campaign_dispatch_groups" ADD CONSTRAINT "whatsapp_campaign_dispatch_groups_campaignId_fkey" FOREIGN KEY ("campaignId") REFERENCES "whatsapp_campaigns"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "whatsapp_campaign_dispatch_groups" ADD CONSTRAINT "whatsapp_campaign_dispatch_groups_configId_fkey" FOREIGN KEY ("configId") REFERENCES "whatsapp_configs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "whatsapp_campaign_recipients" ADD CONSTRAINT "whatsapp_campaign_recipients_dispatchGroupId_fkey" FOREIGN KEY ("dispatchGroupId") REFERENCES "whatsapp_campaign_dispatch_groups"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "whatsapp_campaign_recipients" ADD CONSTRAINT "whatsapp_campaign_recipients_campaignId_fkey" FOREIGN KEY ("campaignId") REFERENCES "whatsapp_campaigns"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "whatsapp_campaign_recipients" ADD CONSTRAINT "whatsapp_campaign_recipients_leadId_fkey" FOREIGN KEY ("leadId") REFERENCES "crm_leads"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "whatsapp_campaign_imports" ADD CONSTRAINT "whatsapp_campaign_imports_campaignId_fkey" FOREIGN KEY ("campaignId") REFERENCES "whatsapp_campaigns"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "whatsapp_campaign_approvals" ADD CONSTRAINT "whatsapp_campaign_approvals_campaignId_fkey" FOREIGN KEY ("campaignId") REFERENCES "whatsapp_campaigns"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "whatsapp_campaign_approvals" ADD CONSTRAINT "whatsapp_campaign_approvals_userId_fkey" FOREIGN KEY ("userId") REFERENCES "auth_user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "whatsapp_messages" ADD CONSTRAINT "whatsapp_messages_conversation_uuid_fkey" FOREIGN KEY ("conversation_uuid") REFERENCES "crm_conversations"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "whatsapp_messages" ADD CONSTRAINT "whatsapp_messages_instanceId_fkey" FOREIGN KEY ("instanceId") REFERENCES "whatsapp_configs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "whatsapp_messages" ADD CONSTRAINT "whatsapp_messages_leadId_fkey" FOREIGN KEY ("leadId") REFERENCES "leads"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "whatsapp_messages" ADD CONSTRAINT "whatsapp_messages_leadId_fkey" FOREIGN KEY ("leadId") REFERENCES "crm_leads"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "whatsapp_messages" ADD CONSTRAINT "whatsapp_messages_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "tickets"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "whatsapp_messages" ADD CONSTRAINT "whatsapp_messages_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "crm_tickets"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "meta_connections" ADD CONSTRAINT "meta_connections_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "whatsapp_messages" ADD CONSTRAINT "whatsapp_messages_campaignRecipientId_fkey" FOREIGN KEY ("campaignRecipientId") REFERENCES "whatsapp_campaign_recipients"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "meta_connections" ADD CONSTRAINT "meta_connections_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "meta_connections" ADD CONSTRAINT "meta_connections_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "meta_connections" ADD CONSTRAINT "meta_connections_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "meta_ad_accounts" ADD CONSTRAINT "meta_ad_accounts_connectionId_fkey" FOREIGN KEY ("connectionId") REFERENCES "meta_connections"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "meta_ad_accounts" ADD CONSTRAINT "meta_ad_accounts_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "meta_ad_accounts" ADD CONSTRAINT "meta_ad_accounts_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "meta_ad_accounts" ADD CONSTRAINT "meta_ad_accounts_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "meta_ad_accounts" ADD CONSTRAINT "meta_ad_accounts_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "meta_pixels" ADD CONSTRAINT "meta_pixels_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "meta_pixels" ADD CONSTRAINT "meta_pixels_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "meta_pixels" ADD CONSTRAINT "meta_pixels_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "meta_pixels" ADD CONSTRAINT "meta_pixels_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "meta_conversion_events" ADD CONSTRAINT "meta_conversion_events_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "meta_conversion_events" ADD CONSTRAINT "meta_conversion_events_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "meta_conversion_events" ADD CONSTRAINT "meta_conversion_events_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "projects"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "meta_conversion_events" ADD CONSTRAINT "meta_conversion_events_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "meta_attribution_history" ADD CONSTRAINT "meta_attribution_history_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "tickets"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "meta_attribution_history" ADD CONSTRAINT "meta_attribution_history_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "crm_tickets"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ai_conversion_approvals" ADD CONSTRAINT "ai_conversion_approvals_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "ai_conversion_approvals" ADD CONSTRAINT "ai_conversion_approvals_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ai_conversion_approvals" ADD CONSTRAINT "ai_conversion_approvals_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "tickets"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "ai_conversion_approvals" ADD CONSTRAINT "ai_conversion_approvals_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "crm_tickets"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ai_agents" ADD CONSTRAINT "ai_agents_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "ai_agents" ADD CONSTRAINT "ai_agents_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ai_skills" ADD CONSTRAINT "ai_skills_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "ai_skills" ADD CONSTRAINT "ai_skills_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ai_agent_skills" ADD CONSTRAINT "ai_agent_skills_agentId_fkey" FOREIGN KEY ("agentId") REFERENCES "ai_agents"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1820,10 +2015,10 @@ ALTER TABLE "ai_schema_fields" ADD CONSTRAINT "ai_schema_fields_agentId_fkey" FO
 ALTER TABLE "ai_schema_fields" ADD CONSTRAINT "ai_schema_fields_fieldType_fkey" FOREIGN KEY ("fieldType") REFERENCES "ai_schema_field_types"("name") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ai_insights" ADD CONSTRAINT "ai_insights_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "ai_insights" ADD CONSTRAINT "ai_insights_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ai_insights" ADD CONSTRAINT "ai_insights_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "tickets"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "ai_insights" ADD CONSTRAINT "ai_insights_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "crm_tickets"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ai_insights" ADD CONSTRAINT "ai_insights_agentId_fkey" FOREIGN KEY ("agentId") REFERENCES "ai_agents"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1832,16 +2027,16 @@ ALTER TABLE "ai_insights" ADD CONSTRAINT "ai_insights_agentId_fkey" FOREIGN KEY 
 ALTER TABLE "ai_insights" ADD CONSTRAINT "ai_insights_status_fkey" FOREIGN KEY ("status") REFERENCES "ai_insight_action_statuses"("name") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "org_audit_logs" ADD CONSTRAINT "org_audit_logs_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "org_audit_logs" ADD CONSTRAINT "org_audit_logs_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "org_audit_logs" ADD CONSTRAINT "org_audit_logs_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "org_audit_logs" ADD CONSTRAINT "org_audit_logs_userId_fkey" FOREIGN KEY ("userId") REFERENCES "auth_user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "billing_subscriptions" ADD CONSTRAINT "billing_subscriptions_status_fkey" FOREIGN KEY ("status") REFERENCES "billing_subscription_statuses"("name") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "billing_subscriptions" ADD CONSTRAINT "billing_subscriptions_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "billing_subscriptions" ADD CONSTRAINT "billing_subscriptions_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "billing_subscriptions" ADD CONSTRAINT "billing_subscriptions_planId_fkey" FOREIGN KEY ("planId") REFERENCES "billing_plans"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -1856,7 +2051,7 @@ ALTER TABLE "billing_subscription_items" ADD CONSTRAINT "billing_subscription_it
 ALTER TABLE "billing_plan_history" ADD CONSTRAINT "billing_plan_history_planId_fkey" FOREIGN KEY ("planId") REFERENCES "billing_plans"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ai_insight_costs" ADD CONSTRAINT "ai_insight_costs_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "ai_insight_costs" ADD CONSTRAINT "ai_insight_costs_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ai_insight_costs" ADD CONSTRAINT "ai_insight_costs_aiInsightId_fkey" FOREIGN KEY ("aiInsightId") REFERENCES "ai_insights"("id") ON DELETE CASCADE ON UPDATE CASCADE;

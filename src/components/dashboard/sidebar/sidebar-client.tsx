@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -102,6 +102,10 @@ export function SidebarClient({
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(activeProjectId)
   const permissionSet = useMemo(() => new Set(permissions), [permissions])
 
+  useEffect(() => {
+    setSelectedProjectId(activeProjectId)
+  }, [activeProjectId])
+
   const userName = session?.user?.name || 'Usuário'
   const userEmail = session?.user?.email || ''
   const userImage = session?.user?.image
@@ -148,15 +152,36 @@ export function SidebarClient({
         body: JSON.stringify({ projectId }),
         orgId: organizationId,
       }),
-    onMutate: (projectId) => {
+    onMutate: async (projectId) => {
+      const previousCurrentProject = queryClient.getQueryData(['current-project', organizationId])
+      const nextProject = projectId
+        ? projects.find((project) => project.id === projectId) ?? null
+        : null
+
       setSelectedProjectId(projectId)
+
+      queryClient.setQueryData(['current-project', organizationId], {
+        projectId,
+        project: nextProject
+          ? {
+              id: nextProject.id,
+              name: nextProject.name,
+            }
+          : null,
+      })
+
+      return { previousCurrentProject }
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries()
       router.refresh()
     },
-    onError: () => {
+    onError: (_error, _projectId, context) => {
       setSelectedProjectId(activeProjectId)
+      queryClient.setQueryData(
+        ['current-project', organizationId],
+        context?.previousCurrentProject ?? null,
+      )
     },
   })
 

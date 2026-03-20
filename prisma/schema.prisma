@@ -16,7 +16,7 @@ model UserRole {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  @@map("user_roles")
+  @@map("auth_user_roles")
 }
 
 model OnboardingStatus {
@@ -27,7 +27,7 @@ model OnboardingStatus {
   updatedAt   DateTime              @updatedAt
   profiles    OrganizationProfile[]
 
-  @@map("onboarding_statuses")
+  @@map("org_onboarding_statuses")
 }
 
 model SaleStatus {
@@ -38,7 +38,7 @@ model SaleStatus {
   updatedAt   DateTime @updatedAt
   sales       Sale[]
 
-  @@map("sale_statuses")
+  @@map("crm_sale_statuses")
 }
 
 model BillingSubscriptionStatus {
@@ -121,7 +121,7 @@ model User {
   cancelledCampaigns WhatsAppCampaign[]         @relation("CampaignCanceller")
   campaignApprovals  WhatsAppCampaignApproval[]
 
-  @@map("user")
+  @@map("auth_user")
 }
 
 model Session {
@@ -138,7 +138,7 @@ model Session {
   user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-  @@map("session")
+  @@map("auth_session")
 }
 
 model Account {
@@ -159,7 +159,7 @@ model Account {
 
   @@unique([providerId, accountId])
   @@index([userId])
-  @@map("account")
+  @@map("auth_account")
 }
 
 model Verification {
@@ -170,7 +170,7 @@ model Verification {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @default(now()) @updatedAt
 
-  @@map("verification")
+  @@map("auth_verification")
 }
 
 model TicketTracking {
@@ -215,7 +215,7 @@ model TicketTracking {
   @@index([sourceType])
   @@index([ctwaclid])
   @@index([metaAdId])
-  @@map("ticket_tracking")
+  @@map("crm_ticket_tracking")
 }
 
 model Organization {
@@ -266,13 +266,14 @@ model Organization {
   billingSubscription BillingSubscription?
   whatsAppCampaigns   WhatsAppCampaign[]
 
-  @@map("organization")
+  @@map("org_organizations")
 }
 
 model Project {
   id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   organizationId String    @db.Uuid
   name           String
+  slug           String
   isArchived     Boolean   @default(false)
   archivedAt     DateTime?
   createdAt      DateTime  @default(now())
@@ -293,9 +294,9 @@ model Project {
   metaConversionEvents MetaConversionEvent[]
   whatsAppCampaigns    WhatsAppCampaign[]
 
-  @@unique([organizationId, name])
+  @@unique([organizationId, slug])
   @@index([organizationId])
-  @@map("projects")
+  @@map("crm_projects")
 }
 
 model OrganizationProfile {
@@ -327,7 +328,7 @@ model OrganizationProfile {
   onboardingStatusRef OnboardingStatus @relation(fields: [onboardingStatus], references: [name])
   organization        Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  @@map("organization_profiles")
+  @@map("org_profiles")
 }
 
 model Member {
@@ -341,7 +342,7 @@ model Member {
   user                User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([organizationId, role])
-  @@map("member")
+  @@map("org_members")
 }
 
 model OrganizationRole {
@@ -360,7 +361,7 @@ model OrganizationRole {
   @@unique([organizationId, name])
   @@index([organizationId])
   @@index([isSystem])
-  @@map("organization_roles")
+  @@map("org_roles")
 }
 
 model OrganizationRolePermission {
@@ -374,7 +375,7 @@ model OrganizationRolePermission {
   @@unique([organizationRoleId, permissionKey])
   @@index([organizationRoleId])
   @@index([permissionKey])
-  @@map("organization_role_permissions")
+  @@map("org_role_permissions")
 }
 
 model MemberPermissionOverride {
@@ -390,7 +391,7 @@ model MemberPermissionOverride {
   @@index([memberId])
   @@index([permissionKey])
   @@index([effect])
-  @@map("member_permission_overrides")
+  @@map("org_member_permission_overrides")
 }
 
 model Invitation {
@@ -404,7 +405,7 @@ model Invitation {
   user           User         @relation(fields: [inviterId], references: [id], onDelete: Cascade)
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  @@map("invitation")
+  @@map("org_invitations")
 }
 
 model Lead {
@@ -443,7 +444,7 @@ model Lead {
   @@index([organizationId, projectId])
   @@index([source])
   @@index([isActive])
-  @@map("leads")
+  @@map("crm_leads")
 }
 
 model Conversation {
@@ -473,7 +474,7 @@ model Conversation {
 
   @@unique([leadId, instanceId])
   @@index([organizationId])
-  @@map("conversations")
+  @@map("crm_conversations")
 }
 
 model Ticket {
@@ -523,7 +524,7 @@ model Ticket {
   @@index([conversationId])
   @@index([status])
   @@index([stageId])
-  @@map("tickets")
+  @@map("crm_tickets")
 }
 
 model TicketStage {
@@ -541,7 +542,7 @@ model TicketStage {
 
   @@unique([organizationId, name])
   @@index([organizationId, order])
-  @@map("ticket_stages")
+  @@map("crm_ticket_stages")
 }
 
 model Sale {
@@ -570,7 +571,7 @@ model Sale {
   @@index([organizationId, projectId])
   @@index([createdAt])
   @@index([ticketId])
-  @@map("sales")
+  @@map("crm_sales")
 }
 
 model SaleItem {
@@ -591,7 +592,7 @@ model SaleItem {
   @@index([organizationId])
   @@index([saleId])
   @@index([itemId])
-  @@map("sale_items")
+  @@map("crm_sale_items")
 }
 
 model Item {
@@ -613,7 +614,7 @@ model Item {
   @@index([projectId])
   @@index([organizationId, projectId])
   @@index([active])
-  @@map("items")
+  @@map("crm_items")
 }
 
 model ItemCategory {
@@ -633,7 +634,7 @@ model ItemCategory {
   @@index([projectId])
   @@index([organizationId, projectId])
   @@index([active])
-  @@map("item_categories")
+  @@map("crm_item_categories")
 }
 
 model OrganizationCompany {
@@ -675,7 +676,7 @@ model OrganizationCompany {
   @@index([porte])
   @@index([uf])
   @@index([situacao])
-  @@map("organization_companies")
+  @@map("org_companies")
 }
 
 model WhatsAppConfig {
