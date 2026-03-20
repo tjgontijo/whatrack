@@ -1,9 +1,11 @@
 'use client'
 
+import React from 'react'
 import { FileSpreadsheet, Phone, TableProperties } from 'lucide-react'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -14,9 +16,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import type { CampaignCsvParseResult, CampaignCsvPreviewResult } from '@/lib/whatsapp/campaign-csv'
+import {
+  buildCampaignTemplateCsvModel,
+  type CampaignCsvParseResult,
+  type CampaignCsvPreviewResult,
+} from '@/lib/whatsapp/campaign-csv'
 
 interface CampaignWizardStepRecipientsProps {
+  templateName: string
   templateVariableNames: string[]
   parsedCsv: CampaignCsvParseResult | null
   preview: CampaignCsvPreviewResult | null
@@ -29,6 +36,7 @@ interface CampaignWizardStepRecipientsProps {
 }
 
 export function CampaignWizardStepRecipients({
+  templateName,
   templateVariableNames,
   parsedCsv,
   preview,
@@ -39,14 +47,38 @@ export function CampaignWizardStepRecipients({
   onPhoneColumnChange,
   onVariableColumnChange,
 }: CampaignWizardStepRecipientsProps) {
+  const handleDownloadModel = React.useCallback(() => {
+    const csvModel = buildCampaignTemplateCsvModel(templateVariableNames)
+    const blob = new Blob([csvModel], { type: 'text/csv;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    const normalizedTemplateName = templateName.trim().replace(/\s+/g, '-').toLowerCase() || 'template'
+
+    link.href = url
+    link.download = `${normalizedTemplateName}-modelo.csv`
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+  }, [templateName, templateVariableNames])
+
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileSpreadsheet className="h-4 w-4" />
-            Importar CSV
-          </CardTitle>
+          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <FileSpreadsheet className="h-4 w-4" />
+                Importar CSV
+              </CardTitle>
+            </div>
+            {templateVariableNames.length > 0 && (
+              <Button type="button" variant="outline" onClick={handleDownloadModel}>
+                Baixar modelo do template
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="space-y-2">
@@ -61,6 +93,12 @@ export function CampaignWizardStepRecipients({
           <p className="text-muted-foreground text-xs">
             Faça upload da planilha com uma coluna de telefone e colunas para as variáveis do template.
           </p>
+          {templateVariableNames.length > 0 && (
+            <p className="text-muted-foreground text-xs">
+              O modelo já inclui a coluna `telefone` e as variáveis do template em formato `;`. Exemplo:{' '}
+              {['telefone', ...templateVariableNames].join(';')}
+            </p>
+          )}
         </CardContent>
       </Card>
 

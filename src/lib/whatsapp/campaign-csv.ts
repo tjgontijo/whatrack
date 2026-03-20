@@ -23,6 +23,13 @@ export interface CampaignCsvPreviewResult {
   mappedRecipients: CampaignMappedRecipient[]
 }
 
+function normalizeColumnName(value: string): string {
+  return value
+    .trim()
+    .replace(/[{}]/g, '')
+    .replace(/\s+/g, '_')
+}
+
 function detectDelimiter(text: string): ',' | ';' | '\t' {
   const firstLine = text
     .split(/\r?\n/)
@@ -108,7 +115,7 @@ function parseDelimitedText(text: string, delimiter: ',' | ';' | '\t'): string[]
 
 function buildColumns(headerRow: string[]): string[] {
   return headerRow.map((header, index) => {
-    const trimmed = header.trim()
+    const trimmed = normalizeColumnName(header)
     return trimmed.length > 0 ? trimmed : `coluna_${index + 1}`
   })
 }
@@ -186,4 +193,15 @@ export function buildCampaignCsvPreview(
     sampleRows: rows.slice(0, 5),
     mappedRecipients,
   }
+}
+
+export function buildCampaignTemplateCsvModel(templateVariableNames: string[]): string {
+  const columns = [
+    'telefone',
+    ...Array.from(
+      new Set(templateVariableNames.map((variableName) => normalizeColumnName(variableName)).filter(Boolean)),
+    ),
+  ]
+
+  return columns.join(';')
 }

@@ -334,6 +334,7 @@ export function CampaignFormDrawer({ open, onOpenChange, onSuccess }: CampaignFo
 
         {step === 2 && (
           <CampaignWizardStepRecipients
+            templateName={selectedTemplate?.name || ''}
             templateVariableNames={templateVariableNames}
             parsedCsv={parsedCsv}
             preview={csvPreview}

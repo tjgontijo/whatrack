@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
-import { buildCampaignCsvPreview, parseCampaignCsv } from '@/lib/whatsapp/campaign-csv'
+import {
+  buildCampaignCsvPreview,
+  buildCampaignTemplateCsvModel,
+  parseCampaignCsv,
+} from '@/lib/whatsapp/campaign-csv'
 
 describe('campaign-csv', () => {
   it('parses csv with quoted values', () => {
@@ -54,5 +58,15 @@ describe('campaign-csv', () => {
         ],
       },
     ])
+  })
+
+  it('builds a csv model from template variables', () => {
+    const result = buildCampaignTemplateCsvModel([
+      'nome_do_cliente',
+      'numero_do_pedido',
+      'link_google_drive',
+    ])
+
+    expect(result).toBe('telefone;nome_do_cliente;numero_do_pedido;link_google_drive')
   })
 })
