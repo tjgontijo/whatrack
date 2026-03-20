@@ -122,6 +122,7 @@ export async function POST(request: Request) {
                 phoneId: primaryPhone?.id || `pending_${wabaId}`
             },
             update: {
+                projectId,
                 wabaId,
                 accessToken: tokenToStore || undefined,
                 accessTokenEncrypted: isEncrypted,

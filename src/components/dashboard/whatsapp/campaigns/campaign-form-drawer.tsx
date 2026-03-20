@@ -102,6 +102,7 @@ export function CampaignFormDrawer({ open, onOpenChange, onSuccess }: CampaignFo
     queryKey: ['campaign-drawer-instances', organizationId, activeProjectId],
     queryFn: async () => {
       const url = new URL('/api/v1/whatsapp/instances', window.location.origin)
+      url.searchParams.set('projectId', activeProjectId)
       const data = await apiFetch(url.toString(), { orgId: organizationId })
       return ((data as { items?: WhatsAppInstanceItem[] }).items || []) as WhatsAppInstanceItem[]
     },
