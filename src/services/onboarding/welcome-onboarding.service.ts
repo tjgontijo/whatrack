@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db/prisma'
+import { normalizeSlug } from '@/lib/utils/slug'
 import { ensureCoreSkillsForOrganization } from '@/services/ai/ai-skill-provisioning.service'
 import { getDefaultTrialBillingPlan } from '@/services/billing/billing-plan-catalog.service'
 import { startOrganizationTrial } from '@/services/billing/billing-subscription.service'
@@ -69,14 +70,20 @@ export async function completeWelcomeOnboarding(input: {
       })
     }
 
+    const projectSlug = normalizeSlug(input.data.projectName)
+
     const existingProject = await tx.project.findFirst({
       where: {
         organizationId,
-        name: input.data.projectName,
+        OR: [
+          { name: input.data.projectName },
+          { slug: projectSlug },
+        ],
       },
       select: {
         id: true,
         name: true,
+        slug: true,
       },
     })
 
@@ -86,10 +93,12 @@ export async function completeWelcomeOnboarding(input: {
         data: {
           organizationId,
           name: input.data.projectName,
+          slug: projectSlug,
         },
         select: {
           id: true,
           name: true,
+          slug: true,
         },
       }))
 

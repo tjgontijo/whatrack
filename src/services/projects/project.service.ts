@@ -18,6 +18,7 @@ import type {
 type ProjectSummaryRow = {
   id: string
   name: string
+  slug: string
   createdAt: Date
   updatedAt: Date
   _count: {
@@ -35,7 +36,7 @@ type ProjectSummaryRow = {
 
 type ProjectError =
   | { error: 'Projeto não encontrado'; status: 404 }
-  | { error: 'Já existe um projeto com este nome'; status: 409 }
+  | { error: 'Já existe um projeto com este slug'; status: 409 }
   | {
       error: 'Projeto possui dados associados'
       status: 409
@@ -44,7 +45,7 @@ type ProjectError =
 
 function buildProjectWhere(
   organizationId: string,
-  query: ProjectListQuery,
+  query: ProjectListQuery
 ): Prisma.ProjectWhereInput {
   const search = query.query?.trim()
 
@@ -79,21 +80,22 @@ function mapProject(item: ProjectSummaryRow): ProjectListItem {
   return {
     id: item.id,
     name: item.name,
+    slug: item.slug,
     createdAt: item.createdAt.toISOString(),
     updatedAt: item.updatedAt.toISOString(),
     counts: mapProjectCounts(item._count),
   }
 }
 
-async function ensureUniqueProjectName(input: {
+async function ensureUniqueProjectSlug(input: {
   organizationId: string
-  name: string
+  slug: string
   excludeProjectId?: string
 }) {
   const existing = await prisma.project.findFirst({
     where: {
       organizationId: input.organizationId,
-      name: input.name.trim(),
+      slug: input.slug.trim(),
       ...(input.excludeProjectId ? { id: { not: input.excludeProjectId } } : {}),
     },
     select: { id: true },
@@ -118,6 +120,7 @@ export async function listProjects(input: {
       select: {
         id: true,
         name: true,
+        slug: true,
         createdAt: true,
         updatedAt: true,
         _count: {
@@ -153,23 +156,25 @@ export async function createProject(input: {
 }): Promise<ProjectListItem | Extract<ProjectError, { status: 409 }>> {
   await assertProjectCreationAllowed(input.organizationId)
 
-  const isUnique = await ensureUniqueProjectName({
+  const isUnique = await ensureUniqueProjectSlug({
     organizationId: input.organizationId,
-    name: input.data.name,
+    slug: input.data.slug,
   })
 
   if (!isUnique) {
-    return { error: 'Já existe um projeto com este nome', status: 409 }
+    return { error: 'Já existe um projeto com este slug', status: 409 }
   }
 
   const created = await prisma.project.create({
     data: {
       organizationId: input.organizationId,
       name: input.data.name.trim(),
+      slug: input.data.slug,
     },
     select: {
       id: true,
       name: true,
+      slug: true,
       createdAt: true,
       updatedAt: true,
       _count: {
@@ -205,6 +210,7 @@ export async function getProjectById(input: {
     select: {
       id: true,
       name: true,
+      slug: true,
       createdAt: true,
       updatedAt: true,
       _count: {
@@ -310,15 +316,15 @@ export async function updateProject(input: {
     return { error: 'Projeto não encontrado', status: 404 }
   }
 
-  if (input.data.name?.trim()) {
-    const isUnique = await ensureUniqueProjectName({
+  if (input.data.slug?.trim()) {
+    const isUnique = await ensureUniqueProjectSlug({
       organizationId: input.organizationId,
-      name: input.data.name,
+      slug: input.data.slug,
       excludeProjectId: input.projectId,
     })
 
     if (!isUnique) {
-      return { error: 'Já existe um projeto com este nome', status: 409 }
+      return { error: 'Já existe um projeto com este slug', status: 409 }
     }
   }
 
@@ -326,10 +332,12 @@ export async function updateProject(input: {
     where: { id: input.projectId },
     data: {
       ...(input.data.name ? { name: input.data.name.trim() } : {}),
+      ...(input.data.slug ? { slug: input.data.slug.trim() } : {}),
     },
     select: {
       id: true,
       name: true,
+      slug: true,
       createdAt: true,
       updatedAt: true,
       _count: {

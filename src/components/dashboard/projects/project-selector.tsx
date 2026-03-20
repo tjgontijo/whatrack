@@ -15,7 +15,7 @@ type ProjectSelectorProps = {
   placeholder?: string
   disabled?: boolean
   className?: string
-  projects?: Array<{ id: string; name: string }>
+  projects?: Array<{ id: string; name: string; slug?: string }>
 }
 
 export function ProjectSelector({

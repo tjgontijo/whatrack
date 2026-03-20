@@ -1,17 +1,17 @@
-/**
- * Hook para obter o projeto ativo da aplicação
- *
- * Lee o activeProjectId do cookie PROJECT_COOKIE, que é gerenciado
- * pela aplicação (não pelo better-auth).
- *
- * O projeto ativo é selecionado pelo usuário no seletor de projeto
- * na sidebar e persistido via PATCH /api/v1/projects/current.
- */
-import { useCallback, useEffect, useState } from 'react'
-import { PROJECT_COOKIE } from '@/lib/constants/http-headers'
+import { useQuery } from '@tanstack/react-query'
+
+import { apiFetch } from '@/lib/api-client'
+import { useOrganization } from '@/hooks/organization/use-organization'
+import { useProjectRouteContext } from './project-route-context'
 
 interface ProjectSummary {
   id: string
+  name?: string | null
+}
+
+interface CurrentProjectResponse {
+  projectId: string | null
+  project: ProjectSummary | null
 }
 
 export function useProject(): {
@@ -19,33 +19,33 @@ export function useProject(): {
   isLoading: boolean
   error: unknown
 } {
-  const [projectId, setProjectId] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const routeContext = useProjectRouteContext()
+  const { data: organization, isLoading: isOrganizationLoading } = useOrganization()
 
-  const getProjectIdFromCookie = useCallback(() => {
-    if (typeof window === 'undefined') return null
+  if (routeContext) {
+    return {
+      data: {
+        id: routeContext.projectId,
+        name: routeContext.projectName,
+      },
+      isLoading: false,
+      error: null,
+    }
+  }
 
-    const cookieValue = document.cookie
-      .split('; ')
-      .find((row) => row.startsWith(`${PROJECT_COOKIE}=`))
-      ?.split('=')[1]
-
-    return cookieValue || null
-  }, [])
-
-  useEffect(() => {
-    const id = getProjectIdFromCookie()
-    setProjectId(id)
-    setIsLoading(false)
-  }, [getProjectIdFromCookie])
-
-  const projectData: ProjectSummary | null = projectId
-    ? { id: projectId }
-    : null
+  const query = useQuery<CurrentProjectResponse>({
+    queryKey: ['current-project', organization?.id],
+    queryFn: () =>
+      apiFetch('/api/v1/projects/current', {
+        orgId: organization?.id,
+      }) as Promise<CurrentProjectResponse>,
+    enabled: Boolean(organization?.id),
+    staleTime: 0,
+  })
 
   return {
-    data: projectData,
-    isLoading,
-    error: null,
+    data: query.data?.project ?? null,
+    isLoading: isOrganizationLoading || query.isLoading,
+    error: query.error,
   }
 }

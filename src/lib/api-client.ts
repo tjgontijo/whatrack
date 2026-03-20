@@ -1,4 +1,5 @@
-import { ORGANIZATION_HEADER } from './constants/http-headers'
+import { getClientProjectId } from './project-client-context'
+import { ORGANIZATION_HEADER, PROJECT_HEADER } from './constants/http-headers'
 
 interface FetchOptions extends RequestInit {
     orgId?: string
@@ -10,6 +11,12 @@ export async function apiFetch(url: string, options: FetchOptions = {}) {
     const headers = new Headers(rest.headers)
     if (orgId) {
         headers.set(ORGANIZATION_HEADER, orgId)
+    }
+    if (typeof window !== 'undefined' && !headers.has(PROJECT_HEADER)) {
+        const currentProjectId = getClientProjectId()
+        if (currentProjectId) {
+            headers.set(PROJECT_HEADER, currentProjectId)
+        }
     }
 
     const response = await fetch(url, {

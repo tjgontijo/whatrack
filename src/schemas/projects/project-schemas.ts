@@ -6,16 +6,32 @@ export const projectListQuerySchema = z.object({
   query: z.string().trim().max(120).optional(),
 })
 
+const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+
 export const projectCreateSchema = z.object({
   name: z.string().trim().min(2).max(120),
+  slug: z.string().trim().min(2).max(60).regex(slugRegex, {
+    message: 'Slug deve conter apenas letras minúsculas, números e hífens.',
+  }),
 })
 
-export const projectUpdateSchema = projectCreateSchema.partial().refine(
-  (input) => Object.keys(input).length > 0,
-  {
+export const projectUpdateSchema = projectCreateSchema
+  .partial()
+  .omit({ slug: true })
+  .extend({
+    slug: z
+      .string()
+      .trim()
+      .min(2)
+      .max(60)
+      .regex(slugRegex, {
+        message: 'Slug deve conter apenas letras minúsculas, números e hífens.',
+      })
+      .optional(),
+  })
+  .refine((input) => Object.keys(input).length > 0, {
     message: 'Informe ao menos um campo para atualização.',
-  },
-)
+  })
 
 export const projectDeleteQuerySchema = z.object({
   force: z.coerce.boolean().default(false),
@@ -40,6 +56,7 @@ export const projectAssociationCountsSchema = z.object({
 export const projectListItemSchema = z.object({
   id: z.string(),
   name: z.string(),
+  slug: z.string(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
   counts: projectAssociationCountsSchema,
@@ -78,6 +95,18 @@ export const projectListResponseSchema = z.object({
 export const projectDeleteConflictSchema = z.object({
   error: z.string(),
   counts: projectAssociationCountsSchema,
+})
+
+export const projectSlugCheckSchema = z.object({
+  slug: z.string().trim().min(2).max(60).regex(slugRegex, {
+    message: 'Slug inválido.',
+  }),
+  excludeProjectId: z.string().uuid().optional(),
+})
+
+export const projectSlugCheckResponseSchema = z.object({
+  available: z.boolean(),
+  slug: z.string(),
 })
 
 export type ProjectListQuery = z.infer<typeof projectListQuerySchema>

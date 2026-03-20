@@ -60,6 +60,7 @@ describe('project.service', () => {
       {
         id: 'project_1',
         name: 'Cliente Acme',
+        slug: 'cliente-acme',
         createdAt: new Date('2026-03-09T10:00:00.000Z'),
         updatedAt: new Date('2026-03-09T11:00:00.000Z'),
         _count: {
@@ -102,6 +103,7 @@ describe('project.service', () => {
     expect(result.items[0]).toMatchObject({
       id: 'project_1',
       name: 'Cliente Acme',
+      slug: 'cliente-acme',
       counts: {
         whatsappCount: 1,
         metaAdsCount: 2,
@@ -114,11 +116,12 @@ describe('project.service', () => {
     })
   })
 
-  it('creates a project when the name is unique', async () => {
+  it('creates a project when the slug is unique', async () => {
     prismaMock.project.findFirst.mockResolvedValue(null)
     prismaMock.project.create.mockResolvedValueOnce({
       id: 'project_1',
       name: 'Cliente Novo',
+      slug: 'cliente-novo',
       createdAt: new Date('2026-03-09T10:00:00.000Z'),
       updatedAt: new Date('2026-03-09T10:00:00.000Z'),
       _count: {
@@ -136,7 +139,7 @@ describe('project.service', () => {
 
     const result = await createProject({
       organizationId: 'org_1',
-      data: { name: 'Cliente Novo' },
+      data: { name: 'Cliente Novo', slug: 'cliente-novo' },
     })
 
     expect(prismaMock.project.create).toHaveBeenCalledWith(
@@ -144,12 +147,14 @@ describe('project.service', () => {
         data: {
           organizationId: 'org_1',
           name: 'Cliente Novo',
+          slug: 'cliente-novo',
         },
       }),
     )
     expect(result).toMatchObject({
       id: 'project_1',
       name: 'Cliente Novo',
+      slug: 'cliente-novo',
     })
   })
 
@@ -221,7 +226,7 @@ describe('project.service', () => {
     expect(result).toEqual({ success: true })
   })
 
-  it('rejects project rename when another project already has the target name', async () => {
+  it('rejects project update when another project already has the target slug', async () => {
     prismaMock.project.findFirst
       .mockResolvedValueOnce({ id: 'project_1' })
       .mockResolvedValueOnce({ id: 'project_2' })
@@ -229,11 +234,11 @@ describe('project.service', () => {
     const result = await updateProject({
       organizationId: 'org_1',
       projectId: 'project_1',
-      data: { name: 'Cliente Existente' },
+      data: { slug: 'cliente-existente' },
     })
 
     expect(result).toEqual({
-      error: 'Já existe um projeto com este nome',
+      error: 'Já existe um projeto com este slug',
       status: 409,
     })
   })
