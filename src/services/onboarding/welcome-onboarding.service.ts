@@ -1,8 +1,11 @@
+import { Prisma } from '@generated/prisma/client'
+
 import { prisma } from '@/lib/db/prisma'
 import { normalizeSlug } from '@/lib/utils/slug'
 import { ensureCoreSkillsForOrganization } from '@/services/ai/ai-skill-provisioning.service'
 import { getDefaultTrialBillingPlan } from '@/services/billing/billing-plan-catalog.service'
 import { startOrganizationTrial } from '@/services/billing/billing-subscription.service'
+import { ensureSystemRolesForOrganization } from '@/server/organization/organization-rbac.service'
 import type { WelcomeOnboardingInput } from '@/schemas/onboarding/welcome-onboarding'
 
 type WelcomeUser = {
@@ -11,8 +14,29 @@ type WelcomeUser = {
   name?: string | null
 }
 
-function buildOrganizationSlug(userId: string) {
-  return `org-${userId.slice(0, 8)}-${Date.now().toString(36)}`
+function buildOrganizationSlug(name: string) {
+  return normalizeSlug(name) || 'organizacao'
+}
+
+async function resolveAvailableOrganizationSlug(
+  tx: Prisma.TransactionClient,
+  input: { name: string; currentOrganizationId?: string | null }
+) {
+  const baseSlug = buildOrganizationSlug(input.name)
+
+  for (let index = 0; index < 100; index += 1) {
+    const candidate = index === 0 ? baseSlug : `${baseSlug}-${index + 2}`
+    const existing = await tx.organization.findUnique({
+      where: { slug: candidate },
+      select: { id: true },
+    })
+
+    if (!existing || existing.id === input.currentOrganizationId) {
+      return candidate
+    }
+  }
+
+  return `${baseSlug}-${Date.now().toString(36)}`
 }
 
 export async function completeWelcomeOnboarding(input: {
@@ -27,6 +51,10 @@ export async function completeWelcomeOnboarding(input: {
 
   const organization = await prisma.$transaction(async (tx) => {
     const organizationName = input.data.organizationName.trim()
+    const desiredOrganizationSlug = await resolveAvailableOrganizationSlug(tx, {
+      name: organizationName,
+      currentOrganizationId: existingMembership?.organizationId,
+    })
     const initialProjectName = organizationName
 
     const user = await tx.user.update({
@@ -43,7 +71,7 @@ export async function completeWelcomeOnboarding(input: {
       const createdOrganization = await tx.organization.create({
         data: {
           name: organizationName,
-          slug: buildOrganizationSlug(user.id),
+          slug: desiredOrganizationSlug,
         },
         select: {
           id: true,
@@ -69,11 +97,12 @@ export async function completeWelcomeOnboarding(input: {
         where: { id: organizationId },
         data: {
           name: organizationName,
+          slug: desiredOrganizationSlug,
         },
       })
     }
 
-    const projectSlug = normalizeSlug(initialProjectName)
+    const projectSlug = desiredOrganizationSlug
 
     const existingProject = await tx.project.findFirst({
       where: {
@@ -126,6 +155,8 @@ export async function completeWelcomeOnboarding(input: {
     planType: defaultTrialPlan.slug,
     trialDays: 14,
   })
+
+  await ensureSystemRolesForOrganization(organization.organization.id)
 
   return {
     organization: organization.organization,
