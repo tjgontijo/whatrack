@@ -216,6 +216,13 @@ export function CampaignsPage({ initialCreateOpen = false }: CampaignsPageProps 
     setIsCreateOpen(true)
   }
 
+  const openCampaignDetail = React.useCallback(
+    (campaignId: string) => {
+      router.push(`${campaignsPath}/${campaignId}`)
+    },
+    [campaignsPath, router],
+  )
+
   if (!organizationId) {
     return (
       <div className="flex h-[calc(100vh-200px)] items-center justify-center">
@@ -306,7 +313,13 @@ export function CampaignsPage({ initialCreateOpen = false }: CampaignsPageProps 
               </div>
             </div>
           }
-          tableView={<CrudListView data={filteredItems} columns={columns} />}
+          tableView={
+            <CrudListView
+              data={filteredItems}
+              columns={columns}
+              onRowClick={(campaign) => openCampaignDetail(campaign.id)}
+            />
+          }
           cardView={<CrudCardView data={filteredItems} config={cardConfig} />}
         />
       </CrudPageShell>
@@ -314,7 +327,10 @@ export function CampaignsPage({ initialCreateOpen = false }: CampaignsPageProps 
       <CampaignFormDrawer
         open={isCreateOpen}
         onOpenChange={setIsCreateOpen}
-        onSuccess={() => refetch()}
+        onSuccess={(campaignId) => {
+          refetch()
+          openCampaignDetail(campaignId)
+        }}
       />
     </>
   )

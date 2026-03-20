@@ -29,7 +29,7 @@ type WizardStep = 1 | 2 | 3
 interface CampaignFormDrawerProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onSuccess?: () => void
+  onSuccess?: (campaignId: string) => void
 }
 
 interface WhatsAppInstanceItem {
@@ -217,11 +217,13 @@ export function CampaignFormDrawer({ open, onOpenChange, onSuccess }: CampaignFo
 
       return result as { id: string }
     },
-    onSuccess: async () => {
+    onSuccess: async (result) => {
       toast.success('Campanha criada com sucesso!')
       await queryClient.invalidateQueries({ queryKey: ['whatsapp-campaigns', organizationId] })
       onOpenChange(false)
-      onSuccess?.()
+      if (result?.id) {
+        onSuccess?.(result.id)
+      }
     },
     onError: (error: Error) => {
       toast.error('Erro ao criar campanha', { description: error.message })
