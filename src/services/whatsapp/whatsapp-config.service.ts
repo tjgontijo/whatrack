@@ -91,41 +91,31 @@ export async function disconnectWhatsAppConfig(params: DisconnectWhatsAppConfigP
 }
 
 export async function listWhatsAppInstances(organizationId: string, projectId: string) {
-  const instances = await prisma.whatsAppConfig.findMany({
-    where: {
-      organizationId,
-      projectId,
-      status: 'connected',
-    },
-    select: {
-      id: true,
-      displayPhone: true,
-      verifiedName: true,
-      status: true,
-      wabaId: true,
-      lastWebhookAt: true,
-      projectId: true,
-      project: {
-        select: {
-          name: true,
-        },
-      },
-    },
-    orderBy: {
-      createdAt: 'asc',
-    },
-  })
+  const phoneNumbersResponse = await listWhatsAppPhoneNumbers(organizationId)
+  const instances = phoneNumbersResponse.data.phoneNumbers
+    .filter((phone) => {
+      return (
+        phone.projectId === projectId &&
+        phone.status === 'CONNECTED' &&
+        typeof phone.configId === 'string' &&
+        phone.configId.length > 0
+      )
+    })
+    .sort((a, b) => a.display_phone_number.localeCompare(b.display_phone_number, 'pt-BR'))
 
   return {
     items: instances.map((instance) => ({
-      id: instance.id,
-      displayPhone: instance.displayPhone || 'Número não disponível',
-      verifiedName: instance.verifiedName || 'Sem nome verificado',
+      id: instance.configId!,
+      displayPhone: instance.display_phone_number || 'Número não disponível',
+      verifiedName: instance.verified_name || 'Sem nome verificado',
       status: instance.status,
-      wabaId: instance.wabaId,
-      lastWebhookAt: instance.lastWebhookAt?.toISOString() || null,
+      wabaId:
+        typeof instance.webhook_configuration?.whatsapp_business_account === 'string'
+          ? instance.webhook_configuration.whatsapp_business_account
+          : null,
+      lastWebhookAt: null,
       projectId: instance.projectId,
-      projectName: instance.project?.name ?? null,
+      projectName: instance.projectName ?? null,
     })),
   }
 }
