@@ -6,18 +6,16 @@ describe('welcomeOnboardingSchema', () => {
   it('accepts the lightweight onboarding payload', () => {
     const parsed = welcomeOnboardingSchema.safeParse({
       ownerName: 'Thiago Gontijo',
-      agencyName: 'Escala Ads',
-      projectName: 'Cliente Alpha',
+      organizationName: 'Whatrack',
     })
 
     expect(parsed.success).toBe(true)
   })
 
-  it('rejects incomplete agency onboarding payloads', () => {
+  it('rejects incomplete organization onboarding payloads', () => {
     const parsed = welcomeOnboardingSchema.safeParse({
       ownerName: 'A',
-      agencyName: '',
-      projectName: 'X',
+      organizationName: '',
     })
 
     expect(parsed.success).toBe(false)

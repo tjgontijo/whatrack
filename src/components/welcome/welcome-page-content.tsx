@@ -30,25 +30,24 @@ export function WelcomePageContent({ state }: WelcomePageContentProps) {
         </p>
         <h1 className="text-4xl font-bold tracking-tight text-foreground">
           {needsLightweightOnboarding
-            ? 'Vamos preparar sua agência'
+            ? 'Vamos preparar sua empresa'
             : 'Seu trial já está ativo'}
         </h1>
         <p className="max-w-2xl text-base text-muted-foreground sm:text-lg">
           {needsLightweightOnboarding
-            ? 'Crie sua agência, abra o primeiro cliente e comece a validar o WhaTrack em uma operação real.'
-            : 'Seu próximo passo é conectar WhatsApp e Meta Ads do primeiro cliente para chegar ao activation milestone.'}
+            ? 'Crie sua organização e comece a validar o WhaTrack em uma operação real.'
+            : 'Seu próximo passo é conectar WhatsApp e Meta Ads da sua operação para chegar ao activation milestone.'}
         </p>
       </div>
 
       {needsLightweightOnboarding ? (
         <WelcomeOnboardingForm
           defaultOwnerName={state.ownerName ?? ''}
-          defaultAgencyName={state.organization?.name ?? ''}
-          defaultProjectName={state.activeProjectName ?? ''}
+          defaultOrganizationName={state.organization?.name ?? ''}
         />
       ) : (
         <WelcomeActivationChecklist
-          projectName={state.activeProjectName ?? state.projects[0]?.name ?? 'Projeto inicial'}
+          projectName={state.activeProjectName ?? state.projects[0]?.name ?? 'Operação principal'}
           trialEndsAt={state.trialEndsAt}
           trialExpired={state.trialExpired}
           trialDaysRemaining={state.trialDaysRemaining}

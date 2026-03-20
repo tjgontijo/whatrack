@@ -26,6 +26,9 @@ export async function completeWelcomeOnboarding(input: {
   })
 
   const organization = await prisma.$transaction(async (tx) => {
+    const organizationName = input.data.organizationName.trim()
+    const initialProjectName = organizationName
+
     const user = await tx.user.update({
       where: { id: input.user.id },
       data: {
@@ -39,7 +42,7 @@ export async function completeWelcomeOnboarding(input: {
     if (!organizationId) {
       const createdOrganization = await tx.organization.create({
         data: {
-          name: input.data.agencyName,
+          name: organizationName,
           slug: buildOrganizationSlug(user.id),
         },
         select: {
@@ -65,18 +68,18 @@ export async function completeWelcomeOnboarding(input: {
       await tx.organization.update({
         where: { id: organizationId },
         data: {
-          name: input.data.agencyName,
+          name: organizationName,
         },
       })
     }
 
-    const projectSlug = normalizeSlug(input.data.projectName)
+    const projectSlug = normalizeSlug(initialProjectName)
 
     const existingProject = await tx.project.findFirst({
       where: {
         organizationId,
         OR: [
-          { name: input.data.projectName },
+          { name: initialProjectName },
           { slug: projectSlug },
         ],
       },
@@ -92,7 +95,7 @@ export async function completeWelcomeOnboarding(input: {
       (await tx.project.create({
         data: {
           organizationId,
-          name: input.data.projectName,
+          name: initialProjectName,
           slug: projectSlug,
         },
         select: {

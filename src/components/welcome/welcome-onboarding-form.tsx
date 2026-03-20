@@ -17,14 +17,12 @@ import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 
 type WelcomeOnboardingFormProps = {
   defaultOwnerName: string
-  defaultAgencyName: string
-  defaultProjectName: string
+  defaultOrganizationName: string
 }
 
 export function WelcomeOnboardingForm({
   defaultOwnerName,
-  defaultAgencyName,
-  defaultProjectName,
+  defaultOrganizationName,
 }: WelcomeOnboardingFormProps) {
   const router = useRouter()
   const [isRefreshing, startTransition] = useTransition()
@@ -32,8 +30,7 @@ export function WelcomeOnboardingForm({
     resolver: zodResolver(welcomeOnboardingSchema),
     defaultValues: {
       ownerName: defaultOwnerName,
-      agencyName: defaultAgencyName,
-      projectName: defaultProjectName,
+      organizationName: defaultOrganizationName,
     },
   })
 
@@ -61,7 +58,7 @@ export function WelcomeOnboardingForm({
         // Cookie fallback already keeps the server context coherent.
       }
 
-      toast.success('Teste grátis iniciado com sucesso')
+      toast.success('Conta preparada com sucesso')
 
       startTransition(() => {
         router.replace('/welcome')
@@ -77,10 +74,9 @@ export function WelcomeOnboardingForm({
   return (
     <Card className="border-border/70 bg-background/95 shadow-sm">
       <CardHeader>
-        <CardTitle>Crie sua agência e o primeiro cliente</CardTitle>
+        <CardTitle>Crie sua empresa</CardTitle>
         <CardDescription>
-          Precisamos só do básico para abrir sua operação no WhaTrack, criar o primeiro cliente e liberar 14 dias
-          grátis sem cartão.
+          Precisamos só do básico para abrir sua conta no WhaTrack e liberar 14 dias grátis sem cartão.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -91,35 +87,24 @@ export function WelcomeOnboardingForm({
               id="welcome-owner-name"
               {...form.register('ownerName')}
               disabled={isSubmitting}
-              placeholder="Quem vai operar a conta da agência"
+              placeholder="Quem vai operar a conta"
             />
             <FieldError errors={[form.formState.errors.ownerName]} />
           </Field>
 
-          <Field data-invalid={!!form.formState.errors.agencyName}>
-            <FieldLabel htmlFor="welcome-agency-name">Nome da agência</FieldLabel>
+          <Field data-invalid={!!form.formState.errors.organizationName}>
+            <FieldLabel htmlFor="welcome-organization-name">Nome da empresa</FieldLabel>
             <Input
-              id="welcome-agency-name"
-              {...form.register('agencyName')}
+              id="welcome-organization-name"
+              {...form.register('organizationName')}
               disabled={isSubmitting}
-              placeholder="Nome da sua agência"
+              placeholder="Nome da sua empresa"
             />
-            <FieldError errors={[form.formState.errors.agencyName]} />
-          </Field>
-
-          <Field data-invalid={!!form.formState.errors.projectName}>
-            <FieldLabel htmlFor="welcome-project-name">Primeiro cliente</FieldLabel>
-            <Input
-              id="welcome-project-name"
-              {...form.register('projectName')}
-              disabled={isSubmitting}
-              placeholder="Nome do primeiro cliente que você quer acompanhar"
-            />
-            <FieldError errors={[form.formState.errors.projectName]} />
+            <FieldError errors={[form.formState.errors.organizationName]} />
           </Field>
 
           <Button type="submit" disabled={isSubmitting} className="h-11">
-            {isSubmitting ? 'Preparando sua agência...' : 'Criar agência e começar trial'}
+            {isSubmitting ? 'Preparando sua conta...' : 'Criar empresa e começar trial'}
           </Button>
         </form>
       </CardContent>
