@@ -46,15 +46,17 @@ export async function createCampaign(
     }
   }
 
+  const scheduledAt = input.scheduledAt ? new Date(input.scheduledAt) : null
+
   const data: Prisma.WhatsAppCampaignUncheckedCreateInput = {
     organizationId,
     projectId: input.projectId,
     name: input.name,
     type: input.type,
-    status: 'DRAFT',
+    status: scheduledAt ? 'SCHEDULED' : 'DRAFT',
     templateName: input.templateName,
     templateLang: input.templateLang,
-    scheduledAt: input.scheduledAt ? new Date(input.scheduledAt) : null,
+    scheduledAt,
     createdById: userId,
     dispatchGroups: input.dispatchGroups
       ? {
@@ -359,8 +361,12 @@ export async function dispatchCampaign(
     return { success: false, error: 'Campanha não encontrada', status: 404 }
   }
 
-  if (campaign.status !== 'APPROVED') {
-    return { success: false, error: 'Campanha precisa estar aprovada para disparar', status: 400 }
+  if (!['DRAFT', 'APPROVED'].includes(campaign.status)) {
+    return {
+      success: false,
+      error: 'Campanha não pode ser disparada no estado atual',
+      status: 400,
+    }
   }
 
   if (immediate) {

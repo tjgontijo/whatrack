@@ -58,6 +58,26 @@ describe('whatsapp-campaign.service', () => {
       expect(result.data.id).toBe('camp-1')
     })
 
+    it('creates scheduled campaign when scheduledAt is provided', async () => {
+      prismaMock.project.findFirst.mockResolvedValue({ id: 'proj-1' })
+      prismaMock.whatsAppConfig.findMany.mockResolvedValue([])
+      prismaMock.whatsAppCampaign.create.mockResolvedValue({ id: 'camp-1' })
+
+      await createCampaign('org-1', 'user-1', {
+        name: 'Scheduled Campaign',
+        projectId: 'proj-1',
+        scheduledAt: '2026-12-25T10:00:00.000Z',
+      })
+
+      expect(prismaMock.whatsAppCampaign.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            status: 'SCHEDULED',
+          }),
+        })
+      )
+    })
+
     it('returns error when project not found', async () => {
       prismaMock.project.findFirst.mockResolvedValue(null)
 
@@ -160,11 +180,11 @@ describe('whatsapp-campaign.service', () => {
   })
 
   describe('dispatchCampaign', () => {
-    it('dispatches approved campaign immediately', async () => {
+    it('dispatches draft campaign immediately', async () => {
       prismaMock.whatsAppCampaign.findFirst.mockResolvedValue({
         id: 'camp-1',
-        status: 'APPROVED',
-        approvedAt: new Date(),
+        status: 'DRAFT',
+        approvedAt: null,
       })
       prismaMock.whatsAppCampaign.update.mockResolvedValue({})
       prismaMock.whatsAppCampaignApproval.create.mockResolvedValue({})
@@ -177,21 +197,21 @@ describe('whatsapp-campaign.service', () => {
     it('rejects non-approved campaign', async () => {
       prismaMock.whatsAppCampaign.findFirst.mockResolvedValue({
         id: 'camp-1',
-        status: 'DRAFT',
-        approvedAt: null,
+        status: 'PROCESSING',
+        approvedAt: new Date(),
       })
 
       const result = await dispatchCampaign('org-1', 'camp-1', 'user-1', true)
 
       expect(result.success).toBe(false)
-      expect(result.error).toContain('aprovada')
+      expect(result.error).toContain('estado atual')
     })
 
     it('schedules campaign with future date', async () => {
       prismaMock.whatsAppCampaign.findFirst.mockResolvedValue({
         id: 'camp-1',
-        status: 'APPROVED',
-        approvedAt: new Date(),
+        status: 'DRAFT',
+        approvedAt: null,
       })
       prismaMock.whatsAppCampaign.update.mockResolvedValue({})
       prismaMock.whatsAppCampaignApproval.create.mockResolvedValue({})

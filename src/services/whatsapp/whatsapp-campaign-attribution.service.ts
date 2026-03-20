@@ -53,11 +53,12 @@ export async function attributeInboundMessageToCampaign(params: {
 export async function updateRecipientStatusFromWebhook(params: {
   wamid: string
   status: string
+  failureReason?: string | null
 }): Promise<void> {
   try {
     const recipient = await prisma.whatsAppCampaignRecipient.findFirst({
       where: { metaWamid: params.wamid },
-      select: { id: true },
+      select: { id: true, dispatchGroupId: true, campaignId: true },
     })
 
     if (!recipient) return
@@ -80,12 +81,16 @@ export async function updateRecipientStatusFromWebhook(params: {
       updateData.readAt = new Date()
     } else if (params.status === 'failed') {
       updateData.failedAt = new Date()
+      updateData.failureReason = params.failureReason || 'Falha informada pelo webhook da Meta'
     }
 
     await prisma.whatsAppCampaignRecipient.update({
       where: { id: recipient.id },
       data: updateData,
     })
+
+    await syncDispatchGroupStatus(recipient.dispatchGroupId)
+    await syncCampaignStatus(recipient.campaignId)
 
     logger.info(
       { recipientId: recipient.id, status: recipientStatus },
@@ -96,6 +101,77 @@ export async function updateRecipientStatusFromWebhook(params: {
       { err: error, wamid: params.wamid },
       '[CampaignAttribution] Error updating recipient status'
     )
+  }
+}
+
+async function syncDispatchGroupStatus(dispatchGroupId: string): Promise<void> {
+  const recipients = await prisma.whatsAppCampaignRecipient.findMany({
+    where: { dispatchGroupId },
+    select: { status: true },
+  })
+
+  const counts = recipients.reduce<Record<string, number>>((acc, recipient) => {
+    acc[recipient.status] = (acc[recipient.status] || 0) + 1
+    return acc
+  }, {})
+
+  const total = recipients.length
+  const pending = counts.PENDING || 0
+  const failed = (counts.FAILED || 0) + (counts.EXCLUDED || 0)
+  const success =
+    (counts.SENT || 0) + (counts.DELIVERED || 0) + (counts.READ || 0) + (counts.RESPONDED || 0)
+  const processed = total - pending
+
+  let status = 'PENDING'
+  if (processed > 0 && pending > 0) {
+    status = 'PROCESSING'
+  } else if (total > 0 && failed === total) {
+    status = 'FAILED'
+  } else if (processed > 0) {
+    status = 'COMPLETED'
+  }
+
+  await prisma.whatsAppCampaignDispatchGroup.update({
+    where: { id: dispatchGroupId },
+    data: {
+      status,
+      processedCount: processed,
+      successCount: success,
+      failCount: failed,
+    },
+  })
+}
+
+async function syncCampaignStatus(campaignId: string): Promise<void> {
+  const groups = await prisma.whatsAppCampaignDispatchGroup.findMany({
+    where: { campaignId },
+    select: { status: true },
+  })
+
+  if (groups.length === 0) return
+
+  const hasPending = groups.some((group) => group.status === 'PENDING' || group.status === 'PROCESSING')
+  const allFailed = groups.every((group) => group.status === 'FAILED')
+
+  if (allFailed) {
+    await prisma.whatsAppCampaign.update({
+      where: { id: campaignId },
+      data: {
+        status: 'FAILED',
+        completedAt: new Date(),
+      },
+    })
+    return
+  }
+
+  if (!hasPending) {
+    await prisma.whatsAppCampaign.update({
+      where: { id: campaignId },
+      data: {
+        status: 'COMPLETED',
+        completedAt: new Date(),
+      },
+    })
   }
 }
 

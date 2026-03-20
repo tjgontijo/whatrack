@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, CheckCircle, XCircle, Send, Clock, Ban } from 'lucide-react'
+import { ArrowLeft, CheckCircle, XCircle, Send, Ban, Clock } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 
@@ -170,39 +170,6 @@ export default function CampaignDetailPage({ params }: CampaignPageProps) {
     enabled: !!organizationId && !!campaignId,
   })
 
-  const submitMutation = useMutation({
-    mutationFn: async () => {
-      return apiFetch(`/api/v1/whatsapp/campaigns/${campaignId}/submit`, {
-        method: 'POST',
-        orgId: organizationId,
-      })
-    },
-    onSuccess: () => {
-      toast.success('Campanha enviada para aprovacao!')
-      queryClient.invalidateQueries({ queryKey: ['whatsapp-campaign', organizationId, campaignId] })
-    },
-    onError: (error: Error) => {
-      toast.error('Erro', { description: error.message })
-    },
-  })
-
-  const approveMutation = useMutation({
-    mutationFn: async () => {
-      return apiFetch(`/api/v1/whatsapp/campaigns/${campaignId}/approve`, {
-        method: 'POST',
-        orgId: organizationId,
-        body: JSON.stringify({}),
-      })
-    },
-    onSuccess: () => {
-      toast.success('Campanha aprovada!')
-      queryClient.invalidateQueries({ queryKey: ['whatsapp-campaign', organizationId, campaignId] })
-    },
-    onError: (error: Error) => {
-      toast.error('Erro', { description: error.message })
-    },
-  })
-
   const dispatchMutation = useMutation({
     mutationFn: async () => {
       const isScheduled =
@@ -279,27 +246,7 @@ export default function CampaignDetailPage({ params }: CampaignPageProps) {
         </div>
         {!isLoading && campaign && (
           <div className="flex gap-2">
-            {campaign.status === 'DRAFT' && (
-              <Button
-                size="sm"
-                onClick={() => submitMutation.mutate()}
-                disabled={submitMutation.isPending}
-              >
-                <Clock className="mr-2 h-4 w-4" />
-                Enviar para aprovacao
-              </Button>
-            )}
-            {campaign.status === 'PENDING_APPROVAL' && (
-              <Button
-                size="sm"
-                onClick={() => approveMutation.mutate()}
-                disabled={approveMutation.isPending}
-              >
-                <CheckCircle className="mr-2 h-4 w-4" />
-                Aprovar
-              </Button>
-            )}
-            {campaign.status === 'APPROVED' && (
+            {['DRAFT', 'APPROVED'].includes(campaign.status) && (
               <Button
                 size="sm"
                 onClick={() => dispatchMutation.mutate()}
@@ -307,11 +254,11 @@ export default function CampaignDetailPage({ params }: CampaignPageProps) {
               >
                 <Send className="mr-2 h-4 w-4" />
                 {campaign.scheduledAt && new Date(campaign.scheduledAt).getTime() > Date.now()
-                  ? 'Agendar Campanha'
-                  : 'Disparar Agora'}
+                  ? 'Agendar campanha'
+                  : 'Enviar agora'}
               </Button>
             )}
-            {['DRAFT', 'PENDING_APPROVAL', 'APPROVED', 'SCHEDULED', 'PROCESSING'].includes(
+            {['DRAFT', 'APPROVED', 'SCHEDULED', 'PROCESSING'].includes(
               campaign.status
             ) && (
               <Button
