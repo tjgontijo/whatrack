@@ -49,12 +49,14 @@ describe('whatsapp-campaign-attribution.service', () => {
     expect(prismaMock.whatsAppCampaignRecipient.findFirst).toHaveBeenCalledWith({
       where: {
         normalizedPhone: '5511987654321',
+        metaWamid: { not: null },
         campaign: {
           organizationId: 'org-1',
           status: { in: ['PROCESSING', 'COMPLETED'] },
         },
-        status: { in: ['SENT', 'DELIVERED', 'READ'] },
+        status: { in: ['PENDING', 'SENT', 'DELIVERED', 'READ'] },
       },
+      orderBy: { createdAt: 'desc' },
       select: { id: true, campaignId: true },
     })
     expect(prismaMock.whatsAppCampaignRecipient.update).toHaveBeenCalledWith({

@@ -43,7 +43,7 @@ const STATUS_LABELS: Record<string, string> = {
   READ: 'Lida',
   FAILED: 'Falhou',
   EXCLUDED: 'Excluído',
-  RESPONDED: 'Respondeu',
+  RESPONDED: 'Interação',
 }
 
 const STATUS_VARIANTS: Record<string, 'secondary' | 'default' | 'destructive' | 'outline'> = {
@@ -418,7 +418,7 @@ export default function CampaignDetailPage({ params }: CampaignPageProps) {
                       <TableHead>Enviado</TableHead>
                       <TableHead>Entregue</TableHead>
                       <TableHead>Lido</TableHead>
-                      <TableHead>Respondido</TableHead>
+                      <TableHead>Interação</TableHead>
                       <TableHead>Falha</TableHead>
                     </TableRow>
                   </TableHeader>

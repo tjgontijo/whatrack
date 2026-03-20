@@ -14,12 +14,14 @@ export async function attributeInboundMessageToCampaign(params: {
     const recipient = await prisma.whatsAppCampaignRecipient.findFirst({
       where: {
         normalizedPhone,
+        metaWamid: { not: null },
         campaign: {
           organizationId: params.organizationId,
           status: { in: ['PROCESSING', 'COMPLETED'] },
         },
-        status: { in: ['SENT', 'DELIVERED', 'READ'] },
+        status: { in: ['PENDING', 'SENT', 'DELIVERED', 'READ'] },
       },
+      orderBy: { createdAt: 'desc' },
       select: { id: true, campaignId: true },
     })
 
@@ -63,6 +65,7 @@ export async function updateRecipientStatusFromWebhook(params: {
     })
 
     if (!recipient) return
+    if (recipient.status === 'RESPONDED') return
 
     const statusMap: Record<string, string> = {
       sent: 'SENT',
