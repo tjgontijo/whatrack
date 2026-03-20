@@ -91,9 +91,7 @@ export async function processDispatchGroup(
         await prisma.whatsAppCampaignRecipient.update({
           where: { id: recipient.id },
           data: {
-            status: 'SENT',
             metaWamid: result.messages?.[0]?.id,
-            sentAt: new Date(),
           },
         })
 
@@ -124,20 +122,10 @@ export async function processDispatchGroup(
     }
   }
 
-  const newStatus = failed === group.recipients.length ? 'FAILED' : 'COMPLETED'
-
-  await prisma.whatsAppCampaignDispatchGroup.update({
-    where: { id: groupId },
-    data: {
-      status: newStatus,
-      processedCount: group.recipients.length,
-      successCount: success,
-      failCount: failed,
-    },
-  })
+  await syncDispatchGroupState(groupId)
 
   logger.info(
-    { groupId, campaignId: group.campaign.id, success, failed },
+    { groupId, campaignId: group.campaign.id, accepted: success, failed },
     '[WhatsAppCampaignExecution] Group processed'
   )
 
@@ -175,4 +163,42 @@ function formatPhoneForMeta(phone: string): string {
     return digits
   }
   return digits
+}
+
+async function syncDispatchGroupState(groupId: string): Promise<void> {
+  const recipients = await prisma.whatsAppCampaignRecipient.findMany({
+    where: { dispatchGroupId: groupId },
+    select: { status: true, metaWamid: true },
+  })
+
+  const total = recipients.length
+  const failed = recipients.filter((recipient) =>
+    ['FAILED', 'EXCLUDED'].includes(recipient.status)
+  ).length
+  const success = recipients.filter((recipient) =>
+    ['SENT', 'DELIVERED', 'READ', 'RESPONDED'].includes(recipient.status)
+  ).length
+  const awaitingWebhook = recipients.filter(
+    (recipient) => recipient.status === 'PENDING' && typeof recipient.metaWamid === 'string'
+  ).length
+
+  let status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' = 'PENDING'
+
+  if (total > 0 && failed === total) {
+    status = 'FAILED'
+  } else if (total > 0 && success + failed === total) {
+    status = 'COMPLETED'
+  } else if (awaitingWebhook > 0 || success > 0 || failed > 0) {
+    status = 'PROCESSING'
+  }
+
+  await prisma.whatsAppCampaignDispatchGroup.update({
+    where: { id: groupId },
+    data: {
+      status,
+      processedCount: success + failed,
+      successCount: success,
+      failCount: failed,
+    },
+  })
 }

@@ -58,7 +58,7 @@ export async function updateRecipientStatusFromWebhook(params: {
   try {
     const recipient = await prisma.whatsAppCampaignRecipient.findFirst({
       where: { metaWamid: params.wamid },
-      select: { id: true, dispatchGroupId: true, campaignId: true },
+      select: { id: true, status: true, dispatchGroupId: true, campaignId: true },
     })
 
     if (!recipient) return
@@ -73,9 +73,28 @@ export async function updateRecipientStatusFromWebhook(params: {
     const recipientStatus = statusMap[params.status]
     if (!recipientStatus) return
 
+    const statusPriority: Record<string, number> = {
+      PENDING: 0,
+      SENT: 1,
+      DELIVERED: 2,
+      READ: 3,
+      RESPONDED: 4,
+      FAILED: -1,
+      EXCLUDED: -2,
+    }
+
+    const currentPriority = statusPriority[recipient.status] ?? 0
+    const nextPriority = statusPriority[recipientStatus] ?? 0
+
+    if (params.status !== 'failed' && nextPriority <= currentPriority) {
+      return
+    }
+
     const updateData: Record<string, unknown> = { status: recipientStatus }
 
-    if (params.status === 'delivered') {
+    if (params.status === 'sent') {
+      updateData.sentAt = new Date()
+    } else if (params.status === 'delivered') {
       updateData.deliveredAt = new Date()
     } else if (params.status === 'read') {
       updateData.readAt = new Date()
@@ -107,7 +126,7 @@ export async function updateRecipientStatusFromWebhook(params: {
 async function syncDispatchGroupStatus(dispatchGroupId: string): Promise<void> {
   const recipients = await prisma.whatsAppCampaignRecipient.findMany({
     where: { dispatchGroupId },
-    select: { status: true },
+    select: { status: true, metaWamid: true },
   })
 
   const counts = recipients.reduce<Record<string, number>>((acc, recipient) => {
@@ -116,19 +135,21 @@ async function syncDispatchGroupStatus(dispatchGroupId: string): Promise<void> {
   }, {})
 
   const total = recipients.length
-  const pending = counts.PENDING || 0
   const failed = (counts.FAILED || 0) + (counts.EXCLUDED || 0)
   const success =
     (counts.SENT || 0) + (counts.DELIVERED || 0) + (counts.READ || 0) + (counts.RESPONDED || 0)
-  const processed = total - pending
+  const awaitingWebhook = recipients.filter(
+    (recipient) => recipient.status === 'PENDING' && typeof recipient.metaWamid === 'string'
+  ).length
+  const processed = success + failed
 
   let status = 'PENDING'
-  if (processed > 0 && pending > 0) {
-    status = 'PROCESSING'
-  } else if (total > 0 && failed === total) {
+  if (total > 0 && failed === total) {
     status = 'FAILED'
-  } else if (processed > 0) {
+  } else if (total > 0 && processed === total) {
     status = 'COMPLETED'
+  } else if (awaitingWebhook > 0 || processed > 0) {
+    status = 'PROCESSING'
   }
 
   await prisma.whatsAppCampaignDispatchGroup.update({

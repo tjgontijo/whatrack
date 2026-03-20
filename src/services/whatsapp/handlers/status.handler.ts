@@ -49,11 +49,20 @@ export async function statusHandler(payload: any): Promise<void> {
       const wamid = status.id
       const newStatus = status.status // sent, delivered, read, failed
       const timestamp = status.timestamp
+      const failureReason = extractFailureReason(status)
 
       if (!wamid || !newStatus) {
         logger.warn('[StatusHandler] Status missing id or status field')
         continue
       }
+
+      await updateRecipientStatusFromWebhook({
+        wamid,
+        status: newStatus,
+        failureReason,
+      }).catch((err) =>
+        logger.error({ err, wamid }, '[StatusHandler] Failed to update campaign recipient status')
+      )
 
       // Find message by wamid
       const message = await prisma.message.findUnique({
@@ -66,7 +75,6 @@ export async function statusHandler(payload: any): Promise<void> {
       })
 
       if (!message) {
-        // Message not found - could be a message we didn't track
         logger.info(`[StatusHandler] Message not found: ${wamid}`)
         continue
       }
@@ -109,15 +117,33 @@ export async function statusHandler(payload: any): Promise<void> {
         timestamp,
       })
 
-      // Campaign attribution — fire-and-forget
-      updateRecipientStatusFromWebhook({ wamid, status: newStatus }).catch((err) =>
-        logger.error({ err }, '[StatusHandler] Failed to update campaign recipient status')
-      )
-
       logger.info(`[StatusHandler] ✓ Published status update for ${wamid}`)
     } catch (error) {
       logger.error({ err: error }, '[StatusHandler] Error processing status')
       // Continue with next status
     }
   }
+}
+
+function extractFailureReason(status: any): string | null {
+  if (!Array.isArray(status?.errors) || status.errors.length === 0) {
+    return null
+  }
+
+  const [firstError] = status.errors
+  const details = firstError?.error_data?.details
+  const message = firstError?.message
+  const title = firstError?.title
+  const code = firstError?.code
+
+  const description = details || message || title
+  if (!description && !code) {
+    return 'Falha informada pelo webhook da Meta'
+  }
+
+  if (code && description) {
+    return `${description} (Meta ${code})`
+  }
+
+  return description || `Falha informada pelo webhook da Meta (${code})`
 }
