@@ -254,18 +254,8 @@ export default function DashboardPageClient() {
         </DashboardMetricGrid>
 
         <div className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
-          <FunnelChart
-            title="Funil"
-            description="Conversão das etapas principais"
-            data={funnelSteps}
-            loading={isFetching}
-          />
-          <DashboardPieChart
-            title="Vendas por serviço"
-            description="Distribuição da receita por item vendido"
-            data={pieData}
-            loading={isFetching}
-          />
+          <FunnelChart steps={funnelSteps} />
+          <DashboardPieChart data={pieData} />
         </div>
       </PageContent>
     </PageShell>
