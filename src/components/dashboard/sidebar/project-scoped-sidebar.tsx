@@ -6,13 +6,24 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import {
   BarChart3,
+  Bot,
+  Building2,
+  CreditCard,
+  FolderKanban,
+  GitBranch,
   Kanban,
   LayoutDashboard,
   MessageSquare,
   Megaphone,
+  Package,
+  Paintbrush,
+  Plug,
+  ScrollText,
   ShoppingBag,
   Sparkles,
+  UserCircle,
   Users,
+  Webhook,
 } from 'lucide-react'
 
 import type { Permission } from '@/lib/auth/rbac/roles'
@@ -46,6 +57,17 @@ const ICON_MAP = {
   WhatsApp: WhatsAppIcon,
   Kanban,
   Sparkles,
+  FolderKanban,
+  Plug,
+  UserCircle,
+  Building2,
+  GitBranch,
+  Bot,
+  Package,
+  ScrollText,
+  CreditCard,
+  Paintbrush,
+  Webhook,
 } as const
 
 type NavItem = {
@@ -89,9 +111,11 @@ export function ProjectScopedSidebar({
 
   const navItems: NavItem[] = [
     { title: 'Dashboard', href: dashboardPath, icon: 'LayoutDashboard' },
+    { title: 'Analytics', href: `${basePath}/analytics`, icon: 'BarChart3' },
     { title: 'Meta Ads', href: `${basePath}/meta-ads`, icon: 'Meta' },
     { title: 'Mensagens', href: `${basePath}/whatsapp/inbox`, icon: 'MessageSquare' },
     { title: 'Campanhas', href: `${basePath}/whatsapp/campaigns`, icon: 'Megaphone' },
+    { title: 'Projetos', href: `${basePath}/projects`, icon: 'FolderKanban' },
     { title: 'Leads', href: `${basePath}/leads`, icon: 'Users' },
     { title: 'Tickets', href: `${basePath}/tickets`, icon: 'Kanban' },
     { title: 'Vendas', href: `${basePath}/sales`, icon: 'ShoppingBag' },
@@ -100,9 +124,11 @@ export function ProjectScopedSidebar({
 
   const navPermissionByHref: Partial<Record<string, Permission>> = {
     [dashboardPath]: 'view:dashboard',
+    [`${basePath}/analytics`]: 'view:analytics',
     [`${basePath}/whatsapp/inbox`]: 'view:whatsapp',
     [`${basePath}/whatsapp/campaigns`]: 'view:whatsapp',
     [`${basePath}/meta-ads`]: 'view:meta',
+    [`${basePath}/projects`]: 'view:leads',
     [`${basePath}/leads`]: 'view:leads',
     [`${basePath}/tickets`]: 'view:tickets',
     [`${basePath}/sales`]: 'view:sales',
@@ -111,6 +137,7 @@ export function ProjectScopedSidebar({
 
   const userName = session?.user?.name || 'Usuário'
   const userEmail = session?.user?.email || ''
+  const userImage = session?.user?.image
 
   const handleNavClick = () => {
     if (isMobile) setOpenMobile(false)
@@ -208,6 +235,7 @@ export function ProjectScopedSidebar({
                 .filter((item) =>
                   [
                     dashboardPath,
+                    `${basePath}/analytics`,
                   ].includes(item.href)
                 )
                 .map((item) => {
@@ -264,7 +292,12 @@ export function ProjectScopedSidebar({
             <SidebarMenu>
               {navItems
                 .filter((item) =>
-                  [`${basePath}/leads`, `${basePath}/tickets`, `${basePath}/sales`].includes(
+                  [
+                    `${basePath}/projects`,
+                    `${basePath}/leads`,
+                    `${basePath}/tickets`,
+                    `${basePath}/sales`,
+                  ].includes(
                     item.href
                   )
                 )
@@ -309,12 +342,210 @@ export function ProjectScopedSidebar({
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Configurações</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={
+                    pathname === `${basePath}/settings` ||
+                    pathname.startsWith(`${basePath}/settings/profile`)
+                  }
+                  tooltip="Perfil"
+                >
+                  <Link href={`${basePath}/settings/profile`} onClick={handleNavClick}>
+                    <UserCircle className="h-4 w-4" />
+                    <span>Perfil</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              {permissionSet.has('manage:organization') ? (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname.startsWith(`${basePath}/settings/organization`)}
+                    tooltip="Organização"
+                  >
+                    <Link href={`${basePath}/settings/organization`} onClick={handleNavClick}>
+                      <Building2 className="h-4 w-4" />
+                      <span>Organização</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ) : null}
+
+              {permissionSet.has('manage:members') ? (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname.startsWith(`${basePath}/settings/team`)}
+                    tooltip="Equipe"
+                  >
+                    <Link href={`${basePath}/settings/team`} onClick={handleNavClick}>
+                      <Users className="h-4 w-4" />
+                      <span>Equipe</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ) : null}
+
+              {permissionSet.has('manage:integrations') ? (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={
+                      pathname.startsWith(`${basePath}/settings/integrations`) ||
+                      pathname.startsWith(`${basePath}/settings/whatsapp`) ||
+                      pathname.startsWith(`${basePath}/settings/meta-ads`)
+                    }
+                    tooltip="Integrações"
+                  >
+                    <Link href={`${basePath}/settings/integrations`} onClick={handleNavClick}>
+                      <Plug className="h-4 w-4" />
+                      <span>Integrações</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ) : null}
+
+              {permissionSet.has('manage:settings') ? (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname.startsWith(`${basePath}/settings/pipeline`)}
+                    tooltip="Pipeline"
+                  >
+                    <Link href={`${basePath}/settings/pipeline`} onClick={handleNavClick}>
+                      <GitBranch className="h-4 w-4" />
+                      <span>Pipeline</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ) : null}
+
+              {permissionSet.has('manage:ai') ? (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname.startsWith(`${basePath}/settings/ai-studio`)}
+                    tooltip="IA Studio"
+                  >
+                    <Link href={`${basePath}/settings/ai-studio`} onClick={handleNavClick}>
+                      <Bot className="h-4 w-4" />
+                      <span>IA Studio</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ) : null}
+
+              {permissionSet.has('manage:items') ? (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname.startsWith(`${basePath}/settings/catalog`)}
+                    tooltip="Catálogo"
+                  >
+                    <Link href={`${basePath}/settings/catalog`} onClick={handleNavClick}>
+                      <Package className="h-4 w-4" />
+                      <span>Catálogo</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ) : null}
+
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={
+                    pathname.startsWith(`${basePath}/settings/subscription`) ||
+                    pathname.startsWith(`${basePath}/settings/billing`)
+                  }
+                  tooltip="Assinatura"
+                >
+                  <Link href={`${basePath}/settings/subscription`} onClick={handleNavClick}>
+                    <ShoppingBag className="h-4 w-4" />
+                    <span>Assinatura</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              {permissionSet.has('view:audit') ? (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname.startsWith(`${basePath}/settings/audit`)}
+                    tooltip="Auditoria"
+                  >
+                    <Link href={`${basePath}/settings/audit`} onClick={handleNavClick}>
+                      <ScrollText className="h-4 w-4" />
+                      <span>Auditoria</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ) : null}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {session?.user?.role === 'admin' || session?.user?.role === 'owner' ? (
+          <SidebarGroup>
+            <SidebarGroupLabel>Admin</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname.startsWith(`${basePath}/settings/webhooks`)}
+                    tooltip="Webhooks"
+                  >
+                    <Link href={`${basePath}/settings/webhooks/whatsapp`} onClick={handleNavClick}>
+                      <Webhook className="h-4 w-4" />
+                      <span>Webhooks</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname.startsWith(`${basePath}/settings/billing`)}
+                    tooltip="Planos e Cobrança"
+                  >
+                    <Link href={`${basePath}/settings/billing`} onClick={handleNavClick}>
+                      <CreditCard className="h-4 w-4" />
+                      <span>Planos e Cobrança</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+
+                {session?.user?.role === 'owner' ? (
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={pathname.startsWith(`${basePath}/design-system`)}
+                      tooltip="Design System"
+                    >
+                      <Link href={`${basePath}/design-system`} onClick={handleNavClick}>
+                        <Paintbrush className="h-4 w-4" />
+                        <span>Design System</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ) : null}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ) : null}
       </SidebarContent>
 
       <SidebarFooter className="border-t">
         <SidebarMenu>
           <SidebarMenuItem>
-            <UserDropdownMenu userName={userName} userEmail={userEmail} />
+            <UserDropdownMenu userName={userName} userEmail={userEmail} userImage={userImage} />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
