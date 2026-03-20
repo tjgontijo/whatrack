@@ -228,27 +228,27 @@ export default function DashboardPageClient() {
         <DashboardMetricGrid>
           <DashboardMetricCard
             title="Leads"
-            value={data?.metrics.leads ?? 0}
+            value={data?.funnel.leads ?? 0}
             isLoading={isFetching}
           />
           <DashboardMetricCard
             title="Agendamentos"
-            value={data?.metrics.schedules ?? 0}
+            value={data?.funnel.schedules ?? 0}
             isLoading={isFetching}
           />
           <DashboardMetricCard
             title="Comparecimentos"
-            value={data?.metrics.attendances ?? 0}
+            value={data?.funnel.attendances ?? 0}
             isLoading={isFetching}
           />
           <DashboardMetricCard
             title="Vendas"
-            value={data?.metrics.sales ?? 0}
+            value={data?.sales ?? 0}
             isLoading={isFetching}
           />
           <DashboardMetricCard
             title="Receita"
-            value={formatCurrencyBRL(data?.metrics.revenue ?? 0)}
+            value={formatCurrencyBRL(data?.cards.revenue ?? 0)}
             isLoading={isFetching}
           />
         </DashboardMetricGrid>
