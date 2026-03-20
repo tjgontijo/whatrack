@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 
 import { prisma } from '@/lib/db/prisma'
+import { normalizeSlug } from '@/lib/utils/slug'
 import { getServerSession } from '@/server/auth/server-session'
 import { getCurrentOrganizationId } from '@/server/organization/get-current-organization-id'
 import { getCurrentProjectId } from '@/server/project/get-current-project-id'
@@ -23,7 +24,7 @@ export default async function DashboardEntryPage() {
   const [organization, project] = await Promise.all([
     prisma.organization.findUnique({
       where: { id: organizationId },
-      select: { slug: true },
+      select: { id: true, slug: true, name: true },
     }),
     (async () => {
       const currentProjectId = await getCurrentProjectId(organizationId)
@@ -58,5 +59,30 @@ export default async function DashboardEntryPage() {
     redirect('/welcome')
   }
 
-  redirect(`/${organization.slug}/${project.slug}`)
+  let organizationSlug = organization.slug
+
+  if (organization.slug.startsWith('org-')) {
+    const baseSlug = normalizeSlug(organization.name) || organization.slug
+
+    for (let index = 0; index < 100; index += 1) {
+      const candidate = index === 0 ? baseSlug : `${baseSlug}-${index + 2}`
+      const existing = await prisma.organization.findUnique({
+        where: { slug: candidate },
+        select: { id: true },
+      })
+
+      if (!existing || existing.id === organization.id) {
+        if (candidate !== organization.slug) {
+          await prisma.organization.update({
+            where: { id: organization.id },
+            data: { slug: candidate },
+          })
+          organizationSlug = candidate
+        }
+        break
+      }
+    }
+  }
+
+  redirect(`/${organizationSlug}/${project.slug}`)
 }
