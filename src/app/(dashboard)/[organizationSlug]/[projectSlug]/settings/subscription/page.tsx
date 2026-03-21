@@ -7,8 +7,13 @@ import { PageContent, PageHeader, PageShell } from '@/components/dashboard/layou
 import { listPublicBillingPlans } from '@/services/billing/billing-plan-catalog.service'
 import { requireWorkspacePageAccess } from '@/server/auth/require-workspace-page-access'
 
-export default async function SubscriptionPage() {
-  await requireWorkspacePageAccess({ requireOwner: true })
+type SubscriptionPageProps = {
+  params: Promise<{ organizationSlug: string }>
+}
+
+export default async function SubscriptionPage({ params }: SubscriptionPageProps) {
+  const { organizationSlug } = await params
+  await requireWorkspacePageAccess({ requireOwner: true, organizationSlug })
   const availablePlans = await listPublicBillingPlans()
 
   return (

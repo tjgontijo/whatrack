@@ -1,9 +1,12 @@
-import { PipelineSettings } from '@/components/dashboard/settings/pipeline-settings'
-import { requireWorkspacePageAccess } from '@/server/auth/require-workspace-page-access'
+import { redirect } from 'next/navigation'
 
 export const metadata = { title: 'Pipeline — Configurações' }
 
-export default async function PipelinePage() {
-  await requireWorkspacePageAccess({ permissions: 'manage:settings' })
-  return <PipelineSettings />
+type PipelinePageProps = {
+  params: Promise<{ organizationSlug: string; projectSlug: string }>
+}
+
+export default async function PipelinePage({ params }: PipelinePageProps) {
+  const { organizationSlug, projectSlug } = await params
+  redirect(`/${organizationSlug}/${projectSlug}/tickets`)
 }

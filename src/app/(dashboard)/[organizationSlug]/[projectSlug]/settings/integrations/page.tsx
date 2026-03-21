@@ -1,23 +1,10 @@
-import { IntegrationsHub } from '@/components/dashboard/integrations/integrations-hub'
-import { SectionShell } from '@/components/dashboard/layout'
+import { redirect } from 'next/navigation'
 import { requireWorkspacePageAccess } from '@/server/auth/require-workspace-page-access'
 
-type IntegrationsPageProps = {
-  searchParams?: Promise<Record<string, string | string[] | undefined>>
-}
+type Props = { params: Promise<{ organizationSlug: string; projectSlug: string }> }
 
-function normalizeTab(value: string | string[] | undefined): 'whatsapp' | 'meta-ads' {
-  const tab = Array.isArray(value) ? value[0] : value
-  return tab === 'meta-ads' ? 'meta-ads' : 'whatsapp'
-}
-
-export default async function IntegrationsPage({ searchParams }: IntegrationsPageProps) {
-  const access = await requireWorkspacePageAccess({ permissions: 'manage:integrations' })
-  const tab = normalizeTab((await searchParams)?.tab)
-
-  return (
-    <SectionShell>
-      <IntegrationsHub organizationId={access.organizationId} initialTab={tab} />
-    </SectionShell>
-  )
+export default async function IntegrationsPage({ params }: Props) {
+  const { organizationSlug, projectSlug } = await params
+  await requireWorkspacePageAccess({ permissions: 'manage:integrations', organizationSlug })
+  redirect(`/${organizationSlug}/${projectSlug}/settings/whatsapp`)
 }

@@ -6,8 +6,13 @@ import { ProfileSettingsContent } from '@/components/dashboard/settings/profile-
 import { getAccountSummary } from '@/services/account/account-summary.service'
 import { requireWorkspacePageAccess } from '@/server/auth/require-workspace-page-access'
 
-export default async function ProfilePage() {
-  const access = await requireWorkspacePageAccess()
+type ProfilePageProps = {
+  params: Promise<{ organizationSlug: string }>
+}
+
+export default async function ProfilePage({ params }: ProfilePageProps) {
+  const { organizationSlug } = await params
+  const access = await requireWorkspacePageAccess({ organizationSlug })
   const summary = await getAccountSummary({
     userId: access.userId,
     organizationId: access.organizationId,

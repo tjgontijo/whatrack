@@ -1,10 +1,10 @@
-import { WebhooksView } from '@/components/dashboard/whatsapp/settings/webhooks-view'
-import { SectionShell } from '@/components/dashboard/layout'
+import { redirect } from 'next/navigation'
 
-export default function WebhooksPage() {
-  return (
-    <SectionShell>
-      <WebhooksView />
-    </SectionShell>
-  )
+type WebhooksRedirectPageProps = {
+  params: Promise<{ organizationSlug: string; projectSlug: string }>
+}
+
+export default async function WebhooksRedirectPage({ params }: WebhooksRedirectPageProps) {
+  const { organizationSlug, projectSlug } = await params
+  redirect(`/${organizationSlug}/${projectSlug}/settings/whatsapp`)
 }

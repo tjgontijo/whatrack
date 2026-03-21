@@ -3,8 +3,15 @@ import { PageShell, PageHeader, PageContent } from '@/components/dashboard/layou
 import { CompanyDataSection } from '@/components/dashboard/settings/company-data-section'
 import { requireWorkspacePageAccess } from '@/server/auth/require-workspace-page-access'
 
-export default async function OrganizationSettingsPage() {
-  await requireWorkspacePageAccess({ permissions: 'manage:organization' })
+type OrganizationSettingsPageProps = {
+  params: Promise<{ organizationSlug: string }>
+}
+
+export default async function OrganizationSettingsPage({
+  params,
+}: OrganizationSettingsPageProps) {
+  const { organizationSlug } = await params
+  await requireWorkspacePageAccess({ permissions: 'manage:organization', organizationSlug })
 
   return (
     <PageShell maxWidth="3xl">

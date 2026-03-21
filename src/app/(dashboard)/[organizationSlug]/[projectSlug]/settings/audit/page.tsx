@@ -4,8 +4,13 @@ import { PageContent, PageHeader, PageShell } from '@/components/dashboard/layou
 import { AuditLogsTable } from '@/components/dashboard/settings/audit-logs-table'
 import { requireWorkspacePageAccess } from '@/server/auth/require-workspace-page-access'
 
-export default async function AuditPage() {
-  await requireWorkspacePageAccess({ permissions: 'view:audit' })
+type AuditPageProps = {
+  params: Promise<{ organizationSlug: string }>
+}
+
+export default async function AuditPage({ params }: AuditPageProps) {
+  const { organizationSlug } = await params
+  await requireWorkspacePageAccess({ permissions: 'view:audit', organizationSlug })
 
   return (
     <PageShell maxWidth="5xl">

@@ -4,8 +4,13 @@ import { TeamAccessContent } from '@/components/dashboard/account/team-access-co
 import { PageContent, PageHeader, PageShell } from '@/components/dashboard/layout'
 import { requireWorkspacePageAccess } from '@/server/auth/require-workspace-page-access'
 
-export default async function TeamPage() {
-  await requireWorkspacePageAccess({ permissions: 'manage:members' })
+type TeamPageProps = {
+  params: Promise<{ organizationSlug: string }>
+}
+
+export default async function TeamPage({ params }: TeamPageProps) {
+  const { organizationSlug } = await params
+  await requireWorkspacePageAccess({ permissions: 'manage:members', organizationSlug })
 
   return (
     <PageShell maxWidth="5xl">
