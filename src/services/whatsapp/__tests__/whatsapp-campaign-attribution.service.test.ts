@@ -72,7 +72,7 @@ describe('whatsapp-campaign-attribution.service', () => {
     })
   })
 
-  it('backfills sentAt from the webhook timestamp when delivery arrives before sent status', async () => {
+  it('stores sentAt only when the sent webhook is received', async () => {
     prismaMock.whatsAppCampaignRecipient.findFirst.mockResolvedValue({
       id: 'recipient-2',
       status: 'PENDING',
@@ -93,16 +93,50 @@ describe('whatsapp-campaign-attribution.service', () => {
 
     await updateRecipientStatusFromWebhook({
       wamid: 'wamid-2',
+      status: 'sent',
+      eventTimestamp: '1774046269',
+    })
+
+    const expectedDate = new Date(1774046269 * 1000)
+    expect(prismaMock.whatsAppCampaignRecipient.update).toHaveBeenCalledWith({
+      where: { id: 'recipient-2' },
+      data: {
+        status: 'SENT',
+        sentAt: expectedDate,
+      },
+    })
+  })
+
+  it('does not backfill sentAt when only the delivered webhook arrives', async () => {
+    prismaMock.whatsAppCampaignRecipient.findFirst.mockResolvedValue({
+      id: 'recipient-3',
+      status: 'PENDING',
+      sentAt: null,
+      deliveredAt: null,
+      readAt: null,
+      failedAt: null,
+      dispatchGroupId: 'group-1',
+      campaignId: 'campaign-1',
+    })
+    prismaMock.whatsAppCampaignRecipient.update.mockResolvedValue({})
+    prismaMock.whatsAppCampaignDispatchGroup.findMany.mockResolvedValue([
+      { status: 'DELIVERED', metaWamid: 'wamid-3' },
+    ])
+    prismaMock.whatsAppCampaignDispatchGroup.update.mockResolvedValue({})
+    prismaMock.whatsAppCampaign.findMany.mockResolvedValue([{ status: 'COMPLETED' }])
+    prismaMock.whatsAppCampaign.update.mockResolvedValue({})
+
+    await updateRecipientStatusFromWebhook({
+      wamid: 'wamid-3',
       status: 'delivered',
       eventTimestamp: '1774046930',
     })
 
     const expectedDate = new Date(1774046930 * 1000)
     expect(prismaMock.whatsAppCampaignRecipient.update).toHaveBeenCalledWith({
-      where: { id: 'recipient-2' },
+      where: { id: 'recipient-3' },
       data: {
         status: 'DELIVERED',
-        sentAt: expectedDate,
         deliveredAt: expectedDate,
       },
     })

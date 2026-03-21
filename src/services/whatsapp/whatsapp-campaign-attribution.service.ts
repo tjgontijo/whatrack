@@ -110,33 +110,23 @@ export async function updateRecipientStatusFromWebhook(params: {
       updateData.status = recipientStatus
     }
 
-    if (!recipient.sentAt) {
-      updateData.sentAt = eventDate
-    }
-
-    if (params.status === 'delivered' || params.status === 'read') {
+    if (params.status === 'sent') {
+      if (!recipient.sentAt) {
+        updateData.sentAt = eventDate
+      }
+    } else if (params.status === 'delivered') {
       if (!recipient.deliveredAt) {
         updateData.deliveredAt = eventDate
       }
-    }
-
-    if (params.status === 'read') {
+    } else if (params.status === 'read') {
       if (!recipient.readAt) {
         updateData.readAt = eventDate
-      }
-    } else if (params.status === 'delivered') {
-      if (!recipient.sentAt) {
-        updateData.sentAt = eventDate
       }
     } else if (params.status === 'failed') {
       if (!recipient.failedAt) {
         updateData.failedAt = eventDate
       }
       updateData.failureReason = params.failureReason || 'Falha informada pelo webhook da Meta'
-    }
-
-    if (params.status === 'sent' && recipient.sentAt) {
-      delete updateData.sentAt
     }
 
     if (Object.keys(updateData).length === 0) {

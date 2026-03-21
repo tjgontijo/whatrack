@@ -92,7 +92,6 @@ export async function processDispatchGroup(
           where: { id: recipient.id },
           data: {
             metaWamid: result.messages?.[0]?.id,
-            sentAt: new Date(),
           },
         })
 
