@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useDeferredValue, useMemo, useState } from 'react'
-import { FolderKanban, Pencil, Plus, Trash2 } from 'lucide-react'
+import { FolderKanban, Pencil, Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 
@@ -22,6 +22,7 @@ import type {
 import { CrudEmptyState } from '@/components/dashboard/crud/crud-data-view'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useRequiredProjectPath } from '@/hooks/project/project-route-context'
 import { useCrudInfiniteQuery } from '@/hooks/ui/use-crud-infinite-query'
 import { apiFetch } from '@/lib/api-client'
@@ -37,25 +38,17 @@ function formatDate(value: string) {
   }).format(new Date(value))
 }
 
-function buildAssociationSummary(project: ProjectListItem) {
-  return [
-    `${project.counts.whatsappCount} WhatsApp`,
-    `${project.counts.metaAdsCount} Meta Ads`,
-    `${project.counts.leadCount} leads`,
-  ].join(' · ')
+function buildChannelSummary(project: ProjectListItem) {
+  return `${project.counts.whatsappCount} WhatsApp · ${project.counts.metaAdsCount} Meta Ads`
 }
 
 const cardConfig: CardConfig<ProjectListItem> = {
   icon: () => <FolderKanban className="h-6 w-6 text-emerald-600" />,
   title: (project) => project.name,
-  subtitle: (project) => (
-    <span className="text-muted-foreground text-xs">
-      {buildAssociationSummary(project)}
-    </span>
-  ),
+  subtitle: (project) => buildChannelSummary(project),
   badge: (project) => (
     <Badge variant="outline" className="text-[10px]">
-      {project.counts.metaAdsCount} Meta Ads
+      {project.counts.leadCount} leads
     </Badge>
   ),
   footer: (project) => (
@@ -72,6 +65,7 @@ export function ProjectList() {
   const [searchInput, setSearchInput] = useState('')
   const [editingProject, setEditingProject] = useState<ProjectListItem | null>(null)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState<ProjectListItem | null>(null)
   const [deletingProjectId, setDeletingProjectId] = useState<string | null>(null)
   const deferredSearch = useDeferredValue(searchInput)
 
@@ -83,28 +77,13 @@ export function ProjectList() {
     }
   }, [deferredSearch])
 
-  const { data, total, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, refetch } =
     useCrudInfiniteQuery<ProjectListItem>({
       queryKey: ['projects'],
       endpoint: '/api/v1/projects',
       pageSize: 24,
       filters,
     })
-
-  const totalOperationalRecords = useMemo(
-    () =>
-      data.reduce(
-        (acc, item) =>
-          acc +
-          item.counts.whatsappCount +
-          item.counts.metaAdsCount +
-          item.counts.leadCount +
-          item.counts.ticketCount +
-          item.counts.saleCount,
-        0
-      ),
-    [data]
-  )
 
   const columns = useMemo<ColumnDef<ProjectListItem>[]>(
     () => [
@@ -117,7 +96,7 @@ export function ProjectList() {
               {project.name}
             </Link>
             <div className="text-muted-foreground text-xs">
-              {buildAssociationSummary(project)}
+              {buildChannelSummary(project)}
             </div>
           </div>
         ),
@@ -200,27 +179,32 @@ export function ProjectList() {
   const rowActions: RowActions<ProjectListItem> = {
     customActions: (project) => (
       <>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setEditingProject(project)}
-        >
-          <Pencil className="mr-1.5 h-3.5 w-3.5" />
-          Editar
-        </Button>
-
-        <DeleteConfirmDialog
-          onConfirm={() => handleDelete(project)}
-          title="Excluir projeto?"
-          description={`Isso removerá o projeto "${project.name}". Se existirem registros associados, o sistema pedirá uma confirmação adicional para desassociá-los.`}
-          isLoading={deletingProjectId === project.id}
-          trigger={
-            <Button variant="outline" size="sm">
-              <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-              Excluir
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => setEditingProject(project)}
+            >
+              <Pencil className="h-3.5 w-3.5" />
             </Button>
-          }
-        />
+          </TooltipTrigger>
+          <TooltipContent>Editar projeto</TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+              onClick={() => setDeleteTarget(project)}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Excluir projeto</TooltipContent>
+        </Tooltip>
       </>
     ),
   }
@@ -229,23 +213,16 @@ export function ProjectList() {
     <>
       <CrudPageShell
         title="Projetos"
-        icon={FolderKanban}
-        showTitle={false}
         onAdd={() => setIsCreateOpen(true)}
+        onRefresh={() => void refetch()}
         view={view}
         setView={setView}
         enabledViews={['list', 'cards']}
         searchInput={searchInput}
         onSearchChange={setSearchInput}
         searchPlaceholder="Buscar por nome do projeto..."
-        totalItems={total}
         isFetchingMore={isFetchingNextPage}
         isLoading={isLoading}
-        actions={
-          <div className="text-muted-foreground text-xs uppercase tracking-widest">
-            <span className="text-foreground font-bold">{totalOperationalRecords}</span> registros operacionais
-          </div>
-        }
       >
         <CrudDataView
           data={data}
@@ -274,6 +251,20 @@ export function ProjectList() {
           }
         />
       </CrudPageShell>
+
+      <DeleteConfirmDialog
+        open={Boolean(deleteTarget)}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        trigger={null}
+        title="Excluir projeto?"
+        description={
+          deleteTarget
+            ? `Isso removerá o projeto "${deleteTarget.name}". Se existirem registros associados, o sistema pedirá uma confirmação adicional para desassociá-los.`
+            : ''
+        }
+        isLoading={deletingProjectId === deleteTarget?.id}
+        onConfirm={() => deleteTarget && handleDelete(deleteTarget)}
+      />
 
       <ProjectFormDialog
         open={isCreateOpen}

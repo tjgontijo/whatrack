@@ -34,19 +34,23 @@ export function CrudDataView<T>({
   // Empty state
   if (data.length === 0) {
     return (
-      <div className="bg-muted/20 mx-6 flex flex-col items-center justify-center rounded-3xl border border-dashed px-10 py-20 text-center">
-        <FileText className="text-muted-foreground/30 mx-auto mb-4 h-12 w-12" />
-        <h3 className="text-muted-foreground mb-2 text-base font-semibold">
-          {emptyState?.title || 'Nenhum registro encontrado'}
-        </h3>
-        <p className="text-muted-foreground mb-4 text-sm">
-          {emptyState?.description || 'Tente buscar por termos diferentes ou verifique os filtros.'}
-        </p>
-        {emptyState?.action && (
-          <Button variant="default" onClick={emptyState.action.onClick}>
-            {emptyState.action.label}
-          </Button>
-        )}
+      <div className="flex min-h-[calc(100vh-200px)] items-center justify-center text-center">
+        <div className="space-y-3">
+          <FileText className="text-muted-foreground/30 mx-auto mb-1 h-8 w-8" />
+          <div>
+            <p className="text-muted-foreground text-sm font-medium">
+              {emptyState?.title || 'Nenhum registro encontrado'}
+            </p>
+            <p className="text-muted-foreground/50 mt-1 text-xs">
+              {emptyState?.description || 'Tente buscar por termos diferentes ou verifique os filtros.'}
+            </p>
+          </div>
+          {emptyState?.action && (
+            <Button size="sm" onClick={emptyState.action.onClick}>
+              {emptyState.action.label}
+            </Button>
+          )}
+        </div>
       </div>
     )
   }

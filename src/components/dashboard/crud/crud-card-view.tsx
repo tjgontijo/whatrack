@@ -30,63 +30,67 @@ export function CrudCardView<T>({
   onEndReached,
 }: CrudCardViewProps<T>) {
   return (
-    <VirtuosoGrid
-      data={data}
-      endReached={onEndReached}
-      overscan={200}
-      style={{ height: '100%', minHeight: 200 }}
-      listClassName={cn(
-        'grid gap-3 p-4',
-        gridClassName ?? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4',
-        className
-      )}
+    <div className="pt-6">
+      <VirtuosoGrid
+        data={data}
+        endReached={onEndReached}
+        overscan={200}
+        style={{ height: '100%', minHeight: 200 }}
+        listClassName={cn(
+          'grid gap-3 px-4 pb-8',
+          gridClassName ?? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6',
+          className
+        )}
       itemContent={(index, item) => (
         <div
           key={getRowKey(item, index)}
           className={cn(
-            'border-border bg-card hover:border-primary/40 group relative overflow-hidden rounded-xl border transition-all hover:shadow-md',
+            'border-border bg-card group relative overflow-hidden rounded-md border transition-colors hover:bg-muted/20',
             config.onClick && 'cursor-pointer',
             cardClassName
           )}
           onClick={() => config.onClick?.(item)}
         >
-          {/* Card Content */}
-          <div className="flex gap-3 p-3">
+          {/* Row actions — top-right, visible on hover */}
+          {rowActions && (
+            <div
+              className="absolute right-2 top-2 z-10 flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {rowActions.customActions?.(item)}
+            </div>
+          )}
+
+          {/* Card body */}
+          <div className={cn('flex gap-3 p-3', rowActions && 'pr-10')}>
             {config.icon && (
-              <div className="relative w-16 shrink-0">
-                <div className="bg-primary/5 border-primary/10 flex aspect-square w-full items-center justify-center rounded-lg border">
-                  {config.icon(item)}
-                </div>
+              <div className="text-muted-foreground/60 mt-0.5 shrink-0">
+                {config.icon(item)}
               </div>
             )}
 
-            <div className={cn('min-w-0 flex-1', rowActions && 'pr-8')}>
-              <h3 className="text-foreground mb-1 truncate text-sm font-semibold leading-tight">
+            <div className="min-w-0 flex-1">
+              <h3 className="text-foreground truncate text-sm font-medium leading-tight">
                 {config.title(item)}
               </h3>
               {config.subtitle && (
-                <div className="flex items-center gap-1.5">{config.subtitle(item)}</div>
+                <div className="text-muted-foreground mt-0.5 flex items-center gap-1.5 text-xs">
+                  {config.subtitle(item)}
+                </div>
               )}
             </div>
-
-            {rowActions && (
-              <div
-                className="absolute right-2 top-2 flex flex-col gap-1 opacity-0 transition-opacity group-hover:opacity-100"
-                onClick={(e) => e.stopPropagation()}
-              >
-                {rowActions.customActions?.(item)}
-              </div>
-            )}
           </div>
 
+          {/* Footer */}
           {(config.footer || config.badge) && (
-            <div className="border-border/50 bg-muted/5 flex items-center justify-between border-t px-3 py-2">
-              {config.badge?.(item)}
-              {config.footer?.(item)}
+            <div className="border-border/40 flex items-center justify-between border-t px-3 py-2">
+              <div className="flex items-center gap-1.5">{config.badge?.(item)}</div>
+              <div className="text-muted-foreground text-xs">{config.footer?.(item)}</div>
             </div>
           )}
         </div>
       )}
-    />
+      />
+    </div>
   )
 }

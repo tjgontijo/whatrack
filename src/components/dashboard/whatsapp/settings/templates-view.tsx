@@ -275,7 +275,6 @@ export function TemplatesView({ phone: _phone }: TemplatesViewProps) {
     <TooltipProvider>
       <CrudPageShell
         title="Templates WhatsApp"
-        icon={MessageSquare}
         view={view}
         setView={setView}
         enabledViews={['list', 'cards']}
@@ -285,7 +284,6 @@ export function TemplatesView({ phone: _phone }: TemplatesViewProps) {
           setPage(1)
         }}
         searchPlaceholder="Buscar por nome, categoria ou conteúdo..."
-        totalItems={totalItems}
         onAdd={handleCreate}
         isLoading={isLoading}
       >

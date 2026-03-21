@@ -5,6 +5,7 @@ export interface ProjectContext {
   organizationId: string
   organizationSlug: string
   organizationName: string
+  organizationLogo?: string | null
   projectId: string
   projectSlug: string
   projectName: string
@@ -14,6 +15,7 @@ export interface OrganizationContext {
   organizationId: string
   organizationSlug: string
   organizationName: string
+  organizationLogo?: string | null
 }
 
 export async function resolveProjectContext(params: {
@@ -36,6 +38,7 @@ export async function resolveProjectContext(params: {
             id: true,
             slug: true,
             name: true,
+            logo: true,
           },
         },
       },
@@ -68,6 +71,7 @@ export async function resolveProjectContext(params: {
       organizationId: member.organization.id,
       organizationSlug: member.organization.slug,
       organizationName: member.organization.name,
+      organizationLogo: member.organization.logo,
       projectId: project.id,
       projectSlug: project.slug,
       projectName: project.name,
@@ -97,6 +101,7 @@ export async function resolveOrganizationContext(params: {
             id: true,
             slug: true,
             name: true,
+            logo: true,
           },
         },
       },
@@ -110,6 +115,7 @@ export async function resolveOrganizationContext(params: {
       organizationId: member.organization.id,
       organizationSlug: member.organization.slug,
       organizationName: member.organization.name,
+      organizationLogo: member.organization.logo,
     }
   } catch (error) {
     logger.error(
@@ -140,6 +146,7 @@ export async function resolveProjectContextById(params: {
             id: true,
             slug: true,
             name: true,
+            logo: true,
           },
         },
       },
@@ -170,6 +177,7 @@ export async function resolveProjectContextById(params: {
       organizationId: member.organization.id,
       organizationSlug: member.organization.slug,
       organizationName: member.organization.name,
+      organizationLogo: member.organization.logo,
       projectId: project.id,
       projectSlug: project.slug,
       projectName: project.name,

@@ -6,6 +6,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { MoreHorizontal, Pencil, Tag, Trash2, Power, PowerOff } from 'lucide-react'
 import { toast } from 'sonner'
 
+import { Button } from '@/components/ui/button'
 import { CrudPageShell } from '@/components/dashboard/crud/crud-page-shell'
 import { CrudDataView, CrudEmptyState } from '@/components/dashboard/crud/crud-data-view'
 import { CrudListView } from '@/components/dashboard/crud/crud-list-view'
@@ -90,11 +91,7 @@ const columns: ColumnDef<Category>[] = [
 const cardConfig: CardConfig<Category> = {
   icon: () => <Tag className="text-primary/60 h-7 w-7" />,
   title: (category) => category.name,
-  subtitle: (category) => (
-    <span className="text-muted-foreground text-xs">
-      {category.itemsCount} {category.itemsCount === 1 ? 'item' : 'itens'}
-    </span>
-  ),
+  subtitle: (category) => `${category.itemsCount} ${category.itemsCount === 1 ? 'item' : 'itens'}`,
   badge: (category) => (
     <Badge variant={category.active ? 'default' : 'secondary'} className="text-[10px]">
       {category.active ? 'Ativa' : 'Inativa'}
@@ -188,12 +185,9 @@ export function CategoriesTable() {
     customActions: (category) => (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button
-            type="button"
-            className="hover:bg-muted inline-flex h-8 w-8 items-center justify-center rounded-md"
-          >
+          <Button variant="ghost" size="icon-sm" title="Mais ações">
             <MoreHorizontal className="h-4 w-4" />
-          </button>
+          </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem
@@ -230,26 +224,27 @@ export function CategoriesTable() {
   }
 
   const filtersNode = (
-    <Select value={statusFilter} onValueChange={setStatusFilter}>
-      <SelectTrigger className="border-border h-7 w-32 text-xs">
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        {STATUS_OPTIONS.map((option) => (
-          <SelectItem key={option.value} value={option.value} className="text-xs">
-            {option.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <div className="space-y-1.5">
+      <p className="text-muted-foreground text-xs font-medium">Status</p>
+      <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <SelectTrigger className="border-border h-8 w-full text-xs">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {STATUS_OPTIONS.map((option) => (
+            <SelectItem key={option.value} value={option.value} className="text-xs">
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
   )
 
   return (
     <>
       <CrudPageShell
         title="Categorias"
-        showTitle={false}
-        icon={Tag}
         onAdd={() => {
           setEditingCategory(null)
           setIsFormOpen(true)
@@ -260,7 +255,7 @@ export function CategoriesTable() {
         searchInput={searchInput}
         onSearchChange={setSearchInput}
         searchPlaceholder="Buscar categoria..."
-        totalItems={total}
+        onRefresh={() => void refetch()}
         isFetchingMore={isFetchingNextPage}
         filters={filtersNode}
         isLoading={isLoading}

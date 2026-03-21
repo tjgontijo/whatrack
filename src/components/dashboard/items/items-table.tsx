@@ -79,10 +79,10 @@ const cardConfig: CardConfig<Item> = {
   title: (item) => item.name,
   subtitle: (item) =>
     item.category ? (
-      <span className="text-muted-foreground flex items-center gap-1 text-xs">
+      <>
         <Tag className="h-3 w-3" />
         {item.category.name}
-      </span>
+      </>
     ) : null,
   badge: (item) => (
     <Badge variant={item.active ? 'default' : 'secondary'} className="text-[10px]">
@@ -152,35 +152,41 @@ export function ItemsTable() {
 
   const filtersNode = (
     <>
-      <Select value={status} onValueChange={setStatus}>
-        <SelectTrigger className="border-border h-7 w-32 text-xs">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {STATUS_OPTIONS.map((opt) => (
-            <SelectItem key={opt.value} value={opt.value} className="text-xs">
-              {opt.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
-      {categories.length > 0 && (
-        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-          <SelectTrigger className="border-border h-7 w-40 text-xs">
-            <SelectValue placeholder="Categoria" />
+      <div className="space-y-1.5">
+        <p className="text-muted-foreground text-xs font-medium">Status</p>
+        <Select value={status} onValueChange={setStatus}>
+          <SelectTrigger className="border-border h-8 w-full text-xs">
+            <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all" className="text-xs">
-              Todas as categorias
-            </SelectItem>
-            {categories.map((c) => (
-              <SelectItem key={c.id} value={c.id} className="text-xs">
-                {c.name}
+            {STATUS_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value} className="text-xs">
+                {opt.label}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
+      </div>
+
+      {categories.length > 0 && (
+        <div className="space-y-1.5">
+          <p className="text-muted-foreground text-xs font-medium">Categoria</p>
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger className="border-border h-8 w-full text-xs">
+              <SelectValue placeholder="Todas as categorias" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="text-xs">
+                Todas as categorias
+              </SelectItem>
+              {categories.map((c) => (
+                <SelectItem key={c.id} value={c.id} className="text-xs">
+                  {c.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       )}
     </>
   )
@@ -189,8 +195,6 @@ export function ItemsTable() {
     <>
       <CrudPageShell
         title="Itens"
-        showTitle={false}
-        icon={Package2}
         onAdd={() => setIsItemFormDrawerOpen(true)}
         view={view}
         setView={setView}
@@ -198,7 +202,7 @@ export function ItemsTable() {
         searchInput={searchInput}
         onSearchChange={setSearchInput}
         searchPlaceholder="Buscar itens..."
-        totalItems={total}
+        onRefresh={() => void refetch()}
         isFetchingMore={isFetchingNextPage}
         filters={filtersNode}
         isLoading={isLoading}

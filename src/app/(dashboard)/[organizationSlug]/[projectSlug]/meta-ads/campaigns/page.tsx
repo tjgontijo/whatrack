@@ -1,5 +1,9 @@
 import MetaAdsPage from '../page'
 
-export default function MetaAdsCampaignsPage() {
-  return <MetaAdsPage searchParams={Promise.resolve({ tab: 'campaigns' })} />
+type MetaAdsCampaignsPageProps = {
+  params: Promise<{ organizationSlug: string }>
+}
+
+export default function MetaAdsCampaignsPage({ params }: MetaAdsCampaignsPageProps) {
+  return <MetaAdsPage params={params} />
 }

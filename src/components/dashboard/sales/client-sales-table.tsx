@@ -105,11 +105,7 @@ const columns: ColumnDef<SaleListItem>[] = [
 const cardConfig: CardConfig<SaleListItem> = {
   icon: () => <ShoppingCart className="text-primary/60 h-7 w-7" />,
   title: (sale) => formatCurrencyBRL(sale.totalAmount),
-  subtitle: (sale) => (
-    <span className="text-muted-foreground text-xs">
-      {new Date(sale.createdAt).toLocaleDateString('pt-BR')}
-    </span>
-  ),
+  subtitle: (sale) => new Date(sale.createdAt).toLocaleDateString('pt-BR'),
   badge: (sale) => {
     const status = sale.status ? STATUS_BADGE[sale.status] : null
     return status ? (
@@ -144,7 +140,7 @@ export default function ClientSalesTable() {
     }
   }, [deferredSearch, statusFilter, dateRange])
 
-  const { data, total, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
+  const { data, total, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, refetch } =
     useCrudInfiniteQuery<SaleListItem>({
       queryKey: ['sales'],
       endpoint: '/api/v1/sales',
@@ -158,46 +154,50 @@ export default function ClientSalesTable() {
 
   const filtersNode = (
     <>
-      <Select value={statusFilter} onValueChange={setStatusFilter}>
-        <SelectTrigger className="border-border h-7 w-36 text-xs">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {STATUS_OPTIONS.map((option) => (
-            <SelectItem key={option.value} value={option.value} className="text-xs">
-              {option.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <div className="space-y-1.5">
+        <p className="text-muted-foreground text-xs font-medium">Status</p>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="border-border h-8 w-full text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {STATUS_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value} className="text-xs">
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
-      <Select value={dateRange} onValueChange={setDateRange}>
-        <SelectTrigger className="border-border h-7 w-36 text-xs">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {DATE_OPTIONS.map((option) => (
-            <SelectItem key={option.value} value={option.value} className="text-xs">
-              {option.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <div className="space-y-1.5">
+        <p className="text-muted-foreground text-xs font-medium">Período</p>
+        <Select value={dateRange} onValueChange={setDateRange}>
+          <SelectTrigger className="border-border h-8 w-full text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {DATE_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value} className="text-xs">
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
     </>
   )
 
   return (
     <CrudPageShell
       title="Vendas"
-      showTitle={false}
-      icon={ShoppingCart}
       view={view}
       setView={setView}
       enabledViews={['list', 'cards']}
       searchInput={searchInput}
       onSearchChange={setSearchInput}
       searchPlaceholder="Pesquisar valor, status, observação..."
-      totalItems={total}
+      onRefresh={() => void refetch()}
       isFetchingMore={isFetchingNextPage}
       filters={filtersNode}
       isLoading={isLoading}

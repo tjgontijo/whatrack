@@ -6,6 +6,7 @@ export interface ProjectRouteContextValue {
   organizationId: string
   organizationSlug: string
   organizationName: string
+  organizationLogo?: string | null
   projectId: string
   projectSlug: string
   projectName: string
@@ -47,7 +48,7 @@ function normalizeProjectPathSuffix(path?: string) {
 
 export function buildProjectPath(
   context: Pick<ProjectRouteContextValue, 'organizationSlug' | 'projectSlug'>,
-  path?: string,
+  path?: string
 ) {
   return `/${context.organizationSlug}/${context.projectSlug}${normalizeProjectPathSuffix(path)}`
 }

@@ -1,103 +1,63 @@
 'use client'
 
-import { useMemo } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { BarChart3, RefreshCw } from 'lucide-react'
+import { useState } from 'react'
+import { RefreshCw } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 
 import { MetaAdsCampaignsClient } from '@/app/(dashboard)/[organizationSlug]/[projectSlug]/meta-ads/campaigns/client'
 import { MetaROIContent } from '@/components/dashboard/meta-ads/dashboard/meta-roi-content'
-import { PageContent, PageHeader, PageShell } from '@/components/dashboard/layout'
-import { useRequiredProjectPath, useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
+import { SectionPageShell } from '@/components/dashboard/layout/section-page-shell'
 import { Button } from '@/components/ui/button'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
 import { metaAdsClient } from '@/lib/meta-ads/client'
+import { cn } from '@/lib/utils/utils'
 import type { MetaRoiResponse } from '@/types/meta-ads/meta-ads'
 
-type MetaAdsPageContentProps = {
-  initialTab: string
-}
+const TABS = [
+  { key: 'overview', label: 'Visão Geral' },
+  { key: 'campaigns', label: 'Campanhas' },
+]
 
-const DEFAULT_TAB = 'overview'
-
-export function MetaAdsPageContent({ initialTab }: MetaAdsPageContentProps) {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const metaAdsPath = useRequiredProjectPath('/meta-ads')
+export function MetaAdsPageContent() {
+  const [activeTab, setActiveTab] = useState('overview')
   const { organizationId } = useRequiredProjectRouteContext()
 
-  const {
-    data: roiData,
-    isLoading,
-    refetch,
-    isRefetching,
-  } = useQuery<MetaRoiResponse>({
+  const { data: roiData, isLoading, refetch, isRefetching } = useQuery<MetaRoiResponse>({
     queryKey: ['meta-ads', 'insights', { organizationId }],
     queryFn: () => metaAdsClient.getInsights(organizationId!),
     enabled: !!organizationId,
   })
 
-  const selectedTab = useMemo(
-    () => (initialTab === 'campaigns' ? 'campaigns' : DEFAULT_TAB),
-    [initialTab],
-  )
-
   return (
-    <PageShell maxWidth="7xl">
-      <PageHeader
-        title="Meta Ads"
-        description="Acompanhe o ROI e a operação das campanhas Click-to-WhatsApp por projeto."
-        icon={BarChart3}
-        actions={
+    <SectionPageShell
+      title="Meta Ads"
+      tabs={TABS}
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
+      actions={
+        activeTab === 'overview' ? (
           <Button
-            variant="outline"
-            size="sm"
-            className="gap-2"
+            variant="ghost"
+            size="icon"
+            className="text-muted-foreground hover:text-foreground h-7 w-7"
             onClick={() => refetch()}
             disabled={isRefetching || isLoading}
           >
-            <RefreshCw className={`h-4 w-4 ${isRefetching || isLoading ? 'animate-spin' : ''}`} />
-            Atualizar dados
+            <RefreshCw className={cn('h-3.5 w-3.5', (isRefetching || isLoading) && 'animate-spin')} />
           </Button>
-        }
-      />
-
-      <PageContent>
-        <Tabs
-          value={selectedTab}
-          onValueChange={(tab) => {
-            const params = new URLSearchParams(searchParams.toString())
-
-            if (tab === DEFAULT_TAB) {
-              params.delete('tab')
-            } else {
-              params.set('tab', tab)
-            }
-
-            const query = params.toString()
-            router.replace(query ? `${metaAdsPath}?${query}` : metaAdsPath)
-          }}
-          className="gap-6"
-        >
-          <TabsList variant="line" className="w-full justify-start rounded-none border-b p-0">
-            <TabsTrigger value="overview">Visão geral</TabsTrigger>
-            <TabsTrigger value="campaigns">Campanhas</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview">
-            <MetaROIContent
-              roiData={roiData}
-              isLoading={isLoading}
-              isRefetching={isRefetching}
-              onRefresh={() => refetch()}
-            />
-          </TabsContent>
-
-          <TabsContent value="campaigns">
-            <MetaAdsCampaignsClient />
-          </TabsContent>
-        </Tabs>
-      </PageContent>
-    </PageShell>
+        ) : null
+      }
+    >
+      {activeTab === 'overview' ? (
+        <MetaROIContent
+          roiData={roiData}
+          isLoading={isLoading}
+          isRefetching={isRefetching}
+          onRefresh={() => refetch()}
+        />
+      ) : (
+        <MetaAdsCampaignsClient />
+      )}
+    </SectionPageShell>
   )
 }

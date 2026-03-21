@@ -1,5 +1,9 @@
 import AiPage from '../../ia/page'
 
-export default function AiUsagePage() {
-  return <AiPage searchParams={Promise.resolve({ tab: 'usage' })} />
+type AiUsagePageProps = {
+  params: Promise<{ organizationSlug: string }>
+}
+
+export default function AiUsagePage({ params }: AiUsagePageProps) {
+  return <AiPage params={params} />
 }

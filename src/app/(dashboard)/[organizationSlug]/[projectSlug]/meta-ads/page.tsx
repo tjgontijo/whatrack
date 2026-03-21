@@ -2,14 +2,11 @@ import { MetaAdsPageContent } from '@/components/dashboard/meta-ads/meta-ads-pag
 import { requireWorkspacePageAccess } from '@/server/auth/require-workspace-page-access'
 
 type MetaAdsPageProps = {
-  searchParams?: Promise<Record<string, string | string[] | undefined>>
+  params: Promise<{ organizationSlug: string }>
 }
 
-export default async function MetaAdsPage({ searchParams }: MetaAdsPageProps) {
-  await requireWorkspacePageAccess({ permissions: 'view:meta' })
-
-  const rawSearchParams = (await searchParams) ?? {}
-  const tab = Array.isArray(rawSearchParams.tab) ? rawSearchParams.tab[0] : rawSearchParams.tab
-
-  return <MetaAdsPageContent initialTab={tab ?? 'overview'} />
+export default async function MetaAdsPage({ params }: MetaAdsPageProps) {
+  const { organizationSlug } = await params
+  await requireWorkspacePageAccess({ permissions: 'view:meta', organizationSlug })
+  return <MetaAdsPageContent />
 }

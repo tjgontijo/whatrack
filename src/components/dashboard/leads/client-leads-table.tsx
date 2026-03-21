@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { useState, useDeferredValue, useMemo, useCallback } from 'react'
-import { Users } from 'lucide-react'
+
 
 import { CrudPageShell } from '@/components/dashboard/crud/crud-page-shell'
 import { CrudDataView, CrudEmptyState } from '@/components/dashboard/crud/crud-data-view'
@@ -99,9 +99,7 @@ const cardConfig: CardConfig<Lead> = {
     </Avatar>
   ),
   title: getLeadName,
-  subtitle: (lead) => (
-    <span className="text-muted-foreground text-xs">{lead.phone || lead.mail || 'Sem contato'}</span>
-  ),
+  subtitle: (lead) => lead.phone || lead.mail || 'Sem contato',
   footer: (lead) => (
     <span className="text-muted-foreground text-xs">
       {new Date(lead.createdAt).toLocaleDateString('pt-BR')}
@@ -127,7 +125,7 @@ export default function ClientLeadsTable() {
     }
   }, [deferredSearch, dateRange])
 
-  const { data, total, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
+  const { data, total, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, refetch } =
     useCrudInfiniteQuery<Lead>({
       queryKey: ['leads'],
       endpoint: '/api/v1/leads',
@@ -140,34 +138,35 @@ export default function ClientLeadsTable() {
   }
 
   const filtersNode = (
-    <Select value={dateRange} onValueChange={setDateRange}>
-      <SelectTrigger className="border-border h-7 w-36 text-xs">
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        {DATE_OPTIONS.map((option) => (
-          <SelectItem key={option.value} value={option.value} className="text-xs">
-            {option.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <div className="space-y-1.5">
+      <p className="text-muted-foreground text-xs font-medium">Período</p>
+      <Select value={dateRange} onValueChange={setDateRange}>
+        <SelectTrigger className="border-border h-8 w-full text-xs">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {DATE_OPTIONS.map((option) => (
+            <SelectItem key={option.value} value={option.value} className="text-xs">
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
   )
 
   return (
     <>
       <CrudPageShell
         title="Leads"
-        showTitle={false}
-        icon={Users}
         onAdd={() => setIsNewLeadDrawerOpen(true)}
+        onRefresh={() => void refetch()}
         view={view}
         setView={setView}
         enabledViews={['list', 'cards']}
         searchInput={searchInput}
         onSearchChange={setSearchInput}
         searchPlaceholder="Buscar por nome, telefone..."
-        totalItems={total}
         isFetchingMore={isFetchingNextPage}
         filters={filtersNode}
         isLoading={isLoading}

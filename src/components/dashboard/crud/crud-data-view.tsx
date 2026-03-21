@@ -23,13 +23,11 @@ export function CrudEmptyState({
   description = 'Tente buscar por termos diferentes ou verifique os filtros.',
 }: CrudEmptyStateProps) {
   return (
-    <div className="mx-6 my-4 flex min-h-[calc(100vh-280px)] items-center justify-center rounded-3xl border border-dashed bg-muted/20 px-10 py-20 text-center">
+    <div className="flex min-h-[calc(100vh-200px)] items-center justify-center text-center">
       <div>
-        <div className="bg-muted mx-auto mb-3 flex size-12 items-center justify-center rounded-xl">
-          <Package className="text-muted-foreground size-6" />
-        </div>
-        <p className="text-muted-foreground font-bold">{title}</p>
-        <p className="text-muted-foreground/60 mt-1 text-xs">{description}</p>
+        <Package className="text-muted-foreground/30 mx-auto mb-3 size-8" />
+        <p className="text-muted-foreground text-sm font-medium">{title}</p>
+        <p className="text-muted-foreground/50 mt-1 text-xs">{description}</p>
       </div>
     </div>
   )

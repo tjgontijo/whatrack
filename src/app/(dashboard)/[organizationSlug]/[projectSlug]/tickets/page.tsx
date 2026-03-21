@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Ticket, User, Calendar, MessageSquare, DollarSign, TrendingUp } from 'lucide-react'
+import { User, Calendar, MessageSquare, DollarSign, TrendingUp, SlidersHorizontal } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { CrudPageShell } from '@/components/dashboard/crud/crud-page-shell'
@@ -10,7 +10,9 @@ import { CrudDataView, CrudEmptyState } from '@/components/dashboard/crud/crud-d
 import { CrudListView } from '@/components/dashboard/crud/crud-list-view'
 import { CrudCardView } from '@/components/dashboard/crud/crud-card-view'
 import { CrudKanbanView } from '@/components/dashboard/crud/crud-kanban-view'
+import { PipelineConfigSheet } from '@/components/dashboard/pipeline/pipeline-config-sheet'
 import { useCrudInfiniteQuery } from '@/hooks/ui/use-crud-infinite-query'
+import { useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
 import {
   type ColumnDef,
   type CardConfig,
@@ -29,6 +31,7 @@ import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 
 import { formatCurrencyBRL } from '@/lib/mask/formatters'
+import { Button } from '@/components/ui/button'
 
 type TicketItem = {
   id: string
@@ -252,11 +255,13 @@ function TicketKanbanCard({ ticket }: { ticket: TicketItem }) {
 }
 
 export default function TicketsPage() {
+  const { organizationId } = useRequiredProjectRouteContext()
   const queryClient = useQueryClient()
-  const [view, setView] = useState<ViewType>('list')
+  const [view, setView] = useState<ViewType>('kanban')
   const [searchInput, setSearchInput] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [dateRange, setDateRange] = useState('all')
+  const [pipelineSheetOpen, setPipelineSheetOpen] = useState(false)
 
   const deferredSearch = React.useDeferredValue(searchInput)
 
@@ -278,6 +283,7 @@ export default function TicketsPage() {
     hasNextPage,
     isFetchingNextPage,
     isLoading,
+    refetch,
   } = useCrudInfiniteQuery<TicketItem>({
     queryKey: ['tickets'],
     endpoint: '/api/v1/tickets',
@@ -351,50 +357,68 @@ export default function TicketsPage() {
   )
 
   return (
-    <CrudPageShell
-      title="Tickets"
-      showTitle={false}
-      icon={Ticket}
-      view={view}
-      setView={setView}
-      enabledViews={['list', 'cards', 'kanban']}
-      searchInput={searchInput}
-      onSearchChange={setSearchInput}
-      searchPlaceholder="Buscar por nome, telefone..."
-      totalItems={total}
-      isFetchingMore={isFetchingNextPage}
-      filters={filtersNode}
-      isLoading={isLoading}
-    >
-      <CrudDataView
-        data={tickets}
+    <>
+      <CrudPageShell
+        title="Pipeline"
         view={view}
-        emptyView={<CrudEmptyState />}
-        tableView={
-          <CrudListView
-            data={tickets}
-            columns={columns}
-            onEndReached={hasNextPage ? fetchNextPage : undefined}
-          />
+        setView={setView}
+        enabledViews={['kanban', 'list', 'cards']}
+        searchInput={searchInput}
+        onSearchChange={setSearchInput}
+        searchPlaceholder="Buscar por nome, telefone..."
+        onRefresh={() => void refetch()}
+        isFetchingMore={isFetchingNextPage}
+        filters={filtersNode}
+        isLoading={isLoading}
+        actions={
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-7 gap-1.5 text-xs"
+            onClick={() => setPipelineSheetOpen(true)}
+          >
+            <SlidersHorizontal className="h-3.5 w-3.5" />
+            Configurar pipeline
+          </Button>
         }
-        cardView={
-          <CrudCardView
-            data={tickets}
-            config={cardConfig}
-            onEndReached={hasNextPage ? fetchNextPage : undefined}
-          />
-        }
-        kanbanView={
-          <CrudKanbanView
-            columns={kanbanColumns}
-            items={tickets}
-            getItemId={(t) => t.id}
-            getColumnId={(t) => t.stage.id}
-            renderCard={(ticket) => <TicketKanbanCard ticket={ticket} />}
-            onMoveItem={(ticketId, stageId) => moveMutation.mutate({ ticketId, stageId })}
-          />
-        }
+      >
+        <CrudDataView
+          data={tickets}
+          view={view}
+          emptyView={<CrudEmptyState />}
+          tableView={
+            <CrudListView
+              data={tickets}
+              columns={columns}
+              onEndReached={hasNextPage ? fetchNextPage : undefined}
+            />
+          }
+          cardView={
+            <CrudCardView
+              data={tickets}
+              config={cardConfig}
+              onEndReached={hasNextPage ? fetchNextPage : undefined}
+            />
+          }
+          kanbanView={
+            <CrudKanbanView
+              columns={kanbanColumns}
+              items={tickets}
+              getItemId={(t) => t.id}
+              getColumnId={(t) => t.stage.id}
+              renderCard={(ticket) => <TicketKanbanCard ticket={ticket} />}
+              onMoveItem={(ticketId, stageId) => moveMutation.mutate({ ticketId, stageId })}
+            />
+          }
+        />
+      </CrudPageShell>
+
+      <PipelineConfigSheet
+        open={pipelineSheetOpen}
+        onOpenChange={setPipelineSheetOpen}
+        organizationId={organizationId}
       />
-    </CrudPageShell>
+    </>
   )
 }

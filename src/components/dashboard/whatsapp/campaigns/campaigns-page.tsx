@@ -1,28 +1,34 @@
 'use client'
 
 import React from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
-import { Filter, Megaphone, Plus, RefreshCw } from 'lucide-react'
+import { Plus, RefreshCw, Search } from 'lucide-react'
 import { useDeferredValue } from 'react'
-import { toast } from 'sonner'
 
 import {
   CrudCardView,
   CrudDataView,
   CrudListView,
-  CrudPageShell,
   type CardConfig,
   type ColumnDef,
   type ViewType,
 } from '@/components/dashboard/crud'
+import { SectionPageShell } from '@/components/dashboard/layout/section-page-shell'
+import { ViewSwitcher } from '@/components/dashboard/crud/view-switcher'
+import { CrudEmptyState } from '@/components/dashboard/crud/crud-data-view'
+import { CampaignsOverview } from './campaigns-overview'
+import { CampaignFormDrawer } from './campaign-form-drawer'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useRequiredProjectPath, useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
 import { apiFetch } from '@/lib/api-client'
-import { useProject } from '@/hooks/project/use-project'
-import { CampaignFormDrawer } from './campaign-form-drawer'
+import { cn } from '@/lib/utils/utils'
+
+const TABS = [
+  { key: 'overview', label: 'Visão Geral' },
+  { key: 'campaigns', label: 'Campanhas' },
+]
 
 const STATUS_LABELS: Record<string, string> = {
   DRAFT: 'Rascunho',
@@ -101,15 +107,14 @@ export function CampaignsPage({ initialCreateOpen = false }: CampaignsPageProps 
   const router = useRouter()
   const campaignsPath = useRequiredProjectPath('/whatsapp/campaigns')
   const { organizationId } = useRequiredProjectRouteContext()
-  const { data: activeProject } = useProject()
-  const activeProjectId = activeProject?.id
 
+  const [activeTab, setActiveTab] = React.useState('overview')
   const [view, setView] = React.useState<ViewType>('list')
   const [searchInput, setSearchInput] = React.useState('')
   const [isCreateOpen, setIsCreateOpen] = React.useState(initialCreateOpen)
   const deferredSearch = useDeferredValue(searchInput)
 
-  const { data, isLoading, refetch } = useQuery<CampaignsResponse>({
+  const { data, isLoading, refetch, isRefetching } = useQuery<CampaignsResponse>({
     queryKey: ['whatsapp-campaigns', organizationId],
     queryFn: async () => {
       const url = new URL('/api/v1/whatsapp/campaigns', window.location.origin)
@@ -122,25 +127,29 @@ export function CampaignsPage({ initialCreateOpen = false }: CampaignsPageProps 
   const filteredItems = React.useMemo(() => {
     const query = deferredSearch.trim().toLowerCase()
     if (!query) return data?.items || []
-
-    return (data?.items || []).filter((campaign) => {
-      return (
-        campaign.name.toLowerCase().includes(query) ||
-        (campaign.templateName || '').toLowerCase().includes(query) ||
-        (campaign.projectName || '').toLowerCase().includes(query)
-      )
-    })
+    return (data?.items || []).filter((campaign) =>
+      campaign.name.toLowerCase().includes(query) ||
+      (campaign.templateName || '').toLowerCase().includes(query)
+    )
   }, [data?.items, deferredSearch])
+
+  const openCampaignDetail = React.useCallback(
+    (campaignId: string) => router.push(`${campaignsPath}/${campaignId}`),
+    [campaignsPath, router],
+  )
 
   const columns: ColumnDef<CampaignItem>[] = [
     {
       key: 'name',
       label: 'Campanha',
       render: (campaign) => (
-        <div className="space-y-1">
-          <Link href={`${campaignsPath}/${campaign.id}`} className="font-medium hover:underline">
+        <div className="space-y-0.5">
+          <button
+            className="font-medium hover:underline text-left"
+            onClick={() => openCampaignDetail(campaign.id)}
+          >
             {campaign.name}
-          </Link>
+          </button>
           <div className="text-muted-foreground text-xs">
             {campaign.templateName ? `Template: ${campaign.templateName}` : 'Sem template'}
           </div>
@@ -161,7 +170,9 @@ export function CampaignsPage({ initialCreateOpen = false }: CampaignsPageProps 
       key: 'type',
       label: 'Tipo',
       width: 120,
-      render: (campaign) => <Badge variant="outline">{TYPE_LABELS[campaign.type] || campaign.type}</Badge>,
+      render: (campaign) => (
+        <Badge variant="outline">{TYPE_LABELS[campaign.type] || campaign.type}</Badge>
+      ),
     },
     {
       key: 'recipients',
@@ -174,7 +185,9 @@ export function CampaignsPage({ initialCreateOpen = false }: CampaignsPageProps 
       label: 'Disparo',
       render: (campaign) => (
         <span className="text-muted-foreground text-sm">
-          {campaign.scheduledAt ? `Agendada em ${formatDate(campaign.scheduledAt)}` : formatDate(campaign.createdAt)}
+          {campaign.scheduledAt
+            ? `Agendada em ${formatDate(campaign.scheduledAt)}`
+            : formatDate(campaign.createdAt)}
         </span>
       ),
     },
@@ -197,122 +210,80 @@ export function CampaignsPage({ initialCreateOpen = false }: CampaignsPageProps 
     ),
     footer: (campaign) => (
       <span className="text-muted-foreground text-xs">
-        {campaign.scheduledAt ? `Agendada: ${formatDate(campaign.scheduledAt)}` : formatDate(campaign.createdAt)}
+        {campaign.scheduledAt
+          ? `Agendada: ${formatDate(campaign.scheduledAt)}`
+          : formatDate(campaign.createdAt)}
       </span>
     ),
-    onClick: (campaign) => router.push(`${campaignsPath}/${campaign.id}`),
+    onClick: (campaign) => openCampaignDetail(campaign.id),
   }
 
-  const counters = data?.counters
+  const actions =
+    activeTab === 'overview' ? (
+      <Button
+        variant="ghost"
+        size="icon"
+        className="text-muted-foreground hover:text-foreground h-7 w-7"
+        onClick={() => refetch()}
+        disabled={isRefetching || isLoading}
+      >
+        <RefreshCw className={cn('h-3.5 w-3.5', (isRefetching || isLoading) && 'animate-spin')} />
+      </Button>
+    ) : (
+      <>
+        <ViewSwitcher view={view} setView={setView} enabledViews={['list', 'cards']} />
 
-  const openCreateDrawer = () => {
-    if (!activeProjectId) {
-      toast.error('Selecione um projeto ativo na sidebar para criar campanhas.')
-      return
-    }
+        <div className="relative flex items-center">
+          <Search className="text-muted-foreground/35 pointer-events-none absolute left-0 h-3.5 w-3.5" />
+          <input
+            className="w-44 bg-transparent pl-5 text-xs placeholder:text-muted-foreground/35 focus:outline-none"
+            placeholder="Buscar campanhas..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+          />
+        </div>
 
-    setIsCreateOpen(true)
-  }
+        <div className="bg-border h-4 w-px shrink-0" />
 
-  const openCampaignDetail = React.useCallback(
-    (campaignId: string) => {
-      router.push(`${campaignsPath}/${campaignId}`)
-    },
-    [campaignsPath, router],
-  )
+        <Button size="sm" className="h-7 gap-1.5 text-xs" onClick={() => setIsCreateOpen(true)}>
+          <Plus className="h-3.5 w-3.5" />
+          Nova campanha
+        </Button>
+      </>
+    )
 
   return (
     <>
-      <CrudPageShell
+      <SectionPageShell
         title="Campanhas"
-        icon={Megaphone}
-        showTitle={true}
-        onAdd={openCreateDrawer}
-        view={view}
-        setView={setView}
-        enabledViews={['list', 'cards']}
-        searchInput={searchInput}
-        onSearchChange={setSearchInput}
-        searchPlaceholder="Buscar campanhas..."
-        totalItems={filteredItems.length}
-        isLoading={isLoading}
-        filters={
-          <div className="text-muted-foreground flex items-center gap-2 text-xs">
-            <Filter className="h-3.5 w-3.5" />
-            Todas as campanhas
-          </div>
-        }
-        actions={
-          <div className="flex items-center gap-2">
-            <Button size="sm" onClick={openCreateDrawer}>
-              <Plus className="mr-2 h-4 w-4" />
-              Nova campanha
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => refetch()}>
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Atualizar
-            </Button>
-            {counters ? (
-              <div className="text-muted-foreground hidden text-xs uppercase tracking-widest lg:block">
-                <span className="text-foreground font-bold">{counters.completed}</span> concluídas
-              </div>
-            ) : null}
-          </div>
-        }
+        tabs={TABS}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        actions={actions}
       >
-        {counters && (
-          <div className="grid grid-cols-2 gap-4 px-6 pt-4 lg:grid-cols-4">
-            <div className="rounded-xl border p-4">
-              <p className="text-muted-foreground text-xs">Total</p>
-              <p className="text-2xl font-bold">{counters.total}</p>
-            </div>
-            <div className="rounded-xl border p-4">
-              <p className="text-muted-foreground text-xs">Em andamento</p>
-              <p className="text-2xl font-bold">{counters.processing + counters.scheduled}</p>
-            </div>
-            <div className="rounded-xl border p-4">
-              <p className="text-muted-foreground text-xs">Pendentes</p>
-              <p className="text-2xl font-bold">{counters.pendingApproval + counters.draft}</p>
-            </div>
-            <div className="rounded-xl border p-4">
-              <p className="text-muted-foreground text-xs">Concluídas</p>
-              <p className="text-2xl font-bold">{counters.completed}</p>
-            </div>
-          </div>
+        {activeTab === 'overview' ? (
+          <CampaignsOverview counters={data?.counters} isLoading={isLoading} />
+        ) : (
+          <CrudDataView
+            data={filteredItems}
+            view={view}
+            emptyView={
+              <CrudEmptyState
+                title="Nenhuma campanha encontrada."
+                description="Crie uma campanha de WhatsApp usando o wizard de cadastro."
+              />
+            }
+            tableView={
+              <CrudListView
+                data={filteredItems}
+                columns={columns}
+                onRowClick={(campaign) => openCampaignDetail(campaign.id)}
+              />
+            }
+            cardView={<CrudCardView data={filteredItems} config={cardConfig} />}
+          />
         )}
-
-        <CrudDataView
-          data={filteredItems}
-          view={view}
-          emptyView={
-            <div className="mx-6 my-4 flex min-h-[calc(100vh-280px)] items-center justify-center rounded-3xl border border-dashed bg-muted/20 px-10 py-20 text-center">
-              <div className="space-y-4">
-                <div className="bg-muted mx-auto flex size-12 items-center justify-center rounded-xl">
-                  <Megaphone className="text-muted-foreground size-6" />
-                </div>
-                <div>
-                  <p className="text-muted-foreground font-bold">Nenhuma campanha encontrada.</p>
-                  <p className="text-muted-foreground/60 mt-1 text-xs">
-                    Crie uma campanha de WhatsApp usando o wizard de cadastro.
-                  </p>
-                </div>
-                <Button onClick={openCreateDrawer}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Criar campanha
-                </Button>
-              </div>
-            </div>
-          }
-          tableView={
-            <CrudListView
-              data={filteredItems}
-              columns={columns}
-              onRowClick={(campaign) => openCampaignDetail(campaign.id)}
-            />
-          }
-          cardView={<CrudCardView data={filteredItems} config={cardConfig} />}
-        />
-      </CrudPageShell>
+      </SectionPageShell>
 
       <CampaignFormDrawer
         open={isCreateOpen}

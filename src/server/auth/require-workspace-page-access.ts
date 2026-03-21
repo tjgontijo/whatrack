@@ -5,11 +5,13 @@ import { getServerSession } from '@/server/auth/server-session'
 import { resolveDefaultWorkspacePath } from '@/server/navigation/resolve-default-workspace-path'
 import { validateOrganizationAccess } from '@/server/auth/validate-organization-access'
 import { listEffectivePermissionsForUser } from '@/server/organization/organization-rbac.service'
+import { resolveOrganizationContext } from '@/server/project/resolve-project-context'
 
 type RequireWorkspacePageAccessOptions = {
   permissions?: Permission | Permission[]
   requireAdmin?: boolean
   requireOwner?: boolean
+  organizationSlug?: string
 }
 
 type WorkspacePageAccess = {
@@ -39,14 +41,28 @@ export async function requireWorkspacePageAccess(
     redirect('/sign-in')
   }
 
-  const organizationId = session.session?.activeOrganizationId
+  let activeOrganizationId = session.session?.activeOrganizationId ?? null
 
-  if (!organizationId) {
+  if (options.organizationSlug) {
+    const routeOrganization = await resolveOrganizationContext({
+      organizationSlug: options.organizationSlug,
+      userId: session.user.id,
+    })
+    const routeOrganizationId = routeOrganization?.organizationId ?? null
+
+    if (!routeOrganizationId) {
+      await redirectToDefaultWorkspace(session.user.id)
+    }
+
+    activeOrganizationId = routeOrganizationId
+  }
+
+  if (!activeOrganizationId) {
     await redirectToDefaultWorkspace(session.user.id)
   }
 
-  const activeOrganizationId = organizationId as string
-  const validation = await validateOrganizationAccess(session.user.id, activeOrganizationId)
+  const organizationId = activeOrganizationId as string
+  const validation = await validateOrganizationAccess(session.user.id, organizationId)
 
   if (!validation.hasAccess || !validation.role || !validation.memberId) {
     await redirectToDefaultWorkspace(session.user.id)
@@ -68,7 +84,7 @@ export async function requireWorkspacePageAccess(
   if (requiredPermissions.length > 0) {
     const effective = await listEffectivePermissionsForUser({
       userId: session.user.id,
-      organizationId: activeOrganizationId,
+      organizationId,
     })
 
     const effectiveSet = new Set(effective?.effectivePermissions ?? [])
@@ -90,7 +106,7 @@ export async function requireWorkspacePageAccess(
 
   return {
     userId: session.user.id,
-    organizationId: activeOrganizationId,
+    organizationId,
     memberId,
     role,
     globalRole: session.user.role ?? undefined,

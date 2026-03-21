@@ -2,7 +2,10 @@
 
 import * as React from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { MessageSquareOff } from 'lucide-react'
+import { MessageSquareOff, RefreshCw } from 'lucide-react'
+
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils/utils'
 
 import { apiFetch } from '@/lib/api-client'
 import { useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
@@ -24,7 +27,7 @@ export default function WhatsAppInboxPage() {
   // Enable real-time updates via Centrifugo
   useRealtime(organizationId)
 
-  const { data, isLoading } = useQuery<ChatListResponse>({
+  const { data, isLoading, refetch, isRefetching } = useQuery<ChatListResponse>({
     queryKey: ['whatsapp-chats', organizationId, searchQuery, selectedInstanceId],
     enabled: !!organizationId,
     queryFn: async () => {
@@ -41,7 +44,20 @@ export default function WhatsAppInboxPage() {
     },
   })
   return (
-    <div className="bg-background border-border/40 -mx-4 -my-2 flex h-[calc(100vh-65px)] overflow-hidden border-t">
+    <div className="bg-background -mx-4 -my-2 flex flex-col overflow-hidden" style={{ height: 'calc(100vh - 65px)' }}>
+      <div className="border-border flex h-12 shrink-0 items-center justify-between border-b px-4">
+        <h1 className="text-sm font-semibold">Inbox</h1>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-muted-foreground hover:text-foreground h-7 w-7"
+          onClick={() => void refetch()}
+          disabled={isRefetching || isLoading}
+        >
+          <RefreshCw className={cn('h-3.5 w-3.5', (isRefetching || isLoading) && 'animate-spin')} />
+        </Button>
+      </div>
+      <div className="border-border/40 flex flex-1 overflow-hidden border-t">
       <ResizablePanelGroup direction="horizontal">
         {/* Left Panel: Conversations */}
         <ResizablePanel defaultSize={25} minSize={15} maxSize={40}>
@@ -93,6 +109,7 @@ export default function WhatsAppInboxPage() {
           )}
         </ResizablePanel>
       </ResizablePanelGroup>
+      </div>
     </div>
   )
 }

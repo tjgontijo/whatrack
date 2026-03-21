@@ -1,7 +1,6 @@
 'use client'
 
 import * as React from 'react'
-import { LayoutGrid, List, Kanban } from 'lucide-react'
 import { cn } from '@/lib/utils/utils'
 import { useIsMobile } from '@/hooks/ui/use-mobile'
 import { ViewType } from './types'
@@ -13,11 +12,11 @@ type ViewSwitcherProps = {
   enabledViews?: ViewType[]
 }
 
-const VIEW_CONFIG = {
-  list: { label: 'Lista', icon: List },
-  cards: { label: 'Cards', icon: LayoutGrid },
-  kanban: { label: 'Kanban', icon: Kanban },
-} as const
+const VIEW_LABELS: Record<ViewType, string> = {
+  list: 'Lista',
+  cards: 'Cards',
+  kanban: 'Kanban',
+}
 
 export function ViewSwitcher({
   view,
@@ -28,52 +27,28 @@ export function ViewSwitcher({
   const isMobile = useIsMobile()
 
   const visibleTabs = React.useMemo(
-    () =>
-      enabledViews.map((viewType) => ({
-        id: viewType,
-        ...VIEW_CONFIG[viewType],
-      })),
-    [enabledViews]
+    () => enabledViews.filter((v) => !(isMobile && (v === 'list' || v === 'kanban'))),
+    [enabledViews, isMobile]
   )
 
+  if (visibleTabs.length <= 1) return null
+
   return (
-    <div className={cn('flex items-center gap-1', className)}>
-      {visibleTabs.map((tab) => {
-        const isActive = view === tab.id
-        const Icon = tab.icon
-        const isDisabled = isMobile && tab.id === 'list'
-
-        return (
-          <button
-            key={tab.id}
-            onClick={() => !isDisabled && setView(tab.id)}
-            disabled={isDisabled}
-            className={cn(
-              'ring-offset-background focus-visible:ring-ring group relative flex items-center gap-2 px-3 py-1.5 text-xs font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-offset-2',
-              isActive
-                ? 'text-foreground'
-                : isDisabled
-                  ? 'text-muted-foreground/40 cursor-not-allowed'
-                  : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
-            )}
-            title={
-              isDisabled
-                ? 'Visualização em lista disponível apenas em telas maiores que 1200px'
-                : undefined
-            }
-          >
-            <Icon className="h-3.5 w-3.5" />
-            <span>{tab.label}</span>
-            {isActive && (
-              <span className="bg-primary absolute inset-x-0 -bottom-[1px] h-[2px] shadow-[0_0_8px_0_var(--color-primary)]" />
-            )}
-
-            {!isActive && !isDisabled && (
-              <span className="group-hover:bg-muted-foreground/20 absolute inset-x-0 -bottom-[1px] h-[2px] bg-transparent transition-colors" />
-            )}
-          </button>
-        )
-      })}
+    <div className={cn('inline-flex items-center gap-0.5 rounded-lg bg-muted/60 p-0.5', className)}>
+      {visibleTabs.map((v) => (
+        <button
+          key={v}
+          onClick={() => setView(v)}
+          className={cn(
+            'rounded-md px-2.5 py-1 text-xs font-medium transition-all',
+            view === v
+              ? 'bg-background text-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground'
+          )}
+        >
+          {VIEW_LABELS[v]}
+        </button>
+      ))}
     </div>
   )
 }
