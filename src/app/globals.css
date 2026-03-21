@@ -176,12 +176,12 @@
   --chart-5: oklch(0.62 0.22 25);
   /* Vermelho suave (danger) */
 
-  /* Sidebar Light */
-  --sidebar: oklch(1 0 0);
+  /* Sidebar Light — cinza bem claro para contrastar com o main branco */
+  --sidebar: oklch(0.96 0 0);
   --sidebar-foreground: oklch(0.13 0 0);
   --sidebar-primary: oklch(0.60 0.20 150);
   --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.94 0 0);
+  --sidebar-accent: oklch(0.91 0 0);
   --sidebar-accent-foreground: oklch(0.13 0 0);
   --sidebar-border: oklch(0.90 0 0);
   --sidebar-ring: oklch(0.60 0.20 150);

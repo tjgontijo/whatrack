@@ -24,7 +24,7 @@ export function PageShell({ children, className, maxWidth }: PageShellProps) {
     : 'mx-auto w-full max-w-screen-3xl'
 
   return (
-    <div className={cn('flex h-full flex-col bg-muted/30', className)}>
+    <div className={cn('flex h-full flex-col', className)}>
       <div className={cn('flex flex-1 flex-col px-6 py-6 lg:px-8 3xl:px-12', containerClass)}>
         {children}
       </div>

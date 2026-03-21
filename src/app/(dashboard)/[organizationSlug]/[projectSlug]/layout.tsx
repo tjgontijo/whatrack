@@ -2,12 +2,9 @@ import type { ReactNode } from 'react'
 import { notFound, redirect } from 'next/navigation'
 
 import { Toaster } from '@/components/ui/sonner'
-import { DashboardContent } from '@/components/dashboard/layout/dashboard-content'
-import { DashboardHeader } from '@/components/dashboard/layout/header'
-import { HeaderActionsProvider } from '@/components/dashboard/layout/header-actions'
+import { DashboardTopbar } from '@/components/dashboard/layout/topbar'
+import { DashboardShell } from '@/components/dashboard/layout/dashboard-shell'
 import { ProjectClientContextSync } from '@/components/dashboard/project/project-client-context-sync'
-import { ProjectScopedSidebar } from '@/components/dashboard/sidebar/project-scoped-sidebar'
-import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { ProjectRouteProvider } from '@/hooks/project/project-route-context'
 import { prisma } from '@/lib/db/prisma'
 import { resolveProjectContext } from '@/server/project/resolve-project-context'
@@ -44,7 +41,7 @@ export default async function ProjectScopedLayout({ children, params }: ProjectS
     notFound()
   }
 
-  const { organizationId, organizationName, projectId, projectName } = context
+  const { organizationId, organizationName, organizationLogo, projectId, projectName } = context
   const projects = await prisma.project.findMany({
     where: {
       organizationId,
@@ -66,37 +63,37 @@ export default async function ProjectScopedLayout({ children, params }: ProjectS
   const permissions = (effectivePermissions?.effectivePermissions ?? []) as Permission[]
 
   return (
-    <HeaderActionsProvider>
-      <ProjectRouteProvider value={context}>
-        <ProjectClientContextSync projectId={projectId} />
-        <SidebarProvider>
-          <div className="bg-background flex min-h-screen w-full">
-            <ProjectScopedSidebar
-              session={session}
-              organizationId={organizationId}
-              organizationSlug={organizationSlug}
-              organizationName={organizationName}
-              projectId={projectId}
-              projectSlug={projectSlug}
-              projectName={projectName}
-              projects={projects}
-              permissions={permissions}
-            />
+    <ProjectRouteProvider value={context}>
+      <ProjectClientContextSync projectId={projectId} />
+      <div className="bg-sidebar flex h-screen flex-col overflow-hidden">
+        <DashboardTopbar
+          session={session}
+          organizationName={organizationName}
+          organizationLogo={organizationLogo}
+          organizationSlug={organizationSlug}
+          projectName={projectName}
+          projectSlug={projectSlug}
+          projects={projects}
+          hasOrganization={true}
+          identityComplete={identityComplete}
+        />
 
-            <SidebarInset className="min-w-0">
-              <DashboardHeader hasOrganization={true} identityComplete={identityComplete} />
+        <DashboardShell
+          session={session}
+          organizationId={organizationId}
+          organizationSlug={organizationSlug}
+          organizationName={organizationName}
+          projectId={projectId}
+          projectSlug={projectSlug}
+          projectName={projectName}
+          projects={projects}
+          permissions={permissions}
+        >
+          {children}
+        </DashboardShell>
+      </div>
 
-              <main className="3xl:px-6 min-w-0 flex-1 overflow-y-auto overflow-x-hidden px-4 py-2">
-                <DashboardContent>
-                  <div className="max-w-screen-4xl mx-auto w-full min-w-0">{children}</div>
-                </DashboardContent>
-              </main>
-            </SidebarInset>
-          </div>
-
-          <Toaster richColors position="bottom-center" />
-        </SidebarProvider>
-      </ProjectRouteProvider>
-    </HeaderActionsProvider>
+      <Toaster richColors position="bottom-center" />
+    </ProjectRouteProvider>
   )
 }
