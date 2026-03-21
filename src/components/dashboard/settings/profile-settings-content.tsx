@@ -14,9 +14,9 @@ import {
 } from '@/lib/mask/phone-mask'
 import type { UpdateMeAccountInput } from '@/schemas/me/me-account-schemas'
 import type { AccountProfileSummary } from '@/types/account/account-summary'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { SettingsSection } from './settings-section'
+import { SettingsGroup } from './settings-group'
+import { SettingsRow } from './settings-row'
 
 type ProfileSettingsContentProps = {
   account: AccountProfileSummary
@@ -86,9 +86,9 @@ export function ProfileSettingsContent({ account }: ProfileSettingsContentProps)
 
   return (
     <div className="space-y-6">
-      <SettingsSection
-        title="Perfil"
-        description="Atualize seus dados pessoais usados na conta logada."
+      <SettingsGroup
+        label="Dados da conta"
+        description="Atualize suas informações pessoais usadas na conta logada."
         onSave={() =>
           updateProfileMutation.mutate({
             name,
@@ -98,36 +98,28 @@ export function ProfileSettingsContent({ account }: ProfileSettingsContentProps)
         }
         isSaving={updateProfileMutation.isPending}
       >
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="grid gap-2">
-            <label className="text-sm font-medium" htmlFor="settings-profile-name">
-              Nome
-            </label>
-            <Input
-              id="settings-profile-name"
-              autoComplete="name"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-            />
-          </div>
-          <div className="grid gap-2">
-            <label className="text-sm font-medium" htmlFor="settings-profile-email">
-              E-mail
-            </label>
-            <Input
-              id="settings-profile-email"
-              autoComplete="email"
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-            />
-          </div>
-        </div>
+        <SettingsRow label="Nome completo" description="Nome exibido no dashboard e em registros internos.">
+          <Input
+            id="settings-profile-name"
+            autoComplete="name"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            className="md:max-w-sm"
+          />
+        </SettingsRow>
 
-        <div className="grid gap-2 md:max-w-sm">
-          <label className="text-sm font-medium" htmlFor="settings-profile-phone">
-            Telefone
-          </label>
+        <SettingsRow label="E-mail" description="Usado para login e comunicações da conta.">
+          <Input
+            id="settings-profile-email"
+            autoComplete="email"
+            type="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            className="md:max-w-sm"
+          />
+        </SettingsRow>
+
+        <SettingsRow label="Telefone" description="Número usado para contato e notificações operacionais.">
           <Input
             id="settings-profile-phone"
             autoComplete="tel"
@@ -136,59 +128,48 @@ export function ProfileSettingsContent({ account }: ProfileSettingsContentProps)
             placeholder="(11) 98888-8888"
             value={phone}
             onChange={(event) => setPhone(applyWhatsAppMask(event.target.value))}
+            className="md:max-w-sm"
           />
-        </div>
-      </SettingsSection>
+        </SettingsRow>
+      </SettingsGroup>
 
-      <SettingsSection
-        title="Segurança"
+      <SettingsGroup
+        label="Segurança"
         description="Altere a senha de acesso da sua conta."
+        onSave={() => updatePasswordMutation.mutate()}
+        isSaving={updatePasswordMutation.isPending}
+        saveLabel="Atualizar senha"
       >
-        <div className="grid gap-4 md:max-w-md">
-          <div className="grid gap-2">
-            <label className="text-sm font-medium" htmlFor="settings-current-password">
-              Senha atual
-            </label>
-            <Input
-              id="settings-current-password"
-              type="password"
-              value={currentPassword}
-              onChange={(event) => setCurrentPassword(event.target.value)}
-            />
-          </div>
-          <div className="grid gap-2">
-            <label className="text-sm font-medium" htmlFor="settings-new-password">
-              Nova senha
-            </label>
-            <Input
-              id="settings-new-password"
-              type="password"
-              value={newPassword}
-              onChange={(event) => setNewPassword(event.target.value)}
-            />
-          </div>
-          <div className="grid gap-2">
-            <label className="text-sm font-medium" htmlFor="settings-confirm-password">
-              Confirmar nova senha
-            </label>
-            <Input
-              id="settings-confirm-password"
-              type="password"
-              value={confirmPassword}
-              onChange={(event) => setConfirmPassword(event.target.value)}
-            />
-          </div>
-        </div>
+        <SettingsRow label="Senha atual" description="Confirma sua identidade antes da alteração.">
+          <Input
+            id="settings-current-password"
+            type="password"
+            value={currentPassword}
+            onChange={(event) => setCurrentPassword(event.target.value)}
+            className="md:max-w-sm"
+          />
+        </SettingsRow>
 
-        <div className="flex justify-end">
-          <Button
-            onClick={() => updatePasswordMutation.mutate()}
-            disabled={updatePasswordMutation.isPending}
-          >
-            {updatePasswordMutation.isPending ? 'Atualizando...' : 'Atualizar senha'}
-          </Button>
-        </div>
-      </SettingsSection>
+        <SettingsRow label="Nova senha" description="Use ao menos 8 caracteres.">
+          <Input
+            id="settings-new-password"
+            type="password"
+            value={newPassword}
+            onChange={(event) => setNewPassword(event.target.value)}
+            className="md:max-w-sm"
+          />
+        </SettingsRow>
+
+        <SettingsRow label="Confirmar senha" description="Repita a nova senha para evitar erros de digitação.">
+          <Input
+            id="settings-confirm-password"
+            type="password"
+            value={confirmPassword}
+            onChange={(event) => setConfirmPassword(event.target.value)}
+            className="md:max-w-sm"
+          />
+        </SettingsRow>
+      </SettingsGroup>
     </div>
   )
 }

@@ -23,7 +23,7 @@ export function WebhooksView() {
   const { data: org } = useOrganization()
   const homePath = useRequiredProjectPath()
   const orgId = org?.id
-  const isSuperAdmin = session?.user?.role === 'owner'
+  const isAdminUser = session?.user?.role === 'owner' || session?.user?.role === 'admin'
   const [showVerifyToken, setShowVerifyToken] = useState(false)
 
   const webhookUrl = 'https://whatrack.com/api/v1/whatsapp/webhook'
@@ -35,7 +35,7 @@ export function WebhooksView() {
       if (!res.ok) throw new Error('Failed')
       return res.json()
     },
-    enabled: isSuperAdmin,
+    enabled: isAdminUser,
   })
 
   const verifyToken = verifyTokenData?.verifyToken || ''
@@ -52,7 +52,7 @@ export function WebhooksView() {
   const logs = Array.isArray(logData) ? logData : (logData as any)?.logs || []
   const activeEventTypes = (logData as any)?.eventTypes || []
 
-  if (!isSuperAdmin) {
+  if (!isAdminUser) {
     return (
       <div className="flex h-full flex-col items-center justify-center p-8 text-center">
         <Shield className="text-destructive mb-4 h-12 w-12 opacity-20" />
