@@ -17,6 +17,10 @@ export const whatsappSendTemplateSchema = z.object({
   variables: z.array(z.object({ name: z.string(), value: z.string() })).optional(),
 })
 
+export const whatsappManualSendTemplateSchema = whatsappSendTemplateSchema.extend({
+  configId: z.string().min(1),
+})
+
 export const whatsappWebhookVerifySchema = z.object({
   'hub.mode': z.literal('subscribe'),
   'hub.verify_token': z.string().min(1),
@@ -35,5 +39,6 @@ export const whatsappInstanceProjectUpdateSchema = z.object({
 export type WhatsAppChatsQueryInput = z.infer<typeof whatsappChatsQuerySchema>
 export type WhatsAppChatMessagesQueryInput = z.infer<typeof whatsappChatMessagesQuerySchema>
 export type WhatsAppSendTemplateInput = z.infer<typeof whatsappSendTemplateSchema>
+export type WhatsAppManualSendTemplateInput = z.infer<typeof whatsappManualSendTemplateSchema>
 export type WhatsAppDisconnectInput = z.infer<typeof whatsappDisconnectSchema>
 export type WhatsAppInstanceProjectUpdateInput = z.infer<typeof whatsappInstanceProjectUpdateSchema>
