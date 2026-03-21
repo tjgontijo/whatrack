@@ -2,8 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
 import { useOrganizationCompletion } from '@/hooks/organization/use-organization-completion'
+import { useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
 import { useProject } from '@/hooks/project/use-project'
-import { authClient } from '@/lib/auth/auth-client'
 import { apiFetch } from '@/lib/api-client'
 import {
   buildWhatsAppEmbeddedSignupUrl,
@@ -14,7 +14,7 @@ import {
 export type OnboardingStatus = 'idle' | 'pending' | 'success'
 
 export function useWhatsAppOnboarding(onSuccess?: () => void) {
-  const { data: activeOrg } = authClient.useActiveOrganization()
+  const { organizationId } = useRequiredProjectRouteContext()
   const { data: project } = useProject()
   const { isLoading: isCompletionLoading, isModuleBlocked, integrationBlockMessage } =
     useOrganizationCompletion()
@@ -141,11 +141,6 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
       return
     }
 
-    if (!activeOrg?.id) {
-      setError('Organização não identificada. Faça login novamente.')
-      return
-    }
-
     if (!sdkReady) {
       setError('Configuração da Meta não encontrada.')
       return
@@ -172,7 +167,7 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
         `/api/v1/whatsapp/onboarding?projectId=${defaultProjectId}`,
         {
           method: 'GET',
-          orgId: activeOrg.id,
+          orgId: organizationId,
         }
       )
       const url = buildWhatsAppEmbeddedSignupUrl(onboardingUrl, trackingCode)
@@ -215,8 +210,8 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
       clearState()
     }
   }, [
-    activeOrg?.id,
     clearState,
+    organizationId,
     project?.id,
     handleFailure,
     handleStoredResult,

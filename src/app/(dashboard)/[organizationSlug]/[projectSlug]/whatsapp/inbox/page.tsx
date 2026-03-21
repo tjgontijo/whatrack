@@ -4,8 +4,8 @@ import * as React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { MessageSquareOff } from 'lucide-react'
 
-import { authClient } from '@/lib/auth/auth-client'
 import { apiFetch } from '@/lib/api-client'
+import { useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
 import { useRealtime } from '@/hooks/whatsapp/use-realtime'
 
 import { ChatList } from '@/components/dashboard/whatsapp/inbox/chat-list'
@@ -15,8 +15,7 @@ import { ChatItem, ChatListResponse } from '@/components/dashboard/whatsapp/inbo
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable'
 
 export default function WhatsAppInboxPage() {
-  const { data: activeOrg } = authClient.useActiveOrganization()
-  const organizationId = activeOrg?.id
+  const { organizationId } = useRequiredProjectRouteContext()
 
   const [selectedChat, setSelectedChat] = React.useState<ChatItem | null>(null)
   const [searchQuery, setSearchQuery] = React.useState('')
@@ -24,8 +23,6 @@ export default function WhatsAppInboxPage() {
 
   // Enable real-time updates via Centrifugo
   useRealtime(organizationId)
-
-
 
   const { data, isLoading } = useQuery<ChatListResponse>({
     queryKey: ['whatsapp-chats', organizationId, searchQuery, selectedInstanceId],
@@ -43,16 +40,6 @@ export default function WhatsAppInboxPage() {
       return data as ChatListResponse
     },
   })
-
-
-  if (!organizationId) {
-    return (
-      <div className="flex h-[calc(100vh-140px)] items-center justify-center">
-        <p className="text-muted-foreground">Carregando organização...</p>
-      </div>
-    )
-  }
-
   return (
     <div className="bg-background border-border/40 -mx-4 -my-2 flex h-[calc(100vh-65px)] overflow-hidden border-t">
       <ResizablePanelGroup direction="horizontal">

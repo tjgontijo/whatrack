@@ -12,8 +12,8 @@ import { FilterSelect } from '@/components/dashboard/filters'
 import { DashboardMetricCard, DashboardMetricGrid } from '@/components/dashboard/charts/card'
 import { DashboardPieChart } from '@/components/dashboard/charts/pie'
 import { FunnelChart } from '@/components/dashboard/charts/funnel-chart'
+import { useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
 import { formatCurrencyBRL } from '@/lib/mask/formatters'
-import { authClient } from '@/lib/auth/auth-client'
 import { apiFetch } from '@/lib/api-client'
 import { buildDashboardSummaryQuery } from '@/lib/dashboard/summary-query'
 
@@ -63,8 +63,7 @@ const defaultFilters: DashboardFilters = dashboardFiltersSchema.parse({
 })
 
 export default function DashboardPageClient() {
-  const { data: activeOrg } = authClient.useActiveOrganization()
-  const organizationId = activeOrg?.id
+  const { organizationId } = useRequiredProjectRouteContext()
   const [filters, setFilters] = React.useState<DashboardFilters>(defaultFilters)
   const [isFilterSheetOpen, setIsFilterSheetOpen] = React.useState(false)
 

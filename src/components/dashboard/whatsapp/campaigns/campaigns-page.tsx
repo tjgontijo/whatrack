@@ -19,8 +19,7 @@ import {
 } from '@/components/dashboard/crud'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { authClient } from '@/lib/auth/auth-client'
-import { useRequiredProjectPath } from '@/hooks/project/project-route-context'
+import { useRequiredProjectPath, useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
 import { apiFetch } from '@/lib/api-client'
 import { useProject } from '@/hooks/project/use-project'
 import { CampaignFormDrawer } from './campaign-form-drawer'
@@ -101,9 +100,8 @@ type CampaignsPageProps = {
 export function CampaignsPage({ initialCreateOpen = false }: CampaignsPageProps = {}) {
   const router = useRouter()
   const campaignsPath = useRequiredProjectPath('/whatsapp/campaigns')
-  const { data: activeOrg } = authClient.useActiveOrganization()
+  const { organizationId } = useRequiredProjectRouteContext()
   const { data: activeProject } = useProject()
-  const organizationId = activeOrg?.id
   const activeProjectId = activeProject?.id
 
   const [view, setView] = React.useState<ViewType>('list')
@@ -222,14 +220,6 @@ export function CampaignsPage({ initialCreateOpen = false }: CampaignsPageProps 
     },
     [campaignsPath, router],
   )
-
-  if (!organizationId) {
-    return (
-      <div className="flex h-[calc(100vh-200px)] items-center justify-center">
-        <p className="text-muted-foreground">Carregando organização...</p>
-      </div>
-    )
-  }
 
   return (
     <>

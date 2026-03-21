@@ -18,8 +18,8 @@ import {
 
 import { DashboardMetricCard, DashboardMetricGrid } from '@/components/dashboard/charts/card'
 import { Button } from '@/components/ui/button'
-import { authClient } from '@/lib/auth/auth-client'
 import { apiFetch } from '@/lib/api-client'
+import { useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
 
 interface AiUsageStats {
   totals: {
@@ -64,20 +64,20 @@ const periodOptions = [
 ]
 
 export function AiUsageContent() {
-  const { data: activeOrg } = authClient.useActiveOrganization()
-  const organizationId = activeOrg?.id
+  const { organizationId } = useRequiredProjectRouteContext()
   const [period, setPeriod] = React.useState('30d')
   const [logsPage, setLogsPage] = React.useState(1)
 
   const { data: statsData, isLoading: statsLoading } = useQuery<AiUsageStats>({
     queryKey: ['ai-usage-stats', period, organizationId],
-    queryFn: async () => apiFetch(`/api/v1/ai/usage?period=${period}`),
+    queryFn: async () => apiFetch(`/api/v1/ai/usage?period=${period}`, { orgId: organizationId }),
     enabled: !!organizationId,
   })
 
   const { data: logsData, isLoading: logsLoading } = useQuery<LogsResponse>({
     queryKey: ['ai-usage-logs', logsPage, organizationId],
-    queryFn: async () => apiFetch(`/api/v1/ai/usage/logs?page=${logsPage}&limit=10`),
+    queryFn: async () =>
+      apiFetch(`/api/v1/ai/usage/logs?page=${logsPage}&limit=10`, { orgId: organizationId }),
     enabled: !!organizationId,
   })
 

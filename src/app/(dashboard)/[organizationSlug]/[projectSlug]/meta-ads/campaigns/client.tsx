@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState } from 'react'
-import { authClient } from '@/lib/auth/auth-client'
 import { useQuery } from '@tanstack/react-query'
 import {
   flexRender,
@@ -14,6 +13,7 @@ import {
 } from '@tanstack/react-table'
 import { campaignsColumns, MetaCampaign } from './columns'
 import { apiFetch } from '@/lib/api-client'
+import { useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
 
 import { Button } from '@/components/ui/button'
 import { CampaignAnalysisDrawer } from '@/components/dashboard/meta-ads/campaign-analysis-drawer'
@@ -85,9 +85,7 @@ const DEFAULT_HIDDEN_COLUMNS = {
 }
 
 export function MetaAdsCampaignsClient() {
-  const { data: session } = authClient.useSession()
-  const { data: activeOrg } = authClient.useActiveOrganization()
-  const organizationId = activeOrg?.id
+  const { organizationId } = useRequiredProjectRouteContext()
 
   const [days, setDays] = useState('1')
   const [globalFilter, setGlobalFilter] = useState('')

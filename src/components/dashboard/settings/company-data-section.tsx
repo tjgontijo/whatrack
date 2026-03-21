@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { formatCnpj, isValidCnpjFormat, stripCnpj } from '@/lib/mask/cnpj'
 import { apiFetch } from '@/lib/api-client'
-import { authClient } from '@/lib/auth/auth-client'
+import { useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
 import { SettingsSection } from './settings-section'
 
 
@@ -78,8 +78,7 @@ async function saveCompanyData(
 
 
 export function CompanyDataSection() {
-  const { data: activeOrg } = authClient.useActiveOrganization()
-  const organizationId = activeOrg?.id
+  const { organizationId } = useRequiredProjectRouteContext()
   const queryClient = useQueryClient()
   const [cnpjInput, setCnpjInput] = useState('')
   const [previewData, setPreviewData] = useState<CompanyData | null>(null)

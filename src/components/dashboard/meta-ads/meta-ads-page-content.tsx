@@ -8,10 +8,9 @@ import { useQuery } from '@tanstack/react-query'
 import { MetaAdsCampaignsClient } from '@/app/(dashboard)/[organizationSlug]/[projectSlug]/meta-ads/campaigns/client'
 import { MetaROIContent } from '@/components/dashboard/meta-ads/dashboard/meta-roi-content'
 import { PageContent, PageHeader, PageShell } from '@/components/dashboard/layout'
-import { useRequiredProjectPath } from '@/hooks/project/project-route-context'
+import { useRequiredProjectPath, useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { authClient } from '@/lib/auth/auth-client'
 import { metaAdsClient } from '@/lib/meta-ads/client'
 import type { MetaRoiResponse } from '@/types/meta-ads/meta-ads'
 
@@ -25,8 +24,7 @@ export function MetaAdsPageContent({ initialTab }: MetaAdsPageContentProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const metaAdsPath = useRequiredProjectPath('/meta-ads')
-  const { data: organization } = authClient.useActiveOrganization()
-  const organizationId = organization?.id
+  const { organizationId } = useRequiredProjectRouteContext()
 
   const {
     data: roiData,

@@ -19,8 +19,8 @@ import {
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
-import { authClient } from '@/lib/auth/auth-client'
 import { apiFetch } from '@/lib/api-client'
+import { useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
 import { CrudEditDrawer } from '@/components/dashboard/crud'
 
 type CategoryOption = {
@@ -51,8 +51,7 @@ export function ItemFormDrawer({
   open,
   onOpenChange,
 }: ItemFormDrawerProps) {
-  const { data: activeOrg } = authClient.useActiveOrganization()
-  const organizationId = activeOrg?.id
+  const { organizationId } = useRequiredProjectRouteContext()
 
   const setOpen = onOpenChange
 

@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { ResponsiveFunnel } from '@nivo/funnel'
 import { apiFetch } from '@/lib/api-client'
-import { authClient } from '@/lib/auth/auth-client'
+import { useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
 
 
 export default function ConversionFunnel({
@@ -13,8 +13,7 @@ export default function ConversionFunnel({
   startDate: string
   endDate: string
 }) {
-  const { data: activeOrg } = authClient.useActiveOrganization()
-  const organizationId = activeOrg?.id
+  const { organizationId } = useRequiredProjectRouteContext()
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['analytics', 'conversion', organizationId, startDate, endDate],

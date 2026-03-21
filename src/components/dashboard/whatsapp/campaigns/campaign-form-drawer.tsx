@@ -9,7 +9,6 @@ import { CrudEditDrawer } from '@/components/dashboard/crud'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
-import { authClient } from '@/lib/auth/auth-client'
 import { apiFetch } from '@/lib/api-client'
 import {
   parseCampaignCsv,
@@ -18,6 +17,7 @@ import {
   type CampaignCsvParseResult,
 } from '@/lib/whatsapp/campaign-csv'
 import { whatsappApi } from '@/lib/whatsapp/client'
+import { useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
 import { useProject } from '@/hooks/project/use-project'
 import type { WhatsAppTemplate } from '@/types/whatsapp/whatsapp'
 import { CampaignWizardStepBasic } from './campaign-wizard-step-basic'
@@ -64,9 +64,8 @@ function readFileAsText(file: File): Promise<string> {
 
 export function CampaignFormDrawer({ open, onOpenChange, onSuccess }: CampaignFormDrawerProps) {
   const queryClient = useQueryClient()
-  const { data: activeOrg } = authClient.useActiveOrganization()
+  const { organizationId } = useRequiredProjectRouteContext()
   const { data: activeProject, isLoading: isProjectLoading } = useProject()
-  const organizationId = activeOrg?.id
   const activeProjectId = activeProject?.id || ''
 
   const [step, setStep] = React.useState<WizardStep>(1)

@@ -6,9 +6,8 @@ import { ArrowLeft, CheckCircle, XCircle, Send, Ban, Clock } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 
-import { authClient } from '@/lib/auth/auth-client'
 import { apiFetch } from '@/lib/api-client'
-import { useRequiredProjectPath } from '@/hooks/project/project-route-context'
+import { useRequiredProjectPath, useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -171,8 +170,7 @@ export default function CampaignDetailPage({ params }: CampaignPageProps) {
   )
   const queryClient = useQueryClient()
   const campaignsPath = useRequiredProjectPath('/whatsapp/campaigns')
-  const { data: activeOrg } = authClient.useActiveOrganization()
-  const organizationId = activeOrg?.id
+  const { organizationId } = useRequiredProjectRouteContext()
   const { campaignId } = React.use(params)
 
   const { data: campaign, isLoading } = useQuery<CampaignDetail>({
@@ -246,7 +244,7 @@ export default function CampaignDetailPage({ params }: CampaignPageProps) {
     },
   })
 
-  if (!organizationId || !campaignId) {
+  if (!campaignId) {
     return (
       <div className="flex h-[calc(100vh-200px)] items-center justify-center">
         <p className="text-muted-foreground">Carregando...</p>

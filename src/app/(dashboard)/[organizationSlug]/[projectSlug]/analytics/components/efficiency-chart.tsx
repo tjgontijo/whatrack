@@ -8,7 +8,7 @@ const formatDealValue = (value: number | string | null | undefined) => {
 }
 
 import { apiFetch } from '@/lib/api-client'
-import { authClient } from '@/lib/auth/auth-client'
+import { useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
 
 export default function EfficiencyChart({
   startDate,
@@ -17,8 +17,7 @@ export default function EfficiencyChart({
   startDate: string
   endDate: string
 }) {
-  const { data: activeOrg } = authClient.useActiveOrganization()
-  const organizationId = activeOrg?.id
+  const { organizationId } = useRequiredProjectRouteContext()
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['analytics', 'efficiency', organizationId, startDate, endDate],
