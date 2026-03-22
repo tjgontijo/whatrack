@@ -5,10 +5,11 @@ import { useState, useDeferredValue, useMemo, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Package2, Tag } from 'lucide-react'
 
-import { CrudPageShell } from '@/components/dashboard/crud/crud-page-shell'
 import { CrudDataView, CrudEmptyState } from '@/components/dashboard/crud/crud-data-view'
 import { CrudListView } from '@/components/dashboard/crud/crud-list-view'
 import { CrudCardView } from '@/components/dashboard/crud/crud-card-view'
+import { ViewSwitcher } from '@/components/dashboard/crud/view-switcher'
+import { HeaderPageShell } from '@/components/dashboard/layout'
 import { useCrudInfiniteQuery } from '@/hooks/ui/use-crud-infinite-query'
 import {
   type ColumnDef,
@@ -25,6 +26,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 
 import { ItemFormDrawer } from './item-form-drawer'
 import { apiFetch } from '@/lib/api-client'
@@ -193,13 +195,20 @@ export function ItemsTable() {
 
   return (
     <>
-      <CrudPageShell
+      <HeaderPageShell
         title="Itens"
-        onAdd={() => setIsItemFormDrawerOpen(true)}
-        view={view}
-        setView={setView}
-        enabledViews={['list', 'cards']}
-        searchInput={searchInput}
+        selector={<ViewSwitcher view={view} setView={setView} enabledViews={['list', 'cards']} />}
+        primaryAction={
+          <Button
+            type="button"
+            size="sm"
+            className="h-7 gap-1.5 text-xs"
+            onClick={() => setIsItemFormDrawerOpen(true)}
+          >
+            Novo
+          </Button>
+        }
+        searchValue={searchInput}
         onSearchChange={setSearchInput}
         searchPlaceholder="Buscar itens..."
         onRefresh={() => void refetch()}
@@ -228,7 +237,7 @@ export function ItemsTable() {
             />
           }
         />
-      </CrudPageShell>
+      </HeaderPageShell>
 
       <ItemFormDrawer
         categories={categories}

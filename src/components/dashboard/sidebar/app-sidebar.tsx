@@ -18,7 +18,6 @@ import {
   ShoppingBag,
   UserCircle,
   Users,
-  Webhook,
 } from 'lucide-react'
 
 import type { Permission } from '@/lib/auth/rbac/roles'
@@ -141,7 +140,6 @@ export function AppSidebar({
           title: 'Perfil',
           href: `${basePath}/settings/profile`,
           icon: 'UserCircle',
-          activePatterns: [`${basePath}/settings`, `${basePath}/settings/profile`],
         },
       ],
     },
@@ -177,18 +175,6 @@ export function AppSidebar({
           href: `${basePath}/settings/meta-ads`,
           icon: 'Meta',
           permission: 'manage:integrations',
-        },
-      ],
-    },
-    {
-      label: 'Inteligência',
-      items: [
-        {
-          title: 'IA Studio',
-          href: `${basePath}/settings/ai-studio`,
-          icon: 'Bot',
-          permission: 'manage:ai',
-          activePatterns: [`${basePath}/settings/ai-studio`, `${basePath}/settings/ai`],
         },
       ],
     },

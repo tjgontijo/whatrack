@@ -1,10 +1,7 @@
-import { CreditCard } from 'lucide-react'
 import { notFound, redirect } from 'next/navigation'
 
+import { HeaderPageShell, RefreshButton } from '@/components/dashboard/layout'
 import { BillingPlanList } from '@/components/dashboard/billing/billing-plan-list'
-import { PageContent } from '@/components/dashboard/layout/page-content'
-import { PageHeader } from '@/components/dashboard/layout/page-header'
-import { PageShell } from '@/components/dashboard/layout/page-shell'
 import { isAdmin } from '@/lib/auth/rbac/roles'
 import { billingPlanListQuerySchema } from '@/schemas/billing/billing-plan-schemas'
 import { listBillingPlans } from '@/services/billing/billing-plan-query.service'
@@ -48,16 +45,11 @@ export default async function BillingSettingsPage({
   const data = await listBillingPlans(filters)
 
   return (
-    <PageShell maxWidth="7xl">
-      <PageHeader
-        title="Planos e Cobrança"
-        description="Catálogo interno dos planos, com visão de quotas, assinaturas e sincronização com a Stripe."
-        icon={CreditCard}
-      />
-
-      <PageContent>
-        <BillingPlanList data={data} filters={filters} />
-      </PageContent>
-    </PageShell>
+    <HeaderPageShell
+      title="Planos e Cobrança"
+      refreshAction={<RefreshButton queryKey={['billing-plans']} />}
+    >
+      <BillingPlanList data={data} filters={filters} />
+    </HeaderPageShell>
   )
 }

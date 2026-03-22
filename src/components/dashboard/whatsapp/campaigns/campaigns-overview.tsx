@@ -49,7 +49,7 @@ export function CampaignsOverview({ counters, isLoading }: CampaignsOverviewProp
   }
 
   return (
-    <div className="space-y-6 px-6 pt-6 pb-8">
+    <div className="space-y-6">
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard label="Total" value={counters.total} icon={Send} />
         <StatCard

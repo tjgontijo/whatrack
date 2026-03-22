@@ -14,20 +14,9 @@ export default async function WelcomePage() {
     redirect('/sign-in?intent=start-trial')
   }
 
-  const state = await getWelcomeState({
-    userId: session.user.id,
-    fallbackOwnerName: session.user.name ?? null,
-  })
+  const state = await getWelcomeState({ userId: session.user.id })
 
-  const activationMilestoneReached =
-    state.checklist.whatsappConnected && state.checklist.metaAdsConnected
-
-  if (
-    state.organization &&
-    state.projects.length > 0 &&
-    activationMilestoneReached &&
-    !state.trialExpired
-  ) {
+  if (state.organization && state.projects.length > 0) {
     const defaultWorkspacePath = await resolveDefaultWorkspacePath(session.user.id)
     redirect(defaultWorkspacePath ?? '/welcome')
   }

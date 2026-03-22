@@ -31,6 +31,11 @@ export function ViewSwitcher({
     [enabledViews, isMobile]
   )
 
+  React.useEffect(() => {
+    if (visibleTabs.length === 0 || visibleTabs.includes(view)) return
+    setView(visibleTabs[0])
+  }, [setView, view, visibleTabs])
+
   if (visibleTabs.length <= 1) return null
 
   return (
@@ -38,6 +43,7 @@ export function ViewSwitcher({
       {visibleTabs.map((v) => (
         <button
           key={v}
+          type="button"
           onClick={() => setView(v)}
           className={cn(
             'rounded-md px-2.5 py-1 text-xs font-medium transition-all',

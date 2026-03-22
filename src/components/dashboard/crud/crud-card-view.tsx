@@ -30,17 +30,16 @@ export function CrudCardView<T>({
   onEndReached,
 }: CrudCardViewProps<T>) {
   return (
-    <div className="pt-6">
-      <VirtuosoGrid
-        data={data}
-        endReached={onEndReached}
-        overscan={200}
-        style={{ height: '100%', minHeight: 200 }}
-        listClassName={cn(
-          'grid gap-3 px-4 pb-8',
-          gridClassName ?? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6',
-          className
-        )}
+    <VirtuosoGrid
+      data={data}
+      endReached={onEndReached}
+      overscan={200}
+      style={{ height: '100%', minHeight: 200 }}
+      listClassName={cn(
+        'grid gap-3',
+        gridClassName ?? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6',
+        className
+      )}
       itemContent={(index, item) => (
         <div
           key={getRowKey(item, index)}
@@ -90,7 +89,6 @@ export function CrudCardView<T>({
           )}
         </div>
       )}
-      />
-    </div>
+    />
   )
 }

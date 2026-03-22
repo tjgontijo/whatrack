@@ -20,7 +20,6 @@ import { logger } from '@/lib/utils/logger'
 export type JobType =
   | 'whatsapp-health-check'
   | 'webhook-retry'
-  | 'ai-classifier'
   | 'whatsapp-campaign-dispatch'
 
 interface JobExecution {

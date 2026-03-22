@@ -58,14 +58,6 @@ export const updateOrganizationByIdSchema = z
   })
   .passthrough()
 
-export const updateOrganizationAiSettingsSchema = z
-  .object({
-    aiCopilotActive: z.boolean().optional(),
-    aiCopilotInstructions: z.string().optional(),
-  })
-  .passthrough()
-
 export type UpdateOrganizationInput = z.infer<typeof updateOrganizationSchema>
 export type OrganizationAuditLogsQueryInput = z.infer<typeof organizationAuditLogsQuerySchema>
 export type UpdateOrganizationByIdInput = z.infer<typeof updateOrganizationByIdSchema>
-export type UpdateOrganizationAiSettingsInput = z.infer<typeof updateOrganizationAiSettingsSchema>

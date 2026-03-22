@@ -71,6 +71,8 @@ node_modules/
 # Mastra local storage artifacts
 mastra.db*
 .npm-cache/
+node-compile-cache/
+Lz5pXeRuP6kgd6GOtjz0M/
 
 
 off_topic

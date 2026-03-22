@@ -1,5 +1,4 @@
 // Main components
-export { CrudPageShell } from './crud-page-shell'
 export { CrudDataView } from './crud-data-view'
 export { CrudEditDrawer } from './crud-edit-drawer'
 export { DeleteConfirmDialog } from './delete-confirm-dialog'

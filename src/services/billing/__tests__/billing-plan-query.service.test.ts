@@ -40,7 +40,6 @@ describe('billing-plan-query.service', () => {
         includedWhatsAppPerProject: 1,
         includedMetaAdAccountsPerProject: 1,
         includedConversionsPerProject: 300,
-        includedAiCreditsPerProject: 10000,
         supportLevel: 'priority',
         stripeProductId: 'prod_1',
         stripePriceId: 'price_1',

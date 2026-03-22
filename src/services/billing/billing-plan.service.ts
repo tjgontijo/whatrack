@@ -86,7 +86,6 @@ export async function createBillingPlan(input: BillingPlanCreateInput, userId: s
       includedWhatsAppPerProject: input.includedWhatsAppPerProject,
       includedMetaAdAccountsPerProject: input.includedMetaAdAccountsPerProject,
       includedConversionsPerProject: input.includedConversionsPerProject,
-      includedAiCreditsPerProject: input.includedAiCreditsPerProject,
       supportLevel: input.supportLevel,
       displayOrder: input.displayOrder,
       isActive: input.isActive,
@@ -192,9 +191,6 @@ export async function updateBillingPlan(
         : {}),
       ...(input.includedConversionsPerProject !== undefined
         ? { includedConversionsPerProject: input.includedConversionsPerProject }
-        : {}),
-      ...(input.includedAiCreditsPerProject !== undefined
-        ? { includedAiCreditsPerProject: input.includedAiCreditsPerProject }
         : {}),
       ...(input.supportLevel !== undefined ? { supportLevel: input.supportLevel } : {}),
       ...(input.displayOrder !== undefined ? { displayOrder: input.displayOrder } : {}),

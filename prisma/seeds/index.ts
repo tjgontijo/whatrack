@@ -3,13 +3,8 @@ import { PrismaClient } from '@generated/prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { seedLookupTables } from './seed_lookup_tables'
 import { seedTicketStages } from './seed_ticket_stages'
-import { seedAgentSaleDetector } from './seed_agent_sale_detector'
-import { seedAgentLeadQualifier } from './seed_agent_lead_qualifier'
-import { seedAgentConversationSummarizer } from './seed_agent_conversation_summarizer'
-import { seedSharedCoreSkills } from './seed_skills_shared_core'
 import { seedBillingPlans } from './seed_billing_plans'
 import { seedSystemOrg } from './seed_system_org'
-import { seedAgentMetaAdsAnalyst } from './seed_agent_meta_ads_analyst'
 
 interface PgTableRow {
   tablename: string
@@ -102,16 +97,6 @@ export async function runSeed() {
 
     // 2. Setup ticket stages for all organizations
     await seedTicketStages(prisma)
-
-    // 3. AI Agents — seeded per organization
-    const organizations = await prisma.organization.findMany()
-    for (const org of organizations) {
-      await seedAgentSaleDetector(prisma, org.id)
-      await seedAgentLeadQualifier(prisma, org.id)
-      await seedAgentConversationSummarizer(prisma, org.id)
-      await seedSharedCoreSkills(prisma, org.id)
-      await seedAgentMetaAdsAnalyst(prisma, org.id)
-    }
 
     console.log('✅ Seed concluído com sucesso!')
   } catch (error) {

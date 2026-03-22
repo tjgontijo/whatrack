@@ -1,11 +1,10 @@
 import { Suspense } from 'react'
-import { CreditCard } from 'lucide-react'
 
+import { HeaderPageShell, RefreshButton } from '@/components/dashboard/layout'
 import { BillingPageContent } from '@/components/dashboard/billing/billing-page-content'
 import { BillingPageSkeleton } from '@/components/dashboard/billing/billing-page-skeleton'
-import { PageContent, PageHeader, PageShell } from '@/components/dashboard/layout'
-import { listPublicBillingPlans } from '@/services/billing/billing-plan-catalog.service'
 import { requireWorkspacePageAccess } from '@/server/auth/require-workspace-page-access'
+import { listPublicBillingPlans } from '@/services/billing/billing-plan-catalog.service'
 
 type SubscriptionPageProps = {
   params: Promise<{ organizationSlug: string }>
@@ -13,22 +12,17 @@ type SubscriptionPageProps = {
 
 export default async function SubscriptionPage({ params }: SubscriptionPageProps) {
   const { organizationSlug } = await params
-  await requireWorkspacePageAccess({ requireOwner: true, organizationSlug })
+  const access = await requireWorkspacePageAccess({ requireOwner: true, organizationSlug })
   const availablePlans = await listPublicBillingPlans()
 
   return (
-    <PageShell maxWidth="5xl">
-      <PageHeader
-        title="Assinatura"
-        description="Gerencie o plano base, clientes ativos e extras operacionais do workspace."
-        icon={CreditCard}
-      />
-
-      <PageContent>
-        <Suspense fallback={<BillingPageSkeleton />}>
-          <BillingPageContent availablePlans={availablePlans} />
-        </Suspense>
-      </PageContent>
-    </PageShell>
+    <HeaderPageShell
+      title="Assinatura"
+      refreshAction={<RefreshButton queryKey={['subscription', access.organizationId]} />}
+    >
+      <Suspense fallback={<BillingPageSkeleton />}>
+        <BillingPageContent availablePlans={availablePlans} />
+      </Suspense>
+    </HeaderPageShell>
   )
 }

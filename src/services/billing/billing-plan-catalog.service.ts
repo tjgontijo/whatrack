@@ -20,7 +20,6 @@ type BillingPlanRecord = {
   includedWhatsAppPerProject: number
   includedMetaAdAccountsPerProject: number
   includedConversionsPerProject: number
-  includedAiCreditsPerProject: number
   supportLevel: string
   stripeProductId: string | null
   stripePriceId: string | null
@@ -114,7 +113,6 @@ export function buildBillingPlanPresentation(plan: BillingPlanRecord) {
           `${plan.includedWhatsAppPerProject} WhatsApp por cliente`,
           `${plan.includedMetaAdAccountsPerProject} conta Meta Ads por cliente`,
           `${plan.includedConversionsPerProject} conversões por cliente / mês`,
-          `${plan.includedAiCreditsPerProject.toLocaleString('pt-BR')} créditos de IA por cliente / mês`,
         ]
   const additionals = toArray(metadata.additionals)
 
@@ -148,7 +146,6 @@ export function mapBillingPlanToPublic(plan: BillingPlanRecord): PublicBillingPl
     includedWhatsAppPerProject: plan.includedWhatsAppPerProject,
     includedMetaAdAccountsPerProject: plan.includedMetaAdAccountsPerProject,
     includedConversionsPerProject: plan.includedConversionsPerProject,
-    includedAiCreditsPerProject: plan.includedAiCreditsPerProject,
     supportLevel: plan.supportLevel,
     isHighlighted: plan.isHighlighted,
     contactSalesOnly: plan.contactSalesOnly,
@@ -171,7 +168,6 @@ export const billingPlanSelect = {
   includedWhatsAppPerProject: true,
   includedMetaAdAccountsPerProject: true,
   includedConversionsPerProject: true,
-  includedAiCreditsPerProject: true,
   supportLevel: true,
   stripeProductId: true,
   stripePriceId: true,

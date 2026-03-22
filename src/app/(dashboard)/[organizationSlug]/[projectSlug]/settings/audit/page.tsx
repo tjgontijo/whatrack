@@ -1,8 +1,7 @@
-import { ScrollText } from 'lucide-react'
-
-import { PageContent, PageHeader, PageShell } from '@/components/dashboard/layout'
+import { HeaderPageShell, RefreshButton } from '@/components/dashboard/layout'
 import { AuditLogsTable } from '@/components/dashboard/settings/audit-logs-table'
 import { requireWorkspacePageAccess } from '@/server/auth/require-workspace-page-access'
+import { listOrganizationAuditResourceTypes } from '@/services/organizations/organization-audit.service'
 
 type AuditPageProps = {
   params: Promise<{ organizationSlug: string }>
@@ -10,18 +9,21 @@ type AuditPageProps = {
 
 export default async function AuditPage({ params }: AuditPageProps) {
   const { organizationSlug } = await params
-  await requireWorkspacePageAccess({ permissions: 'view:audit', organizationSlug })
+  const access = await requireWorkspacePageAccess({
+    permissions: 'view:audit',
+    organizationSlug,
+  })
+
+  const { resourceTypes: initialResourceTypes } = await listOrganizationAuditResourceTypes(
+    access.organizationId,
+  )
 
   return (
-    <PageShell maxWidth="5xl">
-      <PageHeader
-        title="Auditoria"
-        description="Acompanhe o histórico de ações críticas realizadas no workspace."
-        icon={ScrollText}
-      />
-      <PageContent>
-        <AuditLogsTable />
-      </PageContent>
-    </PageShell>
+    <HeaderPageShell
+      title="Auditoria"
+      refreshAction={<RefreshButton queryKey={['audit-logs', access.organizationId]} />}
+    >
+      <AuditLogsTable initialResourceTypes={initialResourceTypes} />
+    </HeaderPageShell>
   )
 }

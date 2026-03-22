@@ -79,7 +79,6 @@ const projectMetaAdAccountSummarySchema = z.object({
 
 export const projectDetailSchema = projectListItemSchema.extend({
   conversionCount: z.number().int().min(0),
-  aiCreditsUsed: z.number().int().min(0),
   whatsappConfigs: z.array(projectWhatsAppSummarySchema),
   metaAdAccounts: z.array(projectMetaAdAccountSummarySchema),
 })

@@ -2,7 +2,6 @@ import { prisma } from '@/lib/db/prisma'
 import { getDefaultTicketStage } from '@/services/tickets/ensure-ticket-stages'
 import { publishToCentrifugo } from '@/lib/centrifugo/server'
 import { metaAdEnrichmentService } from '@/services/meta-ads/ad-enrichment.service'
-import { enqueueForClassification } from '@/services/ai/ai-classifier.scheduler'
 import { logger } from '@/lib/utils/logger'
 import { attributeInboundMessageToCampaign } from '@/services/whatsapp/whatsapp-campaign-attribution.service'
 
@@ -483,14 +482,6 @@ export async function messageHandler(
         })
 
         successCount++
-
-        // Schedule AI analysis after idle window — only for inbound messages with enough history
-        // Fire-and-forget: enqueue resets the debounce timer on every new message
-        if (!isEcho && ticket.messagesCount >= 3) {
-          enqueueForClassification(ticket.id, config.organizationId).catch((err) =>
-            logger.error({ err: err }, '[MessageHandler] Failed to enqueue AI classification')
-          )
-        }
 
         // Campaign attribution — fire-and-forget
         if (!isEcho) {

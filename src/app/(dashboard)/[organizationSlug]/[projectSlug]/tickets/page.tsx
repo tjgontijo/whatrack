@@ -5,11 +5,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { User, Calendar, MessageSquare, DollarSign, TrendingUp, SlidersHorizontal } from 'lucide-react'
 import { toast } from 'sonner'
 
-import { CrudPageShell } from '@/components/dashboard/crud/crud-page-shell'
 import { CrudDataView, CrudEmptyState } from '@/components/dashboard/crud/crud-data-view'
 import { CrudListView } from '@/components/dashboard/crud/crud-list-view'
 import { CrudCardView } from '@/components/dashboard/crud/crud-card-view'
 import { CrudKanbanView } from '@/components/dashboard/crud/crud-kanban-view'
+import { ViewSwitcher } from '@/components/dashboard/crud/view-switcher'
+import { HeaderPageShell } from '@/components/dashboard/layout'
 import { PipelineConfigSheet } from '@/components/dashboard/pipeline/pipeline-config-sheet'
 import { useCrudInfiniteQuery } from '@/hooks/ui/use-crud-infinite-query'
 import { useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
@@ -358,12 +359,12 @@ export default function TicketsPage() {
 
   return (
     <>
-      <CrudPageShell
+      <HeaderPageShell
         title="Pipeline"
-        view={view}
-        setView={setView}
-        enabledViews={['kanban', 'list', 'cards']}
-        searchInput={searchInput}
+        selector={
+          <ViewSwitcher view={view} setView={setView} enabledViews={['kanban', 'list', 'cards']} />
+        }
+        searchValue={searchInput}
         onSearchChange={setSearchInput}
         searchPlaceholder="Buscar por nome, telefone..."
         onRefresh={() => void refetch()}
@@ -412,7 +413,7 @@ export default function TicketsPage() {
             />
           }
         />
-      </CrudPageShell>
+      </HeaderPageShell>
 
       <PipelineConfigSheet
         open={pipelineSheetOpen}

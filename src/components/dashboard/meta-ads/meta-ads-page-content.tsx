@@ -1,16 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { RefreshCw } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 
 import { MetaAdsCampaignsClient } from '@/app/(dashboard)/[organizationSlug]/[projectSlug]/meta-ads/campaigns/client'
 import { MetaROIContent } from '@/components/dashboard/meta-ads/dashboard/meta-roi-content'
-import { SectionPageShell } from '@/components/dashboard/layout/section-page-shell'
-import { Button } from '@/components/ui/button'
+import { HeaderPageShell, HeaderTabs } from '@/components/dashboard/layout'
 import { useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
 import { metaAdsClient } from '@/lib/meta-ads/client'
-import { cn } from '@/lib/utils/utils'
 import type { MetaRoiResponse } from '@/types/meta-ads/meta-ads'
 
 const TABS = [
@@ -29,24 +26,11 @@ export function MetaAdsPageContent() {
   })
 
   return (
-    <SectionPageShell
+    <HeaderPageShell
       title="Meta Ads"
-      tabs={TABS}
-      activeTab={activeTab}
-      onTabChange={setActiveTab}
-      actions={
-        activeTab === 'overview' ? (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-muted-foreground hover:text-foreground h-7 w-7"
-            onClick={() => refetch()}
-            disabled={isRefetching || isLoading}
-          >
-            <RefreshCw className={cn('h-3.5 w-3.5', (isRefetching || isLoading) && 'animate-spin')} />
-          </Button>
-        ) : null
-      }
+      selector={<HeaderTabs tabs={TABS} activeTab={activeTab} onTabChange={setActiveTab} />}
+      onRefresh={activeTab === 'overview' ? () => void refetch() : undefined}
+      isRefreshing={isRefetching || isLoading}
     >
       {activeTab === 'overview' ? (
         <MetaROIContent
@@ -58,6 +42,6 @@ export function MetaAdsPageContent() {
       ) : (
         <MetaAdsCampaignsClient />
       )}
-    </SectionPageShell>
+    </HeaderPageShell>
   )
 }

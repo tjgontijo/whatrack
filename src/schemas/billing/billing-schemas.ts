@@ -29,7 +29,6 @@ export const entitlementSummarySchema = z.object({
   includedMetaAdAccountsPerProject: z.number().int().min(0),
   additionalMetaAdAccounts: z.number().int().min(0),
   includedConversionsPerProject: z.number().int().min(0),
-  includedAiCreditsPerProject: z.number().int().min(0),
 })
 
 export const subscriptionResponseSchema = z.object({

@@ -7,11 +7,12 @@ import { MoreHorizontal, Pencil, Tag, Trash2, Power, PowerOff } from 'lucide-rea
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
-import { CrudPageShell } from '@/components/dashboard/crud/crud-page-shell'
 import { CrudDataView, CrudEmptyState } from '@/components/dashboard/crud/crud-data-view'
 import { CrudListView } from '@/components/dashboard/crud/crud-list-view'
 import { CrudCardView } from '@/components/dashboard/crud/crud-card-view'
 import { DeleteConfirmDialog } from '@/components/dashboard/crud/delete-confirm-dialog'
+import { ViewSwitcher } from '@/components/dashboard/crud/view-switcher'
+import { HeaderPageShell } from '@/components/dashboard/layout'
 import { useCrudInfiniteQuery } from '@/hooks/ui/use-crud-infinite-query'
 import {
   type CardConfig,
@@ -243,16 +244,23 @@ export function CategoriesTable() {
 
   return (
     <>
-      <CrudPageShell
+      <HeaderPageShell
         title="Categorias"
-        onAdd={() => {
-          setEditingCategory(null)
-          setIsFormOpen(true)
-        }}
-        view={view}
-        setView={setView}
-        enabledViews={['list', 'cards']}
-        searchInput={searchInput}
+        selector={<ViewSwitcher view={view} setView={setView} enabledViews={['list', 'cards']} />}
+        primaryAction={
+          <Button
+            type="button"
+            size="sm"
+            className="h-7 gap-1.5 text-xs"
+            onClick={() => {
+              setEditingCategory(null)
+              setIsFormOpen(true)
+            }}
+          >
+            Novo
+          </Button>
+        }
+        searchValue={searchInput}
         onSearchChange={setSearchInput}
         searchPlaceholder="Buscar categoria..."
         onRefresh={() => void refetch()}
@@ -282,7 +290,7 @@ export function CategoriesTable() {
             />
           }
         />
-      </CrudPageShell>
+      </HeaderPageShell>
 
       <CategoryFormDrawer
         open={isFormOpen}

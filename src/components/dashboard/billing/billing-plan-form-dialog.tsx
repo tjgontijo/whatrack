@@ -47,7 +47,6 @@ function buildDefaultValues(plan?: BillingPlanListItem | null): BillingPlanFormI
     includedWhatsAppPerProject: plan?.includedWhatsAppPerProject ?? 0,
     includedMetaAdAccountsPerProject: plan?.includedMetaAdAccountsPerProject ?? 0,
     includedConversionsPerProject: plan?.includedConversionsPerProject ?? 0,
-    includedAiCreditsPerProject: plan?.includedAiCreditsPerProject ?? 0,
     supportLevel: (plan?.supportLevel as BillingPlanFormValues['supportLevel']) ?? 'priority',
     displayOrder: plan?.displayOrder ?? 0,
     isHighlighted: plan?.isHighlighted ?? false,
@@ -281,7 +280,7 @@ function BillingPlanFormDialogContent({
           </Field>
         </FieldGroup>
 
-        <FieldGroup className="grid gap-4 lg:grid-cols-5">
+        <FieldGroup className="grid gap-4 lg:grid-cols-4">
           <Field>
             <FieldLabel htmlFor="billing-plan-projects">Projetos incluídos *</FieldLabel>
             <FieldContent>
@@ -314,13 +313,6 @@ function BillingPlanFormDialogContent({
             </FieldContent>
           </Field>
 
-          <Field>
-            <FieldLabel htmlFor="billing-plan-ai">Créditos IA/projeto *</FieldLabel>
-            <FieldContent>
-              <Input id="billing-plan-ai" type="number" min="0" {...register('includedAiCreditsPerProject', { valueAsNumber: true })} />
-              <FieldError errors={[errors.includedAiCreditsPerProject]} />
-            </FieldContent>
-          </Field>
         </FieldGroup>
 
         <Field>

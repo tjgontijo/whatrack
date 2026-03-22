@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button'
 import { authClient } from '@/lib/auth/auth-client'
 import { getAuthErrorMessage } from '@/lib/auth/error-messages'
 import { acceptOrganizationInvitation, buildInvitationQuery } from '@/lib/auth/invitation-client'
+import { apiFetch } from '@/lib/api-client'
 import {
   buildFunnelQueryString,
   readFunnelIntent,
@@ -58,6 +59,22 @@ export default function LoginPage() {
   const invitationQuery = useMemo(() => buildInvitationQuery(invitationId, nextParam), [invitationId, nextParam])
   const funnelQuery = useMemo(() => buildFunnelQueryString(funnelIntent), [funnelIntent])
   const nextPath = resolvePostAuthPath(nextParam, funnelIntent)
+  const postAuthResolutionQuery = useMemo(() => {
+    const params = new URLSearchParams()
+
+    if (nextParam?.trim()) {
+      params.set('next', nextParam)
+    }
+
+    for (const [key, value] of Object.entries(funnelIntent)) {
+      if (value?.trim()) {
+        params.set(key, value)
+      }
+    }
+
+    const query = params.toString()
+    return query ? `?${query}` : ''
+  }, [funnelIntent, nextParam])
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -96,7 +113,22 @@ export default function LoginPage() {
         } else {
           toast.success('Login realizado com sucesso!')
         }
-        router.push(nextPath)
+
+        let destination = nextPath
+
+        try {
+          const response = (await apiFetch(`/api/v1/auth/post-auth-path${postAuthResolutionQuery}`)) as {
+            path?: string
+          }
+
+          if (response.path) {
+            destination = response.path
+          }
+        } catch (postAuthError) {
+          console.error('[login] erro ao resolver destino pós-auth', postAuthError)
+        }
+
+        router.replace(destination)
       }
     } catch (error) {
       console.error('[login] erro ao autenticar', error)
@@ -113,9 +145,6 @@ export default function LoginPage() {
     >
       <div className="text-left">
         <h1 className="text-foreground text-3xl font-bold tracking-tight">Acesse sua conta</h1>
-        <p className="text-muted-foreground mt-2 text-sm font-medium">
-          Entre para conectar clientes, provar ROI e acompanhar o que realmente vende no WhatsApp
-        </p>
       </div>
 
       <Form {...form}>
@@ -125,7 +154,7 @@ export default function LoginPage() {
             name="email"
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>Email corporativo</FieldLabel>
+                <FieldLabel htmlFor={field.name}>E-mail</FieldLabel>
                 <Input
                   id={field.name}
                   type="email"

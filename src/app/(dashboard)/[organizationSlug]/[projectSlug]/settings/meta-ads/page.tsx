@@ -1,5 +1,5 @@
 import { MetaAdsSettingsContent } from '@/components/dashboard/meta-ads/settings/meta-ads-settings-content'
-import { SectionPageShell } from '@/components/dashboard/layout/section-page-shell'
+import { HeaderPageShell } from '@/components/dashboard/layout'
 import { requireWorkspacePageAccess } from '@/server/auth/require-workspace-page-access'
 
 type SettingsMetaAdsPageProps = {
@@ -14,8 +14,8 @@ export default async function SettingsMetaAdsPage({ params }: SettingsMetaAdsPag
   })
 
   return (
-    <SectionPageShell title="Meta Ads">
+    <HeaderPageShell title="Meta Ads">
       <MetaAdsSettingsContent organizationId={access.organizationId} />
-    </SectionPageShell>
+    </HeaderPageShell>
   )
 }

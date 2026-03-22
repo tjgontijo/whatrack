@@ -23,11 +23,10 @@ export function CrudListView<T>({
   onEndReached,
 }: CrudListViewProps<T>) {
   return (
-    <div className="mt-6">
-      <TableVirtuoso
-        data={data}
-        className={cn('w-full', className)}
-        style={{ height: '100%', minHeight: 200 }}
+    <TableVirtuoso
+      data={data}
+      className={cn('w-full', className)}
+      style={{ height: '100%', minHeight: 200 }}
       endReached={onEndReached}
       overscan={10}
       components={{
@@ -93,7 +92,6 @@ export function CrudListView<T>({
           )}
         </>
       )}
-      />
-    </div>
+    />
   )
 }

@@ -6,6 +6,7 @@ import { ptBR } from 'date-fns/locale'
 import { Calendar as CalendarIcon, EyeIcon, Loader2 } from 'lucide-react'
 import { TableVirtuoso } from 'react-virtuoso'
 
+import { CrudEmptyState } from '@/components/dashboard/crud/crud-data-view'
 import {
   AUDIT_LOG_PERIOD_PRESETS,
   type AuditLogPeriodPreset,
@@ -262,7 +263,11 @@ function CustomDatePicker({
   )
 }
 
-export function AuditLogsTable() {
+type AuditLogsTableProps = {
+  initialResourceTypes?: string[]
+}
+
+export function AuditLogsTable({ initialResourceTypes }: AuditLogsTableProps = {}) {
   const defaultRange = React.useMemo(() => getDefaultLastSevenDaysRange(), [])
   const [periodPreset, setPeriodPreset] = React.useState<AuditLogPeriodPreset>('7d')
   const [startDate, setStartDate] = React.useState(defaultRange.startDate)
@@ -281,7 +286,7 @@ export function AuditLogsTable() {
       enabled: !isCustomPeriodInvalid,
     })
 
-  const filtersQuery = useAuditLogFilters()
+  const filtersQuery = useAuditLogFilters(true, initialResourceTypes)
 
   const onEndReached = React.useCallback(() => {
     if (!hasNextPage || isFetchingNextPage) return
@@ -408,9 +413,10 @@ export function AuditLogsTable() {
           {(error as Error)?.message || 'Erro ao carregar logs de auditoria.'}
         </div>
       ) : logs.length === 0 ? (
-        <div className="text-muted-foreground rounded-xl border p-10 text-center text-sm">
-          Nenhum log encontrado para os filtros selecionados.
-        </div>
+        <CrudEmptyState
+          title="Nenhum log encontrado."
+          description="Tente buscar por termos diferentes ou verifique os filtros."
+        />
       ) : (
         <div className="overflow-hidden rounded-xl border">
           <TableVirtuoso

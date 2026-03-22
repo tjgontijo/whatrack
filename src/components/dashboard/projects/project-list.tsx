@@ -10,9 +10,10 @@ import {
   CrudCardView,
   CrudDataView,
   CrudListView,
-  CrudPageShell,
+  ViewSwitcher,
   DeleteConfirmDialog,
 } from '@/components/dashboard/crud'
+import { HeaderPageShell } from '@/components/dashboard/layout'
 import type {
   CardConfig,
   ColumnDef,
@@ -211,14 +212,21 @@ export function ProjectList() {
 
   return (
     <>
-      <CrudPageShell
+      <HeaderPageShell
         title="Projetos"
-        onAdd={() => setIsCreateOpen(true)}
+        selector={<ViewSwitcher view={view} setView={setView} enabledViews={['list', 'cards']} />}
         onRefresh={() => void refetch()}
-        view={view}
-        setView={setView}
-        enabledViews={['list', 'cards']}
-        searchInput={searchInput}
+        primaryAction={
+          <Button
+            type="button"
+            size="sm"
+            className="h-7 gap-1.5 text-xs"
+            onClick={() => setIsCreateOpen(true)}
+          >
+            Novo
+          </Button>
+        }
+        searchValue={searchInput}
         onSearchChange={setSearchInput}
         searchPlaceholder="Buscar por nome do projeto..."
         isFetchingMore={isFetchingNextPage}
@@ -250,7 +258,7 @@ export function ProjectList() {
             />
           }
         />
-      </CrudPageShell>
+      </HeaderPageShell>
 
       <DeleteConfirmDialog
         open={Boolean(deleteTarget)}

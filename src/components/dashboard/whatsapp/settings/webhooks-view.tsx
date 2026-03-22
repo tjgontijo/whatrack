@@ -78,7 +78,6 @@ export function WebhooksView() {
   return (
     <Tabs defaultValue="overview" className="flex min-h-0 flex-1 flex-col gap-0">
       <SectionHeader
-        className="mt-6"
         icon={Webhook}
         title="Webhooks / WhatsApp"
         subtitle="Monitore e configure a integração técnica com o WhatsApp Business API."
@@ -94,7 +93,7 @@ export function WebhooksView() {
       </SectionHeader>
 
       <div className="flex-1 overflow-y-auto">
-        <div className="p-8">
+        <div className="pt-6">
           <TabsContent
             value="overview"
             className="animate-in fade-in-50 m-0 outline-none duration-500"

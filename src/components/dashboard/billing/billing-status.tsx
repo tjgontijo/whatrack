@@ -214,7 +214,6 @@ export function BillingStatus() {
               </p>
               <div className="mt-3 space-y-2 text-sm text-foreground">
                 <p>{entitlements.includedConversionsPerProject} conversões rastreadas / mês</p>
-                <p>{entitlements.includedAiCreditsPerProject.toLocaleString('pt-BR')} créditos de IA / mês</p>
               </div>
             </div>
 

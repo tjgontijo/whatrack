@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import type { ComponentType } from 'react'
 import {
-  Bot,
   FolderKanban,
   Megaphone,
   MessageCircleMore,
@@ -115,12 +114,6 @@ export function ProjectDetailView({ project }: ProjectDetailProps) {
           value={project.conversionCount}
           description="Eventos rastreados com sucesso para este cliente."
           icon={Target}
-        />
-        <SummaryCard
-          title="Créditos IA"
-          value={project.aiCreditsUsed}
-          description="Tokens consumidos pelas automações e análises do projeto."
-          icon={Bot}
         />
       </div>
 

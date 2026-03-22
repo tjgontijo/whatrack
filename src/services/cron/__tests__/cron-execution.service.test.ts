@@ -34,13 +34,15 @@ describe('executeLockedCronJob', () => {
     acquireLockMock.mockResolvedValueOnce(null)
 
     const result = await executeLockedCronJob({
-      jobType: 'ai-classifier',
-      loggerLabel: 'AI Classifier Cron',
+      jobType: 'meta-token-refresh',
+      loggerLabel: 'MetaTokenRefreshCron',
       run: vi.fn(),
     })
 
     expect(result).toEqual({ status: 'already-running' })
-    expect(loggerMock.warn).toHaveBeenCalledWith('[AI Classifier Cron] Job already running, skipping')
+    expect(loggerMock.warn).toHaveBeenCalledWith(
+      '[MetaTokenRefreshCron] Job already running, skipping',
+    )
   })
 
   it('executes the job and releases the lock on success', async () => {

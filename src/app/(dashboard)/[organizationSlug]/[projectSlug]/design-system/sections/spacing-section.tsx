@@ -14,7 +14,7 @@ const spacingScale = [
 ]
 
 const patterns = [
-  { context: 'Page shell', value: 'px-6 py-4', desc: 'Padding da área de conteúdo principal' },
+  { context: 'Page shell', value: 'px-6 py-6', desc: 'Padding da área de conteúdo principal' },
   { context: 'Card (default)', value: 'py-6, px-6', desc: 'Padding interno de cards padrão' },
   { context: 'Card (sm)', value: 'py-4, px-4', desc: 'Padding interno de cards compactos' },
   { context: 'Toolbar', value: 'px-4 py-3', desc: 'Barras de ferramentas e filtros' },

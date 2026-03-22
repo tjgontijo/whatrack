@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsContent } from '@/components/ui/tabs'
 import {
   Table,
   TableBody,
@@ -51,7 +51,7 @@ type TeamInvitation = {
   expiresAt: string
 }
 
-type OrganizationRole = {
+export type OrganizationRole = {
   id: string
   key: string
   name: string
@@ -115,7 +115,23 @@ function toRoleKeyDraft(value: string): string {
     .replace(/^_+|_+$/g, '')
 }
 
-export function TeamAccessContent() {
+type TeamAccessContentProps = {
+  initialMembers?: TeamMember[]
+  initialInvitations?: TeamInvitation[]
+  initialRoles?: OrganizationRole[]
+  initialPermissionCatalog?: string[]
+  activeTab?: string
+  onTabChange?: (tab: string) => void
+}
+
+export function TeamAccessContent({
+  initialMembers,
+  initialInvitations,
+  initialRoles,
+  initialPermissionCatalog,
+  activeTab,
+  onTabChange,
+}: TeamAccessContentProps = {}) {
   const { data: org } = useOrganization()
   const organizationId = org?.id
   const queryClient = useQueryClient()
@@ -158,7 +174,8 @@ export function TeamAccessContent() {
     queryFn: () => fetchJson<{ data: TeamMember[] }>('/api/v1/organizations/me/members', {
       orgId: organizationId,
     }),
-
+    initialData: initialMembers ? { data: initialMembers } : undefined,
+    staleTime: 30_000,
     enabled: (canManageTeamOps || canManageMemberPermissions) && !!organizationId,
   })
 
@@ -167,7 +184,8 @@ export function TeamAccessContent() {
     queryFn: () => fetchJson<{ data: TeamInvitation[] }>('/api/v1/organizations/me/invitations', {
       orgId: organizationId,
     }),
-
+    initialData: initialInvitations ? { data: initialInvitations } : undefined,
+    staleTime: 30_000,
     enabled: canManageTeamOps && !!organizationId,
   })
 
@@ -176,7 +194,11 @@ export function TeamAccessContent() {
     queryFn: () => fetchJson<RolesResponse>('/api/v1/organizations/me/roles', {
       orgId: organizationId,
     }),
-
+    initialData:
+      initialRoles
+        ? { data: initialRoles, permissionCatalog: initialPermissionCatalog ?? [] }
+        : undefined,
+    staleTime: 60_000,
     enabled: (canManageTeamOps || canManageRoles) && !!organizationId,
   })
 
@@ -431,12 +453,11 @@ export function TeamAccessContent() {
   })
 
   return (
-    <Tabs defaultValue="membros" className="space-y-6">
-      <TabsList>
-        <TabsTrigger value="membros">Membros</TabsTrigger>
-        <TabsTrigger value="papeis">Papéis</TabsTrigger>
-        <TabsTrigger value="permissoes">Permissões</TabsTrigger>
-      </TabsList>
+    <Tabs
+      value={activeTab ?? 'membros'}
+      onValueChange={onTabChange}
+      className="space-y-6"
+    >
 
       <TabsContent value="membros" className="space-y-6">
         <Card>

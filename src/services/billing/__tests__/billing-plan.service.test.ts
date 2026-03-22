@@ -66,7 +66,6 @@ describe('billing-plan.service', () => {
         includedWhatsAppPerProject: 1,
         includedMetaAdAccountsPerProject: 1,
         includedConversionsPerProject: 300,
-        includedAiCreditsPerProject: 10000,
         supportLevel: 'priority',
         displayOrder: 0,
         isHighlighted: true,

@@ -62,7 +62,6 @@ type EntitlementCounts = {
   includedMetaAdAccountsPerProject: number
   additionalMetaAdAccounts: number
   includedConversionsPerProject: number
-  includedAiCreditsPerProject: number
 }
 
 async function getOrganizationResourceCounts(organizationId: string) {
@@ -125,7 +124,6 @@ export async function getOrganizationBillingEntitlements(
     includedWhatsAppPerProject?: number
     includedMetaAdAccountsPerProject?: number
     includedConversionsPerProject?: number
-    includedAiCreditsPerProject?: number
   },
 ): Promise<EntitlementCounts> {
   const includedProjects = options?.includedProjects ?? 0
@@ -151,7 +149,6 @@ export async function getOrganizationBillingEntitlements(
     includedMetaAdAccountsPerProject,
     additionalMetaAdAccounts: extras.additionalMetaAdAccounts,
     includedConversionsPerProject: options?.includedConversionsPerProject ?? 0,
-    includedAiCreditsPerProject: options?.includedAiCreditsPerProject ?? 0,
   }
 }
 
@@ -379,7 +376,6 @@ export async function syncOrganizationSubscriptionItems(organizationId: string) 
           includedWhatsAppPerProject: true,
           includedMetaAdAccountsPerProject: true,
           includedConversionsPerProject: true,
-          includedAiCreditsPerProject: true,
         },
       },
     },
@@ -394,7 +390,6 @@ export async function syncOrganizationSubscriptionItems(organizationId: string) 
     includedWhatsAppPerProject: subscription.plan.includedWhatsAppPerProject,
     includedMetaAdAccountsPerProject: subscription.plan.includedMetaAdAccountsPerProject,
     includedConversionsPerProject: subscription.plan.includedConversionsPerProject,
-    includedAiCreditsPerProject: subscription.plan.includedAiCreditsPerProject,
   })
 
   const addonPlans = await getBillingAddonPlans()
@@ -545,7 +540,6 @@ export async function getActiveSubscription(organizationId: string) {
           includedWhatsAppPerProject: true,
           includedMetaAdAccountsPerProject: true,
           includedConversionsPerProject: true,
-          includedAiCreditsPerProject: true,
         },
       },
       items: {
@@ -575,7 +569,6 @@ export async function getActiveSubscription(organizationId: string) {
     includedWhatsAppPerProject: subscription.plan?.includedWhatsAppPerProject ?? 0,
     includedMetaAdAccountsPerProject: subscription.plan?.includedMetaAdAccountsPerProject ?? 0,
     includedConversionsPerProject: subscription.plan?.includedConversionsPerProject ?? 0,
-    includedAiCreditsPerProject: subscription.plan?.includedAiCreditsPerProject ?? 0,
   })
 
   return {

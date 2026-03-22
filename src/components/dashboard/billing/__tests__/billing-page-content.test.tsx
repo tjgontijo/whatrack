@@ -64,4 +64,23 @@ describe('BillingPageContent', () => {
     expect(screen.getByText('billing-status')).toBeInTheDocument()
     expect(screen.getByText('plan-selector')).toBeInTheDocument()
   })
+
+  it('shows the shared empty state before the plan selector when there is no active subscription', () => {
+    useOrganizationMock.mockReturnValue({
+      data: { id: 'org-1' },
+      isLoading: false,
+    })
+    useBillingSubscriptionMock.mockReturnValue({
+      subscription: null,
+      isLoading: false,
+    })
+
+    render(<BillingPageContent availablePlans={[]} />)
+
+    expect(screen.getByText('Nenhuma assinatura encontrada.')).toBeInTheDocument()
+    expect(
+      screen.getByText('Tente buscar por termos diferentes ou verifique os filtros.'),
+    ).toBeInTheDocument()
+    expect(screen.getByText('plan-selector')).toBeInTheDocument()
+  })
 })

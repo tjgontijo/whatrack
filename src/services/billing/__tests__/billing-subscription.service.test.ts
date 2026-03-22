@@ -66,7 +66,6 @@ describe('billing-subscription.service', () => {
         includedWhatsAppPerProject: 1,
         includedMetaAdAccountsPerProject: 1,
         includedConversionsPerProject: 300,
-        includedAiCreditsPerProject: 10000,
       },
       items: [],
     })
@@ -110,7 +109,6 @@ describe('billing-subscription.service', () => {
         includedWhatsAppPerProject: 1,
         includedMetaAdAccountsPerProject: 1,
         includedConversionsPerProject: 300,
-        includedAiCreditsPerProject: 10000,
       },
       items: [],
     })

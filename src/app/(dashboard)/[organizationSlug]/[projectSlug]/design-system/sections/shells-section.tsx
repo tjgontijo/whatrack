@@ -6,18 +6,15 @@ import { SectionWrapper, ShowcaseBox } from './shared'
 
 const shells = [
   {
-    name: 'CrudPageShell',
+    name: 'HeaderPageShell',
     description:
-      'Shell padrão de páginas CRUD. Header opcional (showTitle) + ViewSwitcher + Toolbar + Content com infinite scroll. Sem paginação.',
+      'Shell canônico do dashboard. Header fixo com ordem consistente e body padrão para todas as páginas.',
     structure: [
-      { label: 'Page Header opcional (ícone + título + ações)', height: 'h-14' },
-      { label: 'ViewSwitcher (list / cards / kanban)', height: 'h-8' },
-      { label: 'Toolbar (search + filtros + contagem de itens)', height: 'h-10' },
-      { label: 'Content Area (flex-1, scroll + virtuoso)', height: 'flex-1' },
-      {
-        label: 'FAB (+ Adicionar) — posição fixed mobile',
-        height: 'h-6 text-[10px] text-muted-foreground/50',
-      },
+      { label: 'Title + selector único (tabs ou view switcher)', height: 'h-12' },
+      { label: 'Search inline opcional + controls à direita', height: 'h-10' },
+      { label: 'Body wrapper padrão: px-6 py-6', height: 'h-10' },
+      { label: 'Content Area (flex-1, scroll próprio)', height: 'flex-1' },
+      { label: 'Loading / fetching more padronizados', height: 'h-6 text-[10px] text-muted-foreground/50' },
     ],
   },
   {
@@ -48,7 +45,7 @@ const shells = [
     description:
       'Grid virtualizado com VirtuosoGrid. Responsivo (1→4 colunas), cards com icon/title/badge/footer.',
     structure: [
-      { label: 'listClassName: grid gap-3 p-4 — layout do grid', height: 'h-8' },
+      { label: 'listClassName: grid gap-3 — layout do grid', height: 'h-8' },
       { label: 'CardConfig: icon / title / subtitle / badge / footer / onClick', height: 'flex-1' },
       {
         label: 'endReached → fetchNextPage (infinite scroll)',
@@ -69,7 +66,11 @@ const patterns = [
   },
   {
     label: 'enabledViews',
-    desc: "Prop que define quais views estão disponíveis: ['list', 'cards'] ou ['list', 'cards', 'kanban'].",
+    desc: "Usado só em páginas sem tabs. Se a página tem tabs, o selector do header fica reservado para elas.",
+  },
+  {
+    label: 'body spacing',
+    desc: 'HeaderPageShell é o dono do spacing do body. Evite p-6, pt-6 e mt-6 no primeiro nível dos filhos.',
   },
   {
     label: 'isFetchingMore',
@@ -82,7 +83,7 @@ export function ShellsSection() {
     <SectionWrapper
       id="shells"
       title="Page Shells & Layout"
-      description="CrudPageShell é o único shell para páginas CRUD. Usa infinite scroll + virtualização — sem paginação offset."
+      description="HeaderPageShell é o único shell de páginas do dashboard. CrudDataView e views especializadas continuam cuidando apenas da renderização dos dados."
     >
       <div className="grid gap-6 lg:grid-cols-2">
         {shells.map((shell) => (

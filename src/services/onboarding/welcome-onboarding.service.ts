@@ -1,12 +1,13 @@
 import { Prisma } from '@generated/prisma/client'
 
+import { normalizeDocumentNumber } from '@/lib/document/document-identity'
 import { prisma } from '@/lib/db/prisma'
 import { normalizeSlug } from '@/lib/utils/slug'
-import { ensureCoreSkillsForOrganization } from '@/services/ai/ai-skill-provisioning.service'
 import { getDefaultTrialBillingPlan } from '@/services/billing/billing-plan-catalog.service'
 import { startOrganizationTrial } from '@/services/billing/billing-subscription.service'
 import { ensureSystemRolesForOrganization } from '@/server/organization/organization-rbac.service'
 import type { WelcomeOnboardingInput } from '@/schemas/onboarding/welcome-onboarding'
+import type { CompanyLookupData } from '@/schemas/organizations/organization-onboarding'
 
 type WelcomeUser = {
   id: string
@@ -39,6 +40,148 @@ async function resolveAvailableOrganizationSlug(
   return `${baseSlug}-${Date.now().toString(36)}`
 }
 
+function parseOptionalDate(value?: string | null): Date | null {
+  if (!value) return null
+
+  const parsed = new Date(value)
+  if (Number.isNaN(parsed.getTime())) return null
+
+  return parsed
+}
+
+function buildCompanyPersistenceData(input: {
+  companyLookupData: CompanyLookupData
+  fallbackName: string
+  userId: string
+}) {
+  const companyName =
+    input.companyLookupData.razaoSocial?.trim() ||
+    input.companyLookupData.nomeFantasia?.trim() ||
+    input.fallbackName
+
+  return {
+    cnpj: normalizeDocumentNumber(input.companyLookupData.cnpj) ?? '',
+    razaoSocial: companyName,
+    nomeFantasia: input.companyLookupData.nomeFantasia?.trim() || companyName,
+    cnaeCode: input.companyLookupData.cnaeCode || '',
+    cnaeDescription: input.companyLookupData.cnaeDescription || '',
+    municipio: input.companyLookupData.municipio || '',
+    uf: (input.companyLookupData.uf || '').trim().toUpperCase(),
+    tipo: input.companyLookupData.tipo || null,
+    porte: input.companyLookupData.porte || null,
+    naturezaJuridica: input.companyLookupData.naturezaJuridica || null,
+    capitalSocial:
+      typeof input.companyLookupData.capitalSocial === 'number'
+        ? new Prisma.Decimal(input.companyLookupData.capitalSocial)
+        : null,
+    situacao: input.companyLookupData.situacao || null,
+    dataAbertura: parseOptionalDate(input.companyLookupData.dataAbertura),
+    dataSituacao: parseOptionalDate(input.companyLookupData.dataSituacao),
+    logradouro: input.companyLookupData.logradouro || null,
+    numero: input.companyLookupData.numero || null,
+    complemento: input.companyLookupData.complemento || null,
+    bairro: input.companyLookupData.bairro || null,
+    cep: input.companyLookupData.cep || null,
+    email: input.companyLookupData.email || null,
+    telefone: input.companyLookupData.telefone || null,
+    qsa: input.companyLookupData.qsa
+      ? (input.companyLookupData.qsa as unknown as Prisma.InputJsonValue)
+      : undefined,
+    atividadesSecundarias: input.companyLookupData.atividadesSecundarias
+      ? (input.companyLookupData.atividadesSecundarias as unknown as Prisma.InputJsonValue)
+      : undefined,
+    authorizedByUserId: input.userId,
+  }
+}
+
+async function persistOrganizationFiscalIdentity(input: {
+  tx: Prisma.TransactionClient
+  organizationId: string
+  organizationName: string
+  userId: string
+  data: WelcomeOnboardingInput
+}) {
+  const completedAt = new Date()
+  const normalizedDocument = normalizeDocumentNumber(input.data.documentNumber)
+
+  if (!normalizedDocument) {
+    throw new Error('Documento inválido para concluir o onboarding.')
+  }
+
+  if (input.data.identityType === 'pessoa_fisica') {
+    await input.tx.organizationProfile.upsert({
+      where: { organizationId: input.organizationId },
+      update: {
+        cpf: normalizedDocument,
+        onboardingStatus: 'completed',
+        onboardingCompletedAt: completedAt,
+      },
+      create: {
+        organizationId: input.organizationId,
+        cpf: normalizedDocument,
+        onboardingStatus: 'completed',
+        onboardingCompletedAt: completedAt,
+      },
+    })
+
+    await input.tx.organizationCompany.deleteMany({
+      where: { organizationId: input.organizationId },
+    })
+
+    return
+  }
+
+  const companyPersistenceData = input.data.companyLookupData
+    ? buildCompanyPersistenceData({
+        companyLookupData: input.data.companyLookupData,
+        fallbackName: input.organizationName,
+        userId: input.userId,
+      })
+    : null
+
+  await input.tx.organizationCompany.upsert({
+    where: { organizationId: input.organizationId },
+    update:
+      companyPersistenceData ?? {
+        cnpj: normalizedDocument,
+        razaoSocial: input.organizationName,
+        nomeFantasia: input.organizationName,
+      },
+    create:
+      companyPersistenceData
+        ? {
+            organizationId: input.organizationId,
+            ...companyPersistenceData,
+          }
+        : {
+            organizationId: input.organizationId,
+            cnpj: normalizedDocument,
+            razaoSocial: input.organizationName,
+            nomeFantasia: input.organizationName,
+            cnaeCode: '',
+            cnaeDescription: '',
+            municipio: '',
+            uf: '',
+            authorizedByUserId: input.userId,
+          },
+  })
+
+  await input.tx.organizationProfile.upsert({
+    where: { organizationId: input.organizationId },
+    update: {
+      cpf: null,
+      onboardingStatus: 'completed',
+      onboardingCompletedAt: completedAt,
+    },
+    create: {
+      organizationId: input.organizationId,
+      cpf: null,
+      onboardingStatus: 'completed',
+      onboardingCompletedAt: completedAt,
+    },
+  })
+}
+
 export async function completeWelcomeOnboarding(input: {
   user: WelcomeUser
   data: WelcomeOnboardingInput
@@ -56,14 +199,6 @@ export async function completeWelcomeOnboarding(input: {
       currentOrganizationId: existingMembership?.organizationId,
     })
     const initialProjectName = organizationName
-
-    const user = await tx.user.update({
-      where: { id: input.user.id },
-      data: {
-        name: input.data.ownerName,
-      },
-      select: { id: true },
-    })
 
     let organizationId = existingMembership?.organizationId ?? null
 
@@ -89,8 +224,6 @@ export async function completeWelcomeOnboarding(input: {
         },
       })
 
-      await ensureCoreSkillsForOrganization(tx, createdOrganization.id)
-
       organizationId = createdOrganization.id
     } else {
       await tx.organization.update({
@@ -101,6 +234,14 @@ export async function completeWelcomeOnboarding(input: {
         },
       })
     }
+
+    await persistOrganizationFiscalIdentity({
+      tx,
+      organizationId,
+      organizationName,
+      userId: input.user.id,
+      data: input.data,
+    })
 
     const projectSlug = desiredOrganizationSlug
 

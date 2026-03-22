@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -12,9 +12,6 @@ import {
   Link as LinkIcon,
   AlertTriangle,
   Copy,
-  Sparkles,
-  Check,
-  X,
   Megaphone,
   Smartphone,
   UserMinus,
@@ -28,7 +25,6 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { apiFetch } from '@/lib/api-client'
-import { AI_INSIGHTS_QUERY_KEY, buildAiInsightsQueryKey, readAiInsightPayload } from '@/lib/ai/insights'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -43,7 +39,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { ChatItem } from './types'
-import type { AiInsightSummary } from '@/types/ai/ai-insight'
 
 interface TicketPanelProps {
   conversationId: string
@@ -107,7 +102,6 @@ const STATUS_BADGE_MAP: Record<string, { bg: string; text: string; label: string
 }
 
 export function TicketPanel({ conversationId, organizationId, chat }: TicketPanelProps) {
-  const [showAiApproval, setShowAiApproval] = useState(true)
   const queryClient = useQueryClient()
 
   const { data, isLoading, error } = useQuery({
@@ -128,20 +122,6 @@ export function TicketPanel({ conversationId, organizationId, chat }: TicketPane
   })
 
   const ticket = data
-
-  const { data: insightsData } = useQuery<{ items: AiInsightSummary[] }>({
-    queryKey: buildAiInsightsQueryKey({ organizationId }),
-    queryFn: async () => {
-      const data = await apiFetch(`/api/v1/ai-insights?status=SUGGESTION`, {
-        orgId: organizationId,
-      })
-      return (data as { items: AiInsightSummary[] }) || { items: [] }
-    },
-    enabled: !!ticket?.id,
-  })
-
-  const currentInsight = insightsData?.items?.find((insight) => insight.ticketId === ticket?.id)
-  const currentInsightPayload = readAiInsightPayload(currentInsight?.payload)
 
   const { data: stagesData } = useQuery({
     queryKey: ['ticket-stages', organizationId],
@@ -304,86 +284,6 @@ export function TicketPanel({ conversationId, organizationId, chat }: TicketPane
               </div>
             </div>
           )}
-          {/* Destaque: Copilot IA (Mastra) */}
-          {/* AI Copilot Suggestion Box */}
-          {currentInsight && showAiApproval && (
-            <div className="bg-primary/10 border-primary/20 group relative mb-4 overflow-hidden rounded-lg border p-3 shadow-sm">
-              {/* Agent Header */}
-              <div className="mb-3 flex items-center gap-2">
-                <div className="bg-primary/20 rounded-full p-1.5">
-                  <Sparkles className="text-primary h-4 w-4 animate-pulse" />
-                </div>
-                <span className="text-primary text-sm font-bold">IA Detectou Fechamento!</span>
-                <Badge className="ml-auto bg-green-100 text-[10px] uppercase text-green-800 hover:bg-green-100">
-                  {currentInsight?.agent?.name || 'Copilot 2.0'}
-                </Badge>
-              </div>
-              <div className="bg-background/80 border-border/50 mb-3 rounded border p-3 text-sm">
-                <p className="text-muted-foreground mb-2 break-words text-xs leading-relaxed">
-                  "{currentInsightPayload.reasoning || 'Insight gerado baseado na conversa.'}"
-                </p>
-                <div className="bg-card flex items-center justify-between rounded border p-2">
-                  <span
-                    className="mr-2 truncate text-xs font-medium"
-                    title={currentInsightPayload.itemName || undefined}
-                  >
-                    {currentInsightPayload.itemName || 'Não especificado'}
-                  </span>
-                  <span className="whitespace-nowrap text-sm font-bold text-green-600">
-                    {formatDealValue(currentInsightPayload.dealValue)}
-                  </span>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  className="bg-primary hover:bg-primary/90 w-full text-xs"
-                  onClick={async () => {
-                    const loadingToast = toast.loading('Aplicando sugestão...')
-                    try {
-                      await apiFetch(`/api/v1/ai-insights/${currentInsight.id}/approve`, {
-                        method: 'PATCH',
-                        orgId: organizationId,
-                      })
-
-                      toast.success('Ticket atualizado com sucesso e CAPI acionado.', {
-                        id: loadingToast,
-                      })
-                      setShowAiApproval(false)
-                      queryClient.invalidateQueries({
-                        queryKey: ['conversation-ticket', conversationId],
-                      })
-                      queryClient.invalidateQueries({ queryKey: AI_INSIGHTS_QUERY_KEY })
-                    } catch {
-                      toast.error('Erro ao aprovar.', { id: loadingToast })
-                    }
-                  }}
-                >
-                  <Check className="mr-1.5 h-3.5 w-3.5" /> Aplicar e Fechar Venda
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="px-3"
-                  onClick={async () => {
-                    try {
-                      await apiFetch(`/api/v1/ai-insights/${currentInsight.id}/reject`, {
-                        method: 'PATCH',
-                        orgId: organizationId,
-                      })
-
-                      toast.info('Sugestão rejeitada.')
-                      setShowAiApproval(false)
-                      queryClient.invalidateQueries({ queryKey: AI_INSIGHTS_QUERY_KEY })
-                    } catch { }
-                  }}
-                >
-                  <X className="text-muted-foreground h-3.5 w-3.5" />
-                </Button>
-              </div>
-            </div>
-          )}
-
           {/* CRM Interno */}
           <div className="space-y-4 pt-2">
             <h3 className="text-muted-foreground text-xs font-bold uppercase tracking-wider">

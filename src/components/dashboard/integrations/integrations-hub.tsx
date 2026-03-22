@@ -5,7 +5,7 @@ import { MessageSquare, Plug, TrendingUp } from 'lucide-react'
 
 import { SectionHeader, SectionTabsList, SectionTabsTrigger } from '@/components/dashboard/layout'
 import { MetaAdsSettingsContent } from '@/components/dashboard/meta-ads/settings/meta-ads-settings-content'
-import { WhatsAppSettingsPage } from '@/components/dashboard/whatsapp/settings/whatsapp-settings-page'
+import { WhatsAppSettingsHub } from '@/components/dashboard/whatsapp/settings/whatsapp-settings-hub'
 import { Tabs, TabsContent } from '@/components/ui/tabs'
 
 type IntegrationsHubProps = {
@@ -55,7 +55,7 @@ export function IntegrationsHub({ organizationId, initialTab }: IntegrationsHubP
       </SectionHeader>
 
       <TabsContent value="whatsapp" className="mt-0 flex-1 overflow-y-auto">
-        <WhatsAppSettingsPage organizationId={organizationId} />
+        <WhatsAppSettingsHub organizationId={organizationId} />
       </TabsContent>
       <TabsContent value="meta-ads" className="mt-0 flex-1 overflow-y-auto">
         <MetaAdsSettingsContent organizationId={organizationId} />

@@ -1,54 +1,49 @@
-# Padrão P1 — CrudPageShell
+# Padrão P1 — HeaderPageShell
 
-> Layout padrão para páginas de listagem com múltiplas visualizações, busca inline e filtros em drawer.
+> Layout canônico para páginas do dashboard, com ordem fixa de header e um único seletor visual por tela.
 
 ## Anatomia visual
 
 ```
-[Título]  [Lista | Cards | Kanban]          [buscar...]  |  [+ Novo]  [⊞]  [↺]
-──────────────────────────────────────────────────────────────────────────────
+[Título]  [Selector]                [buscar...]  |  [Actions]  [+ Novo]  [⊞]  [↺]
+─────────────────────────────────────────────────────────────────────────────────
+[Body wrapper: px-6 py-6]
 [conteúdo full-height com scroll próprio]
 ```
 
-- **Título** — `text-sm font-semibold`, identifica a entidade
-- **ViewSwitcher** — pill-style, exibe apenas views disponíveis para o device
+- **Título** — `text-sm font-semibold`, identifica a tela
+- **Selector** — slot único; recebe `HeaderTabs` ou `ViewSwitcher`
 - **Search** — ghost input `w-44`, sem borda, placeholder discreto
-- **Separador** — linha `h-4 w-px bg-border` separa search dos botões
-- **+ Novo** — `Button size="sm"`, abre drawer/dialog de criação
-- **⊞ Filtros** — `SlidersHorizontal`, abre Sheet lateral com filtros estruturados
-- **↺ Refresh** — `RefreshCw`, recarrega dados via `refetch()` do hook
+- **Separador** — aparece apenas quando existe busca e também existem controles à direita
+- **Actions** — ações secundárias específicas da página
+- **Primary action** — CTA principal da tela
+- **⊞ Filtros** — `SlidersHorizontal`, abre `Sheet` lateral com filtros estruturados
+- **↺ Refresh** — botão padrão do shell ou `refreshAction` customizado
+- **Body wrapper** — `HeaderPageShell` é dono do frame do conteúdo com `px-6 py-6`
 
 ---
 
 ## API do componente
 
 ```tsx
-// src/components/dashboard/crud/crud-page-shell.tsx
+// src/components/dashboard/layout/header-page-shell.tsx
 
-interface CrudPageShellProps {
+interface HeaderPageShellProps {
   title: string
-
-  // Visualização
-  view: ViewType                         // 'list' | 'cards' | 'kanban'
-  setView: (view: ViewType) => void
-  enabledViews?: ViewType[]              // default: ['list', 'cards']
+  selector?: ReactNode
 
   // Busca
-  searchInput: string
+  searchValue?: string
   onSearchChange: (value: string) => void
   searchPlaceholder?: string
 
-  // Ações primárias
-  onAdd?: () => void                     // mostra botão "+ Novo" se definido
-  addLabel?: string                      // default: "Novo"
-  onRefresh?: () => void                 // mostra botão ↺ se definido
-  isRefreshing?: boolean
-
-  // Conteúdo extra à direita (ex: contadores)
+  // Ações
   actions?: ReactNode
-
-  // Filtros (renderizados dentro do Sheet)
-  filters?: ReactNode                    // deve ter labels próprias
+  primaryAction?: ReactNode
+  filters?: ReactNode
+  onRefresh?: () => void
+  isRefreshing?: boolean
+  refreshAction?: ReactNode
 
   // Estado
   isFetchingMore?: boolean
@@ -58,9 +53,21 @@ interface CrudPageShellProps {
 }
 ```
 
+### Regra do selector
+
+- Toda página tem no máximo **um selector visual** no header.
+- Se a página usa `tabs`, ela **não** usa `ViewSwitcher`.
+- Se uma página tabada também tinha múltiplas visualizações, ela deve priorizar `list`.
+
+### Regra do body spacing
+
+- Toda página com `HeaderPageShell` recebe frame padrão `px-6 py-6`.
+- O primeiro nível do conteúdo não deve usar `p-6`, `pt-6` ou `mt-6` para compensar o header.
+- `Card`, `Dialog`, `Drawer`, tabelas e superfícies internas continuam com padding próprio.
+
 ### Regras dos filtros
 
-O `filters` é renderizado **dentro do Sheet** sem wrapper adicional. Cada filtro deve ter sua própria label:
+O `filters` continua sendo renderizado **dentro do Sheet** sem wrapper adicional. Cada filtro deve ter sua própria label:
 
 ```tsx
 // ✅ Correto — com label
@@ -88,14 +95,14 @@ const filtersNode = (
 
 | Página | Rota | Arquivo | Views | onAdd | onRefresh | filters |
 |--------|------|---------|-------|-------|-----------|---------|
-| **Leads** | `/leads` | `leads/client-leads-table.tsx` | Lista, Cards | ✅ | ✅ | Período |
-| **Tickets** | `/tickets` | `tickets/page.tsx` | Lista, Cards, Kanban | — | ✅ | Status, Data |
-| **Vendas** | `/sales` | `sales/client-sales-table.tsx` | Lista, Cards | — | ✅ | Status, Data |
-| **Projetos** | `/projects` | `projects/project-list.tsx` | Lista, Cards | ✅ | ✅ | — |
-| **Campanhas** | `/whatsapp/campaigns` | `whatsapp/campaigns/campaigns-page.tsx` | Lista, Cards | ✅ | ✅ | — |
-| **Templates WA** | `/settings/whatsapp/[id]/templates` | `whatsapp/settings/templates-view.tsx` | Lista, Cards | ✅ | — | — |
-| **Itens** | `/settings/catalog` (aba Itens) | `items/items-table.tsx` | Lista, Cards | ✅ | ✅ | Categoria, Status |
-| **Categorias** | `/settings/catalog` (aba Categorias) | `item-categories/categories-table.tsx` | Lista, Cards | ✅ | ✅ | Status |
+| **Leads** | `/leads` | `leads/client-leads-table.tsx` | `ViewSwitcher` | ✅ | ✅ | Período |
+| **Tickets** | `/tickets` | `tickets/page.tsx` | `ViewSwitcher` | — | ✅ | Status, Data |
+| **Vendas** | `/sales` | `sales/client-sales-table.tsx` | `ViewSwitcher` | — | ✅ | Status, Data |
+| **Projetos** | `/projects` | `projects/project-list.tsx` | `ViewSwitcher` | ✅ | ✅ | — |
+| **Campanhas WA** | `/whatsapp/campaigns` | `whatsapp/campaigns/campaigns-page.tsx` | `HeaderTabs` | ✅ | ✅ | — |
+| **WhatsApp settings** | `/settings/whatsapp` | `whatsapp/settings/whatsapp-settings-hub.tsx` | `HeaderTabs` | ✅ | ✅ | — |
+| **Equipe** | `/settings/team` | `account/team-settings-shell.tsx` | `HeaderTabs` | — | ✅ | — |
+| **Settings simples** | `/settings/*` | páginas server-side | — | — | opcional | — |
 
 ---
 
@@ -124,33 +131,34 @@ const {
 
 ## Quando usar este padrão
 
-Use `CrudPageShell` quando a página:
+Use `HeaderPageShell` quando a página:
 
-- Exibe uma **lista de entidades** com paginação infinita
-- Oferece **múltiplas visualizações** (lista, cards, kanban)
-- Precisa de **busca inline** e/ou **filtros**
-- Tem uma **ação primária de criação** (drawer/dialog)
+- Precisa seguir o header padrão do dashboard
+- Pode ter `tabs` ou `ViewSwitcher`, mas nunca ambos
+- Pode ter busca inline, ações, CTA primário, filtros e refresh
+- Precisa de conteúdo full-height com scroll próprio e loading padronizado
 
 ### Quando NÃO usar
 
 | Situação | Padrão correto |
 |----------|----------------|
-| Página de configuração/formulário | `PageShell + PageHeader` (P3) |
-| Dashboard com métricas e gráficos | `PageShell` customizado (P2) |
-| UI full-screen (inbox, kanban global) | Layout próprio (P5) |
-| Lista pequena dentro de settings | `SectionShell` com tabela simples |
+| UI full-screen (inbox, kanban global) | Layout próprio |
+| Bloco interno dentro de uma página maior | `SectionShell` / `SectionHeader` |
+| Tabset interno de conteúdo, não de página | `Tabs` locais do domínio |
 
 ---
 
 ## Checklist ao criar novo consumer
 
 - [ ] Usar `useCrudInfiniteQuery` para busca de dados
-- [ ] Extrair `refetch` e passar como `onRefresh`
-- [ ] Definir `enabledViews` adequado para a entidade
+- [ ] Se houver selector, escolher entre `HeaderTabs` e `ViewSwitcher`
+- [ ] Extrair `refetch` e passar como `onRefresh` ou `refreshAction`
+- [ ] Definir `enabledViews` só para páginas sem tabs
+- [ ] Não adicionar `p-6`, `pt-6` ou `mt-6` no primeiro nível do child do shell
 - [ ] Se tiver `filters`, envolver cada select com `<div className="space-y-1.5">` + label
 - [ ] Selects dentro do sheet: `h-8 w-full` (não `h-7 w-36`)
-- [ ] `addLabel` só necessário se diferente de "Novo"
-- [ ] `actions` apenas para metadados extras (contadores), nunca botões
+- [ ] `primaryAction` é o slot certo para o CTA principal
+- [ ] `actions` ficam restritas a controles secundários
 
 ---
 
@@ -158,6 +166,8 @@ Use `CrudPageShell` quando a página:
 
 | Componente | Localização | Papel |
 |-----------|-------------|-------|
+| `HeaderPageShell` | `layout/header-page-shell.tsx` | Shell único do dashboard |
+| `HeaderTabs` | `layout/header-tabs.tsx` | Tabs pill-style para o slot de selector |
 | `ViewSwitcher` | `crud/view-switcher.tsx` | Pill-style, filtra views por device |
 | `CrudDataView` | `crud/crud-data-view.tsx` | Roteador de visualização (list/cards/kanban) |
 | `CrudListView` | `crud/crud-list-view.tsx` | Tabela com infinite scroll |

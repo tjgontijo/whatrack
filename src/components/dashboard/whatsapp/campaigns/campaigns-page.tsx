@@ -3,19 +3,15 @@
 import React from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
-import { Plus, RefreshCw, Search } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { useDeferredValue } from 'react'
 
 import {
-  CrudCardView,
   CrudDataView,
   CrudListView,
-  type CardConfig,
   type ColumnDef,
-  type ViewType,
 } from '@/components/dashboard/crud'
-import { SectionPageShell } from '@/components/dashboard/layout/section-page-shell'
-import { ViewSwitcher } from '@/components/dashboard/crud/view-switcher'
+import { HeaderPageShell, HeaderTabs } from '@/components/dashboard/layout'
 import { CrudEmptyState } from '@/components/dashboard/crud/crud-data-view'
 import { CampaignsOverview } from './campaigns-overview'
 import { CampaignFormDrawer } from './campaign-form-drawer'
@@ -23,7 +19,6 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useRequiredProjectPath, useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
 import { apiFetch } from '@/lib/api-client'
-import { cn } from '@/lib/utils/utils'
 
 const TABS = [
   { key: 'overview', label: 'Visão Geral' },
@@ -109,7 +104,6 @@ export function CampaignsPage({ initialCreateOpen = false }: CampaignsPageProps 
   const { organizationId } = useRequiredProjectRouteContext()
 
   const [activeTab, setActiveTab] = React.useState('overview')
-  const [view, setView] = React.useState<ViewType>('list')
   const [searchInput, setSearchInput] = React.useState('')
   const [isCreateOpen, setIsCreateOpen] = React.useState(initialCreateOpen)
   const deferredSearch = useDeferredValue(searchInput)
@@ -193,80 +187,36 @@ export function CampaignsPage({ initialCreateOpen = false }: CampaignsPageProps 
     },
   ]
 
-  const cardConfig: CardConfig<CampaignItem> = {
-    title: (campaign) => campaign.name,
-    subtitle: (campaign) => (
-      <div className="flex flex-wrap gap-2">
-        <Badge variant={STATUS_VARIANTS[campaign.status] || 'secondary'}>
-          {STATUS_LABELS[campaign.status] || campaign.status}
-        </Badge>
-        <Badge variant="outline">{TYPE_LABELS[campaign.type] || campaign.type}</Badge>
-      </div>
-    ),
-    badge: (campaign) => (
-      <span className="text-muted-foreground text-xs">
-        {campaign.totalRecipients} destinatários
-      </span>
-    ),
-    footer: (campaign) => (
-      <span className="text-muted-foreground text-xs">
-        {campaign.scheduledAt
-          ? `Agendada: ${formatDate(campaign.scheduledAt)}`
-          : formatDate(campaign.createdAt)}
-      </span>
-    ),
-    onClick: (campaign) => openCampaignDetail(campaign.id),
-  }
-
-  const actions =
-    activeTab === 'overview' ? (
-      <Button
-        variant="ghost"
-        size="icon"
-        className="text-muted-foreground hover:text-foreground h-7 w-7"
-        onClick={() => refetch()}
-        disabled={isRefetching || isLoading}
-      >
-        <RefreshCw className={cn('h-3.5 w-3.5', (isRefetching || isLoading) && 'animate-spin')} />
-      </Button>
-    ) : (
-      <>
-        <ViewSwitcher view={view} setView={setView} enabledViews={['list', 'cards']} />
-
-        <div className="relative flex items-center">
-          <Search className="text-muted-foreground/35 pointer-events-none absolute left-0 h-3.5 w-3.5" />
-          <input
-            className="w-44 bg-transparent pl-5 text-xs placeholder:text-muted-foreground/35 focus:outline-none"
-            placeholder="Buscar campanhas..."
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-          />
-        </div>
-
-        <div className="bg-border h-4 w-px shrink-0" />
-
-        <Button size="sm" className="h-7 gap-1.5 text-xs" onClick={() => setIsCreateOpen(true)}>
-          <Plus className="h-3.5 w-3.5" />
-          Nova campanha
-        </Button>
-      </>
-    )
-
   return (
     <>
-      <SectionPageShell
+      <HeaderPageShell
         title="Campanhas"
-        tabs={TABS}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        actions={actions}
+        selector={<HeaderTabs tabs={TABS} activeTab={activeTab} onTabChange={setActiveTab} />}
+        searchValue={activeTab === 'campaigns' ? searchInput : undefined}
+        onSearchChange={activeTab === 'campaigns' ? setSearchInput : undefined}
+        searchPlaceholder="Buscar campanhas..."
+        onRefresh={activeTab === 'overview' ? () => void refetch() : undefined}
+        isRefreshing={isRefetching || isLoading}
+        primaryAction={
+          activeTab === 'campaigns' ? (
+            <Button
+              type="button"
+              size="sm"
+              className="h-7 gap-1.5 text-xs"
+              onClick={() => setIsCreateOpen(true)}
+            >
+              <Plus className="h-3.5 w-3.5" />
+              Nova campanha
+            </Button>
+          ) : null
+        }
       >
         {activeTab === 'overview' ? (
           <CampaignsOverview counters={data?.counters} isLoading={isLoading} />
         ) : (
           <CrudDataView
             data={filteredItems}
-            view={view}
+            view="list"
             emptyView={
               <CrudEmptyState
                 title="Nenhuma campanha encontrada."
@@ -280,10 +230,10 @@ export function CampaignsPage({ initialCreateOpen = false }: CampaignsPageProps 
                 onRowClick={(campaign) => openCampaignDetail(campaign.id)}
               />
             }
-            cardView={<CrudCardView data={filteredItems} config={cardConfig} />}
+            cardView={null}
           />
         )}
-      </SectionPageShell>
+      </HeaderPageShell>
 
       <CampaignFormDrawer
         open={isCreateOpen}

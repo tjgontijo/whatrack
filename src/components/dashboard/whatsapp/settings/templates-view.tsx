@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import {
   MessageSquare,
   Edit,
@@ -22,14 +22,15 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
-  CrudPageShell,
   CrudEditDrawer,
   DeleteConfirmDialog,
+  ViewSwitcher,
   type ViewType,
   type ColumnDef,
   type CardConfig,
   type RowActions,
 } from '@/components/dashboard/crud'
+import { HeaderPageShell } from '@/components/dashboard/layout'
 import { CrudDataView } from './crud-data-view-wrapper'
 import type { WhatsAppPhoneNumber, WhatsAppTemplate } from '@/types/whatsapp/whatsapp'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
@@ -66,7 +67,6 @@ export function TemplatesView({ phone: _phone }: TemplatesViewProps) {
     queryFn: () => whatsappApi.getTemplates(orgId!),
     enabled: !!orgId,
   })
-
 
   // Filter templates based on search
   const filteredTemplates =
@@ -273,18 +273,25 @@ export function TemplatesView({ phone: _phone }: TemplatesViewProps) {
 
   return (
     <TooltipProvider>
-      <CrudPageShell
+      <HeaderPageShell
         title="Templates WhatsApp"
-        view={view}
-        setView={setView}
-        enabledViews={['list', 'cards']}
-        searchInput={searchInput}
+        selector={<ViewSwitcher view={view} setView={setView} enabledViews={['list', 'cards']} />}
+        searchValue={searchInput}
         onSearchChange={(val) => {
           setSearchInput(val)
           setPage(1)
         }}
         searchPlaceholder="Buscar por nome, categoria ou conteúdo..."
-        onAdd={handleCreate}
+        primaryAction={
+          <Button
+            type="button"
+            size="sm"
+            className="h-7 gap-1.5 text-xs"
+            onClick={handleCreate}
+          >
+            Novo
+          </Button>
+        }
         isLoading={isLoading}
       >
         <CrudDataView
@@ -307,7 +314,7 @@ export function TemplatesView({ phone: _phone }: TemplatesViewProps) {
               : undefined,
           }}
         />
-      </CrudPageShell>
+      </HeaderPageShell>
 
       {/* Overlay components (Drawers, Dialogs) */}
       <div>

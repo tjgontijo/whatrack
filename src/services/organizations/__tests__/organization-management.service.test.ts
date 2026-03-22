@@ -22,9 +22,6 @@ const prismaMock = vi.hoisted(() => ({
 }))
 
 vi.mock('@/lib/db/prisma', () => ({ prisma: prismaMock }))
-vi.mock('@/services/ai/ai-skill-provisioning.service', () => ({
-  ensureCoreSkillsForOrganization: vi.fn(),
-}))
 vi.mock('@/services/audit/audit.service', () => ({
   auditService: {
     log: vi.fn(),

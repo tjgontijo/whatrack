@@ -48,7 +48,6 @@ function mapBillingPlan(
     includedWhatsAppPerProject: number
     includedMetaAdAccountsPerProject: number
     includedConversionsPerProject: number
-    includedAiCreditsPerProject: number
     supportLevel: string
     stripeProductId: string | null
     stripePriceId: string | null
@@ -92,7 +91,6 @@ function mapBillingPlan(
     includedWhatsAppPerProject: plan.includedWhatsAppPerProject,
     includedMetaAdAccountsPerProject: plan.includedMetaAdAccountsPerProject,
     includedConversionsPerProject: plan.includedConversionsPerProject,
-    includedAiCreditsPerProject: plan.includedAiCreditsPerProject,
     supportLevel: plan.supportLevel,
     stripeProductId: plan.stripeProductId,
     stripePriceId: plan.stripePriceId,
@@ -123,7 +121,6 @@ const planSelect = {
   includedWhatsAppPerProject: true,
   includedMetaAdAccountsPerProject: true,
   includedConversionsPerProject: true,
-  includedAiCreditsPerProject: true,
   supportLevel: true,
   stripeProductId: true,
   stripePriceId: true,

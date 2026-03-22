@@ -5,15 +5,11 @@ import { prisma } from '@/lib/db/prisma'
 import { normalizeSlug } from '@/lib/utils/slug'
 import { auditService } from '@/services/audit/audit.service'
 import { calculateMetrics } from '@/services/onboarding-metrics/metrics-calculator'
-import { ensureCoreSkillsForOrganization } from '@/services/ai/ai-skill-provisioning.service'
 import {
   normalizeOnboardingDocument,
   type OrganizationOnboardingInput,
 } from '@/schemas/organizations/organization-onboarding'
-import type {
-  UpdateOrganizationAiSettingsInput,
-  UpdateOrganizationByIdInput,
-} from '@/schemas/organizations/organization-schemas'
+import type { UpdateOrganizationByIdInput } from '@/schemas/organizations/organization-schemas'
 
 const onboardingStatuses = [
   { name: 'pending', description: 'Onboarding iniciado e aguardando conclusão.' },
@@ -217,8 +213,6 @@ export async function createOrganizationFromOnboarding(input: {
       })
     }
 
-    await ensureCoreSkillsForOrganization(tx, createdOrganization.id)
-
     return createdOrganization
   })
 
@@ -281,8 +275,6 @@ export async function getOrCreateCurrentOrganization(input: {
           createdAt: new Date(),
         },
       })
-
-      await ensureCoreSkillsForOrganization(tx, createdOrganization.id)
 
       return createdOrganization
     })
@@ -455,46 +447,5 @@ export async function updateOrganizationById(input: {
     id: organization.id,
     name: organization.name,
     slug: organization.slug,
-  }
-}
-
-export async function getOrganizationAiSettings(organizationId: string) {
-  const profile = await prisma.organizationProfile.findUnique({
-    where: { organizationId },
-    select: { aiCopilotActive: true, aiCopilotInstructions: true },
-  })
-
-  return {
-    aiCopilotActive: profile?.aiCopilotActive ?? true,
-    aiCopilotInstructions: profile?.aiCopilotInstructions || '',
-  }
-}
-
-export async function updateOrganizationAiSettings(input: {
-  organizationId: string
-  data: UpdateOrganizationAiSettingsInput
-}) {
-  const profile = await prisma.organizationProfile.upsert({
-    where: { organizationId: input.organizationId },
-    update: {
-      ...(input.data.aiCopilotActive !== undefined
-        ? { aiCopilotActive: input.data.aiCopilotActive }
-        : {}),
-      ...(input.data.aiCopilotInstructions !== undefined
-        ? { aiCopilotInstructions: input.data.aiCopilotInstructions }
-        : {}),
-    },
-    create: {
-      organizationId: input.organizationId,
-      aiCopilotActive: input.data.aiCopilotActive ?? true,
-      aiCopilotInstructions: input.data.aiCopilotInstructions ?? '',
-      onboardingStatus: 'completed',
-    },
-  })
-
-  return {
-    success: true,
-    aiCopilotActive: profile.aiCopilotActive,
-    aiCopilotInstructions: profile.aiCopilotInstructions,
   }
 }

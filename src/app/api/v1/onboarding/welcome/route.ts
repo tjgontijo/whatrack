@@ -2,11 +2,10 @@ import { cookies } from 'next/headers'
 
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { ORGANIZATION_COOKIE, PROJECT_COOKIE } from '@/lib/constants/http-headers'
-import { getOrSyncUser, getServerSession } from '@/server/auth/server'
+import { getOrSyncUser } from '@/server/auth/server'
 import { logger } from '@/lib/utils/logger'
 import { welcomeOnboardingSchema } from '@/schemas/onboarding/welcome-onboarding'
 import { completeWelcomeOnboarding } from '@/services/onboarding/welcome-onboarding.service'
-import { prisma } from '@/lib/db/prisma'
 
 export async function POST(request: Request) {
   try {

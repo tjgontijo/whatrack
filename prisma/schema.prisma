@@ -250,13 +250,6 @@ model Organization {
   metaAdAccounts        MetaAdAccount[]
   metaPixels            MetaPixel[]
   metaConversionEvents  MetaConversionEvent[]
-  aiConversionApprovals AiConversionApproval[]
-
-  // AI Platform Relations
-  aiAgents       AiAgent[]
-  aiInsights     AiInsight[]
-  aiInsightCosts AiInsightCost[]
-  aiSkills       AiSkill[]
 
   // Audit
   orgAuditLogs      OrgAuditLog[]
@@ -319,9 +312,6 @@ model OrganizationProfile {
   leadsPerAttendant       Float?
   revenuePerAttendant     Float?
   ticketExpirationDays    Int?      @default(30)
-
-  aiCopilotInstructions String?
-  aiCopilotActive       Boolean @default(true)
 
   createdAt           DateTime         @default(now())
   updatedAt           DateTime         @updatedAt
@@ -515,8 +505,6 @@ model Ticket {
   stage                  TicketStage              @relation(fields: [stageId], references: [id])
   messages               Message[]
   metaAttributionHistory MetaAttributionHistory[]
-  aiConversionApprovals  AiConversionApproval[]
-  aiInsights             AiInsight[]
 
   @@index([organizationId])
   @@index([projectId])
@@ -1152,191 +1140,6 @@ model MetaAttributionHistory {
   @@map("meta_attribution_history")
 }
 
-model AiConversionApproval {
-  id             String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId String @db.Uuid
-  ticketId       String @db.Uuid
-
-  eventName  String // "LeadSubmitted" | "Purchase"
-  itemName   String?
-  dealValue  Decimal? @db.Decimal(12, 2)
-  confidence Float    @default(1.0)
-  reasoning  String?
-
-  status String @default("PENDING") // PENDING, APPROVED, REJECTED
-
-  reviewedBy String?   @db.Uuid
-  reviewedAt DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  ticket       Ticket       @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-
-  @@index([organizationId])
-  @@index([ticketId])
-  @@index([status])
-  @@map("ai_conversion_approvals")
-}
-
-// ============================================
-// Multi-Agent Platform (Copilot 2.0)
-// ============================================
-
-model AiTriggerEventType {
-  id          String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name        String      @unique
-  description String
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  triggers    AiTrigger[]
-
-  @@map("ai_trigger_event_types")
-}
-
-model AiSchemaFieldType {
-  id          String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name        String          @unique
-  description String
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-  fields      AiSchemaField[]
-
-  @@map("ai_schema_field_types")
-}
-
-model AiInsightActionStatus {
-  id          String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name        String      @unique
-  description String
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  insights    AiInsight[]
-
-  @@map("ai_insight_action_statuses")
-}
-
-model AiAgent {
-  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId String   @db.Uuid
-  name           String
-  icon           String?
-  leanPrompt     String   @db.Text
-  model          String   @default("llama-3.3-70b-versatile")
-  isActive       Boolean  @default(true)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  organization  Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  triggers      AiTrigger[]
-  schemaFields  AiSchemaField[]
-  insights      AiInsight[]
-  skillBindings AiAgentSkill[]
-
-  @@unique([organizationId, name])
-  @@index([organizationId])
-  @@map("ai_agents")
-}
-
-model AiSkill {
-  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId String   @db.Uuid
-  slug           String
-  name           String
-  description    String?
-  content        String   @db.Text
-  kind           String   @default("SHARED") // SHARED | AGENT
-  source         String   @default("CUSTOM") // SYSTEM | CUSTOM
-  isActive       Boolean  @default(true)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  bindings     AiAgentSkill[]
-
-  @@unique([organizationId, slug])
-  @@index([organizationId, source, kind])
-  @@map("ai_skills")
-}
-
-model AiAgentSkill {
-  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  agentId   String   @db.Uuid
-  skillId   String   @db.Uuid
-  sortOrder Int      @default(100)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  agent AiAgent @relation(fields: [agentId], references: [id], onDelete: Cascade)
-  skill AiSkill @relation(fields: [skillId], references: [id], onDelete: Cascade)
-
-  @@unique([agentId, skillId])
-  @@index([agentId, sortOrder])
-  @@map("ai_agent_skills")
-}
-
-model AiTrigger {
-  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  agentId    String   @db.Uuid
-  eventType  String   @default("TICKET_CLOSED") // Points to AiTriggerEventType.name
-  conditions Json     @default("{}") // Used to evaluate if trigger should fire
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  agent   AiAgent            @relation(fields: [agentId], references: [id], onDelete: Cascade)
-  typeRef AiTriggerEventType @relation(fields: [eventType], references: [name])
-
-  @@index([agentId])
-  @@map("ai_triggers")
-}
-
-model AiSchemaField {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  agentId     String   @db.Uuid
-  fieldName   String
-  fieldType   String   @default("STRING") // Points to AiSchemaFieldType.name
-  description String   @db.Text
-  isRequired  Boolean  @default(true)
-  options     Json? // Array of possible values if fieldType is ENUM
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  agent   AiAgent           @relation(fields: [agentId], references: [id], onDelete: Cascade)
-  typeRef AiSchemaFieldType @relation(fields: [fieldType], references: [name])
-
-  @@unique([agentId, fieldName])
-  @@index([agentId])
-  @@map("ai_schema_fields")
-}
-
-model AiInsight {
-  id             String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId String  @db.Uuid
-  ticketId       String? @db.Uuid // Optional: null for audit events, required for ticket events
-  agentId        String  @db.Uuid
-  eventType      String? // Event trigger type (e.g., "META_ADS_AUDIT_REQUESTED", "CONVERSATION_IDLE_3M")
-
-  payload Json // The raw JSON result from Mastra (Zod output)
-  status  String @default("SUGGESTION") // Points to AiInsightActionStatus.name
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  organization Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  ticket       Ticket?               @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  agent        AiAgent               @relation(fields: [agentId], references: [id], onDelete: Cascade)
-  statusRef    AiInsightActionStatus @relation(fields: [status], references: [name])
-  costs        AiInsightCost[]
-
-  @@index([organizationId])
-  @@index([ticketId])
-  @@index([agentId])
-  @@index([organizationId, eventType, createdAt])
-  @@map("ai_insights")
-}
-
 model OrgAuditLog {
   id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   organizationId String?  @db.Uuid // nullable: suporte a eventos globais (ex: registro)
@@ -1464,7 +1267,6 @@ model BillingPlan {
   includedWhatsAppPerProject       Int    @default(0)
   includedMetaAdAccountsPerProject Int    @default(0)
   includedConversionsPerProject    Int    @default(0)
-  includedAiCreditsPerProject      Int    @default(0)
   supportLevel                     String
 
   // Stripe Sync
@@ -1526,43 +1328,4 @@ model BillingPlanHistory {
 
   @@index([planId, changedAt])
   @@map("billing_plan_history")
-}
-
-model AiInsightCost {
-  id             String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId String @db.Uuid
-  aiInsightId    String @db.Uuid
-
-  // Context
-  feature   String // "meta-ads-audit", "ticket-analysis", etc
-  operation String // "account-analysis", "conversation-idle", etc
-  agentName String // "Meta Ads Analyst", "Sale Detector", etc
-  eventType String // "META_ADS_AUDIT_REQUESTED", "CONVERSATION_IDLE_3M", etc
-
-  // Tokens & Cost
-  inputTokens  Int
-  outputTokens Int
-  totalTokens  Int // computed: input + output
-  modelUsed    String // "openai/gpt-4o-mini", "groq/mixtral-8x7b"
-  inputCost    Decimal @db.Decimal(10, 6) // tokens * rate / 1M
-  outputCost   Decimal @db.Decimal(10, 6) // tokens * rate / 1M
-  totalCost    Decimal @db.Decimal(10, 6) // inputCost + outputCost
-
-  // Performance
-  latencyMs    Int? // tempo total da execução
-  status       String // "success", "error", "timeout"
-  errorMessage String?
-
-  // Audit
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  insight      AiInsight    @relation(fields: [aiInsightId], references: [id], onDelete: Cascade)
-
-  @@index([organizationId, createdAt])
-  @@index([feature, createdAt])
-  @@index([status, createdAt])
-  @@index([organizationId, eventType, createdAt])
-  @@map("ai_insight_costs")
 }

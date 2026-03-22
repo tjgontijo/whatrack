@@ -4,10 +4,11 @@ import * as React from 'react'
 import { useState, useDeferredValue, useMemo, useCallback } from 'react'
 import { ShoppingCart } from 'lucide-react'
 
-import { CrudPageShell } from '@/components/dashboard/crud/crud-page-shell'
 import { CrudDataView, CrudEmptyState } from '@/components/dashboard/crud/crud-data-view'
 import { CrudListView } from '@/components/dashboard/crud/crud-list-view'
 import { CrudCardView } from '@/components/dashboard/crud/crud-card-view'
+import { ViewSwitcher } from '@/components/dashboard/crud/view-switcher'
+import { HeaderPageShell } from '@/components/dashboard/layout'
 import { useCrudInfiniteQuery } from '@/hooks/ui/use-crud-infinite-query'
 import {
   Select,
@@ -189,12 +190,10 @@ export default function ClientSalesTable() {
   )
 
   return (
-    <CrudPageShell
+    <HeaderPageShell
       title="Vendas"
-      view={view}
-      setView={setView}
-      enabledViews={['list', 'cards']}
-      searchInput={searchInput}
+      selector={<ViewSwitcher view={view} setView={setView} enabledViews={['list', 'cards']} />}
+      searchValue={searchInput}
       onSearchChange={setSearchInput}
       searchPlaceholder="Pesquisar valor, status, observação..."
       onRefresh={() => void refetch()}
@@ -224,6 +223,6 @@ export default function ClientSalesTable() {
           />
         }
       />
-    </CrudPageShell>
+    </HeaderPageShell>
   )
 }

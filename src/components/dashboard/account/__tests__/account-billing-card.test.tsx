@@ -41,7 +41,6 @@ describe('AccountBillingCard', () => {
             includedMetaAdAccountsPerProject: 1,
             additionalMetaAdAccounts: 0,
             includedConversionsPerProject: 300,
-            includedAiCreditsPerProject: 10000,
           },
         }}
       />,
@@ -95,7 +94,6 @@ describe('AccountBillingCard', () => {
             includedMetaAdAccountsPerProject: 1,
             additionalMetaAdAccounts: 0,
             includedConversionsPerProject: 300,
-            includedAiCreditsPerProject: 10000,
           },
         }}
       />,

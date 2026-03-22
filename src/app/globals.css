@@ -132,7 +132,7 @@
    Base: Off-white / Cool gray | Primary: Brand green
    ============================================================ */
 :root {
-  --radius: 0.5rem;
+  --radius: 0.25rem;
 
   /* Backgrounds */
   --background: oklch(0.975 0 0);

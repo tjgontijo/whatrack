@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { Package } from 'lucide-react'
+import { EmptyState } from '@/components/dashboard/states/empty-state'
 import { ViewType } from './types'
 
 interface CrudDataViewProps<T> {
@@ -16,20 +17,21 @@ interface CrudDataViewProps<T> {
 type CrudEmptyStateProps = {
   title?: string
   description?: string
+  action?: React.ReactNode
 }
 
 export function CrudEmptyState({
   title = 'Nenhum registro encontrado.',
   description = 'Tente buscar por termos diferentes ou verifique os filtros.',
+  action,
 }: CrudEmptyStateProps) {
   return (
-    <div className="flex min-h-[calc(100vh-200px)] items-center justify-center text-center">
-      <div>
-        <Package className="text-muted-foreground/30 mx-auto mb-3 size-8" />
-        <p className="text-muted-foreground text-sm font-medium">{title}</p>
-        <p className="text-muted-foreground/50 mt-1 text-xs">{description}</p>
-      </div>
-    </div>
+    <EmptyState
+      icon={Package}
+      title={title}
+      description={description}
+      action={action}
+    />
   )
 }
 

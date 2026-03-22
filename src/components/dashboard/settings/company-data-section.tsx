@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Loader2, Search, AlertCircle, CheckCircle2, Users } from 'lucide-react'
+import { Loader2, Search, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
@@ -13,7 +13,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { formatCnpj, isValidCnpjFormat, stripCnpj } from '@/lib/mask/cnpj'
 import { apiFetch } from '@/lib/api-client'
 import { useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
-import { SettingsSection } from './settings-section'
+import { SettingsGroup } from './settings-group'
+import { SettingsRow } from './settings-row'
 
 
 type CompanyState = 'empty' | 'loading' | 'preview' | 'saved' | 'error'
@@ -76,8 +77,70 @@ async function saveCompanyData(
   return result as CompanyData
 }
 
+function CompanyDataRows({ data }: { data: CompanyData }) {
+  return (
+    <>
+      <SettingsRow label="CNPJ" description="Registro principal vinculado ao workspace.">
+        <p className="font-medium">{formatCnpj(data.cnpj)}</p>
+      </SettingsRow>
 
-export function CompanyDataSection() {
+      <SettingsRow label="Tipo / Situação" description="Classificação fiscal retornada na consulta.">
+        <p className="font-medium">{data.tipo || '-'}</p>
+      </SettingsRow>
+
+      <SettingsRow label="Razão social" description="Nome jurídico oficial da empresa.">
+        <p className="font-medium">{data.razaoSocial}</p>
+      </SettingsRow>
+
+      {data.nomeFantasia ? (
+        <SettingsRow label="Nome fantasia" description="Nome comercial usado publicamente.">
+          <p className="font-medium">{data.nomeFantasia}</p>
+        </SettingsRow>
+      ) : null}
+
+      <SettingsRow label="Localização" description="Cidade e estado do cadastro principal.">
+        <p className="font-medium">
+          {data.municipio} / {data.uf}
+        </p>
+      </SettingsRow>
+
+      <SettingsRow label="Porte" description="Porte da empresa conforme a base consultada.">
+        <p className="font-medium">{data.porte || '-'}</p>
+      </SettingsRow>
+
+      <SettingsRow label="Atividade principal" description="CNAE principal retornado na consulta.">
+        <p className="text-sm">
+          <span className="font-medium">{data.cnaeCode}</span>
+          {' - '}
+          {data.cnaeDescription}
+        </p>
+      </SettingsRow>
+
+      {data.qsa && data.qsa.length > 0 ? (
+        <SettingsRow label="Quadro societário" description="Sócios e qualificações cadastradas.">
+          <div className="space-y-2">
+            {data.qsa.map((socio, index) => (
+              <div
+                key={index}
+                className="flex items-center justify-between border-b pb-2 text-sm last:border-0 last:pb-0"
+              >
+                <span className="font-medium">{socio.nome}</span>
+                <span className="text-muted-foreground text-xs">{socio.qual}</span>
+              </div>
+            ))}
+          </div>
+        </SettingsRow>
+      ) : null}
+    </>
+  )
+}
+
+
+type CompanyDataSectionProps = {
+  initialData?: CompanyData | null
+}
+
+export function CompanyDataSection({ initialData }: CompanyDataSectionProps = {}) {
   const { organizationId } = useRequiredProjectRouteContext()
   const queryClient = useQueryClient()
   const [cnpjInput, setCnpjInput] = useState('')
@@ -90,6 +153,8 @@ export function CompanyDataSection() {
     queryKey: ['company', organizationId],
     queryFn: () => fetchCompanyData(organizationId!),
     enabled: !!organizationId,
+    initialData: initialData ?? undefined,
+    staleTime: 30_000,
   })
 
   // Mutation para buscar CNPJ
@@ -165,233 +230,113 @@ export function CompanyDataSection() {
   const isSaving = saveMutation.isPending
 
   return (
-    <SettingsSection
-      title="Dados Fiscais (CNPJ)"
+    <SettingsGroup
+      label="Dados fiscais"
       description="Vincule os dados oficiais da empresa via Receita Federal para emissão de notas fiscais e adequação à LGPD."
+      footer={
+        state === 'preview' && previewData ? (
+          <div className="flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setPreviewData(null)
+                setCnpjInput('')
+                setAuthorized(false)
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button type="button" onClick={handleSave} disabled={!authorized || isSaving}>
+              {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Salvar dados
+            </Button>
+          </div>
+        ) : undefined
+      }
     >
-      <div className="space-y-4">
-            {/* Estado: Loading inicial */}
-            {state === 'loading' && (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
-              </div>
-            )}
+      {state === 'loading' && (
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
+        </div>
+      )}
 
-            {/* Estado: Saved - Mostra dados salvos */}
-            {state === 'saved' && savedData && (
-              <div className="space-y-4">
-                <Alert className="border-green-200 bg-green-50">
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
-                  <AlertDescription className="text-green-700">
-                    Dados da empresa vinculados com sucesso
-                  </AlertDescription>
-                </Alert>
+      {state === 'saved' && savedData && (
+        <>
+          <div className="py-4">
+            <Alert className="border-green-200 bg-green-50">
+              <CheckCircle2 className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-green-700">
+                Dados da empresa vinculados com sucesso
+              </AlertDescription>
+            </Alert>
+          </div>
+          <CompanyDataRows data={savedData} />
+        </>
+      )}
 
-                <div className="grid gap-4 rounded-lg border p-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label className="text-muted-foreground text-xs">CNPJ</Label>
-                      <p className="font-medium">{formatCnpj(savedData.cnpj)}</p>
-                    </div>
-                    <div>
-                      <Label className="text-muted-foreground text-xs">Situação</Label>
-                      <p className="font-medium">{savedData.tipo || '-'}</p>
-                    </div>
-                  </div>
+      {(state === 'empty' || state === 'error') && (
+        <>
+          {errorMessage ? (
+            <div className="py-4">
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{errorMessage}</AlertDescription>
+              </Alert>
+            </div>
+          ) : null}
 
-                  <div>
-                    <Label className="text-muted-foreground text-xs">Razão Social</Label>
-                    <p className="font-medium">{savedData.razaoSocial}</p>
-                  </div>
-
-                  {savedData.nomeFantasia && (
-                    <div>
-                      <Label className="text-muted-foreground text-xs">Nome Fantasia</Label>
-                      <p className="font-medium">{savedData.nomeFantasia}</p>
-                    </div>
-                  )}
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label className="text-muted-foreground text-xs">Cidade/UF</Label>
-                      <p className="font-medium">
-                        {savedData.municipio} / {savedData.uf}
-                      </p>
-                    </div>
-                    <div>
-                      <Label className="text-muted-foreground text-xs">Porte</Label>
-                      <p className="font-medium">{savedData.porte || '-'}</p>
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label className="text-muted-foreground text-xs">Atividade Principal</Label>
-                    <p className="text-sm">
-                      <span className="font-medium">{savedData.cnaeCode}</span>
-                      {' - '}
-                      {savedData.cnaeDescription}
-                    </p>
-                  </div>
-
-                  {savedData.qsa && savedData.qsa.length > 0 && (
-                    <div>
-                      <Label className="text-muted-foreground flex items-center gap-1 text-xs">
-                        <Users className="h-3 w-3" />
-                        Quadro Societário
-                      </Label>
-                      <div className="mt-2 space-y-2">
-                        {savedData.qsa.map((socio, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center justify-between border-b pb-2 text-sm last:border-0 last:pb-0"
-                          >
-                            <span className="font-medium">{socio.nome}</span>
-                            <span className="text-muted-foreground text-xs">{socio.qual}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Estado: Empty ou Error - Mostra input de busca */}
-            {(state === 'empty' || state === 'error') && (
-              <div className="space-y-4">
-                {errorMessage && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{errorMessage}</AlertDescription>
-                  </Alert>
+          <SettingsRow
+            label="CNPJ"
+            description="Busque os dados oficiais da empresa antes de vincular ao workspace."
+          >
+            <div className="flex flex-col gap-2 md:flex-row">
+              <Input
+                placeholder="Digite o CNPJ"
+                value={cnpjInput}
+                onChange={handleCnpjChange}
+                className="md:max-w-sm"
+                maxLength={18}
+              />
+              <Button type="button" onClick={handleLookup} disabled={!isValidCnpj || isSearching}>
+                {isSearching ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Search className="h-4 w-4" />
                 )}
+                <span className="ml-2">Buscar</span>
+              </Button>
+            </div>
+          </SettingsRow>
+        </>
+      )}
 
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Digite o CNPJ"
-                    value={cnpjInput}
-                    onChange={handleCnpjChange}
-                    className="flex-1"
-                    maxLength={18}
-                  />
-                  <Button onClick={handleLookup} disabled={!isValidCnpj || isSearching}>
-                    {isSearching ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Search className="h-4 w-4" />
-                    )}
-                    <span className="ml-2">Buscar</span>
-                  </Button>
-                </div>
+      {state === 'preview' && previewData && (
+        <>
+          <CompanyDataRows data={previewData} />
+          <SettingsRow
+            label="Autorização"
+            description="Confirme que você está autorizado a vincular estes dados à organização."
+          >
+            <div className="bg-muted/10 flex items-start space-x-3 rounded-lg border p-4">
+              <Checkbox
+                id="authorized"
+                checked={authorized}
+                onCheckedChange={(checked) => setAuthorized(checked === true)}
+              />
+              <div className="mt-[-2px] space-y-1">
+                <Label htmlFor="authorized" className="cursor-pointer font-medium">
+                  Autorizo a consulta de dados
+                </Label>
+                <p className="text-muted-foreground text-sm">
+                  Declaro que estou autorizado a consultar e vincular os dados desta empresa à
+                  minha organização, conforme a Lei Geral de Proteção de Dados (LGPD).
+                </p>
               </div>
-            )}
-
-            {/* Estado: Preview - Mostra dados para confirmação */}
-            {state === 'preview' && previewData && (
-              <div className="space-y-4">
-                <div className="grid gap-4 rounded-lg border p-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label className="text-muted-foreground text-xs">CNPJ</Label>
-                      <p className="font-medium">{formatCnpj(previewData.cnpj)}</p>
-                    </div>
-                    <div>
-                      <Label className="text-muted-foreground text-xs">Tipo</Label>
-                      <p className="font-medium">{previewData.tipo || '-'}</p>
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label className="text-muted-foreground text-xs">Razão Social</Label>
-                    <p className="font-medium">{previewData.razaoSocial}</p>
-                  </div>
-
-                  {previewData.nomeFantasia && (
-                    <div>
-                      <Label className="text-muted-foreground text-xs">Nome Fantasia</Label>
-                      <p className="font-medium">{previewData.nomeFantasia}</p>
-                    </div>
-                  )}
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label className="text-muted-foreground text-xs">Cidade</Label>
-                      <p className="font-medium">{previewData.municipio}</p>
-                    </div>
-                    <div>
-                      <Label className="text-muted-foreground text-xs">UF</Label>
-                      <p className="font-medium">{previewData.uf}</p>
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label className="text-muted-foreground text-xs">Atividade Principal</Label>
-                    <p className="text-sm">
-                      <span className="font-medium">{previewData.cnaeCode}</span>
-                      {' - '}
-                      {previewData.cnaeDescription}
-                    </p>
-                  </div>
-
-                  {previewData.qsa && previewData.qsa.length > 0 && (
-                    <div>
-                      <Label className="text-muted-foreground flex items-center gap-1 text-xs">
-                        <Users className="h-3 w-3" />
-                        Quadro Societário
-                      </Label>
-                      <div className="mt-2 space-y-2">
-                        {previewData.qsa.map((socio, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center justify-between border-b pb-2 text-sm last:border-0 last:pb-0"
-                          >
-                            <span className="font-medium">{socio.nome}</span>
-                            <span className="text-muted-foreground text-xs">{socio.qual}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Checkbox de autorização */}
-                <div className="bg-muted/10 flex items-start space-x-3 rounded-lg border p-4">
-                  <Checkbox
-                    id="authorized"
-                    checked={authorized}
-                    onCheckedChange={(checked) => setAuthorized(checked === true)}
-                  />
-                  <div className="mt-[-2px] space-y-1">
-                    <Label htmlFor="authorized" className="cursor-pointer font-medium">
-                      Autorizo a consulta de dados
-                    </Label>
-                    <p className="text-muted-foreground text-sm">
-                      Declaro que estou autorizado a consultar e vincular os dados desta empresa à
-                      minha organização, conforme a Lei Geral de Proteção de Dados (LGPD).
-                    </p>
-                  </div>
-                </div>
-
-                {/* Botões de ação */}
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setPreviewData(null)
-                      setCnpjInput('')
-                      setAuthorized(false)
-                    }}
-                  >
-                    Cancelar
-                  </Button>
-                  <Button onClick={handleSave} disabled={!authorized || isSaving}>
-                    {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                    Salvar Dados
-                  </Button>
-                </div>
-              </div>
-            )}
-      </div>
-    </SettingsSection>
+            </div>
+          </SettingsRow>
+        </>
+      )}
+    </SettingsGroup>
   )
 }

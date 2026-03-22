@@ -136,13 +136,14 @@ export function useAuditLogsInfinite(params: AuditLogsInfiniteParams) {
   }
 }
 
-export function useAuditLogFilters(enabled = true) {
+export function useAuditLogFilters(enabled = true, initialResourceTypes?: string[]) {
   const { data: org } = useOrganization()
   const orgId = org?.id
 
   return useQuery<AuditLogFiltersResponse>({
     queryKey: ['organization-audit-log-filters', orgId],
     queryFn: () => fetchAuditLogFilters(orgId!),
+    initialData: initialResourceTypes ? { resourceTypes: initialResourceTypes } : undefined,
     staleTime: 5 * 60_000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,

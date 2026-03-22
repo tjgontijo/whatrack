@@ -4,19 +4,19 @@ import { type Permission } from '@/lib/auth/rbac/roles'
 import { resolveEffectivePermissions } from '@/server/organization/organization-rbac.service'
 
 describe('organization-rbac resolveEffectivePermissions', () => {
-  const catalog: Permission[] = ['view:ai', 'manage:ai', 'manage:organization']
+  const catalog: Permission[] = ['view:dashboard', 'manage:campaigns', 'manage:organization']
 
   it('aplica deny com precedencia sobre papel base e allow', () => {
     const result = resolveEffectivePermissions({
-      basePermissions: ['view:ai', 'manage:ai'],
-      allowOverrides: ['manage:organization', 'manage:ai'],
-      denyOverrides: ['manage:ai'],
+      basePermissions: ['view:dashboard', 'manage:campaigns'],
+      allowOverrides: ['manage:organization', 'manage:campaigns'],
+      denyOverrides: ['manage:campaigns'],
       catalog,
     })
 
-    expect(result.effectivePermissions).toEqual(['manage:organization', 'view:ai'])
-    expect(result.permissions.find((item) => item.key === 'manage:ai')).toEqual({
-      key: 'manage:ai',
+    expect(result.effectivePermissions).toEqual(['manage:organization', 'view:dashboard'])
+    expect(result.permissions.find((item) => item.key === 'manage:campaigns')).toEqual({
+      key: 'manage:campaigns',
       allowed: false,
       source: 'override_deny',
     })

@@ -3,8 +3,6 @@ export type Permission =
   | 'view:analytics'
   | 'view:whatsapp'
   | 'manage:whatsapp'
-  | 'view:ai'
-  | 'manage:ai'
   | 'view:campaigns'
   | 'manage:campaigns'
   | 'view:integrations'
@@ -45,8 +43,6 @@ const ROLE_DEFINITIONS: RoleDefinition[] = [
       'view:analytics',
       'view:whatsapp',
       'manage:whatsapp',
-      'view:ai',
-      'manage:ai',
       'view:campaigns',
       'manage:campaigns',
       'view:integrations',
@@ -76,8 +72,6 @@ const ROLE_DEFINITIONS: RoleDefinition[] = [
       'view:analytics',
       'view:whatsapp',
       'manage:whatsapp',
-      'view:ai',
-      'manage:ai',
       'view:campaigns',
       'manage:campaigns',
       'view:integrations',
@@ -103,7 +97,6 @@ const ROLE_DEFINITIONS: RoleDefinition[] = [
     permissions: [
       'view:dashboard',
       'view:whatsapp',
-      'view:ai',
       'view:campaigns',
       'view:integrations',
       'view:leads',
@@ -132,8 +125,6 @@ const PERMISSION_LABELS: Record<Permission, string> = {
   'view:analytics': 'Visualizar Analytics',
   'view:whatsapp': 'Visualizar WhatsApp',
   'manage:whatsapp': 'Gerenciar WhatsApp',
-  'view:ai': 'Visualizar IA',
-  'manage:ai': 'Gerenciar IA',
   'view:campaigns': 'Visualizar Campanhas',
   'manage:campaigns': 'Gerenciar Campanhas',
   'view:integrations': 'Visualizar Integrações',

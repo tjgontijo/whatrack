@@ -252,31 +252,15 @@ export async function getProjectById(input: {
     return null
   }
 
-  const [projectTickets, aiCreditsAgg] = await Promise.all([
-    prisma.ticket.findMany({
-      where: {
-        organizationId: input.organizationId,
-        projectId: input.projectId,
-      },
-      select: {
-        id: true,
-      },
-    }),
-    prisma.aiInsightCost.aggregate({
-      where: {
-        organizationId: input.organizationId,
-        status: 'success',
-        insight: {
-          ticket: {
-            projectId: input.projectId,
-          },
-        },
-      },
-      _sum: {
-        totalTokens: true,
-      },
-    }),
-  ])
+  const projectTickets = await prisma.ticket.findMany({
+    where: {
+      organizationId: input.organizationId,
+      projectId: input.projectId,
+    },
+    select: {
+      id: true,
+    },
+  })
 
   const conversionCount = projectTickets.length
     ? await prisma.metaConversionEvent.count({
@@ -293,7 +277,6 @@ export async function getProjectById(input: {
   return {
     ...mapProject(project),
     conversionCount,
-    aiCreditsUsed: aiCreditsAgg._sum.totalTokens ?? 0,
     whatsappConfigs: project.whatsappConfigs,
     metaAdAccounts: project.metaAdAccounts,
   }

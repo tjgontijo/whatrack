@@ -3,14 +3,15 @@
 import * as React from 'react'
 import { useState, useDeferredValue, useMemo, useCallback } from 'react'
 
-
-import { CrudPageShell } from '@/components/dashboard/crud/crud-page-shell'
 import { CrudDataView, CrudEmptyState } from '@/components/dashboard/crud/crud-data-view'
 import { CrudListView } from '@/components/dashboard/crud/crud-list-view'
 import { CrudCardView } from '@/components/dashboard/crud/crud-card-view'
+import { ViewSwitcher } from '@/components/dashboard/crud/view-switcher'
+import { HeaderPageShell } from '@/components/dashboard/layout'
 import { useCrudInfiniteQuery } from '@/hooks/ui/use-crud-infinite-query'
 import { NewLeadDrawer } from '@/components/dashboard/leads/new-lead-drawer'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
@@ -157,14 +158,21 @@ export default function ClientLeadsTable() {
 
   return (
     <>
-      <CrudPageShell
+      <HeaderPageShell
         title="Leads"
-        onAdd={() => setIsNewLeadDrawerOpen(true)}
+        selector={<ViewSwitcher view={view} setView={setView} enabledViews={['list', 'cards']} />}
         onRefresh={() => void refetch()}
-        view={view}
-        setView={setView}
-        enabledViews={['list', 'cards']}
-        searchInput={searchInput}
+        primaryAction={
+          <Button
+            type="button"
+            size="sm"
+            className="h-7 gap-1.5 text-xs"
+            onClick={() => setIsNewLeadDrawerOpen(true)}
+          >
+            Novo
+          </Button>
+        }
+        searchValue={searchInput}
         onSearchChange={setSearchInput}
         searchPlaceholder="Buscar por nome, telefone..."
         isFetchingMore={isFetchingNextPage}
@@ -192,7 +200,7 @@ export default function ClientLeadsTable() {
             />
           }
         />
-      </CrudPageShell>
+      </HeaderPageShell>
 
       <NewLeadDrawer open={isNewLeadDrawerOpen} onOpenChange={setIsNewLeadDrawerOpen} />
     </>

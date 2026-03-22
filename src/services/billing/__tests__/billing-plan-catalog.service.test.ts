@@ -32,7 +32,6 @@ describe('billing-plan-catalog.service', () => {
         includedWhatsAppPerProject: 1,
         includedMetaAdAccountsPerProject: 1,
         includedConversionsPerProject: 300,
-        includedAiCreditsPerProject: 10000,
         supportLevel: 'priority',
         stripeProductId: 'prod_1',
         stripePriceId: 'price_1',
@@ -63,7 +62,6 @@ describe('billing-plan-catalog.service', () => {
       trialDays: 14,
       includedProjects: 3,
       includedConversionsPerProject: 300,
-      includedAiCreditsPerProject: 10000,
     })
   })
 
