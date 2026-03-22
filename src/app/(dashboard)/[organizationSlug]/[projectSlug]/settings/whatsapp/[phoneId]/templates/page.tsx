@@ -22,7 +22,7 @@ export default function InstanceTemplatesPage({ params }: PageProps) {
 
   const {
     data: phone,
-    isLoading,
+    isLoading: phoneLoading,
     isError,
   } = useQuery({
     queryKey: ['whatsapp', 'phone', phoneId, orgId],
@@ -30,13 +30,20 @@ export default function InstanceTemplatesPage({ params }: PageProps) {
     select: (data) => (data?.projectId === projectId ? data : null),
   })
 
+  const { data: templates = [], isLoading: templatesLoading } = useQuery({
+    queryKey: ['whatsapp', 'templates', orgId],
+    queryFn: () => whatsappApi.getTemplates(orgId),
+    enabled: !!orgId,
+  })
+
+  const isLoading = phoneLoading || templatesLoading
 
   return (
     <PageShell>
       <PageContent className="flex h-full flex-col">
         {isLoading && <LoadingPage message="Carregando templates..." />}
 
-        {isError || (!isLoading && !phone) ? (
+        {isError || (!phoneLoading && !phone) ? (
           <ErrorState
             title="Instância não encontrada"
             message="Não foi possível carregar os dados desta instância."
@@ -48,7 +55,18 @@ export default function InstanceTemplatesPage({ params }: PageProps) {
           />
         ) : null}
 
-        {!isLoading && phone && <TemplatesView phone={phone} />}
+        {!isLoading && phone && (
+          <TemplatesView
+            templates={templates}
+            organizationId={orgId}
+            onEditClick={(template) => {
+              // TODO: open editor for this template
+            }}
+            onSendTestClick={(template) => {
+              // TODO: open send test sheet for this template
+            }}
+          />
+        )}
       </PageContent>
     </PageShell>
   )
