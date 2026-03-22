@@ -269,38 +269,16 @@ export function TemplateEditorForm({
   // ─── Render ───────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex h-full flex-col">
-      {/* ── Top bar ── */}
-      <div className="flex items-center justify-between border-b px-6 py-3">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={onClose} className="gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            Voltar
-          </Button>
-          <Separator orientation="vertical" className="h-5" />
-          <Controller
-            name="name"
-            control={control}
-            render={({ field }) => (
-              <Input
-                {...field}
-                placeholder="nome_do_template"
-                className="h-8 w-56 border-dashed font-mono text-sm"
-              />
-            )}
-          />
-          <div className="flex items-center gap-1.5">
-            <Badge variant="secondary" className="text-xs">
-              {CATEGORY_LABEL[category]}
-            </Badge>
-            <Badge variant="outline" className="font-mono text-xs">
-              {language}
-            </Badge>
-          </div>
-        </div>
+    <div className="flex h-full flex-col bg-background">
+      {/* ── Header ── */}
+      <div className="flex items-center justify-between border-b px-4 py-3 shrink-0">
+        <Button variant="ghost" size="sm" onClick={onClose} className="gap-2">
+          <ArrowLeft className="h-4 w-4" />
+          Voltar
+        </Button>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" disabled>
-            Salvar rascunho
+            Rascunho
           </Button>
           <Button
             size="sm"
@@ -309,14 +287,110 @@ export function TemplateEditorForm({
             className="gap-2"
           >
             <Send className="h-3.5 w-3.5" />
-            {mutation.isPending ? 'Enviando...' : 'Enviar para Revisão'}
+            {mutation.isPending ? 'Enviando...' : 'Enviar'}
           </Button>
         </div>
       </div>
 
-      {/* ── Two-column body ── */}
+      {/* ── Three-column body ── */}
       <div className="flex flex-1 overflow-hidden">
-        {/* ── Left: Editor ── */}
+        {/* ── Column 1: Metadata (Narrow) ── */}
+        <div className="w-64 shrink-0 border-r bg-muted/30 overflow-y-auto px-4 py-6 space-y-6">
+          {/* Template Name */}
+          <div className="space-y-2">
+            <Label className="text-xs font-semibold uppercase tracking-widest">Nome</Label>
+            <Controller
+              name="name"
+              control={control}
+              render={({ field }) => (
+                <Input
+                  {...field}
+                  placeholder="nome_do_template"
+                  className="h-9 font-mono text-sm"
+                />
+              )}
+            />
+            {formState.errors.name && (
+              <p className="text-xs text-destructive">{formState.errors.name.message}</p>
+            )}
+          </div>
+
+          <Separator />
+
+          {/* Category */}
+          <div className="space-y-2">
+            <Label className="text-xs font-semibold uppercase tracking-widest">Tipo</Label>
+            <Controller
+              name="category"
+              control={control}
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger className="h-9 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="MARKETING" className="text-sm">Marketing</SelectItem>
+                    <SelectItem value="UTILITY" className="text-sm">Utilidade</SelectItem>
+                    <SelectItem value="AUTHENTICATION" className="text-sm">Autenticação</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </div>
+
+          <Separator />
+
+          {/* Language */}
+          <div className="space-y-2">
+            <Label className="text-xs font-semibold uppercase tracking-widest">Idioma</Label>
+            <Controller
+              name="language"
+              control={control}
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger className="h-9 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pt_BR" className="text-sm">Português (BR)</SelectItem>
+                    <SelectItem value="en" className="text-sm">Inglês</SelectItem>
+                    <SelectItem value="es" className="text-sm">Espanhol</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </div>
+
+          {/* Validity period — Utility only */}
+          {category === 'UTILITY' && (
+            <>
+              <Separator />
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold uppercase tracking-widest">Validade</Label>
+                <Controller
+                  name="validityPeriod"
+                  control={control}
+                  render={({ field }) => (
+                    <Select value={field.value || 'NONE'} onValueChange={field.onChange}>
+                      <SelectTrigger className="h-9 text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {VALIDITY_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value} className="text-sm">
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* ── Column 2: Content Editor (Large) ── */}
         <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
 
           {/* Header */}
@@ -328,7 +402,7 @@ export function TemplateEditorForm({
                 control={control}
                 render={({ field }) => (
                   <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger className="h-7 w-36 text-xs">
+                    <SelectTrigger className="h-8 w-32 text-xs">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -347,6 +421,7 @@ export function TemplateEditorForm({
                 {...register('headerText')}
                 placeholder="Texto do cabeçalho"
                 maxLength={60}
+                className="text-sm"
               />
             )}
             {headerType !== 'NONE' && headerType !== 'TEXT' && (
@@ -355,8 +430,6 @@ export function TemplateEditorForm({
               </div>
             )}
           </div>
-
-          <Separator />
 
           {/* Body */}
           <div className="space-y-3">
@@ -536,48 +609,22 @@ export function TemplateEditorForm({
             )}
           </div>
 
-          {/* Validity period — Utility only */}
-          {category === 'UTILITY' && (
-            <>
-              <Separator />
-              <div className="space-y-2">
-                <Label className="font-semibold">
-                  Período de validade <span className="font-normal text-muted-foreground text-xs">(opcional)</span>
-                </Label>
-                <Controller
-                  name="validityPeriod"
-                  control={control}
-                  render={({ field }) => (
-                    <Select value={field.value || 'NONE'} onValueChange={field.onChange}>
-                      <SelectTrigger className="w-48">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {VALIDITY_OPTIONS.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value} className="text-sm">
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-              </div>
-            </>
-          )}
         </div>
 
-        {/* ── Right: Phone preview ── */}
-        <div className="w-80 shrink-0 border-l bg-muted/20 flex items-start justify-center pt-10 px-4">
-          <TemplatePreview
-            headerType={headerType}
-            headerText={headerType === 'TEXT' ? applyVariables(headerText, samples) : ''}
-            bodyText={applyVariables(bodyText, samples)}
-            footerText={footerText}
-            buttonType={buttonType}
-            urlButtonText={watch('urlButtonText')}
-            replyButtons={buttonType === 'REPLY' ? replyButtons.filter(Boolean) : []}
-          />
+        {/* ── Column 3: Phone preview (Narrow) ── */}
+        <div className="w-72 shrink-0 border-l bg-muted/20 overflow-y-auto flex items-start justify-center pt-6 px-3">
+          <div className="w-full max-w-xs">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4 text-center">Prévia</p>
+            <TemplatePreview
+              headerType={headerType}
+              headerText={headerType === 'TEXT' ? applyVariables(headerText, samples) : ''}
+              bodyText={applyVariables(bodyText, samples)}
+              footerText={footerText}
+              buttonType={buttonType}
+              urlButtonText={watch('urlButtonText')}
+              replyButtons={buttonType === 'REPLY' ? replyButtons.filter(Boolean) : []}
+            />
+          </div>
         </div>
       </div>
     </div>
