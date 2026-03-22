@@ -366,22 +366,15 @@ export function TemplateEditorForm({
           {/* Variable Type */}
           <div className="space-y-2">
             <Label className="text-xs font-semibold uppercase tracking-widest">Tipo de Var</Label>
-            <div className="flex rounded-md border overflow-hidden bg-background">
-              <button
-                type="button"
-                className={`flex-1 px-2 py-2 text-xs font-medium transition-colors ${varMode === 'name' ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-muted'}`}
-                onClick={() => setVarMode('name')}
-              >
-                Texto
-              </button>
-              <button
-                type="button"
-                className={`flex-1 px-2 py-2 text-xs font-medium transition-colors border-l ${varMode === 'number' ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-muted'}`}
-                onClick={() => setVarMode('number')}
-              >
-                Número
-              </button>
-            </div>
+            <Select value={varMode} onValueChange={(val) => setVarMode(val as 'name' | 'number')}>
+              <SelectTrigger className="h-9 text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="name" className="text-sm">Texto</SelectItem>
+                <SelectItem value="number" className="text-sm">Número</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Validity period — Utility only */}
