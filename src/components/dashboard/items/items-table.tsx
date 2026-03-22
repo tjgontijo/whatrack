@@ -1,21 +1,16 @@
 'use client'
 
 import * as React from 'react'
-import { useState, useDeferredValue, useMemo, useCallback } from 'react'
+import { useState, useDeferredValue, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Package2, Tag } from 'lucide-react'
 
-import { CrudDataView, CrudEmptyState } from '@/components/dashboard/crud/crud-data-view'
+import { CrudEmptyState } from '@/components/dashboard/crud/crud-data-view'
 import { CrudListView } from '@/components/dashboard/crud/crud-list-view'
-import { CrudCardView } from '@/components/dashboard/crud/crud-card-view'
-import { ViewSwitcher } from '@/components/dashboard/crud/view-switcher'
 import { HeaderPageShell } from '@/components/dashboard/layout'
 import { useCrudInfiniteQuery } from '@/hooks/ui/use-crud-infinite-query'
 import {
   type ColumnDef,
-  type CardConfig,
   type RowActions,
-  type ViewType,
 } from '@/components/dashboard/crud/types'
 
 import {
@@ -76,33 +71,39 @@ const columns: ColumnDef<Item>[] = [
   },
 ]
 
-const cardConfig: CardConfig<Item> = {
-  icon: () => <Package2 className="text-primary/60 h-7 w-7" />,
-  title: (item) => item.name,
-  subtitle: (item) =>
-    item.category ? (
-      <>
-        <Tag className="h-3 w-3" />
-        {item.category.name}
-      </>
-    ) : null,
-  badge: (item) => (
-    <Badge variant={item.active ? 'default' : 'secondary'} className="text-[10px]">
-      {item.active ? 'Ativo' : 'Inativo'}
-    </Badge>
-  ),
-  footer: (item) => <span className="text-muted-foreground text-xs">{item.category?.name ?? 'Sem categoria'}</span>,
+interface ItemsTableProps {
+  hideHeader?: boolean
+  searchInput?: string
+  onSearchChange?: (value: string) => void
+  status?: string
+  onStatusChange?: (value: string) => void
+  categoryFilter?: string
+  onCategoryFilterChange?: (value: string) => void
 }
 
-export function ItemsTable() {
+export function ItemsTable({
+  hideHeader = false,
+  searchInput: externalSearchInput,
+  onSearchChange: externalOnSearchChange,
+  status: externalStatus,
+  onStatusChange: externalOnStatusChange,
+  categoryFilter: externalCategoryFilter,
+  onCategoryFilterChange: externalOnCategoryFilterChange,
+}: ItemsTableProps) {
   const { data: org } = useOrganization()
   const organizationId = org?.id
 
-  const [view, setView] = useState<ViewType>('list')
-  const [searchInput, setSearchInput] = useState('')
-  const [status, setStatus] = useState<string>('all')
-  const [categoryFilter, setCategoryFilter] = useState<string>('all')
+  const [localSearchInput, setLocalSearchInput] = useState('')
+  const [localStatus, setLocalStatus] = useState<string>('all')
+  const [localCategoryFilter, setLocalCategoryFilter] = useState<string>('all')
   const [isItemFormDrawerOpen, setIsItemFormDrawerOpen] = useState(false)
+
+  const searchInput = hideHeader ? externalSearchInput ?? localSearchInput : localSearchInput
+  const onSearchChange = hideHeader ? externalOnSearchChange ?? setLocalSearchInput : setLocalSearchInput
+  const status = hideHeader ? externalStatus ?? localStatus : localStatus
+  const onStatusChange = hideHeader ? externalOnStatusChange ?? setLocalStatus : setLocalStatus
+  const categoryFilter = hideHeader ? externalCategoryFilter ?? localCategoryFilter : localCategoryFilter
+  const onCategoryFilterChange = hideHeader ? externalOnCategoryFilterChange ?? setLocalCategoryFilter : setLocalCategoryFilter
 
   const deferredSearch = useDeferredValue(searchInput)
 
@@ -156,7 +157,7 @@ export function ItemsTable() {
     <>
       <div className="space-y-1.5">
         <p className="text-muted-foreground text-xs font-medium">Status</p>
-        <Select value={status} onValueChange={setStatus}>
+        <Select value={status} onValueChange={onStatusChange}>
           <SelectTrigger className="border-border h-8 w-full text-xs">
             <SelectValue />
           </SelectTrigger>
@@ -173,7 +174,7 @@ export function ItemsTable() {
       {categories.length > 0 && (
         <div className="space-y-1.5">
           <p className="text-muted-foreground text-xs font-medium">Categoria</p>
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+          <Select value={categoryFilter} onValueChange={onCategoryFilterChange}>
             <SelectTrigger className="border-border h-8 w-full text-xs">
               <SelectValue placeholder="Todas as categorias" />
             </SelectTrigger>
@@ -193,51 +194,18 @@ export function ItemsTable() {
     </>
   )
 
-  return (
+  const content = (
     <>
-      <HeaderPageShell
-        title="Itens"
-        selector={<ViewSwitcher view={view} setView={setView} enabledViews={['list', 'cards']} />}
-        primaryAction={
-          <Button
-            type="button"
-            size="sm"
-            className="h-7 gap-1.5 text-xs"
-            onClick={() => setIsItemFormDrawerOpen(true)}
-          >
-            Novo
-          </Button>
-        }
-        searchValue={searchInput}
-        onSearchChange={setSearchInput}
-        searchPlaceholder="Buscar itens..."
-        onRefresh={() => void refetch()}
-        isFetchingMore={isFetchingNextPage}
-        filters={filtersNode}
-        isLoading={isLoading}
-      >
-        <CrudDataView
+      {data.length === 0 && !isLoading ? (
+        <CrudEmptyState />
+      ) : (
+        <CrudListView
           data={data}
-          view={view}
-          emptyView={<CrudEmptyState />}
-          tableView={
-            <CrudListView
-              data={data}
-              columns={columns}
-              rowActions={rowActions}
-              onEndReached={hasNextPage ? fetchNextPage : undefined}
-            />
-          }
-          cardView={
-            <CrudCardView
-              data={data}
-              config={cardConfig}
-              rowActions={rowActions}
-              onEndReached={hasNextPage ? fetchNextPage : undefined}
-            />
-          }
+          columns={columns}
+          rowActions={rowActions}
+          onEndReached={hasNextPage ? fetchNextPage : undefined}
         />
-      </HeaderPageShell>
+      )}
 
       <ItemFormDrawer
         categories={categories}
@@ -249,5 +217,34 @@ export function ItemsTable() {
         }}
       />
     </>
+  )
+
+  if (hideHeader) {
+    return content
+  }
+
+  return (
+    <HeaderPageShell
+      title="Itens"
+      primaryAction={
+        <Button
+          type="button"
+          size="sm"
+          className="h-7 gap-1.5 text-xs"
+          onClick={() => setIsItemFormDrawerOpen(true)}
+        >
+          Novo
+        </Button>
+      }
+      searchValue={searchInput}
+      onSearchChange={onSearchChange}
+      searchPlaceholder="Buscar itens..."
+      onRefresh={() => void refetch()}
+      isFetchingMore={isFetchingNextPage}
+      filters={filtersNode}
+      isLoading={isLoading}
+    >
+      {content}
+    </HeaderPageShell>
   )
 }

@@ -3,22 +3,18 @@
 import * as React from 'react'
 import { useState, useDeferredValue, useMemo, useCallback } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { MoreHorizontal, Pencil, Tag, Trash2, Power, PowerOff } from 'lucide-react'
+import { MoreHorizontal, Pencil, Trash2, Power, PowerOff } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
-import { CrudDataView, CrudEmptyState } from '@/components/dashboard/crud/crud-data-view'
+import { CrudEmptyState } from '@/components/dashboard/crud/crud-data-view'
 import { CrudListView } from '@/components/dashboard/crud/crud-list-view'
-import { CrudCardView } from '@/components/dashboard/crud/crud-card-view'
 import { DeleteConfirmDialog } from '@/components/dashboard/crud/delete-confirm-dialog'
-import { ViewSwitcher } from '@/components/dashboard/crud/view-switcher'
 import { HeaderPageShell } from '@/components/dashboard/layout'
 import { useCrudInfiniteQuery } from '@/hooks/ui/use-crud-infinite-query'
 import {
-  type CardConfig,
   type ColumnDef,
   type RowActions,
-  type ViewType,
 } from '@/components/dashboard/crud/types'
 import {
   DropdownMenu,
@@ -28,7 +24,6 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
 import { useOrganization } from '@/hooks/organization/use-organization'
-import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 import {
   Select,
   SelectContent,
@@ -89,32 +84,34 @@ const columns: ColumnDef<Category>[] = [
   },
 ]
 
-const cardConfig: CardConfig<Category> = {
-  icon: () => <Tag className="text-primary/60 h-7 w-7" />,
-  title: (category) => category.name,
-  subtitle: (category) => `${category.itemsCount} ${category.itemsCount === 1 ? 'item' : 'itens'}`,
-  badge: (category) => (
-    <Badge variant={category.active ? 'default' : 'secondary'} className="text-[10px]">
-      {category.active ? 'Ativa' : 'Inativa'}
-    </Badge>
-  ),
-  footer: (category) => (
-    <span className="text-muted-foreground text-xs">
-      Criada em {new Date(category.createdAt).toLocaleDateString('pt-BR')}
-    </span>
-  ),
+interface CategoriesTableProps {
+  hideHeader?: boolean
+  searchInput?: string
+  onSearchChange?: (value: string) => void
+  statusFilter?: string
+  onStatusFilterChange?: (value: string) => void
 }
 
-export function CategoriesTable() {
+export function CategoriesTable({
+  hideHeader = false,
+  searchInput: externalSearchInput,
+  onSearchChange: externalOnSearchChange,
+  statusFilter: externalStatusFilter,
+  onStatusFilterChange: externalOnStatusFilterChange,
+}: CategoriesTableProps) {
   const queryClient = useQueryClient()
   const { data: org } = useOrganization()
   const organizationId = org?.id
-  const [view, setView] = useState<ViewType>('list')
-  const [searchInput, setSearchInput] = useState('')
-  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [localSearchInput, setLocalSearchInput] = useState('')
+  const [localStatusFilter, setLocalStatusFilter] = useState<string>('all')
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingCategory, setEditingCategory] = useState<CategoryFormData | null>(null)
   const [deletingCategory, setDeletingCategory] = useState<Category | null>(null)
+
+  const searchInput = hideHeader ? externalSearchInput ?? localSearchInput : localSearchInput
+  const onSearchChange = hideHeader ? externalOnSearchChange ?? setLocalSearchInput : setLocalSearchInput
+  const statusFilter = hideHeader ? externalStatusFilter ?? localStatusFilter : localStatusFilter
+  const onStatusFilterChange = hideHeader ? externalOnStatusFilterChange ?? setLocalStatusFilter : setLocalStatusFilter
 
   const deferredSearch = useDeferredValue(searchInput)
 
@@ -227,7 +224,7 @@ export function CategoriesTable() {
   const filtersNode = (
     <div className="space-y-1.5">
       <p className="text-muted-foreground text-xs font-medium">Status</p>
-      <Select value={statusFilter} onValueChange={setStatusFilter}>
+      <Select value={statusFilter} onValueChange={onStatusFilterChange}>
         <SelectTrigger className="border-border h-8 w-full text-xs">
           <SelectValue />
         </SelectTrigger>
@@ -242,55 +239,18 @@ export function CategoriesTable() {
     </div>
   )
 
-  return (
+  const content = (
     <>
-      <HeaderPageShell
-        title="Categorias"
-        selector={<ViewSwitcher view={view} setView={setView} enabledViews={['list', 'cards']} />}
-        primaryAction={
-          <Button
-            type="button"
-            size="sm"
-            className="h-7 gap-1.5 text-xs"
-            onClick={() => {
-              setEditingCategory(null)
-              setIsFormOpen(true)
-            }}
-          >
-            Novo
-          </Button>
-        }
-        searchValue={searchInput}
-        onSearchChange={setSearchInput}
-        searchPlaceholder="Buscar categoria..."
-        onRefresh={() => void refetch()}
-        isFetchingMore={isFetchingNextPage}
-        filters={filtersNode}
-        isLoading={isLoading}
-      >
-        <CrudDataView
+      {data.length === 0 && !isLoading ? (
+        <CrudEmptyState />
+      ) : (
+        <CrudListView
           data={data}
-          view={view}
-          emptyView={<CrudEmptyState title="Nenhuma categoria encontrada." />}
-          tableView={
-            <CrudListView
-              data={data}
-              columns={columns}
-              rowActions={rowActions}
-              className="min-h-[calc(100vh-300px)]"
-              onEndReached={hasNextPage ? fetchNextPage : undefined}
-            />
-          }
-          cardView={
-            <CrudCardView
-              data={data}
-              config={cardConfig}
-              rowActions={rowActions}
-              onEndReached={hasNextPage ? fetchNextPage : undefined}
-            />
-          }
+          columns={columns}
+          rowActions={rowActions}
+          onEndReached={hasNextPage ? fetchNextPage : undefined}
         />
-      </HeaderPageShell>
+      )}
 
       <CategoryFormDrawer
         open={isFormOpen}
@@ -317,5 +277,37 @@ export function CategoriesTable() {
         }}
       />
     </>
+  )
+
+  if (hideHeader) {
+    return content
+  }
+
+  return (
+    <HeaderPageShell
+      title="Categorias"
+      primaryAction={
+        <Button
+          type="button"
+          size="sm"
+          className="h-7 gap-1.5 text-xs"
+          onClick={() => {
+            setEditingCategory(null)
+            setIsFormOpen(true)
+          }}
+        >
+          Novo
+        </Button>
+      }
+      searchValue={searchInput}
+      onSearchChange={onSearchChange}
+      searchPlaceholder="Buscar categoria..."
+      onRefresh={() => void refetch()}
+      isFetchingMore={isFetchingNextPage}
+      filters={filtersNode}
+      isLoading={isLoading}
+    >
+      {content}
+    </HeaderPageShell>
   )
 }

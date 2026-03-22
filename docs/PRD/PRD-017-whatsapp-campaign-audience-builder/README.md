@@ -1,0 +1,119 @@
+# PRD-017: WhatsApp Campaign Audience Builder
+
+**Status:** Draft
+**Data:** 2026-03-22
+**Versao:** 1.0
+
+---
+
+## O Que e Este PRD?
+
+Este PRD define a v2 do modulo de campanhas WhatsApp do produto. A proposta substitui o fluxo atual, centrado em um drawer com importacao CSV pontual, por um modulo `audiencia-first` com administracao propria de listas, tags e segmentos, mais um builder de campanha em pagina cheia.
+
+O objetivo e tornar o disparo oficial do WhatsApp realmente operavel no dia a dia: criar e reutilizar audiencias, escolher templates aprovados, resolver variaveis por destinatario de forma previsivel, revisar exclusoes antes do envio e operar campanhas manuais ou agendadas sem o fluxo de aprovacao que hoje ja nao faz parte do produto desejado.
+
+---
+
+## Estrutura do PRD
+
+PRD-017-whatsapp-campaign-audience-builder/
+|-- README.md
+|-- CONTEXT.md
+|-- DIAGNOSTIC.md
+|-- TASKS.md
+`-- QUICK_START.md
+
+---
+
+## Resumo Executivo
+
+### Objetivo
+- Substituir o drawer de criacao de campanha por um builder em pagina cheia, alinhado com a experiencia ja adotada no editor de templates.
+- Introduzir uma tab `Audiencias` com gerenciamento de listas estaticas, tags de leads e segmentos salvos do CRM.
+- Permitir que cada campanha resolva variaveis do template a partir de `campos do CRM`, `colunas da lista` ou `valores fixos`.
+- Manter apenas dois modos operacionais de envio: `manual` e `agendado`.
+- Remover por completo o fluxo de aprovacao do backend, da UI e do modelo de dados de campanhas.
+
+### Status Atual
+- A tela `/whatsapp/campaigns` usa `HeaderPageShell` com tabs `Visao Geral` e `Campanhas`.
+- A criacao acontece em um drawer de 3 passos e hoje so suporta importacao CSV embutida na campanha.
+- O backend ainda possui estados e endpoints de aprovacao, mas a UI ja nao opera esse fluxo de forma consistente.
+- Nao existem entidades persistidas para `listas`, `tags` ou `segmentos`.
+- O schema de campanhas menciona `tagIds`, mas a implementacao real nao suporta tags de leads.
+- O filtro "fase do pipeline ha X dias" nao e confiavel hoje porque o sistema nao persiste quando o ticket entrou na fase atual.
+
+### Escopo
+Entra:
+- nova experiencia full-page para `nova campanha` e `editar rascunho`
+- tab `Audiencias` dentro de `/whatsapp/campaigns`
+- listas estaticas com importacao CSV e reuso em multiplas campanhas
+- tags de leads para segmentacao operacional/comercial
+- segmentos salvos do CRM com filtros por projeto, origem, status, fase e tempo na fase
+- resolucao de variaveis por `CRM | lista | valor fixo`
+- preview de cobertura de variaveis, exclusoes e duplicidades antes do envio
+- congelamento do snapshot de destinatarios e variaveis no momento de `enviar` ou `agendar`
+- simplificacao do dominio de campanhas para `DRAFT | SCHEDULED | PROCESSING | COMPLETED | CANCELLED`
+- historico de eventos de campanha sem conceito de aprovacao
+
+Fica fora:
+- automacoes multi-etapa e jornadas
+- criacao de um motor generico de custom fields para todo o CRM
+- sincronizacao nativa com ecommerce/ERP para pedidos
+- analytics avancado de campanha alem do acompanhamento atual
+- roteamento automatico entre varias instancias com distribuicao inteligente
+- mensagens livres fora de templates aprovados pela Meta
+
+### Estimativa
+- Ordem de grandeza: 3 a 4 sprints para uma v1 consistente.
+- O bloco de tags + segmentos pode ser entregue incrementalmente sem travar a simplificacao do builder.
+
+---
+
+## Abordagem Adotada
+
+### Approach A: Audience-first builder ⭐ Recommended
+- Como: introduzir entidades persistidas para `listas`, `tags` e `segmentos`, e fazer a campanha consumir uma audiencia salva antes de escolher template, mapear variaveis e enviar.
+- Pros: melhor UX, reuso real, melhor administracao operacional, base correta para recorrencia.
+- Cons: exige modelagem nova no banco e uma pequena reorganizacao da area de campanhas.
+- Esforco: Medio/Alto
+
+### Approach B: Manter campanhas centradas em CSV e filtros pontuais
+- Como: trocar o drawer por pagina cheia, mas continuar tratando audiencia como algo descartavel da propria campanha.
+- Pros: menor mudanca de schema.
+- Cons: continua ruim para operacao, sem reuso, sem listas persistidas e com forte acoplamento entre audiencia e template.
+- Esforco: Medio
+
+### Approach C: Construir primeiro uma plataforma ampla de custom fields no CRM
+- Como: antes de tocar campanhas, criar um modulo generico de campos customizados e so depois plugar o disparo.
+- Pros: mais flexivel no longo prazo.
+- Cons: escopo alto demais para o problema imediato e atrasa a entrega do fluxo operacional.
+- Esforco: Alto
+
+---
+
+## Arquivos/Areas Principais
+
+- `prisma/schema.prisma`
+- `src/app/(dashboard)/[organizationSlug]/[projectSlug]/whatsapp/campaigns/...`
+- `src/app/api/v1/whatsapp/campaigns/...`
+- `src/app/api/v1/whatsapp/audiences/...`
+- `src/app/api/v1/whatsapp/lead-tags/...`
+- `src/components/dashboard/whatsapp/campaigns/...`
+- `src/services/whatsapp/...`
+- `src/services/tickets/...`
+- `src/schemas/whatsapp/...`
+
+---
+
+## Como Ler Este PRD
+
+1. `CONTEXT.md`
+2. `DIAGNOSTIC.md`
+3. `TASKS.md`
+4. `QUICK_START.md`
+
+---
+
+## Proximo Passo
+
+Validar esta direcao como substituta do fluxo atual de campanhas e usar este PRD como base para a branch e para a execucao incremental da feature.
