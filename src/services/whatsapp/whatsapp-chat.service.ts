@@ -43,6 +43,14 @@ export class WhatsAppChatService {
     try {
       const { from, id: wamid, timestamp, type } = messageData
 
+      // Track template action (reply or button click) if message references a sent template
+      const contextWamid = (messageData as any).context?.id as string | undefined
+      if (contextWamid) {
+        const { WhatsAppTemplateAnalyticsService } = await import('./whatsapp-template-analytics.service')
+        const actionType = (type === 'button' || type === 'interactive') ? 'click' : 'reply'
+        void WhatsAppTemplateAnalyticsService.trackAction(contextWamid, actionType)
+      }
+
       // Check if message already exists (idempotency)
       // Ideally check this first to save DB calls if redundant webhook delivery
       const existingMessage = await prisma.message.findUnique({
@@ -392,6 +400,12 @@ export class WhatsAppChatService {
             status: status,
           },
         })
+      }
+
+      // Update template analytics (non-blocking)
+      if (status === 'delivered' || status === 'read') {
+        const { WhatsAppTemplateAnalyticsService } = await import('./whatsapp-template-analytics.service')
+        void WhatsAppTemplateAnalyticsService.updateStatus(wamid, status)
       }
     } catch (error) {
       logger.error({ err: error }, '[WhatsAppChatService] Error processing status update')

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -164,6 +164,9 @@ export function TemplateEditorForm({
   const validityPeriod = watch('validityPeriod')
 
   const bodyVariables = useMemo(() => extractVariables(bodyText), [bodyText])
+
+  // Variable mode: 'name' = {{nome}}, 'number' = {{1}}, {{2}}…
+  const [varMode, setVarMode] = useState<'name' | 'number'>('name')
 
   // Insert variable at cursor (or at end)
   const insertVariable = (varName: string) => {
@@ -370,28 +373,39 @@ export function TemplateEditorForm({
 
             {/* Variable insertion */}
             <div className="flex items-center gap-2 flex-wrap">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-7 gap-1.5 text-xs"
-                onClick={() => insertVariable('nome')}
-              >
-                <Plus className="h-3 w-3" />
-                Variável (Nome)
-              </Button>
+              {/* Mode toggle */}
+              <div className="flex rounded-md border overflow-hidden">
+                <button
+                  type="button"
+                  className={`px-2.5 py-1 text-xs font-medium transition-colors ${varMode === 'name' ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-muted'}`}
+                  onClick={() => setVarMode('name')}
+                >
+                  Nome
+                </button>
+                <button
+                  type="button"
+                  className={`px-2.5 py-1 text-xs font-medium transition-colors border-l ${varMode === 'number' ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-muted'}`}
+                  onClick={() => setVarMode('number')}
+                >
+                  Número
+                </button>
+              </div>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 className="h-7 gap-1.5 text-xs"
                 onClick={() => {
-                  const count = bodyVariables.length + 1
-                  insertVariable(`${count}`)
+                  if (varMode === 'name') {
+                    insertVariable('nome')
+                  } else {
+                    const count = bodyVariables.length + 1
+                    insertVariable(`${count}`)
+                  }
                 }}
               >
                 <Plus className="h-3 w-3" />
-                Variável (Número)
+                Inserir variável
               </Button>
               {bodyVariables.length > 0 && (
                 <div className="flex gap-1.5 flex-wrap">
@@ -470,9 +484,9 @@ export function TemplateEditorForm({
             </div>
 
             {buttonType === 'URL' && (
-              <div className="space-y-2 rounded-lg border p-3">
-                <Input {...register('urlButtonText')} placeholder="Texto do botão" className="text-sm" />
-                <Input {...register('urlButtonUrl')} placeholder="https://exemplo.com" className="text-sm" />
+              <div className="flex gap-2 rounded-lg border p-3">
+                <Input {...register('urlButtonText')} placeholder="Texto do botão" className="text-sm w-40 shrink-0" />
+                <Input {...register('urlButtonUrl')} placeholder="https://exemplo.com" className="text-sm flex-1" />
               </div>
             )}
 

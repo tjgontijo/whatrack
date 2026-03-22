@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from 'react'
 import { useIsFetching, useQuery, useQueryClient } from '@tanstack/react-query'
-import { MessageSquare, Plus } from 'lucide-react'
+import { Plus } from 'lucide-react'
 
 import { HeaderPageShell, HeaderTabs, type HeaderTab } from '@/components/dashboard/layout'
 import { Button } from '@/components/ui/button'
@@ -12,14 +12,13 @@ import { authClient } from '@/lib/auth/auth-client'
 import { useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
 import { useWhatsAppOnboarding } from '@/hooks/whatsapp/use-whatsapp-onboarding'
 import { whatsappApi } from '@/lib/whatsapp/client'
-import { CrudEditDrawer, DeleteConfirmDialog } from '@/components/dashboard/crud'
 import { TemplateEditorForm } from '@/components/dashboard/whatsapp/template-editor/template-editor-form'
-import { TemplateNewDialog } from '@/components/dashboard/whatsapp/template-editor/template-new-dialog'
 import { AccountTab } from './account-tab'
 import { TemplatesView } from './templates-view'
 import { WebhooksView } from './webhooks-view'
 import { SendTestSheet } from '../send-test-sheet'
-import type { WhatsAppTemplate, WhatsAppPhoneNumber } from '@/types/whatsapp/whatsapp'
+import type { WhatsAppTemplate } from '@/types/whatsapp/whatsapp'
+import type { WhatsAppInstance } from './instance-card-detail'
 
 type Tab = 'conta' | 'templates' | 'webhook'
 type DatePreset = 'all' | 'today' | '7d' | '30d'
@@ -56,18 +55,12 @@ export function WhatsAppSettingsHub({ organizationId }: WhatsAppSettingsHubProps
   const [datePreset, setDatePreset] = useState<DatePreset>('all')
 
   // Template editor state
-  const [newDialogOpen, setNewDialogOpen] = useState(false)
   const [editorOpen, setEditorOpen] = useState(false)
   const [selectedTemplate, setSelectedTemplate] = useState<WhatsAppTemplate | null>(null)
-  const [newTemplateConfig, setNewTemplateConfig] = useState<{
-    category: string
-    subtype: string
-    language: string
-  } | null>(null)
 
   // Send test sheet state
   const [sendTestOpen, setSendTestOpen] = useState(false)
-  const [sendTestPhone, setSendTestPhone] = useState<WhatsAppPhoneNumber | null>(null)
+  const [sendTestPhone, setSendTestPhone] = useState<WhatsAppInstance | null>(null)
   const [sendTestTemplate, setSendTestTemplate] = useState<string | undefined>(undefined)
 
   // Fetch templates for templates tab
@@ -97,7 +90,7 @@ export function WhatsAppSettingsHub({ organizationId }: WhatsAppSettingsHubProps
     }
   }, [queryClient, resolvedOrgId, projectId, activeTab])
 
-  const { startOnboarding } = useWhatsAppOnboarding(handleRefetch)
+  useWhatsAppOnboarding(handleRefetch)
 
   const tabs = useMemo<HeaderTab[]>(
     () => [
@@ -109,31 +102,52 @@ export function WhatsAppSettingsHub({ organizationId }: WhatsAppSettingsHubProps
   )
 
   // Handlers for AccountTab
-  const handleSendTestFromAccount = (phone: WhatsAppPhoneNumber) => {
+  const handleSendTestFromAccount = (phone: WhatsAppInstance) => {
     setSendTestPhone(phone)
     setSendTestTemplate(undefined)
     setSendTestOpen(true)
   }
 
   // Handlers for TemplatesView
-  const handleNewTemplate = () => setNewDialogOpen(true)
-
-  const handleNewDialogContinue = (config: { category: string; subtype: string; language: string }) => {
-    setNewTemplateConfig(config)
+  const handleNewTemplate = useCallback(() => {
     setSelectedTemplate(null)
     setEditorOpen(true)
-  }
+  }, [])
 
-  const handleEditTemplate = (template: WhatsAppTemplate) => {
+  const handleEditTemplate = useCallback((template: WhatsAppTemplate) => {
     setSelectedTemplate(template)
     setEditorOpen(true)
-  }
+  }, [])
 
   const handleSendTestFromTemplate = (template: WhatsAppTemplate) => {
     // Need a phone to send test — try to get from instances cache
     setSendTestTemplate(template.name)
     setSendTestPhone(null)
     setSendTestOpen(true)
+  }
+
+  // Early return: If editing template, show editor full-screen without header
+  if (activeTab === 'templates' && editorOpen) {
+    return (
+      <>
+        <TemplateEditorForm
+          template={selectedTemplate}
+          onClose={() => {
+            setEditorOpen(false)
+            setSelectedTemplate(null)
+          }}
+        />
+        {sendTestPhone && (
+          <SendTestSheet
+            phone={sendTestPhone}
+            organizationId={resolvedOrgId}
+            open={sendTestOpen}
+            onOpenChange={setSendTestOpen}
+            initialTemplate={sendTestTemplate}
+          />
+        )}
+      </>
+    )
   }
 
   // Primary action per tab
@@ -152,7 +166,7 @@ export function WhatsAppSettingsHub({ organizationId }: WhatsAppSettingsHubProps
       )
     }
     return null
-  }, [activeTab])
+  }, [activeTab, handleNewTemplate])
 
   // Filters per tab
   const filters = useMemo(() => {
@@ -282,34 +296,7 @@ export function WhatsAppSettingsHub({ organizationId }: WhatsAppSettingsHubProps
         )}
       </HeaderPageShell>
 
-      {/* Template dialogs */}
-      <TemplateNewDialog
-        open={newDialogOpen}
-        onOpenChange={setNewDialogOpen}
-        onContinue={handleNewDialogContinue}
-      />
 
-      <CrudEditDrawer
-        open={editorOpen}
-        onOpenChange={setEditorOpen}
-        title={selectedTemplate ? 'Editar Template' : 'Novo Template'}
-        subtitle={
-          selectedTemplate
-            ? 'Atualize seu template de mensagem'
-            : `${newTemplateConfig?.category} · ${newTemplateConfig?.subtype} · ${newTemplateConfig?.language}`
-        }
-        icon={MessageSquare}
-        maxWidth="max-w-[95vw]"
-        showFooter={false}
-      >
-        <TemplateEditorForm
-          template={selectedTemplate}
-          onClose={() => {
-            setEditorOpen(false)
-            setSelectedTemplate(null)
-          }}
-        />
-      </CrudEditDrawer>
 
       {/* Send test sheet */}
       {sendTestPhone && (

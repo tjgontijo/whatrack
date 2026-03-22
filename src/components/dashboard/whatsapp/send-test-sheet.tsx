@@ -2,9 +2,8 @@
 
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Send } from 'lucide-react'
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
-import { Button } from '@/components/ui/button'
+import { Send, CheckCheck } from 'lucide-react'
+import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -13,11 +12,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { CrudEditDrawer } from '@/components/dashboard/crud'
 import { whatsappApi } from '@/lib/whatsapp/client'
-import type { WhatsAppPhoneNumber, WhatsAppTemplate } from '@/types/whatsapp/whatsapp'
+import { applyWhatsAppMask, removeWhatsAppMask } from '@/lib/mask/phone-mask'
+import type { WhatsAppInstance } from '@/components/dashboard/whatsapp/settings/instance-card-detail'
 
 interface SendTestSheetProps {
-  phone: WhatsAppPhoneNumber
+  phone: WhatsAppInstance
   organizationId: string
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -31,15 +32,12 @@ export function SendTestSheet({
   onOpenChange,
   initialTemplate,
 }: SendTestSheetProps) {
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string | undefined>(
-    initialTemplate,
-  )
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | undefined>(initialTemplate)
   const [targetNumber, setTargetNumber] = useState('')
   const [variables, setVariables] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Fetch approved templates
-  const { data: templatesResponse } = useQuery({
+  const { data: approvedTemplates = [] } = useQuery({
     queryKey: ['whatsapp', 'templates', organizationId],
     queryFn: async () => {
       const templates = await whatsappApi.getTemplates(organizationId)
@@ -48,153 +46,190 @@ export function SendTestSheet({
     enabled: open,
   })
 
-  const templates = templatesResponse || []
-  const selectedTemplate = templates.find((t) => t.name === selectedTemplateId)
+  const selectedTemplate = approvedTemplates.find((t) => t.name === selectedTemplateId)
 
-  // Extract variable names from template body
   const getBodyText = (): string => {
-    if (!selectedTemplate?.components) return ''
-    const bodyComponent = selectedTemplate.components.find((c) => c.type === 'BODY')
-    return bodyComponent?.text || ''
+    const body = selectedTemplate?.components?.find((c: any) => c.type === 'BODY')
+    return (body as any)?.text || ''
   }
 
-  const getVariablesFromTemplate = (body: string): string[] => {
+  const getVariableNames = (body: string): string[] => {
     const regex = /\{\{([^}]+)\}\}/g
-    const matches = []
+    const matches: string[] = []
     let match
-    while ((match = regex.exec(body)) !== null) {
-      matches.push(match[1])
-    }
+    while ((match = regex.exec(body)) !== null) matches.push(match[1])
     return [...new Set(matches)]
   }
 
   const bodyText = getBodyText()
-  const templateVariables = bodyText ? getVariablesFromTemplate(bodyText) : []
+  const templateVariables = bodyText ? getVariableNames(bodyText) : []
 
-  // Generate preview with variable substitution
   const getPreview = () => {
     if (!bodyText) return ''
     let preview = bodyText
-    templateVariables.forEach((varName) => {
-      const value = variables[varName] || `[${varName}]`
-      preview = preview.replace(`{{${varName}}}`, value)
+    templateVariables.forEach((v) => {
+      preview = preview.replace(new RegExp(`\\{\\{${v}\\}\\}`, 'g'), variables[v] || `[${v}]`)
     })
     return preview
   }
 
+  const now = new Date()
+  const timeStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+
   const handleSend = async () => {
     if (!selectedTemplate || !targetNumber) return
-
     setIsSubmitting(true)
     try {
-      // Convert variables object to array format expected by sendTemplate
-      const variablesArray = templateVariables.map((name) => ({
-        name,
-        value: variables[name] || '',
-      }))
-
+      const digits = removeWhatsAppMask(targetNumber)
       await whatsappApi.sendTemplate(
-        targetNumber,
+        `55${digits}`,
         selectedTemplate.name,
         organizationId,
         'pt_BR',
-        variablesArray,
+        templateVariables.map((name) => ({ name, value: variables[name] || '' })),
       )
-
-      // Success toast would be handled by the calling component
       onOpenChange(false)
       setTargetNumber('')
       setVariables({})
       setSelectedTemplateId(undefined)
     } catch (error) {
       console.error('Failed to send test message:', error)
-      // Error handling would be done by the calling component
     } finally {
       setIsSubmitting(false)
     }
   }
 
+  const headerComponent = selectedTemplate?.components?.find((c: any) => c.type === 'HEADER') as any
+  const footerComponent = selectedTemplate?.components?.find((c: any) => c.type === 'FOOTER') as any
+  const buttonComponents = selectedTemplate?.components?.find((c: any) => c.type === 'BUTTONS') as any
+
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-[450px]">
-        <SheetHeader>
-          <SheetTitle>Enviar Mensagem de Teste</SheetTitle>
-          <SheetDescription>
-            Selecione um template e configure as variáveis para enviar um teste
-          </SheetDescription>
-        </SheetHeader>
+    <CrudEditDrawer
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Enviar Mensagem de Teste"
+      subtitle={`De: ${phone.verifiedName} · ${phone.displayPhone}`}
+      icon={Send}
+      onSave={handleSend}
+      isSaving={isSubmitting}
+      saveLabel="Enviar Mensagem"
+      desktopDirection="right"
+    >
+      <div className="space-y-5">
 
-        <div className="space-y-4 mt-6">
-          {/* Template Selection */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Template</label>
-            <Select value={selectedTemplateId || ''} onValueChange={setSelectedTemplateId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecionar template..." />
-              </SelectTrigger>
-              <SelectContent>
-                {templates.map((template) => (
-                  <SelectItem key={template.name} value={template.name}>
-                    {template.name}
-                  </SelectItem>
+        {/* ── 1. Preview ── */}
+        <div className="space-y-2">
+          <Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            Preview
+          </Label>
+          {selectedTemplate ? (
+            <div className="rounded-xl overflow-hidden border" style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Ccircle cx='1' cy='1' r='1' fill='%23e5e7eb' opacity='0.6'/%3E%3C/svg%3E")`,
+              backgroundColor: '#f0f2f5',
+            }}>
+              {/* Chat bar */}
+              <div className="flex items-center gap-2.5 px-3 py-2.5 bg-[#075e54] text-white">
+                <div className="h-7 w-7 rounded-full bg-white/20 flex items-center justify-center text-xs font-bold shrink-0">
+                  {phone.verifiedName.charAt(0).toUpperCase()}
+                </div>
+                <div className="min-w-0">
+                  <div className="text-xs font-semibold leading-none truncate">{phone.verifiedName}</div>
+                  <div className="text-[10px] opacity-70 mt-0.5">WhatsApp Business</div>
+                </div>
+              </div>
+              {/* Messages */}
+              <div className="p-3 flex flex-col gap-1">
+                <div className="flex justify-end">
+                  <div className="max-w-[85%] rounded-2xl rounded-tr-sm px-3 py-2 shadow-sm" style={{ background: '#dcf8c6' }}>
+                    {headerComponent?.format === 'IMAGE' && (
+                      <div className="mb-1.5 rounded-lg bg-black/10 h-20 flex items-center justify-center text-xs text-black/40">📷 Imagem</div>
+                    )}
+                    {headerComponent?.text && (
+                      <p className="text-xs font-semibold text-[#111b21] mb-1">{headerComponent.text}</p>
+                    )}
+                    <p className="text-xs text-[#111b21] leading-relaxed whitespace-pre-wrap">{getPreview()}</p>
+                    {footerComponent?.text && (
+                      <p className="text-[10px] text-[#111b21]/50 mt-1">{footerComponent.text}</p>
+                    )}
+                    <div className="flex items-center justify-end gap-1 mt-1">
+                      <span className="text-[9px] text-[#111b21]/50">{timeStr}</span>
+                      <CheckCheck className="h-3 w-3 text-[#53bdeb]" />
+                    </div>
+                  </div>
+                </div>
+                {buttonComponents?.buttons?.map((btn: any, i: number) => (
+                  <div key={i} className="flex justify-end">
+                    <div className="rounded-xl bg-white/90 border px-3 py-1 text-[10px] font-medium text-[#075e54] shadow-sm">{btn.text}</div>
+                  </div>
                 ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Preview */}
-          {selectedTemplate && (
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Preview</label>
-              <div className="bg-muted p-3 rounded text-sm whitespace-pre-wrap">
-                {getPreview()}
               </div>
             </div>
-          )}
-
-          {/* Variables */}
-          {templateVariables.length > 0 && (
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Variáveis</label>
-              <div className="space-y-2">
-                {templateVariables.map((varName) => (
-                  <Input
-                    key={varName}
-                    placeholder={varName}
-                    value={variables[varName] || ''}
-                    onChange={(e) =>
-                      setVariables((prev) => ({
-                        ...prev,
-                        [varName]: e.target.value,
-                      }))
-                    }
-                  />
-                ))}
+          ) : (
+            <div className="flex flex-col items-center justify-center py-8 rounded-xl border border-dashed gap-2">
+              <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center">
+                <Send className="h-3.5 w-3.5 text-muted-foreground" />
               </div>
+              <p className="text-xs text-muted-foreground">Selecione um template para ver o preview</p>
             </div>
           )}
-
-          {/* Target Number */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Número Destino</label>
-            <Input
-              placeholder="+55 11 9 9999-9999"
-              value={targetNumber}
-              onChange={(e) => setTargetNumber(e.target.value)}
-            />
-          </div>
-
-          {/* Submit Button */}
-          <Button
-            onClick={handleSend}
-            disabled={!selectedTemplate || !targetNumber || isSubmitting}
-            className="w-full gap-2"
-          >
-            <Send className="w-4 h-4" />
-            {isSubmitting ? 'Enviando...' : 'Enviar Mensagem de Teste'}
-          </Button>
         </div>
-      </SheetContent>
-    </Sheet>
+
+        {/* ── 2. Template ── */}
+        <div className="space-y-2">
+          <Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            Template
+          </Label>
+          <Select
+            value={selectedTemplateId ?? ''}
+            onValueChange={(v) => { setSelectedTemplateId(v); setVariables({}) }}
+          >
+            <SelectTrigger className="h-10 w-full">
+              <SelectValue placeholder="Selecionar template aprovado..." />
+            </SelectTrigger>
+            <SelectContent>
+              {approvedTemplates.map((t) => (
+                <SelectItem key={t.name} value={t.name}>{t.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* ── 3. Variables ── */}
+        {templateVariables.length > 0 && (
+          <div className="space-y-2">
+            <Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              Variáveis
+            </Label>
+            {templateVariables.map((varName) => (
+              <div key={varName} className="space-y-1">
+                <Label className="text-xs text-muted-foreground">{varName}</Label>
+                <Input
+                  placeholder={`Valor de ${varName}`}
+                  value={variables[varName] || ''}
+                  onChange={(e) => setVariables((prev) => ({ ...prev, [varName]: e.target.value }))}
+                  className="h-9"
+                />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ── 4. Destino ── */}
+        <div className="space-y-2">
+          <Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            Número Destino
+          </Label>
+          <Input
+            placeholder="(11) 99999-9999"
+            value={targetNumber}
+            onChange={(e) => setTargetNumber(applyWhatsAppMask(e.target.value))}
+            className="h-10"
+            maxLength={15}
+          />
+          <p className="text-xs text-muted-foreground">DDD + número. O código +55 é adicionado automaticamente.</p>
+        </div>
+
+      </div>
+    </CrudEditDrawer>
   )
 }

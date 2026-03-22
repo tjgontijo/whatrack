@@ -121,14 +121,17 @@ export async function listWhatsAppInstances(organizationId: string, projectId: s
   return {
     items: instances.map((instance) => ({
       id: instance.configId!,
+      metaPhoneId: instance.id,
       displayPhone: instance.display_phone_number || 'Número não disponível',
       verifiedName: instance.verified_name || 'Sem nome verificado',
       status: instance.status,
+      qualityRating: (instance as any).quality_rating ?? 'UNKNOWN',
+      accountMode: (instance as any).account_mode ?? 'LIVE',
+      throughputLevel: (instance as any).throughput?.level ?? 'STANDARD',
       wabaId:
         typeof instance.webhook_configuration?.whatsapp_business_account === 'string'
           ? instance.webhook_configuration.whatsapp_business_account
           : null,
-      lastWebhookAt: null,
       projectId: instance.projectId,
       projectName: instance.projectName ?? null,
     })),

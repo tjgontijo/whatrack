@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 
 import { apiError } from '@/lib/utils/api-response'
 import { MetaCloudService } from '@/services/whatsapp/meta-cloud.service'
+import { WhatsAppTemplateAnalyticsService } from '@/services/whatsapp/whatsapp-template-analytics.service'
 import { whatsappSendTemplateSchema } from '@/schemas/whatsapp/whatsapp-schemas'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { logger } from '@/lib/utils/logger'
@@ -34,6 +35,12 @@ export async function POST(request: Request) {
       variables: parsed.data.variables,
       accessToken: MetaCloudService.getAccessTokenForConfig(config) || undefined,
     })
+
+    // Log for template analytics (non-blocking)
+    const wamid = result?.messages?.[0]?.id
+    if (wamid) {
+      void WhatsAppTemplateAnalyticsService.logSend(wamid, parsed.data.templateName, access.organizationId)
+    }
 
     return NextResponse.json({ success: true, result })
   } catch (error: unknown) {

@@ -3,54 +3,47 @@
 import { useQuery } from '@tanstack/react-query'
 import { MessageCircle } from 'lucide-react'
 import { useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
-import { whatsappApi } from '@/lib/whatsapp/client'
 import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 import { EmptyState } from '@/components/dashboard/states/empty-state'
 import { Button } from '@/components/ui/button'
-import { InstanceCardDetail } from './instance-card-detail'
-import type { WhatsAppPhoneNumber } from '@/types/whatsapp/whatsapp'
+import { InstanceCardDetail, type WhatsAppInstance } from './instance-card-detail'
 
 interface AccountTabProps {
-  onSendTestClick?: (phone: WhatsAppPhoneNumber) => void
+  onSendTestClick?: (instance: WhatsAppInstance) => void
 }
 
 export function AccountTab({ onSendTestClick }: AccountTabProps) {
   const { organizationId, projectId } = useRequiredProjectRouteContext()
 
-  // Fetch instances for this project
-  const { data: instancesResponse, isLoading, error } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['whatsapp', 'instances', projectId],
     queryFn: async () => {
       const res = await fetch(`/api/v1/whatsapp/instances?projectId=${projectId}`, {
         headers: { [ORGANIZATION_HEADER]: organizationId },
       })
       if (!res.ok) throw new Error('Failed to fetch instances')
-      return res.json()
+      return res.json() as Promise<{ items: WhatsAppInstance[] }>
     },
   })
 
-  const instances = instancesResponse?.items || []
+  const instance = data?.items?.[0]
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-muted-foreground">Carregando...</div>
+      <div className="flex items-center justify-center py-20">
+        <div className="h-5 w-5 rounded-full border-2 border-primary border-t-transparent animate-spin" />
       </div>
     )
   }
 
-  if (instances.length === 0) {
+  if (!instance) {
     return (
       <EmptyState
         icon={MessageCircle}
         title="Nenhum número conectado"
-        description="Conecte um número WhatsApp Business para começar."
+        description="Conecte um número WhatsApp Business para começar a enviar mensagens."
         action={
-          <Button
-            onClick={() => {
-              // TODO: Open Meta Embedded Signup onboarding
-            }}
-          >
+          <Button onClick={() => { /* TODO: startOnboarding */ }}>
             Conectar WhatsApp
           </Button>
         }
@@ -58,12 +51,7 @@ export function AccountTab({ onSendTestClick }: AccountTabProps) {
     )
   }
 
-  // Get the first (and usually only) instance for the project
-  const instance = instances[0] as WhatsAppPhoneNumber
-
   return (
-    <div className="space-y-6">
-      <InstanceCardDetail phone={instance} onSendTestClick={onSendTestClick} />
-    </div>
+    <InstanceCardDetail instance={instance} onSendTestClick={onSendTestClick} />
   )
 }

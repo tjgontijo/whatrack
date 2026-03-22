@@ -1329,3 +1329,19 @@ model BillingPlanHistory {
   @@index([planId, changedAt])
   @@map("billing_plan_history")
 }
+
+model WhatsAppTemplateLog {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  wamid          String    @unique
+  templateName   String
+  organizationId String    @db.Uuid
+  sentAt         DateTime  @default(now())
+  deliveredAt    DateTime?
+  readAt         DateTime?
+  repliedAt      DateTime?
+  clickedAt      DateTime?
+
+  @@index([organizationId, templateName])
+  @@index([organizationId, sentAt])
+  @@map("whatsapp_template_logs")
+}

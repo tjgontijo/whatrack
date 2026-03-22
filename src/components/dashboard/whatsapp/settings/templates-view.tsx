@@ -1,36 +1,24 @@
 'use client'
 
 import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import {
-  Edit,
-  Trash2,
-  MoreVertical,
   CheckCircle2,
   XCircle,
   Clock,
   MinusCircle,
-  Send,
+  Pencil,
+  Trash2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { DeleteConfirmDialog } from '@/components/dashboard/crud'
+import { CrudListView, DeleteConfirmDialog } from '@/components/dashboard/crud'
+import { CrudEmptyState } from '@/components/dashboard/crud/crud-data-view'
+import type { ColumnDef, RowActions } from '@/components/dashboard/crud/types'
 import { whatsappApi } from '@/lib/whatsapp/client'
+import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 import type { WhatsAppTemplate } from '@/types/whatsapp/whatsapp'
+import type { TemplateStats } from '@/services/whatsapp/whatsapp-template-analytics.service'
 
 interface TemplatesViewProps {
   templates: WhatsAppTemplate[]
@@ -41,6 +29,64 @@ interface TemplatesViewProps {
   organizationId: string
   onSendTestClick?: (template: WhatsAppTemplate) => void
   onEditClick?: (template: WhatsAppTemplate) => void
+}
+
+const CATEGORY_MAP: Record<string, string> = {
+  MARKETING: 'Marketing',
+  UTILITY: 'Utilidade',
+  AUTHENTICATION: 'Autenticação',
+}
+
+const CATEGORY_FILTER_MAP: Record<string, string> = {
+  Marketing: 'MARKETING',
+  Utilidade: 'UTILITY',
+  Autenticação: 'AUTHENTICATION',
+}
+
+const STATUS_LABEL: Record<string, string> = {
+  APPROVED: 'Aprovado',
+  REJECTED: 'Reprovado',
+  PENDING: 'Em análise',
+  DISABLED: 'Desativado',
+}
+
+function StatusCell({ template }: { template: WhatsAppTemplate }) {
+  const icon = {
+    APPROVED: <CheckCircle2 className="h-4 w-4 text-green-600" />,
+    REJECTED: <XCircle className="h-4 w-4 text-orange-600" />,
+    PENDING: <Clock className="h-4 w-4 text-slate-400" />,
+    DISABLED: <MinusCircle className="h-4 w-4 text-slate-400" />,
+  }[template.status] ?? <Clock className="h-4 w-4 text-slate-400" />
+
+  const colorMap: Record<string, string> = {
+    APPROVED: 'text-green-600',
+    REJECTED: 'text-orange-600',
+  }
+  const color = colorMap[template.status] ?? 'text-slate-400'
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <div className="flex items-center gap-1.5">
+          {icon}
+          <span className={`text-xs ${color}`}>{STATUS_LABEL[template.status] ?? template.status}</span>
+        </div>
+      </TooltipTrigger>
+      {template.status === 'REJECTED' && template.rejected_reason && (
+        <TooltipContent className="max-w-xs text-xs">{template.rejected_reason}</TooltipContent>
+      )}
+    </Tooltip>
+  )
+}
+
+function StatCell({ value, label }: { value: number | null; label: string }) {
+  if (value === null) return <span className="text-xs text-muted-foreground">—</span>
+  const color = value >= 70 ? 'text-green-600' : value >= 40 ? 'text-yellow-600' : 'text-destructive'
+  return (
+    <span className={`text-xs font-semibold tabular-nums ${color}`}>
+      {value}%
+    </span>
+  )
 }
 
 export function TemplatesView({
@@ -56,198 +102,141 @@ export function TemplatesView({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [templateToDelete, setTemplateToDelete] = useState<WhatsAppTemplate | null>(null)
 
-  // Filter templates
-  const filteredTemplates = templates.filter((template) => {
-    // Search filter
+  const { data: analyticsData } = useQuery({
+    queryKey: ['whatsapp', 'templates', 'analytics', organizationId],
+    queryFn: async () => {
+      const res = await fetch('/api/v1/whatsapp/templates/analytics', {
+        headers: { [ORGANIZATION_HEADER]: organizationId },
+      })
+      if (!res.ok) return { stats: [] as TemplateStats[] }
+      return res.json() as Promise<{ stats: TemplateStats[] }>
+    },
+    enabled: !!organizationId,
+    staleTime: 5 * 60 * 1000,
+  })
+
+  const statsMap = new Map<string, TemplateStats>(
+    (analyticsData?.stats ?? []).map((s) => [s.templateName, s])
+  )
+
+  const filteredTemplates = templates.filter((t) => {
     if (searchValue) {
-      const search = searchValue.toLowerCase()
-      const nameMatch = template.name.toLowerCase().includes(search)
-      const bodyMatch = template.components
-        ?.find((c: any) => c.type === 'BODY')
-        ?.text?.toLowerCase()
-        .includes(search)
-      if (!nameMatch && !bodyMatch) return false
+      const s = searchValue.toLowerCase()
+      const bodyText = (t.components?.find((c: any) => c.type === 'BODY') as any)?.text ?? ''
+      if (!t.name.toLowerCase().includes(s) && !bodyText.toLowerCase().includes(s)) return false
     }
-
-    // Category filter
     if (categoryFilter && categoryFilter !== 'Todos') {
-      const categoryMap: Record<string, string> = {
-        Marketing: 'MARKETING',
-        Utilidade: 'UTILITY',
-        Autenticação: 'AUTHENTICATION',
-      }
-      if (template.category !== categoryMap[categoryFilter]) return false
+      if (t.category !== CATEGORY_FILTER_MAP[categoryFilter]) return false
     }
-
-    // Status filter
     if (statusFilter && statusFilter !== 'Todos') {
-      const statusMap: Record<string, string> = {
-        Aprovados: 'APPROVED',
-        'Em análise': 'PENDING',
-        Reprovados: 'REJECTED',
-      }
-      if (template.status !== statusMap[statusFilter]) return false
+      const statusMap: Record<string, string> = { Aprovados: 'APPROVED', 'Em análise': 'PENDING', Reprovados: 'REJECTED' }
+      if (t.status !== statusMap[statusFilter]) return false
     }
-
     return true
   })
 
-  const getCategoryLabel = (category: string) => {
-    const map: Record<string, string> = {
-      MARKETING: 'Marketing',
-      UTILITY: 'Utilidade',
-      AUTHENTICATION: 'Autenticação',
-    }
-    return map[category] || category
-  }
+  const columns: ColumnDef<WhatsAppTemplate>[] = [
+    {
+      key: 'name',
+      label: 'Nome',
+      render: (t) => <span className="text-[13px] font-medium">{t.name}</span>,
+    },
+    {
+      key: 'category',
+      label: 'Categoria',
+      width: 130,
+      render: (t) => <span className="text-sm text-muted-foreground">{CATEGORY_MAP[t.category] ?? t.category}</span>,
+    },
+    {
+      key: 'language',
+      label: 'Idioma',
+      width: 90,
+      render: (t) => <span className="font-mono text-xs uppercase text-muted-foreground">{t.language}</span>,
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      width: 130,
+      render: (t) => <StatusCell template={t} />,
+    },
+    {
+      key: 'sent',
+      label: 'Enviados',
+      width: 80,
+      render: (t) => {
+        const s = statsMap.get(t.name)
+        return s
+          ? <span className="text-xs tabular-nums font-medium">{s.sent.toLocaleString('pt-BR')}</span>
+          : <span className="text-xs text-muted-foreground">—</span>
+      },
+    },
+    {
+      key: 'delivery',
+      label: 'Entregues',
+      width: 90,
+      render: (t) => {
+        const s = statsMap.get(t.name)
+        return s ? <StatCell value={s.deliveryRate} label="entregues" /> : <span className="text-xs text-muted-foreground">—</span>
+      },
+    },
+    {
+      key: 'read',
+      label: 'Lidos',
+      width: 80,
+      render: (t) => {
+        const s = statsMap.get(t.name)
+        return s ? <StatCell value={s.readRate} label="lidos" /> : <span className="text-xs text-muted-foreground">—</span>
+      },
+    },
+    {
+      key: 'actioned',
+      label: 'Ação',
+      width: 80,
+      render: (t) => {
+        const s = statsMap.get(t.name)
+        return s ? <StatCell value={s.actionRate} label="ação" /> : <span className="text-xs text-muted-foreground">—</span>
+      },
+    },
+  ]
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'APPROVED':
-        return <CheckCircle2 className="h-4 w-4 text-green-600" />
-      case 'REJECTED':
-        return <XCircle className="h-4 w-4 text-orange-600" />
-      case 'PENDING':
-        return <Clock className="h-4 w-4 text-slate-400" />
-      case 'DISABLED':
-        return <MinusCircle className="h-4 w-4 text-slate-400" />
-      default:
-        return <Clock className="h-4 w-4 text-slate-400" />
-    }
-  }
-
-  const getStatusLabel = (status: string) => {
-    const map: Record<string, string> = {
-      APPROVED: 'Aprovado',
-      REJECTED: 'Reprovado',
-      PENDING: 'Em análise',
-      DISABLED: 'Desativado',
-    }
-    return map[status] || status
-  }
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'APPROVED':
-        return 'text-green-600'
-      case 'REJECTED':
-        return 'text-orange-600'
-      case 'PENDING':
-        return 'text-slate-400'
-      case 'DISABLED':
-        return 'text-slate-400'
-      default:
-        return 'text-slate-400'
-    }
-  }
-
-  const handleDeleteClick = (template: WhatsAppTemplate) => {
-    setTemplateToDelete(template)
-    setDeleteDialogOpen(true)
-  }
-
-  const handleDelete = async () => {
-    if (templateToDelete) {
-      await whatsappApi.deleteTemplate(templateToDelete.name, organizationId)
-      setDeleteDialogOpen(false)
-      setTemplateToDelete(null)
-    }
+  const rowActions: RowActions<WhatsAppTemplate> = {
+    customActions: (t) => (
+      <>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7"
+          onClick={() => onEditClick?.(t)}
+        >
+          <Pencil className="h-3.5 w-3.5" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7 text-destructive hover:text-destructive"
+          onClick={() => { setTemplateToDelete(t); setDeleteDialogOpen(true) }}
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </Button>
+      </>
+    ),
   }
 
   if (isLoading) {
-    return <div className="text-muted-foreground text-center py-8">Carregando templates...</div>
-  }
-
-  if (filteredTemplates.length === 0) {
-    return (
-      <div className="text-muted-foreground text-center py-12">
-        <p className="mb-2">Nenhum template encontrado</p>
-        {searchValue && <p className="text-xs">Tente ajustar os filtros de busca</p>}
-      </div>
-    )
+    return <div className="text-muted-foreground text-center py-8 text-sm">Carregando templates...</div>
   }
 
   return (
     <TooltipProvider>
-      <div className="rounded-lg border bg-card overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="border-b bg-muted/50">
-              <TableHead className="h-12">Nome</TableHead>
-              <TableHead className="h-12">Categoria</TableHead>
-              <TableHead className="h-12">Idioma</TableHead>
-              <TableHead className="h-12">Status</TableHead>
-              <TableHead className="h-12 w-12 text-right"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredTemplates.map((template) => (
-              <TableRow key={template.name} className="hover:bg-muted/50 cursor-pointer">
-                <TableCell className="py-3">
-                  <div className="text-sm font-medium">{template.name}</div>
-                </TableCell>
-                <TableCell className="py-3">
-                  <div className="text-xs text-muted-foreground">
-                    {getCategoryLabel(template.category)}
-                  </div>
-                </TableCell>
-                <TableCell className="py-3">
-                  <div className="text-xs font-mono uppercase text-muted-foreground">
-                    {template.language}
-                  </div>
-                </TableCell>
-                <TableCell className="py-3">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="flex items-center gap-2">
-                        {getStatusIcon(template.status)}
-                        <span className={`text-xs ${getStatusColor(template.status)}`}>
-                          {getStatusLabel(template.status)}
-                        </span>
-                      </div>
-                    </TooltipTrigger>
-                    {template.status === 'REJECTED' && template.rejected_reason && (
-                      <TooltipContent className="max-w-xs text-xs">
-                        {template.rejected_reason}
-                      </TooltipContent>
-                    )}
-                  </Tooltip>
-                </TableCell>
-                <TableCell className="py-3 text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        className="cursor-pointer gap-2"
-                        onClick={() => onEditClick?.(template)}
-                      >
-                        <Edit className="h-4 w-4" /> Editar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="cursor-pointer gap-2"
-                        onClick={() => onSendTestClick?.(template)}
-                      >
-                        <Send className="h-4 w-4" /> Enviar Teste
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        className="text-destructive focus:text-destructive cursor-pointer gap-2"
-                        onClick={() => handleDeleteClick(template)}
-                      >
-                        <Trash2 className="h-4 w-4" /> Excluir
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      {filteredTemplates.length === 0 ? (
+        <CrudEmptyState />
+      ) : (
+        <CrudListView
+          data={filteredTemplates}
+          columns={columns}
+          rowActions={rowActions}
+        />
+      )}
 
       <DeleteConfirmDialog
         open={deleteDialogOpen}
@@ -255,7 +244,13 @@ export function TemplatesView({
         trigger={null}
         title="Excluir Template?"
         description={`Tem certeza que deseja excluir o template "${templateToDelete?.name}"? Esta ação não pode ser desfeita.`}
-        onConfirm={handleDelete}
+        onConfirm={async () => {
+          if (templateToDelete) {
+            await whatsappApi.deleteTemplate(templateToDelete.name, organizationId)
+            setDeleteDialogOpen(false)
+            setTemplateToDelete(null)
+          }
+        }}
       />
     </TooltipProvider>
   )
