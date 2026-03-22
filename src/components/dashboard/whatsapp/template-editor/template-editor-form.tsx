@@ -1,13 +1,18 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
-import { useForm, FormProvider as Form, Controller } from 'react-hook-form'
+import React, { useMemo } from 'react'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { Field, FieldLabel, FieldError } from '@/components/ui/field'
+import { ArrowLeft, Plus, Send, Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
+import { Badge } from '@/components/ui/badge'
+import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -15,426 +20,550 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { whatsappApi } from '@/lib/whatsapp/client'
-import { toast } from 'sonner'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Separator } from '@/components/ui/separator'
-import { Badge } from '@/components/ui/badge'
-import { Info, HelpCircle, Layout } from 'lucide-react'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { whatsappApi } from '@/lib/whatsapp/client'
+import { useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
 import { TemplatePreview } from './template-preview'
 import type { WhatsAppTemplate } from '@/types/whatsapp/whatsapp'
+
+// ─── Schema ──────────────────────────────────────────────────────────────────
 
 const templateSchema = z.object({
   name: z
     .string()
-    .min(1, 'O nome é obrigatório')
-    .max(512, 'Máximo 512 caracteres')
+    .min(1, 'Nome obrigatório')
+    .max(512)
     .regex(/^[a-z0-9_]+$/, 'Use apenas letras minúsculas, números e underscores'),
   category: z.enum(['MARKETING', 'UTILITY', 'AUTHENTICATION']),
-  language: z.string().min(2, 'Idioma é obrigatório'),
-  headerText: z.string().max(60, 'Máximo 60 caracteres').optional(),
-  bodyText: z
-    .string()
-    .min(1, 'O corpo da mensagem é obrigatório')
-    .max(1024, 'Limite de 1024 caracteres'),
-  footerText: z.string().max(60, 'Máximo 60 caracteres').optional(),
-  samples: z.record(z.string(), z.string().min(1, 'Amostra obrigatória')).optional(),
+  language: z.string().min(2, 'Idioma obrigatório'),
+  headerType: z.enum(['NONE', 'TEXT', 'IMAGE', 'VIDEO', 'DOCUMENT']),
+  headerText: z.string().max(60).optional(),
+  bodyText: z.string().min(1, 'Corpo obrigatório').max(1024),
+  footerText: z.string().max(60).optional(),
+  buttonType: z.enum(['NONE', 'URL', 'REPLY']),
+  urlButtonText: z.string().optional(),
+  urlButtonUrl: z.string().optional(),
+  replyButtons: z.array(z.string()).optional(),
+  validityPeriod: z.string().optional(),
+  samples: z.record(z.string(), z.string()).optional(),
 })
 
-type TemplateFormValues = z.infer<typeof templateSchema>
+type FormValues = z.infer<typeof templateSchema>
+
+// ─── Variable helpers ─────────────────────────────────────────────────────────
+
+function extractVariables(text: string): string[] {
+  const matches = text.match(/\{\{([^}]+)\}\}/g) || []
+  return [...new Set(matches.map((m) => m.slice(2, -2)))]
+}
+
+function applyVariables(text: string, samples: Record<string, string>): string {
+  return text.replace(/\{\{([^}]+)\}\}/g, (_, name) => samples[name] || `[${name}]`)
+}
+
+// ─── Component ───────────────────────────────────────────────────────────────
 
 interface TemplateEditorFormProps {
   template?: WhatsAppTemplate | null
+  initialCategory?: string
+  initialLanguage?: string
   onClose: () => void
 }
 
-import { useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
+const CATEGORY_MAP: Record<string, 'MARKETING' | 'UTILITY' | 'AUTHENTICATION'> = {
+  Marketing: 'MARKETING',
+  Utilidade: 'UTILITY',
+  Autenticação: 'AUTHENTICATION',
+}
 
-export function TemplateEditorForm({ template, onClose }: TemplateEditorFormProps) {
+const CATEGORY_LABEL: Record<string, string> = {
+  MARKETING: 'Marketing',
+  UTILITY: 'Utilidade',
+  AUTHENTICATION: 'Autenticação',
+}
+
+const VALIDITY_OPTIONS = [
+  { value: 'NONE', label: 'Nenhum' },
+  { value: '3600', label: '1 hora' },
+  { value: '10800', label: '3 horas' },
+  { value: '21600', label: '6 horas' },
+  { value: '43200', label: '12 horas' },
+  { value: '86400', label: '24 horas' },
+]
+
+export function TemplateEditorForm({
+  template,
+  initialCategory,
+  initialLanguage,
+  onClose,
+}: TemplateEditorFormProps) {
   const queryClient = useQueryClient()
   const { organizationId: orgId } = useRequiredProjectRouteContext()
-  const mode = template ? 'edit' : 'create'
+  const isEdit = !!template
 
-  const defaultValues = React.useMemo(() => {
-    if (mode === 'edit' && template) {
-      const headerComponent = template.components?.find(
-        (c: any) => c.type.toUpperCase() === 'HEADER'
-      )
-      const bodyComponent = template.components?.find((c: any) => c.type.toUpperCase() === 'BODY')
-      const footerComponent = template.components?.find(
-        (c: any) => c.type.toUpperCase() === 'FOOTER'
-      )
+  const defaultValues = useMemo<FormValues>(() => {
+    if (isEdit && template) {
+      const header = template.components?.find((c) => c.type === 'HEADER')
+      const body = template.components?.find((c) => c.type === 'BODY')
+      const footer = template.components?.find((c) => c.type === 'FOOTER')
+      const buttons = template.components?.find((c) => c.type === 'BUTTONS')
 
       return {
         name: template.name,
-        category: template.category as any,
+        category: template.category,
         language: template.language,
-        headerText: headerComponent?.text || '',
-        bodyText: bodyComponent?.text || '',
-        footerText: footerComponent?.text || '',
+        headerType: (header?.format as any) || 'NONE',
+        headerText: header?.text || '',
+        bodyText: body?.text || '',
+        footerText: footer?.text || '',
+        buttonType: buttons ? (buttons.buttons?.[0]?.type === 'URL' ? 'URL' : 'REPLY') : 'NONE',
+        urlButtonText: buttons?.buttons?.[0]?.text || '',
+        urlButtonUrl: buttons?.buttons?.[0]?.url || '',
+        replyButtons: buttons?.buttons?.map((b) => b.text) || [''],
+        validityPeriod: 'NONE',
         samples: {},
       }
     }
+    const resolvedCategory = initialCategory
+      ? (CATEGORY_MAP[initialCategory] ?? 'MARKETING')
+      : 'MARKETING'
     return {
       name: '',
-      category: 'MARKETING' as const,
-      language: 'pt_BR',
+      category: resolvedCategory,
+      language: initialLanguage || 'pt_BR',
+      headerType: 'NONE',
       headerText: '',
       bodyText: '',
       footerText: '',
+      buttonType: 'NONE',
+      urlButtonText: '',
+      urlButtonUrl: '',
+      replyButtons: [''],
+      validityPeriod: 'NONE',
       samples: {},
     }
-  }, [mode, template])
+  }, [isEdit, template, initialCategory, initialLanguage])
 
-  const form = useForm<TemplateFormValues>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(templateSchema),
     defaultValues,
-    values: defaultValues,
   })
 
-  const name = form.watch('name')
-  const headerText = form.watch('headerText')
-  const bodyText = form.watch('bodyText')
-  const footerText = form.watch('footerText')
-  const samples = form.watch('samples') || {}
+  const { watch, setValue, register, control, handleSubmit, formState } = form
 
-  const variables = React.useMemo(() => {
-    const matches = bodyText?.match(/\{\{[\w.]+\}\}/g) || []
-    return Array.from(new Set(matches))
-  }, [bodyText])
+  const name = watch('name')
+  const category = watch('category')
+  const language = watch('language')
+  const headerType = watch('headerType')
+  const headerText = watch('headerText') || ''
+  const bodyText = watch('bodyText') || ''
+  const footerText = watch('footerText') || ''
+  const buttonType = watch('buttonType')
+  const replyButtons = watch('replyButtons') || ['']
+  const samples = watch('samples') || {}
+  const validityPeriod = watch('validityPeriod')
+
+  const bodyVariables = useMemo(() => extractVariables(bodyText), [bodyText])
+
+  // Insert variable at cursor (or at end)
+  const insertVariable = (varName: string) => {
+    const textarea = document.getElementById('body-textarea') as HTMLTextAreaElement | null
+    if (!textarea) {
+      setValue('bodyText', bodyText + `{{${varName}}}`)
+      return
+    }
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const before = bodyText.slice(0, start)
+    const after = bodyText.slice(end)
+    setValue('bodyText', `${before}{{${varName}}}${after}`)
+    setTimeout(() => {
+      textarea.focus()
+      const pos = start + varName.length + 4
+      textarea.setSelectionRange(pos, pos)
+    }, 0)
+  }
+
+  // ─── Mutation ─────────────────────────────────────────────────────────────
 
   const mutation = useMutation({
-    mutationFn: (values: TemplateFormValues) => {
+    mutationFn: (values: FormValues) => {
       const components: any[] = []
 
-      if (values.headerText && values.headerText.trim() !== '') {
-        components.push({ type: 'header', format: 'text', text: values.headerText })
+      // Header
+      if (values.headerType !== 'NONE') {
+        if (values.headerType === 'TEXT') {
+          components.push({ type: 'header', format: 'text', text: values.headerText || '' })
+        } else {
+          components.push({ type: 'header', format: values.headerType.toLowerCase() })
+        }
       }
 
-      const bodyComp: any = { type: 'body', text: values.bodyText }
-      if (variables.length > 0) {
-        const sampleValues = variables.map((v) => values.samples?.[v] || 'exemplo')
+      // Body — convert named vars to positional for Meta API
+      const vars = extractVariables(values.bodyText)
+      let metaBody = values.bodyText
+      vars.forEach((name, i) => {
+        metaBody = metaBody.replaceAll(`{{${name}}}`, `{{${i + 1}}}`)
+      })
+      const bodyComp: any = { type: 'body', text: metaBody }
+      if (vars.length > 0) {
+        const sampleValues = vars.map((v) => values.samples?.[v] || 'exemplo')
         bodyComp.example = { body_text: [sampleValues] }
       }
       components.push(bodyComp)
 
-      if (values.footerText && values.footerText.trim() !== '') {
+      // Footer
+      if (values.footerText?.trim()) {
         components.push({ type: 'footer', text: values.footerText })
       }
 
-      if (mode === 'edit' && template?.id) {
-        return whatsappApi.updateTemplate(template.id, components, orgId!)
+      // Buttons
+      if (values.buttonType === 'URL' && values.urlButtonText) {
+        components.push({
+          type: 'buttons',
+          buttons: [{ type: 'URL', text: values.urlButtonText, url: values.urlButtonUrl || '' }],
+        })
+      } else if (values.buttonType === 'REPLY') {
+        const btns = (values.replyButtons || []).filter(Boolean).slice(0, 3)
+        if (btns.length > 0) {
+          components.push({
+            type: 'buttons',
+            buttons: btns.map((text) => ({ type: 'QUICK_REPLY', text })),
+          })
+        }
       }
 
-      const payload = {
+      if (isEdit && template?.id) {
+        return whatsappApi.updateTemplate(template.id, components, orgId)
+      }
+
+      const payload: any = {
         name: values.name,
         category: values.category.toLowerCase(),
         language: values.language,
         components,
-        parameter_format: 'positional',
+        parameter_format: 'named',
       }
-      return whatsappApi.createTemplate(payload, orgId!)
+
+      if (values.category === 'UTILITY' && values.validityPeriod && values.validityPeriod !== 'NONE') {
+        payload.expiration_time_ms = parseInt(values.validityPeriod) * 1000
+      }
+
+      return whatsappApi.createTemplate(payload, orgId)
     },
     onSuccess: () => {
-      toast.success(mode === 'create' ? 'Template enviado para análise!' : 'Template atualizado!')
+      toast.success(isEdit ? 'Template atualizado!' : 'Template enviado para análise!')
       queryClient.invalidateQueries({ queryKey: ['whatsapp', 'templates', orgId] })
       onClose()
     },
-
     onError: (error: any) => {
-      console.error('[TemplateForm] Erro:', error)
       toast.error(`Erro: ${error.message}`)
     },
   })
 
-  function onSubmit(values: TemplateFormValues) {
-    mutation.mutate(values)
-  }
+  const onSubmit = handleSubmit((values) => mutation.mutate(values))
+
+  // ─── Render ───────────────────────────────────────────────────────────────
 
   return (
-    <div className="bg-background flex h-full flex-col overflow-hidden lg:flex-row">
-      {/* Form Area */}
-      <div className="scrollbar-thin scrollbar-thumb-muted flex-1 overflow-y-auto border-r p-8">
-        <div className="mx-auto max-w-2xl">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              {/* SECTION 1: Nome e idioma */}
-              <section className="space-y-6">
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  <Controller
-                    control={form.control}
-                    name="name"
-                    render={({ field, fieldState }) => (
-                      <Field
-                        data-invalid={fieldState.invalid}
-                        className="space-y-1.5 md:col-span-2"
-                      >
-                        <FieldLabel className="text-sm font-bold">
-                          Nome do modelo de mensagem
-                        </FieldLabel>
-                        <Input
-                          placeholder="ex: boas_vindas_vendas"
-                          className="bg-muted/30 border-muted-foreground/20 focus:bg-background h-11 rounded-xl font-medium transition-all"
-                          {...field}
-                          value={field.value ?? ''}
-                          disabled={mode === 'edit'}
-                        />
-                        <FieldError errors={[fieldState.error]} />
-                      </Field>
-                    )}
-                  />
-
-                  <Controller
-                    control={form.control}
-                    name="category"
-                    render={({ field, fieldState }) => (
-                      <Field data-invalid={fieldState.invalid} className="space-y-1.5">
-                        <div className="flex items-center gap-2">
-                          <FieldLabel className="text-sm font-bold">Categoria</FieldLabel>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <HelpCircle className="text-muted-foreground/60 h-4 w-4 cursor-help" />
-                              </TooltipTrigger>
-                              <TooltipContent
-                                side="right"
-                                className="bg-popover border-border max-w-[300px] rounded-2xl p-4 shadow-xl"
-                              >
-                                <div className="space-y-3">
-                                  <div>
-                                    <p className="mb-1 text-xs font-bold uppercase">Marketing</p>
-                                    <p className="text-muted-foreground text-[11px]">
-                                      Promoções e anúncios.
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <p className="mb-1 text-xs font-bold uppercase">Utilidade</p>
-                                    <p className="text-muted-foreground text-[11px]">
-                                      Informa sobre transações e pedidos.
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <p className="mb-1 text-xs font-bold uppercase">Autenticação</p>
-                                    <p className="text-muted-foreground text-[11px]">
-                                      Códigos de segurança (OTP).
-                                    </p>
-                                  </div>
-                                </div>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value}
-                          disabled={mode === 'edit'}
-                        >
-                          <SelectTrigger className="bg-muted/30 border-muted-foreground/20 h-11 rounded-xl">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="MARKETING">Marketing</SelectItem>
-                            <SelectItem value="UTILITY">Utilidade</SelectItem>
-                            <SelectItem value="AUTHENTICATION">Autenticação</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </Field>
-                    )}
-                  />
-
-                  <Controller
-                    control={form.control}
-                    name="language"
-                    render={({ field, fieldState }) => (
-                      <Field data-invalid={fieldState.invalid} className="space-y-1.5">
-                        <FieldLabel className="text-sm font-bold">Idioma</FieldLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value}
-                          disabled={mode === 'edit'}
-                        >
-                          <SelectTrigger className="bg-muted/30 border-muted-foreground/20 h-11 rounded-xl">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="pt_BR">Português (Brasil)</SelectItem>
-                            <SelectItem value="en_US">English (US)</SelectItem>
-                            <SelectItem value="es">Español</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </Field>
-                    )}
-                  />
-                </div>
-              </section>
-
-              <Separator />
-
-              {/* SECTION 2: Conteúdo */}
-              <section className="space-y-6">
-                <Controller
-                  control={form.control}
-                  name="headerText"
-                  render={({ field, fieldState }) => (
-                    <Field data-invalid={fieldState.invalid} className="space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <FieldLabel className="text-muted-foreground text-xs font-bold uppercase">
-                          Cabeçalho (Opcional)
-                        </FieldLabel>
-                        <span className="text-muted-foreground text-[10px] tabular-nums">
-                          {field.value?.length || 0}/60
-                        </span>
-                      </div>
-                      <Input
-                        placeholder="Título da mensagem"
-                        className="bg-muted/30 border-muted-foreground/20 h-11 rounded-xl"
-                        {...field}
-                        value={field.value ?? ''}
-                      />
-                      <FieldError errors={[fieldState.error]} />
-                    </Field>
-                  )}
-                />
-
-                <Controller
-                  control={form.control}
-                  name="bodyText"
-                  render={({ field, fieldState }) => (
-                    <Field data-invalid={fieldState.invalid} className="space-y-1.5">
-                      <div className="flex justify-between">
-                        <FieldLabel className="text-muted-foreground text-xs font-bold uppercase">
-                          Corpo da Mensagem
-                        </FieldLabel>
-                        <span className="text-muted-foreground text-[10px] font-bold tabular-nums">
-                          {field.value?.length || 0} / 1024
-                        </span>
-                      </div>
-                      <Textarea
-                        placeholder="Digite o conteúdo. Use {{1}}, {{2}} para variáveis."
-                        className="bg-muted/30 border-muted-foreground/20 min-h-[140px] resize-none rounded-2xl p-4 text-base"
-                        {...field}
-                      />
-                      <div className="flex items-center gap-1.5 px-0.5 pt-0.5">
-                        <Info className="text-primary/60 h-3 w-3" />
-                        <p className="text-muted-foreground text-[10px] font-medium">
-                          As variáveis {'{{1}}, {{2}}'}, etc. serão substituídas por dados reais.
-                        </p>
-                      </div>
-                      <FieldError errors={[fieldState.error]} />
-                    </Field>
-                  )}
-                />
-
-                <Controller
-                  control={form.control}
-                  name="footerText"
-                  render={({ field, fieldState }) => (
-                    <Field data-invalid={fieldState.invalid} className="space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <FieldLabel className="text-muted-foreground text-xs font-bold uppercase">
-                          Rodapé (Opcional)
-                        </FieldLabel>
-                        <span className="text-muted-foreground text-[10px] tabular-nums">
-                          {field.value?.length || 0}/60
-                        </span>
-                      </div>
-                      <Input
-                        placeholder="Legenda no final da mensagem"
-                        className="bg-muted/30 border-muted-foreground/20 h-11 rounded-xl"
-                        {...field}
-                        value={field.value ?? ''}
-                      />
-                      <FieldError errors={[fieldState.error]} />
-                    </Field>
-                  )}
-                />
-              </section>
-
-              {/* SECTION 3: Amostras */}
-              {variables.length > 0 && (
-                <section className="space-y-4 pt-2">
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-muted-foreground text-sm font-bold uppercase">
-                      Amostras de Variáveis
-                    </h3>
-                  </div>
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    {variables.map((v) => {
-                      const varNumber = v.replace(/\{\{|\}\}/g, '')
-                      return (
-                        <Controller
-                          key={v}
-                          control={form.control}
-                          name={`samples.${varNumber}` as any}
-                          render={({ field, fieldState }) => (
-                            <Field data-invalid={fieldState.invalid} className="space-y-1.5">
-                              <FieldLabel className="text-muted-foreground text-[10px] font-bold">
-                                Valor para {v}
-                              </FieldLabel>
-                              <Input
-                                placeholder="Exemplo de conteúdo"
-                                className="bg-muted/10 border-muted-foreground/10 h-10 rounded-xl text-sm"
-                                {...field}
-                                value={field.value ?? ''}
-                              />
-                              <FieldError errors={[fieldState.error]} />
-                            </Field>
-                          )}
-                        />
-                      )
-                    })}
-                  </div>
-                </section>
-              )}
-
-              {/* Form Buttons */}
-              <div className="flex items-center gap-3 pt-6">
-                <Button
-                  type="submit"
-                  size="lg"
-                  className="bg-primary h-11 px-8 font-bold"
-                  disabled={mutation.isPending}
-                >
-                  {mutation.isPending ? 'Enviando...' : 'Enviar para análise'}
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="lg"
-                  className="text-muted-foreground h-11 px-6"
-                  onClick={onClose}
-                  disabled={mutation.isPending}
-                >
-                  Cancelar
-                </Button>
-              </div>
-            </form>
-          </Form>
+    <div className="flex h-full flex-col">
+      {/* ── Top bar ── */}
+      <div className="flex items-center justify-between border-b px-6 py-3">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="sm" onClick={onClose} className="gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Voltar
+          </Button>
+          <Separator orientation="vertical" className="h-5" />
+          <Controller
+            name="name"
+            control={control}
+            render={({ field }) => (
+              <Input
+                {...field}
+                placeholder="nome_do_template"
+                className="h-8 w-56 border-dashed font-mono text-sm"
+              />
+            )}
+          />
+          <div className="flex items-center gap-1.5">
+            <Badge variant="secondary" className="text-xs">
+              {CATEGORY_LABEL[category]}
+            </Badge>
+            <Badge variant="outline" className="font-mono text-xs">
+              {language}
+            </Badge>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" disabled>
+            Salvar rascunho
+          </Button>
+          <Button
+            size="sm"
+            onClick={onSubmit}
+            disabled={mutation.isPending}
+            className="gap-2"
+          >
+            <Send className="h-3.5 w-3.5" />
+            {mutation.isPending ? 'Enviando...' : 'Enviar para Revisão'}
+          </Button>
         </div>
       </div>
 
-      {/* Preview Area */}
-      <div className="bg-muted/5 hidden h-full w-[440px] flex-col items-center overflow-hidden border-l lg:flex">
-        <div className="flex w-full flex-1 flex-col space-y-6 overflow-hidden p-8">
-          <div className="border-muted flex w-full items-center gap-2 border-b pb-4">
-            <Layout className="text-muted-foreground h-4 w-4" />
-            <h4 className="text-muted-foreground/80 text-xs font-bold uppercase tracking-widest">
-              Prévia no WhatsApp
-            </h4>
-          </div>
+      {/* ── Two-column body ── */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* ── Left: Editor ── */}
+        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
 
-          <div className="relative mx-auto h-[600px] w-full max-w-[300px] overflow-hidden rounded-[3rem] border-[10px] border-slate-900 bg-slate-900 shadow-2xl ring-1 ring-white/10">
-            <div className="relative h-full overflow-hidden bg-[#0b141a]">
-              <TemplatePreview
-                templateName={name}
-                headerText={headerText}
-                bodyText={bodyText}
-                footerText={footerText}
-                samples={samples}
+          {/* Header */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="font-semibold">Cabeçalho <span className="font-normal text-muted-foreground text-xs">(opcional)</span></Label>
+              <Controller
+                name="headerType"
+                control={control}
+                render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger className="h-7 w-36 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {['NONE', 'TEXT', 'IMAGE', 'VIDEO', 'DOCUMENT'].map((t) => (
+                        <SelectItem key={t} value={t} className="text-xs">
+                          {t === 'NONE' ? 'Nenhum' : t === 'TEXT' ? 'Texto' : t === 'IMAGE' ? 'Imagem' : t === 'VIDEO' ? 'Vídeo' : 'Arquivo'}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               />
             </div>
+            {headerType === 'TEXT' && (
+              <Input
+                {...register('headerText')}
+                placeholder="Texto do cabeçalho"
+                maxLength={60}
+              />
+            )}
+            {headerType !== 'NONE' && headerType !== 'TEXT' && (
+              <div className="bg-muted rounded border border-dashed px-4 py-6 text-center text-xs text-muted-foreground">
+                Upload de {headerType === 'IMAGE' ? 'imagem' : headerType === 'VIDEO' ? 'vídeo' : 'arquivo'} será solicitado pela Meta na revisão
+              </div>
+            )}
           </div>
+
+          <Separator />
+
+          {/* Body */}
+          <div className="space-y-3">
+            <Label className="font-semibold">Corpo <span className="text-destructive">*</span></Label>
+            <Textarea
+              id="body-textarea"
+              {...register('bodyText')}
+              placeholder="Olá {{nome do cliente}}, seu pedido {{número do pedido}} foi confirmado!"
+              className="min-h-[120px] font-mono text-sm resize-none"
+            />
+            {formState.errors.bodyText && (
+              <p className="text-xs text-destructive">{formState.errors.bodyText.message}</p>
+            )}
+
+            {/* Variable insertion */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 gap-1.5 text-xs"
+                onClick={() => insertVariable('nome')}
+              >
+                <Plus className="h-3 w-3" />
+                Variável (Nome)
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 gap-1.5 text-xs"
+                onClick={() => {
+                  const count = bodyVariables.length + 1
+                  insertVariable(`${count}`)
+                }}
+              >
+                <Plus className="h-3 w-3" />
+                Variável (Número)
+              </Button>
+              {bodyVariables.length > 0 && (
+                <div className="flex gap-1.5 flex-wrap">
+                  {bodyVariables.map((v) => (
+                    <Badge key={v} variant="secondary" className="text-xs font-mono">
+                      {`{{${v}}}`}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Variable samples */}
+            {bodyVariables.length > 0 && (
+              <div className="rounded-lg border bg-muted/40 px-4 py-3 space-y-2">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                  Exemplos de variáveis (obrigatório para aprovação)
+                </p>
+                {bodyVariables.map((varName) => (
+                  <div key={varName} className="flex items-center gap-3">
+                    <span className="w-40 shrink-0 font-mono text-xs text-muted-foreground truncate">
+                      {`{{${varName}}}`}
+                    </span>
+                    <Input
+                      value={samples[varName] || ''}
+                      onChange={(e) =>
+                        setValue('samples', { ...samples, [varName]: e.target.value })
+                      }
+                      placeholder={`Exemplo para "${varName}"`}
+                      className="h-7 text-xs"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <Separator />
+
+          {/* Footer */}
+          <div className="space-y-2">
+            <Label className="font-semibold">
+              Rodapé <span className="font-normal text-muted-foreground text-xs">(opcional)</span>
+            </Label>
+            <Input
+              {...register('footerText')}
+              placeholder="Ex: Não responda a esta mensagem"
+              maxLength={60}
+            />
+          </div>
+
+          <Separator />
+
+          {/* Buttons */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="font-semibold">
+                Botões <span className="font-normal text-muted-foreground text-xs">(opcional)</span>
+              </Label>
+              <Controller
+                name="buttonType"
+                control={control}
+                render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger className="h-7 w-40 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="NONE" className="text-xs">Nenhum</SelectItem>
+                      <SelectItem value="URL" className="text-xs">URL Button</SelectItem>
+                      <SelectItem value="REPLY" className="text-xs">Reply Button</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </div>
+
+            {buttonType === 'URL' && (
+              <div className="space-y-2 rounded-lg border p-3">
+                <Input {...register('urlButtonText')} placeholder="Texto do botão" className="text-sm" />
+                <Input {...register('urlButtonUrl')} placeholder="https://exemplo.com" className="text-sm" />
+              </div>
+            )}
+
+            {buttonType === 'REPLY' && (
+              <div className="space-y-2">
+                {replyButtons.map((btn, i) => (
+                  <div key={i} className="flex gap-2">
+                    <Input
+                      value={btn}
+                      onChange={(e) => {
+                        const updated = [...replyButtons]
+                        updated[i] = e.target.value
+                        setValue('replyButtons', updated)
+                      }}
+                      placeholder={`Botão ${i + 1}`}
+                      className="text-sm"
+                      maxLength={25}
+                    />
+                    {replyButtons.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9 shrink-0"
+                        onClick={() =>
+                          setValue('replyButtons', replyButtons.filter((_, j) => j !== i))
+                        }
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+                {replyButtons.length < 3 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-7 gap-1.5 text-xs"
+                    onClick={() => setValue('replyButtons', [...replyButtons, ''])}
+                  >
+                    <Plus className="h-3 w-3" />
+                    Adicionar botão
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Validity period — Utility only */}
+          {category === 'UTILITY' && (
+            <>
+              <Separator />
+              <div className="space-y-2">
+                <Label className="font-semibold">
+                  Período de validade <span className="font-normal text-muted-foreground text-xs">(opcional)</span>
+                </Label>
+                <Controller
+                  name="validityPeriod"
+                  control={control}
+                  render={({ field }) => (
+                    <Select value={field.value || 'NONE'} onValueChange={field.onChange}>
+                      <SelectTrigger className="w-48">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {VALIDITY_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value} className="text-sm">
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* ── Right: Phone preview ── */}
+        <div className="w-80 shrink-0 border-l bg-muted/20 flex items-start justify-center pt-10 px-4">
+          <TemplatePreview
+            headerType={headerType}
+            headerText={headerType === 'TEXT' ? applyVariables(headerText, samples) : ''}
+            bodyText={applyVariables(bodyText, samples)}
+            footerText={footerText}
+            buttonType={buttonType}
+            urlButtonText={watch('urlButtonText')}
+            replyButtons={buttonType === 'REPLY' ? replyButtons.filter(Boolean) : []}
+          />
         </div>
       </div>
     </div>

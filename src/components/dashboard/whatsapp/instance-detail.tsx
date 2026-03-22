@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge'
 import { parsePhoneNumberFromString } from 'libphonenumber-js'
 import * as Flags from 'country-flag-icons/react/3x2'
 
-import { OverviewView } from '@/components/dashboard/whatsapp/settings/overview-view'
+import { InstanceCardDetail } from '@/components/dashboard/whatsapp/settings/instance-card-detail'
 
 import { useRequiredProjectPath, useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
 
@@ -100,7 +100,7 @@ export function InstanceDetail({ phoneId, organizationId }: InstanceDetailProps)
         </div>
       </header>
 
-      <OverviewView phone={phone} />
+      <InstanceCardDetail phone={phone} />
     </div>
   )
 }
