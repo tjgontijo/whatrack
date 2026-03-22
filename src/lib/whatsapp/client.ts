@@ -199,6 +199,23 @@ export const whatsappApi = {
   },
 
   /**
+   * Obtém o perfil comercial de um número específico (por Meta Phone ID)
+   */
+  async getPhoneProfile(
+    phoneId: string,
+    orgId: string,
+  ): Promise<WhatsAppBusinessProfile | null> {
+    const res = await fetch(`/api/v1/whatsapp/phone-numbers/${phoneId}/profile`, {
+      headers: { [ORGANIZATION_HEADER]: orgId },
+    })
+    if (!res.ok) {
+      const error = await res.json()
+      throw new Error(error.error || 'Failed to fetch phone profile')
+    }
+    return res.json()
+  },
+
+  /**
    * Atualiza o perfil comercial do WhatsApp Business
    */
   async updateBusinessProfile(
