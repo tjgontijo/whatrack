@@ -38,7 +38,7 @@ const templateSchema = z.object({
   language: z.string().min(2, 'Idioma obrigatório'),
   headerType: z.enum(['NONE', 'TEXT', 'IMAGE', 'VIDEO', 'DOCUMENT']),
   headerText: z.string().max(60).optional(),
-  bodyText: z.string().min(1, 'Corpo obrigatório').max(1024),
+  bodyText: z.string().min(1, 'Corpo obrigatório').max(4096),
   footerText: z.string().max(60).optional(),
   buttonType: z.enum(['NONE', 'URL', 'REPLY']),
   urlButtonText: z.string().optional(),
@@ -271,7 +271,7 @@ export function TemplateEditorForm({
             className="gap-2"
           >
             <Send className="h-3.5 w-3.5" />
-            {mutation.isPending ? 'Enviando...' : 'Enviar'}
+            {mutation.isPending ? 'Enviando...' : 'Enviar para Análise'}
           </Button>
         </div>
       </div>
