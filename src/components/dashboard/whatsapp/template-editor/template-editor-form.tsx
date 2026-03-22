@@ -49,12 +49,11 @@ interface TemplateEditorFormProps {
   onClose: () => void
 }
 
-import { useOrganization } from '@/hooks/organization/use-organization'
+import { useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
 
 export function TemplateEditorForm({ template, onClose }: TemplateEditorFormProps) {
   const queryClient = useQueryClient()
-  const { data: org } = useOrganization()
-  const orgId = org?.id
+  const { organizationId: orgId } = useRequiredProjectRouteContext()
   const mode = template ? 'edit' : 'create'
 
   const defaultValues = React.useMemo(() => {
