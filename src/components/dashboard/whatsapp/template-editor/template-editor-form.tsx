@@ -21,6 +21,11 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { whatsappApi } from '@/lib/whatsapp/client'
 import { useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
 import { TemplatePreview } from './template-preview'
@@ -40,10 +45,11 @@ const templateSchema = z.object({
   headerText: z.string().max(60).optional(),
   bodyText: z.string().min(1, 'Corpo obrigatório').max(1024, 'Máximo 1.024 caracteres'),
   footerText: z.string().max(60).optional(),
-  buttonType: z.enum(['NONE', 'URL', 'REPLY']),
-  urlButtonText: z.string().optional(),
-  urlButtonUrl: z.string().optional(),
-  replyButtons: z.array(z.string()).optional(),
+  buttons: z.array(z.object({
+    type: z.enum(['URL', 'REPLY']),
+    text: z.string().min(1).max(25),
+    url: z.string().optional(),
+  })).optional(),
   samples: z.record(z.string(), z.string()).optional(),
 })
 
@@ -97,7 +103,7 @@ export function TemplateEditorForm({
       const header = template.components?.find((c) => c.type === 'HEADER')
       const body = template.components?.find((c) => c.type === 'BODY')
       const footer = template.components?.find((c) => c.type === 'FOOTER')
-      const buttons = template.components?.find((c) => c.type === 'BUTTONS')
+      const buttonsComp = template.components?.find((c) => c.type === 'BUTTONS')
 
       return {
         name: template.name,
@@ -107,10 +113,11 @@ export function TemplateEditorForm({
         headerText: header?.text || '',
         bodyText: body?.text || '',
         footerText: footer?.text || '',
-        buttonType: buttons ? (buttons.buttons?.[0]?.type === 'URL' ? 'URL' : 'REPLY') : 'NONE',
-        urlButtonText: buttons?.buttons?.[0]?.text || '',
-        urlButtonUrl: buttons?.buttons?.[0]?.url || '',
-        replyButtons: buttons?.buttons?.map((b) => b.text) || [''],
+        buttons: buttonsComp?.buttons?.map((b: any) => ({
+          type: b.type === 'URL' ? 'URL' : 'REPLY',
+          text: b.text,
+          url: b.url || '',
+        })) || [],
         samples: {},
       }
     }
@@ -125,10 +132,7 @@ export function TemplateEditorForm({
       headerText: '',
       bodyText: '',
       footerText: '',
-      buttonType: 'NONE',
-      urlButtonText: '',
-      urlButtonUrl: '',
-      replyButtons: [''],
+      buttons: [],
       samples: {},
     }
   }, [isEdit, template, initialCategory, initialLanguage])
@@ -147,14 +151,20 @@ export function TemplateEditorForm({
   const headerText = watch('headerText') || ''
   const bodyText = watch('bodyText') || ''
   const footerText = watch('footerText') || ''
-  const buttonType = watch('buttonType')
-  const replyButtons = watch('replyButtons') || ['']
+  const buttons = watch('buttons') || []
   const samples = watch('samples') || {}
 
   const bodyVariables = useMemo(() => extractVariables(bodyText), [bodyText])
 
+  // Variable mode: determines format (name or number)
+  const [varMode, setVarMode] = useState<'name' | 'number'>('name')
+
+  // Popover state for add-button affordance
+  const [addBtnOpen, setAddBtnOpen] = useState(false)
+
   // Insert variable at cursor (or at end)
-  const insertVariable = (varName: string) => {
+  const insertVariable = () => {
+    const varName = varMode === 'name' ? 'nome_variavel' : `${bodyVariables.length + 1}`
     const textarea = document.getElementById('body-textarea') as HTMLTextAreaElement | null
     if (!textarea) {
       setValue('bodyText', bodyText + `{{${varName}}}`)
@@ -171,6 +181,7 @@ export function TemplateEditorForm({
       textarea.setSelectionRange(pos, pos)
     }, 0)
   }
+
 
   // ─── Mutation ─────────────────────────────────────────────────────────────
 
@@ -202,17 +213,33 @@ export function TemplateEditorForm({
       }
 
       // Buttons
-      if (values.buttonType === 'URL' && values.urlButtonText) {
-        components.push({
-          type: 'buttons',
-          buttons: [{ type: 'URL', text: values.urlButtonText, url: values.urlButtonUrl || '' }],
+      if (values.buttons && values.buttons.length > 0) {
+        const urlButtons = values.buttons.filter((b) => b.type === 'URL')
+        const replyButtons = values.buttons.filter((b) => b.type === 'REPLY').slice(0, 3)
+
+        const buttonsList: any[] = []
+
+        // Add URL buttons (max 1)
+        if (urlButtons.length > 0) {
+          buttonsList.push({
+            type: 'URL',
+            text: urlButtons[0].text,
+            url: urlButtons[0].url || '',
+          })
+        }
+
+        // Add reply buttons (max 3)
+        replyButtons.forEach((btn) => {
+          buttonsList.push({
+            type: 'QUICK_REPLY',
+            text: btn.text,
+          })
         })
-      } else if (values.buttonType === 'REPLY') {
-        const btns = (values.replyButtons || []).filter(Boolean).slice(0, 3)
-        if (btns.length > 0) {
+
+        if (buttonsList.length > 0) {
           components.push({
             type: 'buttons',
-            buttons: btns.map((text) => ({ type: 'QUICK_REPLY', text })),
+            buttons: buttonsList,
           })
         }
       }
@@ -226,7 +253,7 @@ export function TemplateEditorForm({
         category: values.category.toLowerCase(),
         language: values.language,
         components,
-        parameter_format: 'named',
+        parameter_format: varMode === 'name' ? 'named' : 'positional',
       }
 
       return whatsappApi.createTemplate(payload, orgId)
@@ -243,6 +270,18 @@ export function TemplateEditorForm({
 
   const onSubmit = handleSubmit((values) => mutation.mutate(values))
 
+  // Save draft locally in browser storage
+  const saveDraft = () => {
+    const draftKey = `template_draft_${isEdit ? template?.id : 'new'}`
+    const draftData = {
+      ...form.getValues(),
+      varMode,
+      savedAt: new Date().toISOString(),
+    }
+    localStorage.setItem(draftKey, JSON.stringify(draftData))
+    toast.success('Rascunho salvo!')
+  }
+
   // ─── Render ───────────────────────────────────────────────────────────────
 
   return (
@@ -254,7 +293,12 @@ export function TemplateEditorForm({
           Voltar
         </Button>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" disabled>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={saveDraft}
+            type="button"
+          >
             Rascunho
           </Button>
           <Button
@@ -270,7 +314,7 @@ export function TemplateEditorForm({
       </div>
 
       {/* ── Three-column body ── */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 min-h-0">
         {/* ── Column 1: Metadata (Narrow) ── */}
         <div className="w-64 shrink-0 border-r bg-muted/30 overflow-y-auto px-4 py-6 space-y-6">
           {/* Template Name */}
@@ -338,10 +382,26 @@ export function TemplateEditorForm({
             />
           </div>
 
+          <Separator />
+
+          {/* Variable Type */}
+          <div className="space-y-2">
+            <Label className="text-xs font-semibold">Tipo de Variável</Label>
+            <Select value={varMode} onValueChange={(value) => setVarMode(value as 'name' | 'number')}>
+              <SelectTrigger className="h-9 text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="name" className="text-sm">Texto</SelectItem>
+                <SelectItem value="number" className="text-sm">Número</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
         </div>
 
         {/* ── Column 2: Content Editor ── */}
-        <div className="flex-[0.70] overflow-y-auto px-6 py-6 space-y-6">
+        <div className="flex-[0.70] px-6 py-6 space-y-6">
 
           {/* Header */}
           <div className="space-y-3">
@@ -404,7 +464,6 @@ export function TemplateEditorForm({
               <Textarea
                 id="body-textarea"
                 {...register('bodyText')}
-                placeholder="Olá {{nome do cliente}}, seu pedido {{número do pedido}} foi confirmado!"
                 className="min-h-[120px] font-mono text-sm resize-none pr-20"
               />
               <span className={`absolute bottom-3 right-3 text-xs font-medium pointer-events-none ${bodyText.length > 900 ? 'text-orange-600' : 'text-muted-foreground'}`}>
@@ -422,7 +481,7 @@ export function TemplateEditorForm({
                 variant="outline"
                 size="sm"
                 className="h-7 gap-1.5 text-xs"
-                onClick={() => insertVariable('nome_variavel')}
+                onClick={() => insertVariable()}
               >
                 <Plus className="h-3 w-3" />
                 Inserir variável
@@ -480,86 +539,129 @@ export function TemplateEditorForm({
           <Separator />
 
           {/* Buttons */}
-          <div className="space-y-3">
+          <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label className="font-semibold">
                 Botões <span className="font-normal text-muted-foreground text-xs">(opcional)</span>
               </Label>
-              <Controller
-                name="buttonType"
-                control={control}
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger className="h-7 w-40 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="NONE" className="text-xs">Nenhum</SelectItem>
-                      <SelectItem value="URL" className="text-xs">URL Button</SelectItem>
-                      <SelectItem value="REPLY" className="text-xs">Reply Button</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
-              />
+              {buttons.length > 0 && (
+                <span className="text-xs text-muted-foreground tabular-nums">{buttons.length}/10</span>
+              )}
             </div>
 
-            {buttonType === 'URL' && (
-              <div className="flex gap-2 rounded-lg border p-3">
-                <Input {...register('urlButtonText')} placeholder="Texto do botão" className="text-sm w-40 shrink-0" />
-                <Input {...register('urlButtonUrl')} placeholder="https://exemplo.com" className="text-sm flex-1" />
+            {/* Button rows */}
+            {buttons.length > 0 && (
+              <div className="space-y-1">
+                {buttons.map((btn, i) => (
+                  <div
+                    key={i}
+                    className="group flex items-start gap-2 rounded-lg border bg-muted/20 px-3 py-2.5 transition-colors hover:bg-muted/40"
+                  >
+                    {/* Type pill */}
+                    <span className={`mt-0.5 shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide leading-none ${
+                      btn.type === 'URL'
+                        ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                        : 'bg-muted text-muted-foreground'
+                    }`}>
+                      {btn.type === 'URL' ? 'URL' : 'Reply'}
+                    </span>
+
+                    {/* Inputs */}
+                    {btn.type === 'URL' ? (
+                      <div className="flex flex-1 items-center gap-2 min-w-0">
+                        <Input
+                          value={btn.text}
+                          onChange={(e) => {
+                            const updated = buttons.map((b, j) => j === i ? { ...b, text: e.target.value } : b)
+                            setValue('buttons', updated)
+                          }}
+                          placeholder="Texto"
+                          className="h-7 w-[20%] shrink-0 text-xs border-0 bg-transparent px-0 shadow-none focus-visible:ring-0 placeholder:text-muted-foreground/50"
+                          maxLength={25}
+                        />
+                        <span className="text-muted-foreground/30 text-xs shrink-0">|</span>
+                        <Input
+                          value={btn.url || ''}
+                          onChange={(e) => {
+                            const updated = buttons.map((b, j) => j === i ? { ...b, url: e.target.value } : b)
+                            setValue('buttons', updated)
+                          }}
+                          placeholder="https://exemplo.com"
+                          className="h-7 flex-1 min-w-0 text-xs border-0 bg-transparent px-0 shadow-none focus-visible:ring-0 text-muted-foreground placeholder:text-muted-foreground/40"
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex-1 min-w-0">
+                        <Input
+                          value={btn.text}
+                          onChange={(e) => {
+                            const updated = buttons.map((b, j) => j === i ? { ...b, text: e.target.value } : b)
+                            setValue('buttons', updated)
+                          }}
+                          placeholder="Texto da opção"
+                          className="h-7 text-xs border-0 bg-transparent px-0 shadow-none focus-visible:ring-0 placeholder:text-muted-foreground/50"
+                          maxLength={25}
+                        />
+                      </div>
+                    )}
+
+                    {/* Remove */}
+                    <button
+                      type="button"
+                      onClick={() => setValue('buttons', buttons.filter((_, j) => j !== i))}
+                      className="mt-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
 
-            {buttonType === 'REPLY' && (
-              <div className="space-y-2">
-                {replyButtons.map((btn, i) => (
-                  <div key={i} className="flex gap-2">
-                    <Input
-                      value={btn}
-                      onChange={(e) => {
-                        const updated = [...replyButtons]
-                        updated[i] = e.target.value
-                        setValue('replyButtons', updated)
-                      }}
-                      placeholder={`Botão ${i + 1}`}
-                      className="text-sm"
-                      maxLength={25}
-                    />
-                    {replyButtons.length > 1 && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-9 w-9 shrink-0"
-                        onClick={() =>
-                          setValue('replyButtons', replyButtons.filter((_, j) => j !== i))
-                        }
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                ))}
-                {replyButtons.length < 3 && (
-                  <Button
+            {/* Add button — dashed popover trigger */}
+            {buttons.length < 10 && (
+              <Popover open={addBtnOpen} onOpenChange={setAddBtnOpen}>
+                <PopoverTrigger asChild>
+                  <button
                     type="button"
-                    variant="outline"
-                    size="sm"
-                    className="h-7 gap-1.5 text-xs"
-                    onClick={() => setValue('replyButtons', [...replyButtons, ''])}
+                    className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-muted-foreground/25 py-2 text-xs text-muted-foreground transition-colors hover:border-muted-foreground/50 hover:text-foreground"
                   >
                     <Plus className="h-3 w-3" />
                     Adicionar botão
-                  </Button>
-                )}
-              </div>
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-52 p-1.5" align="start">
+                  <button
+                    type="button"
+                    className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-sm hover:bg-muted transition-colors"
+                    onClick={() => {
+                      setValue('buttons', [...buttons, { type: 'REPLY', text: '', url: '' }])
+                      setAddBtnOpen(false)
+                    }}
+                  >
+                    <span className="flex h-5 w-5 items-center justify-center rounded bg-muted text-[10px] font-bold">R</span>
+                    Resposta Rápida
+                  </button>
+                  <button
+                    type="button"
+                    className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-sm hover:bg-muted transition-colors"
+                    onClick={() => {
+                      setValue('buttons', [...buttons, { type: 'URL', text: '', url: '' }])
+                      setAddBtnOpen(false)
+                    }}
+                  >
+                    <span className="flex h-5 w-5 items-center justify-center rounded bg-blue-500/10 text-[10px] font-bold text-blue-600 dark:text-blue-400">↗</span>
+                    Acessar o Site
+                  </button>
+                </PopoverContent>
+              </Popover>
             )}
           </div>
 
         </div>
 
         {/* ── Column 3: Phone preview (Large) ── */}
-        <div className="flex-[0.35] border-l bg-muted/20 overflow-y-auto flex items-start justify-center pt-6 px-3">
+        <div className="flex-[0.35] border-l bg-muted/20 flex items-start justify-center pt-6 px-3 self-start sticky top-0 max-h-screen overflow-y-auto">
           <div className="w-full max-w-md">
             <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4 text-center">Prévia</p>
             <TemplatePreview
@@ -567,9 +669,9 @@ export function TemplateEditorForm({
               headerText={headerType === 'TEXT' ? applyVariables(headerText, samples) : ''}
               bodyText={applyVariables(bodyText, samples)}
               footerText={footerText}
-              buttonType={buttonType}
-              urlButtonText={watch('urlButtonText')}
-              replyButtons={buttonType === 'REPLY' ? replyButtons.filter(Boolean) : []}
+              previewButtons={buttons
+                .filter((b) => b.text)
+                .map((b) => ({ type: b.type, text: b.text }))}
             />
           </div>
         </div>

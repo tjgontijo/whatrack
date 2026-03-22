@@ -4,12 +4,20 @@ import React from 'react'
 import { ExternalLink, MessageCircle } from 'lucide-react'
 import { cn } from '@/lib/utils/utils'
 
+interface PreviewButton {
+  type: 'URL' | 'REPLY'
+  text: string
+}
+
 interface TemplatePreviewProps {
   // Full-screen editor props
   headerType?: string
   headerText?: string
   bodyText: string
   footerText?: string
+  // New: multi-button support
+  previewButtons?: PreviewButton[]
+  // Legacy single-type props (still supported for compact/other usages)
   buttonType?: string
   urlButtonText?: string
   replyButtons?: string[]
@@ -24,6 +32,7 @@ export function TemplatePreview({
   headerText = '',
   bodyText,
   footerText = '',
+  previewButtons,
   buttonType = 'NONE',
   urlButtonText = '',
   replyButtons = [],
@@ -37,7 +46,15 @@ export function TemplatePreview({
     : bodyText
 
   const hasContent = resolvedBody.trim() !== ''
-  const hasButtons = buttonType !== 'NONE' && (urlButtonText || replyButtons.length > 0)
+
+  // Resolve buttons: prefer previewButtons array, fall back to legacy props
+  const allButtons: PreviewButton[] = previewButtons ?? [
+    ...(buttonType === 'URL' && urlButtonText ? [{ type: 'URL' as const, text: urlButtonText }] : []),
+    ...(buttonType === 'REPLY' ? replyButtons.map((t) => ({ type: 'REPLY' as const, text: t })) : []),
+  ]
+  const hasButtons = allButtons.length > 0
+  const showAsList = allButtons.length > 3
+  const visibleButtons = showAsList ? allButtons : allButtons.slice(0, 3)
 
   if (compact) {
     return (
@@ -118,20 +135,36 @@ export function TemplatePreview({
             {/* Buttons */}
             {hasButtons && (
               <div className="border-t border-[#303d45]">
-                {buttonType === 'URL' && urlButtonText && (
-                  <button className="w-full flex items-center justify-center gap-1.5 px-3 py-2 text-[13px] text-[#00a884]">
-                    <ExternalLink className="h-3.5 w-3.5" />
-                    {urlButtonText}
-                  </button>
+                {showAsList ? (
+                  /* 4+ buttons: compact list — sem ícone, só label de tipo */
+                  <div className="px-3 py-2 space-y-1.5">
+                    {visibleButtons.map((btn, i) => (
+                      <div key={i} className="flex items-center gap-2 text-[11px]">
+                        <span className={`shrink-0 text-[9px] font-bold uppercase tracking-wider ${btn.type === 'URL' ? 'text-[#00a884]' : 'text-[#8696a0]'}`}>
+                          {btn.type === 'URL' ? 'URL' : 'Reply'}
+                        </span>
+                        <span className="truncate text-[#00a884]">{btn.text}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  /* 1-3 buttons: full-width rows */
+                  visibleButtons.map((btn, i) => (
+                    <React.Fragment key={i}>
+                      {i > 0 && <div className="border-t border-[#303d45]" />}
+                      {btn.type === 'URL' ? (
+                        <button className="w-full flex items-center justify-center gap-1.5 px-3 py-2 text-[13px] text-[#00a884]">
+                          <ExternalLink className="h-3.5 w-3.5" />
+                          {btn.text}
+                        </button>
+                      ) : (
+                        <button className="w-full px-3 py-2 text-[13px] text-[#00a884] text-center">
+                          {btn.text}
+                        </button>
+                      )}
+                    </React.Fragment>
+                  ))
                 )}
-                {buttonType === 'REPLY' && replyButtons.map((btn, i) => (
-                  <React.Fragment key={i}>
-                    {i > 0 && <div className="border-t border-[#303d45]" />}
-                    <button className="w-full px-3 py-2 text-[13px] text-[#00a884] text-center">
-                      {btn}
-                    </button>
-                  </React.Fragment>
-                ))}
               </div>
             )}
           </div>
