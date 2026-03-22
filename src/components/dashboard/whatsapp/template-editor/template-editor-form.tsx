@@ -153,9 +153,6 @@ export function TemplateEditorForm({
 
   const bodyVariables = useMemo(() => extractVariables(bodyText), [bodyText])
 
-  // Variable mode: 'name' = {{nome}}, 'number' = {{1}}, {{2}}…
-  const [varMode, setVarMode] = useState<'name' | 'number'>('name')
-
   // Insert variable at cursor (or at end)
   const insertVariable = (varName: string) => {
     const textarea = document.getElementById('body-textarea') as HTMLTextAreaElement | null
@@ -190,13 +187,9 @@ export function TemplateEditorForm({
         }
       }
 
-      // Body — convert named vars to positional for Meta API
+      // Body — keep variables in snake_case format as required by Meta
       const vars = extractVariables(values.bodyText)
-      let metaBody = values.bodyText
-      vars.forEach((name, i) => {
-        metaBody = metaBody.replaceAll(`{{${name}}}`, `{{${i + 1}}}`)
-      })
-      const bodyComp: any = { type: 'body', text: metaBody }
+      const bodyComp: any = { type: 'body', text: values.bodyText }
       if (vars.length > 0) {
         const sampleValues = vars.map((v) => values.samples?.[v] || 'exemplo')
         bodyComp.example = { body_text: [sampleValues] }
@@ -345,21 +338,6 @@ export function TemplateEditorForm({
             />
           </div>
 
-          <Separator />
-
-          {/* Variable Type */}
-          <div className="space-y-2">
-            <Label className="text-xs font-semibold">Tipo de Variável</Label>
-            <Select value={varMode} onValueChange={(val) => setVarMode(val as 'name' | 'number')}>
-              <SelectTrigger className="h-9 text-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="name" className="text-sm">Texto</SelectItem>
-                <SelectItem value="number" className="text-sm">Número</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
         </div>
 
         {/* ── Column 2: Content Editor ── */}
@@ -444,14 +422,7 @@ export function TemplateEditorForm({
                 variant="outline"
                 size="sm"
                 className="h-7 gap-1.5 text-xs"
-                onClick={() => {
-                  if (varMode === 'name') {
-                    insertVariable('nome')
-                  } else {
-                    const count = bodyVariables.length + 1
-                    insertVariable(`${count}`)
-                  }
-                }}
+                onClick={() => insertVariable('nome_variavel')}
               >
                 <Plus className="h-3 w-3" />
                 Inserir variável
