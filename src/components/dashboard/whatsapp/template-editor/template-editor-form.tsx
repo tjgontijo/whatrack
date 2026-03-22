@@ -44,7 +44,6 @@ const templateSchema = z.object({
   urlButtonText: z.string().optional(),
   urlButtonUrl: z.string().optional(),
   replyButtons: z.array(z.string()).optional(),
-  validityPeriod: z.string().optional(),
   samples: z.record(z.string(), z.string()).optional(),
 })
 
@@ -82,14 +81,6 @@ const CATEGORY_LABEL: Record<string, string> = {
   AUTHENTICATION: 'Autenticação',
 }
 
-const VALIDITY_OPTIONS = [
-  { value: 'NONE', label: 'Nenhum' },
-  { value: '3600', label: '1 hora' },
-  { value: '10800', label: '3 horas' },
-  { value: '21600', label: '6 horas' },
-  { value: '43200', label: '12 horas' },
-  { value: '86400', label: '24 horas' },
-]
 
 export function TemplateEditorForm({
   template,
@@ -120,7 +111,6 @@ export function TemplateEditorForm({
         urlButtonText: buttons?.buttons?.[0]?.text || '',
         urlButtonUrl: buttons?.buttons?.[0]?.url || '',
         replyButtons: buttons?.buttons?.map((b) => b.text) || [''],
-        validityPeriod: 'NONE',
         samples: {},
       }
     }
@@ -139,7 +129,6 @@ export function TemplateEditorForm({
       urlButtonText: '',
       urlButtonUrl: '',
       replyButtons: [''],
-      validityPeriod: 'NONE',
       samples: {},
     }
   }, [isEdit, template, initialCategory, initialLanguage])
@@ -161,7 +150,6 @@ export function TemplateEditorForm({
   const buttonType = watch('buttonType')
   const replyButtons = watch('replyButtons') || ['']
   const samples = watch('samples') || {}
-  const validityPeriod = watch('validityPeriod')
 
   const bodyVariables = useMemo(() => extractVariables(bodyText), [bodyText])
 
@@ -248,10 +236,6 @@ export function TemplateEditorForm({
         parameter_format: 'named',
       }
 
-      if (values.category === 'UTILITY' && values.validityPeriod && values.validityPeriod !== 'NONE') {
-        payload.expiration_time_ms = parseInt(values.validityPeriod) * 1000
-      }
-
       return whatsappApi.createTemplate(payload, orgId)
     },
     onSuccess: () => {
@@ -298,7 +282,7 @@ export function TemplateEditorForm({
         <div className="w-64 shrink-0 border-r bg-muted/30 overflow-y-auto px-4 py-6 space-y-6">
           {/* Template Name */}
           <div className="space-y-2">
-            <Label className="text-xs font-semibold uppercase tracking-widest">Nome</Label>
+            <Label className="text-xs font-semibold">Nome</Label>
             <Controller
               name="name"
               control={control}
@@ -319,7 +303,7 @@ export function TemplateEditorForm({
 
           {/* Category */}
           <div className="space-y-2">
-            <Label className="text-xs font-semibold uppercase tracking-widest">Tipo</Label>
+            <Label className="text-xs font-semibold">Tipo</Label>
             <Controller
               name="category"
               control={control}
@@ -342,7 +326,7 @@ export function TemplateEditorForm({
 
           {/* Language */}
           <div className="space-y-2">
-            <Label className="text-xs font-semibold uppercase tracking-widest">Idioma</Label>
+            <Label className="text-xs font-semibold">Idioma</Label>
             <Controller
               name="language"
               control={control}
@@ -365,7 +349,7 @@ export function TemplateEditorForm({
 
           {/* Variable Type */}
           <div className="space-y-2">
-            <Label className="text-xs font-semibold uppercase tracking-widest">Tipo de Var</Label>
+            <Label className="text-xs font-semibold">Tipo de Variável</Label>
             <Select value={varMode} onValueChange={(val) => setVarMode(val as 'name' | 'number')}>
               <SelectTrigger className="h-9 text-sm">
                 <SelectValue />
@@ -376,34 +360,6 @@ export function TemplateEditorForm({
               </SelectContent>
             </Select>
           </div>
-
-          {/* Validity period — Utility only */}
-          {category === 'UTILITY' && (
-            <>
-              <Separator />
-              <div className="space-y-2">
-                <Label className="text-xs font-semibold uppercase tracking-widest">Validade</Label>
-                <Controller
-                  name="validityPeriod"
-                  control={control}
-                  render={({ field }) => (
-                    <Select value={field.value || 'NONE'} onValueChange={field.onChange}>
-                      <SelectTrigger className="h-9 text-sm">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {VALIDITY_OPTIONS.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value} className="text-sm">
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-              </div>
-            </>
-          )}
         </div>
 
         {/* ── Column 2: Content Editor (Large) ── */}
