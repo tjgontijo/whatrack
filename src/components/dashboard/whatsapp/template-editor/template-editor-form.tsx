@@ -4,7 +4,7 @@ import React, { useMemo, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { ArrowLeft, Plus, Send, Trash2 } from 'lucide-react'
+import { ArrowLeft, Plus, Send, Trash2, Type, Image, Video, FileText } from 'lucide-react'
 import { toast } from 'sonner'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
@@ -361,6 +361,29 @@ export function TemplateEditorForm({
             />
           </div>
 
+          <Separator />
+
+          {/* Variable Type */}
+          <div className="space-y-2">
+            <Label className="text-xs font-semibold uppercase tracking-widest">Tipo de Var</Label>
+            <div className="flex rounded-md border overflow-hidden bg-background">
+              <button
+                type="button"
+                className={`flex-1 px-2 py-2 text-xs font-medium transition-colors ${varMode === 'name' ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-muted'}`}
+                onClick={() => setVarMode('name')}
+              >
+                Texto
+              </button>
+              <button
+                type="button"
+                className={`flex-1 px-2 py-2 text-xs font-medium transition-colors border-l ${varMode === 'number' ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-muted'}`}
+                onClick={() => setVarMode('number')}
+              >
+                Número
+              </button>
+            </div>
+          </div>
+
           {/* Validity period — Utility only */}
           {category === 'UTILITY' && (
             <>
@@ -394,39 +417,55 @@ export function TemplateEditorForm({
         <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
 
           {/* Header */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label className="font-semibold">Cabeçalho <span className="font-normal text-muted-foreground text-xs">(opcional)</span></Label>
-              <Controller
-                name="headerType"
-                control={control}
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger className="h-8 w-32 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {['NONE', 'TEXT', 'IMAGE', 'VIDEO', 'DOCUMENT'].map((t) => (
-                        <SelectItem key={t} value={t} className="text-xs">
-                          {t === 'NONE' ? 'Nenhum' : t === 'TEXT' ? 'Texto' : t === 'IMAGE' ? 'Imagem' : t === 'VIDEO' ? 'Vídeo' : 'Arquivo'}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-            </div>
+          <div className="space-y-3">
+            <Label className="font-semibold">Cabeçalho <span className="font-normal text-muted-foreground text-xs">(opcional)</span></Label>
+            <Controller
+              name="headerType"
+              control={control}
+              render={({ field }) => (
+                <div className="grid grid-cols-4 gap-2">
+                  {[
+                    { value: 'NONE', label: 'Nenhum', icon: null },
+                    { value: 'TEXT', label: 'Texto', icon: Type },
+                    { value: 'IMAGE', label: 'Imagem', icon: Image },
+                    { value: 'VIDEO', label: 'Vídeo', icon: Video },
+                  ].map((option) => {
+                    const Icon = option.icon
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => field.onChange(option.value)}
+                        className={`flex flex-col items-center justify-center gap-1.5 rounded-lg border-2 p-3 text-xs font-medium transition-all ${
+                          field.value === option.value
+                            ? 'border-primary bg-primary/10 text-primary'
+                            : 'border-muted bg-muted/30 text-muted-foreground hover:border-muted-foreground'
+                        }`}
+                      >
+                        {Icon && <Icon className="h-4 w-4" />}
+                        <span className="text-center leading-tight">{option.label}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            />
             {headerType === 'TEXT' && (
               <Input
                 {...register('headerText')}
                 placeholder="Texto do cabeçalho"
                 maxLength={60}
-                className="text-sm"
+                className="text-sm mt-2"
               />
             )}
-            {headerType !== 'NONE' && headerType !== 'TEXT' && (
-              <div className="bg-muted rounded border border-dashed px-4 py-6 text-center text-xs text-muted-foreground">
-                Upload de {headerType === 'IMAGE' ? 'imagem' : headerType === 'VIDEO' ? 'vídeo' : 'arquivo'} será solicitado pela Meta na revisão
+            {headerType === 'IMAGE' && (
+              <div className="bg-muted rounded border border-dashed px-4 py-6 text-center text-xs text-muted-foreground mt-2">
+                Upload de imagem será solicitado pela Meta na revisão
+              </div>
+            )}
+            {headerType === 'VIDEO' && (
+              <div className="bg-muted rounded border border-dashed px-4 py-6 text-center text-xs text-muted-foreground mt-2">
+                Upload de vídeo será solicitado pela Meta na revisão
               </div>
             )}
           </div>
@@ -446,23 +485,6 @@ export function TemplateEditorForm({
 
             {/* Variable insertion */}
             <div className="flex items-center gap-2 flex-wrap">
-              {/* Mode toggle */}
-              <div className="flex rounded-md border overflow-hidden">
-                <button
-                  type="button"
-                  className={`px-2.5 py-1 text-xs font-medium transition-colors ${varMode === 'name' ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-muted'}`}
-                  onClick={() => setVarMode('name')}
-                >
-                  Nome
-                </button>
-                <button
-                  type="button"
-                  className={`px-2.5 py-1 text-xs font-medium transition-colors border-l ${varMode === 'number' ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-muted'}`}
-                  onClick={() => setVarMode('number')}
-                >
-                  Número
-                </button>
-              </div>
               <Button
                 type="button"
                 variant="outline"
