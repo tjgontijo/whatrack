@@ -24,26 +24,18 @@ import Link from 'next/link'
 import { parsePhoneNumberFromString } from 'libphonenumber-js'
 import * as Flags from 'country-flag-icons/react/3x2'
 import type { WhatsAppPhoneNumber } from '@/types/whatsapp/whatsapp'
-import { ProjectSelector } from '@/components/dashboard/projects/project-selector'
 
 interface OverviewViewProps {
   phone: WhatsAppPhoneNumber
 }
 
-import { useOrganization } from '@/hooks/organization/use-organization'
-import { useRequiredProjectPath } from '@/hooks/project/project-route-context'
+import { useRequiredProjectPath, useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
 
 export function OverviewView({ phone }: OverviewViewProps) {
   const queryClient = useQueryClient()
-  const { data: org } = useOrganization()
+  const { organizationId: orgId } = useRequiredProjectRouteContext()
   const whatsappSettingsPath = useRequiredProjectPath('/settings/whatsapp')
-  const orgId = org?.id
 
-  const { data: accountInfo } = useQuery({
-    queryKey: ['whatsapp', 'account', orgId],
-    queryFn: () => whatsappApi.getAccountInfo(orgId!),
-    enabled: !!orgId,
-  })
 
   const activateMutation = useMutation({
     mutationFn: () => whatsappApi.activateNumber(orgId!),
@@ -61,26 +53,8 @@ export function OverviewView({ phone }: OverviewViewProps) {
     },
   })
 
-  const assignProjectMutation = useMutation({
-    mutationFn: (projectId: string | null) =>
-      whatsappApi.assignProject(phone.configId!, projectId, orgId!),
-    onSuccess: () => {
-      toast.success('Projeto da instância atualizado')
-      queryClient.invalidateQueries({ queryKey: ['whatsapp', 'phone-numbers', orgId] })
-      queryClient.invalidateQueries({ queryKey: ['whatsapp', 'phone', phone.id, orgId] })
-    },
-    onError: (error: Error) => {
-      toast.error('Erro ao atualizar projeto', { description: error.message })
-    },
-  })
-
   const needsActivation = phone.status !== 'CONNECTED'
 
-  const reviewStatus = {
-    APPROVED: { label: 'Aprovado', color: 'default' },
-    PENDING: { label: 'Em Análise', color: 'secondary' },
-    REJECTED: { label: 'Rejeitado', color: 'destructive' },
-  }[accountInfo?.account_review_status || 'PENDING'] || { label: 'Pendente', color: 'secondary' }
 
   const phoneStatus: Record<
     string,
@@ -99,29 +73,6 @@ export function OverviewView({ phone }: OverviewViewProps) {
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-2 w-full space-y-6 pb-8 duration-500">
-      <Card className="bg-muted/20 border-none shadow-none">
-        <CardHeader className="pb-2 pt-4">
-          <CardDescription className="text-[10px] font-bold uppercase tracking-wider">
-            Projeto operacional
-          </CardDescription>
-          <CardTitle className="text-base">Cliente vinculado a esta instância</CardTitle>
-        </CardHeader>
-        <CardContent className="pb-4">
-          {phone.configId ? (
-            <ProjectSelector
-              organizationId={orgId}
-              value={phone.projectId}
-              onChange={(projectId) => assignProjectMutation.mutate(projectId)}
-              disabled={assignProjectMutation.isPending}
-              className="max-w-sm rounded-xl"
-            />
-          ) : (
-            <p className="text-muted-foreground text-sm">
-              Esta instância ainda não foi materializada no banco local.
-            </p>
-          )}
-        </CardContent>
-      </Card>
 
       {needsActivation && (
         <Alert
@@ -199,28 +150,6 @@ export function OverviewView({ phone }: OverviewViewProps) {
           </CardContent>
         </Card>
 
-        <Card className="bg-muted/20 border-none shadow-none">
-          <CardHeader className="pb-2 pt-4">
-            <CardDescription className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider">
-              <Activity className="h-3 w-3" /> Status da Conta
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pb-4">
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground text-sm font-medium">
-                {accountInfo?.account_review_status === 'APPROVED'
-                  ? 'Aprovada pela Meta'
-                  : 'Em processamento'}
-              </span>
-              <Badge
-                variant={reviewStatus.color as any}
-                className="h-5 px-2 py-0 text-[10px] font-bold"
-              >
-                {reviewStatus.label}
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Hubs - More Balanced */}
@@ -248,7 +177,7 @@ export function OverviewView({ phone }: OverviewViewProps) {
               asChild
               className="shadow-primary/10 h-10 w-full rounded-lg text-sm font-bold shadow-md"
             >
-              <Link href={`${whatsappSettingsPath}/${phone.id}/templates`}>
+              <Link href={`${whatsappSettingsPath}/${phone.configId}/templates`}>
                 <MessageSquare className="mr-2 h-4 w-4" />
                 Abrir Templates
               </Link>
@@ -278,7 +207,7 @@ export function OverviewView({ phone }: OverviewViewProps) {
               variant="outline"
               className="h-10 w-full rounded-lg border-2 text-sm font-bold"
             >
-              <Link href={`${whatsappSettingsPath}/${phone.id}/settings`}>
+              <Link href={`${whatsappSettingsPath}/${phone.configId}/settings`}>
                 <UserCircle className="mr-2 h-4 w-4" />
                 Editar Perfil
               </Link>
@@ -311,7 +240,7 @@ export function OverviewView({ phone }: OverviewViewProps) {
               variant="outline"
               className="h-10 w-full rounded-lg border-2 text-sm font-bold"
             >
-              <Link href={`${whatsappSettingsPath}/${phone.id}/send-test`}>
+              <Link href={`${whatsappSettingsPath}/${phone.configId}/send-test`}>
                 <Send className="mr-2 h-4 w-4" />
                 Testar Agora
               </Link>

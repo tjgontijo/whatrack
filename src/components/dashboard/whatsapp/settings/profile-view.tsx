@@ -14,11 +14,10 @@ interface ProfileViewProps {
   phone: WhatsAppPhoneNumber
 }
 
-import { useOrganization } from '@/hooks/organization/use-organization'
+import { useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
 
 export function ProfileView({ phone }: ProfileViewProps) {
-  const { data: org } = useOrganization()
-  const orgId = org?.id
+  const { organizationId: orgId } = useRequiredProjectRouteContext()
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ['whatsapp', 'business-profile', orgId],

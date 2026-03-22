@@ -22,11 +22,10 @@ interface SendTestViewProps {
   phone: WhatsAppPhoneNumber
 }
 
-import { useOrganization } from '@/hooks/organization/use-organization'
+import { useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
 
 export function SendTestView({ phone }: SendTestViewProps) {
-  const { data: org } = useOrganization()
-  const orgId = org?.id
+  const { organizationId: orgId } = useRequiredProjectRouteContext()
   const [recipientPhone, setRecipientPhone] = React.useState('')
   const [selectedTemplateName, setSelectedTemplateName] = React.useState('')
   const [variables, setVariables] = React.useState<string[]>([])

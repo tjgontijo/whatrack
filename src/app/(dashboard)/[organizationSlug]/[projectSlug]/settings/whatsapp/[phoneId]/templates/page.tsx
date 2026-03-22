@@ -9,8 +9,7 @@ import { whatsappApi } from '@/lib/whatsapp/client'
 import { TemplatesView } from '@/components/dashboard/whatsapp/settings/templates-view'
 import { Button } from '@/components/ui/button'
 
-import { useOrganization } from '@/hooks/organization/use-organization'
-import { useRequiredProjectPath } from '@/hooks/project/project-route-context'
+import { useRequiredProjectPath, useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
 
 interface PageProps {
   params: Promise<{ phoneId: string }>
@@ -18,9 +17,8 @@ interface PageProps {
 
 export default function InstanceTemplatesPage({ params }: PageProps) {
   const { phoneId } = React.use(params)
-  const { data: org } = useOrganization()
+  const { organizationId: orgId, projectId } = useRequiredProjectRouteContext()
   const whatsappSettingsPath = useRequiredProjectPath('/settings/whatsapp')
-  const orgId = org?.id
 
   const {
     data: phone,
@@ -28,11 +26,8 @@ export default function InstanceTemplatesPage({ params }: PageProps) {
     isError,
   } = useQuery({
     queryKey: ['whatsapp', 'phone', phoneId, orgId],
-    queryFn: async () => {
-      const numbers = await whatsappApi.listPhoneNumbers(orgId!)
-      return numbers.find((n: any) => n.id === phoneId)
-    },
-    enabled: !!orgId,
+    queryFn: () => whatsappApi.getPhoneNumberByConfigId(phoneId, orgId),
+    select: (data) => (data?.projectId === projectId ? data : null),
   })
 
 

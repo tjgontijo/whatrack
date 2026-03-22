@@ -9,7 +9,7 @@ import { EmptyState } from '@/components/dashboard/states/empty-state'
 import { InstanceCard } from '@/components/dashboard/whatsapp/instance-card'
 import { Button } from '@/components/ui/button'
 import { whatsappApi } from '@/lib/whatsapp/client'
-import { useOrganization } from '@/hooks/organization/use-organization'
+import { useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
 import type { WhatsAppPhoneNumber } from '@/types/whatsapp/whatsapp'
 
 type WhatsAppSettingsPageProps = {
@@ -29,9 +29,9 @@ export function WhatsAppSettingsPage({
   isOnboarding = false,
   onStartOnboarding = () => {},
 }: WhatsAppSettingsPageProps) {
-  const { data: org } = useOrganization()
+  const { organizationId: contextOrgId } = useRequiredProjectRouteContext()
   const deferredSearch = useDeferredValue(searchValue)
-  const orgId = propOrgId ?? org?.id
+  const orgId = propOrgId ?? contextOrgId
 
   const {
     data: phoneNumbers,

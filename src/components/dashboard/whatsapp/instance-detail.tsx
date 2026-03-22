@@ -13,28 +13,26 @@ import * as Flags from 'country-flag-icons/react/3x2'
 
 import { OverviewView } from '@/components/dashboard/whatsapp/settings/overview-view'
 
-import { useOrganization } from '@/hooks/organization/use-organization'
-import { useRequiredProjectPath } from '@/hooks/project/project-route-context'
+import { useRequiredProjectPath, useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
 
 interface InstanceDetailProps {
   phoneId: string
+  organizationId: string
 }
 
-export function InstanceDetail({ phoneId }: InstanceDetailProps) {
+export function InstanceDetail({ phoneId, organizationId }: InstanceDetailProps) {
   const isMobile = useIsMobile()
   const router = useRouter()
-  const { data: org } = useOrganization()
   const whatsappSettingsPath = useRequiredProjectPath('/settings/whatsapp')
-  const orgId = org?.id
+  const { projectId } = useRequiredProjectRouteContext()
 
-  const { data: phone, isLoading } = useQuery({
-    queryKey: ['whatsapp', 'phone', phoneId, orgId],
-    queryFn: () => whatsappApi.getPhoneNumberById(phoneId, orgId!),
-    enabled: !!orgId,
+  const { data: phone, fetchStatus } = useQuery({
+    queryKey: ['whatsapp', 'phone', phoneId, organizationId],
+    queryFn: () => whatsappApi.getPhoneNumberByConfigId(phoneId, organizationId),
+    select: (data) => (data?.projectId === projectId ? data : null),
   })
 
-
-  if (isLoading) {
+  if (fetchStatus === 'fetching') {
     return (
       <div className="flex h-[400px] items-center justify-center">
         <RefreshCw className="text-primary h-8 w-8 animate-spin" />

@@ -149,9 +149,9 @@ export const whatsappApi = {
     return data.phoneNumbers || []
   },
 
-  async getPhoneNumberById(id: string, orgId: string): Promise<WhatsAppPhoneNumber | null> {
+  async getPhoneNumberByConfigId(configId: string, orgId: string): Promise<WhatsAppPhoneNumber | null> {
     const phones = await this.listPhoneNumbers(orgId)
-    return phones.find((p) => p.id === id) || null
+    return phones.find((p) => p.configId === configId) || null
   },
 
   async assignProject(configId: string, projectId: string | null, orgId: string) {

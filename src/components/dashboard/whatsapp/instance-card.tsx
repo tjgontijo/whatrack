@@ -33,7 +33,7 @@ export function InstanceCard({ phone }: InstanceCardProps) {
     }[phone.quality_rating] || 'text-slate-600 bg-slate-500/10 border-slate-200'
 
   return (
-    <Link href={`${whatsappSettingsPath}/${phone.id}`} className="group block h-full">
+    <Link href={`${whatsappSettingsPath}/${phone.configId}`} className="group block h-full">
       <Card className="hover:border-primary/50 relative h-full overflow-hidden transition-all hover:shadow-sm">
         <div
           className={`absolute left-0 top-0 h-full w-1 ${isConnected ? 'bg-green-500' : 'bg-yellow-500'}`}

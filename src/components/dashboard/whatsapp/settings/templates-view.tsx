@@ -40,11 +40,10 @@ interface TemplatesViewProps {
   phone: WhatsAppPhoneNumber
 }
 
-import { useOrganization } from '@/hooks/organization/use-organization'
+import { useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
 
 export function TemplatesView({ phone: _phone }: TemplatesViewProps) {
-  const { data: org } = useOrganization()
-  const orgId = org?.id
+  const { organizationId: orgId } = useRequiredProjectRouteContext()
   // View & Search state
   const [view, setView] = useState<ViewType>('cards')
   const [searchInput, setSearchInput] = useState('')
