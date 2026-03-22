@@ -126,30 +126,6 @@ export function WhatsAppSettingsHub({ organizationId }: WhatsAppSettingsHubProps
     setSendTestOpen(true)
   }
 
-  // Early return: If editing template, show editor full-screen without header
-  if (activeTab === 'templates' && editorOpen) {
-    return (
-      <>
-        <TemplateEditorForm
-          template={selectedTemplate}
-          onClose={() => {
-            setEditorOpen(false)
-            setSelectedTemplate(null)
-          }}
-        />
-        {sendTestPhone && (
-          <SendTestSheet
-            phone={sendTestPhone}
-            organizationId={resolvedOrgId}
-            open={sendTestOpen}
-            onOpenChange={setSendTestOpen}
-            initialTemplate={sendTestTemplate}
-          />
-        )}
-      </>
-    )
-  }
-
   // Primary action per tab
   const primaryAction = useMemo(() => {
     if (activeTab === 'templates') {
@@ -257,6 +233,15 @@ export function WhatsAppSettingsHub({ organizationId }: WhatsAppSettingsHubProps
 
   return (
     <>
+      {activeTab === 'templates' && editorOpen ? (
+        <TemplateEditorForm
+          template={selectedTemplate}
+          onClose={() => {
+            setEditorOpen(false)
+            setSelectedTemplate(null)
+          }}
+        />
+      ) : (
       <HeaderPageShell
         title="WhatsApp"
         selector={
@@ -295,8 +280,7 @@ export function WhatsAppSettingsHub({ organizationId }: WhatsAppSettingsHubProps
           <WebhooksView eventTypeFilter={eventTypeFilter} datePreset={datePreset} />
         )}
       </HeaderPageShell>
-
-
+      )}
 
       {/* Send test sheet */}
       {sendTestPhone && (
