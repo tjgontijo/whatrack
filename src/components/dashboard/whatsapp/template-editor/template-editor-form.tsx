@@ -363,7 +363,7 @@ export function TemplateEditorForm({
         </div>
 
         {/* ── Column 2: Content Editor ── */}
-        <div className="w-96 overflow-y-auto px-6 py-6 space-y-6">
+        <div className="flex-[0.55] overflow-y-auto px-6 py-6 space-y-6">
 
           {/* Header */}
           <div className="space-y-3">
@@ -583,8 +583,8 @@ export function TemplateEditorForm({
         </div>
 
         {/* ── Column 3: Phone preview (Large) ── */}
-        <div className="flex-1 border-l bg-muted/20 overflow-y-auto flex items-start justify-center pt-6 px-3">
-          <div className="w-full max-w-xs">
+        <div className="flex-[0.45] border-l bg-muted/20 overflow-y-auto flex items-start justify-center pt-6 px-3">
+          <div className="w-full max-w-md">
             <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4 text-center">Prévia</p>
             <TemplatePreview
               headerType={headerType}

@@ -52,7 +52,7 @@ export function TemplatePreview({
   }
 
   return (
-    <div className="w-[260px] overflow-hidden rounded-[40px] border-[6px] border-foreground/10 bg-[#0b141a] shadow-2xl">
+    <div className="w-[420px] overflow-hidden rounded-[40px] border-[6px] border-foreground/10 bg-[#0b141a] shadow-2xl">
       {/* Phone top bar */}
       <div className="bg-[#202c33] px-5 py-3 flex items-center gap-3">
         <div className="h-8 w-8 rounded-full bg-[#00a884] flex items-center justify-center shrink-0">
@@ -65,7 +65,7 @@ export function TemplatePreview({
       </div>
 
       {/* Chat area */}
-      <div className="bg-[#0b141a] px-3 py-4 min-h-[340px]"
+      <div className="bg-[#0b141a] px-3 py-4 min-h-[480px]"
         style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.03) 1px, transparent 0)', backgroundSize: '20px 20px' }}
       >
         {/* Message bubble */}
