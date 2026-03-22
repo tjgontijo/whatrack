@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { MessageCircle } from 'lucide-react'
 import { useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
 import { whatsappApi } from '@/lib/whatsapp/client'
+import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 import { EmptyState } from '@/components/dashboard/states/empty-state'
 import { Button } from '@/components/ui/button'
 import { InstanceCardDetail } from './instance-card-detail'
@@ -21,9 +22,7 @@ export function AccountTab({ onSendTestClick }: AccountTabProps) {
     queryKey: ['whatsapp', 'instances', projectId],
     queryFn: async () => {
       const res = await fetch(`/api/v1/whatsapp/instances?projectId=${projectId}`, {
-        headers: {
-          'X-Organization': organizationId,
-        },
+        headers: { [ORGANIZATION_HEADER]: organizationId },
       })
       if (!res.ok) throw new Error('Failed to fetch instances')
       return res.json()
