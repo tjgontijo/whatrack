@@ -421,18 +421,18 @@ export function TemplateEditorForm({
 
           {/* Body */}
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label className="font-semibold">Corpo <span className="text-destructive">*</span></Label>
-              <span className={`text-xs font-medium ${bodyText.length > 900 ? 'text-orange-600' : bodyText.length > 1000 ? 'text-destructive' : 'text-muted-foreground'}`}>
+            <Label className="font-semibold">Corpo <span className="text-destructive">*</span></Label>
+            <div className="relative">
+              <Textarea
+                id="body-textarea"
+                {...register('bodyText')}
+                placeholder="Olá {{nome do cliente}}, seu pedido {{número do pedido}} foi confirmado!"
+                className="min-h-[120px] font-mono text-sm resize-none pr-20"
+              />
+              <span className={`absolute bottom-3 right-3 text-xs font-medium pointer-events-none ${bodyText.length > 900 ? 'text-orange-600' : 'text-muted-foreground'}`}>
                 {bodyText.length}/1.024
               </span>
             </div>
-            <Textarea
-              id="body-textarea"
-              {...register('bodyText')}
-              placeholder="Olá {{nome do cliente}}, seu pedido {{número do pedido}} foi confirmado!"
-              className="min-h-[120px] font-mono text-sm resize-none"
-            />
             {formState.errors.bodyText && (
               <p className="text-xs text-destructive">{formState.errors.bodyText.message}</p>
             )}
