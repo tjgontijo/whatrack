@@ -165,7 +165,7 @@ Registry global dos agentes disponiveis.
 
 Campos principais:
 
-- `id`, `slug`, `name`, `description`
+- `id`, `slug @unique`, `name`, `description`
 - `type` (`reactive | proactive | analytical`)
 - `channel` (`whatsapp | internal | multi`)
 - `isSystem`
@@ -176,6 +176,7 @@ Regras:
 
 - nao carrega `projectId`
 - funciona como catalogo de agentes do sistema
+- `slug` e unico globalmente; o seed faz upsert por slug
 
 #### `AiAgentProjectConfig`
 
@@ -310,11 +311,11 @@ Contrato minimo:
 
 ```ts
 import { Mastra } from '@mastra/core'
-import { PgMemory } from '@mastra/pg'
+import { PostgresStore } from '@mastra/pg'
 import { env } from '@/lib/env/env'
 
 export const mastra = new Mastra({
-  memory: new PgMemory({
+  storage: new PostgresStore({
     connectionString: env.DATABASE_URL,
   }),
 })
@@ -324,6 +325,7 @@ Regras:
 
 - Mastra e runtime; Prisma continua sendo a fonte de verdade de configuracao e estado
 - agentes base aqui sao placeholders; comportamentos de negocio entram nos PRDs seguintes
+- `PostgresStore` (de `@mastra/pg`) e a API correta para v1.x; nao existe `PgMemory`
 
 #### Inngest
 
@@ -336,19 +338,28 @@ Paths alvo:
 Contrato minimo:
 
 ```ts
-import { EventSchemas, Inngest } from 'inngest'
-import { type Events } from './events'
+// src/server/inngest/client.ts
+import { Inngest } from 'inngest'
 
-export const inngest = new Inngest({
-  id: 'whatrack',
-  schemas: new EventSchemas().fromRecord<Events>(),
+export const inngest = new Inngest({ id: 'whatrack' })
+```
+
+```ts
+// src/app/api/inngest/route.ts
+import { serve } from 'inngest/next'
+import { inngest } from '@/server/inngest/client'
+
+export const { GET, POST, PUT } = serve({
+  client: inngest,
+  functions: [], // functions concretas adicionadas pelos PRDs seguintes
 })
 ```
 
 Regras:
 
-- este PRD cria o client e a rota
-- functions concretas entram nos PRDs que precisam delas
+- Inngest v4: nao existe `EventSchemas` — o client e instanciado sem schemas
+- `src/server/inngest/events.ts` pode ser criado para tipos compartilhados, mas nao e obrigatorio no v4
+- functions concretas entram nos PRDs que precisam delas (PRD-012, PRD-022)
 
 #### `executePrompt`
 
