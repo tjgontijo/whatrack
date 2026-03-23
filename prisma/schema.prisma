@@ -263,6 +263,11 @@ model Organization {
   aiAgentProjectConfigs AiAgentProjectConfig[]
   aiCadences            AiCadence[]
   aiCadenceEnrollments  AiCadenceEnrollment[]
+  aiProjectConfigs      AiProjectConfig[]
+  aiConversationStates  AiConversationState[]
+  aiSkills              AiSkill[]
+  aiSkillExecutionLogs  AiSkillExecutionLog[]
+  aiCrisisKeywords      AiCrisisKeyword[]
 
   @@map("org_organizations")
 }
@@ -296,6 +301,11 @@ model Project {
   aiAgentProjectConfigs AiAgentProjectConfig[]
   aiCadences            AiCadence[]
   aiCadenceEnrollments  AiCadenceEnrollment[]
+  aiProjectConfig       AiProjectConfig?
+  aiConversationStates  AiConversationState[]
+  aiSkills              AiSkill[]
+  aiSkillExecutionLogs  AiSkillExecutionLog[]
+  aiCrisisKeywords      AiCrisisKeyword[]
 
   @@unique([organizationId, slug])
   @@index([organizationId])
@@ -467,13 +477,15 @@ model Conversation {
   avgResponseTimeSec    Int?
   firstResponseTimeSec  Int?
 
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  instance     WhatsAppConfig @relation(fields: [instanceId], references: [id], onDelete: Cascade)
-  lead         Lead           @relation(fields: [leadId], references: [id], onDelete: Cascade)
-  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  tickets      Ticket[]
-  messages     Message[]
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  instance             WhatsAppConfig        @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  lead                 Lead                  @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  organization         Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tickets              Ticket[]
+  messages             Message[]
+  aiConversationState  AiConversationState?
+  aiSkillExecutionLogs AiSkillExecutionLog[]
 
   @@unique([leadId, instanceId])
   @@index([organizationId])
@@ -520,6 +532,7 @@ model Ticket {
   metaAttributionHistory MetaAttributionHistory[]
   aiEvents               AiEvent[]
   aiCadenceEnrollments   AiCadenceEnrollment[]
+  aiSkillExecutionLogs   AiSkillExecutionLog[]
 
   @@index([organizationId])
   @@index([projectId])
@@ -807,6 +820,139 @@ model AiCadenceEnrollment {
   @@index([leadId, status])
   @@index([organizationId, projectId])
   @@map("ai_cadence_enrollments")
+}
+
+model AiProjectConfig {
+  id                 String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId     String       @db.Uuid
+  projectId          String       @unique @db.Uuid
+  blueprintSlug      String       @default("whatsapp-commercial-agent")
+  businessName       String?
+  niche              String?
+  productDescription String?
+  pricingInfo        String?
+  nextStepType       String?
+  assistantName      String?
+  escalationContact  String?
+  businessHours      Json?
+  debounceMs         Int          @default(8000)
+  testingModeEnabled Boolean      @default(false)
+  testingPhones      Json?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project            Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, projectId])
+  @@map("ai_project_configs")
+}
+
+model AiConversationState {
+  id                       String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId           String       @db.Uuid
+  projectId                String       @db.Uuid
+  conversationId           String       @unique @db.Uuid
+  pendingMessages          Json?
+  pendingMessagesUpdatedAt DateTime?
+  lastProcessedFingerprint String?
+  lastProcessedAt          DateTime?
+  createdAt                DateTime     @default(now())
+  updatedAt                DateTime     @updatedAt
+  organization             Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project                  Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  conversation             Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, projectId])
+  @@index([projectId, pendingMessagesUpdatedAt])
+  @@map("ai_conversation_states")
+}
+
+model AiSkill {
+  id             String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String?               @db.Uuid
+  projectId      String?               @db.Uuid
+  slug           String                @unique
+  name           String
+  description    String?
+  isSystem       Boolean               @default(false)
+  isActive       Boolean               @default(true)
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  organization   Organization?         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project        Project?              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  versions       AiSkillVersion[]
+  executionLogs  AiSkillExecutionLog[]
+
+  @@index([organizationId, projectId])
+  @@index([isSystem, isActive])
+  @@map("ai_skills")
+}
+
+model AiSkillVersion {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  skillId     String    @db.Uuid
+  version     String
+  prompt      String
+  mode        String
+  isPublished Boolean   @default(false)
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  skill       AiSkill   @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([skillId, version])
+  @@index([skillId, isPublished])
+  @@map("ai_skill_versions")
+}
+
+model AiSkillExecutionLog {
+  id              String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  executionKey    String       @unique
+  organizationId  String       @db.Uuid
+  projectId       String       @db.Uuid
+  conversationId  String       @db.Uuid
+  ticketId        String?      @db.Uuid
+  skillId         String       @db.Uuid
+  skillVersion    String
+  routingDecision Json?
+  output          String?
+  outboundPayload Json?
+  outboundResult  Json?
+  relatedEventIds Json?
+  success         Boolean      @default(false)
+  errorMessage    String?
+  durationMs      Int?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project         Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  ticket          Ticket?      @relation(fields: [ticketId], references: [id], onDelete: SetNull)
+  skill           AiSkill      @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, projectId, createdAt])
+  @@index([conversationId, createdAt])
+  @@index([ticketId, createdAt])
+  @@index([skillId, createdAt])
+  @@map("ai_skill_execution_logs")
+}
+
+model AiCrisisKeyword {
+  id                 String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId     String       @db.Uuid
+  projectId          String       @db.Uuid
+  keyword            String
+  isActive           Boolean      @default(true)
+  escalationResponse String
+  severity           String
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project            Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, keyword])
+  @@index([organizationId, projectId, isActive])
+  @@map("ai_crisis_keywords")
 }
 
 model OrganizationCompany {

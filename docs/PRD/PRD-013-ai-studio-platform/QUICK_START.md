@@ -6,10 +6,10 @@
 
 Este PRD comeca quando o PRD-012 ja tiver entregue:
 
-- runtime estavel
-- config minima por projeto
-- execution logs
-- blueprint default operando
+- runtime inbound estavel
+- config minima por projeto via API
+- execution logs basicos
+- `AiEvent` persistido
 
 So depois disso vale abrir o AI Studio completo.
 
@@ -19,12 +19,14 @@ So depois disso vale abrir o AI Studio completo.
 
 O PRD-013 entrega:
 
-- blueprints via UI
-- skills e versoes via UI
+- AI Studio por projeto
+- wizard de blueprint sobre `AiProjectConfig`
+- skills e versoes via UI com override por projeto
 - policies via UI
 - execution logs completos
-- Meta Ads Audit como skill
-- studio final sobre o runtime novo
+- timeline de `AiEvent` no inbox
+- RBAC `view:ai` + `manage:ai`
+- frontend alinhado ao shell atual do dashboard
 
 ---
 
@@ -32,10 +34,10 @@ O PRD-013 entrega:
 
 | Fase | Tasks | O que faz |
 |---|---|---|
-| Fase 1 | T1-T5 | Services, APIs e permissoes |
-| Fase 2 | T6-T10 | Hub do studio, blueprints e skills |
-| Fase 3 | T11-T14 | Policies e observabilidade |
-| Fase 4 | T15-T18 | Meta Ads Audit e cleanup |
+| Fase 1 | T1-T6 | Schema, services, queries e APIs |
+| Fase 2 | T7-T12 | RBAC, hub com `HeaderPageShell`, wizard e skills |
+| Fase 3 | T13-T17 | Policies e observabilidade |
+| Fase 4 | T18-T19 | Consolidacao final e validacao |
 
 ---
 
@@ -45,13 +47,15 @@ Nao iniciar este PRD antes de:
 
 - PRD-012 com smoke test aprovado
 - runtime novo ser o caminho principal do inbound
-- logs tecnicos basicos estarem disponiveis
+- `AiEvent` e `AiSkillExecutionLog` estarem disponiveis
 
 ---
 
-## Critério De Sucesso
+## Criterio De Sucesso
 
 O PRD-013 termina quando o time consegue operar a nova IA sem depender de:
 
-- alteracao manual no banco para skills/policies
+- alteracao manual no banco para skills e policies
 - alteracao manual em codigo para operar o studio
+- `manage:ai` para apenas visualizar logs e timeline
+- um layout visual novo fora do padrao atual do dashboard

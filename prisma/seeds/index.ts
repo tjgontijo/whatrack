@@ -6,6 +6,7 @@ import { seedTicketStages } from './seed_ticket_stages'
 import { seedBillingPlans } from './seed_billing_plans'
 import { seedSystemOrg } from './seed_system_org'
 import { seedAiAgents } from './seed_ai_agents'
+import { seedAiSkills } from './seed_ai_skills'
 
 interface PgTableRow {
   tablename: string
@@ -99,7 +100,10 @@ export async function runSeed() {
     // 2. Seed system AI agents
     await seedAiAgents(prisma)
 
-    // 3. Setup ticket stages for all organizations
+    // 3. Seed system AI skills
+    await seedAiSkills(prisma)
+
+    // 4. Setup ticket stages for all organizations
     await seedTicketStages(prisma)
 
     console.log('✅ Seed concluído com sucesso!')

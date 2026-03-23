@@ -1,8 +1,8 @@
 # Tasks: PRD-012 Core Runtime WhatsApp AI
 
-**Data:** 2026-03-23 (v2.1 - Backend Only)
+**Data:** 2026-03-23 (v2.2 - Backend Only)
 **Status:** Draft
-**Total:** 17 (Frontend tasks removidas para PRD-014)
+**Total:** 18 (Backend only; UI fica para PRD-013/PRD-014)
 **Estimado:** 3 fases
 
 ---
@@ -19,15 +19,35 @@ O PRD-018 entrega: Mastra setup, Inngest client, `executePrompt`, `AiEventServic
 
 | Fase | Descricao | Tasks |
 |------|-----------|-------|
-| Fase 1 | Schema + provisioning do runtime | T1-T5 |
-| Fase 2 | Buffer + transporte + workflow | T6-T14 |
-| Fase 3 | API + testes + validacao | T15-T17 |
+| Fase 1 | Permissao + schema + provisioning do runtime | T1-T6 |
+| Fase 2 | Buffer + transporte + workflow | T7-T15 |
+| Fase 3 | API + testes + validacao | T16-T18 |
 
 ---
 
 ## FASE 1 - Schema e Provisioning do Runtime
 
-### T1: Adicionar modelos especificos do runtime ao schema Prisma
+### T1: Introduzir permissao `manage:ai` no catalogo RBAC
+
+**Files:**
+- Modify: `src/lib/auth/rbac/roles.ts`
+- Modify: `src/server/organization/permission-delegation-policy.ts`
+
+**What to do:**
+- Adicionar a permissao `manage:ai` ao union `Permission`
+- Incluir `manage:ai` nos defaults de `owner` e `admin`
+- Nao conceder `manage:ai` ao role `user`
+- Expor label amigavel para a permissao
+- Garantir que a permissao possa ser delegada por owner/admin do tenant
+
+**Verification:**
+- `manage:ai` existe no catalogo de permissoes da plataforma
+- `owner` e `admin` recebem a permissao por padrao
+- `user` nao recebe a permissao
+
+---
+
+### T2: Adicionar modelos especificos do runtime ao schema Prisma
 
 **Files:**
 - Modify: `prisma/schema.prisma`
@@ -38,9 +58,9 @@ Adicionar os seguintes modelos (ver definicoes completas no CONTEXT.md):
 
 - `AiProjectConfig` (unique por projectId)
 - `AiConversationState` (unique por conversationId)
-- `AiSkill` com slug + projectId
+- `AiSkill` com suporte a skill de sistema global e futura extensao por projeto
 - `AiSkillVersion` com isPublished
-- `AiSkillExecutionLog` com executionKey unico + FK para AiEvent
+- `AiSkillExecutionLog` com executionKey unico e `relatedEventIds` em JSON
 - `AiCrisisKeyword` com escalationResponse
 
 Adicionar relacoes inversas nos modelos existentes:
@@ -49,15 +69,10 @@ Adicionar relacoes inversas nos modelos existentes:
 - `Ticket` → `aiSkillExecutionLogs AiSkillExecutionLog[]`
 
 **Nao adicionar:** `LeadAiContext`, `AiEvent`, `AiAgent`, `AiCadence` — esses pertencem ao PRD-018.
-
-**Relacao inversa obrigatoria em AiEvent (do PRD-018):**
-
-`AiSkillExecutionLog` referencia `AiEvent` via `aiEventId`. Ao adicionar esse modelo, tambem adicionar a relacao inversa no modelo `AiEvent` ja existente:
-
-```prisma
-// Em model AiEvent (ja existente, PRD-018):
-executionLog AiSkillExecutionLog?
-```
+- Usar `organizationId`, nunca `orgId`
+- Em `AiProjectConfig`, incluir `blueprintSlug` com default `whatsapp-commercial-agent`
+- Em `AiSkill`, permitir `organizationId`/`projectId` nulos para skills de sistema seedadas globalmente
+- Nao criar FK singular de `AiSkillExecutionLog` para `AiEvent`
 
 **Verification:**
 - `npx prisma validate` sem erros
@@ -65,11 +80,11 @@ executionLog AiSkillExecutionLog?
 
 ---
 
-### T2: Seed das skills minimas da V1
+### T3: Seed das skills minimas da V1
 
 **Files:**
-- Modify: `prisma/seeds/ai-skills.ts` (criar se nao existir)
-- Modify: `prisma/seed.ts`
+- Create: `prisma/seeds/seed_ai_skills.ts`
+- Modify: `prisma/seeds/index.ts`
 
 **What to do:**
 Fazer upsert das 6 skills minimas com versao publicada:
@@ -86,6 +101,7 @@ const v1Skills = [
 ```
 
 Cada skill deve ter uma `AiSkillVersion` com `isPublished: true`.
+As skills seedadas nesta task sao de sistema, com `organizationId = null` e `projectId = null`.
 
 **Verification:**
 - `npx prisma db seed` sem erros
@@ -93,17 +109,17 @@ Cada skill deve ter uma `AiSkillVersion` com `isPublished: true`.
 
 ---
 
-### T3: Criar schema para crisis keywords (user-configured)
+### T4: Criar schema para crisis keywords (user-configured)
 
 **Files:**
-- Create: `src/schemas/ai/ai-crisis-keyword.schema.ts`
+- Create: `src/lib/ai/schemas/ai-crisis-keyword.ts`
 
 **What to do:**
 
 Crisis keywords sao **configuradas pelo usuario por projeto**. Tabela inicia vazia.
 
 ```typescript
-// src/schemas/ai/ai-crisis-keyword.schema.ts
+// src/lib/ai/schemas/ai-crisis-keyword.ts
 export const aiCrisisKeywordSchema = z.object({
   keyword: z.string().min(2).max(100),
   severity: z.enum(['low', 'medium', 'high', 'critical']),
@@ -129,10 +145,10 @@ export const aiCrisisKeywordSchema = z.object({
 
 ---
 
-### T4: Criar `ensureAiProjectDefaults()`
+### T5: Criar `ensureAiProjectDefaults()`
 
 **Files:**
-- Create: `src/services/ai/ai-project-defaults.service.ts`
+- Create: `src/lib/ai/services/ai-project-defaults.service.ts`
 
 **What to do:**
 - Criar `AiProjectConfig` com dados defaults (debounceMs: 8000, etc.) se nao existir
@@ -141,8 +157,9 @@ export const aiCrisisKeywordSchema = z.object({
 - Tornar idempotente (upsert)
 
 ```typescript
-export async function ensureAiProjectDefaults(projectId: string, orgId: string): Promise<void> {
+export async function ensureAiProjectDefaults(projectId: string, organizationId: string): Promise<void> {
   // 1. Upsert AiProjectConfig com defaults
+  //    - blueprintSlug: "whatsapp-commercial-agent"
   //    - debounceMs: 8000
   //    - businessHours: vazio
   //    - testingModeEnabled: false
@@ -161,14 +178,14 @@ export async function ensureAiProjectDefaults(projectId: string, orgId: string):
 
 ---
 
-### T5: Integrar provisioning no ciclo de projeto
+### T6: Integrar provisioning no ciclo de projeto
 
 **Files:**
 - Modify: `src/services/projects/project.service.ts`
 - Modify: `src/services/onboarding/welcome-onboarding.service.ts`
 
 **What to do:**
-- Chamar `ensureAiProjectDefaults(projectId, orgId)` ao criar projeto
+- Chamar `ensureAiProjectDefaults(projectId, organizationId)` ao criar projeto
 - Chamar no projeto inicial do onboarding
 
 **Verification:**
@@ -178,10 +195,10 @@ export async function ensureAiProjectDefaults(projectId: string, orgId: string):
 
 ## FASE 2 - Buffer + Transporte + Workflow
 
-### T6: Criar `ai-conversation-state.service.ts`
+### T7: Criar `ai-conversation-state.service.ts`
 
 **Files:**
-- Create: `src/services/ai/ai-conversation-state.service.ts`
+- Create: `src/lib/ai/services/ai-conversation-state.service.ts`
 
 **What to do:**
 
@@ -198,7 +215,7 @@ generateFingerprint(messages: PendingMessage[]): string  // hash SHA-256
 
 ---
 
-### T7: Adicionar envio de texto livre na camada WhatsApp
+### T8: Adicionar envio de texto livre na camada WhatsApp
 
 **Files:**
 - Modify: `src/services/whatsapp/meta-cloud.service.ts`
@@ -212,10 +229,10 @@ generateFingerprint(messages: PendingMessage[]): string  // hash SHA-256
 
 ---
 
-### T8: Criar `whatsapp-ai-send.service.ts`
+### T9: Criar `whatsapp-ai-send.service.ts`
 
 **Files:**
-- Create: `src/services/ai/whatsapp-ai-send.service.ts`
+- Create: `src/lib/ai/services/whatsapp-ai-send.service.ts`
 
 **What to do:**
 - Resolver `WhatsAppConfig` por `instanceId`
@@ -228,10 +245,10 @@ generateFingerprint(messages: PendingMessage[]): string  // hash SHA-256
 
 ---
 
-### T9: Criar function Inngest de debounce (configuravel por projeto)
+### T10: Criar function Inngest de debounce (configuravel por projeto)
 
 **Files:**
-- Create: `src/lib/inngest/functions/whatsapp-message.ts`
+- Create: `src/server/inngest/functions/whatsapp-message.ts`
 
 **What to do:**
 
@@ -277,7 +294,7 @@ export const processWhatsAppMessage = inngest.createFunction(
 
 ---
 
-### T10: Integrar append + evento no webhook de inbound
+### T11: Integrar append + evento no webhook de inbound
 
 **Files:**
 - Modify: `src/services/whatsapp/handlers/message.handler.ts`
@@ -287,7 +304,7 @@ export const processWhatsAppMessage = inngest.createFunction(
 - Apos commit:
   1. Buscar `AiProjectConfig` do projeto
   2. Extrair `debounceMs` (default 8000)
-  3. Chamar `inngest.send('whatsapp/message.received', { conversationId, orgId, projectId, messageId, debounceMs })`
+  3. Chamar `inngest.send('whatsapp/message.received', { conversationId, organizationId, projectId, messageId, debounceMs })`
 - Remover chamada legada para `enqueueForClassification()` ou `dispatchAiEvent()`
 
 ```typescript
@@ -295,7 +312,7 @@ export const processWhatsAppMessage = inngest.createFunction(
 const projectConfig = await getAiProjectConfig(projectId)
 await inngest.send('whatsapp/message.received', {
   conversationId,
-  orgId,
+  organizationId,
   projectId,
   messageId,
   debounceMs: projectConfig.debounceMs || 8000,  // configurável!
@@ -309,10 +326,10 @@ await inngest.send('whatsapp/message.received', {
 
 ---
 
-### T11: Criar `skill-runner.ts`
+### T12: Criar `skill-runner.ts`
 
 **Files:**
-- Create: `src/services/ai/skill-runner.ts`
+- Create: `src/lib/ai/services/skill-runner.ts`
 
 **What to do:**
 
@@ -343,10 +360,10 @@ Fallback: se skill nao encontrada ou erro, executar `human-handoff`.
 
 ---
 
-### T12: Criar workflow `inbound-message`
+### T13: Criar workflow `inbound-message`
 
 **Files:**
-- Create: `src/mastra/workflows/inbound-message.ts`
+- Create: `src/server/mastra/workflows/inbound-message.ts`
 
 **What to do:**
 Implementar os 13 passos descritos no CONTEXT.md usando Mastra Workflow steps.
@@ -361,16 +378,16 @@ Cada passo que executa IA deve:
 
 ---
 
-### T13: Implementar idempotencia de outbound
+### T14: Implementar idempotencia de outbound
 
 **Files:**
-- Modify: `src/mastra/workflows/inbound-message.ts`
-- Create: `src/services/ai/ai-skill-execution-log.service.ts`
+- Modify: `src/server/mastra/workflows/inbound-message.ts`
+- Create: `src/lib/ai/services/ai-skill-execution-log.service.ts`
 
 **What to do:**
 - Antes de enviar: gerar `executionKey = hash(conversationId + fingerprint)`
 - Verificar se ja existe `AiSkillExecutionLog` com esse `executionKey` e `success: true`
-- Se ja existe: pular envio e registrar `AiEvent(SKIPPED)`
+- Se ja existe: pular envio e retornar execucao existente sem novo outbound
 - Se nao existe: enviar e salvar `AiSkillExecutionLog` com resultado
 
 **Verification:**
@@ -378,10 +395,10 @@ Cada passo que executa IA deve:
 
 ---
 
-### T14: Criar `ai-project-config.service.ts`
+### T15: Criar `ai-project-config.service.ts`
 
 **Files:**
-- Create: `src/services/ai/ai-project-config.service.ts`
+- Create: `src/lib/ai/services/ai-project-config.service.ts`
 
 **What to do:**
 
@@ -391,6 +408,7 @@ upsertProjectConfig(projectId: string, data: AiProjectConfigInput): Promise<AiPr
 
 // Input pode incluir:
 // {
+//   blueprintSlug?: string
 //   businessName?: string
 //   assistantName?: string
 //   escalationContact?: string
@@ -414,11 +432,11 @@ upsertProjectConfig(projectId: string, data: AiProjectConfigInput): Promise<AiPr
 
 ## FASE 3 - API + Testes + Validacao
 
-### T15: Criar API minima de configuracao do agente
+### T16: Criar API minima de configuracao do agente
 
 **Files:**
 - Create: `src/app/api/v1/ai/config/route.ts`
-- Create: `src/schemas/ai/ai-project-config.schema.ts`
+- Create: `src/lib/ai/schemas/ai-project-config.ts`
 
 **What to do:**
 - `GET /api/v1/ai/config` — retorna `AiProjectConfig` + `AiAgentProjectConfig` do agente inbound
@@ -430,12 +448,12 @@ upsertProjectConfig(projectId: string, data: AiProjectConfigInput): Promise<AiPr
 
 ---
 
-### T16: Testes unitarios do runtime
+### T17: Testes unitarios do runtime
 
 **Files:**
-- Create: `src/services/ai/ai-conversation-state.service.spec.ts`
-- Create: `src/services/ai/skill-runner.spec.ts`
-- Create: `src/services/ai/whatsapp-ai-send.service.spec.ts`
+- Create: `src/lib/ai/__tests__/ai-conversation-state.service.test.ts`
+- Create: `src/lib/ai/__tests__/skill-runner.test.ts`
+- Create: `src/lib/ai/__tests__/whatsapp-ai-send.service.test.ts`
 
 **What to do:**
 - Testar append/clear seguro do buffer
@@ -448,7 +466,7 @@ upsertProjectConfig(projectId: string, data: AiProjectConfigInput): Promise<AiPr
 
 ---
 
-### T17: Validacao final
+### T18: Validacao final
 
 **What to do:**
 - `npm run lint` → 0 erros

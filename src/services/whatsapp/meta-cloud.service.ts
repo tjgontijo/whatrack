@@ -14,6 +14,14 @@ interface SendTemplateParams {
   accessToken?: string
 }
 
+interface SendTextParams {
+  phoneId: string
+  to: string
+  text: string
+  previewUrl?: boolean
+  accessToken?: string
+}
+
 interface GetTemplatesParams {
   wabaId: string
   accessToken?: string
@@ -252,6 +260,51 @@ export class MetaCloudService {
     if (!response.ok) {
       logger.error({ err: data }, '[MetaCloudService] Send error')
       throw new Error(data.error?.message || 'Failed to send WhatsApp message')
+    }
+
+    return data
+  }
+
+  /**
+   * Send a free-form WhatsApp text message inside the customer service window.
+   */
+  static async sendText({
+    phoneId,
+    to,
+    text,
+    previewUrl = false,
+    accessToken,
+  }: SendTextParams) {
+    const token = accessToken || this.accessToken
+    const url = `${GRAPH_API_URL}/${API_VERSION}/${phoneId}/messages`
+
+    const payload = {
+      messaging_product: 'whatsapp',
+      recipient_type: 'individual',
+      to,
+      type: 'text',
+      text: {
+        preview_url: previewUrl,
+        body: text,
+      },
+    }
+
+    logger.info({ context: { url, payload } }, '[MetaCloudService] Sending text message')
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      logger.error({ err: data }, '[MetaCloudService] Send text error')
+      throw new Error(data.error?.message || 'Failed to send WhatsApp text message')
     }
 
     return data

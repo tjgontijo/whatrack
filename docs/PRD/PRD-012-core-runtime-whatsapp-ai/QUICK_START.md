@@ -15,15 +15,14 @@ Esta V1 entrega o core runtime do agente de WhatsApp:
 - logs tecnicos minimos
 
 O AI Studio avancado ficou fora e foi movido para o PRD-013.
-O cleanup do stack atual acontece antes, no PRD-011.
 
 ---
 
 ## Setup
 
 ```bash
-npm install inngest @mastra/loggers
-bash scripts/reset-db.sh
+npx prisma validate
+npx prisma db seed
 ```
 
 ---
@@ -32,24 +31,23 @@ bash scripts/reset-db.sh
 
 | Fase | Tasks | O que faz |
 |---|---|---|
-| Fase 1 | T1-T5 | Schema novo e defaults por projeto |
-| Fase 2 | T6-T10 | Buffer, transporte e Inngest |
-| Fase 3 | T11-T16 | Runtime Mastra e idempotencia |
-| Fase 4 | T17-T21 | UI minima, logs e cutover |
-| Fase 5 | T22-T24 | Testes e validacao |
+| Fase 1 | T1-T6 | Permissao `manage:ai`, schema novo e defaults por projeto |
+| Fase 2 | T7-T15 | Buffer, transporte, workflow e idempotencia |
+| Fase 3 | T16-T18 | API minima, testes e validacao |
 
 ---
 
 ## Checklist Da V1
 
 - [ ] Projeto novo recebe defaults de IA automaticamente
+- [ ] Permissao `manage:ai` existe e protege mutacoes do runtime
 - [ ] Mensagem inbound e agrupada por `conversationId`
 - [ ] Agente pode ser pausado via config
 - [ ] Crise/handoff nao dependem do LLM
 - [ ] Retry nao duplica outbound
 - [ ] Outbound real sai pela camada WhatsApp
 - [ ] Echo/status persiste outbound localmente
-- [ ] Inbox mostra atividade minima do agente
+- [ ] API de configuracao retorna e atualiza `AiProjectConfig`
 - [ ] Testes, build e lint passam
 
 ---

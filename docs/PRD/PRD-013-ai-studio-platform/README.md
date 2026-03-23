@@ -1,7 +1,7 @@
 # PRD-013: AI Studio Platform
 
-**Status:** Draft (Reescrito em 2026-03-23)
-**Versao:** 2.0
+**Status:** Draft (Revisado em 2026-03-23)
+**Versao:** 2.2
 
 ---
 
@@ -29,30 +29,33 @@ PRD-013-ai-studio-platform/
 ### Objetivo
 
 - Wizard de configuracao de agente: o usuario responde perguntas sobre o negocio e o sistema seleciona o blueprint certo.
-- Gestao de skills: listar, editar, versionar e publicar skills via UI.
+- Gestao de skills: listar, editar, versionar e publicar skills via UI sem alterar as skills globais de sistema.
 - Policies via UI: CRUD de crisis keywords e regras de terminologia.
-- Timeline de AiEvent: exibir todas as acoes do agente no inbox, ao lado das mensagens.
+- Timeline de `AiEvent`: exibir as acoes do agente no inbox, ao lado das mensagens.
 - Execution logs exploraveis: dashboard para investigar execucoes, erros e custos.
-- Migracao do Meta Ads Audit para arquitetura de skills.
+- RBAC do studio: introduzir `view:ai` para leitura e manter `manage:ai` para mutacoes.
+- Frontend aderente ao padrao do dashboard: `HeaderPageShell` + `HeaderTabs`, sem navegacao lateral nova e sem shell paralelo.
 
 ### Status Atual
 
-- Runtime V1 entregue pelo PRD-012 com UI minima.
-- Sem editor de skills ou publicacao via UI.
-- Sem wizard de configuracao.
-- Sem policies via UI.
+- PRD-018 entregou a fundacao (`AiEvent`, `LeadAiContext`, `AiAgent`, `AiAgentProjectConfig`).
+- PRD-012 entregou o runtime inbound e a configuracao minima por projeto via API.
+- Ainda nao existe AI Studio em `settings/ai-studio`.
+- Ainda nao existe timeline de IA no inbox.
+- Ainda nao existe modo read-only com permissao `view:ai`.
 
 ### Escopo - O Que Entra
 
-- Wizard de configuracao do agente (substitui o formulario bruto de config)
-- Listagem e ativacao de blueprints com explicacao de cada um
+- Wizard de configuracao do agente sobre `AiProjectConfig.blueprintSlug`
+- Listagem de blueprints com descricao amigavel
 - Listagem, detalhe, edicao e publicacao de skills
-- Versionamento de skill com diff de prompt
+- Estrategia de override por projeto para nao editar skill global de sistema
 - CRUD de crisis keywords
-- CRUD de regras de terminologia (TerminologyRule — novo modelo)
+- CRUD de regras de terminologia (`TerminologyRule`)
 - Dashboard de execution logs com filtros e drilldown
-- Timeline de AiEvent no inbox do ticket
-- Migracao do Meta Ads Audit para skill do runtime
+- Timeline de `AiEvent` no inbox do ticket
+- Reintroducao explicita de `view:ai` no RBAC
+- AI Studio como hub de settings usando componentes ja existentes do projeto
 
 ### Escopo - O Que Fica Fora
 
@@ -61,6 +64,8 @@ PRD-013-ai-studio-platform/
 - Criacao de blueprints customizados pelo usuario
 - Analytics de performance do agente em nivel de produto
 - Cadencias (PRD-022)
+- Migracao de consumidores externos de IA sem superficie ativa no repo atual (ex: um futuro audit dedicado)
+- Navegacao lateral nova, shell novo ou linguagem visual paralela ao dashboard atual
 
 ### Estimativa
 
@@ -73,8 +78,13 @@ PRD-013-ai-studio-platform/
 - `src/app/(dashboard)/[organizationSlug]/[projectSlug]/settings/ai-studio/`
 - `src/components/dashboard/ai/`
 - `src/app/api/v1/ai/`
-- `src/services/ai/`
-- `src/app/api/v1/meta-ads/audit/route.ts`
+- `src/lib/ai/services/`
+- `src/lib/ai/queries/`
+- `src/lib/ai/schemas/`
+- `src/lib/auth/rbac/`
+- `src/server/organization/`
+- `src/components/dashboard/layout/`
+- `src/components/dashboard/settings/`
 
 ---
 
@@ -82,9 +92,12 @@ PRD-013-ai-studio-platform/
 
 **Pre-requisitos obrigatorios (em ordem):**
 
-1. PRD-011: Remocao da implementacao legada de IA
-2. PRD-018: AI Foundation Layer (`LeadAiContext`, `AiEvent`, `AiAgent`, `AiAgentProjectConfig`, `AiEventService`)
-3. PRD-012: Core Runtime WhatsApp AI (`AiProjectConfig`, `AiSkill`, `AiSkillVersion`, `AiSkillExecutionLog`, `AiCrisisKeyword`, runtime inbound estavel)
+1. PRD-018: AI Foundation Layer (`LeadAiContext`, `AiEvent`, `AiAgent`, `AiAgentProjectConfig`, `AiEventService`)
+2. PRD-012: Core Runtime WhatsApp AI (`AiProjectConfig`, `AiSkill`, `AiSkillVersion`, `AiSkillExecutionLog`, `AiCrisisKeyword`, runtime inbound estavel)
+
+**Referencia historica:**
+
+- PRD-011 pode ser consultado apenas como contexto de cleanup legado. Ele nao bloqueia este PRD.
 
 ---
 
@@ -99,4 +112,4 @@ PRD-013-ai-studio-platform/
 
 ## Proximo Passo
 
-Concluir PRD-012 em producao, entao iniciar o AI Studio pela Fase 1 (services e APIs).
+Fechar o smoke test do PRD-012 e iniciar o AI Studio pela Fase 1: schema, services, queries, APIs e RBAC.

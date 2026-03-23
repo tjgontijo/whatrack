@@ -1,6 +1,6 @@
 # Contexto: Core Runtime WhatsApp AI
 
-**Ultima atualizacao:** 2026-03-23 (v2.0 — refatorado para PRD-018 como prerequisito)
+**Ultima atualizacao:** 2026-03-23 (v2.2 — alinhado ao PRD-018 implementado)
 
 ---
 
@@ -18,7 +18,7 @@ inbound -> debounce -> triage -> skill -> outbound -> AiEvent log
 
 - Clientes finais que enviam mensagens inbound no WhatsApp
 - Operadores que ativam, pausam ou configuram o agente por projeto
-- Usuarios com permissao `manage:ai`
+- Usuarios com permissao `manage:ai` para mutacoes operacionais
 
 ---
 
@@ -34,7 +34,7 @@ Webhook inbound
   -> AiInsight criado (aprovacao humana)
 ```
 
-Este fluxo sera substituido. O legado e removido pelo PRD-011. A infraestrutura nova e entregue pelo PRD-018.
+Este fluxo sera substituido. O desenho legado nao deve ser reintroduzido no caminho critico; a infraestrutura nova e entregue pelo PRD-018.
 
 ---
 
@@ -43,8 +43,8 @@ Este fluxo sera substituido. O legado e removido pelo PRD-011. A infraestrutura 
 - O runtime do WhatsApp e por `WhatsAppConfig`, associado a `projectId`
 - O inbound ja persiste CRM antes de side effects
 - A camada Meta suporta templates, mas precisa ganhar envio de texto livre
-- O PRD-018 ja configurou Mastra com `@mastra/pg` e o client Inngest
-- O PRD-018 ja entregou `executePrompt`, `AiEventService` e `LeadAiContextService`
+- O PRD-018 ja configurou `src/server/mastra/*`, `src/server/inngest/*` e a rota `/api/inngest`
+- O PRD-018 ja entregou `executePrompt`, `AiEventService`, `LeadAiContextService` e `AiAgentRegistryService.provisionDefaults()`
 
 ---
 
@@ -54,14 +54,15 @@ Este fluxo sera substituido. O legado e removido pelo PRD-011. A infraestrutura 
 - Um projeto tem apenas um blueprint ativo na V1
 - O agente pode ser pausado imediatamente via `AiAgentProjectConfig.paused`
 - **Crisis keywords sao por projeto, nao global** — variam por nicho (medico, vidracaria, ecommerce)
-  - Criados automaticamente baseado no niche do projeto
-  - Personalizaveis pelo usuario via API/UI posterior
+  - Na V1, a tabela comeca vazia
+  - O nicho do projeto serve apenas como contexto para defaults futuros
 - Mensagens de crise nao dependem do LLM — sao deterministic
 - Envio outbound deve ser idempotente: mesmo snapshot nao gera duas respostas
 - A persistencia local do outbound depende do webhook echo/status da Meta
 - Fora do horario comercial: resposta automatica, sem executar skill do LLM
 - Testing mode: so executa para numeros na whitelist
 - Debounce e configuravel por projeto (default 8000ms)
+- Este PRD cria a permissao `manage:ai`; `view:ai` fica para as superficies de leitura do PRD-013
 
 ---
 
@@ -72,9 +73,10 @@ Estes modelos pertencem ao runtime de inbound. Os modelos de fundacao (LeadAiCon
 ```text
 AiProjectConfig
   -> projectId (unique)
-  -> orgId
+  -> organizationId
+  -> blueprintSlug        // default: "whatsapp-commercial-agent"
   -> businessName
-  -> niche               // healthcare | retail | ecommerce | saas | other — usado para crisis keywords default
+  -> niche               // healthcare | retail | ecommerce | saas | other
   -> productDescription
   -> pricingInfo
   -> nextStepType        // "schedule" | "proposal" | "store_visit" | "custom"
@@ -87,7 +89,7 @@ AiProjectConfig
 
 AiConversationState
   -> conversationId (unique)
-  -> orgId
+  -> organizationId
   -> projectId
   -> pendingMessages     // JSON: { id, text, timestamp }[]
   -> pendingMessagesUpdatedAt
@@ -95,8 +97,8 @@ AiConversationState
   -> lastProcessedAt
 
 AiSkill
-  -> projectId (null = sistema/global)
-  -> orgId
+  -> organizationId?     // null = sistema/global
+  -> projectId?          // null = sistema/global
   -> slug
   -> name
   -> description
@@ -113,7 +115,7 @@ AiSkillVersion
 
 AiSkillExecutionLog
   -> executionKey        // fingerprint unico para idempotencia
-  -> orgId
+  -> organizationId
   -> projectId
   -> conversationId
   -> ticketId
@@ -123,20 +125,20 @@ AiSkillExecutionLog
   -> output              // texto gerado pelo agente
   -> outboundPayload     // JSON: payload enviado para a Meta
   -> outboundResult      // JSON: resposta da Meta
-  -> aiEventId           // FK para AiEvent correspondente
+  -> relatedEventIds     // JSON: ids de eventos correlatos, sem FK obrigatoria na V1
   -> success
   -> errorMessage
   -> durationMs
 
 AiCrisisKeyword
   -> projectId          // IMPORTANT: por projeto, nao global!
-  -> orgId
+  -> organizationId
   -> keyword            // palavra-chave que dispara escalacao
   -> isActive
   -> escalationResponse // resposta automatica a ser enviada
   -> severity           // low | medium | high | critical
 
-// Nota: tabela inicia vazia. Usuario configura via API (consumida por UI em PRD-020).
+// Nota: tabela inicia vazia. Usuario configura via API; UI mais completa fica para PRD-013/020.
 // Exemplos do que usuario pode configurar:
 // Médico: "suicidio", "crise", "emergencia", "internacao"
 // Vidracaria: "roubo", "invasao", "vidro quebrado", "seguranca"
@@ -152,13 +154,14 @@ AiCrisisKeyword
 - Meta WhatsApp Cloud API (envio de mensagens)
 - Prisma/Postgres (estado do runtime)
 - Centrifugo (realtime para frontend)
-- Permissao `manage:ai`
+- Catalogo RBAC do projeto, com nova permissao `manage:ai`
 
 **Do PRD-018 (consumidas):**
 - `executePrompt` — camada de abstracao Mastra
 - `AiEventService.record()` — registrar acoes do workflow
 - `LeadAiContextService.ensureContext()` / `updateContext()` — contexto do lead
 - `AiAgentRegistryService.isAgentEnabled()` — verificar kill switch
+- `AiAgentRegistryService.provisionDefaults()` — provisionar agentes por projeto
 - Client Inngest — enviar eventos
 
 **Novas (criadas neste PRD):**
@@ -176,7 +179,7 @@ Webhook inbound WhatsApp
   -> messageHandler()
   -> transaction CRM existente (lead + conversation + ticket + message)
   -> append mensagem em AiConversationState.pendingMessages
-  -> inngest.send('whatsapp/message.received', { conversationId, orgId, messageId })
+  -> inngest.send('whatsapp/message.received', { conversationId, organizationId, projectId, messageId })
   -> return 200
 ```
 
@@ -289,5 +292,5 @@ Ao final deste PRD:
 - Cada acao do workflow gera um `AiEvent` via `AiEventService`.
 - O `LeadAiContext` e atualizado ao final de cada workflow.
 - O envio outbound e idempotente.
-- A UI minima permite toggle de agente, seletor de blueprint e configuracao de business hours.
-- O dashboard de execucoes mostra `AiSkillExecutionLog` paginado.
+- A API minima permite ajustar `blueprintSlug`, business hours, debounce e testing mode.
+- A permissao `manage:ai` protege as mutacoes operacionais deste runtime.

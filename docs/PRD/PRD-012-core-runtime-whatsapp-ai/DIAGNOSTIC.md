@@ -1,7 +1,7 @@
 # Diagnostic: Core Runtime WhatsApp AI
 
-**Data:** 2026-03-21
-**Status:** Complete
+**Data:** 2026-03-23
+**Status:** Revised
 
 ---
 
@@ -75,18 +75,19 @@
 2. deduplicar no workflow antes do send
 3. gravar fingerprint processado no estado e no log
 
-### 6. Falta Kill Switch Operacional
+### 6. Falta Kill Switch Operacional E Controle De Acesso
 
 **Problema:** a V1 precisa responder automaticamente, mas sem uma chave simples de pausa isso fica arriscado.
 
 **Impacto:**
 - operacao sem maneira rapida de desligar o agente
 - risco alto em incidente de prompt, policy ou transporte
+- configuracoes de IA sem uma permissao dedicada ficam misturadas com outros dominios
 
 **Solucao Necessaria:**
-1. adicionar `agentEnabled` em `AiProjectConfig`
-2. respeitar esse flag antes do triage
-3. expor esse controle na UI minima
+1. respeitar `AiAgentProjectConfig.enabled` e `AiAgentProjectConfig.paused`
+2. introduzir a permissao `manage:ai`
+3. expor esse controle via API minima do runtime
 
 ### 7. Provisioning Atual Nao Cobre Projeto Novo
 
@@ -130,5 +131,5 @@
 2. Buffer de conversa + Inngest
 3. Transporte outbound + idempotencia
 4. Workflow Mastra inbound
-5. UI minima + logs minimos
+5. API minima + logs minimos
 6. Cutover e testes
