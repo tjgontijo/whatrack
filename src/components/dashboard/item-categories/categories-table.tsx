@@ -91,8 +91,8 @@ interface CategoriesTableProps {
   statusFilter?: string
   onStatusFilterChange?: (value: string) => void
   onOpenNewForm?: () => void
-  onRefresh?: () => void
   triggerOpenForm?: number
+  getRefreshCallback?: (callback: () => void) => void
 }
 
 export function CategoriesTable({
@@ -102,8 +102,8 @@ export function CategoriesTable({
   statusFilter: externalStatusFilter,
   onStatusFilterChange: externalOnStatusFilterChange,
   onOpenNewForm,
-  onRefresh: externalOnRefresh,
   triggerOpenForm = 0,
+  getRefreshCallback,
 }: CategoriesTableProps) {
   const queryClient = useQueryClient()
   const { data: org } = useOrganization()
@@ -145,6 +145,12 @@ export function CategoriesTable({
       pageSize: 30,
       filters,
     })
+
+  React.useEffect(() => {
+    if (hideHeader && getRefreshCallback) {
+      getRefreshCallback(() => void refetch())
+    }
+  }, [hideHeader, getRefreshCallback, refetch])
 
   const refreshAll = React.useCallback(() => {
     void queryClient.invalidateQueries({ queryKey: ['item-categories'] })
@@ -312,7 +318,7 @@ export function CategoriesTable({
       searchValue={searchInput}
       onSearchChange={onSearchChange}
       searchPlaceholder="Buscar categoria..."
-      onRefresh={() => void (externalOnRefresh?.() ?? refetch())}
+      onRefresh={() => void refetch()}
       isFetchingMore={isFetchingNextPage}
       filters={filtersNode}
       isLoading={isLoading}

@@ -80,8 +80,8 @@ interface ItemsTableProps {
   categoryFilter?: string
   onCategoryFilterChange?: (value: string) => void
   onOpenNewForm?: () => void
-  onRefresh?: () => void
   triggerOpenForm?: number
+  getRefreshCallback?: (callback: () => void) => void
 }
 
 export function ItemsTable({
@@ -93,8 +93,8 @@ export function ItemsTable({
   categoryFilter: externalCategoryFilter,
   onCategoryFilterChange: externalOnCategoryFilterChange,
   onOpenNewForm,
-  onRefresh: externalOnRefresh,
   triggerOpenForm = 0,
+  getRefreshCallback,
 }: ItemsTableProps) {
   const { data: org } = useOrganization()
   const organizationId = org?.id
@@ -133,7 +133,20 @@ export function ItemsTable({
     [deferredSearch, status, categoryFilter]
   )
 
+  const { data, total, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, refetch } =
+    useCrudInfiniteQuery<Item>({
+      queryKey: ['items'],
+      endpoint: '/api/v1/items',
+      pageSize: 30,
+      filters,
+      enabled: !!organizationId,
+    })
 
+  React.useEffect(() => {
+    if (hideHeader && getRefreshCallback) {
+      getRefreshCallback(() => void refetch())
+    }
+  }, [hideHeader, getRefreshCallback, refetch])
 
   const categoriesQuery = useQuery({
     queryKey: ['item-categories', organizationId],
@@ -151,15 +164,6 @@ export function ItemsTable({
     enabled: !!organizationId,
   })
   const categories = categoriesQuery.data ?? []
-
-  const { data, total, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, refetch } =
-    useCrudInfiniteQuery<Item>({
-      queryKey: ['items'],
-      endpoint: '/api/v1/items',
-      pageSize: 30,
-      filters,
-      enabled: !!organizationId,
-    })
 
   const rowActions: RowActions<Item> = {
     customActions: () => null,
@@ -251,7 +255,7 @@ export function ItemsTable({
       searchValue={searchInput}
       onSearchChange={onSearchChange}
       searchPlaceholder="Buscar itens..."
-      onRefresh={() => void (externalOnRefresh?.() ?? refetch())}
+      onRefresh={() => void refetch()}
       isFetchingMore={isFetchingNextPage}
       filters={filtersNode}
       isLoading={isLoading}

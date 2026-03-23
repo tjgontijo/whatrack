@@ -38,6 +38,8 @@ export function CatalogPageContent({ selectedTab }: CatalogPageContentProps) {
   const [categoriesStatus, setCategoriesStatus] = useState('all')
   const [triggerItemForm, setTriggerItemForm] = useState(0)
   const [triggerCategoryForm, setTriggerCategoryForm] = useState(0)
+  const [itemsRefresh, setItemsRefresh] = useState<(() => void) | null>(null)
+  const [categoriesRefresh, setCategoriesRefresh] = useState<(() => void) | null>(null)
 
   const tabs = useMemo<HeaderTab[]>(() => [
     { key: 'items', label: 'Itens' },
@@ -120,6 +122,13 @@ export function CatalogPageContent({ selectedTab }: CatalogPageContentProps) {
         </Button>
       }
       filters={filters}
+      onRefresh={() => {
+        if (activeTab === 'items') {
+          itemsRefresh?.()
+        } else {
+          categoriesRefresh?.()
+        }
+      }}
     >
       {activeTab === 'items' && (
         <ItemsTable
@@ -131,6 +140,7 @@ export function CatalogPageContent({ selectedTab }: CatalogPageContentProps) {
           categoryFilter={itemsCategory}
           onCategoryFilterChange={setItemsCategory}
           triggerOpenForm={triggerItemForm}
+          getRefreshCallback={setItemsRefresh}
         />
       )}
       {activeTab === 'categories' && (
@@ -141,6 +151,7 @@ export function CatalogPageContent({ selectedTab }: CatalogPageContentProps) {
           statusFilter={categoriesStatus}
           onStatusFilterChange={setCategoriesStatus}
           triggerOpenForm={triggerCategoryForm}
+          getRefreshCallback={setCategoriesRefresh}
         />
       )}
     </HeaderPageShell>
