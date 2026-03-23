@@ -460,6 +460,244 @@ CREATE TABLE "crm_item_categories" (
 );
 
 -- CreateTable
+CREATE TABLE "ai_lead_contexts" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "organizationId" UUID NOT NULL,
+    "projectId" UUID,
+    "leadId" UUID NOT NULL,
+    "profileSummary" TEXT,
+    "detectedLanguage" TEXT,
+    "sentimentTrend" TEXT,
+    "longMemory" JSONB,
+    "lifecycleStage" TEXT NOT NULL DEFAULT 'unknown',
+    "aiScore" INTEGER,
+    "aiScoreReason" TEXT,
+    "aiScoreUpdatedAt" TIMESTAMP(3),
+    "suggestedNextAction" TEXT,
+    "suggestedNextActionAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ai_lead_contexts_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ai_events" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "organizationId" UUID NOT NULL,
+    "projectId" UUID,
+    "leadId" UUID,
+    "ticketId" UUID,
+    "agentId" UUID,
+    "type" TEXT NOT NULL,
+    "channel" TEXT,
+    "direction" TEXT,
+    "metadata" JSONB,
+    "modelId" TEXT,
+    "inputTokens" INTEGER,
+    "outputTokens" INTEGER,
+    "costUsd" DECIMAL(12,6),
+    "status" TEXT NOT NULL DEFAULT 'success',
+    "errorMsg" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "ai_events_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ai_agents" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "slug" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "type" TEXT NOT NULL,
+    "channel" TEXT NOT NULL,
+    "isSystem" BOOLEAN NOT NULL DEFAULT false,
+    "defaultConfig" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ai_agents_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ai_agent_project_configs" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "organizationId" UUID NOT NULL,
+    "projectId" UUID NOT NULL,
+    "agentId" UUID NOT NULL,
+    "enabled" BOOLEAN NOT NULL DEFAULT true,
+    "paused" BOOLEAN NOT NULL DEFAULT false,
+    "config" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ai_agent_project_configs_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ai_cadences" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "organizationId" UUID NOT NULL,
+    "projectId" UUID NOT NULL,
+    "agentId" UUID,
+    "name" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
+    "trigger" TEXT NOT NULL,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "config" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ai_cadences_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ai_cadence_steps" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "cadenceId" UUID NOT NULL,
+    "order" INTEGER NOT NULL,
+    "delayHours" INTEGER NOT NULL DEFAULT 0,
+    "windowMode" TEXT NOT NULL DEFAULT 'anytime',
+    "actionType" TEXT NOT NULL,
+    "actionConfig" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ai_cadence_steps_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ai_cadence_enrollments" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "organizationId" UUID NOT NULL,
+    "projectId" UUID NOT NULL,
+    "cadenceId" UUID NOT NULL,
+    "leadId" UUID NOT NULL,
+    "ticketId" UUID,
+    "status" TEXT NOT NULL DEFAULT 'active',
+    "currentStep" INTEGER NOT NULL DEFAULT 0,
+    "nextStepAt" TIMESTAMP(3),
+    "completedAt" TIMESTAMP(3),
+    "interruptedAt" TIMESTAMP(3),
+    "interruptReason" TEXT,
+    "metadata" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ai_cadence_enrollments_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ai_project_configs" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "organizationId" UUID NOT NULL,
+    "projectId" UUID NOT NULL,
+    "blueprintSlug" TEXT NOT NULL DEFAULT 'whatsapp-commercial-agent',
+    "businessName" TEXT,
+    "niche" TEXT,
+    "productDescription" TEXT,
+    "pricingInfo" TEXT,
+    "nextStepType" TEXT,
+    "assistantName" TEXT,
+    "escalationContact" TEXT,
+    "businessHours" JSONB,
+    "debounceMs" INTEGER NOT NULL DEFAULT 8000,
+    "testingModeEnabled" BOOLEAN NOT NULL DEFAULT false,
+    "testingPhones" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ai_project_configs_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ai_conversation_states" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "organizationId" UUID NOT NULL,
+    "projectId" UUID NOT NULL,
+    "conversationId" UUID NOT NULL,
+    "pendingMessages" JSONB,
+    "pendingMessagesUpdatedAt" TIMESTAMP(3),
+    "lastProcessedFingerprint" TEXT,
+    "lastProcessedAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ai_conversation_states_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ai_skills" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "organizationId" UUID,
+    "projectId" UUID,
+    "slug" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "isSystem" BOOLEAN NOT NULL DEFAULT false,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ai_skills_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ai_skill_versions" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "skillId" UUID NOT NULL,
+    "version" TEXT NOT NULL,
+    "prompt" TEXT NOT NULL,
+    "mode" TEXT NOT NULL,
+    "isPublished" BOOLEAN NOT NULL DEFAULT false,
+    "publishedAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ai_skill_versions_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ai_skill_execution_logs" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "executionKey" TEXT NOT NULL,
+    "organizationId" UUID NOT NULL,
+    "projectId" UUID NOT NULL,
+    "conversationId" UUID NOT NULL,
+    "ticketId" UUID,
+    "skillId" UUID NOT NULL,
+    "skillVersion" TEXT NOT NULL,
+    "routingDecision" JSONB,
+    "output" TEXT,
+    "outboundPayload" JSONB,
+    "outboundResult" JSONB,
+    "relatedEventIds" JSONB,
+    "success" BOOLEAN NOT NULL DEFAULT false,
+    "errorMessage" TEXT,
+    "durationMs" INTEGER,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ai_skill_execution_logs_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ai_crisis_keywords" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "organizationId" UUID NOT NULL,
+    "projectId" UUID NOT NULL,
+    "keyword" TEXT NOT NULL,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "escalationResponse" TEXT NOT NULL,
+    "severity" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ai_crisis_keywords_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "org_companies" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "organizationId" UUID NOT NULL,
@@ -1191,6 +1429,129 @@ CREATE INDEX "crm_item_categories_active_idx" ON "crm_item_categories"("active")
 CREATE UNIQUE INDEX "crm_item_categories_organizationId_name_key" ON "crm_item_categories"("organizationId", "name");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "ai_lead_contexts_leadId_key" ON "ai_lead_contexts"("leadId");
+
+-- CreateIndex
+CREATE INDEX "ai_lead_contexts_organizationId_projectId_idx" ON "ai_lead_contexts"("organizationId", "projectId");
+
+-- CreateIndex
+CREATE INDEX "ai_lead_contexts_projectId_lifecycleStage_idx" ON "ai_lead_contexts"("projectId", "lifecycleStage");
+
+-- CreateIndex
+CREATE INDEX "ai_lead_contexts_projectId_aiScore_idx" ON "ai_lead_contexts"("projectId", "aiScore");
+
+-- CreateIndex
+CREATE INDEX "ai_events_organizationId_createdAt_idx" ON "ai_events"("organizationId", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "ai_events_projectId_createdAt_idx" ON "ai_events"("projectId", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "ai_events_leadId_createdAt_idx" ON "ai_events"("leadId", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "ai_events_ticketId_createdAt_idx" ON "ai_events"("ticketId", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "ai_events_organizationId_projectId_type_idx" ON "ai_events"("organizationId", "projectId", "type");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ai_agents_slug_key" ON "ai_agents"("slug");
+
+-- CreateIndex
+CREATE INDEX "ai_agents_type_idx" ON "ai_agents"("type");
+
+-- CreateIndex
+CREATE INDEX "ai_agents_channel_idx" ON "ai_agents"("channel");
+
+-- CreateIndex
+CREATE INDEX "ai_agents_isSystem_idx" ON "ai_agents"("isSystem");
+
+-- CreateIndex
+CREATE INDEX "ai_agent_project_configs_organizationId_projectId_idx" ON "ai_agent_project_configs"("organizationId", "projectId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ai_agent_project_configs_agentId_projectId_key" ON "ai_agent_project_configs"("agentId", "projectId");
+
+-- CreateIndex
+CREATE INDEX "ai_cadences_projectId_isActive_idx" ON "ai_cadences"("projectId", "isActive");
+
+-- CreateIndex
+CREATE INDEX "ai_cadences_organizationId_projectId_idx" ON "ai_cadences"("organizationId", "projectId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ai_cadences_organizationId_projectId_slug_key" ON "ai_cadences"("organizationId", "projectId", "slug");
+
+-- CreateIndex
+CREATE INDEX "ai_cadence_steps_cadenceId_idx" ON "ai_cadence_steps"("cadenceId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ai_cadence_steps_cadenceId_order_key" ON "ai_cadence_steps"("cadenceId", "order");
+
+-- CreateIndex
+CREATE INDEX "ai_cadence_enrollments_organizationId_projectId_status_next_idx" ON "ai_cadence_enrollments"("organizationId", "projectId", "status", "nextStepAt");
+
+-- CreateIndex
+CREATE INDEX "ai_cadence_enrollments_cadenceId_leadId_idx" ON "ai_cadence_enrollments"("cadenceId", "leadId");
+
+-- CreateIndex
+CREATE INDEX "ai_cadence_enrollments_leadId_status_idx" ON "ai_cadence_enrollments"("leadId", "status");
+
+-- CreateIndex
+CREATE INDEX "ai_cadence_enrollments_organizationId_projectId_idx" ON "ai_cadence_enrollments"("organizationId", "projectId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ai_project_configs_projectId_key" ON "ai_project_configs"("projectId");
+
+-- CreateIndex
+CREATE INDEX "ai_project_configs_organizationId_projectId_idx" ON "ai_project_configs"("organizationId", "projectId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ai_conversation_states_conversationId_key" ON "ai_conversation_states"("conversationId");
+
+-- CreateIndex
+CREATE INDEX "ai_conversation_states_organizationId_projectId_idx" ON "ai_conversation_states"("organizationId", "projectId");
+
+-- CreateIndex
+CREATE INDEX "ai_conversation_states_projectId_pendingMessagesUpdatedAt_idx" ON "ai_conversation_states"("projectId", "pendingMessagesUpdatedAt");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ai_skills_slug_key" ON "ai_skills"("slug");
+
+-- CreateIndex
+CREATE INDEX "ai_skills_organizationId_projectId_idx" ON "ai_skills"("organizationId", "projectId");
+
+-- CreateIndex
+CREATE INDEX "ai_skills_isSystem_isActive_idx" ON "ai_skills"("isSystem", "isActive");
+
+-- CreateIndex
+CREATE INDEX "ai_skill_versions_skillId_isPublished_idx" ON "ai_skill_versions"("skillId", "isPublished");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ai_skill_versions_skillId_version_key" ON "ai_skill_versions"("skillId", "version");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ai_skill_execution_logs_executionKey_key" ON "ai_skill_execution_logs"("executionKey");
+
+-- CreateIndex
+CREATE INDEX "ai_skill_execution_logs_organizationId_projectId_createdAt_idx" ON "ai_skill_execution_logs"("organizationId", "projectId", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "ai_skill_execution_logs_conversationId_createdAt_idx" ON "ai_skill_execution_logs"("conversationId", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "ai_skill_execution_logs_ticketId_createdAt_idx" ON "ai_skill_execution_logs"("ticketId", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "ai_skill_execution_logs_skillId_createdAt_idx" ON "ai_skill_execution_logs"("skillId", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "ai_crisis_keywords_organizationId_projectId_isActive_idx" ON "ai_crisis_keywords"("organizationId", "projectId", "isActive");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ai_crisis_keywords_projectId_keyword_key" ON "ai_crisis_keywords"("projectId", "keyword");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "org_companies_organizationId_key" ON "org_companies"("organizationId");
 
 -- CreateIndex
@@ -1633,6 +1994,111 @@ ALTER TABLE "crm_item_categories" ADD CONSTRAINT "crm_item_categories_organizati
 
 -- AddForeignKey
 ALTER TABLE "crm_item_categories" ADD CONSTRAINT "crm_item_categories_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_lead_contexts" ADD CONSTRAINT "ai_lead_contexts_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_lead_contexts" ADD CONSTRAINT "ai_lead_contexts_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_lead_contexts" ADD CONSTRAINT "ai_lead_contexts_leadId_fkey" FOREIGN KEY ("leadId") REFERENCES "crm_leads"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_events" ADD CONSTRAINT "ai_events_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_events" ADD CONSTRAINT "ai_events_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_events" ADD CONSTRAINT "ai_events_leadId_fkey" FOREIGN KEY ("leadId") REFERENCES "crm_leads"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_events" ADD CONSTRAINT "ai_events_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "crm_tickets"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_events" ADD CONSTRAINT "ai_events_agentId_fkey" FOREIGN KEY ("agentId") REFERENCES "ai_agents"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_agent_project_configs" ADD CONSTRAINT "ai_agent_project_configs_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_agent_project_configs" ADD CONSTRAINT "ai_agent_project_configs_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_agent_project_configs" ADD CONSTRAINT "ai_agent_project_configs_agentId_fkey" FOREIGN KEY ("agentId") REFERENCES "ai_agents"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_cadences" ADD CONSTRAINT "ai_cadences_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_cadences" ADD CONSTRAINT "ai_cadences_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_cadences" ADD CONSTRAINT "ai_cadences_agentId_fkey" FOREIGN KEY ("agentId") REFERENCES "ai_agents"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_cadence_steps" ADD CONSTRAINT "ai_cadence_steps_cadenceId_fkey" FOREIGN KEY ("cadenceId") REFERENCES "ai_cadences"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_cadence_enrollments" ADD CONSTRAINT "ai_cadence_enrollments_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_cadence_enrollments" ADD CONSTRAINT "ai_cadence_enrollments_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_cadence_enrollments" ADD CONSTRAINT "ai_cadence_enrollments_cadenceId_fkey" FOREIGN KEY ("cadenceId") REFERENCES "ai_cadences"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_cadence_enrollments" ADD CONSTRAINT "ai_cadence_enrollments_leadId_fkey" FOREIGN KEY ("leadId") REFERENCES "crm_leads"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_cadence_enrollments" ADD CONSTRAINT "ai_cadence_enrollments_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "crm_tickets"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_project_configs" ADD CONSTRAINT "ai_project_configs_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_project_configs" ADD CONSTRAINT "ai_project_configs_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_conversation_states" ADD CONSTRAINT "ai_conversation_states_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_conversation_states" ADD CONSTRAINT "ai_conversation_states_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_conversation_states" ADD CONSTRAINT "ai_conversation_states_conversationId_fkey" FOREIGN KEY ("conversationId") REFERENCES "crm_conversations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_skills" ADD CONSTRAINT "ai_skills_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_skills" ADD CONSTRAINT "ai_skills_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_skill_versions" ADD CONSTRAINT "ai_skill_versions_skillId_fkey" FOREIGN KEY ("skillId") REFERENCES "ai_skills"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_skill_execution_logs" ADD CONSTRAINT "ai_skill_execution_logs_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_skill_execution_logs" ADD CONSTRAINT "ai_skill_execution_logs_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_skill_execution_logs" ADD CONSTRAINT "ai_skill_execution_logs_conversationId_fkey" FOREIGN KEY ("conversationId") REFERENCES "crm_conversations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_skill_execution_logs" ADD CONSTRAINT "ai_skill_execution_logs_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "crm_tickets"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_skill_execution_logs" ADD CONSTRAINT "ai_skill_execution_logs_skillId_fkey" FOREIGN KEY ("skillId") REFERENCES "ai_skills"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_crisis_keywords" ADD CONSTRAINT "ai_crisis_keywords_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_crisis_keywords" ADD CONSTRAINT "ai_crisis_keywords_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "org_companies" ADD CONSTRAINT "org_companies_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;

@@ -6,6 +6,7 @@ const PLATFORM_ADMIN_GLOBAL_ROLES = new Set(['owner', 'admin'])
 
 const BLOCKED_FOR_NON_PLATFORM_ADMIN: Permission[] = [
   'view:audit',
+  'manage:ai',
   'manage:campaigns',
   'manage:integrations',
   'manage:meta',

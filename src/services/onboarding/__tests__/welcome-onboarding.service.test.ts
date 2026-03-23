@@ -31,6 +31,7 @@ const prismaMock = vi.hoisted(() => ({
 const getDefaultTrialBillingPlanMock = vi.hoisted(() => vi.fn())
 const startOrganizationTrialMock = vi.hoisted(() => vi.fn())
 const ensureSystemRolesForOrganizationMock = vi.hoisted(() => vi.fn())
+const ensureAiProjectDefaultsMock = vi.hoisted(() => vi.fn())
 
 vi.mock('@/lib/db/prisma', () => ({
   prisma: prismaMock,
@@ -48,6 +49,10 @@ vi.mock('@/server/organization/organization-rbac.service', () => ({
   ensureSystemRolesForOrganization: ensureSystemRolesForOrganizationMock,
 }))
 
+vi.mock('@/lib/ai/services/ai-project-defaults.service', () => ({
+  ensureAiProjectDefaults: ensureAiProjectDefaultsMock,
+}))
+
 import { completeWelcomeOnboarding } from '@/services/onboarding/welcome-onboarding.service'
 
 describe('completeWelcomeOnboarding', () => {
@@ -62,6 +67,10 @@ describe('completeWelcomeOnboarding', () => {
       trialEndsAt: new Date('2026-04-04T00:00:00.000Z'),
     })
     ensureSystemRolesForOrganizationMock.mockResolvedValue(undefined)
+    ensureAiProjectDefaultsMock.mockResolvedValue({
+      success: true,
+      data: { projectConfigId: 'cfg-1' },
+    })
   })
 
   it('creates the initial workspace for pessoa fisica without updating the user name', async () => {

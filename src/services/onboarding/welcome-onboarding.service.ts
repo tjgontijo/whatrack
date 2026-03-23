@@ -3,6 +3,7 @@ import { Prisma } from '@generated/prisma/client'
 import { normalizeDocumentNumber } from '@/lib/document/document-identity'
 import { prisma } from '@/lib/db/prisma'
 import { normalizeSlug } from '@/lib/utils/slug'
+import { ensureAiProjectDefaults } from '@/lib/ai/services/ai-project-defaults.service'
 import { getDefaultTrialBillingPlan } from '@/services/billing/billing-plan-catalog.service'
 import { startOrganizationTrial } from '@/services/billing/billing-subscription.service'
 import { ensureSystemRolesForOrganization } from '@/server/organization/organization-rbac.service'
@@ -298,6 +299,14 @@ export async function completeWelcomeOnboarding(input: {
   })
 
   await ensureSystemRolesForOrganization(organization.organization.id)
+  const aiDefaults = await ensureAiProjectDefaults(
+    organization.project.id,
+    organization.organization.id
+  )
+
+  if (!aiDefaults.success) {
+    throw new Error(aiDefaults.error)
+  }
 
   return {
     organization: organization.organization,

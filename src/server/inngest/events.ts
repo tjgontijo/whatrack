@@ -1,5 +1,13 @@
 import { z } from 'zod'
 
+export const whatsappMessageReceivedDataSchema = z.object({
+  organizationId: z.string().uuid(),
+  projectId: z.string().uuid(),
+  conversationId: z.string().uuid(),
+  messageId: z.string().uuid(),
+  debounceMs: z.number().int().positive().max(60000).optional(),
+})
+
 export const aiEventRecordedDataSchema = z.object({
   organizationId: z.string().uuid(),
   projectId: z.string().uuid().nullable().optional(),
@@ -23,6 +31,7 @@ export const aiCadenceTickDataSchema = z.object({
 })
 
 export const aiInngestEventSchemas = {
+  'whatsapp/message.received': whatsappMessageReceivedDataSchema,
   'ai.event.recorded': aiEventRecordedDataSchema,
   'ai.prompt.requested': aiPromptRequestedDataSchema,
   'ai.cadence.tick': aiCadenceTickDataSchema,
@@ -31,6 +40,10 @@ export const aiInngestEventSchemas = {
 export type AiInngestEventName = keyof typeof aiInngestEventSchemas
 
 export type AiInngestEventPayload =
+  | {
+      name: 'whatsapp/message.received'
+      data: z.infer<typeof whatsappMessageReceivedDataSchema>
+    }
   | {
       name: 'ai.event.recorded'
       data: z.infer<typeof aiEventRecordedDataSchema>
