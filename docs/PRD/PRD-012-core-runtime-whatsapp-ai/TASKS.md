@@ -1,8 +1,8 @@
 # Tasks: PRD-012 Core Runtime WhatsApp AI
 
-**Data:** 2026-03-23 (v2.0)
+**Data:** 2026-03-23 (v2.1 - Backend Only)
 **Status:** Draft
-**Total:** 19
+**Total:** 17 (Frontend tasks removidas para PRD-014)
 **Estimado:** 3 fases
 
 ---
@@ -21,7 +21,7 @@ O PRD-018 entrega: Mastra setup, Inngest client, `executePrompt`, `AiEventServic
 |------|-----------|-------|
 | Fase 1 | Schema + provisioning do runtime | T1-T5 |
 | Fase 2 | Buffer + transporte + workflow | T6-T14 |
-| Fase 3 | UI minima + testes + cutover | T15-T19 |
+| Fase 3 | API + testes + validacao | T15-T17 |
 
 ---
 
@@ -326,7 +326,7 @@ upsertProjectConfig(projectId: string, data: AiProjectConfigInput): Promise<AiPr
 
 ---
 
-## FASE 3 - UI Minima + Testes + Cutover
+## FASE 3 - API + Testes + Validacao
 
 ### T15: Criar API minima de configuracao do agente
 
@@ -344,41 +344,7 @@ upsertProjectConfig(projectId: string, data: AiProjectConfigInput): Promise<AiPr
 
 ---
 
-### T16: Criar UI minima do agente
-
-**Files:**
-- Modify: `src/app/(dashboard)/[organizationSlug]/[projectSlug]/settings/ai-studio/page.tsx`
-- Create: `src/components/dashboard/ai/agent-config-form.tsx`
-
-**What to do:**
-- Toggle de ativar/pausar agente (via `AiAgentProjectConfig.enabled` e `.paused`)
-- Campos de configuracao: `businessName`, `assistantName`, `escalationContact`
-- Seletor de horario comercial simplificado
-- Toggle de testing mode + campo de whitelist de phones
-- Salvar via `PUT /api/v1/ai/config`
-
-**Verification:**
-- Usuario consegue ativar, pausar e configurar o agente
-
----
-
-### T17: Adicionar timeline de AiEvent no inbox
-
-**Files:**
-- Modify: `src/components/dashboard/whatsapp/inbox/ticket-panel.tsx`
-
-**What to do:**
-- Remover leitura de `AiInsight` (legado)
-- Adicionar leitura de `AiEvent` via `GET /api/v1/ai/events?ticketId=...`
-- Exibir eventos de IA inline no timeline do ticket (SKILL_EXECUTED, MESSAGE_SENT, CRISIS_DETECTED, etc.)
-
-**Verification:**
-- Inbox nao chama mais endpoint de AiInsight
-- Timeline mostra acoes do agente junto com mensagens
-
----
-
-### T18: Testes unitarios do runtime
+### T16: Testes unitarios do runtime
 
 **Files:**
 - Create: `src/services/ai/ai-conversation-state.service.spec.ts`
@@ -396,7 +362,7 @@ upsertProjectConfig(projectId: string, data: AiProjectConfigInput): Promise<AiPr
 
 ---
 
-### T19: Validacao final
+### T17: Validacao final
 
 **What to do:**
 - `npm run lint` → 0 erros
