@@ -136,7 +136,8 @@ AiCrisisKeyword
   -> escalationResponse // resposta automatica a ser enviada
   -> severity           // low | medium | high | critical
 
-// Exemplos por nicho:
+// Nota: tabela inicia vazia. Usuario configura via API (consumida por UI em PRD-020).
+// Exemplos do que usuario pode configurar:
 // Médico: "suicidio", "crise", "emergencia", "internacao"
 // Vidracaria: "roubo", "invasao", "vidro quebrado", "seguranca"
 // E-commerce: "enganado", "fraude", "nao chegou", "produto falso"
