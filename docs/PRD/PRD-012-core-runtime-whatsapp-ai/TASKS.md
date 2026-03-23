@@ -93,79 +93,39 @@ Cada skill deve ter uma `AiSkillVersion` com `isPublished: true`.
 
 ---
 
-### T3: Seed de crisis keywords (por nicho)
+### T3: Criar schema para crisis keywords (user-configured)
 
 **Files:**
-- Modify: `prisma/seeds/ai-crisis-keywords.ts` (criar se nao existir)
-- Create: `src/data/crisis-keywords-by-niche.json`
+- Create: `src/schemas/ai/ai-crisis-keyword.schema.ts`
 
 **What to do:**
 
-Crisis keywords sao **por projeto**, nao global. Cada nicho tem palavras diferentes:
+Crisis keywords sao **configuradas pelo usuario por projeto**. Tabela inicia vazia.
 
-```json
-// src/data/crisis-keywords-by-niche.json
-{
-  "healthcare": {
-    "keywords": ["suicidio", "crise", "emergencia", "internacao", "morte"],
-    "severity": "critical",
-    "escalationResponse": "Isso parece emergencia. Transferindo pra atendente urgente."
-  },
-  "retail": {
-    "keywords": ["roubo", "invasao", "vidro quebrado", "seguranca"],
-    "severity": "high",
-    "escalationResponse": "Vou conectar voce a um especialista agora."
-  },
-  "ecommerce": {
-    "keywords": ["fraude", "golpe", "nao chegou", "falso", "dinheiro perdido"],
-    "severity": "high",
-    "escalationResponse": "Entendo sua preocupacao. Conectando a especialista..."
-  },
-  "saas": {
-    "keywords": ["dados vazados", "hackeado", "perda de dados", "seguranca"],
-    "severity": "critical",
-    "escalationResponse": "Seguranca e prioridade. Transferindo agora."
-  }
-}
-```
-
-**T3 - Task:**
-
-Na criacao de novo projeto (T5 - `ensureAiProjectDefaults`):
-1. Receber ou inferir o `niche` do projeto
-2. Se niche definido: pré-popular `AiCrisisKeyword` com keywords do arquivo
-3. Se niche nao definido: deixar vazio (usuário preenche depois via UI)
-
-Exemplo:
 ```typescript
-async function ensureAiProjectDefaults(projectId: string, orgId: string, niche?: string) {
-  // ...
-
-  // Se niche fornecido, seed crisis keywords
-  if (niche && NICHE_CRISIS_KEYWORDS[niche]) {
-    const keywords = NICHE_CRISIS_KEYWORDS[niche]
-    await Promise.all(
-      keywords.map(kw => prisma.aiCrisisKeyword.upsert({
-        where: { projectId_keyword: { projectId, keyword: kw.keyword } },
-        update: {},
-        create: {
-          projectId,
-          orgId,
-          keyword: kw.keyword,
-          severity: kw.severity,
-          escalationResponse: kw.escalationResponse,
-          isActive: true
-        }
-      }))
-    )
-  }
-}
+// src/schemas/ai/ai-crisis-keyword.schema.ts
+export const aiCrisisKeywordSchema = z.object({
+  keyword: z.string().min(2).max(100),
+  severity: z.enum(['low', 'medium', 'high', 'critical']),
+  escalationResponse: z.string().min(10).max(500),
+  isActive: z.boolean().default(true),
+})
 ```
+
+**Fluxo:**
+1. Projeto novo: `AiCrisisKeyword` table vazia
+2. Usuario acessa painel de config (PRD-020)
+3. Usuario adiciona palavras-chave:
+   - "roubo" (high) → "Acionando autoridades. Conectando gerente."
+   - "suicidio" (critical) → "Transferindo urgente pra psicólogo."
+4. API salva em `AiCrisisKeyword`
+5. Workflow (Passo 10) consulta e escalona
+
+**Nota:** Pré-população por nicho fica para PRD-020 (opcional, na UI).
 
 **Verification:**
-- Projeto com niche = "healthcare" tem keywords de saude
-- Projeto com niche = "retail" tem keywords de seguranca/roubo
-- Projeto sem niche = sem keywords (usuario cria depois)
+- Schema valida inputs corretamente
+- Nao ha seed automatica (tabla comeca vazia)
 
 ---
 
@@ -175,16 +135,29 @@ async function ensureAiProjectDefaults(projectId: string, orgId: string, niche?:
 - Create: `src/services/ai/ai-project-defaults.service.ts`
 
 **What to do:**
-- Criar `AiProjectConfig` com dados vazios (businessName, etc.) se nao existir
+- Criar `AiProjectConfig` com dados defaults (debounceMs: 8000, etc.) se nao existir
 - Chamar `AiAgentRegistryService.provisionDefaults()` do PRD-018 para criar configs de agente
+- **NÃO seed crisis keywords** — usuario configura depois via API/UI
 - Tornar idempotente (upsert)
 
 ```typescript
-export async function ensureAiProjectDefaults(projectId: string, orgId: string): Promise<void>
+export async function ensureAiProjectDefaults(projectId: string, orgId: string): Promise<void> {
+  // 1. Upsert AiProjectConfig com defaults
+  //    - debounceMs: 8000
+  //    - businessHours: vazio
+  //    - testingModeEnabled: false
+  //    - outros: vazio até usuario preencher
+
+  // 2. Chamar provisionDefaults para agentes
+
+  // 3. NÃO fazer seed de AiCrisisKeyword (deixar vazio)
+}
 ```
 
 **Verification:**
 - Chamadas repetidas nao duplicam registros
+- AiProjectConfig criado com defaults
+- AiCrisisKeyword table permanece vazia
 
 ---
 
