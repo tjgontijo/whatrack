@@ -93,17 +93,79 @@ Cada skill deve ter uma `AiSkillVersion` com `isPublished: true`.
 
 ---
 
-### T3: Seed de crisis keywords default
+### T3: Seed de crisis keywords (por nicho)
 
 **Files:**
 - Modify: `prisma/seeds/ai-crisis-keywords.ts` (criar se nao existir)
+- Create: `src/data/crisis-keywords-by-niche.json`
 
 **What to do:**
-Seed de palavras de crise default (ex: "suicidio", "emergencia", "acidente", "socorro").
-Cada keyword tem uma `escalationResponse` padrao.
+
+Crisis keywords sao **por projeto**, nao global. Cada nicho tem palavras diferentes:
+
+```json
+// src/data/crisis-keywords-by-niche.json
+{
+  "healthcare": {
+    "keywords": ["suicidio", "crise", "emergencia", "internacao", "morte"],
+    "severity": "critical",
+    "escalationResponse": "Isso parece emergencia. Transferindo pra atendente urgente."
+  },
+  "retail": {
+    "keywords": ["roubo", "invasao", "vidro quebrado", "seguranca"],
+    "severity": "high",
+    "escalationResponse": "Vou conectar voce a um especialista agora."
+  },
+  "ecommerce": {
+    "keywords": ["fraude", "golpe", "nao chegou", "falso", "dinheiro perdido"],
+    "severity": "high",
+    "escalationResponse": "Entendo sua preocupacao. Conectando a especialista..."
+  },
+  "saas": {
+    "keywords": ["dados vazados", "hackeado", "perda de dados", "seguranca"],
+    "severity": "critical",
+    "escalationResponse": "Seguranca e prioridade. Transferindo agora."
+  }
+}
+```
+
+**T3 - Task:**
+
+Na criacao de novo projeto (T5 - `ensureAiProjectDefaults`):
+1. Receber ou inferir o `niche` do projeto
+2. Se niche definido: pré-popular `AiCrisisKeyword` com keywords do arquivo
+3. Se niche nao definido: deixar vazio (usuário preenche depois via UI)
+
+Exemplo:
+```typescript
+async function ensureAiProjectDefaults(projectId: string, orgId: string, niche?: string) {
+  // ...
+
+  // Se niche fornecido, seed crisis keywords
+  if (niche && NICHE_CRISIS_KEYWORDS[niche]) {
+    const keywords = NICHE_CRISIS_KEYWORDS[niche]
+    await Promise.all(
+      keywords.map(kw => prisma.aiCrisisKeyword.upsert({
+        where: { projectId_keyword: { projectId, keyword: kw.keyword } },
+        update: {},
+        create: {
+          projectId,
+          orgId,
+          keyword: kw.keyword,
+          severity: kw.severity,
+          escalationResponse: kw.escalationResponse,
+          isActive: true
+        }
+      }))
+    )
+  }
+}
+```
 
 **Verification:**
-- Keywords existem na tabela apos seed
+- Projeto com niche = "healthcare" tem keywords de saude
+- Projeto com niche = "retail" tem keywords de seguranca/roubo
+- Projeto sem niche = sem keywords (usuario cria depois)
 
 ---
 

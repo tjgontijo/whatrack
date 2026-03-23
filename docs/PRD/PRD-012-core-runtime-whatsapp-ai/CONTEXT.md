@@ -53,11 +53,15 @@ Este fluxo sera substituido. O legado e removido pelo PRD-011. A infraestrutura 
 - Configuracao do agente e por projeto
 - Um projeto tem apenas um blueprint ativo na V1
 - O agente pode ser pausado imediatamente via `AiAgentProjectConfig.paused`
+- **Crisis keywords sao por projeto, nao global** — variam por nicho (medico, vidracaria, ecommerce)
+  - Criados automaticamente baseado no niche do projeto
+  - Personalizaveis pelo usuario via API/UI posterior
 - Mensagens de crise nao dependem do LLM — sao deterministic
 - Envio outbound deve ser idempotente: mesmo snapshot nao gera duas respostas
 - A persistencia local do outbound depende do webhook echo/status da Meta
 - Fora do horario comercial: resposta automatica, sem executar skill do LLM
 - Testing mode: so executa para numeros na whitelist
+- Debounce e configuravel por projeto (default 8000ms)
 
 ---
 
@@ -70,7 +74,7 @@ AiProjectConfig
   -> projectId (unique)
   -> orgId
   -> businessName
-  -> niche
+  -> niche               // healthcare | retail | ecommerce | saas | other — usado para crisis keywords default
   -> productDescription
   -> pricingInfo
   -> nextStepType        // "schedule" | "proposal" | "store_visit" | "custom"
@@ -125,11 +129,18 @@ AiSkillExecutionLog
   -> durationMs
 
 AiCrisisKeyword
-  -> projectId
+  -> projectId          // IMPORTANT: por projeto, nao global!
   -> orgId
-  -> keyword
+  -> keyword            // palavra-chave que dispara escalacao
   -> isActive
-  -> escalationResponse  // resposta automatica a ser enviada
+  -> escalationResponse // resposta automatica a ser enviada
+  -> severity           // low | medium | high | critical
+
+// Exemplos por nicho:
+// Médico: "suicidio", "crise", "emergencia", "internacao"
+// Vidracaria: "roubo", "invasao", "vidro quebrado", "seguranca"
+// E-commerce: "enganado", "fraude", "nao chegou", "produto falso"
+// SaaS: "dados vazados", "conta hackeada", "perda de dados"
 ```
 
 ---
