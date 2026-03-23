@@ -193,7 +193,7 @@ generateFingerprint(messages: PendingMessage[]): string  // hash SHA-256
 
 ---
 
-### T9: Criar function Inngest de debounce
+### T9: Criar function Inngest de debounce (configuravel por projeto)
 
 **Files:**
 - Create: `src/lib/inngest/functions/whatsapp-message.ts`
@@ -204,7 +204,14 @@ generateFingerprint(messages: PendingMessage[]): string  // hash SHA-256
 export const processWhatsAppMessage = inngest.createFunction(
   {
     id: 'process-whatsapp-message',
-    debounce: { key: 'event.data.conversationId', period: '8s' },
+    debounce: {
+      key: 'event.data.conversationId',
+      period: (event) => {
+        // Buscar config do projeto via event.data.projectId
+        // Default 8000ms, mas pode ser sobrescrito
+        return `${event.data.debounceMs || 8000}ms`
+      }
+    },
     concurrency: { limit: 1, key: 'event.data.conversationId' },
   },
   { event: 'whatsapp/message.received' },
@@ -216,11 +223,22 @@ export const processWhatsAppMessage = inngest.createFunction(
 )
 ```
 
+**Fluxo:**
+1. Webhook de inbound envia evento com `debounceMs` do `AiProjectConfig`
+2. Function Inngest usa esse valor dinâmico
+3. Cada projeto pode ter debounce diferente
+
+**Valores comuns:**
+- 3000ms = resposta muito rápida (para bot agressivo)
+- 8000ms = default equilibrado
+- 15000ms = aguarda mais mensagens (para conversa natural)
+
 - Modificar (nao criar) `src/app/api/inngest/route.ts` — a rota ja existe do PRD-018.
 - Adicionar `processWhatsAppMessage` ao array de functions do handler existente.
 
 **Verification:**
 - Function aparece no dashboard do Inngest local
+- Eventos com `debounceMs` diferentes são processados com delays diferentes
 
 ---
 
@@ -231,12 +249,28 @@ export const processWhatsAppMessage = inngest.createFunction(
 
 **What to do:**
 - Dentro da transaction CRM existente: chamar `appendPendingMessage()`
-- Apos commit: chamar `inngest.send('whatsapp/message.received', { conversationId, orgId, messageId })`
+- Apos commit:
+  1. Buscar `AiProjectConfig` do projeto
+  2. Extrair `debounceMs` (default 8000)
+  3. Chamar `inngest.send('whatsapp/message.received', { conversationId, orgId, projectId, messageId, debounceMs })`
 - Remover chamada legada para `enqueueForClassification()` ou `dispatchAiEvent()`
+
+```typescript
+// Pseudocódigo
+const projectConfig = await getAiProjectConfig(projectId)
+await inngest.send('whatsapp/message.received', {
+  conversationId,
+  orgId,
+  projectId,
+  messageId,
+  debounceMs: projectConfig.debounceMs || 8000,  // configurável!
+})
+```
 
 **Verification:**
 - Inbound nao usa mais cron ou fila legada
 - `AiConversationState.pendingMessages` cresce a cada inbound
+- Evento Inngest inclui `debounceMs`
 
 ---
 
@@ -319,10 +353,27 @@ Cada passo que executa IA deve:
 ```typescript
 getProjectConfig(projectId: string): Promise<AiProjectConfig | null>
 upsertProjectConfig(projectId: string, data: AiProjectConfigInput): Promise<AiProjectConfig>
+
+// Input pode incluir:
+// {
+//   businessName?: string
+//   assistantName?: string
+//   escalationContact?: string
+//   businessHours?: Json
+//   debounceMs?: number  // novo!
+//   testingModeEnabled?: boolean
+//   testingPhones?: string[]
+// }
 ```
+
+**Verificar:**
+- `debounceMs` tem default 8000 se não fornecido
+- Aceita valores entre 1000ms (muito rápido) e 30000ms (muito lento)
+- Valida se valor está em intervalo razoável
 
 **Verification:**
 - Service funciona para leitura e escrita
+- debounceMs é persistido e recuperado corretamente
 
 ---
 

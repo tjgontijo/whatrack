@@ -77,6 +77,7 @@ AiProjectConfig
   -> assistantName
   -> escalationContact   // numero do humano para handoff
   -> businessHours       // JSON: { timezone, schedules: [{day, open, close}] }
+  -> debounceMs          // ms de espera antes de processar (default 8000)
   -> testingModeEnabled
   -> testingPhones       // JSON: string[] — whitelist para testing mode
 
