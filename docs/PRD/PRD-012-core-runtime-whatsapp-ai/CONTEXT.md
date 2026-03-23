@@ -1,210 +1,280 @@
 # Contexto: Core Runtime WhatsApp AI
 
-**Ultima atualizacao:** 2026-03-21
+**Ultima atualizacao:** 2026-03-23 (v2.0 — refatorado para PRD-018 como prerequisito)
 
 ---
 
 ## Definicao
 
-Esta feature entrega o runtime minimo de IA necessario para operar atendimento automatizado no WhatsApp dentro do WhaTrack.
-
-O foco da V1 nao e AI Studio. O foco e ter um caminho confiavel de producao:
+Este PRD entrega o runtime minimo de IA para atendimento automatizado no WhatsApp. A infraestrutura de dados (LeadAiContext, AiEvent, AiAgent, Mastra, Inngest) e entregue pelo PRD-018. Este PRD consome essa fundacao e implementa o caminho:
 
 ```text
-inbound -> debounce -> triage -> skill -> outbound -> log
+inbound -> debounce -> triage -> skill -> outbound -> AiEvent log
 ```
-
-Tudo que nao for essencial para esse caminho fica no PRD-013.
 
 ---
 
 ## Quem Usa
 
-- usuarios internos com permissao `manage:ai`
-- operadores do projeto que ativam ou pausam o agente
-- clientes finais que enviam mensagens inbound no WhatsApp
+- Clientes finais que enviam mensagens inbound no WhatsApp
+- Operadores que ativam, pausam ou configuram o agente por projeto
+- Usuarios com permissao `manage:ai`
 
 ---
 
-## Fluxo Atual
-
-### Estado Atual Da IA
+## Estado Atual da IA (legado)
 
 ```text
-Webhook inbound WhatsApp
-  -> processWhatsAppWebhookPayload()
-  -> WebhookProcessor
+Webhook inbound
   -> messageHandler()
-  -> transaction CRM: lead + conversation + ticket + message
+  -> transaction CRM existente
   -> enqueueForClassification()
   -> cron drena fila
   -> dispatchAiEvent()
-  -> todos os agentes rodam
-  -> AiInsight e criado
-  -> frontend recebe evento via Centrifugo
-  -> humano aprova/rejeita depois
+  -> AiInsight criado (aprovacao humana)
 ```
 
-### Realidades Tecnicas Que Importam Para A V1
-
-- o runtime real do WhatsApp e por `WhatsAppConfig`, associado a `projectId`
-- o inbound ja persiste CRM antes de side effects
-- `publishToCentrifugo` e apenas realtime interno
-- a camada Meta atual suporta templates, mas precisa ganhar envio de texto livre para o agente
-- existem pontos de UI no contexto de projeto que serao reconstruidos sobre o runtime novo
-- o PRD-011 remove o legado antes desta etapa; a V1 nao precisa conviver com o runtime antigo
+Este fluxo sera substituido. O legado e removido pelo PRD-011. A infraestrutura nova e entregue pelo PRD-018.
 
 ---
 
-## Regras De Negocio Relevantes
+## Realidades Tecnicas
 
-- a configuracao do agente e por projeto
-- um projeto tem no V1 apenas um blueprint ativo
-- o agente precisa poder ser pausado imediatamente
-- mensagens de crise ou handoff forcado nao devem depender do LLM
-- o envio outbound do agente deve ser idempotente
-- a persistencia local do outbound continua dependendo do webhook echo/status da Meta
+- O runtime do WhatsApp e por `WhatsAppConfig`, associado a `projectId`
+- O inbound ja persiste CRM antes de side effects
+- A camada Meta suporta templates, mas precisa ganhar envio de texto livre
+- O PRD-018 ja configurou Mastra com `@mastra/pg` e o client Inngest
+- O PRD-018 ja entregou `executePrompt`, `AiEventService` e `LeadAiContextService`
 
 ---
 
-## Dados E Integracoes
+## Regras De Negocio
 
-### Modelos Novos Da V1
+- Configuracao do agente e por projeto
+- Um projeto tem apenas um blueprint ativo na V1
+- O agente pode ser pausado imediatamente via `AiAgentProjectConfig.paused`
+- Mensagens de crise nao dependem do LLM — sao deterministic
+- Envio outbound deve ser idempotente: mesmo snapshot nao gera duas respostas
+- A persistencia local do outbound depende do webhook echo/status da Meta
+- Fora do horario comercial: resposta automatica, sem executar skill do LLM
+- Testing mode: so executa para numeros na whitelist
+
+---
+
+## Modelos Especificos Deste PRD
+
+Estes modelos pertencem ao runtime de inbound. Os modelos de fundacao (LeadAiContext, AiEvent, AiAgent, etc.) pertencem ao PRD-018.
 
 ```text
 AiProjectConfig
-  -> organizationId
-  -> projectId
+  -> projectId (unique)
+  -> orgId
   -> businessName
   -> niche
   -> productDescription
   -> pricingInfo
-  -> nextStepType
-  -> businessHours
+  -> nextStepType        // "schedule" | "proposal" | "store_visit" | "custom"
   -> assistantName
-  -> escalationContact
+  -> escalationContact   // numero do humano para handoff
+  -> businessHours       // JSON: { timezone, schedules: [{day, open, close}] }
   -> testingModeEnabled
-  -> agentEnabled
-
-AiBlueprintActivation
-  -> organizationId
-  -> projectId
-  -> blueprintSlug
-  -> isActive
+  -> testingPhones       // JSON: string[] — whitelist para testing mode
 
 AiConversationState
-  -> organizationId
+  -> conversationId (unique)
+  -> orgId
   -> projectId
-  -> conversationId
-  -> state
-  -> pendingMessages
+  -> pendingMessages     // JSON: { id, text, timestamp }[]
   -> pendingMessagesUpdatedAt
-  -> lastProcessedFingerprint
+  -> lastProcessedFingerprint  // hash do snapshot processado
   -> lastProcessedAt
 
+AiSkill
+  -> projectId (null = sistema/global)
+  -> orgId
+  -> slug
+  -> name
+  -> description
+  -> isSystem            // true = skill do blueprint, false = custom
+  -> isActive
+
+AiSkillVersion
+  -> skillId
+  -> version             // semver string
+  -> prompt              // texto completo do prompt
+  -> mode                // "deterministic" | "llm"
+  -> isPublished
+  -> publishedAt
+
 AiSkillExecutionLog
-  -> executionKey
-  -> organizationId
+  -> executionKey        // fingerprint unico para idempotencia
+  -> orgId
   -> projectId
   -> conversationId
   -> ticketId
   -> skillId
-  -> routingDecision
-  -> output
-  -> outboundPayload
-  -> outboundResult
+  -> skillVersion
+  -> routingDecision     // JSON: resultado do orchestrator
+  -> output              // texto gerado pelo agente
+  -> outboundPayload     // JSON: payload enviado para a Meta
+  -> outboundResult      // JSON: resposta da Meta
+  -> aiEventId           // FK para AiEvent correspondente
   -> success
   -> errorMessage
   -> durationMs
+
+AiCrisisKeyword
+  -> projectId
+  -> orgId
+  -> keyword
+  -> isActive
+  -> escalationResponse  // resposta automatica a ser enviada
 ```
-
-### Integracoes Existentes
-
-- Meta WhatsApp Cloud API
-- Prisma/Postgres
-- Centrifugo
-- Redis
-- permissao `manage:ai`
-
-### Integracoes Novas
-
-- Inngest
-- runtime Mastra
 
 ---
 
-## Estado Desejado
+## Integracoes
 
-### Escopo De Runtime
+**Existentes (consumidas):**
+- Meta WhatsApp Cloud API (envio de mensagens)
+- Prisma/Postgres (estado do runtime)
+- Centrifugo (realtime para frontend)
+- Permissao `manage:ai`
 
-O workflow V1 trabalha com:
+**Do PRD-018 (consumidas):**
+- `executePrompt` — camada de abstracao Mastra
+- `AiEventService.record()` — registrar acoes do workflow
+- `LeadAiContextService.ensureContext()` / `updateContext()` — contexto do lead
+- `AiAgentRegistryService.isAgentEnabled()` — verificar kill switch
+- Client Inngest — enviar eventos
 
-```ts
-{
-  organizationId: string
-  projectId: string
-  instanceId: string
-  conversationId: string
-  ticketId?: string
-  leadId?: string
-  waChatId: string
-  waName?: string
-  userMessage: string
-  timestamp: string
-  messageId: string
-}
-```
+**Novas (criadas neste PRD):**
+- Function Inngest: `whatsapp/message.received`
+- Workflow Mastra: `inbound-message`
 
-### Blueprint E Skills Da V1
+---
 
-No V1 existe apenas um blueprint default:
+## Fluxo Desejado Da V1
+
+### Parte 1: Webhook (sincrono, deve retornar 200 rapido)
 
 ```text
+Webhook inbound WhatsApp
+  -> messageHandler()
+  -> transaction CRM existente (lead + conversation + ticket + message)
+  -> append mensagem em AiConversationState.pendingMessages
+  -> inngest.send('whatsapp/message.received', { conversationId, orgId, messageId })
+  -> return 200
+```
+
+### Parte 2: Function Inngest (assincrono, com debounce)
+
+```typescript
+inngest.createFunction(
+  {
+    id: 'process-whatsapp-message',
+    debounce: { key: 'event.data.conversationId', period: '8s' },
+    concurrency: { limit: 1, key: 'event.data.conversationId' },
+  },
+  { event: 'whatsapp/message.received' },
+  async ({ event }) => { /* chama o workflow */ }
+)
+```
+
+### Parte 3: Workflow inbound-message (13 passos)
+
+```text
+Passo 1: carregar config
+  -> AiProjectConfig + AiAgentProjectConfig
+  -> se agente nao encontrado: registrar AiEvent(ERROR) e sair
+
+Passo 2: verificar kill switch
+  -> AiAgentProjectConfig.enabled e .paused
+  -> se desabilitado: sair silenciosamente
+
+Passo 3: verificar testing mode
+  -> se testingModeEnabled: verificar se o numero esta na whitelist
+  -> se nao esta: sair silenciosamente
+
+Passo 4: carregar snapshot do buffer
+  -> AiConversationState.pendingMessages
+  -> gerar fingerprint do snapshot atual
+
+Passo 5: enriquecer contato
+  -> LeadAiContextService.ensureContext(leadId)
+  -> carregar LeadAiContext para incluir no prompt
+
+Passo 6: verificar janela de 24h
+  -> Ticket.windowOpen e Ticket.windowExpiresAt
+  -> registrar no contexto do workflow para uso posterior
+
+Passo 7: verificar horario comercial
+  -> AiProjectConfig.businessHours
+  -> se fora do horario: executar skill out-of-hours-reply (deterministic) e ir para passo 12
+
+Passo 8: detectar spam
+  -> heuristica simples (mensagem muito curta, repetida, etc.)
+  -> se spam: sair silenciosamente
+
+Passo 9: triage / orchestrator
+  -> executePrompt com instrucoes de classificacao
+  -> retorna: { intent, segment, skill, riskLevel }
+  -> registrar AiEvent(TRIAGE_COMPLETED)
+
+Passo 10: detectar crise
+  -> verificar AiCrisisKeyword no texto
+  -> se crise: executar resposta deterministic + AiEvent(CRISIS_DETECTED) + sair
+
+Passo 11: executar skill
+  -> skill-runner.ts com a skill selecionada pelo orchestrator
+  -> modo deterministic: interpolacao de template
+  -> modo llm: executePrompt com prompt da skill + LeadAiContext
+  -> registrar AiEvent(SKILL_EXECUTED)
+
+Passo 12: enviar outbound idempotente
+  -> verificar idempotencia via AiSkillExecutionLog.executionKey
+  -> se janela aberta: enviar texto livre
+  -> se janela fechada: enviar template (fallback configurado na skill)
+  -> registrar AiEvent(MESSAGE_SENT ou TEMPLATE_SENT)
+
+Passo 13: salvar estado
+  -> limpar pendingMessages se o fingerprint ainda for o atual
+  -> atualizar LeadAiContext (lifecycle, sugestao de proximo passo)
+  -> salvar AiSkillExecutionLog
+```
+
+---
+
+## Blueprint e Skills Da V1
+
+Blueprint default da V1:
+
+```
 whatsapp-commercial-agent
 ```
 
 Skills minimas da V1:
 
-- `send-welcome`
-- `collect-lead-qualification`
-- `explain-product-service`
-- `send-pricing`
-- `human-handoff`
-- `out-of-hours-reply`
-
-### Fluxo Desejado Da V1
-
-```text
-Webhook inbound WhatsApp
-  -> messageHandler()
-  -> transaction CRM existente
-  -> append inbound em pendingMessages
-  -> commit
-  -> inngest.send('whatsapp/message.received')
-  -> return 200
-
-[silencio de 5s]
-  -> Inngest dispara workflow
-  -> carrega config do projeto
-  -> verifica kill switch
-  -> le snapshot do buffer
-  -> orchestrator triage
-  -> safety-policy
-  -> out-of-hours override
-  -> business-rules-policy
-  -> runSkill()
-  -> send outbound idempotente via WhatsApp
-  -> clear buffer se o snapshot ainda for o atual
-  -> save state
-  -> salvar execution log
-
-[depois]
-  -> webhook echo/status persiste outbound localmente
-  -> realtime existente segue atualizando frontend
-```
+| Slug | Modo | Descricao |
+|------|------|-----------|
+| `send-welcome` | deterministic | Primeira mensagem de boas-vindas |
+| `collect-lead-qualification` | llm | Coleta nome, necessidade, orcamento |
+| `explain-product-service` | llm | Explica o produto/servico com base no AiProjectConfig |
+| `send-pricing` | deterministic | Envia tabela de precos |
+| `human-handoff` | deterministic | Transfere para humano com escalationContact |
+| `out-of-hours-reply` | deterministic | Resposta padrao fora do horario |
 
 ---
 
-## Limite Claro Da V1
+## Estado Desejado
 
-Esta V1 nao abre o runtime para operacao livre pelo usuario. Ela apenas garante que o core do atendimento automatizado funciona com seguranca e observabilidade minima.
+Ao final deste PRD:
+
+- O webhook de inbound chama `inngest.send()` em vez de enfileirar para cron.
+- O Inngest aguarda 8s de silencio antes de disparar o workflow.
+- O workflow executa os 13 passos com seguranca.
+- Cada acao do workflow gera um `AiEvent` via `AiEventService`.
+- O `LeadAiContext` e atualizado ao final de cada workflow.
+- O envio outbound e idempotente.
+- A UI minima permite toggle de agente, seletor de blueprint e configuracao de business hours.
+- O dashboard de execucoes mostra `AiSkillExecutionLog` paginado.

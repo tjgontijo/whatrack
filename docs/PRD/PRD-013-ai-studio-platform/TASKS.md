@@ -1,263 +1,408 @@
 # Tasks: PRD-013 AI Studio Platform
 
-**Data:** 2026-03-21
+**Data:** 2026-03-23 (v2.0)
 **Status:** Draft
-**Total:** 18
+**Total:** 20
 **Estimado:** 4 fases
+
+---
+
+## Pre-requisito Obrigatorio
+
+**PRD-011, PRD-018 e PRD-012 devem estar concluidos antes de iniciar qualquer task deste PRD.**
 
 ---
 
 ## Ordem De Execucao
 
 | Fase | Descricao | Tasks |
-|---|---|---|
-| Fase 1 | Services e APIs do studio | T1-T5 |
-| Fase 2 | UI de blueprints e skills | T6-T10 |
-| Fase 3 | Policies e observabilidade | T11-T14 |
-| Fase 4 | Meta Ads Audit + finalizacao | T15-T18 |
+|------|-----------|-------|
+| Fase 1 | Schema + services + APIs | T1-T6 |
+| Fase 2 | Blueprint wizard + skills UI | T7-T12 |
+| Fase 3 | Policies + AiEvent timeline + execution logs | T13-T17 |
+| Fase 4 | Meta Ads Audit + finalizacao | T18-T20 |
 
 ---
 
-## FASE 1 - Services E APIs Do Studio
+## FASE 1 - Schema + Services + APIs
 
-### T1: Criar services de blueprint e skill management
+### T1: Adicionar TerminologyRule ao schema Prisma
 
 **Files:**
-- Create: `src/services/ai/ai-blueprint.service.ts`
+- Modify: `prisma/schema.prisma`
+
+**What to do:**
+- Adicionar `model TerminologyRule` (ver CONTEXT.md para definicao completa)
+- Adicionar relacoes em `Project` e `Organization`
+- `npx prisma migrate dev --name add_terminology_rule`
+
+**Verification:**
+- `npx prisma validate` sem erros
+
+---
+
+### T2: Criar service de skill management
+
+**Files:**
 - Create: `src/services/ai/ai-skill-management.service.ts`
 
 **What to do:**
-- listar blueprints disponiveis
-- ativar blueprint por projeto
-- listar skills e versoes
-- publicar versao ativa
+
+```typescript
+// Lista skills do projeto com versao publicada atual
+listSkills(projectId: string): Promise<AiSkillWithVersion[]>
+
+// Cria nova versao rascunho de uma skill
+createDraftVersion(skillId: string, prompt: string): Promise<AiSkillVersion>
+
+// Publica uma versao (irreversivel)
+publishVersion(skillVersionId: string): Promise<AiSkillVersion>
+
+// Retorna diff de prompt entre duas versoes
+getVersionDiff(versionA: string, versionB: string): Promise<SkillVersionDiff>
+```
 
 **Verification:**
-- services funcionam sobre os modelos do PRD-012
+- `publishVersion` define `isPublished: true` e `publishedAt: now()`
+- Nao existe `unpublish`
 
-### T2: Criar services de policy management
+---
+
+### T3: Criar service de policy management
 
 **Files:**
 - Create: `src/services/ai/ai-policy.service.ts`
 
 **What to do:**
-- CRUD de keywords de crise
-- CRUD de regras de terminologia
+
+```typescript
+// Crisis Keywords
+listCrisisKeywords(projectId: string): Promise<AiCrisisKeyword[]>
+createCrisisKeyword(projectId: string, data: CreateCrisisKeywordInput): Promise<AiCrisisKeyword>
+deleteCrisisKeyword(id: string): Promise<void>
+
+// Terminology Rules
+listTerminologyRules(projectId: string): Promise<TerminologyRule[]>
+upsertTerminologyRule(projectId: string, data: UpsertTerminologyRuleInput): Promise<TerminologyRule>
+deleteTerminologyRule(id: string): Promise<void>
+```
 
 **Verification:**
-- mutacoes e leituras project-scoped
-
-### T3: Criar APIs do AI Studio
-
-**Files:**
-- Create: `src/app/api/v1/ai/blueprints/route.ts`
-- Create: `src/app/api/v1/ai/blueprints/[slug]/activate/route.ts`
-- Create: `src/app/api/v1/ai/skills/route.ts`
-- Create: `src/app/api/v1/ai/skills/[id]/route.ts`
-- Create: `src/app/api/v1/ai/policies/crisis-keywords/route.ts`
-- Create: `src/app/api/v1/ai/policies/terminology-rules/route.ts`
-
-**What to do:**
-- routes thin
-- validacao Zod
-- escopo por projeto
-
-**Verification:**
-- rotas respondem no caminho feliz
-
-### T4: Criar API completa de execution logs
-
-**Files:**
-- Expand: `src/app/api/v1/ai/execution-logs/route.ts`
-
-**What to do:**
-- paginação
-- filtros
-- detalhe de execucao
-
-**Verification:**
-- logs exploraveis pela UI
-
-### T5: Revisar RBAC do AI Studio
-
-**Files:**
-- Modify: auth/permission surfaces relevantes
-
-**What to do:**
-- garantir que apenas `manage:ai` publique skills e altere policies
-- permitir `view:ai` para leitura de logs, se fizer sentido
-
-**Verification:**
-- matrix minima de permissoes documentada e aplicada
+- Todas as operacoes sao project-scoped
 
 ---
 
-## FASE 2 - UI De Blueprints E Skills
+### T4: Criar service de blueprint wizard
 
-### T6: Criar hub do AI Studio
+**Files:**
+- Create: `src/services/ai/ai-blueprint-wizard.service.ts`
+
+**What to do:**
+
+O wizard recebe respostas do usuario e retorna o blueprint recomendado:
+
+```typescript
+interface WizardAnswers {
+  primaryGoal: 'convert_leads' | 'customer_service' | 'follow_up' | 'outbound'
+  contactStyle: 'online' | 'human' | 'mixed'
+  businessDescription: string
+}
+
+// Mapeia respostas para blueprintSlug
+resolveBlueprintFromWizard(answers: WizardAnswers): BlueprintRecommendation
+
+// Ativa o blueprint selecionado para o projeto
+activateBlueprint(projectId: string, blueprintSlug: string): Promise<void>
+// Internamente: atualiza AiAgentProjectConfig.config.blueprintSlug do agente 'whatsapp-inbound'
+```
+
+**Catalogo de blueprints (hardcoded no service):**
+```typescript
+const BLUEPRINTS = [
+  {
+    slug: 'whatsapp-commercial-agent',
+    name: 'Agente Comercial',
+    description: 'Converte leads: qualifica, apresenta produto e prepara o proximo passo.',
+    goals: ['convert_leads', 'outbound'],
+  },
+  {
+    slug: 'whatsapp-cs-agent',
+    name: 'Agente de Atendimento',
+    description: 'Atende clientes pos-compra, resolve problemas e coleta NPS.',
+    goals: ['customer_service', 'follow_up'],
+  },
+]
+```
+
+**Verification:**
+- `resolveBlueprintFromWizard` retorna blueprint correto para cada combinacao de respostas
+
+---
+
+### T5: Criar APIs do AI Studio
+
+**Files:**
+- Create: `src/app/api/v1/ai/blueprints/route.ts` — GET lista + POST wizard
+- Create: `src/app/api/v1/ai/skills/route.ts` — GET lista
+- Create: `src/app/api/v1/ai/skills/[id]/route.ts` — GET detalhe
+- Create: `src/app/api/v1/ai/skills/[id]/versions/route.ts` — GET lista + POST nova versao
+- Create: `src/app/api/v1/ai/skills/[id]/versions/[versionId]/publish/route.ts` — POST publicar
+- Create: `src/app/api/v1/ai/policies/crisis-keywords/route.ts` — GET + POST + DELETE
+- Create: `src/app/api/v1/ai/policies/terminology-rules/route.ts` — GET + POST + DELETE
+
+Todas as rotas:
+- Thin routes (delegam para services)
+- Validacao Zod
+- `ORGANIZATION_HEADER` para escopo de org
+- Autorizacao: `manage:ai` para mutacoes
+
+**Verification:**
+- Todas as rotas respondem com dados reais do banco
+
+---
+
+### T6: Criar API de execution logs + AiEvent
+
+**Files:**
+- Expand: `src/app/api/v1/ai/execution-logs/route.ts`
+- Create: `src/app/api/v1/ai/events/route.ts` — GET com filtros
+
+**What to do:**
+
+Execution logs (`AiSkillExecutionLog`):
+- `GET /api/v1/ai/execution-logs?projectId=&skillId=&status=&from=&to=&page=&limit=`
+- Inclui detalhe de `routingDecision`, `output`, `outboundResult`
+
+AiEvent timeline:
+- `GET /api/v1/ai/events?ticketId=&leadId=&projectId=&page=&limit=`
+- Usado pelo inbox e pelo studio
+
+**Verification:**
+- Logs paginados com filtros funcionam
+- Timeline de AiEvent acessivel por ticketId e leadId
+
+---
+
+## FASE 2 - Blueprint Wizard + Skills UI
+
+### T7: Criar hub completo do AI Studio
 
 **Files:**
 - Modify: `src/app/(dashboard)/[organizationSlug]/[projectSlug]/settings/ai-studio/page.tsx`
-- Create: componentes em `src/components/dashboard/ai/`
 
 **What to do:**
-- transformar a tela minima da V1 em hub do studio
-- separar secoes de blueprints, skills, policies e logs
+- Substituir UI minima do PRD-012 por hub organizado
+- Secoes: Agente, Skills, Policies, Logs
+- Usar estrutura extensivel por tabs ou nav lateral — o PRD-022 adicionara a secao "Cadencias" a este mesmo hub sem refatoracao
 
 **Verification:**
-- hub organiza as superficies principais
+- Hub navega entre as 4 secoes e a estrutura suporta adicionar uma 5a (Cadencias) sem refatorar
 
-### T7: Criar tela de blueprints
+---
+
+### T8: Criar wizard de configuracao do agente
 
 **Files:**
-- Create: `src/components/dashboard/ai/blueprints-content.tsx`
+- Create: `src/components/dashboard/ai/agent-wizard.tsx`
 
 **What to do:**
-- listar blueprints disponiveis
-- mostrar ativo/inativo
-- acao de ativar
+- 3 perguntas de negocio (primaryGoal, contactStyle, businessDescription)
+- Ao confirmar: chama `POST /api/v1/ai/blueprints` com as respostas
+- Backend mapeia para blueprint e atualiza `AiAgentProjectConfig`
+- Usuario ve apenas: "Seu agente foi configurado como Agente Comercial"
+- Nunca exibir o slug do blueprint para o usuario
 
 **Verification:**
-- usuario consegue alternar blueprint suportado
+- Wizard configura blueprint sem o usuario ver slug tecnico
 
-### T8: Criar tela de skills
+---
+
+### T9: Criar tela de listagem de skills
 
 **Files:**
 - Create: `src/components/dashboard/ai/skills-content.tsx`
 
 **What to do:**
-- listar skills por projeto
-- mostrar modo, categoria e versao ativa
+- Tabela com: nome da skill, modo (llm/deterministic), versao publicada, status
+- Acao de abrir detalhe
 
 **Verification:**
-- tabela de skills carregando dados reais
-
-### T9: Criar detalhe/publicacao de skill
-
-**Files:**
-- Create or Modify: pages em `src/app/(dashboard)/[organizationSlug]/[projectSlug]/settings/ai/`
-
-**What to do:**
-- abrir skill
-- editar conteudo de versao
-- publicar nova versao ativa
-
-**Verification:**
-- fluxo de publicacao funciona
-
-### T10: Adicionar guardrails de UX para publicacao
-
-**Files:**
-- Modify: componentes do studio
-
-**What to do:**
-- confirmar publicacao
-- exibir diff ou resumo da mudanca
-- evitar alteracao acidental da versao ativa
-
-**Verification:**
-- UX de publicacao segura
+- Tabela carrega skills reais do projeto
 
 ---
 
-## FASE 3 - Policies E Observabilidade
+### T10: Criar tela de detalhe e edicao de skill
 
-### T11: Criar UI de crisis keywords
+**Files:**
+- Create: `src/app/(dashboard)/[organizationSlug]/[projectSlug]/settings/ai-studio/skills/[skillId]/page.tsx`
+- Create: `src/components/dashboard/ai/skill-editor.tsx`
+
+**What to do:**
+- Exibir versao publicada atual
+- Editor de prompt markdown para nova versao (rascunho)
+- Botao "Ver diff com versao anterior" antes de publicar
+- Botao "Publicar nova versao" com dialog de confirmacao
+
+**Verification:**
+- Fluxo de edicao + diff + publicacao funciona end-to-end
+
+---
+
+### T11: Adicionar guardrails de publicacao
+
+**Files:**
+- Modify: `src/components/dashboard/ai/skill-editor.tsx`
+
+**What to do:**
+- Dialog de confirmacao com texto da mudanca
+- Avisar que publicacao e irreversivel
+- Exibir quantas execucoes a versao anterior teve (para dar contexto do impacto)
+
+**Verification:**
+- Usuario nao pode publicar sem confirmacao explicita
+
+---
+
+### T12: Adicionar RBAC do studio
+
+**Files:**
+- Modify: APIs do studio e componentes de edicao
+
+**What to do:**
+- Verificar `manage:ai` em todas as rotas de mutacao
+- Mostrar UI em modo read-only para usuarios sem `manage:ai`
+- Botoes de publicar/editar ficam desabilitados (nao ocultos) para usuarios com `view:ai`
+
+**Verification:**
+- Usuario sem `manage:ai` ve o studio mas nao consegue mutar
+
+---
+
+## FASE 3 - Policies + AiEvent Timeline + Execution Logs
+
+### T13: Criar UI de crisis keywords
 
 **Files:**
 - Create: `src/components/dashboard/ai/crisis-keywords-content.tsx`
 
 **What to do:**
-- listar, criar e remover keywords
+- Listagem com badge de status (ativo/inativo)
+- Formulario inline para adicionar nova keyword
+- Visualizar e editar `escalationResponse` de cada keyword
+- Remover keyword
 
 **Verification:**
-- policy de crise administravel pelo projeto
+- CRUD de keywords funcionando
 
-### T12: Criar UI de terminology rules
+---
+
+### T14: Criar UI de terminology rules
 
 **Files:**
 - Create: `src/components/dashboard/ai/terminology-rules-content.tsx`
 
 **What to do:**
-- listar, criar e editar regras
+- Tabela: termo proibido, substituto, contexto, ativo/inativo
+- Formulario inline para adicionar/editar
+- Remover regra
 
 **Verification:**
-- terminologia administravel pela UI
+- CRUD de regras funcionando
 
-### T13: Criar dashboard de execution logs
+---
+
+### T15: Adicionar timeline de AiEvent no inbox
+
+**Files:**
+- Modify: `src/components/dashboard/whatsapp/inbox/ticket-panel.tsx`
+- Create: `src/components/dashboard/ai/ai-event-timeline-item.tsx`
+
+**What to do:**
+- O PRD-012 T17 ja adicionou a timeline basica (MESSAGE_SENT, SKILL_EXECUTED). Esta task **expande** o que foi entregue, nao substitui.
+- Adicionar renderizacao rica para tipos adicionais:
+  - CRISIS_DETECTED: badge vermelho com keyword detectada
+  - LEAD_SCORED: badge com score antigo → novo
+  - CADENCE_ENROLLED / CADENCE_STEP_EXECUTED / CADENCE_INTERRUPTED: linha de cadencia com nome
+  - TRIAGE_COMPLETED: linha colapsavel com intencao detectada
+- Criar `src/components/dashboard/ai/ai-event-timeline-item.tsx` como componente reutilizavel para cada tipo
+- Garantir que novos tipos futuros (ex: cadencia) se encaixam sem alterar o componente base
+
+**Verification:**
+- Timeline do inbox exibe todos os tipos acima com renderizacao especifica por tipo
+- Tipos desconhecidos caem em renderizacao generica sem erro
+
+---
+
+### T16: Criar dashboard de execution logs
 
 **Files:**
 - Create: `src/components/dashboard/ai/execution-logs-content.tsx`
 
 **What to do:**
-- filtros por skill, data, sucesso, duracao
-- drilldown de payload, routingDecision e outboundResult
+- Tabela paginada: data, skill, duracao, tokens, custo, status
+- Filtros: skill, status (sucesso/erro), data range
+- Linha expansivel com JSON de `routingDecision`, `output`, `outboundResult`
 
 **Verification:**
-- time consegue investigar execucoes
+- Time consegue investigar execucoes com detalhe
 
-### T14: Conectar inbox e AI Studio por logs
+---
+
+### T17: Criar API de AiEvent para uso no studio
 
 **Files:**
-- Modify: surfaces read-only que exibem atividade de IA
+- Expand: `src/app/api/v1/ai/events/route.ts`
 
 **What to do:**
-- unificar leitura da atividade com base em execution logs
+- Adicionar filtro por `projectId` e `type` (alem de ticketId/leadId)
+- Adicionar endpoint de stats: total de eventos por tipo por periodo
+- Usado pelo dashboard de logs
 
 **Verification:**
-- inbox e studio leem a mesma fonte de observabilidade
+- Studio exibe stats corretos por periodo
 
 ---
 
 ## FASE 4 - Meta Ads Audit + Finalizacao
 
-### T15: Criar skill `meta-ads-audit`
+### T18: Criar skill `meta-ads-audit` e migrar endpoint
 
 **Files:**
-- Create: `src/mastra/skills/shared/meta-ads-audit/SKILL.md`
-- Modify: seeds relevantes
-
-**What to do:**
-- modelar o audit como skill do runtime novo
-
-**Verification:**
-- skill seeded e versionada
-
-### T16: Migrar endpoint de Meta Ads Audit
-
-**Files:**
+- Create: `prisma/seeds/meta-ads-audit-skill.ts`
 - Modify: `src/app/api/v1/meta-ads/audit/route.ts`
 
 **What to do:**
-- manter quota enforcement
-- chamar a skill nova
-- registrar via `AiSkillExecutionLog`
+- Seedar skill `meta-ads-audit` com prompt dedicado e modo `llm`
+- Refatorar o endpoint para chamar `skill-runner.ts` com essa skill
+- O resultado deve gerar `AiEvent(SKILL_EXECUTED)` (nao mais `AiInsight`)
+- Manter quota enforcement existente
+- Manter o drawer de resultados de audit na UI (sem mudanca na UX)
 
 **Verification:**
-- endpoint nao usa mais arquitetura paralela
+- Endpoint nao usa mais `dispatchAiEventForAudit()`
+- Custo e visivel no `AiEvent` gerado
 
-### T17: Refatorar superficies temporarias da V1
+---
+
+### T19: Limpar superficies temporarias do PRD-012
 
 **Files:**
-- Modify: APIs, componentes, hooks e types que nasceram como versao minima no PRD-012
+- Modify: APIs e componentes que nasceram como versao minima na V1
 
 **What to do:**
-- substituir implementacoes temporarias por surfaces finais do AI Studio
-- consolidar naming e contratos publicos do studio
+- Substituir a UI minima de config do agente pela UI completa do studio
+- Remover endpoints e componentes duplicados ou sobrescritos pelo studio
+- Consolidar naming e contratos publicos
 
 **Verification:**
-- studio final nao depende de remendos da V1
+- Sem endpoints duplicados ou componentes orfaos da V1
 
-### T18: Testes e validacao final do studio
+---
 
-**Files:**
-- Create or Modify: testes do studio
+### T20: Validacao final do studio
 
 **What to do:**
-- testar publicacao de skill
-- testar policy CRUD
-- testar logs UI
-- rodar test/build/lint
-
-**Verification:**
-- plataforma estavel sobre o runtime do PRD-012
+- `npm run lint` → 0 erros
+- `npm run build` → sucesso
+- `npm run test` → novos testes passando
+- Teste funcional manual: wizard → skill edit → publicar → ver no inbox
