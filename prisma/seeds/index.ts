@@ -5,6 +5,7 @@ import { seedLookupTables } from './seed_lookup_tables'
 import { seedTicketStages } from './seed_ticket_stages'
 import { seedBillingPlans } from './seed_billing_plans'
 import { seedSystemOrg } from './seed_system_org'
+import { seedAiAgents } from './seed_ai_agents'
 
 interface PgTableRow {
   tablename: string
@@ -95,7 +96,10 @@ export async function runSeed() {
     // 1. Ensure system organization exists
     await seedSystemOrg(prisma)
 
-    // 2. Setup ticket stages for all organizations
+    // 2. Seed system AI agents
+    await seedAiAgents(prisma)
+
+    // 3. Setup ticket stages for all organizations
     await seedTicketStages(prisma)
 
     console.log('✅ Seed concluído com sucesso!')

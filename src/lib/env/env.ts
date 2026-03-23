@@ -35,6 +35,11 @@ const envSchema = z.object({
   GOOGLE_API_KEY: z.string().min(1).optional(),
   GROQ_API_KEY: z.string().min(1).optional(),
   OPENAI_API_KEY: z.string().min(1).optional(),
+  INNGEST_APP_ID: z.string().min(1).default('whatrack'),
+  INNGEST_EVENT_KEY: z.string().min(1).optional(),
+  INNGEST_SIGNING_KEY: z.string().min(1).optional(),
+  INNGEST_BASE_URL: z.string().url().optional(),
+  INNGEST_DEV: z.string().min(1).optional(),
 
   // 5. Meta & WhatsApp Cloud API
   META_APP_ID: z.string().min(1, 'META_APP_ID is required'),
