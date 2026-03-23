@@ -38,13 +38,13 @@ feature/2026-03-22-whatsapp-campaign-audience-builder
 
 ## Ordem Recomendada de Execucao
 
-1. Modelar banco e remover aprovacao do dominio
-2. Implementar listas, tags e segmentos no backend
-3. Implementar `stageEnteredAt` e segmentos por fase/tempo
-4. Refatorar campanhas para snapshot final no enviar/agendar
-5. Substituir drawer por builder full-page
-6. Construir a tab `Audiencias`
-7. Limpar componentes e endpoints mortos
+1. Modelar banco e remover aprovacao do dominio (Tasks 1-2)
+2. Backfillar `stageEnteredAt` e migrar estados legados de campanha (Task 3)
+3. Implementar listas, tags e segmentos no backend (Tasks 4-8)
+4. Refatorar campanhas para snapshot final no enviar/agendar (Tasks 9-12)
+5. Substituir drawer por builder full-page e construir a tab `Audiencias` (Tasks 13-16)
+6. Construir Campaign Builder v2 e UI de atribuicao de tags no CRM em paralelo (Tasks 17 e 19)
+7. Limpar listagem/detalhe de campanhas e codigo morto (Task 18)
 
 ---
 
