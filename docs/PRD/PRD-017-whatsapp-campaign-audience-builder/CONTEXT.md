@@ -85,6 +85,9 @@ O estado tecnico atual tambem tem drift de dominio:
 - Duplicidade deve ser removida por telefone normalizado dentro da campanha.
 - O filtro "fase X ha Y dias" deve usar a fase atual do ticket aberto e a data de entrada nessa fase.
 - O filtro de `atividade` significa `ultima atividade do lead`, usando `Lead.lastMessageAt` com janela relativa em dias.
+- Cada campanha usa exatamente uma fonte de audiencia: lista OU segmento. Nao e permitido combinar as duas na v1. Se o usuario quiser misturar, o caminho e materializar o segmento em uma lista e usar essa lista. No schema, isso se traduz em `audienceSourceType` (`LIST | SEGMENT`) e `audienceSourceId`.
+- O nome da campanha deve ser definido no inicio do builder, junto de instancia e audiencia. A etapa 1 do builder se chama `Basico e Audiencia` e inclui: nome, instancia de envio e selecao da fonte de audiencia.
+- A atribuicao e remocao de tags em leads deve ser feita no CRM, nao na area de campanhas. Minimo viavel: permitir aplicar/remover tags no detalhe do lead e no painel de ticket/lead do inbox. Sem isso, segmentos por tag existem apenas como filtro de leitura.
 
 ### Semantica recomendada para segmentos CRM
 
@@ -135,17 +138,62 @@ Exemplo:
 - `WhatsAppAudienceSegment`
 - `WhatsAppCampaignEvent`
 
+#### Estrutura de `WhatsAppCampaignEvent`
+
+```
+id            String   @id
+campaignId    String
+type          WhatsAppCampaignEventType
+userId        String?
+metadata      Json?
+createdAt     DateTime
+```
+
+Tipos (`WhatsAppCampaignEventType`):
+
+- `CREATED`
+- `UPDATED`
+- `SNAPSHOT_GENERATED`
+- `SCHEDULED`
+- `DISPATCH_STARTED`
+- `DISPATCH_COMPLETED`
+- `DISPATCH_FAILED`
+- `CANCELLED`
+- `LEGACY_STATUS_MIGRATED`
+
+O campo `metadata` guarda dados especificos por tipo: `scheduledAt`, `fromStatus`, `toStatus`, totais de envio, mensagem de erro, etc.
+
 ### Mudancas propostas em modelos existentes
 
 - adicionar `stageEnteredAt` em `Ticket`
+- adicionar em `WhatsAppCampaign`:
+  - `name` (ja pode existir — verificar)
+  - `audienceSourceType` (`LIST | SEGMENT`)
+  - `audienceSourceId` (id da lista ou segmento)
 - remover do dominio de campanhas:
-- `PENDING_APPROVAL`
-- `APPROVED`
-- `WhatsAppCampaignApproval`
-- `approvedById`
-- `approvedAt`
-- incluir na campanha a referencia para a origem da audiencia utilizada
+  - `PENDING_APPROVAL`
+  - `APPROVED`
+  - `WhatsAppCampaignApproval`
+  - `approvedById`
+  - `approvedAt`
+- remover `WhatsAppCampaignImport`: o novo fluxo de importacao passa por `WhatsAppContactList/Member`. Qualquer dado util da tabela legada deve ser migrado para `WhatsAppCampaignEvent.metadata` antes do drop. A tabela nao deve sobreviver como read-only — evitar divida no schema.
 - manter `WhatsAppCampaignRecipient` como snapshot final do envio
+
+### Migracao de estados legados de campanha
+
+Campanhas em estados removidos devem ser migradas da seguinte forma:
+
+| Estado atual       | Novo estado | Motivo                                      |
+|--------------------|-------------|---------------------------------------------|
+| `PENDING_APPROVAL` | `DRAFT`     | Nao foi aprovada, volta para rascunho       |
+| `APPROVED`         | `DRAFT`     | Aprovacao removida do dominio, sem disparo  |
+| `SCHEDULED`        | sem mudanca |                                             |
+| `PROCESSING`       | sem mudanca |                                             |
+| `COMPLETED`        | sem mudanca |                                             |
+| `CANCELLED`        | sem mudanca |                                             |
+
+Para cada campanha migrada, registrar um evento `LEGACY_STATUS_MIGRATED` com `metadata: { fromStatus, toStatus }`.
+Esta e a migracao mais segura: nao dispara nada implicitamente e preserva historico.
 
 ### APIs internas
 
@@ -191,7 +239,7 @@ Quando a feature estiver pronta, o usuario devera conseguir:
 - escolher um template aprovado
 - deixar o sistema auto-mapear as variaveis conhecidas
 - completar o que faltar com coluna da lista ou valor fixo
-- visualizar quantos contatos serao enviados, excluidos ou bloqueados
+- visualizar quantos contatos serao enviados, excluidos ou sem variavel resolvida
 - enviar imediatamente ou agendar
 - acompanhar o resultado da campanha sem qualquer fluxo de aprovacao
 
