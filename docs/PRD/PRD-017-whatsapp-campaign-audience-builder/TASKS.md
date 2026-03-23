@@ -50,15 +50,23 @@
 **Files:**
 - Modify: `prisma/migrations/<timestamp>_whatsapp_campaign_audience_builder/migration.sql`
 - Create: `scripts/backfill-whatsapp-campaign-stage-entered-at.ts`
+- Modify: `src/services/tickets/ticket.service.ts`
+- Modify: `src/services/whatsapp/whatsapp-chat.service.ts`
+- Modify: `src/services/whatsapp/handlers/message.handler.ts`
 
 **What to do:**
 - Definir regra de backfill para tickets existentes.
 - Definir tratamento para campanhas legadas em estados removidos.
+- Instrumentar os fluxos futuros para manter `stageEnteredAt` correto:
+- setar valor inicial ao criar ticket
+- resetar para `new Date()` sempre que `stageId` mudar
+- revisar fluxos de WhatsApp que criam ou reabrem tickets fora do caminho principal
 - Documentar no script e no comentario SQL qual aproximacao foi usada.
 
 **Verification:**
 - O script roda sem erro em ambiente local.
 - Tickets antigos ficam com `stageEnteredAt` nao nulo.
+- Mudancas futuras de fase atualizam `stageEnteredAt` de forma consistente.
 
 **Depends on:** Task 2
 
@@ -125,12 +133,12 @@
 - Test: `src/services/whatsapp/__tests__/whatsapp-audience-segment.service.test.ts`
 
 **What to do:**
-- Persistir segmentos com filtros por projeto, origem, tag, status do lead, fase, dias na fase e atividade.
+- Persistir segmentos com filtros por projeto, origem, tag, status do lead, fase, dias na fase e ultima atividade (`lead.lastMessageAt`).
 - Implementar preview de contagem e amostra de leads.
 - Usar `stageEnteredAt` para filtros de "ha X dias na fase".
 
 **Verification:**
-- Segmentos retornam preview consistente com filtros basicos e de pipeline.
+- Segmentos retornam preview consistente com filtros basicos, pipeline e ultima atividade.
 
 **Depends on:** Task 6
 
@@ -166,6 +174,7 @@
 - Modify: `src/schemas/whatsapp/whatsapp-campaign-schemas.ts`
 - Modify: `src/services/whatsapp/whatsapp-campaign.service.ts`
 - Modify: `src/services/whatsapp/whatsapp-campaign-query.service.ts`
+- Modify: `src/services/whatsapp/whatsapp-campaign-audience.service.ts`
 - Test: `src/services/whatsapp/__tests__/whatsapp-campaign.service.test.ts`
 
 **What to do:**
@@ -173,6 +182,7 @@
 - Atualizar regras de status.
 - Atualizar `createCampaign`, `updateCampaign`, `dispatchCampaign` e `cancelCampaign`.
 - Trocar o historico de aprovacao por eventos de campanha.
+- Refatorar `whatsapp-campaign-audience.service.ts` para remover o fluxo antigo de audiencia ad hoc centrado em `CRM | IMPORT | MIXED` inline na campanha e preparar sua reutilizacao no novo builder.
 
 **Verification:**
 - Os testes de service cobrem apenas o novo conjunto de estados.
@@ -183,12 +193,14 @@
 
 **Files:**
 - Create: `src/services/whatsapp/whatsapp-campaign-variable-resolver.service.ts`
+- Modify: `src/services/whatsapp/whatsapp-campaign-audience.service.ts`
 - Test: `src/services/whatsapp/__tests__/whatsapp-campaign-variable-resolver.service.test.ts`
 
 **What to do:**
 - Receber template, audiencia selecionada e mapa de variaveis.
 - Suportar origens `crm_field`, `list_column` e `fixed_value`.
 - Gerar resumo de `resolvidas`, `faltantes`, `excluidas` e `duplicadas`.
+- Integrar ou absorver explicitamente as partes uteis do `whatsapp-campaign-audience.service.ts` no novo pipeline de preview/montagem da audiencia persistida.
 
 **Verification:**
 - O servico resolve corretamente variaveis vindas de CRM, lista e valor fixo.
@@ -217,18 +229,26 @@
 **Files:**
 - Modify: `src/app/api/v1/whatsapp/campaigns/route.ts`
 - Modify: `src/app/api/v1/whatsapp/campaigns/[campaignId]/route.ts`
+- Modify: `src/app/api/v1/whatsapp/campaigns/preview/route.ts`
 - Modify: `src/app/api/v1/whatsapp/campaigns/[campaignId]/dispatch/route.ts`
 - Modify: `src/app/api/v1/whatsapp/campaigns/[campaignId]/cancel/route.ts`
+- Modify: `src/app/api/v1/whatsapp/campaigns/[campaignId]/recipients/route.ts`
 - Delete: `src/app/api/v1/whatsapp/campaigns/[campaignId]/submit/route.ts`
 - Delete: `src/app/api/v1/whatsapp/campaigns/[campaignId]/approve/route.ts`
+- Delete: `src/app/api/v1/whatsapp/campaigns/import/route.ts`
+- Delete: `src/app/api/v1/whatsapp/campaigns/[campaignId]/add-audience/route.ts`
 
 **What to do:**
 - Ajustar payloads para a nova origem de audiencia e preview.
+- Reaproveitar `campaigns/preview` como preview do builder para cobertura de variaveis, exclusoes e snapshot antes do envio.
+- Manter `campaigns/[campaignId]/recipients` como leitura paginada do snapshot final persistido em `WhatsAppCampaignRecipient`.
 - Remover endpoints mortos de aprovacao.
+- Remover endpoints legados de importacao direta e `add-audience` avulso, substituidos pela administracao de listas/audiencias.
 - Garantir que o cron continue processando apenas `SCHEDULED`.
 
 **Verification:**
 - Nenhuma rota restante referencia submit/approve.
+- O conjunto de rotas legadas tem disposicao explicita e coerente com o novo fluxo.
 
 **Depends on:** Task 11
 
@@ -354,7 +374,11 @@
 
 ## Ordem de Execucao
 
-`1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15 -> 16 -> 17 -> 18`
+`1 -> 2 -> 3 -> 4 -> [5 || 6] -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15 -> 16 -> 17 -> 18`
+
+Observacao:
+
+- Tasks 5 e 6 podem ser executadas em paralelo.
 
 ---
 

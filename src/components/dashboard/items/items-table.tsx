@@ -79,6 +79,9 @@ interface ItemsTableProps {
   onStatusChange?: (value: string) => void
   categoryFilter?: string
   onCategoryFilterChange?: (value: string) => void
+  onOpenNewForm?: () => void
+  onRefresh?: () => void
+  triggerOpenForm?: number
 }
 
 export function ItemsTable({
@@ -89,6 +92,9 @@ export function ItemsTable({
   onStatusChange: externalOnStatusChange,
   categoryFilter: externalCategoryFilter,
   onCategoryFilterChange: externalOnCategoryFilterChange,
+  onOpenNewForm,
+  onRefresh: externalOnRefresh,
+  triggerOpenForm = 0,
 }: ItemsTableProps) {
   const { data: org } = useOrganization()
   const organizationId = org?.id
@@ -97,6 +103,12 @@ export function ItemsTable({
   const [localStatus, setLocalStatus] = useState<string>('all')
   const [localCategoryFilter, setLocalCategoryFilter] = useState<string>('all')
   const [isItemFormDrawerOpen, setIsItemFormDrawerOpen] = useState(false)
+
+  React.useEffect(() => {
+    if (triggerOpenForm > 0 && hideHeader) {
+      setIsItemFormDrawerOpen(true)
+    }
+  }, [triggerOpenForm, hideHeader])
 
   const searchInput = hideHeader ? externalSearchInput ?? localSearchInput : localSearchInput
   const onSearchChange = hideHeader ? externalOnSearchChange ?? setLocalSearchInput : setLocalSearchInput
@@ -231,7 +243,7 @@ export function ItemsTable({
           type="button"
           size="sm"
           className="h-7 gap-1.5 text-xs"
-          onClick={() => setIsItemFormDrawerOpen(true)}
+          onClick={() => onOpenNewForm?.() ?? setIsItemFormDrawerOpen(true)}
         >
           Novo
         </Button>
@@ -239,7 +251,7 @@ export function ItemsTable({
       searchValue={searchInput}
       onSearchChange={onSearchChange}
       searchPlaceholder="Buscar itens..."
-      onRefresh={() => void refetch()}
+      onRefresh={() => void (externalOnRefresh?.() ?? refetch())}
       isFetchingMore={isFetchingNextPage}
       filters={filtersNode}
       isLoading={isLoading}

@@ -69,25 +69,18 @@ Fica fora:
 
 ---
 
-## Abordagem Adotada
+## Direcao Escolhida
 
-### Approach A: Audience-first builder ⭐ Recommended
-- Como: introduzir entidades persistidas para `listas`, `tags` e `segmentos`, e fazer a campanha consumir uma audiencia salva antes de escolher template, mapear variaveis e enviar.
-- Pros: melhor UX, reuso real, melhor administracao operacional, base correta para recorrencia.
-- Cons: exige modelagem nova no banco e uma pequena reorganizacao da area de campanhas.
-- Esforco: Medio/Alto
+Este PRD adota a abordagem `audience-first builder`.
 
-### Approach B: Manter campanhas centradas em CSV e filtros pontuais
-- Como: trocar o drawer por pagina cheia, mas continuar tratando audiencia como algo descartavel da propria campanha.
-- Pros: menor mudanca de schema.
-- Cons: continua ruim para operacao, sem reuso, sem listas persistidas e com forte acoplamento entre audiencia e template.
-- Esforco: Medio
+Motivos principais:
 
-### Approach C: Construir primeiro uma plataforma ampla de custom fields no CRM
-- Como: antes de tocar campanhas, criar um modulo generico de campos customizados e so depois plugar o disparo.
-- Pros: mais flexivel no longo prazo.
-- Cons: escopo alto demais para o problema imediato e atrasa a entrega do fluxo operacional.
-- Esforco: Alto
+- reuso real de listas e segmentos entre campanhas
+- UX mais intuitiva para operacao diaria
+- separacao correta entre preparar audiencia e configurar disparo
+- base melhor para variaveis por template e campanhas agendadas
+
+As alternativas consideradas e os trade-offs completos ficam documentados em `DIAGNOSTIC.md`.
 
 ---
 

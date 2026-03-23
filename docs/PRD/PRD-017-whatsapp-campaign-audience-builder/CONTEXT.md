@@ -78,10 +78,13 @@ O estado tecnico atual tambem tem drift de dominio:
 - campo padrao do CRM
 - coluna da lista importada
 - valor fixo definido na propria campanha
-- Quando dados obrigatorios faltarem, o sistema deve exibir preview de exclusao ou bloquear o envio, conforme a regra escolhida para a campanha.
+- Quando dados obrigatorios faltarem, a v1 deve sempre exibir preview de exclusao e remover esses destinatarios do snapshot final.
+- A campanha nao tera um campo configuravel de `exclude vs block` nesta versao.
+- O envio so pode prosseguir se houver pelo menos um destinatario valido depois da resolucao das variaveis.
 - A campanha deve congelar o snapshot de destinatarios e valores das variaveis no momento de `enviar` ou `agendar`.
 - Duplicidade deve ser removida por telefone normalizado dentro da campanha.
 - O filtro "fase X ha Y dias" deve usar a fase atual do ticket aberto e a data de entrada nessa fase.
+- O filtro de `atividade` significa `ultima atividade do lead`, usando `Lead.lastMessageAt` com janela relativa em dias.
 
 ### Semantica recomendada para segmentos CRM
 
@@ -90,6 +93,7 @@ Para manter a regra simples e previsivel na v1:
 - segmento avalia leads no escopo da organizacao e, quando informado, do projeto
 - filtros de pipeline olham para tickets `open`
 - um lead entra no segmento se existir ao menos um ticket aberto que satisfaca os filtros
+- filtro de atividade olha para `lead.lastMessageAt`
 - no resultado final da campanha, a deduplicacao continua acontecendo por telefone
 
 ### Semantica recomendada para variaveis

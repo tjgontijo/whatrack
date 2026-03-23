@@ -90,6 +90,9 @@ interface CategoriesTableProps {
   onSearchChange?: (value: string) => void
   statusFilter?: string
   onStatusFilterChange?: (value: string) => void
+  onOpenNewForm?: () => void
+  onRefresh?: () => void
+  triggerOpenForm?: number
 }
 
 export function CategoriesTable({
@@ -98,6 +101,9 @@ export function CategoriesTable({
   onSearchChange: externalOnSearchChange,
   statusFilter: externalStatusFilter,
   onStatusFilterChange: externalOnStatusFilterChange,
+  onOpenNewForm,
+  onRefresh: externalOnRefresh,
+  triggerOpenForm = 0,
 }: CategoriesTableProps) {
   const queryClient = useQueryClient()
   const { data: org } = useOrganization()
@@ -107,6 +113,13 @@ export function CategoriesTable({
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingCategory, setEditingCategory] = useState<CategoryFormData | null>(null)
   const [deletingCategory, setDeletingCategory] = useState<Category | null>(null)
+
+  React.useEffect(() => {
+    if (triggerOpenForm > 0 && hideHeader) {
+      setEditingCategory(null)
+      setIsFormOpen(true)
+    }
+  }, [triggerOpenForm, hideHeader])
 
   const searchInput = hideHeader ? externalSearchInput ?? localSearchInput : localSearchInput
   const onSearchChange = hideHeader ? externalOnSearchChange ?? setLocalSearchInput : setLocalSearchInput
@@ -291,10 +304,7 @@ export function CategoriesTable({
           type="button"
           size="sm"
           className="h-7 gap-1.5 text-xs"
-          onClick={() => {
-            setEditingCategory(null)
-            setIsFormOpen(true)
-          }}
+          onClick={() => onOpenNewForm?.() ?? (setEditingCategory(null), setIsFormOpen(true))}
         >
           Novo
         </Button>
@@ -302,7 +312,7 @@ export function CategoriesTable({
       searchValue={searchInput}
       onSearchChange={onSearchChange}
       searchPlaceholder="Buscar categoria..."
-      onRefresh={() => void refetch()}
+      onRefresh={() => void (externalOnRefresh?.() ?? refetch())}
       isFetchingMore={isFetchingNextPage}
       filters={filtersNode}
       isLoading={isLoading}

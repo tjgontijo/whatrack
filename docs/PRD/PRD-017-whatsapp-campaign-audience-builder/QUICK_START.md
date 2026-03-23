@@ -98,6 +98,16 @@ Se faltar dado no CRM, a v1 usa:
 
 Nao criar uma plataforma generica de campos customizados nesta entrega.
 
+### 6. Dados faltantes sempre excluem destinatarios na v1
+
+Nao introduzir um campo de configuracao `missingVariablesBehavior` nesta entrega.
+
+Comportamento esperado:
+
+- preview obrigatorio antes do envio
+- destinatarios com variavel obrigatoria faltante sao excluidos do snapshot
+- envio/agendamento so segue se houver ao menos um destinatario valido
+
 ---
 
 ## Campos CRM Minimos para Auto-mapeamento
