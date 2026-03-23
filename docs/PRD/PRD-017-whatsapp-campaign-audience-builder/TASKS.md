@@ -2,7 +2,7 @@
 
 **Data:** 2026-03-22
 **Status:** Draft
-**Total:** 18
+**Total:** 19
 **Estimado:** 3 a 4 sprints
 
 ---
@@ -17,19 +17,20 @@
 
 **What to do:**
 - Criar `LeadTag` e `LeadTagAssignment`.
-- Criar `WhatsAppContactList` e `WhatsAppContactListMember`.
-- Criar `WhatsAppAudienceSegment`.
-- Criar `WhatsAppCampaignEvent`.
-- Adicionar em `Ticket` o campo `stageEnteredAt`.
-- Adicionar na campanha os campos necessarios para registrar a origem da audiencia usada.
+- Criar `WhatsAppContactList` e `WhatsAppContactListMember` (colunas arbitrarias do membro em campo `data Json`).
+- Criar `WhatsAppAudienceSegment` (filtros em campo `filters Json`).
+- Criar `WhatsAppCampaignEvent` com os campos `id`, `campaignId`, `type` (enum `WhatsAppCampaignEventType`), `userId?`, `metadata Json?`, `createdAt`. Ver enum completo em CONTEXT.md.
+- Adicionar em `Ticket` o campo `stageEnteredAt DateTime?`.
+- Adicionar em `WhatsAppCampaign`: `audienceSourceType` (enum `LIST | SEGMENT`) e `audienceSourceId`. Verificar se `name` ja existe; se nao, adicionar.
 
 **Verification:**
 - `prisma validate` passa.
 - A migration cria as novas tabelas/indices esperados.
+- O enum `WhatsAppCampaignEventType` contem todos os tipos definidos em CONTEXT.md.
 
 **Depends on:** None
 
-### Task 2: Remover o conceito de aprovacao do schema de campanhas
+### Task 2: Remover o conceito de aprovacao do schema de campanhas e dropar tabelas legadas
 
 **Files:**
 - Modify: `prisma/schema.prisma`
@@ -37,11 +38,12 @@
 
 **What to do:**
 - Remover `WhatsAppCampaignApproval`.
-- Remover campos e relacoes de aprovacao em `WhatsAppCampaign`.
+- Remover campos e relacoes de aprovacao em `WhatsAppCampaign` (`approvedById`, `approvedAt`).
 - Atualizar a documentacao de status da campanha para `DRAFT | SCHEDULED | PROCESSING | COMPLETED | CANCELLED`.
+- Dropar `WhatsAppCampaignImport`: o novo fluxo passa por `WhatsAppContactList/Member`. Antes do drop, verificar se ha dados uteis para migrar para `WhatsAppCampaignEvent.metadata`. Nao manter como read-only.
 
 **Verification:**
-- O schema nao referencia mais `APPROVED`, `PENDING_APPROVAL` nem a tabela de aprovacao.
+- O schema nao referencia mais `APPROVED`, `PENDING_APPROVAL`, a tabela de aprovacao nem `WhatsAppCampaignImport`.
 
 **Depends on:** Task 1
 
@@ -55,17 +57,22 @@
 - Modify: `src/services/whatsapp/handlers/message.handler.ts`
 
 **What to do:**
-- Definir regra de backfill para tickets existentes.
-- Definir tratamento para campanhas legadas em estados removidos.
+- Definir regra de backfill para tickets existentes (usar `updatedAt` ou `createdAt` como aproximacao, documentar a escolha).
+- Migrar campanhas em estados removidos conforme regra definida em CONTEXT.md:
+  - `PENDING_APPROVAL` → `DRAFT`
+  - `APPROVED` → `DRAFT`
+  - demais estados permanecem como estao
+- Para cada campanha migrada, inserir um evento `LEGACY_STATUS_MIGRATED` com `metadata: { fromStatus, toStatus }`.
 - Instrumentar os fluxos futuros para manter `stageEnteredAt` correto:
-- setar valor inicial ao criar ticket
-- resetar para `new Date()` sempre que `stageId` mudar
-- revisar fluxos de WhatsApp que criam ou reabrem tickets fora do caminho principal
+  - setar valor inicial ao criar ticket
+  - resetar para `new Date()` sempre que `stageId` mudar
+  - revisar fluxos de WhatsApp que criam ou reabrem tickets fora do caminho principal
 - Documentar no script e no comentario SQL qual aproximacao foi usada.
 
 **Verification:**
 - O script roda sem erro em ambiente local.
 - Tickets antigos ficam com `stageEnteredAt` nao nulo.
+- Campanhas em `PENDING_APPROVAL`/`APPROVED` viram `DRAFT` com evento registrado.
 - Mudancas futuras de fase atualizam `stageEnteredAt` de forma consistente.
 
 **Depends on:** Task 2
@@ -338,18 +345,43 @@
 
 **What to do:**
 - Criar builder em pagina cheia com as etapas:
-- audiencia
-- template
-- dados do template
-- revisao
-- envio/agendamento
-- Auto-mapear variaveis conhecidas.
+  1. **Basico e Audiencia**: nome da campanha (editavel no header sticky), instancia de envio, selecao da fonte de audiencia (lista OU segmento — exclusivo)
+  2. **Template**: selecao do template aprovado pela Meta
+  3. **Dados do template**: mapeamento de variaveis por origem (CRM, coluna da lista, valor fixo)
+  4. **Revisao**: preview de cobertura, excluidos, duplicados e contagem final
+  5. **Envio/agendamento**: enviar agora ou definir data/hora
+- Auto-mapear variaveis conhecidas do CRM.
 - Exibir preview claro de faltantes e permitir escolher `CRM`, `lista` ou `valor fixo`.
 
 **Verification:**
 - Uma campanha pode ser criada sem CSV direto, usando lista ou segmento salvo.
+- O nome e visivel e editavel desde o primeiro render do builder.
+- Nao e possivel selecionar lista e segmento ao mesmo tempo.
 
 **Depends on:** Task 16
+
+### Task 19: Atribuicao de tags no CRM (lead detail e ticket panel)
+
+**Files:**
+- Modify: `src/components/dashboard/leads/new-lead-drawer.tsx`
+- Modify: `src/components/dashboard/whatsapp/inbox/ticket-panel.tsx`
+
+**What to do:**
+- Adicionar seccao de tags no detalhe do lead (`new-lead-drawer.tsx`) com:
+  - lista de tags aplicadas ao lead
+  - campo para buscar e aplicar nova tag (tags da organizacao)
+  - acao para remover tag aplicada
+- Adicionar o mesmo controle no painel de ticket do inbox (`ticket-panel.tsx`), onde o lead associado ao ticket pode ter tags atribuidas/removidas.
+- Consumir os endpoints de lead-tags criados na Task 8.
+
+**Verification:**
+- O usuario consegue aplicar e remover tags em um lead a partir do detalhe do lead.
+- O usuario consegue aplicar e remover tags a partir do painel do ticket no inbox.
+- Um segmento por tag retorna apenas leads que ja tem a tag atribuida.
+
+**Depends on:** Task 8
+
+---
 
 ### Task 18: Atualizar listagem/detalhe de campanhas e limpar codigo morto
 
@@ -374,11 +406,13 @@
 
 ## Ordem de Execucao
 
-`1 -> 2 -> 3 -> 4 -> [5 || 6] -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15 -> 16 -> 17 -> 18`
+`1 -> 2 -> 3 -> 4 -> [5 || 6] -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15 -> 16 -> [17 || 19] -> 18`
 
-Observacao:
+Observacoes:
 
-- Tasks 5 e 6 podem ser executadas em paralelo.
+- Tasks 5 e 6 podem ser executadas em paralelo (ambas dependem de Task 4, sao independentes entre si).
+- Tasks 17 e 19 podem ser executadas em paralelo (builder de campanha e tag UI no CRM sao areas distintas).
+- Task 8 depende de Tasks 5 e 7 (expoe endpoints de listas e de segmentos).
 
 ---
 
