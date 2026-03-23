@@ -2,13 +2,14 @@
 
 import { useCallback, useMemo, useState } from 'react'
 import { useIsFetching, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Plus } from 'lucide-react'
+import { Loader2, Plus, Send } from 'lucide-react'
 
 import { HeaderPageShell, HeaderTabs, type HeaderTab } from '@/components/dashboard/layout'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { authClient } from '@/lib/auth/auth-client'
+import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 import { useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
 import { useWhatsAppOnboarding } from '@/hooks/whatsapp/use-whatsapp-onboarding'
 import { whatsappApi } from '@/lib/whatsapp/client'
@@ -63,6 +64,20 @@ export function WhatsAppSettingsHub({ organizationId }: WhatsAppSettingsHubProps
   const [sendTestPhone, setSendTestPhone] = useState<WhatsAppInstance | null>(null)
   const [sendTestTemplate, setSendTestTemplate] = useState<string | undefined>(undefined)
 
+  const { data: instancesData, isLoading: instancesLoading } = useQuery({
+    queryKey: ['whatsapp', 'instances', projectId],
+    queryFn: async () => {
+      const res = await fetch(`/api/v1/whatsapp/instances?projectId=${projectId}`, {
+        headers: { [ORGANIZATION_HEADER]: resolvedOrgId },
+      })
+      if (!res.ok) throw new Error('Failed to fetch instances')
+      return res.json() as Promise<{ items: WhatsAppInstance[] }>
+    },
+    enabled: !!resolvedOrgId && !!projectId,
+  })
+
+  const instance = instancesData?.items?.[0] ?? null
+
   // Fetch templates for templates tab
   const { data: templates = [], isLoading: templatesLoading } = useQuery({
     queryKey: ['whatsapp', 'templates', resolvedOrgId],
@@ -90,7 +105,13 @@ export function WhatsAppSettingsHub({ organizationId }: WhatsAppSettingsHubProps
     }
   }, [queryClient, resolvedOrgId, projectId, activeTab])
 
-  useWhatsAppOnboarding(handleRefetch)
+  const {
+    startOnboarding,
+    status: onboardingStatus,
+    sdkReady,
+  } = useWhatsAppOnboarding(handleRefetch)
+
+  const isConnectingWhatsApp = onboardingStatus === 'pending'
 
   const tabs = useMemo<HeaderTab[]>(
     () => [
@@ -102,11 +123,11 @@ export function WhatsAppSettingsHub({ organizationId }: WhatsAppSettingsHubProps
   )
 
   // Handlers for AccountTab
-  const handleSendTestFromAccount = (phone: WhatsAppInstance) => {
+  const handleSendTestFromAccount = useCallback((phone: WhatsAppInstance) => {
     setSendTestPhone(phone)
     setSendTestTemplate(undefined)
     setSendTestOpen(true)
-  }
+  }, [])
 
   // Handlers for TemplatesView
   const handleNewTemplate = useCallback(() => {
@@ -128,6 +149,53 @@ export function WhatsAppSettingsHub({ organizationId }: WhatsAppSettingsHubProps
 
   // Primary action per tab
   const primaryAction = useMemo(() => {
+    if (activeTab === 'conta') {
+      if (instancesLoading) {
+        return (
+          <Button
+            type="button"
+            size="sm"
+            className="h-7 gap-1.5 text-xs"
+            disabled
+          >
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            Carregando instância...
+          </Button>
+        )
+      }
+
+      if (instance) {
+        return (
+          <Button
+            type="button"
+            size="sm"
+            className="h-7 gap-1.5 text-xs"
+            onClick={() => handleSendTestFromAccount(instance)}
+          >
+            <Send className="h-3.5 w-3.5" />
+            Enviar Teste
+          </Button>
+        )
+      }
+
+      return (
+        <Button
+          type="button"
+          size="sm"
+          className="h-7 gap-1.5 text-xs"
+          onClick={startOnboarding}
+          disabled={!sdkReady || isConnectingWhatsApp}
+        >
+          {isConnectingWhatsApp ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <Plus className="h-3.5 w-3.5" />
+          )}
+          Nova Instância
+        </Button>
+      )
+    }
+
     if (activeTab === 'templates') {
       return (
         <Button
@@ -142,7 +210,16 @@ export function WhatsAppSettingsHub({ organizationId }: WhatsAppSettingsHubProps
       )
     }
     return null
-  }, [activeTab, handleNewTemplate])
+  }, [
+    activeTab,
+    handleNewTemplate,
+    handleSendTestFromAccount,
+    instance,
+    instancesLoading,
+    isConnectingWhatsApp,
+    sdkReady,
+    startOnboarding,
+  ])
 
   // Filters per tab
   const filters = useMemo(() => {
@@ -260,7 +337,14 @@ export function WhatsAppSettingsHub({ organizationId }: WhatsAppSettingsHubProps
         primaryAction={primaryAction}
       >
         {activeTab === 'conta' && (
-          <AccountTab onSendTestClick={handleSendTestFromAccount} />
+          <AccountTab
+            instance={instance}
+            isLoading={instancesLoading}
+            isConnecting={isConnectingWhatsApp}
+            canStartOnboarding={sdkReady}
+            onConnectClick={startOnboarding}
+            onSendTestClick={handleSendTestFromAccount}
+          />
         )}
 
         {activeTab === 'templates' && (

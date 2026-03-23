@@ -1,33 +1,27 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
-import { MessageCircle } from 'lucide-react'
-import { useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
-import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
+import { ExternalLink, Loader2, MessageCircle } from 'lucide-react'
 import { EmptyState } from '@/components/dashboard/states/empty-state'
 import { Button } from '@/components/ui/button'
 import { InstanceCardDetail, type WhatsAppInstance } from './instance-card-detail'
 
 interface AccountTabProps {
+  instance: WhatsAppInstance | null
+  isLoading?: boolean
+  isConnecting?: boolean
+  canStartOnboarding?: boolean
+  onConnectClick?: () => void | Promise<void>
   onSendTestClick?: (instance: WhatsAppInstance) => void
 }
 
-export function AccountTab({ onSendTestClick }: AccountTabProps) {
-  const { organizationId, projectId } = useRequiredProjectRouteContext()
-
-  const { data, isLoading } = useQuery({
-    queryKey: ['whatsapp', 'instances', projectId],
-    queryFn: async () => {
-      const res = await fetch(`/api/v1/whatsapp/instances?projectId=${projectId}`, {
-        headers: { [ORGANIZATION_HEADER]: organizationId },
-      })
-      if (!res.ok) throw new Error('Failed to fetch instances')
-      return res.json() as Promise<{ items: WhatsAppInstance[] }>
-    },
-  })
-
-  const instance = data?.items?.[0]
-
+export function AccountTab({
+  instance,
+  isLoading = false,
+  isConnecting = false,
+  canStartOnboarding = false,
+  onConnectClick,
+  onSendTestClick,
+}: AccountTabProps) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -43,7 +37,19 @@ export function AccountTab({ onSendTestClick }: AccountTabProps) {
         title="Nenhum número conectado"
         description="Conecte um número WhatsApp Business para começar a enviar mensagens."
         action={
-          <Button onClick={() => { /* TODO: startOnboarding */ }}>
+          <Button
+            type="button"
+            className="gap-2"
+            onClick={() => {
+              void onConnectClick?.()
+            }}
+            disabled={!canStartOnboarding || isConnecting}
+          >
+            {isConnecting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <ExternalLink className="h-4 w-4" />
+            )}
             Conectar WhatsApp
           </Button>
         }
