@@ -49,6 +49,7 @@ export function useWhatsAppOnboardingSDK(onSuccess?: () => void) {
     }
 
     if (!window.FB) {
+      console.error('[Onboarding SDK] Facebook SDK não disponível')
       setError('Facebook SDK não disponível.')
       toast.error('Facebook SDK não disponível.')
       return
@@ -57,6 +58,7 @@ export function useWhatsAppOnboardingSDK(onSuccess?: () => void) {
     const defaultProjectId = project?.id ?? null
 
     if (!defaultProjectId) {
+      console.error('[Onboarding SDK] Nenhum projeto encontrado')
       setError('Nenhum projeto encontrado. Crie um projeto antes de conectar WhatsApp.')
       toast.error('Nenhum projeto encontrado.')
       return
@@ -66,6 +68,8 @@ export function useWhatsAppOnboardingSDK(onSuccess?: () => void) {
     setError(null)
 
     try {
+      console.log('[Onboarding SDK] Starting onboarding flow with projectId:', defaultProjectId)
+
       // Step 1: Create onboarding session and get tracking code
       const { trackingCode } = await apiFetch(
         `/api/v1/whatsapp/onboarding?projectId=${defaultProjectId}`,
@@ -75,6 +79,8 @@ export function useWhatsAppOnboardingSDK(onSuccess?: () => void) {
         }
       )
 
+      console.log('[Onboarding SDK] Got trackingCode:', trackingCode)
+
       // Step 2: Launch FB.login with config_id and state in extras
       const configId = process.env.NEXT_PUBLIC_META_CONFIG_ID
 
@@ -82,10 +88,18 @@ export function useWhatsAppOnboardingSDK(onSuccess?: () => void) {
         throw new Error('Missing NEXT_PUBLIC_META_CONFIG_ID environment variable')
       }
 
+      console.log('[Onboarding SDK] Calling FB.login with configId:', configId.substring(0, 10) + '...')
+      console.log('[Onboarding SDK] window.FB type:', typeof window.FB)
+      console.log('[Onboarding SDK] window.FB.login type:', typeof window.FB.login)
+
       window.FB.login(
         async (response) => {
           try {
+            console.log('[Onboarding SDK] FB.login callback received, response type:', typeof response)
+            console.log('[Onboarding SDK] response.authResponse exists:', !!response.authResponse)
+
             if (!response.authResponse) {
+              console.error('[Onboarding SDK] No authResponse in response')
               setStatus('error')
               setError('Usuário cancelou o login ou ocorreu um erro.')
               toast.error('Conexão cancelada.')
@@ -95,7 +109,11 @@ export function useWhatsAppOnboardingSDK(onSuccess?: () => void) {
             const code = response.authResponse.code
             const phoneNumberIds = response.authResponse.phone_number_ids || []
 
+            console.log('[Onboarding SDK] Got code:', code?.substring(0, 10) + '...')
+            console.log('[Onboarding SDK] phoneNumberIds:', phoneNumberIds)
+
             if (!code) {
+              console.error('[Onboarding SDK] No code in authResponse')
               setStatus('error')
               setError('Código de autorização não recebido.')
               toast.error('Erro: código não recebido.')
@@ -109,6 +127,12 @@ export function useWhatsAppOnboardingSDK(onSuccess?: () => void) {
               phoneNumberIds: phoneNumberIds.length > 0 ? phoneNumberIds : undefined,
             }
 
+            console.log('[Onboarding SDK] Sending POST to callback-sdk with payload:', {
+              code: payload.code?.substring(0, 10) + '...',
+              trackingCode: payload.trackingCode,
+              phoneNumberIds: payload.phoneNumberIds,
+            })
+
             const result = await fetch('/api/v1/whatsapp/onboarding/callback-sdk', {
               method: 'POST',
               headers: {
@@ -118,9 +142,14 @@ export function useWhatsAppOnboardingSDK(onSuccess?: () => void) {
               body: JSON.stringify(payload),
             })
 
+            console.log('[Onboarding SDK] Fetch completed, status:', result.status)
+
             const data = await result.json()
 
+            console.log('[Onboarding SDK] Response data:', data)
+
             if (!result.ok) {
+              console.error('[Onboarding SDK] Error response:', data)
               setStatus('error')
               const errMsg = data.error || data.message || 'Erro ao processar onboarding'
               setError(errMsg)
@@ -128,6 +157,7 @@ export function useWhatsAppOnboardingSDK(onSuccess?: () => void) {
               return
             }
 
+            console.log('[Onboarding SDK] Success! Setting status to success')
             setStatus('success')
             setError(null)
             toast.success('WhatsApp conectado com sucesso! (via SDK)')
