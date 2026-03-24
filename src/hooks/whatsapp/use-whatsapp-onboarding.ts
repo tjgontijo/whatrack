@@ -24,6 +24,7 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
   const onFocusRef = useRef<(() => void) | null>(null)
   const callbackHandledRef = useRef(false)
   const callbackStatusRef = useRef<'success' | 'error' | null>(null)
+  const phoneNumberIdRef = useRef<string | null>(null)
   const sdkReady = isWhatsAppEmbeddedSignupConfigured()
 
   const consumeStoredResult = useCallback(() => {
@@ -95,6 +96,16 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
+      // Capture phone_number_id from Meta's Embedded Signup postMessage
+      if (event.data?.type === 'WA_EMBEDDED_SIGNUP') {
+        const phoneNumberId = event.data?.data?.phone_number_id
+        if (phoneNumberId) {
+          phoneNumberIdRef.current = phoneNumberId
+          console.log('[Onboarding] Captured phone_number_id from postMessage:', phoneNumberId)
+        }
+        return
+      }
+
       if (event.origin !== window.location.origin) return
 
       if (event.data?.type === 'WA_CALLBACK_STATUS') {
@@ -187,6 +198,21 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
         window.removeEventListener('focus', onFocus)
         onFocusRef.current = null
         popupRef.current = null
+
+        // If we captured a phone_number_id from Meta's postMessage, send it to backend
+        if (phoneNumberIdRef.current && trackingCode) {
+          console.log('[Onboarding] Sending captured phone_number_id to backend:', phoneNumberIdRef.current)
+          fetch('/api/v1/whatsapp/onboarding/phone-number', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              state: trackingCode,
+              phoneNumberId: phoneNumberIdRef.current,
+            }),
+          }).catch((err) => {
+            console.error('[Onboarding] Failed to send phone_number_id:', err)
+          })
+        }
 
         if (handleStoredResult()) {
           return
