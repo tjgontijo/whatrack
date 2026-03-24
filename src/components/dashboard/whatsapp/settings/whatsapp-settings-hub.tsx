@@ -135,9 +135,11 @@ export function WhatsAppSettingsHub({ organizationId }: WhatsAppSettingsHubProps
       if (!instance?.id) throw new Error('No instance to disconnect')
       await whatsappApi.disconnect(instance.id, resolvedOrgId)
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success('Número WhatsApp desconectado com sucesso')
-      void queryClient.invalidateQueries({ queryKey: ['whatsapp', 'instances', projectId] })
+      // Invalidate and refetch instances
+      await queryClient.invalidateQueries({ queryKey: ['whatsapp', 'instances', projectId] })
+      await queryClient.refetchQueries({ queryKey: ['whatsapp', 'instances', projectId] })
     },
     onError: (error) => {
       toast.error(error instanceof Error ? error.message : 'Erro ao desconectar')
