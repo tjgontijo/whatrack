@@ -15,6 +15,7 @@ import { useRequiredProjectRouteContext } from '@/hooks/project/project-route-co
 import { useWhatsAppOnboarding } from '@/hooks/whatsapp/use-whatsapp-onboarding'
 import { whatsappApi } from '@/lib/whatsapp/client'
 import { TemplateEditorForm } from '@/components/dashboard/whatsapp/template-editor/template-editor-form'
+import { WhatsAppOnboardingModal } from '@/components/dashboard/whatsapp/onboarding-modal'
 import { AccountTab } from './account-tab'
 import { TemplatesView } from './templates-view'
 import { WebhooksView } from './webhooks-view'
@@ -111,6 +112,9 @@ export function WhatsAppSettingsHub({ organizationId }: WhatsAppSettingsHubProps
     startOnboarding,
     status: onboardingStatus,
     sdkReady,
+    modalOpen,
+    setModalOpen,
+    iframeUrl,
   } = useWhatsAppOnboarding(handleRefetch)
 
   const isConnectingWhatsApp = onboardingStatus === 'pending'
@@ -402,6 +406,13 @@ export function WhatsAppSettingsHub({ organizationId }: WhatsAppSettingsHubProps
           initialTemplate={sendTestTemplate}
         />
       )}
+
+      {/* Onboarding modal with iframe */}
+      <WhatsAppOnboardingModal
+        open={modalOpen}
+        iframeUrl={iframeUrl}
+        onOpenChange={setModalOpen}
+      />
     </>
   )
 }

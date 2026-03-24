@@ -12,48 +12,36 @@ function escapeHtml(value: string): string {
 
 const RESPONSE_HTML = (status: 'success' | 'error', message?: string) => {
   const safeMessage = message ?? ''
-  const serializedStatus = JSON.stringify(status)
   const serializedMessage = JSON.stringify(safeMessage)
-  const serializedStorageKey = JSON.stringify(WHATSAPP_ONBOARDING_RESULT_STORAGE_KEY)
-  const serializedStoragePayload = JSON.stringify(
-    JSON.stringify({ status, message: safeMessage })
-  )
-  const redirectTarget = `/welcome?integration=whatsapp&status=${status}&message=${encodeURIComponent(safeMessage)}`
-  const serializedRedirectTarget = JSON.stringify(redirectTarget)
+
+  const postMessageCode = status === 'success'
+    ? "window.parent.postMessage({ type: 'WA_CALLBACK_SUCCESS', message: '' }, '*');"
+    : "window.parent.postMessage({ type: 'WA_CALLBACK_ERROR', message: " + serializedMessage + " }, '*');"
 
   return `
   <!DOCTYPE html>
   <html>
+    <head>
+      <title>${status === 'success' ? 'Conectado!' : 'Erro'}</title>
+      <style>
+        body { font-family: sans-serif; text-align: center; padding: 40px; }
+        h2 { margin: 0 0 10px 0; }
+        p { margin: 10px 0 0 0; color: #666; }
+      </style>
+    </head>
     <body>
+      <h2>${status === 'success' ? '✅ Conectado!' : '❌ Erro na Conexão'}</h2>
+      <p>${status === 'success' ? 'Aguarde enquanto processamos sua conexão...' : escapeHtml(safeMessage)}</p>
+
       <script>
-        try {
-          window.localStorage.setItem(${serializedStorageKey}, ${serializedStoragePayload});
-        } catch {}
+        // Send message to parent window (iframe parent)
+        ${postMessageCode}
 
+        // Also try window.opener for popup windows
         if (window.opener) {
-          try {
-            window.opener.postMessage({ 
-              type: 'WA_CALLBACK_STATUS', 
-              status: ${serializedStatus},
-              message: ${serializedMessage} 
-            }, window.location.origin);
-
-            ${
-              status === 'success'
-                ? "window.opener.postMessage({ type: 'WA_CALLBACK_SUCCESS' }, window.location.origin);"
-                : ''
-            }
-          } catch {}
+          ${postMessageCode}
         }
-
-        try { window.close(); } catch {}
-
-        window.location.href = ${serializedRedirectTarget};
       </script>
-      <div style="font-family: sans-serif; text-align: center; padding: 40px;">
-        <h2>${status === 'success' ? 'Conectado!' : 'Erro na Conexão'}</h2>
-        <p>${status === 'success' ? 'Pode fechar esta janela.' : escapeHtml(safeMessage)}</p>
-      </div>
     </body>
   </html>
 `

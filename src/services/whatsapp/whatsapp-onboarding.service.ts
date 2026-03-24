@@ -46,11 +46,11 @@ export async function createWhatsAppOnboardingSession(
   }
 
   // Use Meta's Embedded Signup hosted URL
-  // The redirect_uri tells Meta where to send the user after they complete onboarding
+  // Meta sends result via postMessage, NOT redirect
+  // The frontend will listen for WA_EMBEDDED_SIGNUP postMessage event
   const onboardingUrl = new URL('https://business.facebook.com/messaging/whatsapp/onboard/')
   onboardingUrl.searchParams.set('app_id', metaAppId)
   onboardingUrl.searchParams.set('config_id', metaConfigId)
-  onboardingUrl.searchParams.set('redirect_uri', `${appUrl}/api/v1/whatsapp/onboarding/callback`)
   // extras will be added by buildWhatsAppEmbeddedSignupUrl on the frontend
 
   return {
