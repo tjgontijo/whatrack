@@ -45,11 +45,13 @@ export async function createWhatsAppOnboardingSession(
     }
   }
 
-  // Use Meta's Embedded Signup hosted URL
-  // Meta sends result via postMessage, NOT redirect
-  // The frontend will listen for WA_EMBEDDED_SIGNUP postMessage event
-  const onboardingUrl = new URL('https://business.facebook.com/messaging/whatsapp/onboard/')
-  onboardingUrl.searchParams.set('app_id', metaAppId)
+  // Use Meta's standard OAuth dialog URL for redirect flows
+  const onboardingUrl = new URL('https://www.facebook.com/dialog/oauth')
+  onboardingUrl.searchParams.set('client_id', metaAppId)
+  onboardingUrl.searchParams.set('redirect_uri', `${appUrl}/api/v1/whatsapp/onboarding/callback`)
+  onboardingUrl.searchParams.set('state', trackingCode)
+  onboardingUrl.searchParams.set('scope', 'whatsapp_business_messaging,whatsapp_business_management,business_management')
+  onboardingUrl.searchParams.set('response_type', 'code')
   onboardingUrl.searchParams.set('config_id', metaConfigId)
   // extras will be added by buildWhatsAppEmbeddedSignupUrl on the frontend
 
@@ -157,8 +159,17 @@ export async function handleWhatsAppOnboardingCallback(
   const encryptedToken = encryption.encrypt(accessToken)
   let totalPhones = 0
 
+  // 1. Get shared phone IDs from Meta's granular_scopes as a snitch (the best filter)
+  let sharedPhoneIds: string[] = []
+  try {
+    sharedPhoneIds = await MetaCloudService.getSharedPhoneNumbers(accessToken)
+    console.log(`[Onboarding] 🕵️ Shared Phone IDs snitch:`, sharedPhoneIds)
+  } catch (e) {
+    console.warn(`[Onboarding] ⚠️ Failed to fetch shared phones from token info`, e)
+  }
+
   console.log(`[Onboarding] 🚀 Processing ${wabas.length} WABA(s) for organization ${onboarding.organizationId}`)
-  console.log(`[Onboarding] phoneNumberId captured: ${onboarding.phoneNumberId || 'NONE'}`)
+  console.log(`[Onboarding] postMessage captured ID: ${onboarding.phoneNumberId || 'NONE'}`)
 
   for (const waba of wabas) {
     try {
@@ -202,19 +213,29 @@ export async function handleWhatsAppOnboardingCallback(
         phones = []
       }
 
-      // If phone_number_id was captured from Meta's postMessage, filter to only that phone
-      if (onboarding.phoneNumberId) {
-        console.log(`[Onboarding] 🔍 Filtering phones by captured phoneNumberId: ${onboarding.phoneNumberId}`)
-        console.log(`[Onboarding] Before filter: ${phones.length} phone(s)`, phones.map(p => ({ id: p.id, display: p.display_phone_number })))
-        phones = phones.filter((phone) => phone.id === onboarding.phoneNumberId)
-        console.log(`[Onboarding] ✅ After filter: ${phones.length} phone(s)`, phones.map(p => ({ id: p.id, display: p.display_phone_number })))
+      // Selective Import: Only import phones explicitly shared in this session
+      const capturedId = onboarding.phoneNumberId
+      
+      if (capturedId || sharedPhoneIds.length > 0) {
+        console.log(`[Onboarding] 🔍 Filtering phones. Captured: ${capturedId || 'none'}, Shared: ${sharedPhoneIds.join(', ')}`)
+        
+        phones = phones.filter((phone) => {
+          // If the frontend caught it, that's our gold standard
+          if (capturedId && phone.id === capturedId) return true
+          // Otherwise, trust Meta's granular scopes
+          if (sharedPhoneIds.includes(phone.id)) return true
+          
+          return false
+        })
+        
+        console.log(`[Onboarding] ✅ After filter: ${phones.length} phone(s) remaining`)
       } else {
-        console.log(`[Onboarding] ⚠️ No phoneNumberId captured. Importing all ${phones.length} phone(s) from WABA`)
+        console.log(`[Onboarding] ⚠️ No specific phone IDs found. Importing all ${phones.length} phone(s) from WABA`)
       }
 
-      // If Meta returns no phones for this WABA, it means the user didn't select any numbers from this WABA.
+      // If Meta returns no phones for this WABA after filtering, skip it.
       if (phones.length === 0) {
-        console.log(`[Onboarding] ℹ️ No phones to import from WABA ${waba.wabaId}, skipping`)
+        console.log(`[Onboarding] ℹ️ All phones in WABA ${waba.wabaId} filtered out, skipping WABA`)
         continue
       }
 
