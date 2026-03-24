@@ -6,6 +6,7 @@ import { logger } from '@/lib/utils/logger'
 import { attributeInboundMessageToCampaign } from '@/services/whatsapp/whatsapp-campaign-attribution.service'
 import { aiConversationStateService } from '@/lib/ai/services/ai-conversation-state.service'
 import { sendInngestEvent } from '@/server/inngest/client'
+import { WhatsAppTemplateAnalyticsService } from '@/services/whatsapp/whatsapp-template-analytics.service'
 
 const WINDOW_MS = 24 * 60 * 60 * 1000
 const DEFAULT_EXPIRATION_DAYS = 30
@@ -302,6 +303,12 @@ export async function messageHandler(
         else if (message.document?.caption) messageBody = message.document.caption
 
         const direction = isEcho ? 'OUTBOUND' : 'INBOUND'
+
+        // Detect if it's a reply to a template (action tracking)
+        const contextId = message.context?.id
+        if (!isEcho && contextId) {
+          void WhatsAppTemplateAnalyticsService.trackAction(contextId, 'reply')
+        }
 
         const createdMessage = await tx.message.create({
           data: {

@@ -2,6 +2,7 @@ import { prisma } from '@/lib/db/prisma'
 import { publishToCentrifugo } from '@/lib/centrifugo/server'
 import { logger } from '@/lib/utils/logger'
 import { updateRecipientStatusFromWebhook } from '@/services/whatsapp/whatsapp-campaign-attribution.service'
+import { WhatsAppTemplateAnalyticsService } from '@/services/whatsapp/whatsapp-template-analytics.service'
 
 /**
  * Status Handler
@@ -56,6 +57,7 @@ export async function statusHandler(payload: any): Promise<void> {
         continue
       }
 
+      // Update campaign recipient status
       await updateRecipientStatusFromWebhook({
         wamid,
         status: newStatus,
@@ -64,6 +66,11 @@ export async function statusHandler(payload: any): Promise<void> {
       }).catch((err) =>
         logger.error({ err, wamid }, '[StatusHandler] Failed to update campaign recipient status')
       )
+
+      // Update template analytics (non-blocking)
+      if (newStatus === 'delivered' || newStatus === 'read') {
+        void WhatsAppTemplateAnalyticsService.updateStatus(wamid, newStatus)
+      }
 
       // Find message by wamid
       const message = await prisma.message.findUnique({
@@ -119,6 +126,7 @@ export async function statusHandler(payload: any): Promise<void> {
       })
 
       logger.info(`[StatusHandler] ✓ Published status update for ${wamid}`)
+
     } catch (error) {
       logger.error({ err: error }, '[StatusHandler] Error processing status')
       // Continue with next status

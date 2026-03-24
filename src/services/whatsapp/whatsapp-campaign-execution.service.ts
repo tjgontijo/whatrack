@@ -118,6 +118,9 @@ export async function processDispatchGroup(
         })
       } else {
         success++
+        // Note: For success, we don't mark as SENT yet because we wait for the Meta webhook
+        // to confirm 'sent' status. The processDispatchGroup keeps it in PENDING but with metaWamid.
+        // Actually, the current logic is fine as it updates metaWamid in the settle loop.
       }
     }
   }
@@ -155,14 +158,8 @@ export async function checkAndCompleteCampaign(campaignId: string) {
 }
 
 function formatPhoneForMeta(phone: string): string {
-  const digits = phone.replace(/\D/g, '')
-  if (digits.length === 10 || digits.length === 11) {
-    return `55${digits}`
-  }
-  if (digits.length === 12 && digits.startsWith('55')) {
-    return digits
-  }
-  return digits
+  // Remove all non-digits. User is responsible for providing the full DDI.
+  return phone.replace(/\D/g, '')
 }
 
 async function syncDispatchGroupState(groupId: string): Promise<void> {

@@ -120,10 +120,7 @@ async function buildRecipientsFromAudience(
   }>
 > {
   function normalizePhone(phone: string): string {
-    const digits = phone.replace(/\D/g, '')
-    if (digits.length === 10 || digits.length === 11) return `55${digits}`
-    if (digits.length === 12 && digits.startsWith('55')) return digits
-    return digits
+    return phone.replace(/\D/g, '')
   }
 
   const seenPhones = new Set<string>()

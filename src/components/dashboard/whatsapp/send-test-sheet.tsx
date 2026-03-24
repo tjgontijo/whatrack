@@ -82,7 +82,7 @@ export function SendTestSheet({
     try {
       const digits = removeWhatsAppMask(targetNumber)
       await whatsappApi.sendTemplate(
-        `55${digits}`,
+        digits,
         selectedTemplate.name,
         organizationId,
         'pt_BR',
@@ -217,17 +217,18 @@ export function SendTestSheet({
         {/* ── 4. Destino ── */}
         <div className="space-y-2">
           <Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Número Destino
+            Número Destino (DDI + DDD + Número)
           </Label>
           <Input
-            placeholder="(11) 99999-9999"
+            placeholder="5511999999999"
             value={targetNumber}
             onChange={(e) => setTargetNumber(applyWhatsAppMask(e.target.value))}
             className="h-10"
-            maxLength={15}
+            maxLength={18}
           />
-          <p className="text-xs text-muted-foreground">DDD + número. O código +55 é adicionado automaticamente.</p>
+          <p className="text-xs text-muted-foreground">Inicie com o código do país (ex: 55 para Brasil). Não adicione o símbolo +.</p>
         </div>
+
 
       </div>
     </CrudEditDrawer>
