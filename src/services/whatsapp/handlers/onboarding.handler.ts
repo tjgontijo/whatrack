@@ -116,6 +116,48 @@ export async function onboardingHandler(payload: any, eventType: string): Promis
         }
       )
 
+      // PROACTIVE SYNC: Create the WhatsAppConfig immediately if we have the phone_number_id
+      const specificPhoneId = value.waba_info?.phone_number_id
+      if (specificPhoneId) {
+        logger.info({ specificPhoneId, wabaId }, '[OnboardingHandler] Proactively creating WhatsAppConfig from Webhook')
+        try {
+          const { MetaCloudService } = await import('@/services/whatsapp/meta-cloud.service')
+          const phones = await MetaCloudService.listPhoneNumbers({ wabaId })
+          const targetPhone = phones.find((p: any) => p.id === specificPhoneId)
+
+          if (targetPhone) {
+            await prisma.whatsAppConfig.upsert({
+              where: { phoneId: specificPhoneId },
+              create: {
+                organizationId: onboarding.organizationId,
+                projectId: onboarding.projectId,
+                connectionId: connection.id,
+                wabaId,
+                phoneId: specificPhoneId,
+                displayPhone: targetPhone.display_phone_number || 'Unknown',
+                verifiedName: targetPhone.verified_name || 'WhatsApp Business',
+                status: 'connected',
+                tokenStatus: 'valid',
+                connectedAt: new Date(),
+              },
+              update: {
+                organizationId: onboarding.organizationId,
+                projectId: onboarding.projectId,
+                connectionId: connection.id,
+                wabaId,
+                displayPhone: targetPhone.display_phone_number || 'Unknown',
+                verifiedName: targetPhone.verified_name || 'WhatsApp Business',
+                status: 'connected',
+                tokenStatus: 'valid',
+              },
+            })
+            logger.info(`[OnboardingHandler] ✅ WhatsAppConfig created for phone ${specificPhoneId}`)
+          }
+        } catch (err) {
+          logger.error({ err }, '[OnboardingHandler] Error during proactive phone sync')
+        }
+      }
+
       logger.info(
         `[OnboardingHandler] PARTNER_ADDED: Connection created for org ${onboarding.organizationId}`
       )
@@ -252,6 +294,47 @@ export async function onboardingHandler(payload: any, eventType: string): Promis
         connectionId: connection.id,
         metadata: { wabaId, ownerBusinessId },
       })
+
+      // PROACTIVE SYNC: Create the WhatsAppConfig immediately for Hosted ES
+      const specificPhoneId = value.waba_info?.phone_number_id
+      if (specificPhoneId) {
+        logger.info({ specificPhoneId, wabaId }, '[OnboardingHandler] Proactively creating WhatsAppConfig for Hosted ES')
+        try {
+          const { MetaCloudService } = await import('@/services/whatsapp/meta-cloud.service')
+          const phones = await MetaCloudService.listPhoneNumbers({ wabaId })
+          const targetPhone = phones.find((p: any) => p.id === specificPhoneId)
+
+          if (targetPhone) {
+            await prisma.whatsAppConfig.upsert({
+              where: { phoneId: specificPhoneId },
+              create: {
+                organizationId: recentOnboarding.organizationId,
+                projectId: recentOnboarding.projectId,
+                connectionId: connection.id,
+                wabaId,
+                phoneId: specificPhoneId,
+                displayPhone: targetPhone.display_phone_number || 'Unknown',
+                verifiedName: targetPhone.verified_name || 'WhatsApp Business',
+                status: 'connected',
+                tokenStatus: 'valid',
+                connectedAt: new Date(),
+              },
+              update: {
+                organizationId: recentOnboarding.organizationId,
+                projectId: recentOnboarding.projectId,
+                connectionId: connection.id,
+                wabaId,
+                displayPhone: targetPhone.display_phone_number || 'Unknown',
+                verifiedName: targetPhone.verified_name || 'WhatsApp Business',
+                status: 'connected',
+                tokenStatus: 'valid',
+              },
+            })
+          }
+        } catch (err) {
+          logger.error({ err }, '[OnboardingHandler] Error during Hosted ES proactive sync')
+        }
+      }
 
       logger.info(
         `[OnboardingHandler] Hosted ES PARTNER_ADDED: connection created for org ${recentOnboarding.organizationId}`
