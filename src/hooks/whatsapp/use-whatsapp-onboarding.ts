@@ -5,6 +5,7 @@ import { useOrganizationCompletion } from '@/hooks/organization/use-organization
 import { useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
 import { useProject } from '@/hooks/project/use-project'
 import { apiFetch } from '@/lib/api-client'
+import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 import {
   buildWhatsAppEmbeddedSignupUrl,
   isWhatsAppEmbeddedSignupConfigured,
@@ -12,6 +13,9 @@ import {
 } from '@/lib/whatsapp/onboarding'
 
 export type OnboardingStatus = 'idle' | 'pending' | 'success'
+
+const POLL_INTERVAL_MS = 3000
+const POLL_MAX_ATTEMPTS = 20 // 60s total
 
 export function useWhatsAppOnboarding(onSuccess?: () => void) {
   const { organizationId } = useRequiredProjectRouteContext()
@@ -23,83 +27,115 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
   const popupRef = useRef<Window | null>(null)
   const onFocusRef = useRef<(() => void) | null>(null)
   const callbackHandledRef = useRef(false)
+  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const pollAttemptsRef = useRef(0)
   const sdkReady = isWhatsAppEmbeddedSignupConfigured()
 
-  const consumeStoredResult = useCallback(() => {
-    if (typeof window === 'undefined') return null
-    const raw = window.localStorage.getItem(WHATSAPP_ONBOARDING_RESULT_STORAGE_KEY)
-    if (!raw) return null
-    window.localStorage.removeItem(WHATSAPP_ONBOARDING_RESULT_STORAGE_KEY)
-    try {
-      return JSON.parse(raw) as { status?: 'success' | 'error'; message?: string }
-    } catch {
-      return null
+  const stopPolling = useCallback(() => {
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current)
+      pollIntervalRef.current = null
     }
+    pollAttemptsRef.current = 0
   }, [])
 
   const handleSuccess = useCallback(() => {
     if (callbackHandledRef.current) return
     callbackHandledRef.current = true
+    stopPolling()
     setStatus('success')
     setError(null)
     toast.success('WhatsApp conectado com sucesso!')
     onSuccess?.()
     if (popupRef.current && !popupRef.current.closed) popupRef.current.close()
     popupRef.current = null
-  }, [onSuccess])
+    if (onFocusRef.current) {
+      window.removeEventListener('focus', onFocusRef.current)
+      onFocusRef.current = null
+    }
+  }, [onSuccess, stopPolling])
 
   const handleFailure = useCallback((message: string) => {
     if (callbackHandledRef.current) return
     callbackHandledRef.current = true
+    stopPolling()
     setStatus('idle')
     setError(message)
     toast.error(message)
     if (popupRef.current && !popupRef.current.closed) popupRef.current.close()
     popupRef.current = null
-  }, [])
-
-  // Listen for postMessage events
-  useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      // WA_EMBEDDED_SIGNUP comes from facebook.com — capture phone_number_id
-      if (
-        typeof event.data === 'string'
-          ? (() => { try { return JSON.parse(event.data)?.type } catch { return null } })()
-          : event.data?.type === 'WA_EMBEDDED_SIGNUP'
-      ) {
-        console.log('[Onboarding] WA_EMBEDDED_SIGNUP received from Meta:', event.data)
-        return
-      }
-
-      if (event.data?.type === 'WA_CALLBACK_SUCCESS') {
-        console.log('[Onboarding] ✅ WA_CALLBACK_SUCCESS received')
-        handleSuccess()
-      } else if (event.data?.type === 'WA_CALLBACK_ERROR') {
-        console.log('[Onboarding] ❌ WA_CALLBACK_ERROR:', event.data?.message)
-        handleFailure(event.data?.message || 'Falha ao conectar com a Meta.')
-      }
+    if (onFocusRef.current) {
+      window.removeEventListener('focus', onFocusRef.current)
+      onFocusRef.current = null
     }
+  }, [stopPolling])
 
-    // Storage event fires when another window writes to localStorage
+  const startPolling = useCallback((projectId: string) => {
+    stopPolling()
+    pollAttemptsRef.current = 0
+
+    pollIntervalRef.current = setInterval(async () => {
+      pollAttemptsRef.current++
+
+      try {
+        const res = await fetch(`/api/v1/whatsapp/instances?projectId=${projectId}`, {
+          headers: { [ORGANIZATION_HEADER]: organizationId },
+        })
+        if (!res.ok) return
+
+        const data = await res.json() as { items: { status: string }[] }
+        const connected = data.items?.some((i) => i.status === 'connected')
+
+        if (connected) {
+          handleSuccess()
+          return
+        }
+      } catch {
+        // ignore, keep polling
+      }
+
+      if (pollAttemptsRef.current >= POLL_MAX_ATTEMPTS) {
+        stopPolling()
+        setStatus('idle')
+        toast.error('Tempo esgotado. Feche o popup e tente novamente se a conexão não aparecer.')
+      }
+    }, POLL_INTERVAL_MS)
+  }, [organizationId, handleSuccess, stopPolling])
+
+  // Listen for localStorage result (set by callback page)
+  useEffect(() => {
     const handleStorage = (event: StorageEvent) => {
       if (event.key !== WHATSAPP_ONBOARDING_RESULT_STORAGE_KEY || !event.newValue) return
-      console.log('[Onboarding] Storage event received:', event.newValue)
-      const stored = consumeStoredResult()
-      if (!stored?.status) return
-      if (stored.status === 'success') {
-        handleSuccess()
-      } else {
-        handleFailure(stored.message || 'Falha ao conectar com a Meta.')
+      try {
+        const stored = JSON.parse(event.newValue) as { status?: string; message?: string }
+        window.localStorage.removeItem(WHATSAPP_ONBOARDING_RESULT_STORAGE_KEY)
+        if (stored.status === 'success') handleSuccess()
+        else if (stored.status === 'error') handleFailure(stored.message || 'Erro ao conectar.')
+      } catch {
+        // ignore
       }
     }
 
-    window.addEventListener('message', handleMessage)
-    window.addEventListener('storage', handleStorage)
-    return () => {
-      window.removeEventListener('message', handleMessage)
-      window.removeEventListener('storage', handleStorage)
+    // postMessage from callback (via opener chain)
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'WA_CALLBACK_SUCCESS') handleSuccess()
+      else if (event.data?.type === 'WA_CALLBACK_ERROR') {
+        handleFailure(event.data?.message || 'Erro ao conectar.')
+      }
     }
-  }, [consumeStoredResult, handleFailure, handleSuccess])
+
+    window.addEventListener('storage', handleStorage)
+    window.addEventListener('message', handleMessage)
+    return () => {
+      window.removeEventListener('storage', handleStorage)
+      window.removeEventListener('message', handleMessage)
+    }
+  }, [handleFailure, handleSuccess])
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => stopPolling()
+  }, [stopPolling])
 
   const startOnboarding = useCallback(async () => {
     if (isCompletionLoading) {
@@ -124,14 +160,11 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
     callbackHandledRef.current = false
     window.localStorage.removeItem(WHATSAPP_ONBOARDING_RESULT_STORAGE_KEY)
 
-    // Clear any previous popup
     if (onFocusRef.current) {
       window.removeEventListener('focus', onFocusRef.current)
       onFocusRef.current = null
     }
-    if (popupRef.current && !popupRef.current.closed) {
-      popupRef.current.close()
-    }
+    if (popupRef.current && !popupRef.current.closed) popupRef.current.close()
 
     try {
       const { onboardingUrl, trackingCode } = await apiFetch(
@@ -144,7 +177,7 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
       const height = 720
       const left = Math.round((window.screen.width - width) / 2)
       const top = Math.round((window.screen.height - height) / 2)
-      const specs = `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes,status=yes`
+      const specs = `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
 
       popupRef.current = window.open(url, 'wa_onboarding', specs)
 
@@ -154,51 +187,36 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
         return
       }
 
-      // When main window regains focus, check if popup closed
+      // Start polling immediately — catches the case where popup never closes
+      startPolling(project.id)
+
+      // Also watch for popup close via focus event as a secondary signal
       const onFocus = () => {
         if (popupRef.current && !popupRef.current.closed) return
-
         window.removeEventListener('focus', onFocus)
         onFocusRef.current = null
-
-        console.log('[Onboarding] Popup closed')
-
-        if (callbackHandledRef.current) return
-
-        // Check localStorage (callback writes here)
-        const stored = consumeStoredResult()
-        if (stored?.status === 'success') {
-          handleSuccess()
-          return
-        }
-        if (stored?.status === 'error') {
-          handleFailure(stored.message || 'Erro ao conectar.')
-          return
-        }
-
-        // Popup closed without a clear result — optimistically assume success
-        // and let the onSuccess callback refetch to confirm
-        handleSuccess()
+        // Polling will handle success/failure — just stop if already handled
+        if (callbackHandledRef.current) stopPolling()
       }
 
       onFocusRef.current = onFocus
       window.addEventListener('focus', onFocus)
     } catch (err) {
       setStatus('idle')
+      stopPolling()
       const msg = err instanceof Error ? err.message : 'Erro ao iniciar onboarding'
       setError(msg)
       toast.error(msg)
     }
   }, [
-    consumeStoredResult,
-    handleFailure,
-    handleSuccess,
     integrationBlockMessage,
     isCompletionLoading,
     isModuleBlocked,
     organizationId,
     project?.id,
     sdkReady,
+    startPolling,
+    stopPolling,
   ])
 
   return {
@@ -210,6 +228,7 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
       setStatus('idle')
       setError(null)
       callbackHandledRef.current = false
+      stopPolling()
       window.localStorage.removeItem(WHATSAPP_ONBOARDING_RESULT_STORAGE_KEY)
     },
     setError,
