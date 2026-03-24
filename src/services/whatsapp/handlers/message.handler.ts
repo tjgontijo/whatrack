@@ -298,9 +298,25 @@ export async function messageHandler(
         // 4. Message Creation
         let messageBody = ''
         const messageType = message.type || 'text'
-        if (message.text?.body) messageBody = message.text.body
-        else if (message.image?.caption) messageBody = message.image.caption
-        else if (message.document?.caption) messageBody = message.document.caption
+
+        if (message.text?.body) {
+          messageBody = message.text.body
+        } else if (message.image?.caption) {
+          messageBody = message.image.caption
+        } else if (message.document?.caption) {
+          messageBody = message.document.caption
+        } else if (message.type === 'button') {
+          messageBody = message.button?.text || 'Botão clicado'
+        } else if (message.type === 'interactive') {
+          const interactive = message.interactive
+          if (interactive?.type === 'button_reply') {
+            messageBody = interactive.button_reply?.title || 'Resposta de botão'
+          } else if (interactive?.type === 'list_reply') {
+            messageBody = interactive.list_reply?.title || 'Opção de lista selecionada'
+          } else {
+            messageBody = 'Mensagem interativa'
+          }
+        }
 
         const direction = isEcho ? 'OUTBOUND' : 'INBOUND'
 
