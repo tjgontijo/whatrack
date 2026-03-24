@@ -21,11 +21,12 @@ export interface CampaignListItem {
 }
 
 export interface CampaignDetail extends CampaignListItem {
-  dispatchGroups: Array<{
+    dispatchGroups: Array<{
     id: string
     templateName: string
     templateLang: string
     status: string
+    totalCount: number
     processedCount: number
     successCount: number
     failCount: number
@@ -165,6 +166,7 @@ export async function getCampaignDetail(
       dispatchGroups: {
         include: {
           config: { select: { displayPhone: true, verifiedName: true } },
+          _count: { select: { recipients: true } },
         },
         orderBy: { order: 'asc' },
       },
@@ -207,6 +209,7 @@ export async function getCampaignDetail(
       templateName: g.templateName,
       templateLang: g.templateLang,
       status: g.status,
+      totalCount: g._count.recipients,
       processedCount: g.processedCount,
       successCount: g.successCount,
       failCount: g.failCount,
