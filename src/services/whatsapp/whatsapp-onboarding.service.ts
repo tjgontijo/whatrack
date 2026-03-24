@@ -45,13 +45,11 @@ export async function createWhatsAppOnboardingSession(
     }
   }
 
-  // Use Meta's standard OAuth dialog URL for redirect flows
-  const onboardingUrl = new URL('https://www.facebook.com/dialog/oauth')
-  onboardingUrl.searchParams.set('client_id', metaAppId)
-  onboardingUrl.searchParams.set('redirect_uri', `${appUrl}/api/v1/whatsapp/onboarding/callback`)
-  onboardingUrl.searchParams.set('state', trackingCode)
-  onboardingUrl.searchParams.set('scope', 'whatsapp_business_management,business_management')
-  onboardingUrl.searchParams.set('response_type', 'code')
+  // Use Meta's Embedded Signup hosted URL
+  // Meta sends result via postMessage, NOT redirect
+  // The frontend will listen for WA_EMBEDDED_SIGNUP postMessage event
+  const onboardingUrl = new URL('https://business.facebook.com/messaging/whatsapp/onboard/')
+  onboardingUrl.searchParams.set('app_id', metaAppId)
   onboardingUrl.searchParams.set('config_id', metaConfigId)
   // extras will be added by buildWhatsAppEmbeddedSignupUrl on the frontend
 
@@ -113,24 +111,9 @@ export async function handleWhatsAppOnboardingCallback(
     return { success: false, message: 'Missing code or state in callback' }
   }
 
-  let onboarding = await prisma.whatsAppOnboarding.findUnique({
+  const onboarding = await prisma.whatsAppOnboarding.findUnique({
     where: { trackingCode: input.state },
   })
-  
-  // Wait up to 5 seconds for the frontend to record the phoneNumberId via postMessage
-  // This solves the race condition where the OAuth redirect finishes before the frontend POST request
-  if (onboarding && !onboarding.phoneNumberId) {
-    for (let i = 0; i < 10; i++) {
-        await new Promise(r => setTimeout(r, 500))
-        const check = await prisma.whatsAppOnboarding.findUnique({
-            where: { trackingCode: input.state },
-        })
-        if (check?.phoneNumberId) {
-            onboarding = check
-            break
-        }
-    }
-  }
 
   if (!onboarding) {
     return { success: false, message: 'Invalid or expired tracking code' }

@@ -136,13 +136,17 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
           msgData?.event === 'FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING'
         ) {
           const phoneNumberId = msgData.data?.phone_number_id
+          const wabaId = msgData.data?.waba_id
           const trackingCode = trackingCodeRef.current
           
           if (phoneNumberId && trackingCode) {
             fetch('/api/v1/whatsapp/onboarding/phone-number', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ state: trackingCode, phoneNumberId })
+              body: JSON.stringify({ state: trackingCode, phoneNumberId, wabaId })
+            }).then(() => {
+              if (popupRef.current) popupRef.current.close()
+              handleSuccess()
             }).catch(console.error)
           }
         }

@@ -36,6 +36,7 @@ export async function onboardingHandler(payload: any, eventType: string): Promis
   }
 
   logger.info(
+    { eventType, wabaId, trackingCode, fullValue: value },
     `[OnboardingHandler] Event: ${eventType}, WABA: ${wabaId}, TrackingCode: ${trackingCode}`
   )
 
