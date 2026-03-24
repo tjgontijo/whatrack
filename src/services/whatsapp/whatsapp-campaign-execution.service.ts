@@ -102,6 +102,8 @@ export async function processDispatchGroup(
         await prisma.whatsAppCampaignRecipient.update({
           where: { id: recipient.id },
           data: {
+            status: 'SENT',
+            sentAt: new Date(),
             metaWamid: result.messages?.[0]?.id,
           },
         })
