@@ -192,46 +192,80 @@ export async function onboardingHandler(payload: any, eventType: string): Promis
   }
 
   // ============================================
-  // Caso 2: TrackingCode ausente (Coexistence Mode)
+  // Caso 2: TrackingCode ausente — Hosted ES puro
+  // Meta não envia trackingCode no webhook.
+  // Correlacionamos com o onboarding pendente mais recente.
   // ============================================
-  if (ownerBusinessId) {
-    // Procurar connection por ownerBusinessId + org
-    // Isso só funciona se já há uma connection anterior
-    const connections = await prisma.whatsAppConnection.findMany({
+  if (eventType === 'PARTNER_ADDED') {
+    const recentOnboarding = await prisma.whatsAppOnboarding.findFirst({
       where: {
-        ownerBusinessId,
+        status: 'pending',
+        expiresAt: { gt: new Date() },
       },
-      take: 1,
+      orderBy: { createdAt: 'desc' },
     })
 
-    if (connections.length > 0) {
-      const connection = connections[0]
+    if (recentOnboarding) {
+      logger.info(
+        `[OnboardingHandler] Hosted ES: correlating WABA ${wabaId} with pending onboarding ${recentOnboarding.trackingCode}`
+      )
 
-      if (eventType === 'PARTNER_ADDED') {
-        const updatedConnection = await prisma.whatsAppConnection.update({
-          where: { id: connection.id },
-          data: {
-            status: 'active',
-            connectedAt: new Date(),
+      const connection = await prisma.whatsAppConnection.upsert({
+        where: {
+          projectId_wabaId: {
+            projectId: recentOnboarding.projectId,
             wabaId,
           },
-        })
+        },
+        create: {
+          organizationId: recentOnboarding.organizationId,
+          projectId: recentOnboarding.projectId,
+          wabaId,
+          ownerBusinessId,
+          status: 'active',
+          connectedAt: new Date(),
+        },
+        update: {
+          status: 'active',
+          connectedAt: new Date(),
+          ownerBusinessId,
+        },
+      })
 
-        // Cache updated connection
-        await whatsappCache.cacheConnection(connection.organizationId, wabaId, updatedConnection)
+      await whatsappCache.cacheConnection(recentOnboarding.organizationId, wabaId, connection)
 
-        // Audit log
-        await whatsappAuditService.log({
-          organizationId: connection.organizationId,
-          action: 'CONNECTION_ADDED',
-          description: `WhatsApp connection added in coexistence mode for WABA ${wabaId}`,
-          connectionId: connection.id,
-          metadata: { wabaId, ownerBusinessId },
-        })
+      await prisma.whatsAppOnboarding.update({
+        where: { id: recentOnboarding.id },
+        data: {
+          status: 'completed',
+          completedAt: new Date(),
+          wabaId,
+          ownerBusinessId,
+        },
+      })
 
-        logger.info(`[OnboardingHandler] Coexistence PARTNER_ADDED: Updated existing connection`)
-      }
+      await whatsappAuditService.log({
+        organizationId: recentOnboarding.organizationId,
+        action: 'ONBOARDING_COMPLETED',
+        description: `WhatsApp connected via Hosted ES: WABA ${wabaId}`,
+        connectionId: connection.id,
+        metadata: { wabaId, ownerBusinessId },
+      })
 
+      logger.info(
+        `[OnboardingHandler] Hosted ES PARTNER_ADDED: connection created for org ${recentOnboarding.organizationId}`
+      )
+      return
+    }
+  }
+
+  // Buscar connection existente por ownerBusinessId (PARTNER_REMOVED/REINSTATED)
+  if (ownerBusinessId) {
+    const connection = await prisma.whatsAppConnection.findFirst({
+      where: { ownerBusinessId },
+    })
+
+    if (connection) {
       if (eventType === 'PARTNER_REMOVED') {
         const connectedDuration = connection.connectedAt
           ? new Date().getTime() - connection.connectedAt.getTime()
@@ -239,35 +273,30 @@ export async function onboardingHandler(payload: any, eventType: string): Promis
 
         await prisma.whatsAppConnection.update({
           where: { id: connection.id },
-          data: {
-            status: 'inactive',
-            disconnectedAt: new Date(),
-          },
+          data: { status: 'inactive', disconnectedAt: new Date() },
         })
 
-        // Invalidate cache
         await whatsappCache.invalidateConnection(connection.organizationId, wabaId)
-
-        // Audit log
         await whatsappAuditService.logConnectionRemoved(
-          connection.organizationId,
-          connection.id,
-          wabaId,
-          connectedDuration
+          connection.organizationId, connection.id, wabaId, connectedDuration
         )
+        logger.info(`[OnboardingHandler] PARTNER_REMOVED via ownerBusinessId`)
+      }
 
-        logger.info(`[OnboardingHandler] Coexistence PARTNER_REMOVED`)
+      if (eventType === 'PARTNER_REINSTATED') {
+        const updatedConnection = await prisma.whatsAppConnection.update({
+          where: { id: connection.id },
+          data: { status: 'active', disconnectedAt: null },
+        })
+        await whatsappCache.cacheConnection(connection.organizationId, wabaId, updatedConnection)
+        logger.info(`[OnboardingHandler] PARTNER_REINSTATED via ownerBusinessId`)
       }
 
       return
     }
   }
 
-  // ============================================
-  // Caso 3: Nenhum - Phantom Connection
-  // ============================================
   logger.warn(
-    `[OnboardingHandler] Phantom connection detected: WABA ${wabaId}, no trackingCode or ownerBusinessId match`
+    `[OnboardingHandler] Phantom connection: WABA ${wabaId}, no pending onboarding or existing connection found`
   )
-  // TODO: Criar WABA órfã para admin reivindicar
 }
