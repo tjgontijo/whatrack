@@ -93,81 +93,83 @@ export function useWhatsAppOnboardingSDK(onSuccess?: () => void) {
       console.log('[Onboarding SDK] window.FB.login type:', typeof window.FB.login)
 
       window.FB.login(
-        async (response) => {
-          try {
-            console.log('[Onboarding SDK] FB.login callback received, response type:', typeof response)
-            console.log('[Onboarding SDK] response.authResponse exists:', !!response.authResponse)
+        (response) => {
+          console.log('[Onboarding SDK] FB.login callback received, response type:', typeof response)
+          console.log('[Onboarding SDK] response.authResponse exists:', !!response.authResponse)
 
-            if (!response.authResponse) {
-              console.error('[Onboarding SDK] No authResponse in response')
-              setStatus('error')
-              setError('Usuário cancelou o login ou ocorreu um erro.')
-              toast.error('Conexão cancelada.')
-              return
-            }
+          if (!response.authResponse) {
+            console.error('[Onboarding SDK] No authResponse in response')
+            setStatus('error')
+            setError('Usuário cancelou o login ou ocorreu um erro.')
+            toast.error('Conexão cancelada.')
+            return
+          }
 
-            const code = response.authResponse.code
-            const phoneNumberIds = response.authResponse.phone_number_ids || []
+          const code = response.authResponse.code
+          const phoneNumberIds = response.authResponse.phone_number_ids || []
 
-            console.log('[Onboarding SDK] Got code:', code?.substring(0, 10) + '...')
-            console.log('[Onboarding SDK] phoneNumberIds:', phoneNumberIds)
+          console.log('[Onboarding SDK] Got code:', code?.substring(0, 10) + '...')
+          console.log('[Onboarding SDK] phoneNumberIds:', phoneNumberIds)
 
-            if (!code) {
-              console.error('[Onboarding SDK] No code in authResponse')
-              setStatus('error')
-              setError('Código de autorização não recebido.')
-              toast.error('Erro: código não recebido.')
-              return
-            }
+          if (!code) {
+            console.error('[Onboarding SDK] No code in authResponse')
+            setStatus('error')
+            setError('Código de autorização não recebido.')
+            toast.error('Erro: código não recebido.')
+            return
+          }
 
-            // Step 3: Send code + phone_number_ids to backend
-            const payload: OnboardingCallbackSDKInput = {
-              code,
-              trackingCode,
-              phoneNumberIds: phoneNumberIds.length > 0 ? phoneNumberIds : undefined,
-            }
+          // Step 3: Send code + phone_number_ids to backend
+          const payload: OnboardingCallbackSDKInput = {
+            code,
+            trackingCode,
+            phoneNumberIds: phoneNumberIds.length > 0 ? phoneNumberIds : undefined,
+          }
 
-            console.log('[Onboarding SDK] Sending POST to callback-sdk with payload:', {
-              code: payload.code?.substring(0, 10) + '...',
-              trackingCode: payload.trackingCode,
-              phoneNumberIds: payload.phoneNumberIds,
+          console.log('[Onboarding SDK] Sending POST to callback-sdk with payload:', {
+            code: payload.code?.substring(0, 10) + '...',
+            trackingCode: payload.trackingCode,
+            phoneNumberIds: payload.phoneNumberIds,
+          })
+
+          // Use .then().catch() instead of async/await for Meta SDK compatibility
+          fetch('/api/v1/whatsapp/onboarding/callback-sdk', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Organization-ID': organizationId,
+            },
+            body: JSON.stringify(payload),
+          })
+            .then((result) => {
+              console.log('[Onboarding SDK] Fetch completed, status:', result.status)
+              return result.json().then((data) => ({ result, data }))
             })
+            .then(({ result, data }) => {
+              console.log('[Onboarding SDK] Response data:', data)
 
-            const result = await fetch('/api/v1/whatsapp/onboarding/callback-sdk', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'X-Organization-ID': organizationId,
-              },
-              body: JSON.stringify(payload),
+              if (!result.ok) {
+                console.error('[Onboarding SDK] Error response:', data)
+                setStatus('error')
+                const errMsg = data.error || data.message || 'Erro ao processar onboarding'
+                setError(errMsg)
+                toast.error(errMsg)
+                return
+              }
+
+              console.log('[Onboarding SDK] Success! Setting status to success')
+              setStatus('success')
+              setError(null)
+              toast.success('WhatsApp conectado com sucesso! (via SDK)')
+              onSuccess?.()
             })
-
-            console.log('[Onboarding SDK] Fetch completed, status:', result.status)
-
-            const data = await result.json()
-
-            console.log('[Onboarding SDK] Response data:', data)
-
-            if (!result.ok) {
-              console.error('[Onboarding SDK] Error response:', data)
+            .catch((err) => {
+              console.error('[Onboarding SDK] Fetch error:', err)
               setStatus('error')
-              const errMsg = data.error || data.message || 'Erro ao processar onboarding'
+              const errMsg = err instanceof Error ? err.message : 'Erro desconhecido'
               setError(errMsg)
               toast.error(errMsg)
-              return
-            }
-
-            console.log('[Onboarding SDK] Success! Setting status to success')
-            setStatus('success')
-            setError(null)
-            toast.success('WhatsApp conectado com sucesso! (via SDK)')
-            onSuccess?.()
-          } catch (err) {
-            setStatus('error')
-            const errMsg = err instanceof Error ? err.message : 'Erro desconhecido'
-            setError(errMsg)
-            toast.error(errMsg)
-          }
+            })
         },
         {
           config_id: configId,
