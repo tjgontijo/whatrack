@@ -254,12 +254,18 @@ export function CampaignFormDrawer({ open, onOpenChange, onSuccess }: CampaignFo
         throw new Error('O CSV está vazio ou não possui cabeçalho/linhas válidas.')
       }
 
-      const validatedModel = validateCampaignCsvModel(parsed, templateVariableNames)
+      const validated = validateCampaignCsvModel(parsed, templateVariableNames)
 
       setParsedCsv(parsed)
       setFileError(null)
-      setPhoneColumn(validatedModel.phoneColumn)
-      setVariableColumns(validatedModel.variableColumns)
+      setPhoneColumn(validated.phoneColumn)
+      setVariableColumns(validated.variableColumns)
+      
+      if (validated.missingVariables.length > 0) {
+        toast.info(
+          `Detectamos que ${validated.missingVariables.length} variável(is) não foram encontradas automaticamente. Por favor, faça o mapeamento manual.`,
+        )
+      }
     } catch (error) {
       setParsedCsv(null)
       setPhoneColumn('')
