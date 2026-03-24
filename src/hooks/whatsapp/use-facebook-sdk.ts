@@ -68,7 +68,11 @@ export function useFacebookSdk() {
 
     // Initialize fbAsyncInit before script loads
     window.fbAsyncInit = function () {
-      FB.init({
+      if (!window.FB) {
+        setError('Facebook SDK failed to initialize')
+        return
+      }
+      window.FB.init({
         appId,
         version: API_VERSION,
         cookie: true,
