@@ -1,20 +1,20 @@
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
-import { requireWorkspacePageAccess } from '@/server/auth/require-workspace-page-access'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ organizationSlug: string; campaignId: string }> }
+  { params }: { params: Promise<{ campaignId: string }> }
 ) {
-  const { organizationSlug, campaignId } = await params
-
-  const access = await requireWorkspacePageAccess({
-    permissions: 'manage:integrations',
-    organizationSlug,
-  })
-
   try {
+    const { campaignId } = await params
+    const access = await validateFullAccess(request)
+
+    if (!access.hasAccess || !access.organizationId) {
+      return apiError(access.error || 'Não autorizado', 401)
+    }
+
     // 1. Verificar se a campanha existe e pertence à organização
     const campaign = await prisma.whatsAppCampaign.findFirst({
       where: { id: campaignId, organizationId: access.organizationId },
@@ -50,7 +50,7 @@ export async function POST(
       },
     })
 
-    // 4. Resetar os Grupos de Despacho afetados para PROCESSING ou PENDING
+    // 4. Resetar os Grupos de Despacho afetados para PENDING
     const groupIds = Array.from(new Set(failedRecipients.map((r) => r.dispatchGroupId)))
     await prisma.whatsAppCampaignDispatchGroup.updateMany({
       where: {
