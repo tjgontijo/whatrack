@@ -3,7 +3,7 @@ import { MetaCloudService } from '@/services/whatsapp/meta-cloud.service'
 import { resolveAccessToken } from '@/lib/whatsapp/token-crypto'
 import { logger } from '@/lib/utils/logger'
 
-const BATCH_SIZE = 20 // Reduzido para evitar rate limits excessivos
+const BATCH_SIZE = 10 // Ajustado para 10 por segundo conforme solicitado pelo usuário
 const BATCH_DELAY_MS = 1000 // 1 segundo entre lotes
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
