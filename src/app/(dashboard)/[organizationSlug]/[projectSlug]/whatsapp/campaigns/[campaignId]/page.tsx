@@ -200,6 +200,23 @@ export default function CampaignDetailPage({ params }: CampaignPageProps) {
     enabled: !!organizationId && !!campaignId,
   })
 
+  // Query leve: só contadores — polling a cada 2s enquanto em processamento
+  interface CampaignStats { status: string; total: number; success: number; failed: number; pending: number }
+  const { data: stats } = useQuery<CampaignStats>({
+    queryKey: ['whatsapp-campaign-stats', organizationId, campaignId],
+    queryFn: async () => {
+      const data = await apiFetch(`/api/v1/whatsapp/campaigns/${campaignId}/stats`, {
+        orgId: organizationId,
+      })
+      return data as CampaignStats
+    },
+    enabled: !!organizationId && !!campaignId,
+    refetchInterval: (query) => {
+      const s = query.state.data as CampaignStats | undefined
+      return s?.status === 'PROCESSING' ? 2000 : false
+    },
+  })
+
   const dispatchMutation = useMutation({
     mutationFn: async () => {
       const isScheduled =
@@ -346,14 +363,14 @@ export default function CampaignDetailPage({ params }: CampaignPageProps) {
             <Card>
               <CardContent className="pt-4">
                 <p className="text-muted-foreground text-xs uppercase font-semibold">Total</p>
-                <p className="text-2xl font-bold">{campaign.totalRecipients}</p>
+                <p className="text-2xl font-bold">{stats?.total ?? campaign.totalRecipients}</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-4">
                 <p className="text-muted-foreground text-xs uppercase font-semibold text-green-600">Sucesso</p>
                 <p className="text-2xl font-bold text-green-600">
-                  {campaign.dispatchGroups.reduce((acc, g) => acc + g.successCount, 0)}
+                  {stats?.success ?? campaign.dispatchGroups.reduce((acc, g) => acc + g.successCount, 0)}
                 </p>
               </CardContent>
             </Card>
@@ -361,7 +378,7 @@ export default function CampaignDetailPage({ params }: CampaignPageProps) {
               <CardContent className="pt-4">
                 <p className="text-muted-foreground text-xs uppercase font-semibold text-red-600">Falhas</p>
                 <p className="text-2xl font-bold text-red-600">
-                  {campaign.dispatchGroups.reduce((acc, g) => acc + g.failCount, 0)}
+                  {stats?.failed ?? campaign.dispatchGroups.reduce((acc, g) => acc + g.failCount, 0)}
                 </p>
               </CardContent>
             </Card>
@@ -369,8 +386,8 @@ export default function CampaignDetailPage({ params }: CampaignPageProps) {
               <CardContent className="pt-4">
                 <p className="text-muted-foreground text-xs uppercase font-semibold text-blue-600">Pendente</p>
                 <p className="text-2xl font-bold text-blue-600">
-                  {campaign.totalRecipients - 
-                    campaign.dispatchGroups.reduce((acc, g) => acc + g.successCount + g.failCount, 0)}
+                  {stats?.pending ?? (campaign.totalRecipients - 
+                    campaign.dispatchGroups.reduce((acc, g) => acc + g.successCount + g.failCount, 0))}
                 </p>
               </CardContent>
             </Card>
