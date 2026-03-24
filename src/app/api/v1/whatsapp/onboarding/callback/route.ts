@@ -12,58 +12,39 @@ function escapeHtml(value: string): string {
 
 const RESPONSE_HTML = (status: 'success' | 'error', message?: string) => {
   const safeMessage = message ?? ''
-  const serializedMessage = JSON.stringify(safeMessage)
+  const serializedStorageKey = JSON.stringify(WHATSAPP_ONBOARDING_RESULT_STORAGE_KEY)
+  const serializedStoragePayload = JSON.stringify(JSON.stringify({ status, message: safeMessage }))
+  const msgType = status === 'success' ? 'WA_CALLBACK_SUCCESS' : 'WA_CALLBACK_ERROR'
+  const serializedMsg = JSON.stringify({ type: msgType, message: safeMessage })
 
-  const postMessageCode = status === 'success'
-    ? "window.parent.postMessage({ type: 'WA_CALLBACK_SUCCESS', message: '' }, '*');"
-    : "window.parent.postMessage({ type: 'WA_CALLBACK_ERROR', message: " + serializedMessage + " }, '*');"
+  return `<!DOCTYPE html>
+<html>
+  <head>
+    <title>${status === 'success' ? 'WhatsApp Conectado' : 'Erro'}</title>
+    <style>
+      body { font-family: -apple-system, sans-serif; text-align: center; padding: 60px 40px; background: #fff; }
+      h2 { font-size: 20px; margin: 0 0 8px; }
+      p { color: #666; font-size: 14px; margin: 0; }
+    </style>
+  </head>
+  <body>
+    <h2>${status === 'success' ? '✅ Conectado com sucesso!' : '❌ Erro na conexão'}</h2>
+    <p>${status === 'success' ? 'Pode fechar esta janela.' : escapeHtml(safeMessage)}</p>
+    <script>
+      // 1. Write to localStorage so the opener reads it via storage event
+      try { localStorage.setItem(${serializedStorageKey}, ${serializedStoragePayload}); } catch(e) {}
 
-  return `
-  <!DOCTYPE html>
-  <html>
-    <head>
-      <title>${status === 'success' ? 'Conectado!' : 'Erro'}</title>
-      <style>
-        body { font-family: sans-serif; text-align: center; padding: 40px; background: #f5f5f5; }
-        h2 { margin: 0 0 10px 0; }
-        p { margin: 10px 0 0 0; color: #666; }
-        .debug { margin-top: 20px; padding: 10px; background: white; border-radius: 4px; font-size: 12px; color: #999; }
-      </style>
-    </head>
-    <body>
-      <h2>${status === 'success' ? '✅ Conectado!' : '❌ Erro na Conexão'}</h2>
-      <p>${status === 'success' ? 'Aguarde enquanto processamos sua conexão...' : escapeHtml(safeMessage)}</p>
-      <div class="debug">Comunicando com a aplicação...</div>
+      // 2. Send postMessage to opener (the main whatrack window)
+      var target = window.opener || window.parent;
+      if (target && target !== window) {
+        try { target.postMessage(${serializedMsg}, '*'); } catch(e) {}
+      }
 
-      <script>
-        console.log('[OnboardingCallback] Script running');
-        console.log('[OnboardingCallback] window.parent:', window.parent);
-        console.log('[OnboardingCallback] window.opener:', window.opener);
-        console.log('[OnboardingCallback] window.location.origin:', window.location.origin);
-
-        // Send message to parent window (iframe parent)
-        try {
-          console.log('[OnboardingCallback] Sending postMessage to parent...');
-          ${postMessageCode}
-          console.log('[OnboardingCallback] ✅ postMessage sent to parent');
-        } catch (e) {
-          console.error('[OnboardingCallback] Error sending to parent:', e);
-        }
-
-        // Also try window.opener for popup windows
-        if (window.opener) {
-          try {
-            console.log('[OnboardingCallback] Sending postMessage to opener...');
-            ${postMessageCode}
-            console.log('[OnboardingCallback] ✅ postMessage sent to opener');
-          } catch (e) {
-            console.error('[OnboardingCallback] Error sending to opener:', e);
-          }
-        }
-      </script>
-    </body>
-  </html>
-`
+      // 3. Close this popup after a short delay
+      setTimeout(function() { window.close(); }, 500);
+    </script>
+  </body>
+</html>`
 }
 
 export async function GET(request: Request) {
