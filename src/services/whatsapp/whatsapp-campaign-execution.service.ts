@@ -45,7 +45,7 @@ export async function processDispatchGroup(
       config: { select: { id: true, phoneId: true, accessToken: true, displayPhone: true } },
       recipients: {
         where: { status: 'PENDING' },
-        select: { id: true, phone: true, variables: true },
+        select: { id: true, phone: true, variables: true, metaWamid: true },
       },
     },
   })
@@ -87,6 +87,18 @@ export async function processDispatchGroup(
 
     const results = await Promise.allSettled(
       batch.map(async (recipient) => {
+        // Se já tem WAMID, significa que foi enviado na tentativa anterior mas o status não foi atualizado
+        if (recipient.metaWamid) {
+          await prisma.whatsAppCampaignRecipient.update({
+            where: { id: recipient.id },
+            data: {
+              status: 'SENT',
+              sentAt: new Date(),
+            },
+          })
+          return { messages: [{ id: recipient.metaWamid }] }
+        }
+
         const phone = formatPhoneForMeta(recipient.phone)
         const variables = resolveTemplateVariables(recipient.variables)
 
