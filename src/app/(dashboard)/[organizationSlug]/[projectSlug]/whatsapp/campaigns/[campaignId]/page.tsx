@@ -308,8 +308,8 @@ export default function CampaignDetailPage({ params }: CampaignPageProps) {
                   : 'Enviar agora'}
               </Button>
             )}
-            {['COMPLETED', 'FAILED'].includes(campaign.status) && 
-              campaign.dispatchGroups.some(g => g.failCount > 0) && (
+            {['COMPLETED', 'FAILED', 'CANCELLED'].includes(campaign.status) && 
+              (campaign.dispatchGroups.some(g => g.failCount > 0) || campaign.status === 'CANCELLED') && (
               <Button
                 size="sm"
                 variant="outline"
@@ -317,7 +317,7 @@ export default function CampaignDetailPage({ params }: CampaignPageProps) {
                 disabled={retryFailedMutation.isPending}
               >
                 <Send className="mr-2 h-4 w-4" />
-                Reenviar falhas ({campaign.dispatchGroups.reduce((acc, g) => acc + g.failCount, 0)})
+                Retomar envio
               </Button>
             )}
             {['DRAFT', 'APPROVED', 'SCHEDULED', 'PROCESSING'].includes(
