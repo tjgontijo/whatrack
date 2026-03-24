@@ -632,15 +632,19 @@ export class MetaCloudService {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
+      body: JSON.stringify({
+        messaging_product: 'whatsapp',
+      }),
     })
 
     const data = await response.json()
 
     if (!response.ok) {
-      logger.error({ err: data }, '[MetaCloudService] Deregister error')
+      logger.error({ err: data, context: { phoneId } }, '[MetaCloudService] Deregister error')
       throw new Error(data.error?.message || 'Failed to deregister phone')
     }
 
+    logger.info({ context: { phoneId } }, '[MetaCloudService] Phone deregistered successfully')
     return data
   }
 

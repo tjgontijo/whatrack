@@ -95,7 +95,7 @@ export async function disconnectWhatsAppConfig(params: DisconnectWhatsAppConfigP
             organizationId: params.organizationId,
             wabaId: config.wabaId,
             id: { not: params.configId },
-            status: { not: 'disconnected' },
+            status: 'connected',
           },
         })
 
