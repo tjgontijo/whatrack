@@ -80,6 +80,7 @@ interface DispatchGroup {
   templateName: string
   templateLang: string
   status: string
+  totalCount: number
   processedCount: number
   successCount: number
   failCount: number
@@ -341,25 +342,35 @@ export default function CampaignDetailPage({ params }: CampaignPageProps) {
         <Skeleton className="h-48" />
       ) : campaign ? (
         <>
-          <div className="grid gap-4 lg:grid-cols-3">
+          <div className="grid gap-4 lg:grid-cols-4">
             <Card>
               <CardContent className="pt-4">
-                <p className="text-muted-foreground text-xs">Destinatários</p>
+                <p className="text-muted-foreground text-xs uppercase font-semibold">Total</p>
                 <p className="text-2xl font-bold">{campaign.totalRecipients}</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-4">
-                <p className="text-muted-foreground text-xs">Grupos de Envio</p>
-                <p className="text-2xl font-bold">{campaign.totalDispatchGroups}</p>
+                <p className="text-muted-foreground text-xs uppercase font-semibold text-green-600">Sucesso</p>
+                <p className="text-2xl font-bold text-green-600">
+                  {campaign.dispatchGroups.reduce((acc, g) => acc + g.successCount, 0)}
+                </p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-4">
-                <p className="text-muted-foreground text-xs">Criada por</p>
-                <p className="font-medium">{campaign.createdByName || '—'}</p>
-                <p className="text-muted-foreground text-xs">
-                  {new Date(campaign.createdAt).toLocaleString('pt-BR')}
+                <p className="text-muted-foreground text-xs uppercase font-semibold text-red-600">Falhas</p>
+                <p className="text-2xl font-bold text-red-600">
+                  {campaign.dispatchGroups.reduce((acc, g) => acc + g.failCount, 0)}
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-muted-foreground text-xs uppercase font-semibold text-blue-600">Pendente</p>
+                <p className="text-2xl font-bold text-blue-600">
+                  {campaign.totalRecipients - 
+                    campaign.dispatchGroups.reduce((acc, g) => acc + g.successCount + g.failCount, 0)}
                 </p>
               </CardContent>
             </Card>
@@ -382,11 +393,14 @@ export default function CampaignDetailPage({ params }: CampaignPageProps) {
                           {STATUS_LABELS[group.status] || group.status}
                         </Badge>
                       </div>
-                      <div className="text-muted-foreground flex gap-4 text-xs">
+                      <div className="text-muted-foreground flex flex-wrap gap-4 text-xs font-medium">
                         <span>Instância: {group.configDisplayPhone || '—'}</span>
-                        <span>Processados: {group.processedCount}</span>
+                        <span>Total: {group.totalCount}</span>
                         <span className="text-green-600">Sucesso: {group.successCount}</span>
                         <span className="text-red-600">Falhas: {group.failCount}</span>
+                        <span className="text-blue-600">
+                          Pendente: {group.totalCount - group.successCount - group.failCount}
+                        </span>
                       </div>
                     </div>
                   ))}
