@@ -107,6 +107,8 @@ export async function processWhatsAppWebhookPayload(rawBody: string, signatureHe
     const wabaId = payload.entry?.[0]?.id
 
     let instanceId: string | null = null
+    let organizationId: string | null = null
+
     if (phoneId || wabaId) {
       const conditions: Array<{ phoneId: string } | { wabaId: string }> = []
       if (phoneId) conditions.push({ phoneId })
@@ -116,16 +118,27 @@ export async function processWhatsAppWebhookPayload(rawBody: string, signatureHe
         where: {
           OR: conditions,
         },
-        select: { id: true },
+        select: { id: true, organizationId: true },
       })
 
       instanceId = config?.id ?? null
+      organizationId = config?.organizationId ?? null
 
       if (config?.id) {
         await prisma.whatsAppConfig
           .update({
             where: { id: config.id },
             data: { lastWebhookAt: new Date() },
+          })
+          .catch(() => {})
+      }
+
+      // Update the webhook log with the identified organization
+      if (webhookLogId && organizationId) {
+        await prisma.whatsAppWebhookLog
+          .update({
+            where: { id: webhookLogId },
+            data: { organizationId },
           })
           .catch(() => {})
       }
