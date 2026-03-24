@@ -29,6 +29,7 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
   const callbackHandledRef = useRef(false)
   const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const pollAttemptsRef = useRef(0)
+  const trackingCodeRef = useRef<string | null>(null)
   const sdkReady = isWhatsAppEmbeddedSignupConfigured()
 
   const stopPolling = useCallback(() => {
@@ -116,8 +117,40 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
       }
     }
 
-    // postMessage from callback (via opener chain)
+    // postMessage from callback (via opener chain or Meta popup)
     const handleMessage = (event: MessageEvent) => {
+      // 1. Listen for Meta's message (FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING)
+      try {
+        let msgData = event.data
+        if (typeof msgData === 'string') {
+          msgData = JSON.parse(msgData)
+        }
+        
+        // Meta sometimes wraps the payload in an array
+        if (Array.isArray(msgData)) {
+          msgData = msgData[0]
+        }
+
+        if (
+          msgData?.type === 'WA_EMBEDDED_SIGNUP' &&
+          msgData?.event === 'FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING'
+        ) {
+          const phoneNumberId = msgData.data?.phone_number_id
+          const trackingCode = trackingCodeRef.current
+          
+          if (phoneNumberId && trackingCode) {
+            fetch('/api/v1/whatsapp/onboarding/phone-number', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ state: trackingCode, phoneNumberId })
+            }).catch(console.error)
+          }
+        }
+      } catch (err) {
+        // ignore JSON parse errors
+      }
+
+      // 2. Listen for our own callback page's message
       if (event.data?.type === 'WA_CALLBACK_SUCCESS') handleSuccess()
       else if (event.data?.type === 'WA_CALLBACK_ERROR') {
         handleFailure(event.data?.message || 'Erro ao conectar.')
@@ -171,6 +204,7 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
         `/api/v1/whatsapp/onboarding?projectId=${project.id}`,
         { method: 'GET', orgId: organizationId }
       )
+      trackingCodeRef.current = trackingCode
       const url = buildWhatsAppEmbeddedSignupUrl(onboardingUrl, trackingCode)
 
       const width = 640
