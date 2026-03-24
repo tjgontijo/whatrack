@@ -18,11 +18,12 @@ import { TemplateEditorForm } from '@/components/dashboard/whatsapp/template-edi
 import { AccountTab } from './account-tab'
 import { TemplatesView } from './templates-view'
 import { WebhooksView } from './webhooks-view'
+import { DebugTab } from './debug-tab'
 import { SendTestSheet } from '../send-test-sheet'
 import type { WhatsAppTemplate } from '@/types/whatsapp/whatsapp'
 import type { WhatsAppInstance } from './instance-card-detail'
 
-type Tab = 'conta' | 'templates' | 'webhook'
+type Tab = 'conta' | 'templates' | 'webhook' | 'debug'
 type DatePreset = 'all' | 'today' | '7d' | '30d'
 
 const DATE_PRESETS: { value: DatePreset; label: string }[] = [
@@ -118,7 +119,10 @@ export function WhatsAppSettingsHub({ organizationId }: WhatsAppSettingsHubProps
     () => [
       { key: 'conta', label: 'Conta' },
       { key: 'templates', label: 'Templates' },
-      ...(canViewWebhooks ? [{ key: 'webhook', label: 'Webhook' } satisfies HeaderTab] : []),
+      ...(canViewWebhooks ? [
+        { key: 'webhook', label: 'Webhook' } satisfies HeaderTab,
+        { key: 'debug', label: 'Debug' } satisfies HeaderTab,
+      ] : []),
     ],
     [canViewWebhooks]
   )
@@ -380,6 +384,10 @@ export function WhatsAppSettingsHub({ organizationId }: WhatsAppSettingsHubProps
 
         {activeTab === 'webhook' && canViewWebhooks && (
           <WebhooksView eventTypeFilter={eventTypeFilter} datePreset={datePreset} />
+        )}
+
+        {activeTab === 'debug' && canViewWebhooks && (
+          <DebugTab />
         )}
       </HeaderPageShell>
       )}
