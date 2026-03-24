@@ -1,6 +1,7 @@
 import { createId } from '@paralleldrive/cuid2'
 
 import { prisma } from '@/lib/db/prisma'
+import { logger } from '@/lib/utils/logger'
 import { encryption } from '@/lib/utils/encryption'
 import { MetaCloudService } from '@/services/whatsapp/meta-cloud.service'
 
@@ -163,13 +164,19 @@ export async function handleWhatsAppOnboardingCallback(
   let sharedPhoneIds: string[] = []
   try {
     sharedPhoneIds = await MetaCloudService.getSharedPhoneNumbers(accessToken)
-    console.log(`[Onboarding] 🕵️ Shared Phone IDs snitch:`, sharedPhoneIds)
+    logger.info({ sharedPhoneIds }, '[Onboarding] 🕵️ Shared Phone IDs snitch results')
   } catch (e) {
-    console.warn(`[Onboarding] ⚠️ Failed to fetch shared phones from token info`, e)
+    logger.warn({ err: e }, '[Onboarding] ⚠️ Failed to fetch shared phones from token info')
   }
 
-  console.log(`[Onboarding] 🚀 Processing ${wabas.length} WABA(s) for organization ${onboarding.organizationId}`)
-  console.log(`[Onboarding] postMessage captured ID: ${onboarding.phoneNumberId || 'NONE'}`)
+  logger.info(
+    { 
+      wabaCount: wabas.length, 
+      organizationId: onboarding.organizationId,
+      capturedId: onboarding.phoneNumberId 
+    }, 
+    '[Onboarding] 🚀 Processing WABAs'
+  )
 
   for (const waba of wabas) {
     try {
@@ -216,8 +223,13 @@ export async function handleWhatsAppOnboardingCallback(
       // Selective Import: Only import phones explicitly shared in this session
       const capturedId = onboarding.phoneNumberId
       
+      const phoneDetailsBefore = phones.map(p => ({ id: p.id, display: p.display_phone_number }))
+      
       if (capturedId || sharedPhoneIds.length > 0) {
-        console.log(`[Onboarding] 🔍 Filtering phones. Captured: ${capturedId || 'none'}, Shared: ${sharedPhoneIds.join(', ')}`)
+        logger.info(
+          { capturedId, sharedPhoneIds, wabaId: waba.wabaId, phonesFound: phones.length },
+          '[Onboarding] 🔍 Filtering phones'
+        )
         
         phones = phones.filter((phone) => {
           // If the frontend caught it, that's our gold standard
@@ -228,14 +240,20 @@ export async function handleWhatsAppOnboardingCallback(
           return false
         })
         
-        console.log(`[Onboarding] ✅ After filter: ${phones.length} phone(s) remaining`)
+        logger.info(
+          { countAfter: phones.length, phonesRemaining: phones.map(p => p.id) },
+          '[Onboarding] ✅ Filtering complete'
+        )
       } else {
-        console.log(`[Onboarding] ⚠️ No specific phone IDs found. Importing all ${phones.length} phone(s) from WABA`)
+        logger.warn(
+          { wabaId: waba.wabaId, count: phones.length },
+          '[Onboarding] ⚠️ No specific phone IDs found. Importing all phones from WABA'
+        )
       }
 
       // If Meta returns no phones for this WABA after filtering, skip it.
       if (phones.length === 0) {
-        console.log(`[Onboarding] ℹ️ All phones in WABA ${waba.wabaId} filtered out, skipping WABA`)
+        logger.info({ wabaId: waba.wabaId, details: phoneDetailsBefore }, '[Onboarding] ℹ️ All phones filtered out, skipping WABA')
         continue
       }
 
