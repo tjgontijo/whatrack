@@ -17,10 +17,20 @@ export function applyWhatsAppMask(value: string): string {
 
   if (!numbers) return ''
 
-  // Limita a 11 dígitos
+  // Se o número começa com 55 e tem mais que 11 dígitos, ou se tem mais que 11 dígitos no total,
+  // tratamos como um número completo com DDI e não aplicamos a máscara brasileira padrão.
+  if (numbers.length > 11 || (numbers.startsWith('55') && numbers.length > 2)) {
+    // Para números com DDI, podemos apenas prefixar com + para clareza visual ou deixar limpo
+    // Por enquanto, vamos apenas limitar a um tamanho razoável (ex: 15 dígitos padrão internacional)
+    // Mas no banco salvamos apenas dígitos, então aqui retornamos apenas o que o usuário digita
+    // para não bloquear a entrada de números internacionais.
+    return numbers.slice(0, 15)
+  }
+
+  // Limita a 11 dígitos para o formato brasileiro padrão
   const limited = numbers.slice(0, 11)
 
-  // Aplica a máscara progressivamente
+  // Aplica a máscara progressivamente (formato brasileiro)
   if (limited.length <= 2) {
     return limited.replace(/(\d{0,2})/, '($1')
   }
@@ -72,18 +82,24 @@ export function normalizeWhatsApp(value: string): string {
   // Remove tudo que não é número
   const numbers = value.replace(/\D/g, '')
 
-  // Se tiver 11 dígitos (DDD + 9 + número), adiciona 55
-  if (numbers.length === 11) {
-    return '55' + numbers // 55 + 61982482100 = 5561982482100 (13 dígitos)
+  // Se já começa com 55, não adicionamos novamente
+  if (numbers.startsWith('55')) {
+    return numbers
   }
 
-  // Se tiver 10 dígitos (DDD + número sem o 9), adiciona 55
-  if (numbers.length === 10) {
-    return '55' + numbers // 55 + 6182482100 = 556182482100 (12 dígitos)
+  // Se for um número longo (> 11 dígitos) e não começa com 55,
+  // assume-se que já tem outro DDI (ex: 1... para EUA)
+  if (numbers.length > 11) {
+    return numbers
   }
 
-  // Caso contrário, adiciona 55 no que vier
-  return '55' + numbers
+  // Se tiver 10 ou 11 dígitos (DDD + número), adiciona 55 (Brasil)
+  if (numbers.length === 11 || numbers.length === 10) {
+    return '55' + numbers
+  }
+
+  // Fallback seguro: se for muito curto ou incerto, adiciona 55 se não tiver nada melhor
+  return numbers.length > 0 && !numbers.startsWith('55') ? '55' + numbers : numbers
 }
 
 /**
