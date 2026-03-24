@@ -15,7 +15,7 @@ import {
 export type OnboardingStatus = 'idle' | 'pending' | 'success'
 
 const POLL_INTERVAL_MS = 3000
-const POLL_MAX_ATTEMPTS = 20 // 60s total
+const POLL_MAX_ATTEMPTS = 200 // 10 minutes total
 
 export function useWhatsAppOnboarding(onSuccess?: () => void) {
   const { organizationId } = useRequiredProjectRouteContext()
