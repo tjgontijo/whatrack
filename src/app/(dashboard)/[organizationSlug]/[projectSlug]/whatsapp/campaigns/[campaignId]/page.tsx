@@ -244,6 +244,23 @@ export default function CampaignDetailPage({ params }: CampaignPageProps) {
     },
   })
 
+  const retryFailedMutation = useMutation({
+    mutationFn: async () => {
+      return apiFetch(`/api/v1/whatsapp/campaigns/${campaignId}/retry-failed`, {
+        method: 'POST',
+        orgId: organizationId,
+      })
+    },
+    onSuccess: (data: any) => {
+      toast.success(data.message || 'Reenvio agendado!')
+      queryClient.invalidateQueries({ queryKey: ['whatsapp-campaign', organizationId, campaignId] })
+      queryClient.invalidateQueries({ queryKey: ['campaign-recipients', organizationId, campaignId, recipientPage] })
+    },
+    onError: (error: Error) => {
+      toast.error('Erro ao reenviar', { description: error.message })
+    },
+  })
+
   if (!campaignId) {
     return (
       <div className="flex h-[calc(100vh-200px)] items-center justify-center">
@@ -289,6 +306,18 @@ export default function CampaignDetailPage({ params }: CampaignPageProps) {
                 {campaign.scheduledAt && new Date(campaign.scheduledAt).getTime() > Date.now()
                   ? 'Agendar campanha'
                   : 'Enviar agora'}
+              </Button>
+            )}
+            {['COMPLETED', 'FAILED'].includes(campaign.status) && 
+              campaign.dispatchGroups.some(g => g.failCount > 0) && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => retryFailedMutation.mutate()}
+                disabled={retryFailedMutation.isPending}
+              >
+                <Send className="mr-2 h-4 w-4" />
+                Reenviar falhas ({campaign.dispatchGroups.reduce((acc, g) => acc + g.failCount, 0)})
               </Button>
             )}
             {['DRAFT', 'APPROVED', 'SCHEDULED', 'PROCESSING'].includes(
