@@ -157,8 +157,6 @@ export async function handleWhatsAppOnboardingCallback(
   const encryptedToken = encryption.encrypt(accessToken)
   let totalPhones = 0
 
-
-
   for (const waba of wabas) {
     try {
       const connection = await prisma.whatsAppConnection.upsert({
@@ -214,6 +212,23 @@ export async function handleWhatsAppOnboardingCallback(
       })
 
       for (const phone of phones) {
+        // Anti-stealing check: Do not import phones that are ACTIVELY connected to another project!
+        const existingConfig = await prisma.whatsAppConfig.findUnique({
+          where: { phoneId: phone.id }
+        })
+
+        if (existingConfig && existingConfig.projectId !== onboarding.projectId && existingConfig.status === 'connected') {
+          // This phone is actively being used by another client project. 
+          // Since the user is likely an agency admin who shared all their WABAs by accident in the Meta UI, 
+          // we must strictly protect the other project's instance from being stolen/moved here.
+          continue;
+        }
+
+        // If it was already disconnected in THIS project, we shouldn't force it back to connected
+        // simply because the user re-authorized the whole Business Manager for another number.
+        // We only reconnect if it was pending or error or we are creating new.
+        const shouldRevive = !existingConfig || existingConfig.status !== 'disconnected'
+
         await prisma.whatsAppConfig.upsert({
           where: { phoneId: phone.id },
           create: {
@@ -237,9 +252,9 @@ export async function handleWhatsAppOnboardingCallback(
             verifiedName: phone.verified_name,
             accessToken: encryptedToken,
             accessTokenEncrypted: true,
-            status: 'connected',
-            connectedAt: new Date(),
-            disconnectedAt: null,
+            status: shouldRevive ? 'connected' : 'disconnected',
+            connectedAt: shouldRevive ? new Date() : existingConfig?.connectedAt,
+            disconnectedAt: shouldRevive ? null : existingConfig?.disconnectedAt,
           },
         })
 
