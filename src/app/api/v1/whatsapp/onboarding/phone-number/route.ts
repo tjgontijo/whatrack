@@ -21,7 +21,7 @@ export async function POST(request: Request) {
 
     logger.info(
       { state: state.substring(0, 10), phoneNumberId },
-      '[OnboardingPhoneNumber] Recording phone_number_id from Embedded Signup'
+      '[OnboardingPhoneNumber] 🔍 Recording phone_number_id from Embedded Signup'
     )
 
     // Update onboarding record with phone number ID captured from Meta's postMessage
@@ -30,13 +30,22 @@ export async function POST(request: Request) {
       data: { phoneNumberId },
     })
 
+    logger.info(
+      { state: state.substring(0, 10), phoneNumberId, updatedCount: updated.count },
+      '[OnboardingPhoneNumber] Update result'
+    )
+
     if (updated.count === 0) {
+      logger.warn(
+        { state: state.substring(0, 10) },
+        '[OnboardingPhoneNumber] ⚠️ No onboarding session found for this state'
+      )
       return apiError('Onboarding session not found', 404)
     }
 
     logger.info(
-      { state: state.substring(0, 10), phoneNumberId },
-      '[OnboardingPhoneNumber] Successfully recorded phone_number_id'
+      { state: state.substring(0, 10), phoneNumberId, updatedCount: updated.count },
+      '[OnboardingPhoneNumber] ✅ Successfully recorded phone_number_id'
     )
 
     return apiSuccess({ success: true })
