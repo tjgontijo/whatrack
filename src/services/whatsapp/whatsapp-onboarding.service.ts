@@ -157,12 +157,7 @@ export async function handleWhatsAppOnboardingCallback(
   const encryptedToken = encryption.encrypt(accessToken)
   let totalPhones = 0
 
-  let sharedPhoneIds: string[] = []
-  try {
-    sharedPhoneIds = await MetaCloudService.getSharedPhoneNumbers(accessToken)
-  } catch {
-    // non-blocking
-  }
+
 
   for (const waba of wabas) {
     try {
@@ -201,55 +196,22 @@ export async function handleWhatsAppOnboardingCallback(
           wabaId: waba.wabaId,
           accessToken,
         })
-        
-        if (sharedPhoneIds.length > 0) {
-          phones = phones.filter((p) => sharedPhoneIds.includes(p.id))
-        }
       } catch {
         phones = []
       }
 
+      // If Meta returns no phones for this WABA, it means the user didn't select any numbers from this WABA.
       if (phones.length === 0) {
-        const pendingPhoneId = buildPendingPhoneId(waba.wabaId)
-
-        await prisma.whatsAppConfig.upsert({
-          where: { phoneId: pendingPhoneId },
-          create: {
-            organizationId: onboarding.organizationId,
-            projectId: onboarding.projectId,
-            connectionId: connection.id,
-            wabaId: waba.wabaId,
-            phoneId: pendingPhoneId,
-            displayPhone: 'Número em configuração',
-            verifiedName: waba.wabaName,
-            accessToken: encryptedToken,
-            accessTokenEncrypted: true,
-            status: 'pending',
-            connectedAt: new Date(),
-          },
-          update: {
-            organizationId: onboarding.organizationId,
-            projectId: onboarding.projectId,
-            connectionId: connection.id,
-            wabaId: waba.wabaId,
-            displayPhone: 'Número em configuração',
-            verifiedName: waba.wabaName,
-            accessToken: encryptedToken,
-            accessTokenEncrypted: true,
-            status: 'pending',
-            connectedAt: new Date(),
-            disconnectedAt: null,
-          },
-        })
-      } else {
-        await prisma.whatsAppConfig.deleteMany({
-          where: {
-            organizationId: onboarding.organizationId,
-            wabaId: waba.wabaId,
-            phoneId: buildPendingPhoneId(waba.wabaId),
-          },
-        })
+        continue
       }
+
+      await prisma.whatsAppConfig.deleteMany({
+        where: {
+          organizationId: onboarding.organizationId,
+          wabaId: waba.wabaId,
+          phoneId: buildPendingPhoneId(waba.wabaId),
+        },
+      })
 
       for (const phone of phones) {
         await prisma.whatsAppConfig.upsert({
