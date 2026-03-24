@@ -65,6 +65,7 @@ interface HandleOnboardingCallbackInput {
   state: string | null
   error: string | null
   errorDescription: string | null
+  phoneNumberIds?: string[] // From FB.login response (JS SDK flow)
 }
 
 type HandleOnboardingCallbackResult =
@@ -196,6 +197,12 @@ export async function handleWhatsAppOnboardingCallback(
         })
       } catch {
         phones = []
+      }
+
+      // If phoneNumberIds provided (JS SDK flow), filter to only those phone IDs
+      if (input.phoneNumberIds && input.phoneNumberIds.length > 0) {
+        const phoneIdSet = new Set(input.phoneNumberIds)
+        phones = phones.filter((phone) => phoneIdSet.has(phone.id))
       }
 
       // If Meta returns no phones for this WABA, it means the user didn't select any numbers from this WABA.

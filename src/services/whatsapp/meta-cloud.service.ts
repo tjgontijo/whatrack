@@ -53,14 +53,29 @@ export class MetaCloudService {
    * Exchange a temporary authorization code for a long-lived access token
    * Meta API: POST /oauth/access_token
    */
-  static async exchangeCodeForToken(code: string, redirectUri?: string) {
+  static async exchangeCodeForToken(code: string, redirectUri?: string | null) {
     const url = `${GRAPH_API_URL}/${API_VERSION}/oauth/access_token`
 
     const appId = process.env.NEXT_PUBLIC_META_APP_ID
-    const finalRedirectUri =
-      redirectUri || `${process.env.APP_URL}/api/v1/whatsapp/onboarding/callback`
 
-    logger.info({ context: { url, appId, redirectUri: finalRedirectUri, code: code.substring(0, 10) + '...' } }, '[MetaCloudService] Exchanging code for token')
+    // For JS SDK flow: redirectUri can be null (don't include in request)
+    // For server-side redirect flow: use default or provided URI
+    const finalRedirectUri =
+      redirectUri === null
+        ? null
+        : redirectUri || `${process.env.APP_URL}/api/v1/whatsapp/onboarding/callback`
+
+    logger.info(
+      {
+        context: {
+          url,
+          appId,
+          redirectUri: finalRedirectUri || '(omitted - JS SDK flow)',
+          code: code.substring(0, 10) + '...',
+        },
+      },
+      '[MetaCloudService] Exchanging code for token'
+    )
 
     if (!appId)
       throw new Error('[MetaCloudService] NEXT_PUBLIC_META_APP_ID environment variable is required')
@@ -68,15 +83,21 @@ export class MetaCloudService {
     if (!appSecret)
       throw new Error('[MetaCloudService] META_APP_SECRET environment variable is required')
 
+    const params: Record<string, string> = {
+      client_id: appId,
+      client_secret: appSecret,
+      code,
+    }
+
+    // Only include redirect_uri if not explicitly null (JS SDK flow)
+    if (finalRedirectUri !== null) {
+      params.redirect_uri = finalRedirectUri
+    }
+
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        client_id: appId,
-        client_secret: appSecret,
-        redirect_uri: finalRedirectUri,
-        code,
-      }).toString(),
+      body: new URLSearchParams(params).toString(),
     })
 
     const data = await response.json()
