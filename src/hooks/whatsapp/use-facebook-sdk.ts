@@ -49,29 +49,41 @@ export function useFacebookSdk() {
 
   useEffect(() => {
     // Skip if already loaded
-    if (typeof window === 'undefined') return
+    if (typeof window === 'undefined') {
+      console.log('[FB SDK] Window undefined, skipping')
+      return
+    }
+
     if (window.FB) {
+      console.log('[FB SDK] Already loaded, setting ready')
       setIsReady(true)
       return
     }
 
     // Check if script is already loading
     if (document.querySelector(`script[src="${FB_SDK_URL}"]`)) {
+      console.log('[FB SDK] Script already in DOM, skipping')
       return
     }
 
     const appId = process.env.NEXT_PUBLIC_META_APP_ID
     if (!appId) {
+      console.error('[FB SDK] Missing NEXT_PUBLIC_META_APP_ID')
       setError('Missing NEXT_PUBLIC_META_APP_ID environment variable')
       return
     }
 
+    console.log('[FB SDK] Starting initialization with appId:', appId.substring(0, 10) + '...')
+
     // Initialize fbAsyncInit before script loads
     window.fbAsyncInit = () => {
+      console.log('[FB SDK] fbAsyncInit called, window.FB type:', typeof window.FB)
       if (!window.FB) {
+        console.error('[FB SDK] window.FB not available after init')
         setError('Facebook SDK failed to initialize')
         return
       }
+      console.log('[FB SDK] Calling FB.init with appId:', appId.substring(0, 10) + '...')
       window.FB.init({
         appId,
         version: API_VERSION,
@@ -79,23 +91,28 @@ export function useFacebookSdk() {
         status: true,
         xfbml: false,
       })
+      console.log('[FB SDK] FB.init completed, setting ready')
       setIsReady(true)
       setError(null)
     }
 
     // Load FB SDK script
+    console.log('[FB SDK] Creating script tag')
     const script = document.createElement('script')
     script.src = `${FB_SDK_URL}#xfbml=1&version=${API_VERSION}&appId=${appId}`
     script.async = true
     script.defer = true
     script.onload = () => {
+      console.log('[FB SDK] Script loaded')
       // fbAsyncInit will be called automatically
     }
     script.onerror = () => {
+      console.error('[FB SDK] Script failed to load')
       setError('Failed to load Facebook SDK')
       setIsReady(false)
     }
 
+    console.log('[FB SDK] Appending script to body')
     document.body.appendChild(script)
 
     return () => {
