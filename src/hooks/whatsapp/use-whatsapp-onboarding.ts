@@ -161,7 +161,9 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
         window.removeEventListener('focus', onFocus)
         onFocusRef.current = null
 
-        console.log('[Onboarding] Popup closed, checking localStorage...')
+        console.log('[Onboarding] Popup closed')
+
+        if (callbackHandledRef.current) return
 
         // Check localStorage (callback writes here)
         const stored = consumeStoredResult()
@@ -174,9 +176,9 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
           return
         }
 
-        if (!callbackHandledRef.current) {
-          handleFailure('Onboarding cancelado. Feche o popup sem completar.')
-        }
+        // Popup closed without a clear result — optimistically assume success
+        // and let the onSuccess callback refetch to confirm
+        handleSuccess()
       }
 
       onFocusRef.current = onFocus
