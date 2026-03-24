@@ -316,4 +316,23 @@ export const whatsappApi = {
     const data = await res.json()
     return data.logs || []
   },
+
+  /**
+   * Desconecta uma instância WhatsApp
+   */
+  async disconnect(configId: string, orgId: string): Promise<any> {
+    const res = await fetch('/api/v1/whatsapp/disconnect', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        [ORGANIZATION_HEADER]: orgId,
+      },
+      body: JSON.stringify({ configId }),
+    })
+    if (!res.ok) {
+      const error = await res.json()
+      throw new Error(error.error || 'Failed to disconnect')
+    }
+    return res.json()
+  },
 }

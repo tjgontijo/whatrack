@@ -1,8 +1,9 @@
 'use client'
 
 import { useCallback, useMemo, useState } from 'react'
-import { useIsFetching, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useIsFetching, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Loader2, Plus, Send } from 'lucide-react'
+import { toast } from 'sonner'
 
 import { HeaderPageShell, HeaderTabs, type HeaderTab } from '@/components/dashboard/layout'
 import { Button } from '@/components/ui/button'
@@ -128,6 +129,20 @@ export function WhatsAppSettingsHub({ organizationId }: WhatsAppSettingsHubProps
     setSendTestTemplate(undefined)
     setSendTestOpen(true)
   }, [])
+
+  const { mutate: handleDisconnect } = useMutation({
+    mutationFn: async () => {
+      if (!instance?.id) throw new Error('No instance to disconnect')
+      await whatsappApi.disconnect(instance.id, resolvedOrgId)
+    },
+    onSuccess: () => {
+      toast.success('Número WhatsApp desconectado com sucesso')
+      void queryClient.invalidateQueries({ queryKey: ['whatsapp', 'instances', projectId] })
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : 'Erro ao desconectar')
+    },
+  })
 
   // Handlers for TemplatesView
   const handleNewTemplate = useCallback(() => {
@@ -344,6 +359,7 @@ export function WhatsAppSettingsHub({ organizationId }: WhatsAppSettingsHubProps
             canStartOnboarding={sdkReady}
             onConnectClick={startOnboarding}
             onSendTestClick={handleSendTestFromAccount}
+            onDisconnectClick={() => handleDisconnect()}
           />
         )}
 

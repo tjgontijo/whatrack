@@ -1,11 +1,21 @@
 'use client'
 
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { ExternalLink, Send, Wifi, Zap, Globe } from 'lucide-react'
+import { ExternalLink, Send, Wifi, Zap, Globe, LogOut } from 'lucide-react'
 import { parsePhoneNumberFromString } from 'libphonenumber-js'
 import * as Flags from 'country-flag-icons/react/3x2'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
 import { whatsappApi } from '@/lib/whatsapp/client'
 
@@ -28,6 +38,7 @@ export interface WhatsAppInstance {
 interface InstanceCardDetailProps {
   instance: WhatsAppInstance
   onSendTestClick?: (instance: WhatsAppInstance) => void
+  onDisconnectClick?: () => void | Promise<void>
 }
 
 // ─── Status config ─────────────────────────────────────────────────────────
@@ -70,14 +81,24 @@ function PhoneFlag({ number }: { number: string }) {
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
-export function InstanceCardDetail({ instance, onSendTestClick }: InstanceCardDetailProps) {
+export function InstanceCardDetail({ instance, onSendTestClick, onDisconnectClick }: InstanceCardDetailProps) {
   const { organizationId } = useRequiredProjectRouteContext()
+  const [isDisconnecting, setIsDisconnecting] = useState(false)
 
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ['whatsapp', 'phone-profile', instance.metaPhoneId],
     queryFn: () => whatsappApi.getPhoneProfile(instance.metaPhoneId, organizationId),
     staleTime: 5 * 60 * 1000,
   })
+
+  const handleDisconnectConfirm = async () => {
+    setIsDisconnecting(true)
+    try {
+      await onDisconnectClick?.()
+    } finally {
+      setIsDisconnecting(false)
+    }
+  }
 
   // Parse phone number for pretty formatting
   const clean = instance.displayPhone.startsWith('+')
@@ -109,15 +130,44 @@ export function InstanceCardDetail({ instance, onSendTestClick }: InstanceCardDe
             </div>
           </div>
 
-          <Button
-            size="sm"
-            variant="outline"
-            className="shrink-0 gap-2"
-            onClick={() => onSendTestClick?.(instance)}
-          >
-            <Send className="h-3.5 w-3.5" />
-            Enviar Teste
-          </Button>
+          {/* Action buttons */}
+          <div className="flex shrink-0 gap-2">
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-9 w-9 p-0"
+              onClick={() => onSendTestClick?.(instance)}
+              title="Enviar Teste"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
+
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-9 w-9 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  title="Desconectar"
+                  disabled={isDisconnecting}
+                >
+                  <LogOut className="h-4 w-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogTitle>Desconectar WhatsApp?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Tem certeza que deseja desconectar este número? Você poderá reconectar depois.
+                </AlertDialogDescription>
+                <div className="flex justify-end gap-3">
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDisconnectConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    {isDisconnecting ? 'Desconectando...' : 'Desconectar'}
+                  </AlertDialogAction>
+                </div>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         </div>
 
         {/* Badges row */}

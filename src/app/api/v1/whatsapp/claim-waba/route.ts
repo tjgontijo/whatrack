@@ -89,11 +89,19 @@ export async function POST(request: Request) {
             // Buscar detalhes do número específico
             try {
                 const phones = await MetaCloudService.listPhoneNumbers({ wabaId, accessToken: token })
-                primaryPhone = phones.find((p: any) => p.id === phoneNumberId) || phones[0]
+                primaryPhone = phones.find((p: any) => p.id === phoneNumberId)
+
+                if (!primaryPhone) {
+                    console.error('[ClaimWaba] phoneNumberId não encontrado na WABA:', phoneNumberId)
+                    return NextResponse.json({
+                        error: `Número com ID ${phoneNumberId} não encontrado na WABA.`,
+                        availablePhones: phones.map((p: any) => ({ id: p.id, displayPhoneNumber: p.display_phone_number }))
+                    }, { status: 404 })
+                }
                 console.log('[ClaimWaba] Phone encontrado:', primaryPhone?.display_phone_number)
             } catch (err: any) {
-                console.warn('[ClaimWaba] Erro ao buscar detalhes do phone, usando ID diretamente:', err.message)
-                primaryPhone = { id: phoneNumberId }
+                console.error('[ClaimWaba] Erro ao buscar detalhes do phone:', err.message)
+                return NextResponse.json({ error: 'Erro ao buscar detalhes do número: ' + err.message }, { status: 502 })
             }
         } else {
             // Buscar números de telefone da WABA
@@ -101,9 +109,26 @@ export async function POST(request: Request) {
             try {
                 const phones = await MetaCloudService.listPhoneNumbers({ wabaId, accessToken: token })
                 console.log(`[ClaimWaba] Números encontrados (${phones.length}):`, phones.map((p: any) => p.display_phone_number))
-                primaryPhone = phones[0]
+
+                if (phones.length === 0) {
+                    console.error('[ClaimWaba] Nenhum número encontrado na WABA')
+                    return NextResponse.json({ error: 'Nenhum número de telefone encontrado na WABA. Configure um número no WhatsApp Business Manager.' }, { status: 400 })
+                }
+
+                if (phones.length === 1) {
+                    // Se há apenas um número, usar diretamente
+                    primaryPhone = phones[0]
+                } else {
+                    // Múltiplos números — erro para o usuário especificar qual conectar
+                    console.warn('[ClaimWaba] WABA tem múltiplos números, phoneNumberId obrigatório')
+                    return NextResponse.json({
+                        error: `WABA tem ${phones.length} números. Especifique qual deseja conectar.`,
+                        phones: phones.map((p: any) => ({ id: p.id, displayPhoneNumber: p.display_phone_number }))
+                    }, { status: 400 })
+                }
             } catch (err: any) {
                 console.warn('[ClaimWaba] Erro ao buscar phones:', err.message)
+                return NextResponse.json({ error: 'Erro ao buscar números de telefone da WABA: ' + err.message }, { status: 502 })
             }
         }
 

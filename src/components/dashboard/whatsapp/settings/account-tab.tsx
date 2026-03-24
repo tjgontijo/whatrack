@@ -12,6 +12,7 @@ interface AccountTabProps {
   canStartOnboarding?: boolean
   onConnectClick?: () => void | Promise<void>
   onSendTestClick?: (instance: WhatsAppInstance) => void
+  onDisconnectClick?: () => void | Promise<void>
 }
 
 export function AccountTab({
@@ -21,6 +22,7 @@ export function AccountTab({
   canStartOnboarding = false,
   onConnectClick,
   onSendTestClick,
+  onDisconnectClick,
 }: AccountTabProps) {
   if (isLoading) {
     return (
@@ -58,6 +60,6 @@ export function AccountTab({
   }
 
   return (
-    <InstanceCardDetail instance={instance} onSendTestClick={onSendTestClick} />
+    <InstanceCardDetail instance={instance} onSendTestClick={onSendTestClick} onDisconnectClick={onDisconnectClick} />
   )
 }
