@@ -71,9 +71,6 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
         return
       }
 
-      // Callback result comes from our own origin
-      if (event.origin !== window.location.origin) return
-
       if (event.data?.type === 'WA_CALLBACK_SUCCESS') {
         console.log('[Onboarding] ✅ WA_CALLBACK_SUCCESS received')
         handleSuccess()

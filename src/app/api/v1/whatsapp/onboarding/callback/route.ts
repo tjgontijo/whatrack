@@ -31,17 +31,23 @@ const RESPONSE_HTML = (status: 'success' | 'error', message?: string) => {
     <h2>${status === 'success' ? '✅ Conectado com sucesso!' : '❌ Erro na conexão'}</h2>
     <p>${status === 'success' ? 'Pode fechar esta janela.' : escapeHtml(safeMessage)}</p>
     <script>
-      // 1. Write to localStorage so the opener reads it via storage event
+      // 1. Write to localStorage — storage events fire across all same-origin windows
       try { localStorage.setItem(${serializedStorageKey}, ${serializedStoragePayload}); } catch(e) {}
 
-      // 2. Send postMessage to opener (the main whatrack window)
-      var target = window.opener || window.parent;
-      if (target && target !== window) {
-        try { target.postMessage(${serializedMsg}, '*'); } catch(e) {}
+      // 2. Send postMessage up the opener chain
+      // Hosted ES flow: OAuth popup (us) -> Meta popup (opener) -> our main window (opener.opener)
+      // We try all possible targets to be safe
+      var targets = [];
+      try { if (window.opener && window.opener !== window) targets.push(window.opener); } catch(e) {}
+      try { if (window.opener && window.opener.opener && window.opener.opener !== window) targets.push(window.opener.opener); } catch(e) {}
+      try { if (window.parent && window.parent !== window) targets.push(window.parent); } catch(e) {}
+
+      for (var i = 0; i < targets.length; i++) {
+        try { targets[i].postMessage(${serializedMsg}, '*'); } catch(e) {}
       }
 
-      // 3. Close this popup after a short delay
-      setTimeout(function() { window.close(); }, 500);
+      // 3. Close this popup
+      setTimeout(function() { window.close(); }, 300);
     </script>
   </body>
 </html>`
