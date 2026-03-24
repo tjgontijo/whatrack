@@ -10,6 +10,7 @@ import {
 } from '@/services/whatsapp/whatsapp-campaign-execution.service'
 import { whatsappCampaignDispatchSchema } from '@/schemas/whatsapp/whatsapp-campaign-schemas'
 import { logger } from '@/lib/utils/logger'
+import { sendInngestEvent } from '@/server/inngest/client'
 
 export const dynamic = 'force-dynamic'
 
@@ -42,27 +43,16 @@ export async function POST(
     return apiError(result.error, result.status)
   }
 
-  if (parsed.data.immediate) {
-    const groups = await prisma.whatsAppCampaignDispatchGroup.findMany({
-      where: { campaignId, status: 'PENDING' },
-      select: { id: true },
+  if (parsed.data.immediate || scheduledAt) {
+    await sendInngestEvent({
+      name: 'whatsapp/campaign.dispatch',
+      data: {
+        organizationId: access.organizationId,
+        campaignId,
+        immediate: parsed.data.immediate,
+        scheduledAt: scheduledAt?.toISOString() || null,
+      },
     })
-
-    for (const group of groups) {
-      try {
-        const groupResult = await processDispatchGroup(group.id, access.organizationId)
-        await checkAndCompleteCampaign(campaignId)
-        logger.info(
-          { ...groupResult, campaignId, groupId: group.id },
-          '[WhatsAppCampaignDispatch] Group processed'
-        )
-      } catch (error) {
-        logger.error(
-          { err: error, campaignId, groupId: group.id },
-          '[WhatsAppCampaignDispatch] Group error'
-        )
-      }
-    }
   }
 
   return apiSuccess({ success: true })
