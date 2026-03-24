@@ -46,8 +46,8 @@ const RESPONSE_HTML = (status: 'success' | 'error', message?: string) => {
         try { targets[i].postMessage(${serializedMsg}, '*'); } catch(e) {}
       }
 
-      // 3. Close this popup
-      setTimeout(function() { window.close(); }, 300);
+      // 3. Close this popup after giving time for localStorage/postMessage to propagate
+      setTimeout(function() { window.close(); }, 2000);
     </script>
   </body>
 </html>`
