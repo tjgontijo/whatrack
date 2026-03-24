@@ -157,6 +157,13 @@ export async function handleWhatsAppOnboardingCallback(
   const encryptedToken = encryption.encrypt(accessToken)
   let totalPhones = 0
 
+  let sharedPhoneIds: string[] = []
+  try {
+    sharedPhoneIds = await MetaCloudService.getSharedPhoneNumbers(accessToken)
+  } catch {
+    // non-blocking
+  }
+
   for (const waba of wabas) {
     try {
       const connection = await prisma.whatsAppConnection.upsert({
@@ -194,6 +201,10 @@ export async function handleWhatsAppOnboardingCallback(
           wabaId: waba.wabaId,
           accessToken,
         })
+        
+        if (sharedPhoneIds.length > 0) {
+          phones = phones.filter((p) => sharedPhoneIds.includes(p.id))
+        }
       } catch {
         phones = []
       }

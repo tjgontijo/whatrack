@@ -176,7 +176,34 @@ export class MetaCloudService {
   }
 
   /**
+   * Extract Phone Number IDs that were explicitly shared during Embedded Signup
+   * Uses debug_token and extracts from granular_scopes
+   */
+  static async getSharedPhoneNumbers(accessToken: string): Promise<string[]> {
+    logger.info('[MetaCloudService] Fetching shared phone numbers via debug_token...')
+
+    try {
+      const debugData = await this.debugToken(accessToken)
+      const granularScopes = debugData.granular_scopes || []
+      const phoneIds: string[] = []
+
+      for (const scope of granularScopes) {
+        if (scope.scope === 'whatsapp_business_messaging' && scope.target_ids) {
+          phoneIds.push(...scope.target_ids)
+        }
+      }
+
+      logger.info({ context: { count: phoneIds.length, phoneIds } }, '[MetaCloudService] Found Phone IDs from granular_scopes')
+      return phoneIds
+    } catch (err) {
+      logger.warn({ err }, '[MetaCloudService] Failed to extract shared phone numbers from token')
+      return []
+    }
+  }
+
+  /**
    * Subscribe your app to a WABA's webhooks
+
    * Meta API: POST /{WABA_ID}/subscribed_apps
    */
   static async subscribeToWaba(wabaId: string, accessToken: string) {
