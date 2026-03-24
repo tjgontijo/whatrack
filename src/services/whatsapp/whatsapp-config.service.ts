@@ -80,7 +80,28 @@ export async function disconnectWhatsAppConfig(params: DisconnectWhatsAppConfigP
     try {
       const plainToken = resolveAccessToken(config.accessToken)
       if (plainToken) {
-        await MetaCloudService.unsubscribeFromWaba(config.wabaId, plainToken)
+        // Deregister this specific phone number from Cloud API
+        if (config.phoneId) {
+          try {
+            await MetaCloudService.deregisterPhone({ phoneId: config.phoneId, accessToken: plainToken })
+          } catch {
+            // non-blocking
+          }
+        }
+
+        // Only unsubscribe from WABA if there are no other active configs for it
+        const otherActiveConfigs = await prisma.whatsAppConfig.count({
+          where: {
+            organizationId: params.organizationId,
+            wabaId: config.wabaId,
+            id: { not: params.configId },
+            status: { not: 'disconnected' },
+          },
+        })
+
+        if (otherActiveConfigs === 0) {
+          await MetaCloudService.unsubscribeFromWaba(config.wabaId, plainToken)
+        }
       }
     } catch {
       // non-blocking
@@ -152,7 +173,7 @@ export async function listWhatsAppPhoneNumbers(organizationId: string) {
   const configs = await MetaCloudService.getAllConfigs(organizationId)
   const configByPhoneId = new Map(
     configs
-      .filter((config) => config.phoneId && !isPendingPhoneId(config.phoneId))
+      .filter((config) => config.phoneId && !isPendingPhoneId(config.phoneId) && config.status !== 'disconnected')
       .map((config) => [
         config.phoneId!,
         {
@@ -164,7 +185,7 @@ export async function listWhatsAppPhoneNumbers(organizationId: string) {
   )
   const pendingConfigByWabaId = new Map(
     configs
-      .filter((config) => config.wabaId && isPendingPhoneId(config.phoneId))
+      .filter((config) => config.wabaId && isPendingPhoneId(config.phoneId) && config.status !== 'disconnected')
       .map((config) => [
         config.wabaId!,
         {
@@ -189,7 +210,7 @@ export async function listWhatsAppPhoneNumbers(organizationId: string) {
     }
   }
 
-  const wabaIds = Array.from(new Set(configs.map((config) => config.wabaId).filter(Boolean))) as string[]
+  const wabaIds = Array.from(new Set(configs.filter((c) => c.status !== 'disconnected').map((config) => config.wabaId).filter(Boolean))) as string[]
   const allPhoneNumbers: Array<Record<string, unknown>> = []
 
   for (const wabaId of wabaIds) {

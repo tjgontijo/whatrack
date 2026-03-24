@@ -130,7 +130,7 @@ export function WhatsAppSettingsHub({ organizationId }: WhatsAppSettingsHubProps
     setSendTestOpen(true)
   }, [])
 
-  const { mutate: handleDisconnect } = useMutation({
+  const { mutateAsync: handleDisconnectAsync } = useMutation({
     mutationFn: async () => {
       if (!instance?.id) throw new Error('No instance to disconnect')
       await whatsappApi.disconnect(instance.id, resolvedOrgId)
@@ -361,7 +361,7 @@ export function WhatsAppSettingsHub({ organizationId }: WhatsAppSettingsHubProps
             canStartOnboarding={sdkReady}
             onConnectClick={startOnboarding}
             onSendTestClick={handleSendTestFromAccount}
-            onDisconnectClick={() => handleDisconnect()}
+            onDisconnectClick={() => handleDisconnectAsync()}
           />
         )}
 

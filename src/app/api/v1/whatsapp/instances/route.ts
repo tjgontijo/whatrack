@@ -10,6 +10,8 @@ import {
 } from '@/services/whatsapp/whatsapp-config.service'
 import { logger } from '@/lib/utils/logger'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     const access = await validateFullAccess(request)
