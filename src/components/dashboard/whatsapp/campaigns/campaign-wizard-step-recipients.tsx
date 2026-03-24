@@ -185,18 +185,16 @@ export function CampaignWizardStepRecipients({
               ) : null}
             </div>
 
-            {templateVariableNames.length > 0 && (
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation()
-                  handleDownloadModel()
-                }}
-                className="text-muted-foreground hover:text-foreground absolute right-5 bottom-4 text-sm underline underline-offset-4"
-              >
-                baixar modelo
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation()
+                handleDownloadModel()
+              }}
+              className="text-muted-foreground hover:text-foreground absolute right-5 bottom-4 text-sm underline underline-offset-4"
+            >
+              baixar modelo
+            </button>
           </div>
         </CardContent>
       </Card>
@@ -323,8 +321,32 @@ export function CampaignWizardStepRecipients({
       )}
 
       {!parsedCsv && !fileError && (
-        <div className="text-muted-foreground flex min-h-40 items-center justify-center rounded-lg border border-dashed text-sm">
-          Envie um CSV para continuar o mapeamento dos destinatários.
+        <div className="bg-muted/10 flex flex-col items-center justify-center space-y-4 rounded-lg border border-dashed py-10 text-center">
+          <div className="space-y-1">
+            <p className="text-sm font-medium">Envie um CSV para continuar</p>
+            <p className="text-muted-foreground text-xs">
+              O mapeamento dos destinatários será feito após o upload.
+            </p>
+          </div>
+          
+          <div className="max-w-md space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Colunas necessárias:</p>
+            <div className="flex flex-wrap justify-center gap-2">
+              <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
+                telefone (obrigatório)
+              </Badge>
+              {templateVariableNames.map((name) => (
+                <Badge key={name} variant="outline">
+                  {name}
+                </Badge>
+              ))}
+            </div>
+            {templateVariableNames.length > 0 && (
+              <p className="text-muted-foreground text-[10px] leading-relaxed">
+                As colunas de variáveis serão usadas para personalizar a mensagem do template.
+              </p>
+            )}
+          </div>
         </div>
       )}
 
