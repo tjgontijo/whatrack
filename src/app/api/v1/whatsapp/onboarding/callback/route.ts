@@ -62,12 +62,27 @@ const RESPONSE_HTML = (status: 'success' | 'error', message?: string) => {
 export async function GET(request: Request) {
   try {
     const url = new URL(request.url)
+    const code = url.searchParams.get('code')
+    const state = url.searchParams.get('state')
+    const error = url.searchParams.get('error')
+    const errorDescription = url.searchParams.get('error_description')
+
+    console.log('[OnboardingCallback] 🔍 Received callback:', {
+      hasCode: !!code,
+      hasState: !!state,
+      hasError: !!error,
+      state: state?.substring(0, 10),
+      error,
+    })
+
     const result = await handleWhatsAppOnboardingCallback({
-      code: url.searchParams.get('code'),
-      state: url.searchParams.get('state'),
-      error: url.searchParams.get('error'),
-      errorDescription: url.searchParams.get('error_description'),
+      code,
+      state,
+      error,
+      errorDescription,
     }, url.origin)
+
+    console.log('[OnboardingCallback] Result:', result)
 
     if (!result.success) {
       return new Response(RESPONSE_HTML('error', result.message), {

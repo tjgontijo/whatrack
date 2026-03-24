@@ -186,14 +186,24 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
       )
       const url = buildWhatsAppEmbeddedSignupUrl(onboardingUrl, trackingCode)
 
-      // Open in new tab instead of popup
-      popupRef.current = window.open(url, '_blank')
+      // Open as a popup window (not _blank tab) so postMessage can communicate back
+      // Window specs: width, height, centered on screen
+      const width = 700
+      const height = 1000
+      const left = (window.innerWidth - width) / 2
+      const top = (window.innerHeight - height) / 2
+      const windowSpecs = `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
+
+      popupRef.current = window.open(url, 'whatsapp-onboarding', windowSpecs)
 
       if (!popupRef.current) {
         setStatus('idle')
-        setError('Não foi possível abrir a nova aba. Verifique se popups estão permitidos.')
+        setError('Não foi possível abrir o popup. Verifique se popups estão permitidos.')
         return
       }
+
+      // Focus the popup so user sees it
+      popupRef.current.focus()
 
       const onFocus = () => {
         if (!popupRef.current?.closed) return
@@ -202,25 +212,7 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
         onFocusRef.current = null
         popupRef.current = null
 
-        // If we captured a phone_number_id from Meta's postMessage, send it to backend
-        if (phoneNumberIdRef.current && trackingCode) {
-          console.log('[Onboarding] 🚀 Sending captured phone_number_id to backend:', phoneNumberIdRef.current, 'state:', trackingCode)
-          fetch('/api/v1/whatsapp/onboarding/phone-number', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              state: trackingCode,
-              phoneNumberId: phoneNumberIdRef.current,
-            }),
-          }).then(res => {
-            console.log('[Onboarding] ✅ Phone number saved. Response status:', res.status)
-            return res.json()
-          }).catch((err) => {
-            console.error('[Onboarding] ❌ Failed to send phone_number_id:', err)
-          })
-        } else {
-          console.log('[Onboarding] ⚠️ phoneNumberIdRef not set or no trackingCode. phoneNumberId:', phoneNumberIdRef.current, 'trackingCode:', trackingCode?.substring(0, 10))
-        }
+        console.log('[Onboarding] Popup closed, checking result...')
 
         if (handleStoredResult()) {
           return
@@ -232,7 +224,7 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
         }
 
         if (!callbackHandledRef.current) {
-          handleFailure('Conexão cancelada. A aba de onboarding foi fechada antes de concluir o processo.')
+          handleFailure('Conexão cancelada. O popup de onboarding foi fechado antes de concluir o processo.')
         }
       }
 
