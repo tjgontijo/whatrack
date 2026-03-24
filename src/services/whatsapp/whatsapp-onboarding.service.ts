@@ -111,9 +111,24 @@ export async function handleWhatsAppOnboardingCallback(
     return { success: false, message: 'Missing code or state in callback' }
   }
 
-  const onboarding = await prisma.whatsAppOnboarding.findUnique({
+  let onboarding = await prisma.whatsAppOnboarding.findUnique({
     where: { trackingCode: input.state },
   })
+  
+  // Wait up to 5 seconds for the frontend to record the phoneNumberId via postMessage
+  // This solves the race condition where the OAuth redirect finishes before the frontend POST request
+  if (onboarding && !onboarding.phoneNumberId) {
+    for (let i = 0; i < 10; i++) {
+        await new Promise(r => setTimeout(r, 500))
+        const check = await prisma.whatsAppOnboarding.findUnique({
+            where: { trackingCode: input.state },
+        })
+        if (check?.phoneNumberId) {
+            onboarding = check
+            break
+        }
+    }
+  }
 
   if (!onboarding) {
     return { success: false, message: 'Invalid or expired tracking code' }
