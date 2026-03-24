@@ -640,6 +640,11 @@ export class MetaCloudService {
     const data = await response.json()
 
     if (!response.ok) {
+      if (data.error?.message?.includes('not available for API solution for SMB businesses')) {
+        logger.info({ context: { phoneId } }, '[MetaCloudService] Skipping deregister (Not allowed for SMB apps)')
+        return data
+      }
+      
       logger.error({ err: data, context: { phoneId } }, '[MetaCloudService] Deregister error')
       throw new Error(data.error?.message || 'Failed to deregister phone')
     }
