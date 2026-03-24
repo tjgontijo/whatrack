@@ -98,10 +98,13 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
     const handleMessage = (event: MessageEvent) => {
       // Capture phone_number_id from Meta's Embedded Signup postMessage
       if (event.data?.type === 'WA_EMBEDDED_SIGNUP') {
+        console.log('[Onboarding] Received WA_EMBEDDED_SIGNUP event:', event.data)
         const phoneNumberId = event.data?.data?.phone_number_id
         if (phoneNumberId) {
           phoneNumberIdRef.current = phoneNumberId
-          console.log('[Onboarding] Captured phone_number_id from postMessage:', phoneNumberId)
+          console.log('[Onboarding] ✅ Captured phone_number_id from postMessage:', phoneNumberId)
+        } else {
+          console.log('[Onboarding] ⚠️ No phone_number_id in WA_EMBEDDED_SIGNUP event. Full data:', event.data)
         }
         return
       }
@@ -201,7 +204,7 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
 
         // If we captured a phone_number_id from Meta's postMessage, send it to backend
         if (phoneNumberIdRef.current && trackingCode) {
-          console.log('[Onboarding] Sending captured phone_number_id to backend:', phoneNumberIdRef.current)
+          console.log('[Onboarding] 🚀 Sending captured phone_number_id to backend:', phoneNumberIdRef.current, 'state:', trackingCode)
           fetch('/api/v1/whatsapp/onboarding/phone-number', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -209,9 +212,14 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
               state: trackingCode,
               phoneNumberId: phoneNumberIdRef.current,
             }),
+          }).then(res => {
+            console.log('[Onboarding] ✅ Phone number saved. Response status:', res.status)
+            return res.json()
           }).catch((err) => {
-            console.error('[Onboarding] Failed to send phone_number_id:', err)
+            console.error('[Onboarding] ❌ Failed to send phone_number_id:', err)
           })
+        } else {
+          console.log('[Onboarding] ⚠️ phoneNumberIdRef not set or no trackingCode. phoneNumberId:', phoneNumberIdRef.current, 'trackingCode:', trackingCode?.substring(0, 10))
         }
 
         if (handleStoredResult()) {
