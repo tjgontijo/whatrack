@@ -30,8 +30,16 @@ export const aiCadenceTickDataSchema = z.object({
   enrollmentId: z.string().uuid().optional(),
 })
 
+export const whatsappCampaignDispatchDataSchema = z.object({
+  organizationId: z.string().uuid(),
+  campaignId: z.string().uuid(),
+  immediate: z.boolean().default(true),
+  scheduledAt: z.string().datetime().nullable().optional(),
+})
+
 export const aiInngestEventSchemas = {
   'whatsapp/message.received': whatsappMessageReceivedDataSchema,
+  'whatsapp/campaign.dispatch': whatsappCampaignDispatchDataSchema,
   'ai.event.recorded': aiEventRecordedDataSchema,
   'ai.prompt.requested': aiPromptRequestedDataSchema,
   'ai.cadence.tick': aiCadenceTickDataSchema,
@@ -43,6 +51,10 @@ export type AiInngestEventPayload =
   | {
       name: 'whatsapp/message.received'
       data: z.infer<typeof whatsappMessageReceivedDataSchema>
+    }
+  | {
+      name: 'whatsapp/campaign.dispatch'
+      data: z.infer<typeof whatsappCampaignDispatchDataSchema>
     }
   | {
       name: 'ai.event.recorded'
