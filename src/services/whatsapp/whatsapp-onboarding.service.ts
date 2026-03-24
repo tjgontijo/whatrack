@@ -160,27 +160,17 @@ export async function handleWhatsAppOnboardingCallback(
   const encryptedToken = encryption.encrypt(accessToken)
   let totalPhones = 0
 
-  // 1. Get shared phone IDs from Meta's granular_scopes as a snitch (the best filter)
-  let sharedPhoneIds: string[] = []
-  try {
-    sharedPhoneIds = await MetaCloudService.getSharedPhoneNumbers(accessToken)
-    logger.info({ sharedPhoneIds }, '[Onboarding] 🕵️ Shared Phone IDs snitch results')
-  } catch (e) {
-    logger.warn({ err: e }, '[Onboarding] ⚠️ Failed to fetch shared phones from token info')
-  }
-
   logger.info(
     { 
       wabaCount: wabas.length, 
       organizationId: onboarding.organizationId,
-      capturedId: onboarding.phoneNumberId 
     }, 
     '[Onboarding] 🚀 Processing WABAs'
   )
 
   for (const waba of wabas) {
     try {
-      console.log(`[Onboarding] Processing WABA: ${waba.wabaId} (${waba.wabaName})`)
+      logger.info(`[Onboarding] Processing WABA: ${waba.wabaId} (${waba.wabaName})`)
       const connection = await prisma.whatsAppConnection.upsert({
         where: {
           organizationId_wabaId: {
@@ -216,46 +206,18 @@ export async function handleWhatsAppOnboardingCallback(
           wabaId: waba.wabaId,
           accessToken,
         })
-      } catch {
+        logger.info({ wabaId: waba.wabaId, count: phones.length, phoneIds: phones.map(p => p.id) }, '[Onboarding] 📞 Phones fetched from WABA')
+      } catch (err) {
+        logger.warn({ err, wabaId: waba.wabaId }, '[Onboarding] ⚠️ Failed to list phones for WABA')
         phones = []
       }
 
-      // Selective Import: Only import phones explicitly shared in this session
-      const capturedId = onboarding.phoneNumberId
-      
-      const phoneDetailsBefore = phones.map(p => ({ id: p.id, display: p.display_phone_number }))
-      
-      if (capturedId || sharedPhoneIds.length > 0) {
-        logger.info(
-          { capturedId, sharedPhoneIds, wabaId: waba.wabaId, phonesFound: phones.length },
-          '[Onboarding] 🔍 Filtering phones'
-        )
-        
-        phones = phones.filter((phone) => {
-          // If the frontend caught it, that's our gold standard
-          if (capturedId && phone.id === capturedId) return true
-          // Otherwise, trust Meta's granular scopes
-          if (sharedPhoneIds.includes(phone.id)) return true
-          
-          return false
-        })
-        
-        logger.info(
-          { countAfter: phones.length, phonesRemaining: phones.map(p => p.id) },
-          '[Onboarding] ✅ Filtering complete'
-        )
-      } else {
-        logger.warn(
-          { wabaId: waba.wabaId, count: phones.length },
-          '[Onboarding] ⚠️ No specific phone IDs found. Importing all phones from WABA'
-        )
-      }
-
-      // If Meta returns no phones for this WABA after filtering, skip it.
+      // If Meta returns no phones for this WABA, skip it.
       if (phones.length === 0) {
-        logger.info({ wabaId: waba.wabaId, details: phoneDetailsBefore }, '[Onboarding] ℹ️ All phones filtered out, skipping WABA')
+        logger.info({ wabaId: waba.wabaId }, '[Onboarding] ℹ️ No phones found in WABA, skipping')
         continue
       }
+
 
       await prisma.whatsAppConfig.deleteMany({
         where: {
