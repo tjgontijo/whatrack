@@ -18,7 +18,7 @@ declare global {
       ) => void
       getAuthResponse: () => FacebookAuthResponse | null
     }
-    fbAsyncInit?: () => void
+    fbAsyncInit?: (() => void) | undefined
   }
 }
 
@@ -67,7 +67,7 @@ export function useFacebookSdk() {
     }
 
     // Initialize fbAsyncInit before script loads
-    window.fbAsyncInit = function () {
+    window.fbAsyncInit = () => {
       if (!window.FB) {
         setError('Facebook SDK failed to initialize')
         return
