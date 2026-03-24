@@ -1,8 +1,12 @@
+import { after } from 'next/server'
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { sendInngestEvent } from '@/server/inngest/client'
+import { logger } from '@/lib/utils/logger'
+import { runCampaignDispatch } from '@/services/whatsapp/whatsapp-campaign-execution.service'
+
+export const maxDuration = 300
 
 export async function POST(
   request: NextRequest,
@@ -59,7 +63,7 @@ export async function POST(
       })
     }
 
-    // 4. Garantir que os Grupos de Despacho e a Campanha estejam com status correto
+    // 4. Resetar grupos e campanha para PENDING
     const groupIds = Array.from(new Set(candidates.map((r) => r.dispatchGroupId)))
     await prisma.whatsAppCampaignDispatchGroup.updateMany({
       where: {
@@ -73,14 +77,11 @@ export async function POST(
       data: { status: 'PROCESSING', completedAt: null },
     })
 
-    // 5. Acionar reenvio via Inngest
-    await sendInngestEvent({
-      name: 'whatsapp/campaign.dispatch',
-      data: {
-        organizationId: access.organizationId,
-        campaignId,
-        immediate: true,
-      },
+    // 5. Processar em background APÓS retornar a resposta
+    const orgId = access.organizationId
+    after(async () => {
+      logger.info({ campaignId, orgId, count: candidates.length }, '[Campaign] Starting background retry dispatch via after()')
+      await runCampaignDispatch(campaignId, orgId)
     })
 
     return apiSuccess({

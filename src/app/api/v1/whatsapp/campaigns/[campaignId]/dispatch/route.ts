@@ -1,18 +1,14 @@
-import { NextResponse } from 'next/server'
+import { after } from 'next/server'
 
-import { prisma } from '@/lib/db/prisma'
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { dispatchCampaign } from '@/services/whatsapp/whatsapp-campaign.service'
-import {
-  processDispatchGroup,
-  checkAndCompleteCampaign,
-} from '@/services/whatsapp/whatsapp-campaign-execution.service'
 import { whatsappCampaignDispatchSchema } from '@/schemas/whatsapp/whatsapp-campaign-schemas'
 import { logger } from '@/lib/utils/logger'
-import { sendInngestEvent } from '@/server/inngest/client'
+import { runCampaignDispatch } from '@/services/whatsapp/whatsapp-campaign-execution.service'
 
 export const dynamic = 'force-dynamic'
+export const maxDuration = 300 // 5 min max na Vercel (plano free permite até 60s, pro até 300s)
 
 export async function POST(
   request: Request,
@@ -43,15 +39,12 @@ export async function POST(
     return apiError(result.error, result.status)
   }
 
-  if (parsed.data.immediate || scheduledAt) {
-    await sendInngestEvent({
-      name: 'whatsapp/campaign.dispatch',
-      data: {
-        organizationId: access.organizationId,
-        campaignId,
-        immediate: parsed.data.immediate,
-        scheduledAt: scheduledAt?.toISOString() || null,
-      },
+  // Processar em background APÓS retornar a resposta ao usuário
+  if (parsed.data.immediate) {
+    const orgId = access.organizationId
+    after(async () => {
+      logger.info({ campaignId, orgId }, '[Campaign] Starting background dispatch via after()')
+      await runCampaignDispatch(campaignId, orgId)
     })
   }
 

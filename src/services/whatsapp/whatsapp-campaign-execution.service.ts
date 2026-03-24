@@ -3,10 +3,38 @@ import { MetaCloudService } from '@/services/whatsapp/meta-cloud.service'
 import { resolveAccessToken } from '@/lib/whatsapp/token-crypto'
 import { logger } from '@/lib/utils/logger'
 
-const BATCH_SIZE = 10 // Ajustado para 10 por segundo conforme solicitado pelo usuário
+const BATCH_SIZE = 10 // 10 mensagens por segundo
 const BATCH_DELAY_MS = 1000 // 1 segundo entre lotes
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
+/**
+ * Orquestrador principal — substitui o Inngest.
+ * Chamado via after() nas rotas de dispatch e retry-failed.
+ */
+export async function runCampaignDispatch(campaignId: string, organizationId: string) {
+  logger.info({ campaignId }, '[Campaign] runCampaignDispatch started')
+
+  await prisma.whatsAppCampaign.update({
+    where: { id: campaignId },
+    data: { status: 'PROCESSING', startedAt: new Date() },
+  })
+
+  const groups = await prisma.whatsAppCampaignDispatchGroup.findMany({
+    where: { campaignId, status: { in: ['PENDING', 'PROCESSING'] } },
+    select: { id: true },
+  })
+
+  logger.info({ campaignId, groupCount: groups.length }, '[Campaign] Groups to process')
+
+  for (const group of groups) {
+    await processDispatchGroup(group.id, organizationId)
+  }
+
+  await checkAndCompleteCampaign(campaignId)
+  logger.info({ campaignId }, '[Campaign] runCampaignDispatch finished')
+}
+
 
 interface DispatchGroupResult {
   groupId: string
