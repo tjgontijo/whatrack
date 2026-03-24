@@ -45,13 +45,12 @@ export async function createWhatsAppOnboardingSession(
     }
   }
 
-  const onboardingUrl = new URL('https://www.facebook.com/dialog/oauth')
-  onboardingUrl.searchParams.set('client_id', metaAppId)
-  onboardingUrl.searchParams.set('redirect_uri', `${appUrl}/api/v1/whatsapp/onboarding/callback`)
-  onboardingUrl.searchParams.set('state', trackingCode)
-  onboardingUrl.searchParams.set('scope', 'whatsapp_business_management,business_management')
-  onboardingUrl.searchParams.set('response_type', 'code')
+  // Use Meta's Embedded Signup hosted URL (NOT the OAuth dialog)
+  // This is the correct endpoint for the postMessage flow
+  const onboardingUrl = new URL('https://business.facebook.com/messaging/whatsapp/onboard/')
+  onboardingUrl.searchParams.set('app_id', metaAppId)
   onboardingUrl.searchParams.set('config_id', metaConfigId)
+  // extras will be added by buildWhatsAppEmbeddedSignupUrl on the frontend
 
   return {
     onboardingUrl: onboardingUrl.toString(),
@@ -157,8 +156,12 @@ export async function handleWhatsAppOnboardingCallback(
   const encryptedToken = encryption.encrypt(accessToken)
   let totalPhones = 0
 
+  console.log(`[Onboarding] 🚀 Processing ${wabas.length} WABA(s) for organization ${onboarding.organizationId}`)
+  console.log(`[Onboarding] phoneNumberId captured: ${onboarding.phoneNumberId || 'NONE'}`)
+
   for (const waba of wabas) {
     try {
+      console.log(`[Onboarding] Processing WABA: ${waba.wabaId} (${waba.wabaName})`)
       const connection = await prisma.whatsAppConnection.upsert({
         where: {
           organizationId_wabaId: {
@@ -200,11 +203,17 @@ export async function handleWhatsAppOnboardingCallback(
 
       // If phone_number_id was captured from Meta's postMessage, filter to only that phone
       if (onboarding.phoneNumberId) {
+        console.log(`[Onboarding] 🔍 Filtering phones by captured phoneNumberId: ${onboarding.phoneNumberId}`)
+        console.log(`[Onboarding] Before filter: ${phones.length} phone(s)`, phones.map(p => ({ id: p.id, display: p.display_phone_number })))
         phones = phones.filter((phone) => phone.id === onboarding.phoneNumberId)
+        console.log(`[Onboarding] ✅ After filter: ${phones.length} phone(s)`, phones.map(p => ({ id: p.id, display: p.display_phone_number })))
+      } else {
+        console.log(`[Onboarding] ⚠️ No phoneNumberId captured. Importing all ${phones.length} phone(s) from WABA`)
       }
 
       // If Meta returns no phones for this WABA, it means the user didn't select any numbers from this WABA.
       if (phones.length === 0) {
+        console.log(`[Onboarding] ℹ️ No phones to import from WABA ${waba.wabaId}, skipping`)
         continue
       }
 
