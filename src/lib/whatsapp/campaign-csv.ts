@@ -26,6 +26,7 @@ export interface CampaignCsvPreviewResult {
 export interface CampaignCsvModelValidationResult {
   phoneColumn: string
   variableColumns: Record<string, string>
+  missingVariables: string[]
 }
 
 function normalizeColumnName(value: string): string {
@@ -187,37 +188,49 @@ function buildTemplateModelColumns(templateVariableNames: string[]): string[] {
   ]
 }
 
+export function guessCampaignCsvMapping(
+  columns: string[],
+  templateVariableNames: string[],
+): CampaignCsvMapping {
+  const normalizedColumns = columns.map((c) => c.toLowerCase().trim())
+  
+  // Try to find phone column
+  const phoneCandidates = ['telefone', 'phone', 'celular', 'whatsapp', 'contato', 'tel', 'mobile']
+  let phoneColumn = columns[0] || ''
+  
+  for (const candidate of phoneCandidates) {
+    const index = normalizedColumns.findIndex((c) => c.includes(candidate))
+    if (index !== -1) {
+      phoneColumn = columns[index]
+      break
+    }
+  }
+
+  // Try to find variable columns
+  const variableColumns: Record<string, string> = {}
+  for (const varName of templateVariableNames) {
+    const normalizedVar = varName.toLowerCase().trim()
+    const index = normalizedColumns.findIndex((c) => c === normalizedVar || c.replace(/[^a-z0-9]/g, '_') === normalizedVar.replace(/[^a-z0-9]/g, '_'))
+    if (index !== -1) {
+      variableColumns[varName] = columns[index]
+    }
+  }
+
+  return { phoneColumn, variableColumns }
+}
+
 export function validateCampaignCsvModel(
   parsed: CampaignCsvParseResult,
   templateVariableNames: string[],
 ): CampaignCsvModelValidationResult {
-  const expectedColumns = buildTemplateModelColumns(templateVariableNames)
-
-  if (parsed.columns.length !== expectedColumns.length) {
-    throw new Error('CSV fora do padrão do modelo. Baixe o modelo e envie o arquivo novamente.')
-  }
-
-  for (let index = 0; index < expectedColumns.length; index++) {
-    if (parsed.columns[index] !== expectedColumns[index]) {
-      throw new Error('CSV fora do padrão do modelo. Baixe o modelo e envie o arquivo novamente.')
-    }
-  }
-
-  const invalidPhoneIndex = parsed.rows.findIndex((row) => !isValidCampaignPhone(row.telefone || ''))
-  if (invalidPhoneIndex >= 0) {
-    const phoneError = getCampaignPhoneValidationError(parsed.rows[invalidPhoneIndex]?.telefone || '')
-    throw new Error(
-      `Linha ${invalidPhoneIndex + 2} inválida: ${phoneError}.`,
-    )
-  }
+  const mapping = guessCampaignCsvMapping(parsed.columns, templateVariableNames)
+  
+  const missingVariables = templateVariableNames.filter((name) => !mapping.variableColumns[name])
 
   return {
-    phoneColumn: 'telefone',
-    variableColumns: Object.fromEntries(
-      expectedColumns
-        .filter((column) => column !== 'telefone')
-        .map((column) => [column, column]),
-    ),
+    phoneColumn: mapping.phoneColumn,
+    variableColumns: mapping.variableColumns,
+    missingVariables,
   }
 }
 
