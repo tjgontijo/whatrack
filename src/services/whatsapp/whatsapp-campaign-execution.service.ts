@@ -3,7 +3,10 @@ import { MetaCloudService } from '@/services/whatsapp/meta-cloud.service'
 import { resolveAccessToken } from '@/lib/whatsapp/token-crypto'
 import { logger } from '@/lib/utils/logger'
 
-const BATCH_SIZE = 50
+const BATCH_SIZE = 20 // Reduzido para evitar rate limits excessivos
+const BATCH_DELAY_MS = 1000 // 1 segundo entre lotes
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 interface DispatchGroupResult {
   groupId: string
@@ -38,7 +41,7 @@ export async function processDispatchGroup(
   const group = await prisma.whatsAppCampaignDispatchGroup.findFirst({
     where: { id: groupId, campaign: { organizationId } },
     include: {
-      campaign: { select: { id: true, type: true, organizationId: true } },
+      campaign: { select: { id: true, type: true, organizationId: true, templateName: true, templateLang: true } },
       config: { select: { id: true, phoneId: true, accessToken: true, displayPhone: true } },
       recipients: {
         where: { status: 'PENDING' },
@@ -68,11 +71,19 @@ export async function processDispatchGroup(
   let success = 0
   let failed = 0
   const errors: Array<{ phone: string; error: string }> = []
+  let rateLimitHit = false
 
   const token = resolveAccessToken(group.config.accessToken || '')
 
   for (let i = 0; i < group.recipients.length; i += BATCH_SIZE) {
+    if (rateLimitHit) break
+
     const batch = group.recipients.slice(i, i + BATCH_SIZE)
+
+    // Delay entre lotes (exceto o primeiro)
+    if (i > 0) {
+      await sleep(BATCH_DELAY_MS)
+    }
 
     const results = await Promise.allSettled(
       batch.map(async (recipient) => {
@@ -82,8 +93,8 @@ export async function processDispatchGroup(
         const result = await MetaCloudService.sendTemplate({
           phoneId: group.config.phoneId!,
           to: phone,
-          templateName: group.templateName,
-          language: group.templateLang,
+          templateName: group.campaign.templateName!,
+          language: group.campaign.templateLang!,
           variables,
           accessToken: token || undefined,
         })
@@ -104,8 +115,16 @@ export async function processDispatchGroup(
       const recipient = batch[j]
 
       if (result.status === 'rejected') {
-        failed++
         const errorMsg = result.reason instanceof Error ? result.reason.message : 'Unknown error'
+        
+        // Verifica se é erro de Rate Limit (#130429)
+        if (errorMsg.includes('130429') || errorMsg.toLowerCase().includes('rate limit')) {
+          rateLimitHit = true
+          // Se for rate limit, mantemos como PENDING para tentar depois (não incrementa failed)
+          continue
+        }
+
+        failed++
         errors.push({ phone: recipient.phone, error: errorMsg })
 
         await prisma.whatsAppCampaignRecipient.update({
@@ -118,17 +137,18 @@ export async function processDispatchGroup(
         })
       } else {
         success++
-        // Note: For success, we don't mark as SENT yet because we wait for the Meta webhook
-        // to confirm 'sent' status. The processDispatchGroup keeps it in PENDING but with metaWamid.
-        // Actually, the current logic is fine as it updates metaWamid in the settle loop.
       }
     }
   }
 
   await syncDispatchGroupState(groupId)
 
+  if (rateLimitHit) {
+    logger.warn({ groupId }, '[WhatsAppCampaignExecution] Rate limit hit, pausing group')
+  }
+
   logger.info(
-    { groupId, campaignId: group.campaign.id, accepted: success, failed },
+    { groupId, campaignId: group.campaign.id, accepted: success, failed, rateLimitHit },
     '[WhatsAppCampaignExecution] Group processed'
   )
 
