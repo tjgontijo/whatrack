@@ -24,22 +24,41 @@ const RESPONSE_HTML = (status: 'success' | 'error', message?: string) => {
     <head>
       <title>${status === 'success' ? 'Conectado!' : 'Erro'}</title>
       <style>
-        body { font-family: sans-serif; text-align: center; padding: 40px; }
+        body { font-family: sans-serif; text-align: center; padding: 40px; background: #f5f5f5; }
         h2 { margin: 0 0 10px 0; }
         p { margin: 10px 0 0 0; color: #666; }
+        .debug { margin-top: 20px; padding: 10px; background: white; border-radius: 4px; font-size: 12px; color: #999; }
       </style>
     </head>
     <body>
       <h2>${status === 'success' ? '✅ Conectado!' : '❌ Erro na Conexão'}</h2>
       <p>${status === 'success' ? 'Aguarde enquanto processamos sua conexão...' : escapeHtml(safeMessage)}</p>
+      <div class="debug">Comunicando com a aplicação...</div>
 
       <script>
+        console.log('[OnboardingCallback] Script running');
+        console.log('[OnboardingCallback] window.parent:', window.parent);
+        console.log('[OnboardingCallback] window.opener:', window.opener);
+        console.log('[OnboardingCallback] window.location.origin:', window.location.origin);
+
         // Send message to parent window (iframe parent)
-        ${postMessageCode}
+        try {
+          console.log('[OnboardingCallback] Sending postMessage to parent...');
+          ${postMessageCode}
+          console.log('[OnboardingCallback] ✅ postMessage sent to parent');
+        } catch (e) {
+          console.error('[OnboardingCallback] Error sending to parent:', e);
+        }
 
         // Also try window.opener for popup windows
         if (window.opener) {
-          ${postMessageCode}
+          try {
+            console.log('[OnboardingCallback] Sending postMessage to opener...');
+            ${postMessageCode}
+            console.log('[OnboardingCallback] ✅ postMessage sent to opener');
+          } catch (e) {
+            console.error('[OnboardingCallback] Error sending to opener:', e);
+          }
         }
       </script>
     </body>

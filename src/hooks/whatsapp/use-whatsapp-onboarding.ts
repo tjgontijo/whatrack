@@ -27,10 +27,20 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
   // Listen for postMessage from iframe
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      // Only accept messages from same origin
-      if (event.origin !== window.location.origin) return
+      console.log('[Onboarding] Received message event:', {
+        type: event.data?.type,
+        origin: event.origin,
+        expectedOrigin: window.location.origin,
+        matches: event.origin === window.location.origin,
+      })
 
-      console.log('[Onboarding] Received postMessage:', event.data?.type)
+      // Only accept messages from same origin
+      if (event.origin !== window.location.origin) {
+        console.log('[Onboarding] ⚠️ Rejecting message from different origin:', event.origin)
+        return
+      }
+
+      console.log('[Onboarding] ✅ Received postMessage:', event.data?.type)
 
       // Handle success from callback
       if (event.data?.type === 'WA_CALLBACK_SUCCESS') {
