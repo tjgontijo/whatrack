@@ -135,14 +135,22 @@ export async function listCampaigns(organizationId: string, query: WhatsAppCampa
   };
 }
 
-export async function getCampaignCounters(organizationId: string): Promise<CampaignCounters> {
+export async function getCampaignCounters(
+  organizationId: string,
+  projectId?: string
+): Promise<CampaignCounters> {
+  const where = {
+    organizationId,
+    ...(projectId ? { projectId } : {}),
+  };
+
   const [total, draft, scheduled, processing, completed, cancelled] = await Promise.all([
-    prisma.whatsAppCampaign.count({ where: { organizationId } }),
-    prisma.whatsAppCampaign.count({ where: { organizationId, status: 'DRAFT' } }),
-    prisma.whatsAppCampaign.count({ where: { organizationId, status: 'SCHEDULED' } }),
-    prisma.whatsAppCampaign.count({ where: { organizationId, status: 'PROCESSING' } }),
-    prisma.whatsAppCampaign.count({ where: { organizationId, status: 'COMPLETED' } }),
-    prisma.whatsAppCampaign.count({ where: { organizationId, status: 'CANCELLED' } }),
+    prisma.whatsAppCampaign.count({ where }),
+    prisma.whatsAppCampaign.count({ where: { ...where, status: 'DRAFT' } }),
+    prisma.whatsAppCampaign.count({ where: { ...where, status: 'SCHEDULED' } }),
+    prisma.whatsAppCampaign.count({ where: { ...where, status: 'PROCESSING' } }),
+    prisma.whatsAppCampaign.count({ where: { ...where, status: 'COMPLETED' } }),
+    prisma.whatsAppCampaign.count({ where: { ...where, status: 'CANCELLED' } }),
   ]);
 
   return { total, draft, scheduled, processing, completed, cancelled };

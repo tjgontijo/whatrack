@@ -62,6 +62,7 @@ export type UpdateSaleParams = {
 
 export type DeleteSaleParams = {
   organizationId: string
+  projectId?: string | null
   saleId: string
 }
 
@@ -234,6 +235,7 @@ export async function updateSale(params: UpdateSaleParams) {
     where: {
       id: saleId,
       organizationId,
+      projectId: projectId ?? undefined,
     },
     select: {
       id: true,
@@ -277,6 +279,7 @@ export async function deleteSale(params: DeleteSaleParams) {
     where: {
       id: params.saleId,
       organizationId: params.organizationId,
+      projectId: params.projectId ?? undefined,
     },
     select: { id: true },
   })

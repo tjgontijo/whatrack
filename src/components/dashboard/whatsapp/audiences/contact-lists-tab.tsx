@@ -10,12 +10,12 @@ import { Users, MoreVertical, Calendar } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export function ContactListsTab() {
-  const { organizationId } = useRequiredProjectRouteContext()
+  const { organizationId, projectId } = useRequiredProjectRouteContext()
 
   const { data: lists, isLoading } = useQuery<any[]>({
-    queryKey: ['contact-lists', organizationId],
-    queryFn: () => apiFetch(`/api/v1/whatsapp/audiences/lists`, { orgId: organizationId }),
-    enabled: !!organizationId,
+    queryKey: ['whatsapp-contact-lists', organizationId, projectId],
+    queryFn: () => apiFetch(`/api/v1/whatsapp/audiences/lists`, { orgId: organizationId, projectId }),
+    enabled: !!organizationId && !!projectId,
   })
 
   if (isLoading) {

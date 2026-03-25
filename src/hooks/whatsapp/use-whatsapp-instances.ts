@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { useOrganization } from '@/hooks/organization/use-organization'
+import { useProjectRouteContext } from '@/hooks/project/project-route-context'
 import { apiFetch } from '@/lib/api-client'
 
 
@@ -18,9 +19,10 @@ interface InstancesResponse {
     items: WhatsAppInstance[]
 }
 
-async function fetchWhatsAppInstances(orgId: string): Promise<InstancesResponse> {
+async function fetchWhatsAppInstances(orgId: string, projectId?: string): Promise<InstancesResponse> {
     const data = await apiFetch('/api/v1/whatsapp/instances', {
         orgId,
+        projectId,
     })
 
     return data as InstancesResponse
@@ -32,12 +34,14 @@ async function fetchWhatsAppInstances(orgId: string): Promise<InstancesResponse>
  */
 export function useWhatsAppInstances() {
     const { data: org } = useOrganization()
+    const routeContext = useProjectRouteContext()
+    const projectId = routeContext?.projectId
 
     return useQuery({
-        queryKey: ['whatsapp-instances', org?.id],
-        queryFn: () => fetchWhatsAppInstances(org!.id),
+        queryKey: ['whatsapp-instances', org?.id, projectId],
+        queryFn: () => fetchWhatsAppInstances(org!.id, projectId),
         enabled: !!org?.id,
-        staleTime: 5 * 60 * 1000, // 5 minutos de cache
+        staleTime: 5 * 60 * 1000,
         gcTime: 10 * 60 * 1000,
         retry: 1,
     })

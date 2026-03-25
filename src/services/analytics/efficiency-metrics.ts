@@ -1,6 +1,7 @@
+import { Prisma } from '@generated/prisma/client'
 import { prisma } from '@/lib/db/prisma'
 
-export async function getEfficiencyMetrics(organizationId: string, startDate: Date, endDate: Date) {
+export async function getEfficiencyMetrics(organizationId: string, startDate: Date, endDate: Date, projectId?: string) {
   const ticketEfficiencies = await prisma.$queryRaw`
     SELECT
       t.id,
@@ -14,6 +15,7 @@ export async function getEfficiencyMetrics(organizationId: string, startDate: Da
       t.resolution_time_sec
     FROM tickets t
     WHERE t.organization_id = ${organizationId}::uuid
+      ${projectId ? Prisma.sql`AND t.project_id = ${projectId}::uuid` : Prisma.empty}
       AND t.status = 'closed_won'
       AND t.deal_value > 0
       AND t.created_at BETWEEN ${startDate} AND ${endDate}
@@ -29,6 +31,7 @@ export async function getEfficiencyMetrics(organizationId: string, startDate: Da
       AVG(resolution_time_sec)::int as avg_resolution_sec
     FROM tickets
     WHERE organization_id = ${organizationId}::uuid
+      ${projectId ? Prisma.sql`AND project_id = ${projectId}::uuid` : Prisma.empty}
       AND status = 'closed_won'
       AND deal_value > 0
       AND created_at BETWEEN ${startDate} AND ${endDate};

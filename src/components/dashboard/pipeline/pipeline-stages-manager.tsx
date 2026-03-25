@@ -273,7 +273,13 @@ function StageDialog({
   )
 }
 
-export function PipelineStagesManager({ organizationId }: { organizationId?: string }) {
+export function PipelineStagesManager({
+  organizationId,
+  projectId,
+}: {
+  organizationId?: string
+  projectId?: string
+}) {
   const queryClient = useQueryClient()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingStage, setEditingStage] = useState<Stage | null>(null)
@@ -282,10 +288,11 @@ export function PipelineStagesManager({ organizationId }: { organizationId?: str
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
 
   const { data, isLoading } = useQuery<{ items: Stage[] }>({
-    queryKey: ['ticket-stages', organizationId],
+    queryKey: ['ticket-stages', organizationId, projectId],
     queryFn: async () => {
       const data = await apiFetch('/api/v1/ticket-stages', {
         orgId: organizationId,
+        projectId,
       })
       return data as { items: Stage[] }
     },
@@ -300,7 +307,7 @@ export function PipelineStagesManager({ organizationId }: { organizationId?: str
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
-        orgId: organizationId,
+        orgId: organizationId, projectId,
       })
       return data
     },
@@ -319,7 +326,7 @@ export function PipelineStagesManager({ organizationId }: { organizationId?: str
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
-        orgId: organizationId,
+        orgId: organizationId, projectId,
       })
       return data
     },
@@ -338,6 +345,7 @@ export function PipelineStagesManager({ organizationId }: { organizationId?: str
       await apiFetch(`/api/v1/ticket-stages/${id}`, {
         method: 'DELETE',
         orgId: organizationId,
+        projectId,
       })
     },
     onSuccess: () => {
@@ -355,6 +363,7 @@ export function PipelineStagesManager({ organizationId }: { organizationId?: str
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ orderedIds }),
         orgId: organizationId,
+        projectId,
       })
     },
     onSuccess: () => {

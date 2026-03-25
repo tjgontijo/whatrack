@@ -1,6 +1,7 @@
+import { Prisma } from '@generated/prisma/client'
 import { prisma } from '@/lib/db/prisma'
 
-export async function getSlaMetrics(organizationId: string, startDate: Date, endDate: Date) {
+export async function getSlaMetrics(organizationId: string, startDate: Date, endDate: Date, projectId?: string) {
   const distribution = await prisma.$queryRaw`
     SELECT
       bucket,
@@ -18,6 +19,7 @@ export async function getSlaMetrics(organizationId: string, startDate: Date, end
         END as bucket
       FROM tickets
       WHERE organization_id = ${organizationId}::uuid
+        ${projectId ? Prisma.sql`AND project_id = ${projectId}::uuid` : Prisma.empty}
         AND first_response_time_sec IS NOT NULL
         AND created_at BETWEEN ${startDate} AND ${endDate}
     ) sub
@@ -38,6 +40,7 @@ export async function getSlaMetrics(organizationId: string, startDate: Date, end
     JOIN leads l ON l.id = c.lead_id
     LEFT JOIN "user" u ON u.id = t.assignee_id
     WHERE t.organization_id = ${organizationId}::uuid
+      ${projectId ? Prisma.sql`AND t.project_id = ${projectId}::uuid` : Prisma.empty}
       AND t.first_response_time_sec > 900
       AND t.created_at BETWEEN ${startDate} AND ${endDate}
     ORDER BY t.first_response_time_sec DESC

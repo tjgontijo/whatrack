@@ -10,12 +10,12 @@ import { Filter, MoreVertical, Calendar, PieChart } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export function AudienceSegmentsTab() {
-  const { organizationId } = useRequiredProjectRouteContext()
+  const { organizationId, projectId } = useRequiredProjectRouteContext()
 
   const { data: segments, isLoading } = useQuery<any[]>({
-    queryKey: ['audience-segments', organizationId],
-    queryFn: () => apiFetch(`/api/v1/whatsapp/audiences/segments`, { orgId: organizationId }),
-    enabled: !!organizationId,
+    queryKey: ['audience-segments', organizationId, projectId],
+    queryFn: () => apiFetch(`/api/v1/whatsapp/audiences/segments`, { orgId: organizationId, projectId }),
+    enabled: !!organizationId && !!projectId,
   })
 
   if (isLoading) {

@@ -43,14 +43,19 @@ export function useCrudInfiniteQuery<T>({
   const { data: org } = useOrganization()
   const routeContext = useProjectRouteContext()
   const organizationId = routeContext?.organizationId || org?.id
+  const projectId = routeContext?.projectId
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, refetch } =
     useInfiniteQuery<ApiPage<T>>({
-      queryKey: [...queryKey, organizationId, pageSize, filters],
+      queryKey: [...queryKey, organizationId, projectId, pageSize, filters],
       queryFn: async ({ pageParam }) => {
         const queryParams = new URLSearchParams()
         queryParams.set('page', String(pageParam ?? 1))
         queryParams.set('pageSize', String(pageSize))
+
+        if (projectId) {
+          queryParams.set('projectId', projectId)
+        }
 
         for (const [key, value] of Object.entries(filters)) {
           if (value !== undefined && value !== null && value !== '') {
@@ -60,6 +65,7 @@ export function useCrudInfiniteQuery<T>({
 
         const data = await apiFetch(`${endpoint}?${queryParams.toString()}`, {
           orgId: organizationId,
+          projectId: projectId ?? undefined,
         })
         return data as ApiPage<T>
       },

@@ -1,6 +1,7 @@
+import { Prisma } from '@generated/prisma/client'
 import { prisma } from '@/lib/db/prisma'
 
-export async function getLeadActivity(organizationId: string) {
+export async function getLeadActivity(organizationId: string, projectId?: string) {
   const waitingLeads = await prisma.$queryRaw`
     SELECT
       l.id,
@@ -17,6 +18,7 @@ export async function getLeadActivity(organizationId: string) {
     JOIN tickets t ON t.conversation_id = c.id AND t.status = 'open'
     JOIN ticket_stages ts ON ts.id = t.stage_id
     WHERE c.organization_id = ${organizationId}::uuid
+      ${projectId ? Prisma.sql`AND c.project_id = ${projectId}::uuid` : Prisma.empty}
       AND c.last_inbound_at > COALESCE(c.last_outbound_at, '1970-01-01')
     ORDER BY c.last_inbound_at ASC
     LIMIT 20;
@@ -34,6 +36,7 @@ export async function getLeadActivity(organizationId: string) {
     JOIN leads l ON l.id = c.lead_id
     JOIN tickets t ON t.conversation_id = c.id AND t.status = 'open'
     WHERE c.organization_id = ${organizationId}::uuid
+      ${projectId ? Prisma.sql`AND c.project_id = ${projectId}::uuid` : Prisma.empty}
       AND c.last_outbound_at IS NOT NULL
       AND c.last_outbound_at < NOW() - INTERVAL '24 hours'
       AND (c.last_inbound_at IS NULL OR c.last_inbound_at < c.last_outbound_at)

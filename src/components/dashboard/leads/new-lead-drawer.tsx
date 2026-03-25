@@ -70,7 +70,7 @@ export type NewLeadDrawerProps = {
   onOpenChange: (open: boolean) => void
 }
 
-import { useOrganization } from '@/hooks/organization/use-organization'
+import { useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
 import { apiFetch } from '@/lib/api-client'
 
 export function NewLeadDrawer({
@@ -79,8 +79,8 @@ export function NewLeadDrawer({
   onOpenChange,
 }: NewLeadDrawerProps) {
   const setOpen = onOpenChange
+  const { organizationId, projectId } = useRequiredProjectRouteContext()
   const queryClient = useQueryClient()
-  const { data: org } = useOrganization()
 
   const {
     control,
@@ -110,6 +110,7 @@ export function NewLeadDrawer({
       name: values.name,
       phone: values.whatsapp ? normalizeWhatsApp(values.whatsapp) : undefined,
       notes: `Origem: ${values.origin}, Meio: ${values.medium}`,
+      projectId,
     }
 
     try {
@@ -119,7 +120,7 @@ export function NewLeadDrawer({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
-        orgId: org?.id,
+        orgId: organizationId,
       })
 
       toast.success('Lead registrado com sucesso!')

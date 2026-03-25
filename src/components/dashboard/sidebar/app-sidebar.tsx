@@ -116,7 +116,7 @@ export function AppSidebar({
         },
         {
           title: 'Campanhas',
-          href: `${basePath}/whatsapp/campaigns`,
+          href: `${basePath}/campaigns`,
           icon: 'Megaphone',
           permission: 'view:whatsapp',
         },

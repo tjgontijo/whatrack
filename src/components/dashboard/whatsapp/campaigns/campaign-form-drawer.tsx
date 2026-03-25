@@ -107,10 +107,10 @@ export function CampaignFormDrawer({ open, onOpenChange, onSuccess }: CampaignFo
     queryFn: async () => {
       const url = new URL('/api/v1/whatsapp/instances', window.location.origin)
       url.searchParams.set('projectId', activeProjectId)
-      const data = await apiFetch(url.toString(), { orgId: organizationId })
+      const data = await apiFetch(url.toString(), { orgId: organizationId, projectId: activeProjectId })
       return ((data as { items?: WhatsAppInstanceItem[] }).items || []) as WhatsAppInstanceItem[]
     },
-    enabled: open && !!organizationId && hasActiveProject,
+    enabled: open && !!organizationId && !!activeProjectId,
   })
 
   const { data: templates = [] } = useQuery<WhatsAppTemplate[]>({
@@ -211,6 +211,7 @@ export function CampaignFormDrawer({ open, onOpenChange, onSuccess }: CampaignFo
       const result = await apiFetch('/api/v1/whatsapp/campaigns', {
         method: 'POST',
         orgId: organizationId,
+        projectId: activeProjectId,
         body: JSON.stringify(body),
       })
 

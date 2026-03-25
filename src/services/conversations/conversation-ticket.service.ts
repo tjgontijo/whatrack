@@ -2,6 +2,7 @@ import { prisma } from '@/lib/db/prisma'
 
 interface GetConversationTicketParams {
   organizationId: string
+  projectId?: string
   conversationId: string
 }
 
@@ -9,9 +10,8 @@ export async function getConversationOpenTicket(params: GetConversationTicketPar
   const conversation = await prisma.conversation.findFirst({
     where: {
       id: params.conversationId,
-      lead: {
-        organizationId: params.organizationId,
-      },
+      organizationId: params.organizationId,
+      projectId: params.projectId ?? undefined,
     },
     select: {
       id: true,
@@ -26,6 +26,7 @@ export async function getConversationOpenTicket(params: GetConversationTicketPar
     where: {
       conversationId: params.conversationId,
       organizationId: params.organizationId,
+      projectId: params.projectId ?? undefined,
       status: 'open',
     },
     select: {

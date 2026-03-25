@@ -466,6 +466,7 @@ model Lead {
 model Conversation {
   id                 String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   organizationId     String  @db.Uuid
+  projectId          String? @db.Uuid
   leadId             String  @db.Uuid
   instanceId         String  @db.Uuid
   metaConversationId String?
@@ -492,6 +493,7 @@ model Conversation {
 
   @@unique([leadId, instanceId])
   @@index([organizationId])
+  @@index([projectId])
   @@map("crm_conversations")
 }
 
@@ -550,6 +552,7 @@ model Ticket {
 model TicketStage {
   id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   organizationId String       @db.Uuid
+  projectId      String?      @db.Uuid
   name           String
   color          String
   order          Int
@@ -560,8 +563,8 @@ model TicketStage {
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   tickets        Ticket[]
 
-  @@unique([organizationId, name])
-  @@index([organizationId, order])
+  @@unique([organizationId, projectId, name])
+  @@index([organizationId, projectId, order])
   @@map("crm_ticket_stages")
 }
 
@@ -1235,6 +1238,7 @@ model WhatsAppCampaign {
 model LeadTag {
   id             String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   organizationId String              @db.Uuid
+  projectId      String?             @db.Uuid
   name           String
   color          String?
   createdAt      DateTime            @default(now())
@@ -1242,8 +1246,9 @@ model LeadTag {
   organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   assignments    LeadTagAssignment[]
 
-  @@unique([organizationId, name])
+  @@unique([organizationId, projectId, name])
   @@index([organizationId])
+  @@index([projectId])
   @@map("crm_lead_tags")
 }
 
@@ -1263,6 +1268,7 @@ model LeadTagAssignment {
 model WhatsAppContactList {
   id             String                       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   organizationId String                       @db.Uuid
+  projectId      String?                      @db.Uuid
   name           String
   description    String?
   createdAt      DateTime                     @default(now())
@@ -1271,6 +1277,7 @@ model WhatsAppContactList {
   members        WhatsAppContactListMember[]
 
   @@index([organizationId])
+  @@index([projectId])
   @@map("whatsapp_contact_lists")
 }
 

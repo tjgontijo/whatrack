@@ -9,11 +9,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const { searchParams } = new URL(request.url);
   const page = Number(searchParams.get('page')) || 1;
   const pageSize = Number(searchParams.get('pageSize')) || 20;
+  const projectId = searchParams.get('projectId') || undefined;
 
   const { hasAccess, organizationId } = await validateFullAccess(request);
   if (!hasAccess || !organizationId) return apiError('Unauthorized', 401);
 
-  const result = await listContactListMembers(organizationId, id, page, pageSize);
+  const result = await listContactListMembers(organizationId, id, projectId, page, pageSize);
   if ('error' in result) return apiError(result.error, result.status);
 
   return apiSuccess(result);

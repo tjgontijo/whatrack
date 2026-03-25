@@ -97,7 +97,7 @@ type CampaignsPageProps = {
 export function CampaignsPage({ initialCreateOpen = false }: CampaignsPageProps = {}) {
   const router = useRouter()
   const campaignsPath = useRequiredProjectPath('/whatsapp/campaigns')
-  const { organizationId } = useRequiredProjectRouteContext()
+  const { organizationId, projectId } = useRequiredProjectRouteContext()
 
   const [activeTab, setActiveTab] = React.useState('overview')
   const [searchInput, setSearchInput] = React.useState('')
@@ -105,13 +105,14 @@ export function CampaignsPage({ initialCreateOpen = false }: CampaignsPageProps 
   const deferredSearch = useDeferredValue(searchInput)
 
   const { data, isLoading, refetch, isRefetching } = useQuery<CampaignsResponse>({
-    queryKey: ['whatsapp-campaigns', organizationId],
+    queryKey: ['whatsapp-campaigns', organizationId, projectId],
     queryFn: async () => {
       const url = new URL('/api/v1/whatsapp/campaigns', window.location.origin)
-      const response = await apiFetch(url.toString(), { orgId: organizationId })
+      if (projectId) url.searchParams.set('projectId', projectId)
+      const response = await apiFetch(url.toString(), { orgId: organizationId, projectId })
       return response as CampaignsResponse
     },
-    enabled: !!organizationId,
+    enabled: !!organizationId && !!projectId,
   })
 
   const filteredItems = React.useMemo(() => {

@@ -1,16 +1,16 @@
 import { prisma } from '@/lib/db/prisma';
 import { whatsappAudienceSegmentSchema, WhatsAppAudienceSegment } from '../schemas/audience';
 
-export async function listAudienceSegments(organizationId: string) {
+export async function listAudienceSegments(organizationId: string, projectId?: string) {
   return prisma.whatsAppAudienceSegment.findMany({
-    where: { organizationId },
+    where: { organizationId, projectId: projectId ?? null },
     orderBy: { createdAt: 'desc' },
   });
 }
 
-export async function getAudienceSegmentById(organizationId: string, segmentId: string) {
+export async function getAudienceSegmentById(organizationId: string, segmentId: string, projectId?: string) {
   const segment = await prisma.whatsAppAudienceSegment.findFirst({
-    where: { id: segmentId, organizationId },
+    where: { id: segmentId, organizationId, projectId: projectId ?? undefined },
   });
 
   if (!segment) {
@@ -35,7 +35,7 @@ export async function createAudienceSegment(organizationId: string, data: Partia
 
 export async function updateAudienceSegment(organizationId: string, segmentId: string, data: Partial<WhatsAppAudienceSegment>) {
   const existing = await prisma.whatsAppAudienceSegment.findFirst({
-    where: { id: segmentId, organizationId },
+    where: { id: segmentId, organizationId, projectId: data.projectId ?? undefined },
   });
 
   if (!existing) {
@@ -52,9 +52,9 @@ export async function updateAudienceSegment(organizationId: string, segmentId: s
   });
 }
 
-export async function deleteAudienceSegment(organizationId: string, segmentId: string) {
+export async function deleteAudienceSegment(organizationId: string, segmentId: string, projectId?: string) {
   const existing = await prisma.whatsAppAudienceSegment.findFirst({
-    where: { id: segmentId, organizationId },
+    where: { id: segmentId, organizationId, projectId: projectId ?? undefined  },
   });
 
   if (!existing) {

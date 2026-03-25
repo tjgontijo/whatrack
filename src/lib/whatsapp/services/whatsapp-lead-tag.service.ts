@@ -1,9 +1,9 @@
 import { prisma } from '@/lib/db/prisma';
 import { leadTagSchema, LeadTag } from '../schemas/audience';
 
-export async function listLeadTags(organizationId: string) {
+export async function listLeadTags(organizationId: string, projectId?: string) {
   return prisma.leadTag.findMany({
-    where: { organizationId },
+    where: { organizationId, projectId: projectId ?? null },
     orderBy: { name: 'asc' },
   });
 }
@@ -14,6 +14,7 @@ export async function createLeadTag(organizationId: string, data: Partial<LeadTa
   return prisma.leadTag.create({
     data: {
       organizationId,
+      projectId: validated.projectId ?? null,
       name: validated.name,
       color: validated.color || null,
     },
@@ -22,7 +23,11 @@ export async function createLeadTag(organizationId: string, data: Partial<LeadTa
 
 export async function updateLeadTag(organizationId: string, tagId: string, data: Partial<LeadTag>) {
   const existing = await prisma.leadTag.findFirst({
-    where: { id: tagId, organizationId },
+    where: {
+      id: tagId,
+      organizationId,
+      projectId: data.projectId ?? undefined,
+    },
   });
 
   if (!existing) {
@@ -38,9 +43,13 @@ export async function updateLeadTag(organizationId: string, tagId: string, data:
   });
 }
 
-export async function deleteLeadTag(organizationId: string, tagId: string) {
+export async function deleteLeadTag(organizationId: string, tagId: string, projectId?: string) {
   const existing = await prisma.leadTag.findFirst({
-    where: { id: tagId, organizationId },
+    where: {
+      id: tagId,
+      organizationId,
+      projectId: projectId ?? undefined,
+    },
   });
 
   if (!existing) {

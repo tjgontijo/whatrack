@@ -60,8 +60,15 @@ export async function DELETE(
   const { saleId } = await params
 
   try {
+    const { searchParams } = new URL(req.url)
+    const projectId = await resolveProjectScope({
+      organizationId,
+      projectId: searchParams.get('projectId') ?? undefined,
+    })
+
     const deleted = await deleteSale({
       organizationId,
+      projectId,
       saleId,
     })
     if (!deleted) {

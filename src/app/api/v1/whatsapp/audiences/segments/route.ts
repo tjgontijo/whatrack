@@ -9,7 +9,10 @@ export async function GET(request: Request) {
   const { hasAccess, organizationId } = await validateFullAccess(request);
   if (!hasAccess || !organizationId) return apiError('Unauthorized', 401);
 
-  const segments = await listAudienceSegments(organizationId);
+  const { searchParams } = new URL(request.url);
+  const projectId = searchParams.get('projectId') || undefined;
+
+  const segments = await listAudienceSegments(organizationId, projectId);
   return apiSuccess(segments);
 }
 

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import { resolveProjectScope } from '@/server/project/project-scope'
 import { createCampaign } from '@/services/whatsapp/whatsapp-campaign.service'
 import {
   listCampaigns,
@@ -26,9 +27,14 @@ export async function GET(request: Request) {
     return apiError('Parâmetros inválidos', 400, { details: query.error.flatten() })
   }
 
+  const projectId = await resolveProjectScope({
+    organizationId: access.organizationId,
+    projectId: query.data.projectId,
+  })
+
   const [data, counters] = await Promise.all([
-    listCampaigns(access.organizationId, query.data),
-    getCampaignCounters(access.organizationId),
+    listCampaigns(access.organizationId, { ...query.data, projectId: projectId ?? undefined }),
+    getCampaignCounters(access.organizationId, projectId ?? undefined),
   ])
 
   return apiSuccess({ ...data, counters })

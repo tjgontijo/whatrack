@@ -5,9 +5,9 @@ function normalizePhone(phone: string) {
   return phone.replace(/\D/g, '');
 }
 
-export async function listContactLists(organizationId: string) {
+export async function listContactLists(organizationId: string, projectId?: string) {
   return prisma.whatsAppContactList.findMany({
-    where: { organizationId },
+    where: { organizationId, projectId: projectId ?? null },
     orderBy: { createdAt: 'desc' },
     include: { 
       _count: { 
@@ -17,9 +17,13 @@ export async function listContactLists(organizationId: string) {
   });
 }
 
-export async function getContactListById(organizationId: string, listId: string) {
+export async function getContactListById(organizationId: string, listId: string, projectId?: string) {
   const list = await prisma.whatsAppContactList.findFirst({
-    where: { id: listId, organizationId },
+    where: {
+      id: listId,
+      organizationId,
+      projectId: projectId ?? undefined,
+    },
     include: {
       _count: { select: { members: true } }
     }
@@ -38,6 +42,7 @@ export async function createContactList(organizationId: string, data: Partial<Wh
   return prisma.whatsAppContactList.create({
     data: {
       organizationId,
+      projectId: validated.projectId ?? null,
       name: validated.name,
       description: validated.description ?? undefined,
     },
@@ -46,7 +51,11 @@ export async function createContactList(organizationId: string, data: Partial<Wh
 
 export async function updateContactList(organizationId: string, listId: string, data: Partial<WhatsAppContactList>) {
   const existing = await prisma.whatsAppContactList.findFirst({
-    where: { id: listId, organizationId },
+    where: {
+      id: listId,
+      organizationId,
+      projectId: data.projectId ?? undefined,
+    },
   });
 
   if (!existing) {
@@ -62,9 +71,13 @@ export async function updateContactList(organizationId: string, listId: string, 
   });
 }
 
-export async function deleteContactList(organizationId: string, listId: string) {
+export async function deleteContactList(organizationId: string, listId: string, projectId?: string) {
   const existing = await prisma.whatsAppContactList.findFirst({
-    where: { id: listId, organizationId },
+    where: {
+      id: listId,
+      organizationId,
+      projectId: projectId ?? undefined,
+    },
   });
 
   if (!existing) {
@@ -78,9 +91,19 @@ export async function deleteContactList(organizationId: string, listId: string) 
   return { success: true };
 }
 
-export async function listContactListMembers(organizationId: string, listId: string, page = 1, pageSize = 20) {
+export async function listContactListMembers(
+  organizationId: string,
+  listId: string,
+  projectId?: string,
+  page = 1,
+  pageSize = 20
+) {
   const existing = await prisma.whatsAppContactList.findFirst({
-    where: { id: listId, organizationId },
+    where: {
+      id: listId,
+      organizationId,
+      projectId: projectId ?? undefined,
+    },
     select: { id: true }
   });
 

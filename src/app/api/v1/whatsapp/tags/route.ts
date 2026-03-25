@@ -9,7 +9,10 @@ export async function GET(request: Request) {
   const { hasAccess, organizationId } = await validateFullAccess(request);
   if (!hasAccess || !organizationId) return apiError('Unauthorized', 401);
 
-  const tags = await listLeadTags(organizationId);
+  const { searchParams } = new URL(request.url);
+  const projectId = searchParams.get('projectId') || undefined;
+
+  const tags = await listLeadTags(organizationId, projectId);
   return apiSuccess(tags);
 }
 
@@ -17,12 +20,14 @@ export async function POST(request: Request) {
   const { hasAccess, organizationId } = await validateFullAccess(request);
   if (!hasAccess || !organizationId) return apiError('Unauthorized', 401);
 
+  const { searchParams } = new URL(request.url);
   const body = await request.json();
   const parsed = leadTagSchema.safeParse({ ...body, organizationId });
   if (!parsed.success) {
     return apiError('Parâmetros inválidos', 400, { details: parsed.error.flatten() });
   }
 
-  const tag = await createLeadTag(organizationId, parsed.data);
+  const projectId = searchParams.get('projectId') || undefined;
+  const tag = await createLeadTag(organizationId, { ...parsed.data, projectId });
   return apiSuccess(tag, 201);
 }

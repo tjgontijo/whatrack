@@ -12,13 +12,13 @@ import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 
 export function LeadTagsTab() {
-  const { organizationId } = useRequiredProjectRouteContext()
+  const { organizationId, projectId } = useRequiredProjectRouteContext()
   const queryClient = useQueryClient()
 
   const { data: tags, isLoading } = useQuery<any[]>({
-    queryKey: ['lead-tags', organizationId],
-    queryFn: () => apiFetch(`/api/v1/whatsapp/tags`, { orgId: organizationId }),
-    enabled: !!organizationId,
+    queryKey: ['lead-tags', organizationId, projectId],
+    queryFn: () => apiFetch(`/api/v1/whatsapp/tags`, { orgId: organizationId, projectId }),
+    enabled: !!organizationId && !!projectId,
   })
 
   if (isLoading) {

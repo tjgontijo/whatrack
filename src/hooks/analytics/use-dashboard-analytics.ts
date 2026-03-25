@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { useOrganization } from '@/hooks/organization/use-organization'
+import { useProjectRouteContext } from '@/hooks/project/project-route-context'
 import { apiFetch } from '@/lib/api-client'
 
 
@@ -65,16 +66,18 @@ export type Period = '7d' | '30d' | '90d'
 
 
 
-async function fetchDashboardAnalytics(period: Period, orgId: string): Promise<DashboardAnalyticsResponse> {
+async function fetchDashboardAnalytics(period: Period, orgId: string, projectId?: string): Promise<DashboardAnalyticsResponse> {
   const data = await apiFetch(`/api/v1/dashboard/analytics?period=${period}`, {
     orgId,
+    projectId,
   })
   return data as DashboardAnalyticsResponse
 }
 
-async function fetchAgentsAnalytics(period: Period, orgId: string): Promise<AgentsAnalyticsResponse> {
+async function fetchAgentsAnalytics(period: Period, orgId: string, projectId?: string): Promise<AgentsAnalyticsResponse> {
   const data = await apiFetch(`/api/v1/dashboard/analytics/agents?period=${period}`, {
     orgId,
+    projectId,
   })
   return data as AgentsAnalyticsResponse
 }
@@ -82,10 +85,12 @@ async function fetchAgentsAnalytics(period: Period, orgId: string): Promise<Agen
 
 export function useDashboardAnalytics(period: Period = '7d') {
   const { data: org } = useOrganization()
+  const routeContext = useProjectRouteContext()
+  const projectId = routeContext?.projectId
 
   return useQuery<DashboardAnalyticsResponse>({
-    queryKey: ['dashboard', 'analytics', period, org?.id],
-    queryFn: () => fetchDashboardAnalytics(period, org!.id),
+    queryKey: ['dashboard', 'analytics', period, org?.id, projectId],
+    queryFn: () => fetchDashboardAnalytics(period, org!.id, projectId),
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
@@ -95,10 +100,12 @@ export function useDashboardAnalytics(period: Period = '7d') {
 
 export function useAgentsAnalytics(period: Period = '7d') {
   const { data: org } = useOrganization()
+  const routeContext = useProjectRouteContext()
+  const projectId = routeContext?.projectId
 
   return useQuery<AgentsAnalyticsResponse>({
-    queryKey: ['dashboard', 'analytics', 'agents', period, org?.id],
-    queryFn: () => fetchAgentsAnalytics(period, org!.id),
+    queryKey: ['dashboard', 'analytics', 'agents', period, org?.id, projectId],
+    queryFn: () => fetchAgentsAnalytics(period, org!.id, projectId),
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,

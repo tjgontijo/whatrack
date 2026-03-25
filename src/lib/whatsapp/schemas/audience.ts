@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const leadTagSchema = z.object({
   id: z.string().uuid().optional(),
   organizationId: z.string().uuid(),
+  projectId: z.string().uuid().optional().nullable(),
   name: z.string().min(1).max(50),
   color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Cor inválida').optional().nullable(),
 });
@@ -15,6 +16,7 @@ export const leadTagAssignmentSchema = z.object({
 export const whatsappContactListSchema = z.object({
   id: z.string().uuid().optional(),
   organizationId: z.string().uuid(),
+  projectId: z.string().uuid().optional().nullable(),
   name: z.string().min(1).max(255),
   description: z.string().max(1000).optional().nullable(),
 });

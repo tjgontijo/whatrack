@@ -15,9 +15,12 @@ export type TicketStageListItem = {
   ticketsCount: number
 }
 
-export async function listTicketStages(organizationId: string): Promise<{ items: TicketStageListItem[] }> {
+export async function listTicketStages(
+  organizationId: string,
+  projectId?: string
+): Promise<{ items: TicketStageListItem[] }> {
   const stages = await prisma.ticketStage.findMany({
-    where: { organizationId },
+    where: { organizationId, projectId: projectId ?? null },
     orderBy: { order: 'asc' },
     select: {
       id: true,
@@ -45,22 +48,27 @@ export async function listTicketStages(organizationId: string): Promise<{ items:
 
 export async function createTicketStage(input: {
   organizationId: string
+  projectId?: string
   name: string
   color: string
   order?: number
 }): Promise<TicketStageListItem | ServiceError> {
   const existing = await prisma.ticketStage.findFirst({
-    where: { organizationId: input.organizationId, name: input.name },
+    where: {
+      organizationId: input.organizationId,
+      projectId: input.projectId ?? null,
+      name: input.name,
+    },
     select: { id: true },
   })
   if (existing) {
-    return { error: 'Já existe uma fase com esse nome', status: 409 }
+    return { error: 'Já existe uma fase com esse nome neste projeto', status: 409 }
   }
 
   let order = input.order
   if (order === undefined) {
     const maxOrder = await prisma.ticketStage.aggregate({
-      where: { organizationId: input.organizationId },
+      where: { organizationId: input.organizationId, projectId: input.projectId ?? null },
       _max: { order: true },
     })
     order = (maxOrder._max.order ?? -1) + 1
@@ -69,6 +77,7 @@ export async function createTicketStage(input: {
   const stage = await prisma.ticketStage.create({
     data: {
       organizationId: input.organizationId,
+      projectId: input.projectId ?? null,
       name: input.name,
       color: input.color,
       order,
@@ -97,6 +106,7 @@ export async function createTicketStage(input: {
 
 export async function updateTicketStage(input: {
   organizationId: string
+  projectId?: string
   stageId: string
   name?: string
   color?: string
@@ -104,8 +114,12 @@ export async function updateTicketStage(input: {
   isClosed?: boolean
 }): Promise<TicketStageListItem | ServiceError> {
   const existing = await prisma.ticketStage.findFirst({
-    where: { id: input.stageId, organizationId: input.organizationId },
-    select: { id: true, name: true },
+    where: {
+      id: input.stageId,
+      organizationId: input.organizationId,
+      projectId: input.projectId ?? null,
+    },
+    select: { id: true, name: true, projectId: true },
   })
   if (!existing) {
     return { error: 'Fase não encontrada', status: 404 }
@@ -113,17 +127,25 @@ export async function updateTicketStage(input: {
 
   if (input.name && input.name !== existing.name) {
     const conflict = await prisma.ticketStage.findFirst({
-      where: { organizationId: input.organizationId, name: input.name },
+      where: {
+        organizationId: input.organizationId,
+        projectId: existing.projectId,
+        name: input.name,
+      },
       select: { id: true },
     })
     if (conflict) {
-      return { error: 'Já existe uma fase com esse nome', status: 409 }
+      return { error: 'Já existe uma fase com esse nome neste projeto', status: 409 }
     }
   }
 
   if (input.isDefault) {
     await prisma.ticketStage.updateMany({
-      where: { organizationId: input.organizationId, id: { not: input.stageId } },
+      where: {
+        organizationId: input.organizationId,
+        projectId: existing.projectId,
+        id: { not: input.stageId },
+      },
       data: { isDefault: false },
     })
   }
@@ -160,11 +182,16 @@ export async function updateTicketStage(input: {
 
 export async function deleteTicketStage(input: {
   organizationId: string
+  projectId?: string
   stageId: string
 }): Promise<{ success: true } | ServiceError> {
   const stage = await prisma.ticketStage.findFirst({
-    where: { id: input.stageId, organizationId: input.organizationId },
-    select: { id: true, isDefault: true },
+    where: {
+      id: input.stageId,
+      organizationId: input.organizationId,
+      projectId: input.projectId ?? null,
+    },
+    select: { id: true, isDefault: true, projectId: true },
   })
   if (!stage) {
     return { error: 'Fase não encontrada', status: 404 }
@@ -175,14 +202,18 @@ export async function deleteTicketStage(input: {
   }
 
   const count = await prisma.ticketStage.count({
-    where: { organizationId: input.organizationId },
+    where: { organizationId: input.organizationId, projectId: stage.projectId },
   })
   if (count <= 1) {
     return { error: 'A organização deve ter ao menos uma fase', status: 409 }
   }
 
   const defaultStage = await prisma.ticketStage.findFirst({
-    where: { organizationId: input.organizationId, isDefault: true },
+    where: {
+      organizationId: input.organizationId,
+      projectId: stage.projectId,
+      isDefault: true,
+    },
     select: { id: true },
   })
 
@@ -200,11 +231,13 @@ export async function deleteTicketStage(input: {
 
 export async function reorderTicketStages(input: {
   organizationId: string
+  projectId?: string
   orderedIds: string[]
 }): Promise<{ success: true } | ServiceError> {
   const stages = await prisma.ticketStage.findMany({
     where: {
       organizationId: input.organizationId,
+      projectId: input.projectId ?? null,
       id: { in: input.orderedIds },
     },
     select: { id: true },

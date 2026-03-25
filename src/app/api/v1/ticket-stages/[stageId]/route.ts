@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { apiError } from '@/lib/utils/api-response'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
+import { resolveProjectScope } from '@/server/project/project-scope'
 import { updateTicketStageSchema } from '@/schemas/tickets/ticket-stage-schemas'
 import { deleteTicketStage, updateTicketStage } from '@/services/ticket-stages/ticket-stage.service'
 import { logger } from '@/lib/utils/logger'
@@ -22,6 +23,10 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ stag
     const { stageId } = await params
     const result = await updateTicketStage({
       organizationId: access.organizationId,
+      projectId: await resolveProjectScope({
+        organizationId: access.organizationId,
+        projectId: parsed.data.projectId,
+      }) ?? undefined,
       stageId,
       name: parsed.data.name,
       color: parsed.data.color,
@@ -51,8 +56,15 @@ export async function DELETE(
 
   try {
     const { stageId } = await params
+    const { searchParams } = new URL(req.url)
+    const projectId = await resolveProjectScope({
+      organizationId: access.organizationId,
+      projectId: searchParams.get('projectId') ?? undefined,
+    })
+
     const result = await deleteTicketStage({
       organizationId: access.organizationId,
+      projectId: projectId ?? undefined,
       stageId,
     })
 

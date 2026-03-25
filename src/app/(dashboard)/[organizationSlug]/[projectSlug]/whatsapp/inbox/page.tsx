@@ -18,7 +18,7 @@ import { ChatItem, ChatListResponse } from '@/components/dashboard/whatsapp/inbo
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable'
 
 export default function WhatsAppInboxPage() {
-  const { organizationId } = useRequiredProjectRouteContext()
+  const { organizationId, projectId } = useRequiredProjectRouteContext()
 
   const [selectedChat, setSelectedChat] = React.useState<ChatItem | null>(null)
   const [searchQuery, setSearchQuery] = React.useState('')
@@ -28,7 +28,7 @@ export default function WhatsAppInboxPage() {
   useRealtime(organizationId)
 
   const { data, isLoading, refetch, isRefetching } = useQuery<ChatListResponse>({
-    queryKey: ['whatsapp-chats', organizationId, searchQuery, selectedInstanceId],
+    queryKey: ['whatsapp-chats', organizationId, projectId, searchQuery, selectedInstanceId],
     enabled: !!organizationId,
     queryFn: async () => {
       const url = new URL('/api/v1/whatsapp/chats', window.location.origin)
@@ -39,6 +39,7 @@ export default function WhatsAppInboxPage() {
 
       const data = await apiFetch(url.toString(), {
         orgId: organizationId,
+        projectId,
       })
       return data as ChatListResponse
     },
@@ -77,7 +78,7 @@ export default function WhatsAppInboxPage() {
         {/* Middle Panel: Messages */}
         <ResizablePanel defaultSize={50} minSize={30}>
           {selectedChat ? (
-            <ChatWindow chat={selectedChat} organizationId={organizationId} />
+            <ChatWindow chat={selectedChat} organizationId={organizationId} projectId={projectId} />
           ) : (
             <div className="bg-muted/5 flex h-full flex-col items-center justify-center p-8 text-center">
               <div className="bg-primary/5 border-primary/10 mb-4 rounded-3xl border p-6">
@@ -100,6 +101,7 @@ export default function WhatsAppInboxPage() {
             <TicketPanel
               conversationId={selectedChat.id}
               organizationId={organizationId}
+              projectId={projectId}
               chat={selectedChat}
             />
           ) : (

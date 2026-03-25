@@ -43,6 +43,7 @@ import { ChatItem } from './types'
 interface TicketPanelProps {
   conversationId: string
   organizationId: string
+  projectId?: string
   chat?: ChatItem
 }
 
@@ -101,15 +102,21 @@ const STATUS_BADGE_MAP: Record<string, { bg: string; text: string; label: string
   closed_lost: { bg: 'bg-red-500/10', text: 'text-red-700', label: 'Perdido' },
 }
 
-export function TicketPanel({ conversationId, organizationId, chat }: TicketPanelProps) {
+export function TicketPanel({
+  conversationId,
+  organizationId,
+  projectId,
+  chat,
+}: TicketPanelProps) {
   const queryClient = useQueryClient()
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['conversation-ticket', conversationId, organizationId],
+    queryKey: ['conversation-ticket', conversationId, organizationId, projectId],
     queryFn: async () => {
       try {
         const data = await apiFetch(`/api/v1/conversations/${conversationId}/ticket`, {
           orgId: organizationId,
+          projectId,
         })
         return data as TicketResponse
       } catch (err) {
@@ -124,10 +131,11 @@ export function TicketPanel({ conversationId, organizationId, chat }: TicketPane
   const ticket = data
 
   const { data: stagesData } = useQuery({
-    queryKey: ['ticket-stages', organizationId],
+    queryKey: ['ticket-stages', organizationId, projectId],
     queryFn: async () => {
       const data = await apiFetch(`/api/v1/ticket-stages`, {
         orgId: organizationId,
+        projectId,
       })
       return (data as any) || { items: [] }
     },
@@ -147,6 +155,7 @@ export function TicketPanel({ conversationId, organizationId, chat }: TicketPane
         },
         body: JSON.stringify({ stageId: newStageId }),
         orgId: organizationId,
+        projectId,
       })
 
       toast.success('Etapa atualizada!', { id: toastId })

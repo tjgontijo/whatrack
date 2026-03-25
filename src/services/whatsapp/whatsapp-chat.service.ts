@@ -105,9 +105,9 @@ export class WhatsAppChatService {
             instanceId,
           },
         },
-        update: {},
+        update: { ...(instance.projectId ? { projectId: instance.projectId } : {}) },
         create: {
-          organizationId,
+          organizationId, projectId: instance.projectId,
           leadId: lead.id,
           instanceId,
         },
@@ -296,9 +296,12 @@ export class WhatsAppChatService {
             instanceId,
           },
         },
-        update: {},
+        update: {
+          ...(instance.projectId ? { projectId: instance.projectId } : {}),
+        },
         create: {
           organizationId: instance.organizationId,
+          projectId: instance.projectId,
           leadId: lead.id,
           instanceId,
         },
@@ -471,9 +474,9 @@ export class WhatsAppChatService {
             instanceId,
           },
         },
-        update: {},
+        update: { ...(projectId ? { projectId } : {}) },
         create: {
-          organizationId,
+          organizationId, projectId: projectId ?? undefined,
           leadId: lead.id,
           instanceId,
         },
@@ -491,7 +494,7 @@ export class WhatsAppChatService {
         ticket = await prisma.ticket.create({
           data: {
             organizationId,
-            projectId: projectId ?? null,
+            projectId: projectId ?? undefined,
             leadId: lead.id,
             conversationId: conversation.id,
             stageId: defaultStage.id,

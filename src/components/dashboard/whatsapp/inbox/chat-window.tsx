@@ -15,18 +15,20 @@ import { apiFetch } from '@/lib/api-client'
 interface ChatWindowProps {
   chat: ChatItem
   organizationId: string
+  projectId?: string
 }
 
-export function ChatWindow({ chat, organizationId }: ChatWindowProps) {
+export function ChatWindow({ chat, organizationId, projectId }: ChatWindowProps) {
   const scrollRef = React.useRef<HTMLDivElement>(null)
 
 
 
   const { data, isLoading, isFetching, refetch } = useQuery<MessageListResponse>({
-    queryKey: ['chat-messages', chat.id, organizationId],
+    queryKey: ['chat-messages', chat.id, organizationId, projectId],
     queryFn: async () => {
       const data = await apiFetch(`/api/v1/whatsapp/chats/${chat.id}/messages`, {
         orgId: organizationId,
+        projectId,
       })
       return data as MessageListResponse
     },

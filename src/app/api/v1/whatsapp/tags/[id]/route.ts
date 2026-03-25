@@ -10,8 +10,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const { hasAccess, organizationId } = await validateFullAccess(request);
   if (!hasAccess || !organizationId) return apiError('Unauthorized', 401);
 
+  const { searchParams } = new URL(request.url);
+  const projectId = searchParams.get('projectId') || undefined;
+
   const body = await request.json();
-  const result = await updateLeadTag(organizationId, id, body);
+  const result = await updateLeadTag(organizationId, id, { ...body, projectId });
   
   if ('error' in result) {
     return apiError(result.error, result.status);
@@ -25,7 +28,10 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
   const { hasAccess, organizationId } = await validateFullAccess(request);
   if (!hasAccess || !organizationId) return apiError('Unauthorized', 401);
 
-  const result = await deleteLeadTag(organizationId, id);
+  const { searchParams } = new URL(request.url);
+  const projectId = searchParams.get('projectId') || undefined;
+
+  const result = await deleteLeadTag(organizationId, id, projectId);
   if ('error' in result) {
     return apiError(result.error, result.status);
   }
