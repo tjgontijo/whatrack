@@ -170,6 +170,8 @@ function parseFailureReason(reason: string | null) {
 
 export default function CampaignDetailPage({ params }: CampaignPageProps) {
   const [recipientPage, setRecipientPage] = React.useState(1)
+  const [recipientStatusFilter, setRecipientStatusFilter] = React.useState<string>('')
+  const [recipientPhoneSearch, setRecipientPhoneSearch] = React.useState<string>('')
   const [selectedFailureRecipient, setSelectedFailureRecipient] = React.useState<CampaignRecipient | null>(
     null
   )
@@ -189,8 +191,23 @@ export default function CampaignDetailPage({ params }: CampaignPageProps) {
     enabled: !!organizationId && !!campaignId,
   })
 
+  // Simple debounce for phone search (300ms)
+  const [phoneDebounced, setPhoneDebounced] = React.useState('')
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setPhoneDebounced(recipientPhoneSearch)
+      setRecipientPage(1) // Reset to page 1 on filter change
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [recipientPhoneSearch])
+
+  // Reset page when status filter changes
+  React.useEffect(() => {
+    setRecipientPage(1)
+  }, [recipientStatusFilter])
+
   const { data: recipients } = useQuery<RecipientsResponse>({
-    queryKey: ['campaign-recipients', organizationId, campaignId, recipientPage],
+    queryKey: ['campaign-recipients', organizationId, campaignId, recipientPage, recipientStatusFilter, phoneDebounced],
     queryFn: async () => {
       const url = new URL(
         `/api/v1/whatsapp/campaigns/${campaignId}/recipients`,
@@ -198,6 +215,8 @@ export default function CampaignDetailPage({ params }: CampaignPageProps) {
       )
       url.searchParams.set('page', String(recipientPage))
       url.searchParams.set('pageSize', '20')
+      if (recipientStatusFilter) url.searchParams.set('status', recipientStatusFilter)
+      if (phoneDebounced) url.searchParams.set('phone', phoneDebounced)
       const data = await apiFetch(url.toString(), { orgId: organizationId })
       return data as RecipientsResponse
     },
@@ -463,7 +482,38 @@ export default function CampaignDetailPage({ params }: CampaignPageProps) {
               <CardHeader>
                 <CardTitle>Destinatários</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
+                <div className="flex gap-3 flex-wrap items-end">
+                  <div className="flex-1 min-w-[200px]">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase block mb-2">Status</label>
+                    <select
+                      value={recipientStatusFilter}
+                      onChange={(e) => setRecipientStatusFilter(e.target.value)}
+                      className="w-full px-3 py-2 border border-border rounded-md bg-background text-sm"
+                    >
+                      <option value="">Todos os status</option>
+                      <option value="SENT">Enviada</option>
+                      <option value="DELIVERED">Entregue</option>
+                      <option value="READ">Lida</option>
+                      <option value="RESPONDED">Interação</option>
+                      <option value="FAILED">Falhou</option>
+                      <option value="EXCLUDED">Excluído</option>
+                    </select>
+                  </div>
+                  <div className="flex-1 min-w-[200px]">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase block mb-2">Buscar por telefone</label>
+                    <input
+                      type="text"
+                      placeholder="Ex: 9999999"
+                      value={recipientPhoneSearch}
+                      onChange={(e) => setRecipientPhoneSearch(e.target.value)}
+                      className="w-full px-3 py-2 border border-border rounded-md bg-background text-sm"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Mostrando {recipients.items.length} de {recipients.total} destinatários
+                </p>
                 <Table>
                   <TableHeader>
                     <TableRow>
