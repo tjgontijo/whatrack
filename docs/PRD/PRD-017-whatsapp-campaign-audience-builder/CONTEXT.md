@@ -1,6 +1,6 @@
 # Contexto: WhatsApp Campaign Audience Builder
 
-**Ultima atualizacao:** 2026-03-22
+**Ultima atualizacao:** 2026-03-25
 
 ---
 
@@ -53,6 +53,9 @@ Limitacoes relevantes do fluxo atual:
 - a resolucao de variaveis e rigida e centrada em CSV
 - o backend ainda carrega estados/endpoints de aprovacao que o produto nao quer manter
 - a regra "fase do pipeline ha X dias" nao e suportada corretamente
+- o endpoint `/stats` retorna apenas totais (total, success, failed, pending) sem detalhamento por status de entrega
+- a tabela de destinatarios nao tem filtro por status, tornando campanhas grandes inoperaveis
+- nao existe acao de duplicar campanha
 
 O estado tecnico atual tambem tem drift de dominio:
 
@@ -112,6 +115,35 @@ Exemplo:
 - `nome_do_cliente` -> campo do CRM `lead.name`
 - `numero_do_pedido` -> coluna da lista `pedido`
 - `link_google_drive` -> valor fixo definido na campanha
+
+---
+
+## Arquitetura de Camadas
+
+Este PRD segue a arquitetura **domain-organized code** do nextjs-feature-dev.
+
+### `src/lib/whatsapp/` (novo codigo PRD-017)
+
+- **`queries/`** — Leitura pura para Server Components. Cacheavel com `'use cache'` + `cacheTag` quando apropriado.
+- **`actions/`** — Server Actions thin (5-15 linhas). Autenticação → validação Zod → delega service → retorna `Result<T>`.
+- **`services/`** — Lógica de negócio principal. Orquestra operações, retorna `Result<T>`. Integra com `server/db`.
+- **`schemas/`** — Zod para validação em todos os limites: Server Actions, route handlers, webhooks.
+- **`api-client/`** — Cliente HTTP para APIs internas/externas. Nunca em `src/hooks`.
+- **`types/`** — TypeScript types do domínio.
+
+### `src/app/api/v1/whatsapp/` (thin routes)
+
+- Route handlers max 10-20 linhas: parse → validate Zod → call service → respond.
+- Nunca importar Prisma diretamente. Sempre delegar para service.
+
+### `src/components/dashboard/whatsapp/` (UI)
+
+- Server Components por padrão. Fetch em Server Components, passe props para Client.
+- `'use client'` APENAS para hooks/events/browser APIs.
+
+### `src/services/whatsapp/` (existente, sera mantido)
+
+Código legado usa `src/services/`. Para PRD-017, usar `src/lib/whatsapp/services/` para novo domínio.
 
 ---
 
@@ -204,6 +236,9 @@ Esta e a migracao mais segura: nao dispara nada implicitamente e preserva histor
 - CRUD e preview de segmentos do CRM
 - criacao/edicao de campanhas com origem de audiencia persistida
 - preview de resolucao de variaveis e de exclusoes antes do envio
+- endpoint de duplicacao de campanha (`POST /campaigns/[campaignId]/duplicate`)
+- endpoint `/stats` expandido com contagens por status de entrega: `sent`, `delivered`, `read`, `responded`
+- endpoint `/recipients` com suporte a filtro por `status` e busca por telefone
 
 ### APIs externas
 
@@ -242,5 +277,8 @@ Quando a feature estiver pronta, o usuario devera conseguir:
 - visualizar quantos contatos serao enviados, excluidos ou sem variavel resolvida
 - enviar imediatamente ou agendar
 - acompanhar o resultado da campanha sem qualquer fluxo de aprovacao
+- visualizar o funil de engajamento da campanha concluida: enviados -> entregues -> lidos -> responderam
+- filtrar a tabela de destinatarios por status (PENDING, SENT, DELIVERED, READ, RESPONDED, FAILED) e buscar por telefone
+- duplicar uma campanha existente para reutilizar configuracao em nova audiencia
 
 Tudo isso deve acontecer sem quebrar a execucao atual por cron, sem converter contato importado em lead automaticamente e sem exigir um modulo generico de custom fields antes da entrega da primeira versao operacional.

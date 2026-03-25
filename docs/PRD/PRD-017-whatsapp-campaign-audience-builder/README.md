@@ -1,8 +1,8 @@
 # PRD-017: WhatsApp Campaign Audience Builder
 
 **Status:** Draft
-**Data:** 2026-03-22
-**Versao:** 1.0
+**Data:** 2026-03-25
+**Versao:** 1.1
 
 ---
 
@@ -54,12 +54,16 @@ Entra:
 - congelamento do snapshot de destinatarios e variaveis no momento de `enviar` ou `agendar`
 - simplificacao do dominio de campanhas para `DRAFT | SCHEDULED | PROCESSING | COMPLETED | CANCELLED`
 - historico de eventos de campanha sem conceito de aprovacao
+- funil de engajamento na pagina de detalhe: `Enviados -> Entregues -> Lidos -> Responderam`
+- filtro de destinatarios por status e busca por telefone na tabela de recipients
+- acao de duplicar campanha (cria rascunho independente)
 
 Fica fora:
 - automacoes multi-etapa e jornadas
+- testes A/B de templates (previsto para PRD separado, depende desta fundacao)
 - criacao de um motor generico de custom fields para todo o CRM
 - sincronizacao nativa com ecommerce/ERP para pedidos
-- analytics avancado de campanha alem do acompanhamento atual
+- throttle configuravel e pause/resume de campanha em execucao
 - roteamento automatico entre varias instancias com distribuicao inteligente
 - mensagens livres fora de templates aprovados pela Meta
 
@@ -107,6 +111,29 @@ As alternativas consideradas e os trade-offs completos ficam documentados em `DI
 
 ---
 
+## Architecture Reference
+
+Este PRD segue rigorosamente os padrões do **nextjs-feature-dev skill**:
+
+- **Domain-organized code** em `src/lib/whatsapp/`
+- **Layer separation** (queries, actions, services, schemas)
+- **Server-first components** por padrão
+- **Thin boundaries** (routes e Server Actions)
+- **Result<T> pattern** para error handling
+- **Zod validation** em todos os limites
+- **Structured Pino logging** no service layer
+- **Atomic commits** por task
+- **Branch-per-feature** workflow
+
+Leia `CONTEXT.md` > seção "Arquitetura de Camadas" para mapeamento completo.
+
+---
+
 ## Proximo Passo
 
-Validar esta direcao como substituta do fluxo atual de campanhas e usar este PRD como base para a branch e para a execucao incremental da feature.
+Implementar este PRD como base para a v2 do modulo de campanhas. Ao concluir, iniciar PRD separado para testes A/B de templates (PRD-018), que dependera da fundacao de `dispatchGroups` e do novo builder estabelecidos aqui.
+
+Leia também:
+- [nextjs-feature-dev skill](../../.claude/skills/nextjs-feature-dev/) para arquitetura detalhada
+- [git-branching reference](../../.claude/skills/nextjs-feature-dev/references/git-branching.md) para workflow
+- [nextjs-conventions reference](../../.claude/skills/nextjs-feature-dev/references/nextjs-conventions.md) para layer rules

@@ -1,6 +1,6 @@
 # Quick Start: PRD-017 WhatsApp Campaign Audience Builder
 
-**Data:** 2026-03-22
+**Data:** 2026-03-25
 **Status:** Draft
 
 ---
@@ -18,11 +18,43 @@ Entregar a v2 do modulo de campanhas WhatsApp com:
 
 ---
 
-## Branch Sugerida
+## Configuracao da Branch
+
+Este PRD segue o workflow **branch-per-feature** do nextjs-feature-dev.
+
+### Step 1 — Criar feature branch
 
 ```bash
-feature/2026-03-22-whatsapp-campaign-audience-builder
+git checkout main && git pull origin main
+git checkout -b feature/2026-03-25-whatsapp-campaign-audience-builder
 ```
+
+### Step 2 — Primeiro commit e sempre o PRD
+
+```bash
+git add docs/PRD/PRD-017-whatsapp-campaign-audience-builder/
+git commit -m "docs: add PRD for WhatsApp campaign audience builder"
+```
+
+### Step 3 — Cada task = um commit atomico
+
+Durante a execucao, cada task recebe seu proprio commit com mensagem clara:
+
+```bash
+# Task 1
+git commit -m "feat(whatsapp): add campaign audience builder schema"
+
+# Task 5
+git commit -m "feat(whatsapp): add contact list service with CSV import"
+
+# Task 12
+git commit -m "feat(whatsapp): add campaign variant stats and duplicate endpoint"
+
+# Task 18
+git commit -m "feat(whatsapp): add engagement funnel and recipient filters"
+```
+
+Veja exemplos completos em "Commit Messages por Task" abaixo.
 
 ---
 
@@ -140,18 +172,50 @@ Qualquer coisa fora disso pode ser:
 
 ---
 
+## Arquitetura de Camadas (nextjs-conventions)
+
+### `src/lib/whatsapp/`
+
+- **`queries/`** — Leitura pura. Usam `'use cache'` + `cacheTag` para queries custosas (segment preview, list preview).
+- **`actions/`** — Server Actions thin (5-15 linhas). Validacao Zod → delega para service → retorna `Result<T>`.
+- **`services/`** — Lógica de negócio. Orquestra operações, retorna `Result<T>`. Nunca throw para erros esperados.
+- **`api-client/`** — Cliente HTTP para APIs internas/externas. NÃO va em `src/hooks`.
+- **`schemas/`** — Validação Zod para todos os limites: Server Actions, route handlers, webhooks, env vars.
+- **`types/`** — TypeScript types específicos do domínio.
+
+### `src/app/api/v1/whatsapp/`
+
+- Route handlers thin (10-20 linhas).
+- Parse input → validate com Zod → call service → respond com `apiSuccess`/`apiError`.
+- Nunca importar Prisma diretamente. Sempre via service.
+
+### `src/components/dashboard/whatsapp/`
+
+- Server Components por padrão.
+- Fetch data em Server Components, passe props para Client Components.
+- `'use client'` APENAS para hooks, event handlers, browser APIs.
+
+### `src/services/whatsapp/` (LEGADO)
+
+Domínios já existentes usam `src/services/`. Para PRD-017, usar `src/lib/whatsapp/services/` para nova lógica.
+
+---
+
 ## Checklist Tecnico
 
-- Route handlers continuam thin
-- Services concentram regra de negocio
-- Zod em todos os payloads novos
-- `stageEnteredAt` atualizado em toda mudanca de fase
-- testes cobrindo:
-- resolver de variaveis
-- deduplicacao de lista
-- preview de segmento
-- snapshot de campanha agendada
-- remocao do fluxo de aprovacao
+- [x] Route handlers continuam thin (10-20 linhas max)
+- [x] Services concentram regra de negocio, retornam `Result<T>`
+- [x] Zod em todos os payloads novos (schemas em `src/schemas/whatsapp/`)
+- [x] `stageEnteredAt` atualizado em toda mudanca de fase
+- [x] Structured logging com Pino: `logger.info({ context }, 'message')`
+- [x] Server Components por padrao, `'use client'` apenas quando necessario
+- [x] Atomic commits: cada task = um commit feat/test/refactor
+- [x] Testes cobrindo:
+  - Resolver de variaveis (unit test de service)
+  - Deduplicacao de lista (unit test de service)
+  - Preview de segmento (unit test)
+  - Snapshot de campanha agendada (integration test)
+  - Remocao do fluxo de aprovacao (migration test)
 
 ---
 
@@ -172,12 +236,71 @@ Adicionar suites novas para:
 
 ---
 
+## Commit Messages por Task
+
+Cada task recebe seu proprio commit atomico. Exemplos:
+
+```bash
+# Fase 1: Schema + Migration
+Task 1: git commit -m "feat(whatsapp): add audience builder schema and models"
+Task 2: git commit -m "feat(whatsapp): remove approval flow from campaign domain"
+Task 3: git commit -m "feat(whatsapp): backfill stageEnteredAt and migrate legacy campaign states"
+
+# Fase 2: Backend Services
+Task 4: git commit -m "feat(whatsapp): add audience schemas with zod validation"
+Task 5: git commit -m "feat(whatsapp): add contact list service with CSV import"
+Task 6: git commit -m "feat(whatsapp): add lead tag service and CRUD operations"
+Task 7: git commit -m "feat(whatsapp): add audience segment service with CRM filters"
+Task 8: git commit -m "feat(whatsapp): expose thin route handlers for lists, tags, segments"
+
+# Fase 3: Campaign Refactor
+Task 9: git commit -m "feat(whatsapp): refactor campaign service for new audience flow"
+Task 20: git commit -m "feat(whatsapp): add campaign duplicate service"
+Task 10: git commit -m "feat(whatsapp): add campaign variable resolver service"
+Task 11: git commit -m "feat(whatsapp): freeze campaign recipient snapshot on dispatch"
+Task 12: git commit -m "feat(whatsapp): update campaign routes with stats, filtering, duplicate"
+
+# Fase 4: UI Builder
+Task 13: git commit -m "feat(whatsapp): migrate campaign creation from drawer to full-page builder"
+Task 14: git commit -m "feat(whatsapp): add audiences tab to campaigns hub"
+Task 15: git commit -m "feat(whatsapp): build contact lists UI with import"
+Task 16: git commit -m "feat(whatsapp): build tags and segments UI"
+Task 17: git commit -m "feat(whatsapp): build campaign builder v2 with 5 steps"
+Task 19: git commit -m "feat(whatsapp): add tag assignment in CRM (lead detail and ticket panel)"
+Task 18: git commit -m "feat(whatsapp): add engagement funnel and recipient filters to campaign detail"
+```
+
+---
+
+## Logging e Validacao por Task
+
+Cada task de service deve incluir:
+
+1. **Structured Pino logging** em pontos criticos:
+   ```typescript
+   logger.info({ listId, memberCount }, '[ContactList] Imported members')
+   logger.error({ err, listId }, '[ContactList] Import failed')
+   ```
+
+2. **Zod validation** em boundaries:
+   - Server Action input: `WhatsAppContactListCreateSchema.parse(input)`
+   - Route handler body: payload validado antes de delegar
+   - Webhook: eventos validados antes de processar
+
+3. **Result<T> return type** em services:
+   ```typescript
+   return { success: true, data: ... }
+   return { success: false, error: 'message' }
+   ```
+
+---
+
 ## Resultado Esperado ao Final
 
 Ao final da implementacao, a area `/whatsapp/campaigns` deve funcionar como um modulo administrativo completo:
 
-- gerencia audiencia
-- cria campanha sem drawer
-- resolve variaveis com previsibilidade
-- envia ou agenda sem aprovacao
-- acompanha o resultado de ponta a ponta
+- gerencia audiencia (listas, tags, segmentos)
+- cria campanha sem drawer (builder em pagina cheia)
+- resolve variaveis com previsibilidade (CRM, coluna lista, valor fixo)
+- envia ou agenda sem aprovacao (DRAFT → SCHEDULED → PROCESSING → COMPLETED)
+- acompanha o resultado de ponta a ponta (funil de engajamento, filtro de destinatarios, duplicate)

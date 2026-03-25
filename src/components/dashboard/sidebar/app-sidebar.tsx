@@ -108,7 +108,18 @@ export function AppSidebar({
       label: 'Captação',
       items: [
         { title: 'Meta Ads', href: `${basePath}/meta-ads`, icon: 'Meta', permission: 'view:meta' },
-        { title: 'Campanhas', href: `${basePath}/whatsapp/campaigns`, icon: 'Megaphone', permission: 'view:whatsapp' },
+        {
+          title: 'Audiências',
+          href: `${basePath}/whatsapp/audiences`,
+          icon: 'Users',
+          permission: 'view:whatsapp',
+        },
+        {
+          title: 'Campanhas',
+          href: `${basePath}/whatsapp/campaigns`,
+          icon: 'Megaphone',
+          permission: 'view:whatsapp',
+        },
       ],
     },
     {

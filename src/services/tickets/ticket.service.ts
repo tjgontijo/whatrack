@@ -498,6 +498,7 @@ export async function createTicket(params: CreateTicketParams) {
       leadId: conversation.leadId,
       conversationId,
       stageId: targetStageId,
+      stageEnteredAt: new Date(),
       assigneeId: assigneeId || null,
       dealValue,
       status: 'open',
@@ -568,7 +569,7 @@ export async function updateTicket(params: UpdateTicketParams) {
   const updated = await prisma.ticket.update({
     where: { id: ticketId },
     data: {
-      ...(stageId && { stageId }),
+      ...(stageId && { stageId, stageEnteredAt: new Date() }),
       ...(assigneeId !== undefined && { assigneeId }),
       ...(dealValue !== undefined && { dealValue }),
       ...(typeof params.projectId !== 'undefined' ? { projectId: params.projectId } : {}),

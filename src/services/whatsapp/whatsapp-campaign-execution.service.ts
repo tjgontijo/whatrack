@@ -2,6 +2,7 @@ import { prisma } from '@/lib/db/prisma'
 import { MetaCloudService } from '@/services/whatsapp/meta-cloud.service'
 import { resolveAccessToken } from '@/lib/whatsapp/token-crypto'
 import { logger } from '@/lib/utils/logger'
+import { WhatsAppChatService } from '@/services/whatsapp/whatsapp-chat.service'
 
 const BATCH_SIZE = 10 // 10 mensagens por segundo
 const BATCH_DELAY_MS = 1000 // 1 segundo entre lotes
@@ -69,7 +70,18 @@ export async function processDispatchGroup(
   const group = await prisma.whatsAppCampaignDispatchGroup.findFirst({
     where: { id: groupId, campaign: { organizationId } },
     include: {
-      campaign: { select: { id: true, type: true, organizationId: true, templateName: true, templateLang: true } },
+      campaign: {
+        select: {
+          id: true,
+          name: true,
+          projectId: true,
+          type: true,
+          organizationId: true,
+          templateName: true,
+          templateLang: true,
+          shouldCreateLeads: true,
+        },
+      },
       config: { select: { id: true, phoneId: true, accessToken: true, displayPhone: true } },
       recipients: {
         where: { status: 'PENDING' },
@@ -139,14 +151,32 @@ export async function processDispatchGroup(
           accessToken: token || undefined,
         })
 
+        const wamid = result.messages?.[0]?.id
+
         await prisma.whatsAppCampaignRecipient.update({
           where: { id: recipient.id },
           data: {
             status: 'SENT',
             sentAt: new Date(),
-            metaWamid: result.messages?.[0]?.id,
+            metaWamid: wamid,
           },
         })
+
+        // Record in chat history (Lead, Conversation, Message)
+        if (wamid) {
+          await WhatsAppChatService.recordCampaignMessage({
+            instanceId: group.configId,
+            organizationId: group.campaign.organizationId,
+            projectId: group.campaign.projectId,
+            phone: recipient.phone,
+            campaignId: group.campaign.id,
+            campaignName: group.campaign.name,
+            wamid,
+            body: `Template: ${group.campaign.templateName}`,
+            variables,
+            shouldCreateLeads: group.campaign.shouldCreateLeads,
+          })
+        }
 
         return result
       })

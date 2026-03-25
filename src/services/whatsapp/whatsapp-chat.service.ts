@@ -129,6 +129,7 @@ export class WhatsAppChatService {
             leadId: lead.id, // ✅ Add leadId
             conversationId: conversation.id,
             stageId: defaultStage.id,
+            stageEnteredAt: new Date(),
             windowExpiresAt: new Date(messageTimestamp.getTime() + WINDOW_MS),
             windowOpen: true,
             status: 'open',
@@ -317,6 +318,7 @@ export class WhatsAppChatService {
             leadId: lead.id, // ✅ Add leadId
             conversationId: conversation.id,
             stageId: defaultStage.id,
+            stageEnteredAt: new Date(),
             windowOpen: false,
             status: 'open',
             createdBy: 'SYSTEM',
@@ -409,6 +411,132 @@ export class WhatsAppChatService {
       }
     } catch (error) {
       logger.error({ err: error }, '[WhatsAppChatService] Error processing status update')
+    }
+  }
+
+  /**
+   * Record an outgoing campaign message in the chat history
+   */
+  static async recordCampaignMessage(params: {
+    instanceId: string
+    organizationId: string
+    projectId?: string | null
+    phone: string
+    campaignId: string
+    campaignName: string
+    wamid: string
+    body: string
+    variables?: any
+    shouldCreateLeads?: boolean
+  }) {
+    const { instanceId, organizationId, projectId, phone, campaignId, campaignName, wamid, body, shouldCreateLeads = true } = params
+    try {
+      // 1. Find or Create Lead
+      let lead = await prisma.lead.findUnique({
+        where: { organizationId_phone: { organizationId, phone } },
+      })
+
+      if (!lead) {
+        if (!shouldCreateLeads) {
+          // Skip lead and message creation if opt-out is active and lead doesn't exist
+          return null
+        }
+
+        lead = await prisma.lead.create({
+          data: {
+            organizationId,
+            projectId: projectId ?? null,
+            phone,
+            waId: phone,
+            source: `campaign:${campaignName}`,
+            lastMessageAt: new Date(),
+          },
+        })
+      } else {
+        // Update existing lead with project context if missing
+        await prisma.lead.update({
+          where: { id: lead.id },
+          data: {
+            ...(projectId && !lead.projectId ? { projectId } : {}),
+            lastMessageAt: new Date(),
+          },
+        })
+      }
+
+      // 2. Ensure Conversation
+      const conversation = await prisma.conversation.upsert({
+        where: {
+          leadId_instanceId: {
+            leadId: lead.id,
+            instanceId,
+          },
+        },
+        update: {},
+        create: {
+          organizationId,
+          leadId: lead.id,
+          instanceId,
+        },
+      })
+
+      // 3. Ensure Ticket
+      let ticket = await prisma.ticket.findFirst({
+        where: { conversationId: conversation.id, status: 'open' },
+        orderBy: { createdAt: 'desc' },
+      })
+
+      const defaultStage = await getDefaultTicketStage(prisma, organizationId)
+
+      if (!ticket) {
+        ticket = await prisma.ticket.create({
+          data: {
+            organizationId,
+            projectId: projectId ?? null,
+            leadId: lead.id,
+            conversationId: conversation.id,
+            stageId: defaultStage.id,
+            stageEnteredAt: new Date(),
+            windowOpen: false, // Outbound template doesn't open the window for free-form replies
+            status: 'open',
+            createdBy: 'SYSTEM',
+            messagesCount: 0,
+            source: 'whatsapp_campaign',
+          },
+        })
+      }
+
+      // 4. Create Message
+      const message = await prisma.message.create({
+        data: {
+          wamid,
+          leadId: lead.id,
+          instanceId,
+          conversationId: conversation.id,
+          ticketId: ticket.id,
+          campaignRecipientId: undefined, // Will be linked via campaign execution if needed
+          direction: 'OUTBOUND',
+          type: 'template',
+          body: body || '',
+          status: 'sent',
+          timestamp: new Date(),
+          source: 'campaign',
+        },
+      })
+
+      await prisma.conversation.update({
+        where: { id: conversation.id },
+        data: { messagesCount: { increment: 1 } },
+      })
+
+      await prisma.ticket.update({
+        where: { id: ticket.id },
+        data: { messagesCount: { increment: 1 } },
+      })
+
+      return { leadId: lead.id, messageId: message.id }
+    } catch (error) {
+      logger.error({ err: error, phone }, '[WhatsAppChatService] Error recording campaign message')
+      return null
     }
   }
 }

@@ -27,8 +27,6 @@ const TABS = [
 
 const STATUS_LABELS: Record<string, string> = {
   DRAFT: 'Rascunho',
-  PENDING_APPROVAL: 'Pendente',
-  APPROVED: 'Aprovada',
   SCHEDULED: 'Agendada',
   PROCESSING: 'Em andamento',
   COMPLETED: 'Concluída',
@@ -37,8 +35,6 @@ const STATUS_LABELS: Record<string, string> = {
 
 const STATUS_VARIANTS: Record<string, 'secondary' | 'default' | 'destructive' | 'outline'> = {
   DRAFT: 'secondary',
-  PENDING_APPROVAL: 'outline',
-  APPROVED: 'outline',
   SCHEDULED: 'default',
   PROCESSING: 'default',
   COMPLETED: 'secondary',

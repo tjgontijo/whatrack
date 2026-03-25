@@ -1,8 +1,8 @@
 # Tasks: PRD-017 WhatsApp Campaign Audience Builder
 
-**Data:** 2026-03-22
+**Data:** 2026-03-25
 **Status:** Draft
-**Total:** 19
+**Total:** 20
 **Estimado:** 3 a 4 sprints
 
 ---
@@ -231,6 +231,25 @@
 
 **Depends on:** Task 10
 
+### Task 20: Implementar servico de duplicacao de campanha
+
+**Files:**
+- Modify: `src/services/whatsapp/whatsapp-campaign.service.ts`
+- Test: `src/services/whatsapp/__tests__/whatsapp-campaign.service.test.ts`
+
+**What to do:**
+- Implementar `duplicateCampaign(organizationId, campaignId, userId)` no service.
+- Clonar os campos: `name` (com sufixo " (copia)"), `type`, `templateName`, `templateLang`, `audienceSourceType`, `audienceSourceId`, `dispatchGroups` (estrutura de configuracao, sem recipients).
+- Novo status: `DRAFT`. Campos como `scheduledAt`, `startedAt`, `completedAt`, `snapshotAt` devem ser nulos.
+- Registrar evento `CREATED` com `metadata: { duplicatedFrom: campaignId }`.
+- Nao copiar `WhatsAppCampaignRecipient`: o snapshot sera gerado novamente quando a campanha for enviada/agendada.
+
+**Verification:**
+- A campanha duplicada inicia em `DRAFT` com nome correto e sem recipients.
+- O evento `CREATED` tem `metadata.duplicatedFrom` preenchido.
+
+**Depends on:** Task 9
+
 ### Task 12: Atualizar rotas de campanha e remover endpoints de aprovacao
 
 **Files:**
@@ -240,6 +259,8 @@
 - Modify: `src/app/api/v1/whatsapp/campaigns/[campaignId]/dispatch/route.ts`
 - Modify: `src/app/api/v1/whatsapp/campaigns/[campaignId]/cancel/route.ts`
 - Modify: `src/app/api/v1/whatsapp/campaigns/[campaignId]/recipients/route.ts`
+- Modify: `src/app/api/v1/whatsapp/campaigns/[campaignId]/stats/route.ts`
+- Create: `src/app/api/v1/whatsapp/campaigns/[campaignId]/duplicate/route.ts`
 - Delete: `src/app/api/v1/whatsapp/campaigns/[campaignId]/submit/route.ts`
 - Delete: `src/app/api/v1/whatsapp/campaigns/[campaignId]/approve/route.ts`
 - Delete: `src/app/api/v1/whatsapp/campaigns/import/route.ts`
@@ -248,14 +269,19 @@
 **What to do:**
 - Ajustar payloads para a nova origem de audiencia e preview.
 - Reaproveitar `campaigns/preview` como preview do builder para cobertura de variaveis, exclusoes e snapshot antes do envio.
-- Manter `campaigns/[campaignId]/recipients` como leitura paginada do snapshot final persistido em `WhatsAppCampaignRecipient`.
+- Expandir `campaigns/[campaignId]/stats` para retornar contagens por status de entrega: `sent`, `delivered`, `read`, `responded`, alem dos totais ja existentes. Manter retrocompatibilidade com os campos atuais (`total`, `success`, `failed`, `pending`).
+- Expandir `campaigns/[campaignId]/recipients` com suporte a query params `status` (filtro) e `search` (busca por telefone parcial). O filtro de status deve aceitar valores multiplos separados por virgula.
+- Criar `campaigns/[campaignId]/duplicate` (`POST`): clona a campanha em status `DRAFT` copiando nome (com sufixo " (copia)"), template, instancia e configuracao de audiencia — sem copiar recipients nem snapshot. Delegar para service.
 - Remover endpoints mortos de aprovacao.
 - Remover endpoints legados de importacao direta e `add-audience` avulso, substituidos pela administracao de listas/audiencias.
 - Garantir que o cron continue processando apenas `SCHEDULED`.
 
 **Verification:**
 - Nenhuma rota restante referencia submit/approve.
-- O conjunto de rotas legadas tem disposicao explicita e coerente com o novo fluxo.
+- `GET /stats` retorna `{ total, success, failed, pending, sent, delivered, read, responded }`.
+- `GET /recipients?status=FAILED` retorna apenas recipients com aquele status.
+- `GET /recipients?search=5511` retorna recipients cujo telefone contem `5511`.
+- `POST /duplicate` retorna o novo campaignId em status `DRAFT`.
 
 **Depends on:** Task 11
 
@@ -388,16 +414,24 @@
 **Files:**
 - Modify: `src/app/(dashboard)/[organizationSlug]/[projectSlug]/whatsapp/campaigns/[campaignId]/page.tsx`
 - Modify: `src/components/dashboard/whatsapp/campaigns/campaigns-overview.tsx`
+- Create: `src/components/dashboard/whatsapp/campaigns/campaign-engagement-funnel.tsx`
 - Delete: `src/components/dashboard/whatsapp/campaigns/campaign-wizard-step-basic.tsx`
 - Delete: `src/components/dashboard/whatsapp/campaigns/campaign-wizard-step-recipients.tsx`
 - Delete: `src/components/dashboard/whatsapp/campaigns/campaign-wizard-step-dispatch.tsx`
 
 **What to do:**
-- Trocar historico de aprovacao por historico de eventos.
+- Trocar historico de aprovacao por historico de eventos (`WhatsAppCampaignEvent`).
 - Exibir origem da audiencia, cobertura de variaveis e resumo do snapshot.
 - Remover componentes mortos do wizard antigo.
+- Adicionar funil de engajamento (`campaign-engagement-funnel.tsx`) na pagina de detalhe para campanhas em `PROCESSING` ou `COMPLETED`. O funil exibe, em sequencia horizontal: `Enviados -> Entregues -> Lidos -> Responderam`, com contagem absoluta e percentual relativo ao passo anterior. Consumir os novos campos do endpoint `/stats`.
+- Adicionar filtro de status na tabela de destinatarios: selector multiplo com os valores `PENDING | SENT | DELIVERED | READ | RESPONDED | FAILED` e campo de busca por telefone. Ao aplicar, passar `status` e `search` como query params para o endpoint `/recipients`.
+- Adicionar botao `Duplicar` na pagina de detalhe (e na listagem, como acao de contexto). Ao clicar, chamar `POST /duplicate` e navegar para o builder com o novo rascunho.
 
 **Verification:**
+- O funil aparece apenas em campanhas com status `PROCESSING` ou `COMPLETED`.
+- Filtrar por `FAILED` exibe apenas destinatarios que falharam.
+- Busca por telefone parcial filtra a lista corretamente.
+- `Duplicar` cria novo rascunho e abre o builder.
 - Nenhum componente ativo da area de campanhas depende mais do drawer/wizard antigo.
 
 **Depends on:** Task 17
@@ -406,13 +440,15 @@
 
 ## Ordem de Execucao
 
-`1 -> 2 -> 3 -> 4 -> [5 || 6] -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15 -> 16 -> [17 || 19] -> 18`
+`1 -> 2 -> 3 -> 4 -> [5 || 6] -> 7 -> 8 -> 9 -> [10 || 20] -> 11 -> 12 -> 13 -> 14 -> 15 -> 16 -> [17 || 19] -> 18`
 
 Observacoes:
 
 - Tasks 5 e 6 podem ser executadas em paralelo (ambas dependem de Task 4, sao independentes entre si).
+- Tasks 10 e 20 podem ser executadas em paralelo (resolver variaveis e duplicar campanha sao independentes, ambas dependem de Task 9).
 - Tasks 17 e 19 podem ser executadas em paralelo (builder de campanha e tag UI no CRM sao areas distintas).
 - Task 8 depende de Tasks 5 e 7 (expoe endpoints de listas e de segmentos).
+- Task 12 depende de Task 20 (expoe o endpoint de duplicate).
 
 ---
 
@@ -421,5 +457,308 @@ Observacoes:
 - Nao introduzir custom fields genericos no CRM nesta entrega.
 - O builder deve priorizar UX simples e linguagem de negocio, nao termos tecnicos de payload.
 - O parser CSV deve diferenciar claramente:
-- importacao de lista
-- importacao antiga acoplada a template, que sera descontinuada
+  - importacao de lista
+  - importacao antiga acoplada a template, que sera descontinuada
+- O funil de engajamento exibe apenas os 4 estados de entrega. Estados operacionais (PENDING, EXCLUDED) nao aparecem no funil — ficam visíveis apenas na tabela de destinatarios.
+- A feature de duplicar nao entra no fluxo do builder v2: e uma acao de contexto sobre uma campanha ja existente, que cria um rascunho independente.
+- O filtro de recipients por status e busca por telefone sao aplicados no servidor (query param), nao no cliente — evitar carregar todos os recipients em memoria.
+
+---
+
+## Implementacao: Commits, Logging e Validacao por Task
+
+### Task 1 — Add schema
+
+**Commit message:**
+```
+feat(whatsapp): add audience builder schema and models
+```
+
+**Logging points:**
+```typescript
+// src/services/whatsapp/services/whatsapp-contact-list.service.ts
+logger.info({ organizationId, listId, memberCount }, '[ContactList] Created list')
+logger.error({ err, organizationId }, '[ContactList] Creation failed')
+```
+
+**Zod validation:**
+- `WhatsAppContactListCreateSchema` para inputs de CRUD
+
+---
+
+### Task 2 — Remove approval
+
+**Commit message:**
+```
+feat(whatsapp): remove approval flow from campaign domain
+```
+
+**Logging points:**
+```typescript
+logger.info({ campaignId, fromStatus, toStatus }, '[Campaign] Status migrated from legacy')
+```
+
+---
+
+### Task 3 — Backfill stageEnteredAt
+
+**Commit message:**
+```
+feat(whatsapp): backfill stageEnteredAt and migrate legacy campaign states
+```
+
+**Logging points:**
+```typescript
+logger.info({ ticketsUpdated, campaignsMigrated }, '[Migration] Completed stageEnteredAt backfill')
+```
+
+---
+
+### Task 4 — Schemas Zod
+
+**Commit message:**
+```
+feat(whatsapp): add audience schemas with zod validation
+```
+
+**Validation coverage:**
+- `WhatsAppContactListCreateSchema` / `UpdateSchema`
+- `WhatsAppLeadTagCreateSchema`
+- `WhatsAppAudienceSegmentCreateSchema` with filters validation
+- `WhatsAppCampaignVariableMapSchema` (CRM field, list column, fixed value)
+
+---
+
+### Task 5 — Contact List Service
+
+**Commit message:**
+```
+feat(whatsapp): add contact list service with CSV import
+```
+
+**Logging points:**
+```typescript
+logger.info({ listId, importedCount, duplicatesRemoved }, '[ContactList] CSV import completed')
+logger.error({ err, listId, failedRow }, '[ContactList] CSV parse error at row')
+```
+
+---
+
+### Task 6 — Lead Tag Service
+
+**Commit message:**
+```
+feat(whatsapp): add lead tag service and CRUD operations
+```
+
+**Logging points:**
+```typescript
+logger.info({ leadId, tagId }, '[LeadTag] Tag assigned to lead')
+logger.error({ err, leadId }, '[LeadTag] Assignment failed')
+```
+
+---
+
+### Task 7 — Audience Segment Service
+
+**Commit message:**
+```
+feat(whatsapp): add audience segment service with CRM filters
+```
+
+**Logging points:**
+```typescript
+logger.info({ segmentId, leadCount }, '[AudienceSegment] Preview generated')
+logger.error({ err, segmentId }, '[AudienceSegment] Preview failed')
+```
+
+---
+
+### Task 8 — Expose Routes
+
+**Commit message:**
+```
+feat(whatsapp): expose thin route handlers for audiences
+```
+
+**Zod validation in routes:**
+```typescript
+const body = WhatsAppContactListCreateSchema.parse(await request.json())
+```
+
+---
+
+### Task 9 — Refactor Campaign Service
+
+**Commit message:**
+```
+feat(whatsapp): refactor campaign service for audience-first workflow
+```
+
+**Logging points:**
+```typescript
+logger.info({ campaignId, audienceSourceType }, '[Campaign] Updated for new flow')
+```
+
+---
+
+### Task 20 — Duplicate Campaign
+
+**Commit message:**
+```
+feat(whatsapp): add campaign duplicate service
+```
+
+**Logging points:**
+```typescript
+logger.info({ originalId, newId }, '[Campaign] Duplicated')
+```
+
+---
+
+### Task 10 — Variable Resolver
+
+**Commit message:**
+```
+feat(whatsapp): add campaign variable resolver service
+```
+
+**Logging points:**
+```typescript
+logger.info({ campaignId, resolved, missing }, '[VariableResolver] Resolution summary')
+logger.error({ err, campaignId }, '[VariableResolver] Resolution failed')
+```
+
+---
+
+### Task 11 — Freeze Snapshot
+
+**Commit message:**
+```
+feat(whatsapp): freeze campaign recipient snapshot on dispatch
+```
+
+**Logging points:**
+```typescript
+logger.info({ campaignId, snapshotSize }, '[Campaign] Snapshot frozen')
+```
+
+---
+
+### Task 12 — Update Routes
+
+**Commit message:**
+```
+feat(whatsapp): update campaign routes with stats, filtering, duplicate
+```
+
+**Zod validation:**
+```typescript
+// GET /campaigns/[campaignId]/stats
+const stats = StatsResponseSchema.parse({ total, sent, delivered, read, responded })
+
+// GET /campaigns/[campaignId]/recipients?status=FAILED&search=5511
+const query = RecipientsQuerySchema.parse({ status, search, page, pageSize })
+
+// POST /campaigns/[campaignId]/duplicate
+const body = CampaignDuplicateSchema.parse({ /* cloning params */ })
+```
+
+---
+
+### Task 13 — Full-Page Builder Routes
+
+**Commit message:**
+```
+feat(whatsapp): migrate campaign creation from drawer to full-page builder
+```
+
+---
+
+### Task 14 — Audiences Tab
+
+**Commit message:**
+```
+feat(whatsapp): add audiences tab to campaigns hub
+```
+
+---
+
+### Task 15 — Contact Lists UI
+
+**Commit message:**
+```
+feat(whatsapp): build contact lists UI with import
+```
+
+---
+
+### Task 16 — Tags and Segments UI
+
+**Commit message:**
+```
+feat(whatsapp): build tags and segments UI
+```
+
+---
+
+### Task 17 — Campaign Builder v2
+
+**Commit message:**
+```
+feat(whatsapp): build campaign builder v2 with 5 steps
+```
+
+**Component structure (Server-first):**
+```typescript
+// src/components/dashboard/whatsapp/campaigns/campaign-builder-page.tsx
+// Server Component por defaut, envolve sub-steps em 'use client' apenas se interativo
+export default async function CampaignBuilderPage() {
+  const templates = await getApprovedTemplates()
+  const instances = await getInstances()
+
+  return (
+    <CampaignBuilderClientStep1
+      templates={templates}
+      instances={instances}
+    />
+  )
+}
+```
+
+---
+
+### Task 19 — Tag Assignment in CRM
+
+**Commit message:**
+```
+feat(whatsapp): add tag assignment in CRM (lead detail and ticket panel)
+```
+
+---
+
+### Task 18 — Engagement Funnel and Filters
+
+**Commit message:**
+```
+feat(whatsapp): add engagement funnel and recipient filters to campaign detail
+```
+
+**Component (campaign-engagement-funnel.tsx):**
+```typescript
+// Server Component that renders funnel visually
+// Consome stats do endpoint GET /stats (sent, delivered, read, responded)
+// Exibe: Enviados → Entregues → Lidos → Responderam
+```
+
+---
+
+## Resumo: Patterns por Layer
+
+| Layer | Pattern | Exemplo |
+|---|---|---|
+| **Service** | `Result<T>`, Pino logging, valida business rules | `duplicateCampaign()` retorna `{ success, data } \| { success, error }` |
+| **Server Action** | Thin, validate Zod, call service, retorna `Result<T>` | `'use server'` → parse → `campaignService.duplicate()` |
+| **Route Handler** | Thin, 10-20 linhas, validate Zod, delegate service | `POST /duplicate` → validate → service → respond |
+| **Component** | Server first, fetch em Server Component, passe props | `<CampaignDetail campaign={...} stats={...} />` |
+| **Query** | Read-only, `'use cache'` quando apropriado | `getSegmentPreview()` com `cacheTag` + `updateTag` em mutations |

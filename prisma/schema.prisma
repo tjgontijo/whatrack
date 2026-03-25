@@ -117,9 +117,7 @@ model User {
   assignedTickets    Ticket[]                   @relation("TicketAssignee")
   orgAuditLogs       OrgAuditLog[]
   createdCampaigns   WhatsAppCampaign[]         @relation("CampaignCreator")
-  approvedCampaigns  WhatsAppCampaign[]         @relation("CampaignApprover")
   cancelledCampaigns WhatsAppCampaign[]         @relation("CampaignCanceller")
-  campaignApprovals  WhatsAppCampaignApproval[]
 
   @@map("auth_user")
 }
@@ -268,6 +266,9 @@ model Organization {
   aiSkills              AiSkill[]
   aiSkillExecutionLogs  AiSkillExecutionLog[]
   aiCrisisKeywords      AiCrisisKeyword[]
+  leadTags              LeadTag[]
+  contactLists          WhatsAppContactList[]
+  audienceSegments      WhatsAppAudienceSegment[]
 
   @@map("org_organizations")
 }
@@ -306,6 +307,7 @@ model Project {
   aiSkills              AiSkill[]
   aiSkillExecutionLogs  AiSkillExecutionLog[]
   aiCrisisKeywords      AiCrisisKeyword[]
+  audienceSegments      WhatsAppAudienceSegment[]
 
   @@unique([organizationId, slug])
   @@index([organizationId])
@@ -449,6 +451,7 @@ model Lead {
   aiContext                  LeadAiContext?
   aiEvents                   AiEvent[]
   aiCadenceEnrollments       AiCadenceEnrollment[]
+  tagAssignments             LeadTagAssignment[]
 
   @@unique([organizationId, phone])
   @@unique([organizationId, waId])
@@ -498,6 +501,7 @@ model Ticket {
   projectId       String?   @db.Uuid
   conversationId  String    @db.Uuid
   stageId         String    @db.Uuid
+  stageEnteredAt  DateTime?
   windowExpiresAt DateTime?
   windowOpen      Boolean   @default(true)
   assigneeId      String?   @db.Uuid
@@ -1206,20 +1210,19 @@ model WhatsAppCampaign {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
   createdById    String    @db.Uuid
-  approvedById   String?   @db.Uuid
-  approvedAt     DateTime?
   cancelledAt    DateTime?
   cancelledById  String?   @db.Uuid
+  shouldCreateLeads Boolean @default(true)
 
   organization               Organization                    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   project                    Project                         @relation(fields: [projectId], references: [id], onDelete: Cascade)
   createdBy                  User                            @relation("CampaignCreator", fields: [createdById], references: [id])
-  approvedBy                 User?                           @relation("CampaignApprover", fields: [approvedById], references: [id])
   cancelledBy                User?                           @relation("CampaignCanceller", fields: [cancelledById], references: [id])
   dispatchGroups             WhatsAppCampaignDispatchGroup[]
-  imports                    WhatsAppCampaignImport[]
-  approvals                  WhatsAppCampaignApproval[]
   whatsAppCampaignRecipients WhatsAppCampaignRecipient[]
+  events                     WhatsAppCampaignEvent[]
+  audienceSourceType         String? // LIST | SEGMENT
+  audienceSourceId           String? @db.Uuid
 
   @@index([organizationId])
   @@index([projectId])
@@ -1227,6 +1230,93 @@ model WhatsAppCampaign {
   @@index([status])
   @@index([scheduledAt])
   @@map("whatsapp_campaigns")
+}
+
+model LeadTag {
+  id             String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String              @db.Uuid
+  name           String
+  color          String?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  assignments    LeadTagAssignment[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+  @@map("crm_lead_tags")
+}
+
+model LeadTagAssignment {
+  leadId     String   @db.Uuid
+  tagId      String   @db.Uuid
+  assignedAt DateTime @default(now())
+  lead       Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  tag        LeadTag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([leadId, tagId])
+  @@index([leadId])
+  @@index([tagId])
+  @@map("crm_lead_tag_assignments")
+}
+
+model WhatsAppContactList {
+  id             String                       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String                       @db.Uuid
+  name           String
+  description    String?
+  createdAt      DateTime                     @default(now())
+  updatedAt      DateTime                     @updatedAt
+  organization   Organization                 @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  members        WhatsAppContactListMember[]
+
+  @@index([organizationId])
+  @@map("whatsapp_contact_lists")
+}
+
+model WhatsAppContactListMember {
+  id              String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  listId          String              @db.Uuid
+  phone           String
+  normalizedPhone String
+  data            Json?
+  createdAt       DateTime            @default(now())
+  list            WhatsAppContactList @relation(fields: [listId], references: [id], onDelete: Cascade)
+
+  @@index([listId])
+  @@index([normalizedPhone])
+  @@unique([listId, normalizedPhone])
+  @@map("whatsapp_contact_list_members")
+}
+
+model WhatsAppAudienceSegment {
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String       @db.Uuid
+  projectId      String?      @db.Uuid
+  name           String
+  filters        Json
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project        Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([projectId])
+  @@map("whatsapp_audience_segments")
+}
+
+model WhatsAppCampaignEvent {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  campaignId String   @db.Uuid
+  type       String   // CREATED, UPDATED, SNAPSHOT_GENERATED, SCHEDULED, DISPATCH_STARTED, DISPATCH_COMPLETED, DISPATCH_FAILED, CANCELLED, LEGACY_STATUS_MIGRATED
+  userId     String?  @db.Uuid
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  campaign   WhatsAppCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId])
+  @@index([type])
+  @@map("whatsapp_campaign_events")
 }
 
 model WhatsAppCampaignDispatchGroup {
@@ -1287,39 +1377,6 @@ model WhatsAppCampaignRecipient {
   @@index([normalizedPhone])
   @@index([status])
   @@map("whatsapp_campaign_recipients")
-}
-
-model WhatsAppCampaignImport {
-  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  campaignId    String   @db.Uuid
-  fileName      String
-  totalRows     Int      @default(0)
-  processedRows Int      @default(0)
-  status        String   @default("PENDING")
-  errorMessage  String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  campaign WhatsAppCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-
-  @@index([campaignId])
-  @@map("whatsapp_campaign_imports")
-}
-
-model WhatsAppCampaignApproval {
-  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  campaignId String   @db.Uuid
-  userId     String   @db.Uuid
-  action     String
-  comment    String?
-  createdAt  DateTime @default(now())
-
-  campaign WhatsAppCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  user     User             @relation(fields: [userId], references: [id])
-
-  @@index([campaignId])
-  @@index([userId])
-  @@map("whatsapp_campaign_approvals")
 }
 
 model Message {

@@ -60,31 +60,11 @@ export const whatsappCampaignCreateSchema = z.object({
   projectId: z.string().uuid(),
   templateName: z.string().min(1).optional(),
   templateLang: z.string().min(1).default('pt_BR'),
-  scheduledAt: z.string().datetime().optional(),
+  scheduledAt: z.string().datetime().optional().nullable(),
+  shouldCreateLeads: z.boolean().default(true),
+  audienceSourceType: z.enum(['LIST', 'SEGMENT']).optional(),
+  audienceSourceId: z.string().uuid().optional(),
   dispatchGroups: z.array(dispatchGroupSchema).optional(),
-  audience: z
-    .object({
-      source: z.enum(['CRM', 'IMPORT', 'MIXED']),
-      crmFilters: z
-        .object({
-          tagIds: z.array(z.string().uuid()).optional(),
-          stageId: z.string().uuid().optional(),
-          source: z.string().optional(),
-          isActive: z.boolean().optional(),
-          projectId: z.string().uuid().optional(),
-        })
-        .optional(),
-      importedPhones: z.array(campaignPhoneSchema).optional(),
-      importedVariables: z
-        .array(
-          z.object({
-            phone: campaignPhoneSchema,
-            variables: z.array(z.object({ name: z.string(), value: z.string() })).optional(),
-          })
-        )
-        .optional(),
-    })
-    .optional(),
 })
 
 export const whatsappCampaignUpdateSchema = z.object({
@@ -93,6 +73,9 @@ export const whatsappCampaignUpdateSchema = z.object({
   templateName: z.string().min(1).optional(),
   templateLang: z.string().min(1).optional(),
   scheduledAt: z.string().datetime().optional().nullable(),
+  shouldCreateLeads: z.boolean().optional(),
+  audienceSourceType: z.enum(['LIST', 'SEGMENT']).optional(),
+  audienceSourceId: z.string().uuid().optional(),
   dispatchGroups: z.array(dispatchGroupSchema).optional(),
 })
 
@@ -102,34 +85,6 @@ export const whatsappCampaignListQuerySchema = z.object({
   projectId: z.string().uuid().optional(),
   status: campaignStatusSchema.optional(),
   type: whatsappCampaignTypeSchema.optional(),
-})
-
-export const whatsappCampaignPreviewAudienceSchema = z.object({
-  projectId: z.string().uuid(),
-  type: whatsappCampaignTypeSchema.default('MARKETING'),
-  audience: z
-    .object({
-      source: z.enum(['CRM', 'IMPORT', 'MIXED']),
-      crmFilters: z
-        .object({
-          tagIds: z.array(z.string().uuid()).optional(),
-          stageId: z.string().uuid().optional(),
-          source: z.string().optional(),
-          isActive: z.boolean().optional(),
-          projectId: z.string().uuid().optional(),
-        })
-        .optional(),
-      importedPhones: z.array(campaignPhoneSchema).optional(),
-      importedVariables: z
-        .array(
-          z.object({
-            phone: campaignPhoneSchema,
-            variables: z.array(z.object({ name: z.string(), value: z.string() })).optional(),
-          })
-        )
-        .optional(),
-    })
-    .optional(),
 })
 
 export const whatsappCampaignApproveSchema = z.object({
@@ -164,10 +119,6 @@ export type DispatchGroupStatus = z.infer<typeof dispatchGroupStatusSchema>
 export type WhatsAppCampaignCreateInput = z.infer<typeof whatsappCampaignCreateSchema>
 export type WhatsAppCampaignUpdateInput = z.infer<typeof whatsappCampaignUpdateSchema>
 export type WhatsAppCampaignListQuery = z.infer<typeof whatsappCampaignListQuerySchema>
-export type WhatsAppCampaignPreviewAudienceInput = z.infer<
-  typeof whatsappCampaignPreviewAudienceSchema
->
 export type WhatsAppCampaignApproveInput = z.infer<typeof whatsappCampaignApproveSchema>
 export type WhatsAppCampaignDispatchInput = z.infer<typeof whatsappCampaignDispatchSchema>
 export type WhatsAppCampaignCancelInput = z.infer<typeof whatsappCampaignCancelSchema>
-export type WhatsAppCampaignImportInput = z.infer<typeof whatsappCampaignImportSchema>

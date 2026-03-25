@@ -3,6 +3,7 @@
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { useOrganization } from '@/hooks/organization/use-organization'
+import { useProjectRouteContext } from '@/hooks/project/project-route-context'
 import { apiFetch } from '@/lib/api-client'
 
 
@@ -40,7 +41,8 @@ export function useCrudInfiniteQuery<T>({
   enabled = true,
 }: UseCrudInfiniteQueryOptions): UseCrudInfiniteQueryResult<T> {
   const { data: org } = useOrganization()
-  const organizationId = org?.id
+  const routeContext = useProjectRouteContext()
+  const organizationId = routeContext?.organizationId || org?.id
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, refetch } =
     useInfiniteQuery<ApiPage<T>>({

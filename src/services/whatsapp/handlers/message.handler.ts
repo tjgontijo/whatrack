@@ -272,6 +272,7 @@ export async function messageHandler(
               leadId: lead.id,
               conversationId: conversation.id,
               stageId: defaultStage.id,
+              stageEnteredAt: new Date(),
               windowExpiresAt,
               windowOpen: true,
               status: 'open',
