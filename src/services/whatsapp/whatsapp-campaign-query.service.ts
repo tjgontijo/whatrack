@@ -237,7 +237,8 @@ export async function listRecipients(
   campaignId: string,
   page: number,
   pageSize: number,
-  status?: string
+  status?: string,
+  phone?: string
 ) {
   const campaign = await prisma.whatsAppCampaign.findFirst({
     where: { id: campaignId, organizationId },
@@ -249,6 +250,7 @@ export async function listRecipients(
   const where = {
     campaignId,
     ...(status ? { status } : {}),
+    ...(phone ? { phone: { contains: phone, mode: 'insensitive' as const } } : {}),
   };
 
   const [recipients, total] = await Promise.all([

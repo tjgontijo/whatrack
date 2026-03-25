@@ -21,8 +21,9 @@ export async function GET(
   const page = parseInt(searchParams.get('page') || '1')
   const pageSize = Math.min(parseInt(searchParams.get('pageSize') || '50'), 100)
   const status = searchParams.get('status') || undefined
+  const phone = searchParams.get('phone') || undefined
 
-  const result = await listRecipients(access.organizationId, campaignId, page, pageSize, status)
+  const result = await listRecipients(access.organizationId, campaignId, page, pageSize, status, phone)
 
   if (!result) {
     return apiError('Campanha não encontrada', 404)
