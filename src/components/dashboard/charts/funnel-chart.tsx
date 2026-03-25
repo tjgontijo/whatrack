@@ -15,9 +15,18 @@ type FunnelStep = {
 type FunnelChartProps = {
   steps: FunnelStep[]
   className?: string
+  title?: string
+  description?: string
+  colors?: any
 }
 
-export function FunnelChart({ steps, className }: FunnelChartProps) {
+export function FunnelChart({ 
+  steps, 
+  className,
+  title = "Funil de Conversão",
+  description,
+  colors = { scheme: 'spectral' }
+}: FunnelChartProps) {
   const formatInteger = (value: number) => new Intl.NumberFormat('pt-BR').format(value)
   const firstValue = steps[0]?.value ?? 0
   const data = steps.map((step, index) => {
@@ -46,10 +55,12 @@ export function FunnelChart({ steps, className }: FunnelChartProps) {
     >
       <header className="flex items-center justify-between">
         <div>
-          <p className="text-muted-foreground text-sm font-semibold">Funil Comercial</p>
-          <p className="text-muted-foreground/70 text-xs">
-            Lead → Agendamento → Comparecimento → Venda
-          </p>
+          <p className="text-foreground text-sm font-semibold">{title}</p>
+          {description && (
+            <p className="text-muted-foreground/70 text-xs mt-1">
+              {description}
+            </p>
+          )}
         </div>
       </header>
 
@@ -59,7 +70,7 @@ export function FunnelChart({ steps, className }: FunnelChartProps) {
           margin={{ top: 10, right: 20, bottom: 20, left: 20 }}
           direction="horizontal"
           valueFormat={(value) => formatInteger(value as number)}
-          colors={{ scheme: 'spectral' }}
+          colors={colors}
           borderWidth={16}
           labelColor={{ from: 'color', modifiers: [['darker', 3]] }}
           beforeSeparatorLength={32}

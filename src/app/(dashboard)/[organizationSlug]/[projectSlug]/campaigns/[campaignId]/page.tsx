@@ -324,11 +324,14 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ campa
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-in slide-in-from-bottom-3 fade-in duration-500 fill-mode-both delay-100">
               <div className="lg:col-span-8">
                  <FunnelChart
+                   title="Régua de Engajamento"
+                   description="O percurso dos seus clientes pela campanha até a conversão."
+                   colors={['#6366f1', '#818cf8', '#a5b4fc', '#c7d2fe']}
                    steps={[
                      { label: 'Enviados', value: s.sent, helper: 'Acionados pela plataforma' },
-                     { label: 'Entregues', value: s.delivered, helper: 'WhatsApp validou o recebimento' },
-                     { label: 'Lidas', value: s.read, helper: 'O usuário abriu a conversa' },
-                     { label: 'Interações', value: s.responded, helper: 'Cliente demonstrou interesse real' },
+                     { label: 'Entregues', value: s.delivered, helper: 'O WhatsApp reconheceu o recebimento' },
+                     { label: 'Lidos', value: s.read, helper: 'Visualizações confirmadas' },
+                     { label: 'Respostas', value: s.responded, helper: 'Interações e engajamento' },
                    ]}
                  />
               </div>
@@ -336,18 +339,20 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ campa
                  <Card className="shadow-[0px_18px_35px_-25px_rgba(15,23,42,0.25)] border-border/60 bg-card rounded-3xl h-full backdrop-blur-sm overflow-hidden flex flex-col">
                    <CardHeader className="pb-0 shrink-0">
                      <CardTitle className="text-sm font-semibold">Status do Roteamento</CardTitle>
-                     <CardDescription className="text-xs">Distribuição atual da campanha.</CardDescription>
+                     <CardDescription className="text-xs">Proporção final de entrega.</CardDescription>
                    </CardHeader>
                    <CardContent className="flex-1 pb-6 pt-4 flex flex-col justify-center">
                      <DashboardPieChart
+                       className="border-none shadow-none bg-transparent p-0 m-0 w-full"
                        height={220}
-                       innerRadius={0.6}
-                       padAngle={0.8}
-                       margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+                       innerRadius={0.7}
+                       padAngle={1.5}
+                       cornerRadius={4}
+                       margin={{ top: 10, right: 10, bottom: 10, left: 10 }}
                        data={[
-                         { id: 'delivered', label: 'Sucesso', value: s.delivered + s.read + s.responded, color: '#10b981' }, // emerald-500
-                         { id: 'failed', label: 'Falhou', value: s.failed + (campaign.dispatchGroups.reduce((acc,g) => acc + g.failCount, 0)), color: '#ef4444' }, // red-500
-                         { id: 'pending', label: 'Pendente', value: s.pending, color: '#f59e0b' }, // amber-500
+                         { id: 'delivered', label: 'Sucesso', value: s.delivered + s.read + s.responded, color: '#10b981' }, 
+                         { id: 'failed', label: 'Rejeitado', value: s.failed + (campaign.dispatchGroups.reduce((acc,g) => acc + g.failCount, 0)), color: '#ef4444' }, 
+                         { id: 'pending', label: 'Fila', value: s.pending, color: '#f59e0b' }, 
                        ]}
                        colors={{ datum: 'data.color' }}
                      />
