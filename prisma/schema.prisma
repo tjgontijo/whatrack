@@ -269,6 +269,7 @@ model Organization {
   leadTags              LeadTag[]
   contactLists          WhatsAppContactList[]
   audienceSegments      WhatsAppAudienceSegment[]
+  whatsAppOptOuts       WhatsAppOptOut[]
 
   @@map("org_organizations")
 }
@@ -1229,6 +1230,7 @@ model WhatsAppCampaign {
   variants                   WhatsAppCampaignVariant[]
   audienceSourceType         String? // LIST | SEGMENT
   audienceSourceId           String? @db.Uuid
+  optOuts                    WhatsAppOptOut[]
 
   @@index([organizationId])
   @@index([projectId])
@@ -1407,6 +1409,26 @@ model WhatsAppCampaignRecipient {
   @@index([normalizedPhone])
   @@index([status])
   @@map("whatsapp_campaign_recipients")
+}
+
+model WhatsAppOptOut {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String    @db.Uuid
+  phone          String
+  source         String    // 'MANUAL' | 'CAMPAIGN_REPLY' | 'API'
+  campaignId     String?   @db.Uuid
+  note           String?
+  createdAt      DateTime  @default(now())
+  createdBy      String?   @db.Uuid
+  updatedAt      DateTime  @updatedAt
+
+  organization Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campaign     WhatsAppCampaign?    @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+
+  @@unique([organizationId, phone])
+  @@index([organizationId])
+  @@index([organizationId, createdAt])
+  @@map("whatsapp_opt_outs")
 }
 
 model Message {
