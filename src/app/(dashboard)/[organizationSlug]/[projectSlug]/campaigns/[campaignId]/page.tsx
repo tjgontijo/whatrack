@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, CheckCircle, XCircle, Send, Ban, Clock } from 'lucide-react'
+import { ArrowLeft, CheckCircle, XCircle, Send, Ban, Clock, Copy } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 
@@ -302,6 +302,22 @@ export default function CampaignDetailPage({ params }: CampaignPageProps) {
     },
   })
 
+  const duplicateMutation = useMutation({
+    mutationFn: async () => {
+      return apiFetch(`/api/v1/whatsapp/campaigns/${campaignId}/duplicate`, {
+        method: 'POST',
+        orgId: organizationId,
+      })
+    },
+    onSuccess: (data: any) => {
+      toast.success(`Campanha duplicada: ${data.name}`)
+      router.push(`${campaignsPath}/${data.campaignId}`)
+    },
+    onError: (error: Error) => {
+      toast.error('Erro ao duplicar', { description: error.message })
+    },
+  })
+
   if (!campaignId) {
     return (
       <div className="flex h-[calc(100vh-200px)] items-center justify-center">
@@ -366,6 +382,16 @@ export default function CampaignDetailPage({ params }: CampaignPageProps) {
                 Retomar envio
               </Button>
             )}
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => duplicateMutation.mutate()}
+              disabled={duplicateMutation.isPending}
+            >
+              <Copy className="mr-2 h-4 w-4" />
+              Duplicar
+            </Button>
+
             {['DRAFT', 'APPROVED', 'SCHEDULED', 'PROCESSING'].includes(
               campaign.status
             ) && (
