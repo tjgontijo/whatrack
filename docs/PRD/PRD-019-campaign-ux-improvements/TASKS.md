@@ -1,9 +1,9 @@
 # Tasks: PRD-019 Campaign UX Improvements
 
 **Data:** 2026-03-25
-**Status:** Em progresso (Fase 1 completa)
+**Status:** ✅ Concluído (Fase 1 + Fase 2)
 **Total:** 13
-**Estimado:** 2 fases
+**Deliverables:** 13/13 tasks concluídas
 
 ---
 
@@ -355,11 +355,11 @@ Adicionar botão "Duplicar" na barra de ações da campanha (ao lado de Cancelar
 
 ---
 
-## FASE 2 — Blocklist / Opt-out
+## FASE 2 — Blocklist / Opt-out ✅ CONCLUÍDA
 
 ---
 
-### T9: Adicionar modelo WhatsAppOptOut ao schema
+### ✅ [DONE] T9: Adicionar modelo WhatsAppOptOut ao schema
 
 **Files:**
 - Modify: `prisma/schema.prisma`
@@ -399,7 +399,7 @@ Adicionar relation inversa em `WhatsAppCampaign`: `optOuts WhatsAppOptOut[]`
 
 ---
 
-### T10: Criar servico e endpoints de opt-out
+### ✅ [DONE] T10: Criar servico e endpoints de opt-out
 
 **Files:**
 - Create: `src/lib/whatsapp/services/whatsapp-opt-out.service.ts`
@@ -446,7 +446,7 @@ logger.info({ optOutId, organizationId }, '[OptOut] Removed')
 
 ---
 
-### T11: Integrar opt-out no snapshot de campanha
+### ✅ [DONE] T11: Integrar opt-out no snapshot de campanha
 
 **Files:**
 - Modify: `src/lib/whatsapp/services/whatsapp-campaign-snapshot.service.ts`
@@ -482,7 +482,7 @@ logger.info(
 
 ---
 
-### T12: UI de gestao de opt-outs
+### ✅ [DONE] T12: UI de gestao de opt-outs
 
 **Files:**
 - Create: `src/components/dashboard/campaigns/opt-out-manager.tsx`
@@ -517,7 +517,7 @@ Criar `opt-outs/page.tsx`:
 
 ---
 
-### T13: Link para blocklist na pagina de campanhas
+### ✅ [DONE] T13: Link para blocklist na pagina de campanhas
 
 **Files:**
 - Modify: `src/components/dashboard/campaigns/campaigns-page.tsx`

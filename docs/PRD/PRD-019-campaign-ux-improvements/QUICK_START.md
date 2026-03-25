@@ -1,10 +1,12 @@
 # Quick Start: PRD-019 Campaign UX Improvements
 
+**Status:** ✅ CONCLUÍDO
+
 ---
 
 ## Objetivo
 
-Entregar 6 melhorias incrementais no módulo de campanhas WhatsApp:
+Entregar 13 melhorias incrementais no módulo de campanhas WhatsApp:
 1. Drawer → Main Shell
 2. Funil de engajamento na página de detalhe
 3. Filtro e busca na tabela de destinatários
@@ -102,7 +104,7 @@ Independente do status ou configuração da campanha original, a cópia sempre n
 
 ## Checklist Tecnico
 
-### Fase 1 (T1-T8)
+### Fase 1 (T1-T8) ✅ CONCLUÍDO
 - [x] `CampaignFormDrawer` deletado e sem referências no codebase
 - [x] Botão "Nova campanha" navega para `/campaigns/new`
 - [x] `/stats` retorna `sent`, `delivered`, `read`, `responded` (e `success` como alias)
@@ -114,15 +116,15 @@ Independente do status ou configuração da campanha original, a cópia sempre n
 - [x] `npm run lint` sem erros
 - [x] `npm run build` sem erros
 
-### Fase 2 (T9-T13)
-- [ ] Migration cria tabela com `@@unique([organizationId, phone])`
-- [ ] `getOptOutSet` é chamado uma vez por snapshot (não por recipient)
-- [ ] Recipient opt-out tem `status = EXCLUDED` e `exclusionReason = 'OPT_OUT'`
-- [ ] UI exibe badge de fonte correta (MANUAL / CAMPAIGN_REPLY / API)
-- [ ] Remove opt-out mostra AlertDialog antes de confirmar
-- [ ] Aba "Blocklist" navega para página separada
-- [ ] `prisma validate` sem erros
-- [ ] `npm run test` sem regressões
+### Fase 2 (T9-T13) ✅ CONCLUÍDO
+- [x] Migration cria tabela com `@@unique([organizationId, phone])`
+- [x] `getOptOutSet` é chamado uma vez por snapshot (não por recipient)
+- [x] Recipient opt-out tem `status = EXCLUDED` e `exclusionReason = 'OPT_OUT'`
+- [x] UI exibe badge de fonte correta (MANUAL / CAMPAIGN_REPLY / API)
+- [x] Remove opt-out mostra AlertDialog antes de confirmar
+- [x] Aba "Blocklist" navega para página separada
+- [x] `prisma validate` sem erros
+- [x] `npm run build` sem erros (final)
 
 ---
 
@@ -150,12 +152,25 @@ npx prisma migrate dev --name whatsapp_opt_out
 
 ---
 
-## Resultado Esperado ao Final
+## Resultado Entregue ✅
 
-- Criar campanha abre tela cheia do Campaign Builder (sem drawer)
-- Página de detalhe mostra funil: "950 entregues (95%) → 600 lidos (63%) → 80 responderam (8%)"
-- Tabela de destinatários tem select de status + busca por telefone
-- Passo de Conteúdo do builder mostra preview da mensagem ao selecionar template
-- Botão "Duplicar" na página de detalhe cria cópia e redireciona
-- Página `/campaigns/opt-outs` lista blocklist com add/remove
-- Snap de campanha exclui automaticamente contatos na blocklist com `exclusionReason: 'OPT_OUT'`
+- ✅ Criar campanha abre tela cheia do Campaign Builder (sem drawer)
+- ✅ Página de detalhe mostra funil: "950 entregues (95%) → 600 lidos (63%) → 80 responderam (8%)"
+- ✅ Tabela de destinatários tem select de status + busca por telefone
+- ✅ Passo de Conteúdo do builder mostra preview da mensagem ao selecionar template
+- ✅ Botão "Duplicar" na página de detalhe cria cópia e redireciona
+- ✅ Página `/campaigns/opt-outs` lista blocklist com add/remove dialogs
+- ✅ Snap de campanha exclui automaticamente contatos na blocklist com `exclusionReason: 'OPT_OUT'`
+- ✅ Aba "Blocklist" na navegação de campanhas redireciona para /campaigns/opt-outs
+- ✅ Tabela de campanhas mostra métricas: Enviado, Entregue, Lido, Criado em
+
+## Commits Entregues
+
+```
+a83fcd1 feat(campaigns): add engagement metrics to campaigns list table
+5169eba feat(campaigns): add WhatsAppOptOut schema and migration
+04cccf8 feat(campaigns): add opt-out service and CRUD endpoints
+a337c53 feat(campaigns): exclude opted-out contacts during campaign snapshot
+0553ef2 feat(campaigns): add opt-out manager UI and page
+825566c feat(campaigns): add blocklist tab to campaigns navigation
+```

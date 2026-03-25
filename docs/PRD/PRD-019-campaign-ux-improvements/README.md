@@ -1,8 +1,8 @@
 # PRD-019: Campaign UX Improvements
 
-**Status:** Em progresso (Fase 1 completa)
+**Status:** ✅ Concluído (Fase 1 + Fase 2)
 **Data:** 2026-03-25
-**Versao:** 1.0
+**Versao:** 1.0 - Final
 
 ---
 
@@ -49,7 +49,7 @@ PRD-019-campaign-ux-improvements/
 - ✅ **Recipients:** Tabela de destinatários agora possui filtro por status e barra de busca por número de telefone com paginação funcionando.
 - ✅ **Preview:** Adicionado preview do template Meta diretamente dentro do Campaign Builder.
 - ✅ **Ações:** Implementada duplicação de campanha com 1 clique (endpoint e botão na interface).
-- ⬜ **Blocklist / Opt-out:** Ainda não implementado. Não existe modelo nem UI de opt-out/blocklist.
+- ✅ **Blocklist / Opt-out:** Modelo WhatsAppOptOut implementado, service com CRUD, API endpoints, UI completa, e integração automática no snapshot de campanha.
 
 ### Escopo
 
@@ -108,6 +108,26 @@ Nenhuma dependência externa de outros PRDs em andamento.
 
 ---
 
-## Proximo Passo
+## Resultado Final
 
-Iniciar a **Fase 2 (Blocklist / Opt-out)** abordando a criação do schema `WhatsAppOptOut` e seus relacionamentos no Prisma (Task 9).
+**Todas as 13 tasks foram implementadas e entregues:**
+
+### Fase 1 (Tasks 1-8) - Quick Wins ✅
+1. ✅ T1: Drawer → Main Shell
+2. ✅ T2: Stats breakdown por status
+3. ✅ T3: Funil de engajamento visual
+4. ✅ T4: Filtro e busca no endpoint /recipients
+5. ✅ T5: UI de filtro e busca na tabela
+6. ✅ T6: Preview de template no builder
+7. ✅ T7: API de duplicar campanha
+8. ✅ T8: Botão duplicar na página de detalhe
+
+### Fase 2 (Tasks 9-13) - Blocklist/Opt-out ✅
+9. ✅ T9: Schema WhatsAppOptOut + migration
+10. ✅ T10: Service + CRUD endpoints (GET, POST, DELETE)
+11. ✅ T11: Integração de exclusão no snapshot
+12. ✅ T12: OptOutManager UI + página /campaigns/opt-outs
+13. ✅ T13: Aba Blocklist na navegação de campanhas
+
+**Build status:** ✅ `npm run build` sem erros
+**Commits:** 13 commits atomicos, um por task
