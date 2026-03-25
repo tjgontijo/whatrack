@@ -13,16 +13,10 @@ import {
 } from '@/components/dashboard/crud'
 import { HeaderPageShell, HeaderTabs } from '@/components/dashboard/layout'
 import { CrudEmptyState } from '@/components/dashboard/crud/crud-data-view'
-import { CampaignsOverview } from './campaigns-overview'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useRequiredProjectPath, useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
 import { apiFetch } from '@/lib/api-client'
-
-const TABS = [
-  { key: 'overview', label: 'Visão Geral' },
-  { key: 'campaigns', label: 'Campanhas' },
-]
 
 const STATUS_LABELS: Record<string, string> = {
   DRAFT: 'Rascunho',
@@ -100,7 +94,6 @@ export function CampaignsPage({ initialCreateOpen = false }: CampaignsPageProps 
   const campaignsPath = useRequiredProjectPath('/campaigns')
   const { organizationId, projectId } = useRequiredProjectRouteContext()
 
-  const [activeTab, setActiveTab] = React.useState('overview')
   const [searchInput, setSearchInput] = React.useState('')
   const deferredSearch = useDeferredValue(searchInput)
 
@@ -195,48 +188,41 @@ export function CampaignsPage({ initialCreateOpen = false }: CampaignsPageProps 
     <>
       <HeaderPageShell
         title="Campanhas"
-        selector={<HeaderTabs tabs={TABS} activeTab={activeTab} onTabChange={setActiveTab} />}
-        searchValue={activeTab === 'campaigns' ? searchInput : undefined}
-        onSearchChange={activeTab === 'campaigns' ? setSearchInput : undefined}
+        searchValue={searchInput}
+        onSearchChange={setSearchInput}
         searchPlaceholder="Buscar campanhas..."
-        onRefresh={activeTab === 'overview' ? () => void refetch() : undefined}
+        onRefresh={() => void refetch()}
         isRefreshing={isRefetching || isLoading}
         primaryAction={
-          activeTab === 'campaigns' ? (
-            <Button
-              type="button"
-              size="sm"
-              className="h-7 gap-1.5 text-xs"
-              onClick={() => router.push(`${campaignsPath}/new`)}
-            >
-              <Plus className="h-3.5 w-3.5" />
-              Nova campanha
-            </Button>
-          ) : null
+          <Button
+            type="button"
+            size="sm"
+            className="h-7 gap-1.5 text-xs"
+            onClick={() => router.push(`${campaignsPath}/new`)}
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Nova campanha
+          </Button>
         }
       >
-        {activeTab === 'overview' ? (
-          <CampaignsOverview counters={data?.counters} isLoading={isLoading} />
-        ) : (
-          <CrudDataView
-            data={filteredItems}
-            view="list"
-            emptyView={
-              <CrudEmptyState
-                title="Nenhuma campanha encontrada."
-                description="Crie uma campanha de WhatsApp usando o wizard de cadastro."
-              />
-            }
-            tableView={
-              <CrudListView
-                data={filteredItems}
-                columns={columns}
-                onRowClick={(campaign) => openCampaignDetail(campaign.id)}
-              />
-            }
-            cardView={null}
-          />
-        )}
+        <CrudDataView
+          data={filteredItems}
+          view="list"
+          emptyView={
+            <CrudEmptyState
+              title="Nenhuma campanha encontrada."
+              description="Crie uma campanha de WhatsApp clicando em 'Nova campanha'."
+            />
+          }
+          tableView={
+            <CrudListView
+              data={filteredItems}
+              columns={columns}
+              onRowClick={(campaign) => openCampaignDetail(campaign.id)}
+            />
+          }
+          cardView={null}
+        />
       </HeaderPageShell>
 
     </>

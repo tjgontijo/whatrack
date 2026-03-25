@@ -70,12 +70,19 @@ const TYPE_LABELS: Record<string, string> = {
   OPERATIONAL: 'Operacional',
 }
 
-const ACTION_LABELS: Record<string, string> = {
-  SUBMITTED: 'Submetida',
-  APPROVED: 'Aprovada',
-  DISPATCHED: 'Disparada',
+const EVENT_LABELS: Record<string, string> = {
+  CREATED: 'Criada',
+  UPDATED: 'Atualizada',
+  SNAPSHOT_GENERATED: 'Snapshot Gerado',
   SCHEDULED: 'Agendada',
+  DISPATCH_STARTED: 'Disparo Iniciado',
+  DISPATCH_COMPLETED: 'Disparo Concluído',
+  DISPATCH_FAILED: 'Falha no Disparo',
   CANCELLED: 'Cancelada',
+  LEGACY_STATUS_MIGRATED: 'Migrada',
+  AB_WINNER_SELECTED: 'Vencedor A/B Definido',
+  AB_REMAINDER_DISPATCHED: 'Disparo Restante Iniciado',
+  AB_INSUFFICIENT_DATA: 'Dados A/B Insuficientes',
 }
 
 interface DispatchGroup {
@@ -91,13 +98,11 @@ interface DispatchGroup {
   configVerifiedName: string | null
 }
 
-interface Approval {
+interface CampaignEvent {
   id: string
-  action: string
-  comment: string | null
+  type: string
+  metadata: any
   createdAt: string
-  userName: string | null
-  userEmail: string | null
 }
 
 interface CampaignDetail {
@@ -118,7 +123,7 @@ interface CampaignDetail {
   totalRecipients: number
   totalDispatchGroups: number
   dispatchGroups: DispatchGroup[]
-  approvals: Approval[]
+  events: CampaignEvent[]
   isAbTest: boolean
   abTestConfig: any | null
 }
@@ -475,12 +480,17 @@ export default function CampaignDetailPage({ params }: CampaignPageProps) {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {campaign.approvals.map((approval) => (
-                    <div key={approval.id} className="flex items-start gap-3 text-sm">
+                  {campaign.events?.map((event) => {
+                    const typeLabel = EVENT_LABELS[event.type] || event.type;
+                    const isSuccess = ['DISPATCH_COMPLETED', 'AB_WINNER_SELECTED', 'AB_REMAINDER_DISPATCHED'].includes(event.type);
+                    const isFailure = ['DISPATCH_FAILED', 'AB_INSUFFICIENT_DATA', 'CANCELLED'].includes(event.type);
+
+                    return (
+                    <div key={event.id} className="flex items-start gap-3 text-sm">
                       <div className="mt-0.5">
-                        {approval.action === 'APPROVED' ? (
+                        {isSuccess ? (
                           <CheckCircle className="h-4 w-4 text-green-600" />
-                        ) : approval.action === 'CANCELLED' ? (
+                        ) : isFailure ? (
                           <XCircle className="h-4 w-4 text-red-600" />
                         ) : (
                           <Clock className="text-muted-foreground h-4 w-4" />
@@ -488,18 +498,18 @@ export default function CampaignDetailPage({ params }: CampaignPageProps) {
                       </div>
                       <div>
                         <p>
-                          <strong>{approval.userName || 'Sistema'}</strong>{' '}
-                          {ACTION_LABELS[approval.action] || approval.action}
+                          <strong>{event.metadata?.userName || 'Sistema'}</strong>{' '}
+                          {typeLabel}
                         </p>
-                        {approval.comment && (
-                          <p className="text-muted-foreground text-xs">{approval.comment}</p>
+                        {event.metadata?.comment && (
+                          <p className="text-muted-foreground text-xs">{event.metadata.comment}</p>
                         )}
                         <p className="text-muted-foreground text-xs">
-                          {new Date(approval.createdAt).toLocaleString('pt-BR')}
+                          {new Date(event.createdAt).toLocaleString('pt-BR')}
                         </p>
                       </div>
                     </div>
-                  ))}
+                  )})}
                 </div>
               </CardContent>
             </Card>
