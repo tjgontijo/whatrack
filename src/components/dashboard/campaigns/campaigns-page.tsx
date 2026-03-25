@@ -210,6 +210,13 @@ export function CampaignsPage({ initialCreateOpen = false }: CampaignsPageProps 
     <>
       <HeaderPageShell
         title="Campanhas"
+        selector={
+          <HeaderTabs
+            tabs={tabs}
+            activeTab="campaigns"
+            onTabChange={handleTabChange}
+          />
+        }
         searchValue={searchInput}
         onSearchChange={setSearchInput}
         searchPlaceholder="Buscar campanhas..."
@@ -227,12 +234,8 @@ export function CampaignsPage({ initialCreateOpen = false }: CampaignsPageProps 
           </Button>
         }
       >
-        <HeaderTabs
-          tabs={tabs}
-          activeTab="campaigns"
-          onTabChange={handleTabChange}
-        />
-        <CrudDataView
+        <div className="flex flex-col flex-1">
+          <CrudDataView
           data={filteredItems}
           view="list"
           emptyView={
@@ -248,8 +251,9 @@ export function CampaignsPage({ initialCreateOpen = false }: CampaignsPageProps 
               onRowClick={(campaign) => openCampaignDetail(campaign.id)}
             />
           }
-          cardView={null}
-        />
+            cardView={null}
+          />
+        </div>
       </HeaderPageShell>
 
     </>
