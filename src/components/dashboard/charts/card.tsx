@@ -50,7 +50,7 @@ export function DashboardMetricCard({
       <article
         className={cn(
           cardWidthClass,
-          'border-border/50 bg-card flex h-full flex-col rounded-3xl border p-6 shadow-[0px_18px_35px_-25px_rgba(15,23,42,0.25)] backdrop-blur-sm',
+          'border-border/50 bg-card flex h-full flex-col justify-between rounded-3xl border p-6 shadow-[0px_18px_35px_-25px_rgba(15,23,42,0.25)] backdrop-blur-sm',
           'transition hover:-translate-y-0.5 hover:shadow-[0px_24px_45px_-28px_rgba(15,23,42,0.35)]',
           className
         )}
@@ -69,7 +69,7 @@ export function DashboardMetricCard({
         </header>
 
         {trend && !isLoading ? (
-          <footer className="mt-4 text-xs font-medium text-emerald-600">{trend}</footer>
+          <footer className="mt-6 text-xs font-medium text-emerald-600">{trend}</footer>
         ) : null}
       </article>
     </div>
@@ -80,7 +80,7 @@ export function DashboardMetricGrid({ children }: { children: ReactNode }) {
   return (
     <div
       className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4"
-      style={{ gridAutoRows: '120px' }}
+      style={{ gridAutoRows: 'minmax(150px, auto)' }}
     >
       {children}
     </div>
