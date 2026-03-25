@@ -102,6 +102,11 @@ export function CampaignsPage({ initialCreateOpen = false }: CampaignsPageProps 
   const [searchInput, setSearchInput] = React.useState('')
   const deferredSearch = useDeferredValue(searchInput)
 
+  const tabs = [
+    { key: 'campaigns', label: 'Campanhas' },
+    { key: 'blocklist', label: 'Blocklist' },
+  ]
+
   const { data, isLoading, refetch, isRefetching } = useQuery<CampaignsResponse>({
     queryKey: ['whatsapp-campaigns', organizationId, projectId],
     queryFn: async () => {
@@ -195,6 +200,12 @@ export function CampaignsPage({ initialCreateOpen = false }: CampaignsPageProps 
     },
   ]
 
+  const handleTabChange = (tabKey: string) => {
+    if (tabKey === 'blocklist') {
+      router.push(`${campaignsPath}/opt-outs`)
+    }
+  }
+
   return (
     <>
       <HeaderPageShell
@@ -216,6 +227,11 @@ export function CampaignsPage({ initialCreateOpen = false }: CampaignsPageProps 
           </Button>
         }
       >
+        <HeaderTabs
+          tabs={tabs}
+          activeTab="campaigns"
+          onTabChange={handleTabChange}
+        />
         <CrudDataView
           data={filteredItems}
           view="list"
