@@ -18,6 +18,8 @@ export interface CampaignListItem {
   totalDispatchGroups: number;
   audienceSourceType: string | null;
   audienceSourceId: string | null;
+  isAbTest: boolean;
+  abTestConfig: any | null;
 }
 
 export interface CampaignDetail extends CampaignListItem {
@@ -89,6 +91,8 @@ export async function listCampaigns(organizationId: string, query: WhatsAppCampa
         templateName: true,
         projectId: true,
         createdAt: true,
+        isAbTest: true,
+        abTestConfig: true,
         audienceSourceType: true,
         audienceSourceId: true,
         project: { select: { name: true } },
@@ -124,6 +128,8 @@ export async function listCampaigns(organizationId: string, query: WhatsAppCampa
     totalDispatchGroups: c._count.dispatchGroups,
     audienceSourceType: c.audienceSourceType,
     audienceSourceId: c.audienceSourceId,
+    isAbTest: c.isAbTest,
+    abTestConfig: c.abTestConfig,
   }));
 
   return {
@@ -203,6 +209,8 @@ export async function getCampaignDetail(
     totalDispatchGroups: campaign._count.dispatchGroups,
     audienceSourceType: campaign.audienceSourceType,
     audienceSourceId: campaign.audienceSourceId,
+    isAbTest: campaign.isAbTest,
+    abTestConfig: campaign.abTestConfig,
     dispatchGroups: campaign.dispatchGroups.map((g) => ({
       id: g.id,
       templateName: g.templateName,

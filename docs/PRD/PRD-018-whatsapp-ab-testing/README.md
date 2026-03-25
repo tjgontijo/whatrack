@@ -87,17 +87,76 @@ As alternativas consideradas e trade-offs ficam em `DIAGNOSTIC.md`.
 
 ## Architecture Reference
 
-Este PRD segue os padroes do **nextjs-feature-dev skill**:
+Este PRD segue os padroes do **nextjs-feature-dev skill**. Cada layer tem responsabilidades claras:
 
-- Domain-organized code em `src/lib/whatsapp/`
-- Layer separation (queries, actions, services, schemas)
-- Server-first components por padrao
-- Thin route handlers (10-20 linhas)
-- Result<T> pattern para error handling
-- Zod validation em todos os limites
-- Structured Pino logging no service layer
-- Atomic commits por task
-- Branch-per-feature workflow
+### Domain Organization
+```
+src/lib/whatsapp/
+├── schemas/                    # Zod validation
+│   └── whatsapp-ab-schemas.ts
+├── services/                   # Business logic, returns Result<T>
+│   ├── whatsapp-campaign-ab.service.ts
+│   └── whatsapp-campaign-ab-metrics.service.ts
+├── actions/                    # Server Actions (thin entry points)
+│   └── select-ab-winner.action.ts
+├── queries/                    # Read-only data fetching
+│   └── get-ab-metrics.query.ts
+├── api-client/                 # HTTP client wrappers
+├── types/
+└── mappers/
+```
+
+### Key Patterns
+
+**1. Result<T> for Error Handling**
+```typescript
+// Services ALWAYS return Result<T>
+export async function createAbTestVariants(
+  campaignId: string,
+  input: AbTestCreateInput
+): Promise<Result<{ variants: Variant[]; remainderGroupId: string }>> {
+  try {
+    // Business logic
+    return ok({ variants, remainderGroupId })
+  } catch (err) {
+    logger.error({ err, campaignId }, '[AbTest] Failed to create variants')
+    return fail('Failed to create A/B test variants')
+  }
+}
+```
+
+**2. Zod Validation at Every Boundary**
+```typescript
+// Route handler
+const body = AbTestCreateSchema.parse(await request.json())
+
+// Server Action
+const parsed = SelectWinnerSchema.safeParse(input)
+if (!parsed.success) return fail('Invalid input')
+
+// Service input
+const config = AbTestConfigSchema.parse(campaign.abTestConfig)
+```
+
+**3. Structured Pino Logging**
+```typescript
+logger.info({ campaignId, variantCount, splitSummary }, '[AbTest] Audience split completed')
+logger.warn({ campaignId, dataPoints }, '[AbTest] Insufficient data for auto-promotion')
+logger.error({ err, campaignId }, '[AbTest] Winner selection failed')
+```
+
+**4. Server Components First**
+- `campaign-ab-metrics.tsx`: Server Component após COMPLETED; TanStack Query polling durante PROCESSING
+- `campaign-builder-ab-step.tsx`: `'use client'` (interativo — toggles, inputs)
+- Fetch dados no Server Component, passe props ao Client Component
+
+### Summary
+- Thin route handlers (10-20 linhas) → delegam para services
+- Thin Server Actions → validam + autenticam + chamam service
+- Services own all business logic → retornam `Result<T>`
+- Zod validation em todos os limites (routes, actions, services)
+- Pino logging com contexto estruturado no service layer
+- Atomic commits por task com mensagens descritivas
 
 ---
 

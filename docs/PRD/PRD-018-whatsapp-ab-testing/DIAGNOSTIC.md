@@ -146,3 +146,55 @@ O remainder e enviado com o template do vencedor, nao como uma nova variante. Na
 
 ### Cancelar teste antes do fim da janela
 Se usuario cancela a campanha antes da janela expirar, o remainder e descartado e o teste encerrado sem vencedor. Registrar evento `CANCELLED` com `metadata: { abTestAborted: true }`.
+
+---
+
+## Alinhamento com nextjs-feature-dev Conventions
+
+Este PRD segue rigorosamente as patterns do **nextjs-feature-dev skill**:
+
+### ✅ Architecture
+- **Domain-organized**: Toda logica em `src/lib/whatsapp/` com subdiretorios: `services/`, `schemas/`, `queries/`, `types/`, `api-client/`
+- **Layer separation**: Route handlers thin (10-20 linhas) delegam para services que retornam `Result<T>`
+- **Server-first**: Componentes UI sao Server Components por padrao; `'use client'` apenas quando necessario (hooks, eventos, browser APIs)
+
+### ✅ Error Handling
+- **Result<T> pattern**: Todos os services retornam `Result<T>` = `{ success, data } | { success, error }`
+- **No throwing for business errors**: Erro esperado → `fail('message')`. Erro inesperado → log + return `fail()`
+- **Typed errors**: Campo `code?: string` para categorizar tipos de erro
+
+### ✅ Validation
+- **Zod em todos os limites**: Route handlers, Server Actions, service inputs
+- **Schema location**: `src/lib/whatsapp/schemas/*`, nao espalhado por route handlers
+- **Type safety**: Derivar tipos de Zod com `z.infer<typeof Schema>`
+
+### ✅ Logging
+- **Structured Pino logging**: Sempre com contexto estruturado `logger.info({ context }, 'message')`
+- **Service level**: Log no service layer, nao em route handlers
+- **Error objects**: Passar erro como `err` para serializacao correta
+
+### ✅ Caching (Next.js 16)
+- **Opt-in**: Nothing cached by default
+- **Queries with tags**: `'use cache'` + `cacheTag('ab-metrics-{campaignId}')` + `cacheLife('minutes')`
+- **Invalidation**: `revalidateTag()` apos mutacao do vencedor
+
+### ✅ Components
+- **Server Components first**: `campaign-ab-metrics.tsx` e Server Component (dados estaticos apos COMPLETED)
+- **Client when needed**: `campaign-builder-ab-step.tsx` e `'use client'` pois tem event handlers + state
+- **Data fetching**: Buscar em Server Components, passar como props para Client Components
+- **TanStack Query**: Apenas para polling em tempo real durante PROCESSING (5s interval)
+
+### ✅ Commits
+- **Atomic per task**: Cada task = 1 commit com escopo-focused message
+- **Format**: `feat(whatsapp): add A/B testing schema and models` (lowercase, no period)
+- **Branch per feature**: `feature/2026-03-25-whatsapp-ab-testing`
+
+### Trade-offs Conscientes
+
+Esta arquitetura prioriza:
+1. **Simplicidade** sobre flexibilidade (split upfront, nao adaptativo)
+2. **Determinismo** sobre reatividade (latencia 1h no cron aceitavel)
+3. **Auditabilidade** sobre concisao (eventos + audit trail completo)
+4. **Type safety** sobre codespeed (Zod validation universal)
+
+Estes trade-offs foram avaliados na **Matriz de Risco** e sao aceitaveis para v1.

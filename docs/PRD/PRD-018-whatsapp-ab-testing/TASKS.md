@@ -290,6 +290,182 @@ Ordem alternativa com paralelismo:
 
 ---
 
+## Padroes de Implementacao (nextjs-feature-dev)
+
+### 1. Result<T> Pattern
+
+Todas as funcoes de servico retornam `Result<T>`:
+
+```typescript
+import { ok, fail } from '@/lib/shared/result'
+import type { Result } from '@/lib/shared/result'
+
+export async function createAbTestVariants(
+  campaignId: string,
+  input: AbTestCreateInput,
+  organizationId: string
+): Promise<Result<{ variants: Variant[]; remainderGroupId: string }>> {
+  try {
+    // Validar
+    const config = AbTestConfigSchema.parse(input)
+
+    // Processar
+    const variants = await db.whatsAppCampaignVariant.createMany(...)
+    const remainderGroup = await db.whatsAppCampaignDispatchGroup.create(...)
+
+    // Log
+    logger.info({ campaignId, variantCount: variants.length }, '[AbTest] Variants created')
+
+    return ok({ variants, remainderGroupId: remainderGroup.id })
+  } catch (err) {
+    logger.error({ err, campaignId }, '[AbTest] Failed to create variants')
+    return fail('Failed to create A/B test variants')
+  }
+}
+```
+
+### 2. Zod Validation
+
+**Em schemas/**:
+```typescript
+// src/lib/whatsapp/schemas/whatsapp-ab-schemas.ts
+export const AbTestCreateSchema = z.object({
+  isAbTest: z.boolean(),
+  variants: z.array(
+    z.object({
+      label: z.enum(['A', 'B', 'C', 'D', 'E']),
+      templateName: z.string().min(1),
+      splitPercent: z.number().min(0).max(100),
+    })
+  ).min(2).max(5),
+  config: z.object({
+    windowHours: z.enum([4, 8, 12, 24, 48]),
+    winnerCriteria: z.enum(['RESPONSE_RATE', 'READ_RATE', 'MANUAL']),
+    remainderPercent: z.number().min(0).max(50).optional(),
+  }),
+}).refine(
+  (data) => {
+    const variantsSum = data.variants.reduce((sum, v) => sum + v.splitPercent, 0)
+    const remainder = data.config.remainderPercent ?? 0
+    return variantsSum + remainder === 100
+  },
+  { message: 'Split percentages must sum to 100' }
+)
+
+export type AbTestCreateInput = z.infer<typeof AbTestCreateSchema>
+```
+
+**Em route handlers**:
+```typescript
+// src/app/api/v1/whatsapp/campaigns/[campaignId]/ab/select-winner/route.ts
+export async function POST(request: Request, { params }: Props) {
+  try {
+    // Zod validation
+    const body = AbTestSelectWinnerSchema.parse(await request.json())
+
+    // Auth + authorization
+    const session = await auth()
+    if (!session) return json({ error: 'Unauthorized' }, { status: 401 })
+
+    // Call service
+    const result = await selectWinner(params.campaignId, body.variantId, session.user.id)
+
+    if (!result.success) {
+      return json({ error: result.error }, { status: 400 })
+    }
+
+    return json({ success: true })
+  } catch (err) {
+    logger.error({ err }, '[Route] select-winner failed')
+    return json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+```
+
+### 3. Pino Structured Logging
+
+**Em services:**
+```typescript
+import { logger } from '@/server/logger'
+
+export async function splitAudienceForAbTest(campaignId: string) {
+  const startTime = Date.now()
+
+  try {
+    const campaign = await db.whatsAppCampaign.findUnique({ where: { id: campaignId } })
+    const recipients = await db.whatsAppCampaignRecipient.findMany(...)
+
+    // Log com contexto
+    logger.info(
+      {
+        campaignId,
+        recipientCount: recipients.length,
+        variantCount: campaign.variantCount,
+        duration: Date.now() - startTime
+      },
+      '[AbTest] Audience split completed'
+    )
+
+    return ok({ splitSummary })
+  } catch (err) {
+    logger.error(
+      {
+        err,
+        campaignId,
+        duration: Date.now() - startTime
+      },
+      '[AbTest] Audience split failed'
+    )
+    return fail('Failed to split audience')
+  }
+}
+```
+
+### 4. Server Components vs Client
+
+**Server Component (default)**:
+```typescript
+// campaign-ab-metrics.tsx
+import { getAbTestMetrics } from '@/lib/whatsapp/queries/get-ab-metrics'
+
+export async function CampaignAbMetrics({ campaignId }: Props) {
+  'use cache'
+  cacheTag(`ab-metrics-${campaignId}`)
+  cacheLife('minutes')
+
+  const metricsResult = await getAbTestMetrics(campaignId)
+  if (!metricsResult.success) return <Error />
+
+  return (
+    <div>
+      {metricsResult.data.map(metric => (
+        <MetricCard key={metric.variantId} metric={metric} />
+      ))}
+    </div>
+  )
+}
+```
+
+**Client Component (only when needed)**:
+```typescript
+'use client'
+
+import { useQuery } from '@tanstack/react-query'
+import { CampaignAbMetrics } from './campaign-ab-metrics'
+
+export function CampaignAbMetricsWithPolling({ campaignId }: Props) {
+  // Only polling during PROCESSING
+  const { data } = useQuery({
+    queryKey: ['campaigns', campaignId, 'ab-metrics'],
+    queryFn: () => fetch(`/api/v1/campaigns/${campaignId}/ab`).then(r => r.json()),
+    refetchInterval: 5000,
+    enabled: status === 'PROCESSING',
+  })
+
+  return <CampaignAbMetrics data={data} />
+}
+```
+
 ## Observacoes de Escopo
 
 - O split e determinista: dado o mesmo `campaignId` e audiencia, o resultado e sempre o mesmo.

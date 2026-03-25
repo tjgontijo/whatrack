@@ -186,23 +186,73 @@ Quando a feature estiver pronta, o usuario devera conseguir:
 
 ## Arquitetura de Camadas
 
+Segue padroes do **nextjs-feature-dev**. Cada camada tem responsabilidade clara:
+
 ### `src/lib/whatsapp/` (novo codigo PRD-018)
 
-- **`services/whatsapp-campaign-ab.service.ts`** — orquestra criacao, split, selecao de vencedor, dispatch remainder. Retorna `Result<T>`.
-- **`services/whatsapp-campaign-ab-metrics.service.ts`** — queries de metricas por variante, calcula taxas, determina lider.
-- **`schemas/whatsapp-ab-schemas.ts`** — Zod para config A/B, selecao de vencedor, query de metricas.
+```
+src/lib/whatsapp/
+├── services/
+│   ├── whatsapp-campaign-ab.service.ts
+│   │   └── createAbTestVariants()        // Result<{ variants, remainderGroupId }>
+│   │   └── splitAudienceForAbTest()      // Result<{ splitSummary }>
+│   │   └── selectWinner()                // Result<void>
+│   │   └── autoSelectWinner()            // Result<{ selected, variantId? }>
+│   └── whatsapp-campaign-ab-metrics.service.ts
+│       └── getAbTestMetrics()            // Result<MetricsByVariant[]>
+│       └── getAbTestLeader()             // Result<variantId | null>
+├── schemas/
+│   └── whatsapp-ab-schemas.ts
+│       └── AbTestVariantSchema
+│       └── AbTestConfigSchema
+│       └── AbTestCreateSchema
+│       └── AbTestSelectWinnerSchema
+│       └── AbTestMetricsQuerySchema
+├── queries/
+│   └── get-ab-campaign.query.ts          // Zod-validated fetch
+└── types/
+    └── whatsapp-campaign-ab.types.ts
+```
+
+**Responsabilidades:**
+- **`services/*`** — Toda logica de negocio. Retornam `Result<T>`. Log via Pino com contexto.
+- **`schemas/*`** — Zod validation para inputs e outputs. Localizados com dominio.
+- **`queries/*`** — Fetches de dados em Server Components. Podem usar `'use cache'` + `cacheTag`.
+- **`types/*`** — TypeScript types derivados de Zod ou dominio.
 
 ### `src/app/api/v1/whatsapp/campaigns/[campaignId]/ab/`
 
-- Route handlers thin. Delegam para `whatsapp-campaign-ab.service.ts`.
+**Thin route handlers (10-20 linhas):**
+```typescript
+// GET /campaigns/[campaignId]/ab
+// 1. Extract + validate params
+// 2. Call service
+// 3. Return JSON
 
-### `src/app/api/v1/cron/whatsapp/ab-winner-dispatch/`
+// POST /campaigns/[campaignId]/ab/select-winner
+// 1. Parse + validate body com Zod
+// 2. Authenticate + authorize
+// 3. Call service
+// 4. Return Result
+```
 
-- Cron protegido por `authorizeCronRequest`.
-- Busca campanhas A/B com janela expirada e vencedor ainda nao selecionado.
-- Chama `whatsapp-campaign-ab.service.ts` para selecao + dispatch.
+### `src/app/api/v1/cron/whatsapp/ab-winner-dispatch/route.ts`
+
+- Protegido por `authorizeCronRequest`
+- Usa `jobTracker.acquireLock('whatsapp-ab-winner-dispatch')` para idempotencia
+- Busca campanhas A/B com janela expirada
+- Chama `autoSelectWinner()` para cada uma
+- Logging via Pino com contexto
 
 ### `src/components/dashboard/whatsapp/campaigns/`
 
-- `campaign-builder-ab-step.tsx` — etapa do builder para configurar variacoes e split. `'use client'` (interativo).
-- `campaign-ab-metrics.tsx` — painel de metricas por variante na pagina de detalhe. Server Component apos COMPLETED; polling durante PROCESSING.
+**Server-first approach:**
+- **`campaign-ab-metrics.tsx`**: Server Component apos COMPLETED (dados estaticos + `'use cache'`)
+  - Durante PROCESSING: Client Component com TanStack Query polling (5s interval)
+  - Renderiza tabela de metricas por variante
+
+- **`campaign-builder-ab-step.tsx`**: `'use client'` (interativo)
+  - State: variacoes, split percentuais, janela, criterio
+  - Event handlers: adicionar variante, remover, atualizar percentual
+  - Validacao de regras: minimo 100 recipients, sum = 100%
+  - UI: inputs para template, percentual; badge "A/B"

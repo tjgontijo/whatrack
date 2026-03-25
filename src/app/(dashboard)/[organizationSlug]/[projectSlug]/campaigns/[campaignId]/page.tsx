@@ -27,6 +27,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { CampaignAbMetrics } from '@/components/dashboard/campaigns/campaign-ab-metrics'
 
 const STATUS_LABELS: Record<string, string> = {
   DRAFT: 'Rascunho',
@@ -116,6 +117,8 @@ interface CampaignDetail {
   totalDispatchGroups: number
   dispatchGroups: DispatchGroup[]
   approvals: Approval[]
+  isAbTest: boolean
+  abTestConfig: any | null
 }
 
 interface RecipientsResponse {
@@ -170,7 +173,7 @@ export default function CampaignDetailPage({ params }: CampaignPageProps) {
     null
   )
   const queryClient = useQueryClient()
-  const campaignsPath = useRequiredProjectPath('/whatsapp/campaigns')
+  const campaignsPath = useRequiredProjectPath('/campaigns')
   const { organizationId } = useRequiredProjectRouteContext()
   const { campaignId } = React.use(params)
 
@@ -309,6 +312,11 @@ export default function CampaignDetailPage({ params }: CampaignPageProps) {
                 {STATUS_LABELS[campaign?.status || ''] || campaign?.status}
               </Badge>
               <Badge variant="outline">{TYPE_LABELS[campaign?.type || ''] || campaign?.type}</Badge>
+              {campaign?.isAbTest && (
+                <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-300 dark:bg-purple-950/30">
+                  A/B
+                </Badge>
+              )}
             </div>
           )}
         </div>
@@ -393,7 +401,13 @@ export default function CampaignDetailPage({ params }: CampaignPageProps) {
             </Card>
           </div>
 
-          {campaign.dispatchGroups.length > 0 && (
+          {campaign.isAbTest ? (
+            <CampaignAbMetrics
+              campaignId={campaignId}
+              campaignStatus={campaign.status}
+              abTestConfig={campaign.abTestConfig}
+            />
+          ) : campaign.dispatchGroups.length > 0 ? (
             <Card>
               <CardHeader>
                 <CardTitle>Grupos de Envio</CardTitle>
@@ -424,9 +438,9 @@ export default function CampaignDetailPage({ params }: CampaignPageProps) {
                 </div>
               </CardContent>
             </Card>
-          )}
+          ) : null}
 
-          {campaign.approvals.length > 0 && (
+          {!campaign.isAbTest && campaign.dispatchGroups.length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle>Histórico</CardTitle>

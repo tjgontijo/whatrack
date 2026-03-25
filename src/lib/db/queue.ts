@@ -21,6 +21,7 @@ export type JobType =
   | 'whatsapp-health-check'
   | 'webhook-retry'
   | 'whatsapp-campaign-dispatch'
+  | 'whatsapp-ab-winner-dispatch'
 
 interface JobExecution {
   jobId: string

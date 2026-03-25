@@ -14,7 +14,6 @@ import {
 import { HeaderPageShell, HeaderTabs } from '@/components/dashboard/layout'
 import { CrudEmptyState } from '@/components/dashboard/crud/crud-data-view'
 import { CampaignsOverview } from './campaigns-overview'
-import { CampaignFormDrawer } from './campaign-form-drawer'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useRequiredProjectPath, useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
@@ -63,6 +62,8 @@ interface CampaignItem {
   approvedAt: string | null
   totalRecipients: number
   totalDispatchGroups: number
+  isAbTest: boolean
+  abTestConfig: any | null
 }
 
 interface CampaignsResponse {
@@ -96,12 +97,11 @@ type CampaignsPageProps = {
 
 export function CampaignsPage({ initialCreateOpen = false }: CampaignsPageProps = {}) {
   const router = useRouter()
-  const campaignsPath = useRequiredProjectPath('/whatsapp/campaigns')
+  const campaignsPath = useRequiredProjectPath('/campaigns')
   const { organizationId, projectId } = useRequiredProjectRouteContext()
 
   const [activeTab, setActiveTab] = React.useState('overview')
   const [searchInput, setSearchInput] = React.useState('')
-  const [isCreateOpen, setIsCreateOpen] = React.useState(initialCreateOpen)
   const deferredSearch = useDeferredValue(searchInput)
 
   const { data, isLoading, refetch, isRefetching } = useQuery<CampaignsResponse>({
@@ -135,12 +135,19 @@ export function CampaignsPage({ initialCreateOpen = false }: CampaignsPageProps 
       label: 'Campanha',
       render: (campaign) => (
         <div className="space-y-0.5">
-          <button
-            className="font-medium hover:underline text-left"
-            onClick={() => openCampaignDetail(campaign.id)}
-          >
-            {campaign.name}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              className="font-medium hover:underline text-left"
+              onClick={() => openCampaignDetail(campaign.id)}
+            >
+              {campaign.name}
+            </button>
+            {campaign.isAbTest && (
+              <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 bg-purple-50 text-purple-700 border-purple-300 dark:bg-purple-950/30">
+                A/B
+              </Badge>
+            )}
+          </div>
           <div className="text-muted-foreground text-xs">
             {campaign.templateName ? `Template: ${campaign.templateName}` : 'Sem template'}
           </div>
@@ -200,7 +207,7 @@ export function CampaignsPage({ initialCreateOpen = false }: CampaignsPageProps 
               type="button"
               size="sm"
               className="h-7 gap-1.5 text-xs"
-              onClick={() => setIsCreateOpen(true)}
+              onClick={() => router.push(`${campaignsPath}/new`)}
             >
               <Plus className="h-3.5 w-3.5" />
               Nova campanha
@@ -232,14 +239,6 @@ export function CampaignsPage({ initialCreateOpen = false }: CampaignsPageProps 
         )}
       </HeaderPageShell>
 
-      <CampaignFormDrawer
-        open={isCreateOpen}
-        onOpenChange={setIsCreateOpen}
-        onSuccess={(campaignId) => {
-          refetch()
-          openCampaignDetail(campaignId)
-        }}
-      />
     </>
   )
 }

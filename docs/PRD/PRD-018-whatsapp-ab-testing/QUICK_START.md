@@ -113,14 +113,86 @@ O cron `ab-winner-dispatch` deve verificar `abTestConfig.winnerVariantId !== nul
 - `campaign-builder-ab-step.tsx`: `'use client'` (interativo — toggles, inputs, adicao de variacoes).
 - Pagina de detalhe: Server Component que passa dados iniciais para o componente de metricas.
 
-### 6. Zod em todos os limites
+### 6. Zod em Todos os Limites
+
+Validação com Zod em:
+- Route handler payloads
+- Server Action inputs
+- Service inputs
+- Environment variables
 
 ```typescript
 // Route handler
-const body = AbTestCreateSchema.parse(await request.json())
+import { AbTestCreateSchema, AbTestSelectWinnerSchema } from '@/lib/whatsapp/schemas'
 
-// Service input
-const config = AbTestConfigSchema.parse(campaign.abTestConfig)
+export async function POST(request: Request) {
+  try {
+    const body = AbTestCreateSchema.parse(await request.json())
+    // business logic
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      return json({ error: 'Invalid input', details: err.errors }, { status: 400 })
+    }
+    // handle other errors
+  }
+}
+
+// Server Action
+'use server'
+
+export async function selectWinnerAction(input: unknown) {
+  const parsed = AbTestSelectWinnerSchema.safeParse(input)
+  if (!parsed.success) {
+    return fail('Invalid input')
+  }
+
+  return await selectWinner(parsed.data.variantId)
+}
+
+// Service receives validated Zod types
+export async function selectWinner(variantId: string) {
+  const config = AbTestConfigSchema.parse(campaign.abTestConfig)
+  // business logic with type-safe input
+}
+```
+
+### 7. Result<T> Pattern em Todos os Services
+
+```typescript
+import { ok, fail } from '@/lib/shared/result'
+import type { Result } from '@/lib/shared/result'
+
+// ✅ Correct
+export async function createVariants(input: Input): Promise<Result<Variants>> {
+  try {
+    const variants = await db.create(...)
+    logger.info({ count: variants.length }, '[AbTest] Created')
+    return ok(variants)
+  } catch (err) {
+    logger.error({ err }, '[AbTest] Failed')
+    return fail('Could not create variants')
+  }
+}
+
+// ❌ Wrong - never throw for business errors
+export async function createVariants(input: Input): Promise<Variants> {
+  throw new Error('...') // bad
+}
+```
+
+### 8. Pino Logging com Contexto
+
+```typescript
+import { logger } from '@/server/logger'
+
+// ✅ Correct - structured context
+logger.info({ campaignId, variantCount, duration }, '[AbTest] Split completed')
+logger.warn({ campaignId, reason }, '[AbTest] Insufficient data')
+logger.error({ err, campaignId }, '[AbTest] Split failed')
+
+// ❌ Wrong - unclear logs
+console.log('Split completed')
+logger.info('Split completed for campaign')
 ```
 
 ---
