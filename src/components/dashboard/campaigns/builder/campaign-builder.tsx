@@ -37,7 +37,6 @@ import {
   type AbTestVariantDraft,
   type AbTestConfigDraft,
 } from '../campaign-wizard-step-ab'
-import { TemplatePreviewCard } from '../template-preview-card'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -388,8 +387,7 @@ export function CampaignBuilder() {
       <main className="flex-1 overflow-y-auto px-4 py-6 md:px-8 md:py-10">
         <div className="max-w-3xl mx-auto">
           {currentStep?.id === 'basic' && (
-            <div className="grid gap-6 lg:grid-cols-3">
-              <div className="lg:col-span-2">
+            <div className="grid gap-6">
                 <CampaignWizardStepBasic
                   hasActiveProject={!!activeProjectId}
                   isProjectLoading={isProjectLoading}
@@ -405,10 +403,6 @@ export function CampaignBuilder() {
                   onTemplateCategoryChange={setTemplateCategory}
                   onTemplateChange={setSelectedTemplateName}
                 />
-              </div>
-              <div>
-                <TemplatePreviewCard template={selectedTemplate} />
-              </div>
             </div>
           )}
 
