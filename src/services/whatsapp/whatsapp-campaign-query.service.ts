@@ -310,10 +310,10 @@ export async function listRecipients(
       include: {
         dispatchGroup: { select: { templateName: true, status: true } },
         messages: {
-          where: { direction: 'inbound' },
-          orderBy: { createdAt: 'desc' },
+          where: { direction: 'INBOUND' },
+          orderBy: { createdAt: 'asc' },
           take: 1,
-          select: { body: true },
+          select: { body: true, type: true },
         },
       },
       orderBy: { createdAt: 'asc' },
@@ -338,7 +338,9 @@ export async function listRecipients(
     leadId: r.leadId,
     dispatchGroupTemplateName: r.dispatchGroup?.templateName || null,
     dispatchGroupStatus: r.dispatchGroup?.status || null,
-    lastResponse: r.messages?.[0]?.body || null,
+    lastResponse: r.messages?.[0] 
+      ? (r.messages[0].body || `[Mensagem do tipo ${r.messages[0].type}]`) 
+      : null,
   }));
 
   return {

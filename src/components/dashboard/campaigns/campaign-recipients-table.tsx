@@ -156,7 +156,7 @@ export function CampaignRecipientsTable({ campaignId }: { campaignId: string }) 
                    </div>
                  </TooltipTrigger>
                  <TooltipContent className="max-w-[300px] p-3 text-sm">
-                   <p className="font-semibold mb-1 text-[10px] uppercase text-muted-foreground tracking-wider">Última Mensagem:</p>
+                   <p className="font-semibold mb-1 text-[10px] uppercase text-muted-foreground tracking-wider">Primeira Interação:</p>
                    <p className="italic">"{r.lastResponse || 'Sem conteúdo disponível'}"</p>
                  </TooltipContent>
                </Tooltip>
