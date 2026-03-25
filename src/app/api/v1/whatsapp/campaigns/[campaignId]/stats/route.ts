@@ -24,23 +24,35 @@ export async function GET(
     return apiError('Campanha não encontrada', 404)
   }
 
-  const [total, success, failed] = await Promise.all([
-    prisma.whatsAppCampaignRecipient.count({
-      where: { campaignId }
-    }),
-    prisma.whatsAppCampaignRecipient.count({
-      where: { campaignId, status: { in: ['SENT', 'DELIVERED', 'READ', 'RESPONDED'] } }
-    }),
-    prisma.whatsAppCampaignRecipient.count({
-      where: { campaignId, status: { in: ['FAILED', 'EXCLUDED'] } }
-    }),
-  ])
+  const statusCounts = await prisma.whatsAppCampaignRecipient.groupBy({
+    by: ['status'],
+    where: { campaignId },
+    _count: { _all: true },
+  })
+
+  const counts = Object.fromEntries(
+    statusCounts.map((row) => [row.status, row._count._all])
+  ) as Record<string, number>
+
+  const get = (s: string) => counts[s] ?? 0
+
+  const total = statusCounts.reduce((sum, r) => sum + r._count._all, 0)
+  const responded = get('RESPONDED')
+  const read = get('READ') + responded
+  const delivered = get('DELIVERED') + read
+  const sent = get('SENT') + delivered
+  const failed = get('FAILED') + get('EXCLUDED')
+  const pending = get('PENDING')
 
   return apiSuccess({
     status: campaign.status,
     total,
-    success,
+    sent,
+    delivered,
+    read,
+    responded,
     failed,
-    pending: total - success - failed,
+    pending,
+    success: sent, // backward compat alias
   })
 }
