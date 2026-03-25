@@ -20,6 +20,11 @@ export interface CampaignListItem {
   audienceSourceId: string | null;
   isAbTest: boolean;
   abTestConfig: any | null;
+  stats: {
+    sent: number;
+    delivered: number;
+    read: number;
+  };
 }
 
 export interface CampaignDetail extends CampaignListItem {
@@ -35,6 +40,8 @@ export interface CampaignDetail extends CampaignListItem {
     configDisplayPhone: string | null;
     configVerifiedName: string | null;
   }>;
+  approvedByName?: string | null;
+  approvedAt?: string | null;
   events: Array<{
     id: string;
     type: string;
@@ -111,6 +118,30 @@ export async function listCampaigns(organizationId: string, query: WhatsAppCampa
     prisma.whatsAppCampaign.count({ where }),
   ]);
 
+  // Fetch stats for all campaigns in parallel
+  const statsMap = new Map<string, { sent: number; delivered: number; read: number }>();
+  const statsPromises = campaigns.map(async (c) => {
+    const statusCounts = await prisma.whatsAppCampaignRecipient.groupBy({
+      by: ['status'],
+      where: { campaignId: c.id },
+      _count: { _all: true },
+    });
+
+    const counts = Object.fromEntries(
+      statusCounts.map((row) => [row.status, row._count._all])
+    ) as Record<string, number>;
+
+    const get = (s: string) => counts[s] ?? 0;
+    const responded = get('RESPONDED');
+    const read = get('READ') + responded;
+    const delivered = get('DELIVERED') + read;
+    const sent = get('SENT') + delivered;
+
+    statsMap.set(c.id, { sent, delivered, read });
+  });
+
+  await Promise.all(statsPromises);
+
   const items: CampaignListItem[] = campaigns.map((c) => ({
     id: c.id,
     name: c.name,
@@ -130,6 +161,7 @@ export async function listCampaigns(organizationId: string, query: WhatsAppCampa
     audienceSourceId: c.audienceSourceId,
     isAbTest: c.isAbTest,
     abTestConfig: c.abTestConfig,
+    stats: statsMap.get(c.id) || { sent: 0, delivered: 0, read: 0 },
   }));
 
   return {
@@ -192,6 +224,23 @@ export async function getCampaignDetail(
 
   if (!campaign) return null;
 
+  // Fetch stats for campaign
+  const statusCounts = await prisma.whatsAppCampaignRecipient.groupBy({
+    by: ['status'],
+    where: { campaignId: campaign.id },
+    _count: { _all: true },
+  });
+
+  const counts = Object.fromEntries(
+    statusCounts.map((row) => [row.status, row._count._all])
+  ) as Record<string, number>;
+
+  const get = (s: string) => counts[s] ?? 0;
+  const responded = get('RESPONDED');
+  const read = get('READ') + responded;
+  const delivered = get('DELIVERED') + read;
+  const sent = get('SENT') + delivered;
+
   return {
     id: campaign.id,
     name: campaign.name,
@@ -211,6 +260,7 @@ export async function getCampaignDetail(
     audienceSourceId: campaign.audienceSourceId,
     isAbTest: campaign.isAbTest,
     abTestConfig: campaign.abTestConfig,
+    stats: { sent, delivered, read },
     dispatchGroups: campaign.dispatchGroups.map((g) => ({
       id: g.id,
       templateName: g.templateName,

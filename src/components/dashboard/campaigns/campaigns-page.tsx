@@ -58,6 +58,11 @@ interface CampaignItem {
   totalDispatchGroups: number
   isAbTest: boolean
   abTestConfig: any | null
+  stats: {
+    sent: number
+    delivered: number
+    read: number
+  }
 }
 
 interface CampaignsResponse {
@@ -158,27 +163,33 @@ export function CampaignsPage({ initialCreateOpen = false }: CampaignsPageProps 
       ),
     },
     {
-      key: 'type',
-      label: 'Tipo',
-      width: 120,
+      key: 'metrics',
+      label: 'Engajamento',
+      width: 200,
       render: (campaign) => (
-        <Badge variant="outline">{TYPE_LABELS[campaign.type] || campaign.type}</Badge>
+        <div className="flex gap-4 text-xs">
+          <div className="flex flex-col">
+            <span className="text-muted-foreground">Enviados</span>
+            <span className="font-semibold">{campaign.stats.sent}</span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-muted-foreground">Entregues</span>
+            <span className="font-semibold">{campaign.stats.delivered}</span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-muted-foreground">Lidos</span>
+            <span className="font-semibold">{campaign.stats.read}</span>
+          </div>
+        </div>
       ),
     },
     {
-      key: 'recipients',
-      label: 'Destinatários',
-      width: 130,
-      render: (campaign) => <span className="text-sm">{campaign.totalRecipients}</span>,
-    },
-    {
-      key: 'dispatch',
-      label: 'Disparo',
+      key: 'createdAt',
+      label: 'Criada em',
+      width: 160,
       render: (campaign) => (
         <span className="text-muted-foreground text-sm">
-          {campaign.scheduledAt
-            ? `Agendada em ${formatDate(campaign.scheduledAt)}`
-            : formatDate(campaign.createdAt)}
+          {formatDate(campaign.createdAt)}
         </span>
       ),
     },
