@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db/prisma';
 import { logger } from '@/lib/utils/logger';
+import { getOptOutSet } from '@/lib/whatsapp/services/whatsapp-opt-out.service';
 import type {
   WhatsAppCampaignCreateInput,
   WhatsAppCampaignUpdateInput,
@@ -130,15 +131,27 @@ export async function refreshCampaignRecipients(organizationId: string, campaign
   // Clear existing recipients
   await prisma.whatsAppCampaignRecipient.deleteMany({ where: { campaignId } });
 
-  const recipients = leads.map((lead, idx) => ({
-    campaignId,
-    dispatchGroupId: dispatchGroupIds[idx % dispatchGroupIds.length],
-    phone: lead.phone,
-    normalizedPhone: lead.phone.replace(/\D/g, ''),
-    leadId: lead.id,
-    variables: lead.data ? { body: lead.data } : undefined,
-    status: 'PENDING',
-  }));
+  // Load opted-out contacts to exclude them
+  const optOutSet = await getOptOutSet(organizationId);
+
+  let excludedByOptOut = 0;
+  const recipients = leads.map((lead, idx) => {
+    const isOptedOut = optOutSet.has(lead.phone);
+    if (isOptedOut) {
+      excludedByOptOut++;
+    }
+
+    return {
+      campaignId,
+      dispatchGroupId: dispatchGroupIds[idx % dispatchGroupIds.length],
+      phone: lead.phone,
+      normalizedPhone: lead.phone.replace(/\D/g, ''),
+      leadId: lead.id,
+      variables: lead.data ? { body: lead.data } : undefined,
+      status: isOptedOut ? 'EXCLUDED' : 'PENDING',
+      exclusionReason: isOptedOut ? 'OPT_OUT' : null,
+    };
+  });
 
   // Chunk createMany for safety (Prisma limit is 32767 parameters on some DBs)
   const chunkSize = 1000;
@@ -147,11 +160,16 @@ export async function refreshCampaignRecipients(organizationId: string, campaign
     await prisma.whatsAppCampaignRecipient.createMany({ data: chunk });
   }
 
+  logger.info(
+    { campaignId, total: leads.length, excluded: excludedByOptOut },
+    '[Snapshot] Opt-out exclusions applied'
+  );
+
   await prisma.whatsAppCampaignEvent.create({
     data: {
       campaignId,
       type: WhatsAppCampaignEventType.RECIPIENTS_GENERATED,
-      metadata: { count: leads.length },
+      metadata: { count: leads.length, excludedByOptOut },
     },
   });
 }
