@@ -313,7 +313,7 @@ export async function listRecipients(
           where: { direction: 'INBOUND' },
           orderBy: { createdAt: 'asc' },
           take: 1,
-          select: { body: true, type: true },
+          select: { body: true, type: true, rawMeta: true },
         },
       },
       orderBy: { createdAt: 'asc' },
@@ -339,7 +339,7 @@ export async function listRecipients(
     dispatchGroupTemplateName: r.dispatchGroup?.templateName || null,
     dispatchGroupStatus: r.dispatchGroup?.status || null,
     lastResponse: r.messages?.[0] 
-      ? (r.messages[0].body || `[Mensagem do tipo ${r.messages[0].type}]`) 
+      ? (r.messages[0].body || extractInteractionText(r.messages[0])) 
       : null,
   }));
 
@@ -350,4 +350,26 @@ export async function listRecipients(
     pageSize,
     totalPages: Math.ceil(total / pageSize),
   };
+}
+
+function extractInteractionText(msg: any): string {
+  const type = msg.type;
+  const raw = msg.rawMeta as any;
+  
+  if (type === 'button') {
+    return raw?.button?.text || 'Botão clicado';
+  }
+  
+  if (type === 'interactive') {
+    const interactive = raw?.interactive;
+    if (interactive?.type === 'button_reply') {
+      return interactive.button_reply?.title || 'Resposta de botão';
+    }
+    if (interactive?.type === 'list_reply') {
+      return interactive.list_reply?.title || 'Opção selecionada';
+    }
+    return 'Mensagem interativa';
+  }
+  
+  return `[Mensagem do tipo ${type}]`;
 }

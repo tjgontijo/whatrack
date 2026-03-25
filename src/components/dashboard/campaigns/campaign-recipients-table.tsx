@@ -106,6 +106,16 @@ export function CampaignRecipientsTable({ campaignId }: { campaignId: string }) 
 
   const columns: ColumnDef<CampaignRecipient>[] = [
     {
+      key: 'index',
+      label: '#',
+      width: '50px',
+      render: (_, index) => (
+        <span className="text-[10px] font-mono text-muted-foreground/50 tabular-nums">
+          {index + 1}
+        </span>
+      ),
+    },
+    {
       key: 'phone',
       label: 'Destinatário',
       render: (r) => (
