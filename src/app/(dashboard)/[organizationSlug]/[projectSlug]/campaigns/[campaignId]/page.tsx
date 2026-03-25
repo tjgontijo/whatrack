@@ -28,6 +28,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { CampaignAbMetrics } from '@/components/dashboard/campaigns/campaign-ab-metrics'
+import { CampaignEngagementFunnel } from '@/components/dashboard/campaigns/campaign-engagement-funnel'
 
 const STATUS_LABELS: Record<string, string> = {
   DRAFT: 'Rascunho',
@@ -204,7 +205,7 @@ export default function CampaignDetailPage({ params }: CampaignPageProps) {
   })
 
   // Query leve: só contadores — polling a cada 2s enquanto em processamento
-  interface CampaignStats { status: string; total: number; success: number; failed: number; pending: number }
+  interface CampaignStats { status: string; total: number; sent: number; delivered: number; read: number; responded: number; failed: number; pending: number; success: number }
   const { data: stats } = useQuery<CampaignStats>({
     queryKey: ['whatsapp-campaign-stats', organizationId, campaignId],
     queryFn: async () => {
@@ -367,39 +368,19 @@ export default function CampaignDetailPage({ params }: CampaignPageProps) {
         <Skeleton className="h-48" />
       ) : campaign ? (
         <>
-          <div className="grid gap-4 lg:grid-cols-4">
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-muted-foreground text-xs uppercase font-semibold">Total</p>
-                <p className="text-2xl font-bold">{stats?.total ?? campaign.totalRecipients}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-muted-foreground text-xs uppercase font-semibold text-green-600">Sucesso</p>
-                <p className="text-2xl font-bold text-green-600">
-                  {stats?.success ?? campaign.dispatchGroups.reduce((acc, g) => acc + g.successCount, 0)}
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-muted-foreground text-xs uppercase font-semibold text-red-600">Falhas</p>
-                <p className="text-2xl font-bold text-red-600">
-                  {stats?.failed ?? campaign.dispatchGroups.reduce((acc, g) => acc + g.failCount, 0)}
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-muted-foreground text-xs uppercase font-semibold text-blue-600">Pendente</p>
-                <p className="text-2xl font-bold text-blue-600">
-                  {stats?.pending ?? (campaign.totalRecipients - 
-                    campaign.dispatchGroups.reduce((acc, g) => acc + g.successCount + g.failCount, 0))}
-                </p>
-              </CardContent>
-            </Card>
-          </div>
+          {stats && (
+            <CampaignEngagementFunnel
+              stats={{
+                total: stats.total,
+                sent: stats.sent,
+                delivered: stats.delivered,
+                read: stats.read,
+                responded: stats.responded,
+                failed: stats.failed,
+                pending: stats.pending,
+              }}
+            />
+          )}
 
           {campaign.isAbTest ? (
             <CampaignAbMetrics
