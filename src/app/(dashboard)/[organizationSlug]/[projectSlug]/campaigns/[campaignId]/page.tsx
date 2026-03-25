@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useRouter } from 'next/navigation'
 import { ArrowLeft, CheckCircle, XCircle, Send, Ban, Clock, Copy } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -169,6 +170,7 @@ function parseFailureReason(reason: string | null) {
 }
 
 export default function CampaignDetailPage({ params }: CampaignPageProps) {
+  const router = useRouter()
   const [recipientPage, setRecipientPage] = React.useState(1)
   const [recipientStatusFilter, setRecipientStatusFilter] = React.useState<string>('')
   const [recipientPhoneSearch, setRecipientPhoneSearch] = React.useState<string>('')

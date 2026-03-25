@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import type { WhatsAppTemplate } from '@/types/whatsapp/whatsapp'
 
 interface TemplatePreviewCardProps {
-  template: WhatsAppTemplate | null
+  template?: WhatsAppTemplate | null
 }
 
 export function TemplatePreviewCard({ template }: TemplatePreviewCardProps) {

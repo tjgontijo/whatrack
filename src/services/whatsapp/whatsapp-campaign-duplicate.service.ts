@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/db/prisma'
-import { logger } from '@/server/logger'
+import { logger } from '@/lib/utils/logger'
 import { ok, fail } from '@/lib/shared/result'
 import type { Result } from '@/lib/shared/result'
 
@@ -37,11 +37,10 @@ export async function duplicateCampaign(
         status: 'DRAFT',
         projectId: originalCampaign.projectId,
         organizationId,
-        instanceId: originalCampaign.instanceId,
         templateName: originalCampaign.templateName,
         templateLang: originalCampaign.templateLang,
         isAbTest: false,
-        abTestConfig: null,
+        createdById: 'system', // Placeholder, will be overridden by auth middleware
       },
     })
 
@@ -51,7 +50,7 @@ export async function duplicateCampaign(
         campaignId: newCampaign.id,
         templateName: primaryGroup.templateName,
         templateLang: primaryGroup.templateLang,
-        templateComponents: primaryGroup.templateComponents,
+        configId: primaryGroup.configId,
         order: 0,
         isRemainder: false,
       },

@@ -103,16 +103,16 @@ Independente do status ou configuração da campanha original, a cópia sempre n
 ## Checklist Tecnico
 
 ### Fase 1 (T1-T8)
-- [ ] `CampaignFormDrawer` deletado e sem referências no codebase
-- [ ] Botão "Nova campanha" navega para `/campaigns/new`
-- [ ] `/stats` retorna `sent`, `delivered`, `read`, `responded` (e `success` como alias)
-- [ ] Funil visual exibe taxas sem divisão por zero
-- [ ] `/recipients` aceita `?status=` e `?phone=` com Zod validation
-- [ ] UI de recipients reseta página ao trocar filtro
-- [ ] `TemplatePreviewCard` renderiza fallback se `components` for null
-- [ ] Duplicate cria campanha com nome ` — Cópia` e status DRAFT
-- [ ] `npm run lint` sem erros
-- [ ] `npm run build` sem erros
+- [x] `CampaignFormDrawer` deletado e sem referências no codebase
+- [x] Botão "Nova campanha" navega para `/campaigns/new`
+- [x] `/stats` retorna `sent`, `delivered`, `read`, `responded` (e `success` como alias)
+- [x] Funil visual exibe taxas sem divisão por zero
+- [x] `/recipients` aceita `?status=` e `?phone=` com Zod validation
+- [x] UI de recipients reseta página ao trocar filtro
+- [x] `TemplatePreviewCard` renderiza fallback se `components` for null
+- [x] Duplicate cria campanha com nome ` — Cópia` e status DRAFT
+- [x] `npm run lint` sem erros
+- [x] `npm run build` sem erros
 
 ### Fase 2 (T9-T13)
 - [ ] Migration cria tabela com `@@unique([organizationId, phone])`

@@ -1,7 +1,7 @@
 # Tasks: PRD-019 Campaign UX Improvements
 
 **Data:** 2026-03-25
-**Status:** Draft
+**Status:** Em progresso (Fase 1 completa)
 **Total:** 13
 **Estimado:** 2 fases
 
@@ -23,7 +23,7 @@ desenvolvidas em paralelo pois são independentes entre si.
 
 ---
 
-### T1: Migrar criacao de campanha de drawer para main shell
+### ✅ [DONE] T1: Migrar criacao de campanha de drawer para main shell
 
 **Files:**
 - Modify: `src/components/dashboard/campaigns/campaigns-page.tsx`
@@ -52,7 +52,7 @@ Em `campaign-form-drawer.tsx`:
 
 ---
 
-### T2: Adicionar breakdown por status no endpoint /stats
+### ✅ [DONE] T2: Adicionar breakdown por status no endpoint /stats
 
 **Files:**
 - Modify: `src/app/api/v1/whatsapp/campaigns/[campaignId]/stats/route.ts`
@@ -105,7 +105,7 @@ return apiSuccess({
 
 ---
 
-### T3: Componente de funil de engajamento na pagina de detalhe
+### ✅ [DONE] T3: Componente de funil de engajamento na pagina de detalhe
 
 **Files:**
 - Create: `src/components/dashboard/campaigns/campaign-engagement-funnel.tsx`
@@ -141,7 +141,7 @@ Na `page.tsx`:
 
 ---
 
-### T4: Adicionar filtro e busca no endpoint /recipients
+### ✅ [DONE] T4: Adicionar filtro e busca no endpoint /recipients
 
 **Files:**
 - Modify: `src/app/api/v1/whatsapp/campaigns/[campaignId]/recipients/route.ts`
@@ -182,7 +182,7 @@ z.enum(['PENDING','SENT','DELIVERED','READ','RESPONDED','FAILED','EXCLUDED']).op
 
 ---
 
-### T5: Filtro e busca na UI da tabela de destinatarios
+### ✅ [DONE] T5: Filtro e busca na UI da tabela de destinatarios
 
 **Files:**
 - Modify: `src/app/(dashboard)/[organizationSlug]/[projectSlug]/campaigns/[campaignId]/page.tsx`
@@ -228,7 +228,7 @@ Usar `usehooks-ts` para `useDebounce` ou implementar manualmente com `useEffect 
 
 ---
 
-### T6: Preview de template no Campaign Builder
+### ✅ [DONE] T6: Preview de template no Campaign Builder
 
 **Files:**
 - Modify: `src/components/dashboard/campaigns/builder/campaign-builder.tsx`
@@ -263,7 +263,7 @@ No passo "Conteúdo" do `CampaignBuilder`:
 
 ---
 
-### T7: Endpoint de duplicar campanha
+### ✅ [DONE] T7: Endpoint de duplicar campanha
 
 **Files:**
 - Create: `src/app/api/v1/whatsapp/campaigns/[campaignId]/duplicate/route.ts`
@@ -316,7 +316,7 @@ logger.info({ originalId: campaignId, newId: newCampaign.id }, '[Campaign] Dupli
 
 ---
 
-### T8: Botao "Duplicar" na pagina de detalhe
+### ✅ [DONE] T8: Botao "Duplicar" na pagina de detalhe
 
 **Files:**
 - Modify: `src/app/(dashboard)/[organizationSlug]/[projectSlug]/campaigns/[campaignId]/page.tsx`

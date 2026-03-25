@@ -1,6 +1,6 @@
 # PRD-019: Campaign UX Improvements
 
-**Status:** Draft
+**Status:** Em progresso (Fase 1 completa)
 **Data:** 2026-03-25
 **Versao:** 1.0
 
@@ -44,12 +44,12 @@ PRD-019-campaign-ux-improvements/
 
 ### Status Atual
 
-- `CampaignBuilder` existe em `/campaigns/new` mas o botão "Nova campanha" ainda abre drawer.
-- `/stats` retorna apenas `total/success/failed/pending` — sem breakdown por status.
-- Tabela de destinatários tem paginação mas sem filtro ou busca.
-- Não existe preview de template no wizard.
-- Não existe ação de duplicar campanha.
-- Não existe modelo nem UI de opt-out/blocklist.
+- ✅ **Main Shell:** Implementado. A criação foi migrada para `/campaigns/new` e o Drawer removido.
+- ✅ **Métricas e Funil:** `/stats` retorna contadores detalhados e o `CampaignEngagementFunnel` exibe o funil na página.
+- ✅ **Recipients:** Tabela de destinatários agora possui filtro por status e barra de busca por número de telefone com paginação funcionando.
+- ✅ **Preview:** Adicionado preview do template Meta diretamente dentro do Campaign Builder.
+- ✅ **Ações:** Implementada duplicação de campanha com 1 clique (endpoint e botão na interface).
+- ⬜ **Blocklist / Opt-out:** Ainda não implementado. Não existe modelo nem UI de opt-out/blocklist.
 
 ### Escopo
 
@@ -110,5 +110,4 @@ Nenhuma dependência externa de outros PRDs em andamento.
 
 ## Proximo Passo
 
-Iniciar pela Task 1 (drawer → main shell) pois é o desbloqueio para todas as outras melhorias de UX
-que dependem do Campaign Builder em tela cheia.
+Iniciar a **Fase 2 (Blocklist / Opt-out)** abordando a criação do schema `WhatsAppOptOut` e seus relacionamentos no Prisma (Task 9).
