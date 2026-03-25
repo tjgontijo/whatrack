@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { useState, useDeferredValue, useMemo } from 'react'
-import { Search, Filter, Ban, Info } from 'lucide-react'
+import { Search, Filter, Ban, Info, MessageSquare } from 'lucide-react'
 
 import { useCrudInfiniteQuery } from '@/hooks/ui/use-crud-infinite-query'
 import { CrudListView } from '@/components/dashboard/crud/crud-list-view'
@@ -24,6 +24,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { type ColumnDef } from '@/components/dashboard/crud/types'
 import { formatWhatsAppWithFlag } from '@/lib/mask/phone-mask'
 
@@ -41,6 +47,7 @@ type CampaignRecipient = {
   metaWamid: string | null
   leadId: string | null
   dispatchGroupTemplateName: string | null
+  lastResponse?: string | null
 }
 
 const STATUS_MAP: Record<string, { label: string; color: string }> = {
@@ -138,10 +145,22 @@ export function CampaignRecipientsTable({ campaignId }: { campaignId: string }) 
       render: (r) => (
         <div className="flex flex-col items-start gap-1">
            {r.respondedAt ? (
-             <>
-               <span className="text-emerald-600 font-bold text-xs">Respondeu</span>
-               <span className="text-[10px] text-muted-foreground">{new Date(r.respondedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
-             </>
+             <TooltipProvider>
+               <Tooltip>
+                 <TooltipTrigger asChild>
+                   <div className="flex flex-col cursor-help">
+                     <span className="text-emerald-600 font-bold text-xs flex items-center gap-1">
+                       Respondeu <MessageSquare className="h-3 w-3" />
+                     </span>
+                     <span className="text-[10px] text-muted-foreground">{new Date(r.respondedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+                   </div>
+                 </TooltipTrigger>
+                 <TooltipContent className="max-w-[300px] p-3 text-sm">
+                   <p className="font-semibold mb-1 text-[10px] uppercase text-muted-foreground tracking-wider">Última Mensagem:</p>
+                   <p className="italic">"{r.lastResponse || 'Sem conteúdo disponível'}"</p>
+                 </TooltipContent>
+               </Tooltip>
+             </TooltipProvider>
            ) : (
              <span className="text-muted-foreground/30">—</span>
            )}

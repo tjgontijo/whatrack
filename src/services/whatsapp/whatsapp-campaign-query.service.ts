@@ -65,6 +65,7 @@ export interface RecipientListItem {
   leadId: string | null;
   dispatchGroupTemplateName: string | null;
   dispatchGroupStatus: string | null;
+  lastResponse?: string | null;
 }
 
 export interface CampaignCounters {
@@ -308,6 +309,12 @@ export async function listRecipients(
       where,
       include: {
         dispatchGroup: { select: { templateName: true, status: true } },
+        messages: {
+          where: { direction: 'inbound' },
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+          select: { body: true },
+        },
       },
       orderBy: { createdAt: 'asc' },
       skip: (page - 1) * pageSize,
@@ -316,7 +323,7 @@ export async function listRecipients(
     prisma.whatsAppCampaignRecipient.count({ where }),
   ]);
 
-  const items: RecipientListItem[] = recipients.map((r) => ({
+  const items: RecipientListItem[] = recipients.map((r: any) => ({
     id: r.id,
     phone: r.phone,
     status: r.status,
@@ -331,6 +338,7 @@ export async function listRecipients(
     leadId: r.leadId,
     dispatchGroupTemplateName: r.dispatchGroup?.templateName || null,
     dispatchGroupStatus: r.dispatchGroup?.status || null,
+    lastResponse: r.messages?.[0]?.body || null,
   }));
 
   return {
