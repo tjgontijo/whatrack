@@ -9,6 +9,10 @@ datasource db {
   extensions = [pgcrypto]
 }
 
+// ============================================
+// Lookup / Enum Tables
+// ============================================
+
 model UserRole {
   id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name        String   @unique
@@ -171,6 +175,10 @@ model Verification {
   @@map("auth_verification")
 }
 
+// ============================================
+// Auth Domain
+// ============================================
+
 model TicketTracking {
   id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   ticketId    String  @unique @db.Uuid
@@ -215,6 +223,10 @@ model TicketTracking {
   @@index([metaAdId])
   @@map("crm_ticket_tracking")
 }
+
+// ============================================
+// Organization Domain
+// ============================================
 
 model Organization {
   id                   String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -400,6 +412,10 @@ model Invitation {
 
   @@map("org_invitations")
 }
+
+// ============================================
+// CRM Domain
+// ============================================
 
 model Lead {
   id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -674,6 +690,10 @@ model OrganizationCompany {
   @@index([situacao])
   @@map("org_companies")
 }
+
+// ============================================
+// WhatsApp Domain
+// ============================================
 
 model WhatsAppConfig {
   id                             String                          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -1136,6 +1156,10 @@ model Message {
   @@map("whatsapp_messages")
 }
 
+// ============================================
+// Meta Ads Domain
+// ============================================
+
 model MetaConnection {
   id             String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   organizationId String @db.Uuid
@@ -1248,6 +1272,10 @@ model MetaAttributionHistory {
   @@index([ticketId])
   @@map("meta_attribution_history")
 }
+
+// ============================================
+// Audit Domain
+// ============================================
 
 model OrgAuditLog {
   id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -1438,6 +1466,10 @@ model BillingPlanHistory {
   @@index([planId, changedAt])
   @@map("billing_plan_history")
 }
+
+// ============================================
+// WhatsApp Template Analytics
+// ============================================
 
 model WhatsAppTemplateLog {
   id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
