@@ -209,9 +209,6 @@ export function AppSidebar({
         ...(isAdminUser
           ? [{ title: 'Planos e Cobrança', href: `${basePath}/settings/billing`, icon: 'CreditCard' } satisfies NavItem]
           : []),
-        ...(isOwnerUser
-          ? [{ title: 'Design System', href: `${basePath}/design-system`, icon: 'Paintbrush' } satisfies NavItem]
-          : []),
       ],
     },
   ]

@@ -36,14 +36,8 @@ const prismaMock = vi.hoisted(() => ({
   $transaction: vi.fn(),
 }))
 
-const ensureAiProjectDefaultsMock = vi.hoisted(() => vi.fn())
-
 vi.mock('@/lib/db/prisma', () => ({
   prisma: prismaMock,
-}))
-
-vi.mock('@/lib/ai/services/ai-project-defaults.service', () => ({
-  ensureAiProjectDefaults: ensureAiProjectDefaultsMock,
 }))
 
 import {
@@ -59,10 +53,6 @@ describe('project.service', () => {
     vi.clearAllMocks()
     prismaMock.$transaction.mockImplementation(async (operations: unknown[]) => operations)
     prismaMock.billingSubscription.findUnique.mockResolvedValue(null)
-    ensureAiProjectDefaultsMock.mockResolvedValue({
-      success: true,
-      data: { projectConfigId: 'cfg-1' },
-    })
   })
 
   it('lists projects with mapped counts and pagination', async () => {

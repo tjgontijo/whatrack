@@ -1,7 +1,6 @@
 import { Prisma } from '@generated/prisma/client'
 
 import { prisma } from '@/lib/db/prisma'
-import { ensureAiProjectDefaults } from '@/lib/ai/services/ai-project-defaults.service'
 import {
   assertProjectCreationAllowed,
   syncOrganizationSubscriptionItems,
@@ -195,11 +194,6 @@ export async function createProject(input: {
   })
 
   await syncOrganizationSubscriptionItems(input.organizationId)
-  const aiDefaults = await ensureAiProjectDefaults(created.id, input.organizationId)
-
-  if (!aiDefaults.success) {
-    throw new Error(aiDefaults.error)
-  }
 
   return mapProject(created)
 }

@@ -4,8 +4,6 @@ import { publishToCentrifugo } from '@/lib/centrifugo/server'
 import { metaAdEnrichmentService } from '@/services/meta-ads/ad-enrichment.service'
 import { logger } from '@/lib/utils/logger'
 import { attributeInboundMessageToCampaign } from '@/services/whatsapp/whatsapp-campaign-attribution.service'
-import { aiConversationStateService } from '@/lib/ai/services/ai-conversation-state.service'
-import { sendInngestEvent } from '@/server/inngest/client'
 import { WhatsAppTemplateAnalyticsService } from '@/services/whatsapp/whatsapp-template-analytics.service'
 
 const WINDOW_MS = 24 * 60 * 60 * 1000
@@ -134,13 +132,6 @@ export async function messageHandler(
 
   // Collect events
   const eventsToPublish: any[] = []
-  const eventsToDispatch: Array<{
-    conversationId: string
-    organizationId: string
-    projectId: string
-    messageId: string
-    debounceMs: number
-  }> = []
   let successCount = 0
 
   for (const message of messagesArray) {
@@ -344,38 +335,6 @@ export async function messageHandler(
             rawMeta: message,
           },
         })
-
-        if (!isEcho && config.projectId) {
-          const projectConfig = await tx.aiProjectConfig.findUnique({
-            where: { projectId: config.projectId },
-            select: { debounceMs: true },
-          })
-
-          await aiConversationStateService.appendInboundMessage(
-            {
-              organizationId: config.organizationId,
-              projectId: config.projectId,
-              conversationId: conversation.id,
-              message: {
-                messageId: createdMessage.id,
-                wamid: createdMessage.wamid,
-                body: createdMessage.body,
-                type: createdMessage.type,
-                direction: 'INBOUND',
-                timestamp: createdMessage.timestamp.toISOString(),
-              },
-            },
-            tx
-          )
-
-          eventsToDispatch.push({
-            conversationId: conversation.id,
-            organizationId: config.organizationId,
-            projectId: config.projectId,
-            messageId: createdMessage.id,
-            debounceMs: projectConfig?.debounceMs ?? 8000,
-          })
-        }
 
         // 5. Update counts and KPIs
         if (!isEcho) {
@@ -581,15 +540,6 @@ export async function messageHandler(
   for (const event of eventsToPublish) {
     publishToCentrifugo(event.channel, event.data).catch((err) =>
       logger.error({ err: err }, '[MessageHandler] Centrifugo publish failed')
-    )
-  }
-
-  for (const event of eventsToDispatch) {
-    sendInngestEvent({
-      name: 'whatsapp/message.received',
-      data: event,
-    }).catch((err) =>
-      logger.error({ err }, '[MessageHandler] Failed to dispatch inbound AI event')
     )
   }
 }

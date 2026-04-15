@@ -3,7 +3,7 @@ import 'server-only'
 import { Inngest } from 'inngest'
 import { env } from '@/lib/env/env'
 import { logger } from '@/lib/utils/logger'
-import type { AiInngestEventPayload } from '@/server/inngest/events'
+import type { InngestEventPayload } from '@/server/inngest/events'
 
 export const inngest = new Inngest({
   id: env.INNGEST_APP_ID,
@@ -12,6 +12,6 @@ export const inngest = new Inngest({
   logger,
 })
 
-export async function sendInngestEvent(event: AiInngestEventPayload) {
+export async function sendInngestEvent(event: InngestEventPayload) {
   return inngest.send(event as any)
 }

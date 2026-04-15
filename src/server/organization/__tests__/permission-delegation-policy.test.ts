@@ -13,8 +13,8 @@ describe('permission delegation policy', () => {
 
     expect(ownerCatalog).toContain('manage:organization')
     expect(adminCatalog).toContain('manage:organization')
-    expect(ownerCatalog).toContain('manage:ai')
-    expect(adminCatalog).toContain('manage:ai')
+    expect(ownerCatalog).toContain('manage:meta')
+    expect(adminCatalog).toContain('manage:meta')
   })
 
   it('restringe permissoes sensiveis para usuario sem papel global privilegiado', () => {
@@ -22,7 +22,7 @@ describe('permission delegation policy', () => {
 
     expect(userCatalog).not.toContain('manage:organization')
     expect(userCatalog).not.toContain('manage:integrations')
-    expect(userCatalog).not.toContain('manage:ai')
+    expect(userCatalog).not.toContain('manage:meta')
     expect(userCatalog).toContain('view:dashboard')
   })
 
@@ -34,11 +34,7 @@ describe('permission delegation policy', () => {
 
   it('permite delegacao quando papel global eh owner/admin', () => {
     expect(() =>
-      assertCanDelegatePermissions('owner', [
-        'manage:organization',
-        'manage:integrations',
-        'manage:ai',
-      ])
+      assertCanDelegatePermissions('owner', ['manage:organization', 'manage:integrations', 'manage:meta'])
     ).not.toThrow()
   })
 })
