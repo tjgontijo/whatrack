@@ -143,14 +143,12 @@ export class MetaCampaignsService {
             })
           }
         } catch (error: unknown) {
-          logger.error(
-            `[Campaigns Service] Error fetching for account ${acc.adAccountId}:`,
-            error instanceof MetaApiError
-              ? error.data
-              : error instanceof Error
-                ? error.message
-                : error
-          )
+          const errorMessage = error instanceof MetaApiError
+            ? JSON.stringify(error.data)
+            : error instanceof Error
+              ? error.message
+              : String(error)
+          logger.error(`[Campaigns Service] Error fetching for account ${acc.adAccountId}: ${errorMessage}`)
         }
       }
     }

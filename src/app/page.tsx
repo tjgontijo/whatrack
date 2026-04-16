@@ -3,6 +3,7 @@ import {
   LandingHero,
   LandingProblem,
   LandingSolution,
+  LandingComparison,
   LandingHowItWorks,
   LandingPricing,
   LandingCTA,
@@ -12,17 +13,18 @@ import {
 import { listPublicBillingPlans } from '@/services/billing/billing-plan-catalog.service'
 
 export default async function HomePage() {
-  const content = LANDING_CONTENT.agencias
+  const content = LANDING_CONTENT.generic
   const plans = await listPublicBillingPlans()
 
   return (
     <div className="bg-background text-foreground flex min-h-screen flex-col">
-      <LandingHeader variant="agencias" />
+      <LandingHeader variant="generic" />
       <LandingHero content={content.hero} />
       <LandingProblem content={content.problem} />
       <LandingSolution content={content.solution} />
+      <LandingComparison />
       <LandingHowItWorks content={content.howItWorks} />
-      <LandingPricing variant="agencias" plans={plans} />
+      <LandingPricing variant="generic" plans={plans} />
       <LandingCTA content={content.cta} />
       <LandingFooter />
     </div>

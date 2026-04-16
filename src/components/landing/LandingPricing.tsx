@@ -57,7 +57,9 @@ function CheckoutButton({ plan, variant }: CheckoutButtonProps) {
 }
 
 export function LandingPricing({ variant = 'generic', plans }: LandingPricingProps) {
-  const displayPlans = plans.filter((plan) => plan.kind === 'base')
+  const basePlans = plans.filter((plan) => plan.kind === 'base')
+  const selfServicePlans = basePlans.filter((plan) => !plan.contactSalesOnly)
+  const enterprisePlan = basePlans.find((plan) => plan.contactSalesOnly)
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-100px' })
 
@@ -141,9 +143,17 @@ export function LandingPricing({ variant = 'generic', plans }: LandingPricingPro
           </p>
         </motion.div>
 
-        {/* Pricing cards */}
-        <div className="grid gap-8 lg:grid-cols-1">
-          {displayPlans.map((plan, i) => (
+        {/* Pricing cards — self-service plans in a row */}
+        <div
+          className={`grid gap-6 ${
+            selfServicePlans.length === 1
+              ? 'max-w-md mx-auto'
+              : selfServicePlans.length === 2
+                ? 'lg:grid-cols-2'
+                : 'lg:grid-cols-3'
+          }`}
+        >
+          {selfServicePlans.map((plan, i) => (
             <motion.div
               key={plan.name}
               initial={{ opacity: 0, y: 40 }}
@@ -155,8 +165,8 @@ export function LandingPricing({ variant = 'generic', plans }: LandingPricingPro
               }}
               className={`group relative overflow-hidden rounded-3xl transition-all ${
                 plan.isHighlighted
-                ? 'bg-gradient-to-b from-emerald-950/50 to-zinc-900 ring-2 ring-emerald-500/50'
-                : 'bg-zinc-900/50 ring-1 ring-zinc-800 hover:ring-zinc-700'
+                  ? 'bg-gradient-to-b from-emerald-950/50 to-zinc-900 ring-2 ring-emerald-500/50'
+                  : 'bg-zinc-900/50 ring-1 ring-zinc-800 hover:ring-zinc-700'
               }`}
             >
               {/* Glow effect for highlighted plan */}
@@ -176,50 +186,37 @@ export function LandingPricing({ variant = 'generic', plans }: LandingPricingPro
                 </div>
               )}
 
-              <div className="relative p-6 sm:p-8 lg:p-10">
+              <div className="relative p-6 sm:p-8">
                 {/* Plan header */}
-                <div className="mb-8">
-                  <h3 className="mb-2 font-geist text-2xl font-bold">{plan.name}</h3>
-                  <p className="mb-1 text-sm font-medium text-zinc-400">{plan.subtitle}</p>
-                  <p className="text-sm text-zinc-500">{plan.description}</p>
-                </div>
-
-                {/* Pricing */}
-                <div className="mb-8">
-                  {plan.contactSalesOnly ? (
-                    <div className="flex items-baseline gap-1">
-                      <span className="font-geist text-3xl font-bold tracking-tight text-emerald-400">
-                        Sob consulta
-                      </span>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-lg text-zinc-400">R$</span>
-                        <span className="font-geist text-5xl font-bold tracking-tight">
-                          {plan.monthlyPrice.toLocaleString('pt-BR', {
-                            minimumFractionDigits: 0,
-                            maximumFractionDigits: 0,
-                          })}
-                        </span>
-                        <span className="text-lg text-zinc-400">/mês</span>
-                      </div>
-
-                      <div className="mt-3 text-sm text-zinc-400">
-                        <span>{plan.includedProjects} clientes ativos incluídos</span>
-                      </div>
-                    </>
+                <div className="mb-6">
+                  <h3 className="mb-1 font-geist text-xl font-bold">{plan.name}</h3>
+                  {plan.subtitle && (
+                    <p className="text-sm font-medium text-zinc-400">{plan.subtitle}</p>
                   )}
                 </div>
 
+                {/* Pricing */}
+                <div className="mb-6">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-base text-zinc-400">R$</span>
+                    <span className="font-geist text-4xl font-bold tracking-tight">
+                      {plan.monthlyPrice.toLocaleString('pt-BR', {
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                      })}
+                    </span>
+                    <span className="text-base text-zinc-400">/mês</span>
+                  </div>
+                </div>
+
                 {/* CTA Button */}
-                <div className="mb-8">
+                <div className="mb-6">
                   <CheckoutButton plan={plan} variant={variant} />
                 </div>
 
                 {/* Features */}
-                <div className="space-y-4">
-                  <div className="mb-4 h-px bg-gradient-to-r from-transparent via-zinc-800 to-transparent" />
+                <div className="space-y-3">
+                  <div className="mb-3 h-px bg-gradient-to-r from-transparent via-zinc-800 to-transparent" />
 
                   {plan.features.map((feature, idx) => (
                     <motion.div
@@ -234,9 +231,7 @@ export function LandingPricing({ variant = 'generic', plans }: LandingPricingPro
                     >
                       <div
                         className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full ${
-                          plan.isHighlighted
-                          ? 'bg-emerald-500/20'
-                          : 'bg-zinc-800'
+                          plan.isHighlighted ? 'bg-emerald-500/20' : 'bg-zinc-800'
                         }`}
                       >
                         <Check
@@ -245,16 +240,14 @@ export function LandingPricing({ variant = 'generic', plans }: LandingPricingPro
                           }`}
                         />
                       </div>
-                      <span className="text-sm leading-relaxed text-zinc-300">
-                        {feature}
-                      </span>
+                      <span className="text-sm leading-relaxed text-zinc-300">{feature}</span>
                     </motion.div>
                   ))}
                 </div>
 
                 {/* Adicionais */}
                 {plan.additionals && plan.additionals.length > 0 && (
-                  <div className="mt-6 space-y-2 rounded-lg border border-zinc-800 bg-zinc-900/50 p-3">
+                  <div className="mt-4 space-y-2 rounded-lg border border-zinc-800 bg-zinc-900/50 p-3">
                     {plan.additionals.map((additional, idx) => (
                       <p key={idx} className="text-xs text-zinc-400">
                         <span className="font-medium text-zinc-300">•</span> {additional}
@@ -266,6 +259,28 @@ export function LandingPricing({ variant = 'generic', plans }: LandingPricingPro
             </motion.div>
           ))}
         </div>
+
+        {/* Enterprise / contactSalesOnly — text + button, not a card */}
+        {enterprisePlan && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ delay: 0.6, duration: 0.8 }}
+            className="mt-10 flex flex-col items-center gap-4 rounded-2xl border border-zinc-800/60 bg-zinc-900/30 px-8 py-8 text-center sm:flex-row sm:text-left"
+          >
+            <div className="flex-1">
+              <p className="font-geist text-lg font-semibold text-white">
+                {enterprisePlan.name}
+              </p>
+              <p className="mt-1 text-sm leading-relaxed text-zinc-400">
+                {enterprisePlan.description ?? 'Volume alto, múltiplas contas ou necessidades específicas? Fale com a gente e montamos uma proposta sob medida.'}
+              </p>
+            </div>
+            <div className="shrink-0">
+              <CheckoutButton plan={enterprisePlan} variant={variant} />
+            </div>
+          </motion.div>
+        )}
 
         {/* Trust badge */}
         <motion.div

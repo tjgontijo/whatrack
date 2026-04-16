@@ -1,6 +1,6 @@
 'use client'
 
-import { AlertCircle, TrendingDown, Users, MessageSquare } from 'lucide-react'
+import { AlertCircle, TrendingUp, Users, MessageSquare } from 'lucide-react'
 import { LandingContent } from './types'
 import { motion } from 'motion/react'
 import { useInView } from 'motion/react'
@@ -8,7 +8,7 @@ import { useRef } from 'react'
 
 const iconMap = {
   message: MessageSquare,
-  trending: TrendingDown,
+  trending: TrendingUp,
   users: Users,
   alert: AlertCircle,
 }

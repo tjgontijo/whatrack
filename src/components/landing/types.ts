@@ -61,90 +61,90 @@ export const LANDING_CONTENT: Record<LandingVariant, LandingContent> = {
   generic: {
     variant: 'generic',
     hero: {
-      badge: 'Rastreamento real de vendas no WhatsApp',
-      headline: 'O Meta não sabe quem comprou no WhatsApp.',
-      highlightedText: 'E sem esse dado, otimiza errado.',
+      badge: 'API Oficial do WhatsApp · Integração Meta Ads',
+      headline: 'Seu anúncio trouxe o cliente.',
+      highlightedText: 'Você só não sabe qual.',
       subheadline:
-        'Entre o clique no anúncio e a venda na conversa existe um buraco. O WhaTrack conecta cada conversa à campanha que gerou o clique e envia eventos reais de Lead e Purchase via API de Conversão. O algoritmo para de aprender com curioso e começa a aprender com comprador.',
+        'O WhaTrack conecta cada conversa do WhatsApp ao anúncio exato que a gerou. Veja CAC real, ROAS real e quais campanhas estão vendendo de verdade.',
       ctaPrimary: 'Testar grátis por 14 dias',
       ctaSecondary: 'Ver como funciona',
       highlights: [
         'API Oficial do WhatsApp',
-        'API de Conversão',
-        'Relatório por campanha',
+        'Rastreamento por anúncio',
+        'Setup em 5 minutos',
       ],
     },
     problem: {
       badge: 'O PROBLEMA',
-      headline: 'A venda acontece no WhatsApp, mas o rastro',
-      highlightedText: 'se perde no momento do clique.',
+      headline: 'O Meta reporta 200 conversas iniciadas.',
+      highlightedText: 'Você abre o WhatsApp e conta 80. Qual é o número real?',
       subheadline:
-        'Sem o dado de conversão, a operação de tráfego pago fica cega. As campanhas são otimizadas para cliques, não para vendas, gerando um volume alto de curiosos e um ROI que ninguém consegue provar.',
+        'O Meta registra o clique no anúncio como conversão. Mas entre o clique e a venda existe um buraco — e ninguém está medindo o que acontece dentro dele.',
       problems: [
         {
           icon: 'message',
-          title: 'Conversão invisível',
+          title: 'A venda acontece no WhatsApp, não no Meta',
           description:
-            'O Meta Ads enxerga o clique, mas não o fechamento. Sem o evento de purchase, o algoritmo fica sem a peça principal do quebra-cabeça e nunca aprende o perfil de quem realmente compra.',
+            'O algoritmo vê o clique no anúncio, não o fechamento da venda. Sem o dado de compra, ele aprende a buscar quem clica — não quem compra.',
         },
         {
           icon: 'trending',
-          title: 'Algoritmo otimizando para curioso',
+          title: 'Custo por lead subindo sem explicação',
           description:
-            'Sem sinal de venda, o Meta otimiza para quem clica e manda a primeira mensagem. O resultado é uma enxurrada de leads desqualificados que custam caro e não geram receita real.',
-        },
-        {
-          icon: 'users',
-          title: 'Desperdício de energia comercial',
-          description:
-            'Leads sem critério de qualificação sobrecarregam o atendimento. O time comercial gasta 80% do tempo com quem nunca vai comprar, enquanto os compradores reais esfriam na fila de espera.',
+            'Quanto mais o algoritmo otimiza para cliques baratos, mais leads desqualificados chegam. Volume alto, conversão baixa, custo crescendo.',
         },
         {
           icon: 'alert',
-          title: 'Decisões no escuro',
+          title: 'CAC e ROAS são estimativas sem base',
           description:
-            'Qual criativo realmente trouxe faturamento? Qual campanha merece mais orçamento? Sem dados estruturados de venda, cada mudança no gerenciador de anúncios é um "chute" fundamentado.',
+            'Qual campanha merece mais budget? Qual criativo realmente converteu? Sem dados reais de venda vinculados ao anúncio, toda decisão é uma aposta.',
+        },
+        {
+          icon: 'users',
+          title: 'Atendimento sem prioridade',
+          description:
+            'Sem saber de onde veio cada lead, o time atende na ordem que chega. Quem estava pronto para comprar esfria na fila enquanto curiosos consomem o tempo.',
         },
       ],
       closingText:
-        'A performance parou de ser uma promessa de "volume de leads" e passou a ser uma entrega real de faturamento rastreado.',
+        'Enquanto isso, seu CAC real é um mistério e seu ROAS verdadeiro, uma incógnita.',
     },
     solution: {
       badge: 'A SOLUÇÃO',
-      headline: 'A ponte definitiva entre o clique',
-      highlightedText: 'e o rastro da venda.',
+      headline: 'Do clique no anúncio',
+      highlightedText: 'até a venda no WhatsApp.',
       subheadline:
-        'O que acontece dentro do WhatsApp agora vira dado estruturado de performance e volta para o Meta como evento real de conversão.',
+        'O WhaTrack fecha o ciclo. Cada conversa é vinculada à campanha de origem e cada venda volta como dado real para o Meta.',
       cards: [
         {
           icon: 'check',
-          title: 'Vendas conectadas à campanha',
+          title: 'Cada venda rastreada',
           description:
-            'O WhaTrack captura o identificador oficial do Meta e conecta cada conversa de WhatsApp à campanha, conjunto e criativo de origem. Visualize exatamente qual anúncio gerou cada resultado.',
+            'Veja qual campanha, conjunto e criativo gerou cada lead que virou venda. Anúncio X trouxe lead Y que virou R$ Z. Fim das suposições.',
           size: 'large',
           color: 'primary',
         },
         {
           icon: 'zap',
-          title: 'Algoritmo otimizado por conversão',
+          title: 'Meta aprendendo com vendas reais',
           description:
-            'Eventos de Lead qualificado e Purchase são enviados via API de Conversão. O algoritmo para de buscar cliques baratos e foca em perfis com real intenção de compra.',
+            'Os dados de conversão voltam para o algoritmo automaticamente. Suas campanhas aprendem quem compra de verdade e encontram mais compradores.',
           size: 'medium',
           color: 'purple',
         },
         {
           icon: 'chart',
-          title: 'Dados reais, sem planilhas manuais',
+          title: 'Dashboard com métricas reais',
           description:
-            'Um painel que consolida métricas de campanha, leads, vendas e tempo de resposta de forma automática. Tome decisões baseadas no que realmente traz faturamento.',
+            'CAC, ROAS e LTV calculados com base nas vendas do WhatsApp — não nos números inflados do Gerenciador de Anúncios.',
           size: 'medium',
           color: 'amber',
         },
         {
           icon: 'shield',
-          title: 'Qualificação com IA assistida',
+          title: 'API Oficial do WhatsApp',
           description:
-            'O Copilot analisa conversas e sugere a qualificação do lead para apoiar o time comercial. Com isso, o Meta recebe sinais mais limpos e próximos da venda real.',
+            'Conexão direta com a API Business oficial da Meta. Mais estável, mais confiável e sem risco de bloqueio de número. Disparos com templates aprovados incluídos.',
           size: 'large',
           color: 'emerald',
         },
@@ -152,37 +152,37 @@ export const LANDING_CONTENT: Record<LandingVariant, LandingContent> = {
     },
     howItWorks: {
       badge: 'COMO FUNCIONA',
-      headline: 'Rastreamento ativo em',
+      headline: 'Rastreando em',
       highlightedText: '5 minutos.',
       subheadline:
-        'Conecte as contas de anúncios e o WhatsApp Business. O WhaTrack assume o rastreamento técnico sem necessidade de desenvolvedor.',
+        'Conecte as contas e o WhaTrack assume. Sem código, sem configuração técnica.',
       steps: [
         {
           icon: 'plug',
-          title: 'Integração de Contas',
+          title: 'Conecte Meta e WhatsApp',
           description:
-            'Conexão direta com o Gerenciador de Anúncios e a API Oficial do WhatsApp. Processo simplificado, sem configurações de código ou scripts complexos.',
+            'Login com o Meta Business Manager e conexão com o WhatsApp via API Oficial. Leva menos de 5 minutos, sem precisar de desenvolvedor.',
         },
         {
           icon: 'database',
-          title: 'Rastreamento e Qualificação',
+          title: 'Rastreamento automático',
           description:
-            'Cada interação é vinculada à sua origem. O Copilot apoia a qualificação da intenção de venda e prepara sinais melhores para devolver às plataformas de anúncio.',
+            'Cada conversa que chega no WhatsApp é vinculada à campanha, conjunto e anúncio de origem. Em tempo real, sem esforço manual.',
         },
         {
           icon: 'trending',
-          title: 'Otimização de Performance',
+          title: 'Veja o que funciona',
           description:
-            'Os dados de conversão alimentam o algoritmo em tempo real. O resultado é um rastro de dados limpo que permite escalar campanhas com ROI comprovado.',
+            'Dashboard com métricas reais: CAC, ROAS, taxa de conversão. Saiba onde investir mais e o que pausar.',
         },
       ],
     },
     cta: {
-      headline: 'Pare de anunciar no escuro.',
+      headline: 'Cada dia sem rastreamento é dinheiro sem retorno.',
       subheadline:
-        'Recupere o rastro das suas vendas e transforme o WhatsApp no seu canal de maior performance com dados reais via API.',
+        'Conecte seus anúncios ao WhatsApp agora e descubra, de verdade, o que está gerando resultado.',
       ctaPrimary: 'Testar grátis por 14 dias',
-      ctaSecondary: 'Falar com o time',
+      ctaSecondary: 'Ver planos',
       microcopy: '14 dias grátis · Sem cartão · Setup em 5 minutos',
     },
   },
