@@ -18,13 +18,6 @@ const saleStatuses = [
   { name: 'cancelled', description: 'Venda cancelada.' },
 ]
 
-export const billingSubscriptionStatuses = [
-  { name: 'active', description: 'Assinatura ativa e com renovação habilitada.' },
-  { name: 'paused', description: 'Assinatura pausada aguardando regularização.' },
-  { name: 'canceled', description: 'Assinatura cancelada e sem novas renovações.' },
-  { name: 'past_due', description: 'Assinatura com pagamento pendente ou em atraso.' },
-]
-
 const whatsappOnboardingStatuses = [
   { name: 'pending', description: 'Aguardando autorização do usuário.' },
   { name: 'authorized', description: 'Autorizado via OAuth.' },
@@ -86,7 +79,6 @@ export async function seedLookupTables(prisma: PrismaClient) {
   await upsertByName(prisma.userRole, userRoles)
   await upsertByName(prisma.onboardingStatus, onboardingStatuses)
   await upsertByName(prisma.saleStatus, saleStatuses)
-  await upsertByName(prisma.billingSubscriptionStatus, billingSubscriptionStatuses)
   await upsertByName(prisma.whatsAppOnboardingStatus, whatsappOnboardingStatuses)
   await upsertByName(prisma.whatsAppConnectionStatus, whatsappConnectionStatuses)
   await upsertByName(prisma.whatsAppHealthStatus, whatsappHealthStatuses)
