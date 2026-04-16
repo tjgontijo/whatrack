@@ -1,24 +1,6 @@
 -- CreateExtension
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
--- CreateEnum
-CREATE TYPE "BillingSubscriptionStatus" AS ENUM ('INACTIVE', 'PENDING', 'ACTIVE', 'OVERDUE', 'CANCELED', 'EXPIRED', 'FAILED');
-
--- CreateEnum
-CREATE TYPE "BillingFailureReason" AS ENUM ('EXPIRED', 'DENIED', 'CANCELED_BY_USER', 'FAILED_DEBIT', 'OTHER');
-
--- CreateEnum
-CREATE TYPE "BillingInvoiceStatus" AS ENUM ('PENDING', 'CONFIRMED', 'RECEIVED', 'OVERDUE', 'REFUNDED', 'REFUND_REQUESTED', 'CHARGEBACK_REQUESTED', 'CHARGEBACK_DISPUTE', 'AWAITING_CHARGEBACK_REVERSAL', 'DUNNING_REQUESTED', 'DUNNING_RECEIVED', 'CANCELLED');
-
--- CreateEnum
-CREATE TYPE "BillingPaymentMethod" AS ENUM ('CREDIT_CARD', 'PIX', 'PIX_AUTOMATIC', 'BOLETO');
-
--- CreateEnum
-CREATE TYPE "BillingCycle" AS ENUM ('MONTHLY', 'YEARLY');
-
--- CreateEnum
-CREATE TYPE "AuditActor" AS ENUM ('USER', 'ADMIN', 'SYSTEM');
-
 -- CreateTable
 CREATE TABLE "auth_user_roles" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
@@ -949,6 +931,78 @@ CREATE TABLE "org_audit_logs" (
 );
 
 -- CreateTable
+CREATE TABLE "billing_subscription_statuses" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "name" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "billing_subscription_statuses_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "billing_failure_reasons" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "name" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "billing_failure_reasons_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "billing_invoice_statuses" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "name" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "billing_invoice_statuses_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "billing_payment_methods" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "name" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "billing_payment_methods_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "billing_cycles" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "name" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "billing_cycles_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "billing_audit_actors" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "name" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "billing_audit_actors_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "billing_subscriptions" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "organizationId" UUID NOT NULL,
@@ -956,14 +1010,14 @@ CREATE TABLE "billing_subscriptions" (
     "asaasId" TEXT,
     "asaasCustomerId" TEXT,
     "pixAutomaticAuthId" TEXT,
-    "status" "BillingSubscriptionStatus" NOT NULL DEFAULT 'INACTIVE',
-    "paymentMethod" "BillingPaymentMethod",
+    "status" TEXT NOT NULL DEFAULT 'INACTIVE',
+    "paymentMethod" TEXT,
     "isActive" BOOLEAN NOT NULL DEFAULT false,
     "purchaseDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "expiresAt" TIMESTAMP(3),
     "canceledAt" TIMESTAMP(3),
     "trialEndsAt" TIMESTAMP(3),
-    "failureReason" "BillingFailureReason",
+    "failureReason" TEXT,
     "failureCount" INTEGER NOT NULL DEFAULT 0,
     "lastFailureAt" TIMESTAMP(3),
     "lastFailureMessage" TEXT,
@@ -981,7 +1035,7 @@ CREATE TABLE "billing_plans" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "code" TEXT NOT NULL,
     "name" TEXT NOT NULL,
-    "cycle" "BillingCycle" NOT NULL,
+    "cycle" TEXT NOT NULL,
     "accessDays" INTEGER NOT NULL,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "sortOrder" INTEGER NOT NULL DEFAULT 0,
@@ -1005,7 +1059,7 @@ CREATE TABLE "billing_offers" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "code" TEXT NOT NULL,
     "planId" UUID NOT NULL,
-    "paymentMethod" "BillingPaymentMethod" NOT NULL,
+    "paymentMethod" TEXT NOT NULL,
     "amount" DECIMAL(10,2) NOT NULL,
     "currency" TEXT NOT NULL DEFAULT 'BRL',
     "maxInstallments" INTEGER NOT NULL DEFAULT 1,
@@ -1026,8 +1080,8 @@ CREATE TABLE "billing_invoices" (
     "subscriptionId" UUID,
     "offerId" UUID,
     "asaasId" TEXT NOT NULL,
-    "status" "BillingInvoiceStatus" NOT NULL DEFAULT 'PENDING',
-    "paymentMethod" "BillingPaymentMethod" NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'PENDING',
+    "paymentMethod" TEXT NOT NULL,
     "value" DOUBLE PRECISION NOT NULL,
     "netValue" DOUBLE PRECISION,
     "description" TEXT,
@@ -1056,7 +1110,7 @@ CREATE TABLE "billing_audit_logs" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "organizationId" UUID,
     "userId" UUID,
-    "actor" "AuditActor" NOT NULL DEFAULT 'SYSTEM',
+    "actor" TEXT NOT NULL DEFAULT 'SYSTEM',
     "action" TEXT NOT NULL,
     "entity" TEXT NOT NULL,
     "entityId" TEXT NOT NULL,
@@ -1608,6 +1662,24 @@ CREATE INDEX "org_audit_logs_createdAt_idx" ON "org_audit_logs"("createdAt");
 CREATE INDEX "org_audit_logs_requestId_idx" ON "org_audit_logs"("requestId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "billing_subscription_statuses_name_key" ON "billing_subscription_statuses"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "billing_failure_reasons_name_key" ON "billing_failure_reasons"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "billing_invoice_statuses_name_key" ON "billing_invoice_statuses"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "billing_payment_methods_name_key" ON "billing_payment_methods"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "billing_cycles_name_key" ON "billing_cycles"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "billing_audit_actors_name_key" ON "billing_audit_actors"("name");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "billing_subscriptions_organizationId_key" ON "billing_subscriptions"("organizationId");
 
 -- CreateIndex
@@ -1983,7 +2055,22 @@ ALTER TABLE "billing_subscriptions" ADD CONSTRAINT "billing_subscriptions_organi
 ALTER TABLE "billing_subscriptions" ADD CONSTRAINT "billing_subscriptions_offerId_fkey" FOREIGN KEY ("offerId") REFERENCES "billing_offers"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "billing_subscriptions" ADD CONSTRAINT "billing_subscriptions_status_fkey" FOREIGN KEY ("status") REFERENCES "billing_subscription_statuses"("name") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "billing_subscriptions" ADD CONSTRAINT "billing_subscriptions_paymentMethod_fkey" FOREIGN KEY ("paymentMethod") REFERENCES "billing_payment_methods"("name") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "billing_subscriptions" ADD CONSTRAINT "billing_subscriptions_failureReason_fkey" FOREIGN KEY ("failureReason") REFERENCES "billing_failure_reasons"("name") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "billing_plans" ADD CONSTRAINT "billing_plans_cycle_fkey" FOREIGN KEY ("cycle") REFERENCES "billing_cycles"("name") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "billing_offers" ADD CONSTRAINT "billing_offers_planId_fkey" FOREIGN KEY ("planId") REFERENCES "billing_plans"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "billing_offers" ADD CONSTRAINT "billing_offers_paymentMethod_fkey" FOREIGN KEY ("paymentMethod") REFERENCES "billing_payment_methods"("name") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "billing_invoices" ADD CONSTRAINT "billing_invoices_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1995,7 +2082,16 @@ ALTER TABLE "billing_invoices" ADD CONSTRAINT "billing_invoices_subscriptionId_f
 ALTER TABLE "billing_invoices" ADD CONSTRAINT "billing_invoices_offerId_fkey" FOREIGN KEY ("offerId") REFERENCES "billing_offers"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "billing_invoices" ADD CONSTRAINT "billing_invoices_status_fkey" FOREIGN KEY ("status") REFERENCES "billing_invoice_statuses"("name") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "billing_invoices" ADD CONSTRAINT "billing_invoices_paymentMethod_fkey" FOREIGN KEY ("paymentMethod") REFERENCES "billing_payment_methods"("name") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "billing_audit_logs" ADD CONSTRAINT "billing_audit_logs_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "billing_audit_logs" ADD CONSTRAINT "billing_audit_logs_userId_fkey" FOREIGN KEY ("userId") REFERENCES "auth_user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "billing_audit_logs" ADD CONSTRAINT "billing_audit_logs_actor_fkey" FOREIGN KEY ("actor") REFERENCES "billing_audit_actors"("name") ON DELETE RESTRICT ON UPDATE CASCADE;

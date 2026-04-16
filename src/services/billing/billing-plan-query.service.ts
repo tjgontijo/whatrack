@@ -27,17 +27,16 @@ function buildBillingPlanWhere(query: BillingPlanListQuery): Prisma.BillingPlanW
 function mapBillingPlan(plan: any): BillingPlanListItem {
   const metadata = parseBillingPlanMetadata(plan.metadata)
   const presentation = {
-    subtitle: metadata.subtitle ?? `Até ${plan.includedProjects.toLocaleString('pt-BR')} clientes ativos incluídos`,
+    subtitle: metadata.subtitle ?? `Até ${plan.includedProjects.toLocaleString('pt-BR')} projetos incluídos`,
     cta: metadata.cta ?? 'Teste grátis por 14 dias',
     trialDays: typeof metadata.trialDays === 'number' ? metadata.trialDays : 14,
     features:
       metadata.features && metadata.features.length > 0
         ? metadata.features
         : [
-            `${plan.includedProjects} clientes ativos incluídos`,
-            `${plan.includedWhatsAppPerProject} WhatsApp por cliente`,
-            `${plan.includedMetaAdAccountsPerProject} conta Meta Ads por cliente`,
-            `${plan.includedConversionsPerProject} conversões por cliente / mês`,
+            `${plan.includedProjects} projetos incluídos`,
+            `${plan.includedWhatsAppPerProject} instância WhatsApp por projeto`,
+            `${plan.includedMetaAdAccountsPerProject} conta Meta Ads por projeto`,
           ],
     additionals: metadata.additionals ?? [],
   }

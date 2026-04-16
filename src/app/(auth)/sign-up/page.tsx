@@ -45,6 +45,7 @@ export default function SignUpPage() {
   const funnelIntent = readFunnelIntent(searchParams)
   const invitationQuery = useMemo(() => buildInvitationQuery(invitationId, nextParam), [invitationId, nextParam])
   const funnelQuery = useMemo(() => buildFunnelQueryString(funnelIntent), [funnelIntent])
+  const isTrialIntent = funnelIntent.intent === 'start-trial'
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
@@ -106,6 +107,7 @@ export default function SignUpPage() {
         body: JSON.stringify({
           documentType: values.documentType,
           documentNumber: stripCpfCnpj(values.documentNumber),
+          intent: funnelIntent.intent,
         }),
       })
 
@@ -115,9 +117,8 @@ export default function SignUpPage() {
         return
       }
 
-      // 4. Redirecionar para checkout mantendo funnel intent
-      const checkoutPath = `/checkout${funnelQuery}`
-      router.push(checkoutPath)
+      const nextPath = isTrialIntent ? `/welcome${funnelQuery}` : `/checkout${funnelQuery}`
+      router.push(nextPath)
     } catch (error) {
       console.error('[sign-up] erro ao criar conta', error)
       toast.error('Falha na comunicação com o servidor. Tente novamente.')
@@ -132,7 +133,9 @@ export default function SignUpPage() {
       data-testid="sign-up-page"
     >
       <div className="text-left">
-        <h1 className="text-foreground text-3xl font-bold tracking-tight">Comece seu teste grátis</h1>
+        <h1 className="text-foreground text-3xl font-bold tracking-tight">
+          {isTrialIntent ? 'Comece seu teste grátis' : 'Crie sua conta para continuar'}
+        </h1>
       </div>
 
       <Form {...form}>
@@ -314,7 +317,11 @@ export default function SignUpPage() {
             className="shadow-primary/20 mt-6 h-12 w-full text-sm font-semibold shadow-md transition-all hover:-translate-y-0.5 lg:mt-8"
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'Criando conta...' : 'Começar teste grátis'}
+            {isSubmitting
+              ? 'Criando conta...'
+              : isTrialIntent
+                ? 'Começar teste grátis'
+                : 'Continuar para pagamento'}
           </Button>
         </form>
       </Form>

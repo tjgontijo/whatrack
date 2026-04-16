@@ -29,7 +29,7 @@ function serializeSubscription(
     isActive: subscription.isActive,
     purchaseDate: subscription.purchaseDate?.toISOString() ?? null,
     expiresAt: subscription.expiresAt?.toISOString() ?? null,
-    failureReason: subscription.failureReason ?? null,
+    failureReason: subscription.failureReason as SubscriptionResponse['failureReason'] ?? null,
     failureCount: subscription.failureCount,
     lastFailureAt: subscription.lastFailureAt?.toISOString() ?? null,
     lastFailureMessage: subscription.lastFailureMessage ?? null,

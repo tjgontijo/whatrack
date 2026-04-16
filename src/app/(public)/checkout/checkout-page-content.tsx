@@ -14,6 +14,7 @@ import type { PublicBillingPlan } from '@/schemas/billing/billing-plan-schemas'
 interface CheckoutPageContentProps {
   plans: PublicBillingPlan[]
   campaignSlug?: string
+  isTrialCheckout: boolean
   cpfCnpj: string
   organizationId: string
   orgSlug: string
@@ -33,6 +34,7 @@ function formatExpiry(value: string) {
 export function CheckoutPageContent({
   plans,
   campaignSlug,
+  isTrialCheckout,
   cpfCnpj,
   organizationId,
   orgSlug,
@@ -141,7 +143,7 @@ export function CheckoutPageContent({
           </Link>
           <div className="flex items-center gap-2 text-sm text-zinc-400">
             <div className="h-2 w-2 rounded-full bg-emerald-500" />
-            14 dias grátis · Cancele quando quiser
+            {isTrialCheckout ? '14 dias grátis · Cancele quando quiser' : 'Checkout seguro com Asaas'}
           </div>
         </div>
       </header>
@@ -151,7 +153,9 @@ export function CheckoutPageContent({
         <div className="mb-10 text-center">
           <h1 className="text-3xl font-bold tracking-tight">Ative seu plano</h1>
           <p className="mt-2 text-zinc-400">
-            Seus primeiros 14 dias são grátis. Cobramos somente ao término do período.
+            {isTrialCheckout
+              ? 'Seus primeiros 14 dias são grátis. Cobramos somente ao término do período.'
+              : 'Selecione o plano e conclua a assinatura com cartão de crédito.'}
           </p>
         </div>
 
@@ -289,11 +293,15 @@ export function CheckoutPageContent({
               >
                 {isSubmitting
                   ? 'Processando...'
-                  : `Ativar plano ${selectedPlan?.name ?? ''} · 14 dias grátis`}
+                  : isTrialCheckout
+                    ? `Ativar plano ${selectedPlan?.name ?? ''} · 14 dias grátis`
+                    : `Assinar plano ${selectedPlan?.name ?? ''}`}
               </Button>
 
               <p className="text-center text-xs text-zinc-500">
-                Cobrança somente após os 14 dias de teste grátis · Cancele antes sem custo
+                {isTrialCheckout
+                  ? 'Cobrança somente após os 14 dias de teste grátis · Cancele antes sem custo'
+                  : 'Pagamento processado com checkout transparente via Asaas'}
               </p>
             </form>
           </div>

@@ -177,7 +177,7 @@ export async function assertProjectCreationAllowed(organizationId: string) {
   })
 
   if (currentProjects >= DEFAULT_TRIAL_PROJECT_LIMIT) {
-    throw new Error('O trial libera apenas 1 cliente ativo. Contrate um plano para criar outro projeto.')
+    throw new Error('O trial libera apenas 1 projeto ativo. Contrate um plano para criar outro projeto.')
   }
 }
 
@@ -201,7 +201,7 @@ export async function assertWhatsAppAllowedForProject(input: {
   })
 
   if (count >= DEFAULT_TRIAL_RESOURCE_LIMIT) {
-    throw new Error('O trial libera apenas 1 número de WhatsApp por cliente.')
+    throw new Error('O trial libera apenas 1 número de WhatsApp por projeto.')
   }
 }
 
@@ -225,7 +225,7 @@ export async function assertMetaAdAccountAllowedForProject(input: {
   })
 
   if (count >= DEFAULT_TRIAL_RESOURCE_LIMIT) {
-    throw new Error('O trial libera apenas 1 conta Meta Ads por cliente.')
+    throw new Error('O trial libera apenas 1 conta Meta Ads por projeto.')
   }
 }
 
@@ -454,7 +454,7 @@ export async function getActiveSubscription(organizationId: string) {
 
   return {
     ...subscription,
-    planType: subscription.offer?.plan?.code ?? 'monthly',
+    planType: subscription.offer?.plan?.code ?? 'starter_monthly',
     planName: subscription.offer?.plan?.name ?? null,
     offerCode: subscription.offer?.code ?? null,
     entitlements,

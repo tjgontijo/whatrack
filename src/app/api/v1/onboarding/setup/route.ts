@@ -16,6 +16,7 @@ import { Prisma } from '@generated/prisma/client'
 const setupSchema = z.object({
   documentType: z.enum(['CPF', 'CNPJ']),
   documentNumber: z.string().min(1),
+  intent: z.string().trim().optional(),
 })
 
 function deriveFirstLastName(fullName: string): string {
@@ -56,7 +57,7 @@ export async function POST(request: Request) {
       return apiError('Dados inválidos', 400, undefined, { details: parsed.error.flatten() })
     }
 
-    const { documentType, documentNumber } = parsed.data
+    const { documentType, documentNumber, intent } = parsed.data
 
     // Derive org name from document
     let orgName: string
@@ -187,13 +188,14 @@ export async function POST(request: Request) {
       return { organization: org, project }
     })
 
-    // Start trial
-    const defaultTrialPlan = await getDefaultTrialBillingPlan()
-    await startOrganizationTrial({
-      organizationId: result.organization.id,
-      planType: defaultTrialPlan.code,
-      trialDays: 14,
-    })
+    if (intent === 'start-trial') {
+      const defaultTrialPlan = await getDefaultTrialBillingPlan()
+      await startOrganizationTrial({
+        organizationId: result.organization.id,
+        planType: defaultTrialPlan.code,
+        trialDays: 14,
+      })
+    }
 
     // Ensure RBAC roles
     await ensureSystemRolesForOrganization(result.organization.id)

@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button'
 import { LandingVariant } from './types'
 import { motion } from 'motion/react'
 import { useState, useEffect } from 'react'
-import { appendFunnelIntent } from '@/lib/funnel/funnel-intent'
 
 interface LandingHeaderProps {
   variant?: LandingVariant
@@ -71,8 +70,8 @@ export function LandingHeader({ variant: _variant = 'generic' }: LandingHeaderPr
             className="h-9 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 px-4 font-semibold text-white shadow-md shadow-emerald-500/25 transition-all hover:shadow-lg hover:shadow-emerald-500/40 sm:h-10 sm:px-6"
             asChild
           >
-            <Link href={appendFunnelIntent('/sign-up', { intent: 'start-trial', source: 'header' })}>
-              Teste grátis
+            <Link href="#planos">
+              Ver planos
             </Link>
           </Button>
         </div>

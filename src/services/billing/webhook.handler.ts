@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { BillingSubscriptionStatus, BillingPaymentMethod } from '@generated/prisma/client'
 import { BillingAsaasConfigService } from './asaas-config.service'
 import { BillingAuditService } from './audit.service'
 import { BillingPaymentService } from './payment.service'
@@ -48,7 +47,7 @@ export class BillingWebhookHandler {
             await prisma.billingSubscription.updateMany({
               where: { asaasId: authorization.id },
               data: {
-                status: BillingSubscriptionStatus.ACTIVE,
+                status: 'ACTIVE',
                 isActive: true,
                 failureReason: null,
                 failureCount: 0,
@@ -82,7 +81,7 @@ export class BillingWebhookHandler {
               await prisma.billingSubscription.update({
                 where: { id: subscription.id },
                 data: {
-                  status: BillingSubscriptionStatus.FAILED,
+                  status: 'FAILED',
                   isActive: false,
                   failureReason,
                   failureCount: { increment: 1 },

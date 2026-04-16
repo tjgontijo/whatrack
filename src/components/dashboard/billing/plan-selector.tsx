@@ -63,7 +63,9 @@ export function PlanSelector({
 }: PlanSelectorProps) {
   const { data: org } = useOrganization()
   const basePlans = plans.filter((plan) => plan.kind === 'base')
-  const [selectedPlanCode, setSelectedPlanCode] = useState<string>(basePlans[0]?.code ?? 'monthly')
+  const [selectedPlanCode, setSelectedPlanCode] = useState<string>(
+    basePlans[0]?.code ?? 'starter_monthly',
+  )
   const selectedPlan = useMemo(
     () => basePlans.find((plan) => (plan.code ?? plan.slug) === selectedPlanCode) ?? basePlans[0],
     [basePlans, selectedPlanCode],
@@ -206,7 +208,7 @@ export function PlanSelector({
                       })}
                 </span>
                 <span className="text-sm text-muted-foreground">
-                  /{plan.code === 'annual' ? 'ano' : 'mês'}
+                  /mês
                 </span>
               </div>
 
@@ -312,7 +314,7 @@ export function PlanSelector({
                 </div>
               </div>
 
-              {selectedPlan.code === 'annual' && maxInstallments > 1 ? (
+              {maxInstallments > 1 ? (
                 <div className="space-y-2">
                   <Label htmlFor="installments">Parcelas</Label>
                   <Select value={installments} onValueChange={setInstallments}>

@@ -62,11 +62,13 @@ export default async function CheckoutPage({
   const plans = await listPublicBillingPlans()
   const params = await searchParams
   const campaignSlug = typeof params.campaign === 'string' ? params.campaign : undefined
+  const isTrialCheckout = params.intent === 'start-trial'
 
   return (
     <CheckoutPageContent
       plans={plans}
       campaignSlug={campaignSlug}
+      isTrialCheckout={isTrialCheckout}
       cpfCnpj={cpfCnpj}
       organizationId={organizationId}
       orgSlug={orgSlug}

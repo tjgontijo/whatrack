@@ -1,4 +1,4 @@
-import type { Prisma, BillingCycle } from '@generated/prisma/client'
+import type { Prisma } from '@generated/prisma/client'
 
 import { prisma } from '@/lib/db/prisma'
 import {
@@ -11,7 +11,7 @@ type BillingPlanRecord = {
   id: string
   code: string
   name: string
-  cycle: BillingCycle
+  cycle: string
   accessDays: number
   isActive: boolean
   sortOrder: number
@@ -80,7 +80,7 @@ export function parseBillingPlanMetadata(
 }
 
 function getDefaultSubtitle(plan: BillingPlanRecord) {
-  return `Até ${plan.includedProjects.toLocaleString('pt-BR')} clientes ativos incluídos`
+  return `Até ${plan.includedProjects.toLocaleString('pt-BR')} projetos incluídos`
 }
 
 function getDefaultPriceFromOffers(offers: BillingPlanRecord['offers']): number {
@@ -97,10 +97,9 @@ export function buildBillingPlanPresentation(plan: BillingPlanRecord) {
     toArray(metadata.features).length > 0
       ? toArray(metadata.features)
       : [
-          `${plan.includedProjects} clientes ativos incluídos`,
-          `${plan.includedWhatsAppPerProject} WhatsApp por cliente`,
-          `${plan.includedMetaAdAccountsPerProject} conta Meta Ads por cliente`,
-          `${plan.includedConversionsPerProject} conversões por cliente / mês`,
+          `${plan.includedProjects} projetos incluídos`,
+          `${plan.includedWhatsAppPerProject} instância WhatsApp por projeto`,
+          `${plan.includedMetaAdAccountsPerProject} conta Meta Ads por projeto`,
         ]
   const additionals = toArray(metadata.additionals)
 

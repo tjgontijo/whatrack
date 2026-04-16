@@ -1,11 +1,12 @@
 export const BILLING_PLAN_TYPES = [
-  'monthly',
-  'annual',
+  'starter_monthly',
+  'pro_monthly',
+  'business_monthly',
 ] as const
 
 export type PlanType = (typeof BILLING_PLAN_TYPES)[number]
 
-export const SELF_SERVE_PLAN_TYPES = ['monthly', 'annual'] as const
+export const SELF_SERVE_PLAN_TYPES = ['starter_monthly', 'pro_monthly', 'business_monthly'] as const
 
 export type SelfServePlanType = (typeof SELF_SERVE_PLAN_TYPES)[number]
 

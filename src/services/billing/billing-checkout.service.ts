@@ -25,7 +25,7 @@ export async function createCheckoutSession(params: CreateCheckoutSessionParams)
         organizationId: params.organizationId,
         userId: params.userId,
         cpfCnpj: params.input.cpfCnpj,
-        planCode: 'monthly',
+        planCode: params.input.planCode,
       })
     }
 
@@ -34,7 +34,7 @@ export async function createCheckoutSession(params: CreateCheckoutSessionParams)
         organizationId: params.organizationId,
         userId: params.userId,
         cpfCnpj: params.input.cpfCnpj,
-        planCode: 'annual',
+        planCode: params.input.planCode,
       })
     }
 

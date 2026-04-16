@@ -57,14 +57,16 @@ function mapAsaasPaymentStatus(status: string) {
   }
 }
 
-function buildDescription(planCode: BillingCatalogPlanCode, paymentMethod: string) {
-  if (planCode === 'annual') {
-    return paymentMethod === 'PIX' ? 'WhaTrack Anual via PIX' : 'WhaTrack Anual no Cartao'
+function buildDescription(plan: { name: string }, paymentMethod: string) {
+  if (paymentMethod === 'PIX_AUTOMATIC') {
+    return `WhaTrack ${plan.name} via PIX Automatico`
   }
 
-  return paymentMethod === 'PIX_AUTOMATIC'
-    ? 'WhaTrack Mensal com PIX Automatico'
-    : 'WhaTrack Mensal no Cartao'
+  if (paymentMethod === 'PIX') {
+    return `WhaTrack ${plan.name} via PIX`
+  }
+
+  return `WhaTrack ${plan.name} no Cartao`
 }
 
 function normalizeCard(card: CreditCardInput): CreditCardInput {
@@ -188,15 +190,9 @@ async function upsertInvoice(input: {
   })
 }
 
-function buildExpiration(planCode: BillingCatalogPlanCode, baseDate = new Date()) {
+function buildExpiration(baseDate = new Date()) {
   const expiresAt = new Date(baseDate)
-
-  if (planCode === 'annual') {
-    expiresAt.setFullYear(expiresAt.getFullYear() + 1)
-  } else {
-    expiresAt.setMonth(expiresAt.getMonth() + 1)
-  }
-
+  expiresAt.setMonth(expiresAt.getMonth() + 1)
   return expiresAt
 }
 
@@ -229,9 +225,9 @@ export class BillingPaymentService {
       cpfCnpj: input.cpfCnpj,
     })
     const card = normalizeCard(input.creditCard)
-    const description = buildDescription(plan.code, 'CREDIT_CARD')
+    const description = buildDescription(plan, 'CREDIT_CARD')
 
-    if (plan.code === 'monthly') {
+    if (plan.cycle === 'MONTHLY') {
       const now = new Date()
 
       // Check for existing trial subscription — use its end date as nextDueDate
@@ -276,7 +272,7 @@ export class BillingPaymentService {
         throw new Error('Asaas did not return the first subscription payment')
       }
 
-      const expiresAt = buildExpiration(plan.code, now)
+      const expiresAt = buildExpiration(now)
       const status = mapAsaasPaymentStatus(firstPayment.status)
       const subscription = await upsertSubscription({
         organizationId: input.organizationId,
@@ -338,7 +334,7 @@ export class BillingPaymentService {
     })
 
     const now = new Date()
-    const expiresAt = buildExpiration(plan.code, now)
+    const expiresAt = buildExpiration(now)
     const status = mapAsaasPaymentStatus(payment.status)
     const subscription = await upsertSubscription({
       organizationId: input.organizationId,
@@ -383,7 +379,7 @@ export class BillingPaymentService {
     organizationId: string
     userId: string
     cpfCnpj: string
-    planCode: 'annual'
+    planCode: BillingCatalogPlanCode
   }) {
     const { plan, offer } = await getOffer(input.planCode, 'PIX')
     const customer = await BillingCustomerService.ensureCustomer({
@@ -396,13 +392,13 @@ export class BillingPaymentService {
       billingType: 'PIX',
       value: offer.amount,
       dueDate: todayDateString(),
-      description: buildDescription(plan.code, 'PIX'),
+      description: buildDescription(plan, 'PIX'),
       externalReference: input.organizationId,
     })
     const qrCode = await AsaasClient.get<AsaasPixQrCode>(`/payments/${payment.id}/pixQrCode`)
 
     const now = new Date()
-    const expiresAt = buildExpiration(plan.code, now)
+    const expiresAt = buildExpiration(now)
     const status = mapAsaasPaymentStatus(payment.status)
     const subscription = await upsertSubscription({
       organizationId: input.organizationId,
@@ -453,7 +449,7 @@ export class BillingPaymentService {
     organizationId: string
     userId: string
     cpfCnpj: string
-    planCode: 'monthly'
+    planCode: BillingCatalogPlanCode
   }) {
     const { plan, offer } = await getOffer(input.planCode, 'PIX_AUTOMATIC')
     const customer = await BillingCustomerService.ensureCustomer({
@@ -476,7 +472,7 @@ export class BillingPaymentService {
       contractId: `WHATRACK-${input.organizationId.slice(0, 8)}-${Date.now()}`,
       startDate: nextMonth.toISOString().split('T')[0],
       value: offer.amount,
-      description: buildDescription(plan.code, 'PIX_AUTOMATIC'),
+      description: buildDescription(plan, 'PIX_AUTOMATIC'),
       immediateQrCode: {
         expirationSeconds: 3600,
         originalValue: offer.amount,
@@ -567,8 +563,7 @@ export class BillingPaymentService {
 
       if (subscription) {
         const now = paidAt ?? new Date()
-        const planCode = subscription.offer?.plan.code === 'YEARLY' ? 'annual' : 'monthly'
-        const expiresAt = buildExpiration(planCode, now)
+        const expiresAt = buildExpiration(now)
 
         await prisma.billingSubscription.update({
           where: { id: subscription.id },

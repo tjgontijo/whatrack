@@ -11,13 +11,13 @@ import {
 
 describe('billing type contract', () => {
   it('defines the supported plan catalogs for launch', () => {
-    expect(BILLING_PLAN_TYPES).toEqual(['monthly', 'annual'])
-    expect(SELF_SERVE_PLAN_TYPES).toEqual(['monthly', 'annual'])
+    expect(BILLING_PLAN_TYPES).toEqual(['starter_monthly', 'pro_monthly', 'business_monthly'])
+    expect(SELF_SERVE_PLAN_TYPES).toEqual(['starter_monthly', 'pro_monthly', 'business_monthly'])
   })
 
   it('accepts known plans and rejects unsupported checkout plans', () => {
-    expect(isPlanType('monthly')).toBe(true)
-    expect(isSelfServePlanType('annual')).toBe(true)
+    expect(isPlanType('starter_monthly')).toBe(true)
+    expect(isSelfServePlanType('business_monthly')).toBe(true)
     expect(isSelfServePlanType('enterprise')).toBe(false)
     expect(isPlanType('enterprise')).toBe(false)
   })
@@ -26,22 +26,23 @@ describe('billing type contract', () => {
 describe('billing status contract', () => {
   it('defines the supported subscription lifecycle statuses', () => {
     expect(BILLING_SUBSCRIPTION_STATUSES).toEqual([
-      'active',
-      'pending',
-      'paused',
-      'canceled',
-      'past_due',
-      'inactive',
+      'INACTIVE',
+      'PENDING',
+      'ACTIVE',
+      'OVERDUE',
+      'CANCELED',
+      'EXPIRED',
+      'FAILED',
     ])
   })
 
   it('accepts known statuses and rejects unknown ones', () => {
-    expect(isSubscriptionStatus('active')).toBe(true)
-    expect(isSubscriptionStatus('pending')).toBe(true)
-    expect(isSubscriptionStatus('paused')).toBe(true)
-    expect(isSubscriptionStatus('canceled')).toBe(true)
-    expect(isSubscriptionStatus('past_due')).toBe(true)
-    expect(isSubscriptionStatus('inactive')).toBe(true)
+    expect(isSubscriptionStatus('ACTIVE')).toBe(true)
+    expect(isSubscriptionStatus('PENDING')).toBe(true)
+    expect(isSubscriptionStatus('CANCELED')).toBe(true)
+    expect(isSubscriptionStatus('OVERDUE')).toBe(true)
+    expect(isSubscriptionStatus('INACTIVE')).toBe(true)
+    expect(isSubscriptionStatus('active')).toBe(false)
     expect(isSubscriptionStatus('expired')).toBe(false)
   })
 })

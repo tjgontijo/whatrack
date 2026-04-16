@@ -1,5 +1,4 @@
 import { prisma } from '@/lib/db/prisma'
-import { BillingPaymentMethod } from '@generated/prisma/client'
 import { BillingCatalogService } from './catalog.service'
 import { BillingCustomerService } from './customer.service'
 import { AsaasClient } from './asaas-client'
@@ -22,14 +21,10 @@ export class PixAutomaticService {
     organizationId: string
     userId: string
     cpfCnpj: string
-    planCode: 'monthly' | 'annual'
+    planCode: 'starter_monthly' | 'pro_monthly' | 'business_monthly'
   }) {
     const plan = await BillingCatalogService.getPlan(params.planCode)
-    if (plan.code !== 'monthly') {
-      throw new Error('PIX automático disponível apenas no plano mensal')
-    }
-
-    const pixOffer = plan.offers.find((o) => o.paymentMethod === BillingPaymentMethod.PIX_AUTOMATIC)
+    const pixOffer = plan.offers.find((o) => o.paymentMethod === 'PIX_AUTOMATIC')
     if (!pixOffer) {
       throw new Error('Oferta PIX Automático não disponível para este plano')
     }
@@ -87,7 +82,7 @@ export class PixAutomaticService {
         offerId: pixOffer.id,
         asaasId: authResponse.id,
         asaasCustomerId: customerId,
-        paymentMethod: BillingPaymentMethod.PIX_AUTOMATIC,
+        paymentMethod: 'PIX_AUTOMATIC',
         status: 'PENDING',
         isActive: false,
       },
@@ -95,7 +90,7 @@ export class PixAutomaticService {
         offerId: pixOffer.id,
         asaasId: authResponse.id,
         asaasCustomerId: customerId,
-        paymentMethod: BillingPaymentMethod.PIX_AUTOMATIC,
+        paymentMethod: 'PIX_AUTOMATIC',
         status: 'PENDING',
         isActive: false,
       },

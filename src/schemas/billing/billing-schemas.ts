@@ -26,22 +26,6 @@ export const checkoutRequestSchema = z
     creditCard: creditCardSchema.optional(),
   })
   .superRefine((value, ctx) => {
-    if (value.planCode === 'monthly' && value.paymentMethod === 'PIX') {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['paymentMethod'],
-        message: 'PIX comum está disponível apenas no anual',
-      })
-    }
-
-    if (value.planCode === 'annual' && value.paymentMethod === 'PIX_AUTOMATIC') {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['paymentMethod'],
-        message: 'PIX automático está disponível apenas no mensal',
-      })
-    }
-
     if (value.paymentMethod !== 'CREDIT_CARD' && value.installments !== 1) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -50,11 +34,11 @@ export const checkoutRequestSchema = z
       })
     }
 
-    if (value.planCode === 'monthly' && value.paymentMethod === 'CREDIT_CARD' && value.installments !== 1) {
+    if (value.paymentMethod === 'CREDIT_CARD' && value.installments !== 1) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['installments'],
-        message: 'Plano mensal no cartão aceita apenas renovação mensal sem parcelamento',
+        message: 'Cartão de crédito aceita apenas cobrança recorrente mensal sem parcelamento',
       })
     }
 

@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db/prisma'
 
-export type BillingCatalogPlanCode = 'monthly' | 'annual'
+export type BillingCatalogPlanCode = 'starter_monthly' | 'pro_monthly' | 'business_monthly'
 export type BillingCatalogPaymentMethod = 'CREDIT_CARD' | 'PIX' | 'PIX_AUTOMATIC'
 
 export interface BillingCatalogOffer {
@@ -24,7 +24,7 @@ export interface BillingCatalogPlan {
 }
 
 function assertPlanCode(value: string): BillingCatalogPlanCode {
-  if (value !== 'monthly' && value !== 'annual') {
+  if (value !== 'starter_monthly' && value !== 'pro_monthly' && value !== 'business_monthly') {
     throw new Error(`Unsupported billing plan code: ${value}`)
   }
 
@@ -45,7 +45,7 @@ export class BillingCatalogService {
     const plans = await prisma.billingPlan.findMany({
       where: {
         isActive: true,
-        code: { in: ['starter_monthly', 'growth_monthly', 'agency_monthly', 'pro_monthly', 'enterprise_monthly'] },
+        code: { in: ['starter_monthly', 'pro_monthly', 'business_monthly'] },
       },
       orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }],
       include: {

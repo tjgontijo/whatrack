@@ -54,6 +54,57 @@ const whatsappAuditActions = [
   { name: 'TOKEN_RENEWED', description: 'Token renovado.' },
 ]
 
+const billingSubscriptionStatuses = [
+  { name: 'INACTIVE', description: 'Assinatura inativa.' },
+  { name: 'PENDING', description: 'Assinatura pendente de ativação.' },
+  { name: 'ACTIVE', description: 'Assinatura ativa.' },
+  { name: 'OVERDUE', description: 'Assinatura com pagamento atrasado.' },
+  { name: 'CANCELED', description: 'Assinatura cancelada.' },
+  { name: 'EXPIRED', description: 'Assinatura expirada.' },
+  { name: 'FAILED', description: 'Assinatura com falha.' },
+]
+
+const billingFailureReasons = [
+  { name: 'EXPIRED', description: 'Pagamento expirado.' },
+  { name: 'DENIED', description: 'Pagamento negado.' },
+  { name: 'CANCELED_BY_USER', description: 'Cancelado pelo usuário.' },
+  { name: 'FAILED_DEBIT', description: 'Falha no débito automático.' },
+  { name: 'OTHER', description: 'Outro motivo.' },
+]
+
+const billingInvoiceStatuses = [
+  { name: 'PENDING', description: 'Fatura pendente.' },
+  { name: 'CONFIRMED', description: 'Fatura confirmada.' },
+  { name: 'RECEIVED', description: 'Pagamento recebido.' },
+  { name: 'OVERDUE', description: 'Fatura atrasada.' },
+  { name: 'REFUNDED', description: 'Pagamento estornado.' },
+  { name: 'REFUND_REQUESTED', description: 'Estorno solicitado.' },
+  { name: 'CHARGEBACK_REQUESTED', description: 'Chargeback solicitado.' },
+  { name: 'CHARGEBACK_DISPUTE', description: 'Chargeback em disputa.' },
+  { name: 'AWAITING_CHARGEBACK_REVERSAL', description: 'Aguardando reversão de chargeback.' },
+  { name: 'DUNNING_REQUESTED', description: 'Cobrança solicitada.' },
+  { name: 'DUNNING_RECEIVED', description: 'Cobrança recebida.' },
+  { name: 'CANCELLED', description: 'Fatura cancelada.' },
+]
+
+const billingPaymentMethods = [
+  { name: 'CREDIT_CARD', description: 'Cartão de crédito.' },
+  { name: 'PIX', description: 'PIX.' },
+  { name: 'PIX_AUTOMATIC', description: 'PIX Automático.' },
+  { name: 'BOLETO', description: 'Boleto bancário.' },
+]
+
+const billingCycles = [
+  { name: 'MONTHLY', description: 'Mensal.' },
+  { name: 'YEARLY', description: 'Anual.' },
+]
+
+const auditActors = [
+  { name: 'USER', description: 'Usuário do sistema.' },
+  { name: 'ADMIN', description: 'Administrador do sistema.' },
+  { name: 'SYSTEM', description: 'Sistema automatizado.' },
+]
+
 async function upsertByName(
   model: {
     upsert: (args: {
@@ -83,6 +134,12 @@ export async function seedLookupTables(prisma: PrismaClient) {
   await upsertByName(prisma.whatsAppConnectionStatus, whatsappConnectionStatuses)
   await upsertByName(prisma.whatsAppHealthStatus, whatsappHealthStatuses)
   await upsertByName(prisma.whatsAppAuditAction, whatsappAuditActions)
+  await upsertByName(prisma.billingSubscriptionStatus, billingSubscriptionStatuses)
+  await upsertByName(prisma.billingFailureReason, billingFailureReasons)
+  await upsertByName(prisma.billingInvoiceStatus, billingInvoiceStatuses)
+  await upsertByName(prisma.billingPaymentMethod, billingPaymentMethods)
+  await upsertByName(prisma.billingCycle, billingCycles)
+  await upsertByName(prisma.auditActor, auditActors)
 
   console.log('Lookup tables seeded.')
 }

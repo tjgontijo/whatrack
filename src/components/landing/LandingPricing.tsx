@@ -31,10 +31,10 @@ function CheckoutButton({ plan, variant }: CheckoutButtonProps) {
       return
     }
 
-    const path = session?.user ? '/welcome' : '/sign-up'
+    const path = session?.user ? '/checkout' : '/sign-up'
     router.push(
       appendFunnelIntent(path, {
-        intent: 'start-trial',
+        intent: 'checkout',
         segment: variant,
         source: 'pricing',
         campaign: plan.slug,
@@ -51,7 +51,7 @@ function CheckoutButton({ plan, variant }: CheckoutButtonProps) {
           : 'border border-zinc-700 bg-zinc-800 text-white hover:bg-zinc-700 disabled:opacity-70'
       }`}
     >
-      {plan.contactSalesOnly ? plan.cta : 'Teste grátis por 14 dias'}
+      {plan.contactSalesOnly ? plan.cta : plan.cta}
     </Button>
   )
 }
@@ -65,27 +65,28 @@ export function LandingPricing({ variant = 'generic', plans }: LandingPricingPro
 
   const headlines: Record<LandingVariant, { title: string; subtitle: string }> = {
     generic: {
-      title: 'Se paga na primeira venda que você consegue rastrear.',
+      title: 'Três planos para começar com preço simples.',
       subtitle:
-        'Comece grátis por 14 dias. Veja o resultado antes de decidir. Sem fidelidade, cancele quando quiser.',
+        'Cartão de crédito é o fluxo principal. API Oficial do WhatsApp e disparo de campanhas já incluídos desde o primeiro plano.',
     },
     agencias: {
-      title: 'Preço simples para operar clientes com prova de ROI.',
+      title: 'Preço simples para operar projetos com rastreamento e campanha.',
       subtitle:
-        'O plano base inclui 3 clientes ativos. Projeto extra, WhatsApp extra e Meta Ads extra entram como add-on operacional.',
+        'Escolha o plano, crie a conta e siga direto para o checkout com cobrança normal.',
     },
     lancadores: {
-      title: 'Business',
-      subtitle: 'ROI em tempo real durante o carrinho aberto. Teste grátis por 14 dias.',
+      title: 'Planos para rodar e escalar sem complexidade.',
+      subtitle:
+        'Comece no cartão de crédito e ative sua operação com API Oficial do WhatsApp e disparo de campanhas no mesmo fluxo.',
     },
     empresas: {
-      title: 'Planos para sua empresa',
-      subtitle: 'Simples de usar, sem complicação. Teste grátis por 14 dias.',
+      title: 'Planos objetivos para sua operação.',
+      subtitle:
+        'Os planos pagos entram direto no checkout. O teste grátis aparece separado, fora dos cards de compra.',
     },
   }
 
   const headline = headlines[variant]
-
   return (
     <section
       id="planos"
