@@ -9,10 +9,23 @@ export const signUpSchema = z
     email: z.string().email('Email inválido'),
     password: z.string().min(8, 'Senha deve ter pelo menos 8 caracteres'),
     confirmPassword: z.string().min(1, 'Confirme sua senha'),
+    documentType: z.enum(['CPF', 'CNPJ']),
+    documentNumber: z.string().min(1, 'Informe o documento'),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'As senhas não coincidem',
     path: ['confirmPassword'],
+  })
+  .superRefine((data, ctx) => {
+    const digits = data.documentNumber.replace(/\D/g, '')
+    const isValid = data.documentType === 'CPF' ? digits.length === 11 : digits.length === 14
+    if (!isValid) {
+      ctx.addIssue({
+        code: 'custom',
+        message: data.documentType === 'CPF' ? 'CPF inválido' : 'CNPJ inválido',
+        path: ['documentNumber'],
+      })
+    }
   })
 
 export type SignUpData = z.infer<typeof signUpSchema>

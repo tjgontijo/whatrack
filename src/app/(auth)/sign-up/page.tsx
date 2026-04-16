@@ -15,11 +15,8 @@ import { authClient } from '@/lib/auth/auth-client'
 import { signUpSchema, type SignUpData } from '@/schemas/auth/sign-up'
 import { getAuthErrorMessage } from '@/lib/auth/error-messages'
 import { acceptOrganizationInvitation, buildInvitationQuery } from '@/lib/auth/invitation-client'
-import {
-  buildFunnelQueryString,
-  readFunnelIntent,
-  resolvePostAuthPath,
-} from '@/lib/funnel/funnel-intent'
+import { buildFunnelQueryString, readFunnelIntent } from '@/lib/funnel/funnel-intent'
+import { applyCpfCnpjMask, stripCpfCnpj } from '@/lib/mask/cpf-cnpj'
 
 type SignUpErrorShape = {
   code?: string
@@ -46,7 +43,6 @@ export default function SignUpPage() {
   const funnelIntent = readFunnelIntent(searchParams)
   const invitationQuery = useMemo(() => buildInvitationQuery(invitationId, nextParam), [invitationId, nextParam])
   const funnelQuery = useMemo(() => buildFunnelQueryString(funnelIntent), [funnelIntent])
-  const nextPath = resolvePostAuthPath(nextParam, funnelIntent)
 
   const form = useForm<SignUpData>({
     resolver: zodResolver(signUpSchema),
@@ -55,12 +51,16 @@ export default function SignUpPage() {
       email: '',
       password: '',
       confirmPassword: '',
+      documentType: 'CPF',
+      documentNumber: '',
     },
   })
 
+  const documentType = form.watch('documentType')
+
   const handleSubmit = async (values: SignUpData) => {
     try {
-      // 1. Criar usuário com Better Auth
+      // 1. Criar usuário
       const { data: signUpData, error: signUpError } = await authClient.signUp.email({
         email: values.email,
         password: values.password,
@@ -71,7 +71,7 @@ export default function SignUpPage() {
         const normalizedSignUpError = normalizeSignUpError(signUpError)
         const errorMessage = getAuthErrorMessage(
           normalizedSignUpError.code,
-          normalizedSignUpError.message || 'Não foi possível criar sua conta.'
+          normalizedSignUpError.message || 'Não foi possível criar sua conta.',
         )
         toast.error(errorMessage)
         return
@@ -82,8 +82,7 @@ export default function SignUpPage() {
         return
       }
 
-      // 2. Aceitar convite se houver
-
+      // 2. Aceitar convite se houver (fluxo de convite permanece igual)
       if (invitationId) {
         try {
           await acceptOrganizationInvitation(invitationId)
@@ -92,11 +91,29 @@ export default function SignUpPage() {
           console.error('[sign-up] erro ao aceitar convite', acceptError)
           toast.error('Conta criada, mas não foi possível aceitar o convite.')
         }
-      } else {
-        toast.success('Conta criada com sucesso!')
+        router.push(nextParam ?? '/welcome')
+        return
       }
 
-      router.push(nextPath)
+      // 3. Criar organização via setup API
+      const setupRes = await fetch('/api/v1/onboarding/setup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          documentType: values.documentType,
+          documentNumber: stripCpfCnpj(values.documentNumber),
+        }),
+      })
+
+      if (!setupRes.ok) {
+        const body = await setupRes.json().catch(() => ({}))
+        toast.error(body?.message ?? 'Erro ao configurar sua conta. Tente novamente.')
+        return
+      }
+
+      // 4. Redirecionar para checkout mantendo funnel intent
+      const checkoutPath = `/checkout${funnelQuery}`
+      router.push(checkoutPath)
     } catch (error) {
       console.error('[sign-up] erro ao criar conta', error)
       toast.error('Falha na comunicação com o servidor. Tente novamente.')
@@ -111,9 +128,9 @@ export default function SignUpPage() {
       data-testid="sign-up-page"
     >
       <div className="text-left">
-        <h1 className="text-foreground text-3xl font-bold tracking-tight">Crie a conta da sua agência</h1>
+        <h1 className="text-foreground text-3xl font-bold tracking-tight">Comece seu teste grátis</h1>
         <p className="text-muted-foreground mt-2 text-sm font-medium">
-          Inicie 14 dias grátis, crie o primeiro cliente e conecte Meta Ads + WhatsApp em poucos minutos
+          Conecte seus anúncios Meta às vendas no WhatsApp. 14 dias grátis, sem cartão agora.
         </p>
       </div>
 
@@ -150,11 +167,73 @@ export default function SignUpPage() {
                 <Input
                   id={field.name}
                   type="email"
-                  placeholder="seu@empresa.com"
+                  placeholder="seu@email.com"
                   autoComplete="email"
                   className="focus-visible:ring-primary focus-visible:border-primary h-11 px-4 shadow-sm transition-shadow lg:h-12"
                   disabled={isSubmitting}
                   {...field}
+                />
+                <FieldError errors={[fieldState.error]} />
+              </Field>
+            )}
+          />
+
+          {/* Tipo de documento */}
+          <Controller
+            control={form.control}
+            name="documentType"
+            render={({ field }) => (
+              <Field>
+                <FieldLabel>Tipo de pessoa</FieldLabel>
+                <div className="flex gap-3">
+                  {(['CPF', 'CNPJ'] as const).map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => {
+                        field.onChange(type)
+                        form.setValue('documentNumber', '')
+                      }}
+                      disabled={isSubmitting}
+                      className={`h-11 flex-1 rounded-lg border text-sm font-medium transition-all lg:h-12 ${
+                        field.value === type
+                          ? 'border-primary bg-primary/10 text-primary'
+                          : 'border-border text-muted-foreground hover:border-primary/50'
+                      }`}
+                    >
+                      {type === 'CPF' ? 'Pessoa Física (CPF)' : 'Pessoa Jurídica (CNPJ)'}
+                    </button>
+                  ))}
+                </div>
+              </Field>
+            )}
+          />
+
+          {/* Número do documento */}
+          <Controller
+            control={form.control}
+            name="documentNumber"
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>
+                  {documentType === 'CPF' ? 'CPF' : 'CNPJ'}
+                </FieldLabel>
+                <Input
+                  id={field.name}
+                  placeholder={documentType === 'CPF' ? '000.000.000-00' : '00.000.000/0000-00'}
+                  autoComplete="off"
+                  inputMode="numeric"
+                  className="focus-visible:ring-primary focus-visible:border-primary h-11 px-4 shadow-sm transition-shadow lg:h-12"
+                  disabled={isSubmitting}
+                  value={applyCpfCnpjMask(field.value, documentType === 'CPF' ? 'cpf' : 'cnpj')}
+                  onChange={(e) => {
+                    const raw = stripCpfCnpj(e.target.value)
+                    const maxLen = documentType === 'CPF' ? 11 : 14
+                    field.onChange(raw.slice(0, maxLen))
+                  }}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                  ref={field.ref}
                 />
                 <FieldError errors={[fieldState.error]} />
               </Field>

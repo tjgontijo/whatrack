@@ -233,8 +233,21 @@ export class BillingPaymentService {
 
     if (plan.code === 'monthly') {
       const now = new Date()
-      const trialEndsAt = buildTrialEndDate(now)
-      const nextDueDate = buildNextDueDateWithTrial(now)
+
+      // Check for existing trial subscription — use its end date as nextDueDate
+      // to avoid doubling up the free period for users who started trial at sign-up.
+      const existingSubscription = await prisma.billingSubscription.findUnique({
+        where: { organizationId: input.organizationId },
+        select: { trialEndsAt: true },
+      })
+
+      const existingTrialEnd =
+        existingSubscription?.trialEndsAt && existingSubscription.trialEndsAt > now
+          ? existingSubscription.trialEndsAt
+          : null
+
+      const trialEndsAt = existingTrialEnd ?? buildTrialEndDate(now)
+      const nextDueDate = trialEndsAt.toISOString().split('T')[0]
 
       const asaasSubscription = await AsaasClient.post<AsaasSubscription>('/subscriptions', {
         customer: customer.asaasCustomerId,

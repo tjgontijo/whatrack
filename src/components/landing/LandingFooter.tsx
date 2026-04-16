@@ -9,7 +9,7 @@ export function LandingFooter() {
 
       <div className="relative mx-auto max-w-[1400px] px-6 py-16 sm:px-8 lg:px-12">
         {/* Main footer content */}
-        <div className="grid gap-12 lg:grid-cols-5">
+        <div className="grid gap-12 lg:grid-cols-4">
           {/* Brand section - spans 2 columns */}
           <div className="space-y-6 lg:col-span-2">
             <Link
@@ -33,34 +33,9 @@ export function LandingFooter() {
             </Link>
 
             <p className="max-w-sm text-base leading-relaxed text-zinc-600 dark:text-zinc-400">
-              Plataforma para agências e gestores conectarem Meta Ads ao WhatsApp, provarem
-              resultado para seus clientes e operarem múltiplas contas no mesmo painel.
+              Conecte seus anúncios Meta às vendas no WhatsApp. CAC e ROAS reais, por campanha e
+              anúncio.
             </p>
-
-            {/* Social links would go here if needed */}
-          </div>
-
-          {/* Soluções */}
-          <div className="space-y-4">
-            <h4 className="font-geist text-sm font-bold uppercase tracking-wider text-zinc-900 dark:text-white">
-              Soluções
-            </h4>
-            <ul className="space-y-3">
-              {[
-                { label: 'Para Agências', href: '/solucoes/agencias' },
-                { label: 'Para Lançadores', href: '/solucoes/lancamentos' },
-                { label: 'Para Empresas', href: '/solucoes/empresas' },
-              ].map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-zinc-600 transition-colors hover:text-emerald-600 dark:text-zinc-400 dark:hover:text-emerald-400"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
           </div>
 
           {/* Empresa */}
