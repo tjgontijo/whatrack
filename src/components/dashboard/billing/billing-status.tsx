@@ -6,6 +6,9 @@ import { motion } from 'motion/react'
 import { useBillingSubscription } from '@/hooks/billing/use-billing-subscription'
 import { formatDate } from '@/lib/date/format-date'
 import { getBillingStatusLabel } from '@/lib/billing/subscription-status'
+import { SubscriptionFailureAlert } from './subscription-failure-alert'
+import { CheckoutPixQrcode } from './checkout-pix-qrcode'
+import { CheckoutStatusTokenService } from '@/services/billing/checkout-status-token.service'
 
 const statusTone = {
   active: 'border-emerald-500/20 bg-emerald-500/5 text-emerald-700 dark:text-emerald-400',
@@ -104,11 +107,14 @@ export function BillingStatus() {
         </div>
       </div>
 
-      {subscription.failureReason ? (
-        <div className="flex items-start gap-2 rounded-lg border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive">
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-          <span>{subscription.failureReason}</span>
-        </div>
+      {subscription.failureReason && subscription.status === 'FAILED' ? (
+        <SubscriptionFailureAlert
+          failureReason={subscription.failureReason}
+          failureCount={subscription.failureCount}
+          lastFailureAt={subscription.lastFailureAt}
+          nextRetryAt={subscription.nextRetryAt}
+          subscriptionId={subscription.id}
+        />
       ) : null}
 
       {subscription.lastInvoice ? (

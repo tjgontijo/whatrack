@@ -1363,6 +1363,7 @@ model BillingSubscription {
   purchaseDate            DateTime                   @default(now())
   expiresAt               DateTime?
   canceledAt              DateTime?
+  trialEndsAt             DateTime?
   failureReason           BillingFailureReason?
   failureCount            Int                        @default(0)
   lastFailureAt           DateTime?
@@ -1383,6 +1384,7 @@ model BillingSubscription {
   @@index([status])
   @@index([isActive])
   @@index([expiresAt])
+  @@index([trialEndsAt])
   @@map("billing_subscriptions")
 }
 

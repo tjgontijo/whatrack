@@ -962,6 +962,7 @@ CREATE TABLE "billing_subscriptions" (
     "purchaseDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "expiresAt" TIMESTAMP(3),
     "canceledAt" TIMESTAMP(3),
+    "trialEndsAt" TIMESTAMP(3),
     "failureReason" "BillingFailureReason",
     "failureCount" INTEGER NOT NULL DEFAULT 0,
     "lastFailureAt" TIMESTAMP(3),
@@ -1632,6 +1633,9 @@ CREATE INDEX "billing_subscriptions_isActive_idx" ON "billing_subscriptions"("is
 
 -- CreateIndex
 CREATE INDEX "billing_subscriptions_expiresAt_idx" ON "billing_subscriptions"("expiresAt");
+
+-- CreateIndex
+CREATE INDEX "billing_subscriptions_trialEndsAt_idx" ON "billing_subscriptions"("trialEndsAt");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "billing_plans_code_key" ON "billing_plans"("code");

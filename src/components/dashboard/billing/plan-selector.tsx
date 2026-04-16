@@ -19,6 +19,8 @@ import { apiFetch } from '@/lib/api-client'
 import { cn } from '@/lib/utils/utils'
 import { useOrganization } from '@/hooks/organization/use-organization'
 import type { PublicBillingPlan } from '@/schemas/billing/billing-plan-schemas'
+import { CheckoutPixQrcode } from './checkout-pix-qrcode'
+import { CheckoutStatusTokenService } from '@/services/billing/checkout-status-token.service'
 
 type CheckoutState = 'idle' | 'loading'
 type PaymentMethod = 'CREDIT_CARD' | 'PIX' | 'PIX_AUTOMATIC'
@@ -356,42 +358,28 @@ export function PlanSelector({
               </p>
             </div>
 
-            {result?.pix ? (
-              <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
-                <div className="mb-2 flex items-center gap-2 text-sm font-medium text-foreground">
-                  <QrCode className="h-4 w-4" />
-                  PIX gerado
-                </div>
-                {result.pix.qrCodeImage ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    alt="QR Code PIX"
-                    src={`data:image/png;base64,${result.pix.qrCodeImage}`}
-                    className="mb-3 h-40 w-40 rounded-md border border-border bg-white p-2"
-                  />
-                ) : null}
-                <p className="break-all text-xs text-muted-foreground">{result.pix.qrCodePayload}</p>
-              </div>
+            {result?.pix && result.invoiceId ? (
+              <CheckoutPixQrcode
+                qrCodeImage={result.pix.qrCodeImage ?? null}
+                qrCodePayload={result.pix.qrCodePayload}
+                expirationDate={result.pix.expirationDate ?? null}
+                invoiceId={result.invoiceId}
+                statusToken={CheckoutStatusTokenService.createInvoiceToken(result.invoiceId)}
+                type="pix"
+              />
             ) : null}
 
             {result?.pixAutomatic ? (
-              <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
-                <div className="mb-2 flex items-center gap-2 text-sm font-medium text-foreground">
-                  <QrCode className="h-4 w-4" />
-                  Autorize o PIX Automático
-                </div>
-                {result.pixAutomatic.qrCodeImage ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    alt="QR Code PIX Automático"
-                    src={`data:image/png;base64,${result.pixAutomatic.qrCodeImage}`}
-                    className="mb-3 h-40 w-40 rounded-md border border-border bg-white p-2"
-                  />
-                ) : null}
-                <p className="break-all text-xs text-muted-foreground">
-                  {result.pixAutomatic.qrCodePayload}
-                </p>
-              </div>
+              <CheckoutPixQrcode
+                qrCodeImage={result.pixAutomatic.qrCodeImage ?? null}
+                qrCodePayload={result.pixAutomatic.qrCodePayload}
+                expirationDate={result.pixAutomatic.expirationDate ?? null}
+                invoiceId={result.pixAutomatic.authorizationId}
+                statusToken={CheckoutStatusTokenService.createAuthorizationToken(
+                  result.pixAutomatic.authorizationId,
+                )}
+                type="pix_automatic"
+              />
             ) : null}
           </div>
 

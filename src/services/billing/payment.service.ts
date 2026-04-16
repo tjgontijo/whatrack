@@ -46,14 +46,14 @@ function mapAsaasPaymentStatus(status: string) {
     case 'RECEIVED':
     case 'CONFIRMED':
     case 'RECEIVED_IN_CASH':
-      return 'active'
+      return 'ACTIVE'
     case 'OVERDUE':
-      return 'past_due'
+      return 'OVERDUE'
     case 'CANCELED':
     case 'REFUNDED':
-      return 'canceled'
+      return 'CANCELED'
     default:
-      return 'pending'
+      return 'PENDING'
   }
 }
 
@@ -90,7 +90,6 @@ async function getOffer(planCode: BillingCatalogPlanCode, paymentMethod: string)
 
 async function upsertSubscription(input: {
   organizationId: string
-  planId: string
   offer: BillingCatalogOffer
   asaasCustomerId: string
   asaasId: string
@@ -99,19 +98,13 @@ async function upsertSubscription(input: {
   purchaseDate?: Date | null
   expiresAt?: Date | null
   isActive: boolean
-  billingCycleStartDate: Date
-  billingCycleEndDate: Date
-  nextResetDate: Date
   pixAutomaticAuthId?: string | null
+  trialEndsAt?: Date | null
 }) {
   return prisma.billingSubscription.upsert({
     where: { organizationId: input.organizationId },
     update: {
-      planId: input.planId,
       offerId: input.offer.id,
-      provider: 'asaas',
-      providerCustomerId: input.asaasCustomerId,
-      providerSubscriptionId: input.paymentMethod === 'CREDIT_CARD' ? input.asaasId : null,
       asaasCustomerId: input.asaasCustomerId,
       asaasId: input.asaasId,
       paymentMethod: input.paymentMethod,
@@ -119,10 +112,7 @@ async function upsertSubscription(input: {
       isActive: input.isActive,
       purchaseDate: input.purchaseDate ?? null,
       expiresAt: input.expiresAt ?? null,
-      billingCycleStartDate: input.billingCycleStartDate,
-      billingCycleEndDate: input.billingCycleEndDate,
-      nextResetDate: input.nextResetDate,
-      canceledAtPeriodEnd: false,
+      trialEndsAt: input.trialEndsAt ?? null,
       failureReason: null,
       failureCount: 0,
       lastFailureAt: null,
@@ -131,11 +121,7 @@ async function upsertSubscription(input: {
     },
     create: {
       organizationId: input.organizationId,
-      planId: input.planId,
       offerId: input.offer.id,
-      provider: 'asaas',
-      providerCustomerId: input.asaasCustomerId,
-      providerSubscriptionId: input.paymentMethod === 'CREDIT_CARD' ? input.asaasId : null,
       asaasCustomerId: input.asaasCustomerId,
       asaasId: input.asaasId,
       paymentMethod: input.paymentMethod,
@@ -143,10 +129,7 @@ async function upsertSubscription(input: {
       isActive: input.isActive,
       purchaseDate: input.purchaseDate ?? null,
       expiresAt: input.expiresAt ?? null,
-      billingCycleStartDate: input.billingCycleStartDate,
-      billingCycleEndDate: input.billingCycleEndDate,
-      nextResetDate: input.nextResetDate,
-      canceledAtPeriodEnd: false,
+      trialEndsAt: input.trialEndsAt ?? null,
       pixAutomaticAuthId: input.pixAutomaticAuthId ?? null,
     },
   })
@@ -219,6 +202,18 @@ function buildExpiration(planCode: BillingCatalogPlanCode, baseDate = new Date()
   return expiresAt
 }
 
+function buildTrialEndDate(baseDate = new Date()) {
+  const trialEnds = new Date(baseDate)
+  trialEnds.setDate(trialEnds.getDate() + 14) // 14 days trial
+  return trialEnds
+}
+
+function buildNextDueDateWithTrial(baseDate = new Date()) {
+  const nextDueDate = new Date(baseDate)
+  nextDueDate.setDate(nextDueDate.getDate() + 14) // Start billing after trial
+  return nextDueDate.toISOString().split('T')[0]
+}
+
 export class BillingPaymentService {
   static async createCreditCardCheckout(input: {
     organizationId: string
@@ -239,12 +234,16 @@ export class BillingPaymentService {
     const description = buildDescription(plan.code, 'CREDIT_CARD')
 
     if (plan.code === 'monthly') {
+      const now = new Date()
+      const trialEndsAt = buildTrialEndDate(now)
+      const nextDueDate = buildNextDueDateWithTrial(now)
+
       const asaasSubscription = await AsaasClient.post<AsaasSubscription>('/subscriptions', {
         customer: customer.asaasCustomerId,
         billingType: 'CREDIT_CARD',
         cycle: 'MONTHLY',
         value: offer.amount,
-        nextDueDate: todayDateString(),
+        nextDueDate,
         description,
         externalReference: input.organizationId,
         remoteIp: input.remoteIp,
@@ -266,23 +265,19 @@ export class BillingPaymentService {
         throw new Error('Asaas did not return the first subscription payment')
       }
 
-      const now = new Date()
       const expiresAt = buildExpiration(plan.code, now)
       const status = mapAsaasPaymentStatus(firstPayment.status)
       const subscription = await upsertSubscription({
         organizationId: input.organizationId,
-        planId: plan.id,
         offer,
         asaasCustomerId: customer.asaasCustomerId!,
         asaasId: asaasSubscription.id,
         paymentMethod: 'CREDIT_CARD',
         status,
-        purchaseDate: status === 'active' ? now : null,
-        expiresAt: status === 'active' ? expiresAt : null,
-        isActive: status === 'active',
-        billingCycleStartDate: now,
-        billingCycleEndDate: expiresAt,
-        nextResetDate: expiresAt,
+        purchaseDate: status === 'ACTIVE' ? now : null,
+        expiresAt: status === 'ACTIVE' ? expiresAt : null,
+        isActive: status === 'ACTIVE',
+        trialEndsAt: trialEndsAt,
       })
       const invoice = await upsertInvoice({
         organizationId: input.organizationId,
@@ -308,7 +303,7 @@ export class BillingPaymentService {
         invoiceId: invoice.id,
         status,
         paymentMethod: 'CREDIT_CARD' as const,
-        requiresAction: status !== 'active',
+        requiresAction: status !== 'ACTIVE',
       }
     }
 
@@ -336,7 +331,6 @@ export class BillingPaymentService {
     const status = mapAsaasPaymentStatus(payment.status)
     const subscription = await upsertSubscription({
       organizationId: input.organizationId,
-      planId: plan.id,
       offer,
       asaasCustomerId: customer.asaasCustomerId!,
       asaasId: payment.id,
@@ -345,9 +339,6 @@ export class BillingPaymentService {
       purchaseDate: status === 'active' ? now : null,
       expiresAt: status === 'active' ? expiresAt : null,
       isActive: status === 'active',
-      billingCycleStartDate: now,
-      billingCycleEndDate: expiresAt,
-      nextResetDate: expiresAt,
     })
     const invoice = await upsertInvoice({
       organizationId: input.organizationId,
@@ -404,7 +395,6 @@ export class BillingPaymentService {
     const status = mapAsaasPaymentStatus(payment.status)
     const subscription = await upsertSubscription({
       organizationId: input.organizationId,
-      planId: plan.id,
       offer,
       asaasCustomerId: customer.asaasCustomerId!,
       asaasId: payment.id,
@@ -413,9 +403,6 @@ export class BillingPaymentService {
       purchaseDate: status === 'active' ? now : null,
       expiresAt: status === 'active' ? expiresAt : null,
       isActive: status === 'active',
-      billingCycleStartDate: now,
-      billingCycleEndDate: expiresAt,
-      nextResetDate: expiresAt,
     })
     const invoice = await upsertInvoice({
       organizationId: input.organizationId,
@@ -487,21 +474,16 @@ export class BillingPaymentService {
     })
 
     const now = new Date()
-    const expiresAt = buildExpiration(plan.code, now)
     const subscription = await upsertSubscription({
       organizationId: input.organizationId,
-      planId: plan.id,
       offer,
       asaasCustomerId: customer.asaasCustomerId!,
       asaasId: authorization.id,
       paymentMethod: 'PIX_AUTOMATIC',
-      status: 'pending',
+      status: 'PENDING',
       purchaseDate: null,
       expiresAt: null,
       isActive: false,
-      billingCycleStartDate: now,
-      billingCycleEndDate: expiresAt,
-      nextResetDate: expiresAt,
       pixAutomaticAuthId: authorization.id,
     })
 
@@ -568,29 +550,25 @@ export class BillingPaymentService {
         where: { id: invoice.subscriptionId },
         select: {
           id: true,
-          plan: { select: { code: true } },
+          offer: { select: { plan: { select: { code: true } } } },
         },
       })
 
       if (subscription) {
         const now = paidAt ?? new Date()
-        const expiresAt = buildExpiration(
-          subscription.plan?.code === 'annual' ? 'annual' : 'monthly',
-          now,
-        )
+        const planCode = subscription.offer?.plan.code === 'YEARLY' ? 'annual' : 'monthly'
+        const expiresAt = buildExpiration(planCode, now)
 
         await prisma.billingSubscription.update({
           where: { id: subscription.id },
           data: {
             status: nextStatus,
-            isActive: nextStatus === 'active',
-            purchaseDate: nextStatus === 'active' ? now : undefined,
-            expiresAt: nextStatus === 'active' ? expiresAt : undefined,
-            billingCycleEndDate: nextStatus === 'active' ? expiresAt : undefined,
-            nextResetDate: nextStatus === 'active' ? expiresAt : undefined,
-            failureReason: nextStatus === 'past_due' ? 'Pagamento em atraso' : null,
-            failureCount: nextStatus === 'past_due' ? { increment: 1 } : undefined,
-            lastFailureAt: nextStatus === 'past_due' ? new Date() : null,
+            isActive: nextStatus === 'ACTIVE',
+            purchaseDate: nextStatus === 'ACTIVE' ? now : undefined,
+            expiresAt: nextStatus === 'ACTIVE' ? expiresAt : undefined,
+            failureReason: nextStatus === 'OVERDUE' ? 'FAILED_DEBIT' : null,
+            failureCount: nextStatus === 'OVERDUE' ? { increment: 1 } : undefined,
+            lastFailureAt: nextStatus === 'OVERDUE' ? new Date() : null,
           },
         })
       }

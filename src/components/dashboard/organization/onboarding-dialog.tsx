@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AlertCircle, ArrowLeft, Building2, CheckCircle2, Loader2, UserRound } from 'lucide-react'
-import { VisuallyHidden } from 'radix-ui'
 import { toast } from 'sonner'
 
 import { apiFetch } from '@/lib/api-client'
@@ -374,17 +373,13 @@ export function OnboardingDialog({
         }
       }}
     >
-      <DialogTitle asChild>
-        <VisuallyHidden>
-          {isEditMode ? 'Editar dados fiscais' : 'Cadastro de Organização'}
-        </VisuallyHidden>
+      <DialogTitle className="sr-only">
+        {isEditMode ? 'Editar dados fiscais' : 'Cadastro de Organização'}
       </DialogTitle>
-      <DialogDescription asChild>
-        <VisuallyHidden>
-          {isEditMode
-            ? 'Atualize o cadastro fiscal da sua conta.'
-            : 'Complete o cadastro da sua organização com os dados fiscais.'}
-        </VisuallyHidden>
+      <DialogDescription className="sr-only">
+        {isEditMode
+          ? 'Atualize o cadastro fiscal da sua conta.'
+          : 'Complete o cadastro da sua organização com os dados fiscais.'}
       </DialogDescription>
       <DialogContent
         className="w-full max-w-lg gap-0 overflow-hidden p-0"
