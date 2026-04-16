@@ -8,6 +8,7 @@ import { formatDate } from '@/lib/date/format-date'
 import { getBillingStatusLabel } from '@/lib/billing/subscription-status'
 import { SubscriptionFailureAlert } from './subscription-failure-alert'
 import { CheckoutPixQrcode } from './checkout-pix-qrcode'
+import { BillingPlanInvoice } from './billing-plan-invoice'
 import { CheckoutStatusTokenService } from '@/services/billing/checkout-status-token.service'
 
 const statusTone = {
@@ -50,11 +51,14 @@ export function BillingStatus() {
   const tone = statusTone[subscription.status]
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-4 rounded-lg border border-border bg-card p-6"
-    >
+    <div className="space-y-6">
+      <BillingPlanInvoice />
+
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="space-y-4 rounded-lg border border-border bg-card p-6"
+      >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="text-lg font-semibold text-foreground">{subscription.planName || subscription.planType}</h3>
@@ -151,6 +155,7 @@ export function BillingStatus() {
           ) : null}
         </div>
       ) : null}
-    </motion.div>
+      </motion.div>
+    </div>
   )
 }
