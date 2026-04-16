@@ -1,22 +1,10 @@
 import { prisma } from '@/lib/db/prisma'
 import { metaAccessTokenService } from './access-token.service'
-import axios from 'axios'
 import { logger } from '@/lib/utils/logger'
-
-function requireEnv(name: string): string {
-  const value = process.env[name]
-  if (!value) throw new Error(`[AdEnrichmentService] ${name} environment variable is required`)
-  return value
-}
+import { MetaApiError, getMetaApiErrorMessage, metaApiRequest } from './meta-api'
 
 function resolveEnrichmentErrorMessage(error: unknown): string {
-  if (axios.isAxiosError(error)) {
-    const data = error.response?.data as { error?: { message?: string } } | undefined
-    return data?.error?.message ?? error.message
-  }
-
-  if (error instanceof Error) return error.message
-  return 'Erro desconhecido'
+  return getMetaApiErrorMessage(error)
 }
 
 export class MetaAdEnrichmentService {
@@ -48,10 +36,12 @@ export class MetaAdEnrichmentService {
     if (!tracking || !tracking.metaAdId) return
     if (tracking.metaEnrichmentStatus === 'SUCCESS') return
 
-    if (!tracking.ticket.projectId || !tracking.ticket.project || tracking.ticket.project.organizationId !== tracking.ticket.organizationId) {
-      logger.warn(
-        `[Enrichment] Ticket ${ticketId} has invalid or missing project reference.`
-      )
+    if (
+      !tracking.ticket.projectId ||
+      !tracking.ticket.project ||
+      tracking.ticket.project.organizationId !== tracking.ticket.organizationId
+    ) {
+      logger.warn(`[Enrichment] Ticket ${ticketId} has invalid or missing project reference.`)
       return
     }
 
@@ -76,15 +66,17 @@ export class MetaAdEnrichmentService {
 
     try {
       // 1. Fetch Ad Details
-      const adResponse = await axios.get(
-        `https://graph.facebook.com/${requireEnv('META_API_VERSION')}/${tracking.metaAdId}`,
-        {
-          params: {
-            access_token: token,
-            fields: 'name,adset{id,name},campaign{id,name},account_id',
-          },
-        }
-      )
+      const adResponse = await metaApiRequest<{
+        name?: string
+        adset?: { id?: string; name?: string }
+        campaign?: { id?: string; name?: string }
+        account_id?: string
+      }>(tracking.metaAdId, {
+        params: {
+          access_token: token,
+          fields: 'name,adset{id,name},campaign{id,name},account_id',
+        },
+      })
 
       const adData = adResponse.data
 
@@ -107,7 +99,10 @@ export class MetaAdEnrichmentService {
     } catch (error: unknown) {
       const message = resolveEnrichmentErrorMessage(error)
 
-      logger.error({ err: error, context: axios.isAxiosError(error) ? error.response?.data : message }, `[Enrichment] Error enriching ticket ${ticketId}`)
+      logger.error(
+        { err: error, context: error instanceof MetaApiError ? error.data : message },
+        `[Enrichment] Error enriching ticket ${ticketId}`
+      )
 
       await prisma.ticketTracking.update({
         where: { ticketId },

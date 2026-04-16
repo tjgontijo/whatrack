@@ -15,13 +15,7 @@ const metaAccessTokenServiceMock = vi.hoisted(() => ({
   getDecryptedToken: vi.fn(),
 }))
 
-const axiosMock = vi.hoisted(() => ({
-  get: vi.fn(),
-  isAxiosError: vi.fn((error: unknown) => {
-    if (!error || typeof error !== 'object') return false
-    return 'isAxiosError' in error
-  }),
-}))
+const fetchMock = vi.hoisted(() => vi.fn())
 
 vi.mock('@/lib/db/prisma', () => ({
   prisma: prismaMock,
@@ -31,22 +25,21 @@ vi.mock('@/services/meta-ads/access-token.service', () => ({
   metaAccessTokenService: metaAccessTokenServiceMock,
 }))
 
-vi.mock('axios', () => ({
-  default: axiosMock,
-}))
-
 import { metaAdEnrichmentService } from '@/services/meta-ads/ad-enrichment.service'
 
 describe('ad-enrichment.service', () => {
   const originalMetaApiVersion = process.env.META_API_VERSION
+  const originalFetch = global.fetch
 
   beforeEach(() => {
     vi.clearAllMocks()
     process.env.META_API_VERSION = 'v21.0'
+    global.fetch = fetchMock as unknown as typeof fetch
   })
 
   afterEach(() => {
     process.env.META_API_VERSION = originalMetaApiVersion
+    global.fetch = originalFetch
   })
 
   it('does nothing when tracking has no meta ad id', async () => {
@@ -67,7 +60,7 @@ describe('ad-enrichment.service', () => {
     expect(prismaMock.ticketTracking.update).not.toHaveBeenCalled()
   })
 
-  it('stores failed status with message from axios error payload', async () => {
+  it('stores failed status with message from meta api payload', async () => {
     prismaMock.ticketTracking.findUnique.mockResolvedValueOnce({
       metaAdId: 'ad-1',
       metaEnrichmentStatus: 'PENDING',
@@ -83,16 +76,17 @@ describe('ad-enrichment.service', () => {
 
     metaAccessTokenServiceMock.getDecryptedToken.mockResolvedValueOnce('token-1')
 
-    axiosMock.get.mockRejectedValueOnce({
-      isAxiosError: true,
-      message: 'Request failed',
-      response: {
-        data: {
-          error: {
-            message: 'Meta API failed',
-          },
-        },
+    fetchMock.mockResolvedValueOnce({
+      ok: false,
+      status: 400,
+      headers: {
+        get: vi.fn(() => 'application/json'),
       },
+      json: vi.fn(async () => ({
+        error: {
+          message: 'Meta API failed',
+        },
+      })),
     })
 
     await metaAdEnrichmentService.enrichTicket('ticket-1')

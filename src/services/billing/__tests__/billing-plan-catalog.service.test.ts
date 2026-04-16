@@ -22,8 +22,11 @@ describe('billing-plan-catalog.service', () => {
       {
         id: 'plan_1',
         name: 'WhaTrack Base',
-        slug: 'platform_base',
+        slug: 'monthly',
+        code: 'monthly',
         description: 'Plano base',
+        cycle: 'MONTHLY',
+        accessDays: 30,
         kind: 'base',
         addonType: null,
         monthlyPrice: 497,
@@ -48,6 +51,19 @@ describe('billing-plan-catalog.service', () => {
           features: ['3 clientes ativos incluídos'],
           additionals: ['Projeto adicional por R$ 97/mês'],
         },
+        offers: [
+          {
+            id: 'offer_1',
+            code: 'monthly_credit_card',
+            paymentMethod: 'CREDIT_CARD',
+            amount: 497,
+            currency: 'BRL',
+            maxInstallments: 1,
+            installmentRate: null,
+            isActive: true,
+            validUntil: null,
+          },
+        ],
         deletedAt: null,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -57,11 +73,12 @@ describe('billing-plan-catalog.service', () => {
     const result = await listPublicBillingPlans()
 
     expect(result[0]).toMatchObject({
-      slug: 'platform_base',
+      slug: 'monthly',
       kind: 'base',
       trialDays: 14,
       includedProjects: 3,
       includedConversionsPerProject: 300,
+      code: 'monthly',
     })
   })
 

@@ -1,6 +1,24 @@
 -- CreateExtension
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
+-- CreateEnum
+CREATE TYPE "BillingSubscriptionStatus" AS ENUM ('INACTIVE', 'PENDING', 'ACTIVE', 'OVERDUE', 'CANCELED', 'EXPIRED', 'FAILED');
+
+-- CreateEnum
+CREATE TYPE "BillingFailureReason" AS ENUM ('EXPIRED', 'DENIED', 'CANCELED_BY_USER', 'FAILED_DEBIT', 'OTHER');
+
+-- CreateEnum
+CREATE TYPE "BillingInvoiceStatus" AS ENUM ('PENDING', 'CONFIRMED', 'RECEIVED', 'OVERDUE', 'REFUNDED', 'REFUND_REQUESTED', 'CHARGEBACK_REQUESTED', 'CHARGEBACK_DISPUTE', 'AWAITING_CHARGEBACK_REVERSAL', 'DUNNING_REQUESTED', 'DUNNING_RECEIVED', 'CANCELLED');
+
+-- CreateEnum
+CREATE TYPE "BillingPaymentMethod" AS ENUM ('CREDIT_CARD', 'PIX', 'PIX_AUTOMATIC', 'BOLETO');
+
+-- CreateEnum
+CREATE TYPE "BillingCycle" AS ENUM ('MONTHLY', 'YEARLY');
+
+-- CreateEnum
+CREATE TYPE "AuditActor" AS ENUM ('USER', 'ADMIN', 'SYSTEM');
+
 -- CreateTable
 CREATE TABLE "auth_user_roles" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
@@ -32,17 +50,6 @@ CREATE TABLE "crm_sale_statuses" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "crm_sale_statuses_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "billing_subscription_statuses" (
-    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "name" TEXT NOT NULL,
-    "description" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "billing_subscription_statuses_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -195,6 +202,7 @@ CREATE TABLE "org_organizations" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "name" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
+    "asaasCustomerId" TEXT,
     "logo" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -333,6 +341,7 @@ CREATE TABLE "crm_leads" (
 CREATE TABLE "crm_conversations" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "organizationId" UUID NOT NULL,
+    "projectId" UUID,
     "leadId" UUID NOT NULL,
     "instanceId" UUID NOT NULL,
     "metaConversationId" TEXT,
@@ -357,6 +366,7 @@ CREATE TABLE "crm_tickets" (
     "projectId" UUID,
     "conversationId" UUID NOT NULL,
     "stageId" UUID NOT NULL,
+    "stageEnteredAt" TIMESTAMP(3),
     "windowExpiresAt" TIMESTAMP(3),
     "windowOpen" BOOLEAN NOT NULL DEFAULT true,
     "assigneeId" UUID,
@@ -385,6 +395,7 @@ CREATE TABLE "crm_tickets" (
 CREATE TABLE "crm_ticket_stages" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "organizationId" UUID NOT NULL,
+    "projectId" UUID,
     "name" TEXT NOT NULL,
     "color" TEXT NOT NULL,
     "order" INTEGER NOT NULL,
@@ -457,244 +468,6 @@ CREATE TABLE "crm_item_categories" (
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "crm_item_categories_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "ai_lead_contexts" (
-    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "organizationId" UUID NOT NULL,
-    "projectId" UUID,
-    "leadId" UUID NOT NULL,
-    "profileSummary" TEXT,
-    "detectedLanguage" TEXT,
-    "sentimentTrend" TEXT,
-    "longMemory" JSONB,
-    "lifecycleStage" TEXT NOT NULL DEFAULT 'unknown',
-    "aiScore" INTEGER,
-    "aiScoreReason" TEXT,
-    "aiScoreUpdatedAt" TIMESTAMP(3),
-    "suggestedNextAction" TEXT,
-    "suggestedNextActionAt" TIMESTAMP(3),
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "ai_lead_contexts_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "ai_events" (
-    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "organizationId" UUID NOT NULL,
-    "projectId" UUID,
-    "leadId" UUID,
-    "ticketId" UUID,
-    "agentId" UUID,
-    "type" TEXT NOT NULL,
-    "channel" TEXT,
-    "direction" TEXT,
-    "metadata" JSONB,
-    "modelId" TEXT,
-    "inputTokens" INTEGER,
-    "outputTokens" INTEGER,
-    "costUsd" DECIMAL(12,6),
-    "status" TEXT NOT NULL DEFAULT 'success',
-    "errorMsg" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "ai_events_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "ai_agents" (
-    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "slug" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "description" TEXT,
-    "type" TEXT NOT NULL,
-    "channel" TEXT NOT NULL,
-    "isSystem" BOOLEAN NOT NULL DEFAULT false,
-    "defaultConfig" JSONB,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "ai_agents_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "ai_agent_project_configs" (
-    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "organizationId" UUID NOT NULL,
-    "projectId" UUID NOT NULL,
-    "agentId" UUID NOT NULL,
-    "enabled" BOOLEAN NOT NULL DEFAULT true,
-    "paused" BOOLEAN NOT NULL DEFAULT false,
-    "config" JSONB,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "ai_agent_project_configs_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "ai_cadences" (
-    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "organizationId" UUID NOT NULL,
-    "projectId" UUID NOT NULL,
-    "agentId" UUID,
-    "name" TEXT NOT NULL,
-    "slug" TEXT NOT NULL,
-    "trigger" TEXT NOT NULL,
-    "isActive" BOOLEAN NOT NULL DEFAULT true,
-    "config" JSONB,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "ai_cadences_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "ai_cadence_steps" (
-    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "cadenceId" UUID NOT NULL,
-    "order" INTEGER NOT NULL,
-    "delayHours" INTEGER NOT NULL DEFAULT 0,
-    "windowMode" TEXT NOT NULL DEFAULT 'anytime',
-    "actionType" TEXT NOT NULL,
-    "actionConfig" JSONB,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "ai_cadence_steps_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "ai_cadence_enrollments" (
-    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "organizationId" UUID NOT NULL,
-    "projectId" UUID NOT NULL,
-    "cadenceId" UUID NOT NULL,
-    "leadId" UUID NOT NULL,
-    "ticketId" UUID,
-    "status" TEXT NOT NULL DEFAULT 'active',
-    "currentStep" INTEGER NOT NULL DEFAULT 0,
-    "nextStepAt" TIMESTAMP(3),
-    "completedAt" TIMESTAMP(3),
-    "interruptedAt" TIMESTAMP(3),
-    "interruptReason" TEXT,
-    "metadata" JSONB,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "ai_cadence_enrollments_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "ai_project_configs" (
-    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "organizationId" UUID NOT NULL,
-    "projectId" UUID NOT NULL,
-    "blueprintSlug" TEXT NOT NULL DEFAULT 'whatsapp-commercial-agent',
-    "businessName" TEXT,
-    "niche" TEXT,
-    "productDescription" TEXT,
-    "pricingInfo" TEXT,
-    "nextStepType" TEXT,
-    "assistantName" TEXT,
-    "escalationContact" TEXT,
-    "businessHours" JSONB,
-    "debounceMs" INTEGER NOT NULL DEFAULT 8000,
-    "testingModeEnabled" BOOLEAN NOT NULL DEFAULT false,
-    "testingPhones" JSONB,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "ai_project_configs_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "ai_conversation_states" (
-    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "organizationId" UUID NOT NULL,
-    "projectId" UUID NOT NULL,
-    "conversationId" UUID NOT NULL,
-    "pendingMessages" JSONB,
-    "pendingMessagesUpdatedAt" TIMESTAMP(3),
-    "lastProcessedFingerprint" TEXT,
-    "lastProcessedAt" TIMESTAMP(3),
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "ai_conversation_states_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "ai_skills" (
-    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "organizationId" UUID,
-    "projectId" UUID,
-    "slug" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "description" TEXT,
-    "isSystem" BOOLEAN NOT NULL DEFAULT false,
-    "isActive" BOOLEAN NOT NULL DEFAULT true,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "ai_skills_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "ai_skill_versions" (
-    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "skillId" UUID NOT NULL,
-    "version" TEXT NOT NULL,
-    "prompt" TEXT NOT NULL,
-    "mode" TEXT NOT NULL,
-    "isPublished" BOOLEAN NOT NULL DEFAULT false,
-    "publishedAt" TIMESTAMP(3),
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "ai_skill_versions_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "ai_skill_execution_logs" (
-    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "executionKey" TEXT NOT NULL,
-    "organizationId" UUID NOT NULL,
-    "projectId" UUID NOT NULL,
-    "conversationId" UUID NOT NULL,
-    "ticketId" UUID,
-    "skillId" UUID NOT NULL,
-    "skillVersion" TEXT NOT NULL,
-    "routingDecision" JSONB,
-    "output" TEXT,
-    "outboundPayload" JSONB,
-    "outboundResult" JSONB,
-    "relatedEventIds" JSONB,
-    "success" BOOLEAN NOT NULL DEFAULT false,
-    "errorMessage" TEXT,
-    "durationMs" INTEGER,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "ai_skill_execution_logs_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "ai_crisis_keywords" (
-    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "organizationId" UUID NOT NULL,
-    "projectId" UUID NOT NULL,
-    "keyword" TEXT NOT NULL,
-    "isActive" BOOLEAN NOT NULL DEFAULT true,
-    "escalationResponse" TEXT NOT NULL,
-    "severity" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "ai_crisis_keywords_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -898,12 +671,99 @@ CREATE TABLE "whatsapp_campaigns" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "createdById" UUID NOT NULL,
-    "approvedById" UUID,
-    "approvedAt" TIMESTAMP(3),
     "cancelledAt" TIMESTAMP(3),
     "cancelledById" UUID,
+    "shouldCreateLeads" BOOLEAN NOT NULL DEFAULT true,
+    "isAbTest" BOOLEAN NOT NULL DEFAULT false,
+    "abTestConfig" JSONB,
+    "audienceSourceType" TEXT,
+    "audienceSourceId" UUID,
 
     CONSTRAINT "whatsapp_campaigns_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "crm_lead_tags" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "organizationId" UUID NOT NULL,
+    "projectId" UUID,
+    "name" TEXT NOT NULL,
+    "color" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "crm_lead_tags_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "crm_lead_tag_assignments" (
+    "leadId" UUID NOT NULL,
+    "tagId" UUID NOT NULL,
+    "assignedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "crm_lead_tag_assignments_pkey" PRIMARY KEY ("leadId","tagId")
+);
+
+-- CreateTable
+CREATE TABLE "whatsapp_contact_lists" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "organizationId" UUID NOT NULL,
+    "projectId" UUID,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "whatsapp_contact_lists_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "whatsapp_contact_list_members" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "listId" UUID NOT NULL,
+    "phone" TEXT NOT NULL,
+    "normalizedPhone" TEXT NOT NULL,
+    "data" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "whatsapp_contact_list_members_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "whatsapp_audience_segments" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "organizationId" UUID NOT NULL,
+    "projectId" UUID,
+    "name" TEXT NOT NULL,
+    "filters" JSONB NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "whatsapp_audience_segments_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "whatsapp_campaign_events" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "campaignId" UUID NOT NULL,
+    "type" TEXT NOT NULL,
+    "userId" UUID,
+    "metadata" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "whatsapp_campaign_events_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "whatsapp_campaign_variants" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "campaignId" UUID NOT NULL,
+    "label" TEXT NOT NULL,
+    "dispatchGroupId" UUID NOT NULL,
+    "splitPercent" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "whatsapp_campaign_variants_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -921,6 +781,7 @@ CREATE TABLE "whatsapp_campaign_dispatch_groups" (
     "failCount" INTEGER NOT NULL DEFAULT 0,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "isRemainder" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "whatsapp_campaign_dispatch_groups_pkey" PRIMARY KEY ("id")
 );
@@ -931,6 +792,7 @@ CREATE TABLE "whatsapp_campaign_recipients" (
     "dispatchGroupId" UUID NOT NULL,
     "campaignId" UUID NOT NULL,
     "leadId" UUID,
+    "variantId" UUID,
     "phone" TEXT NOT NULL,
     "normalizedPhone" TEXT NOT NULL,
     "variables" JSONB,
@@ -950,30 +812,18 @@ CREATE TABLE "whatsapp_campaign_recipients" (
 );
 
 -- CreateTable
-CREATE TABLE "whatsapp_campaign_imports" (
+CREATE TABLE "whatsapp_opt_outs" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "campaignId" UUID NOT NULL,
-    "fileName" TEXT NOT NULL,
-    "totalRows" INTEGER NOT NULL DEFAULT 0,
-    "processedRows" INTEGER NOT NULL DEFAULT 0,
-    "status" TEXT NOT NULL DEFAULT 'PENDING',
-    "errorMessage" TEXT,
+    "organizationId" UUID NOT NULL,
+    "phone" TEXT NOT NULL,
+    "source" TEXT NOT NULL,
+    "campaignId" UUID,
+    "note" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdBy" UUID,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "whatsapp_campaign_imports_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "whatsapp_campaign_approvals" (
-    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "campaignId" UUID NOT NULL,
-    "userId" UUID NOT NULL,
-    "action" TEXT NOT NULL,
-    "comment" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "whatsapp_campaign_approvals_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "whatsapp_opt_outs_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -1102,102 +952,121 @@ CREATE TABLE "org_audit_logs" (
 CREATE TABLE "billing_subscriptions" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "organizationId" UUID NOT NULL,
-    "planId" TEXT,
-    "provider" TEXT NOT NULL,
-    "providerCustomerId" TEXT NOT NULL,
-    "providerSubscriptionId" TEXT,
-    "billingCycleStartDate" TIMESTAMP(3) NOT NULL,
-    "billingCycleEndDate" TIMESTAMP(3) NOT NULL,
-    "nextResetDate" TIMESTAMP(3) NOT NULL,
-    "trialEndsAt" TIMESTAMP(3),
-    "status" TEXT NOT NULL DEFAULT 'active',
-    "canceledAtPeriodEnd" BOOLEAN NOT NULL DEFAULT false,
+    "offerId" UUID,
+    "asaasId" TEXT,
+    "asaasCustomerId" TEXT,
+    "pixAutomaticAuthId" TEXT,
+    "status" "BillingSubscriptionStatus" NOT NULL DEFAULT 'INACTIVE',
+    "paymentMethod" "BillingPaymentMethod",
+    "isActive" BOOLEAN NOT NULL DEFAULT false,
+    "purchaseDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "expiresAt" TIMESTAMP(3),
+    "canceledAt" TIMESTAMP(3),
+    "failureReason" "BillingFailureReason",
+    "failureCount" INTEGER NOT NULL DEFAULT 0,
+    "lastFailureAt" TIMESTAMP(3),
+    "lastFailureMessage" TEXT,
+    "nextRetryAt" TIMESTAMP(3),
+    "lastRetryAt" TIMESTAMP(3),
+    "failureNotificationSentAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    "canceledAt" TIMESTAMP(3),
 
     CONSTRAINT "billing_subscriptions_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "billing_subscription_items" (
+CREATE TABLE "billing_plans" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "subscriptionId" UUID NOT NULL,
-    "planId" TEXT NOT NULL,
-    "stripeSubscriptionItemId" TEXT,
-    "quantity" INTEGER NOT NULL DEFAULT 0,
-    "unitPrice" DECIMAL(10,2) NOT NULL,
-    "currency" TEXT NOT NULL DEFAULT 'BRL',
+    "code" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "cycle" "BillingCycle" NOT NULL,
+    "accessDays" INTEGER NOT NULL,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "sortOrder" INTEGER NOT NULL DEFAULT 0,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "billing_subscription_items_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "billing_webhook_logs" (
-    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "provider" TEXT NOT NULL,
-    "eventType" TEXT NOT NULL,
-    "payload" JSONB NOT NULL,
-    "eventId" TEXT,
-    "isProcessed" BOOLEAN NOT NULL DEFAULT false,
-    "processingError" TEXT,
-    "processedAt" TIMESTAMP(3),
-    "retryCount" INTEGER NOT NULL DEFAULT 0,
-    "lastRetryAt" TIMESTAMP(3),
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "billing_webhook_logs_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "billing_plans" (
-    "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "slug" TEXT NOT NULL,
-    "description" TEXT,
-    "kind" TEXT NOT NULL,
-    "addonType" TEXT,
-    "monthlyPrice" DECIMAL(10,2) NOT NULL,
-    "currency" TEXT NOT NULL DEFAULT 'BRL',
     "includedProjects" INTEGER NOT NULL DEFAULT 0,
     "includedWhatsAppPerProject" INTEGER NOT NULL DEFAULT 0,
     "includedMetaAdAccountsPerProject" INTEGER NOT NULL DEFAULT 0,
     "includedConversionsPerProject" INTEGER NOT NULL DEFAULT 0,
-    "supportLevel" TEXT NOT NULL,
-    "stripeProductId" TEXT,
-    "stripePriceId" TEXT,
-    "syncStatus" TEXT NOT NULL DEFAULT 'pending',
-    "syncError" TEXT,
-    "syncedAt" TIMESTAMP(3),
-    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "supportLevel" TEXT NOT NULL DEFAULT 'standard',
     "displayOrder" INTEGER NOT NULL DEFAULT 0,
     "isHighlighted" BOOLEAN NOT NULL DEFAULT false,
     "contactSalesOnly" BOOLEAN NOT NULL DEFAULT false,
     "metadata" JSONB,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-    "createdBy" TEXT,
-    "deletedAt" TIMESTAMP(3),
 
     CONSTRAINT "billing_plans_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "billing_plan_history" (
-    "id" TEXT NOT NULL,
-    "planId" TEXT NOT NULL,
-    "action" TEXT NOT NULL,
-    "oldValues" JSONB,
-    "newValues" JSONB,
-    "syncAction" TEXT,
-    "syncResult" JSONB,
-    "syncError" TEXT,
-    "changedBy" TEXT,
-    "changedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+CREATE TABLE "billing_offers" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "code" TEXT NOT NULL,
+    "planId" UUID NOT NULL,
+    "paymentMethod" "BillingPaymentMethod" NOT NULL,
+    "amount" DECIMAL(10,2) NOT NULL,
+    "currency" TEXT NOT NULL DEFAULT 'BRL',
+    "maxInstallments" INTEGER NOT NULL DEFAULT 1,
+    "installmentRate" DECIMAL(6,4),
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "validFrom" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "validUntil" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "billing_plan_history_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "billing_offers_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "billing_invoices" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "organizationId" UUID NOT NULL,
+    "subscriptionId" UUID,
+    "offerId" UUID,
+    "asaasId" TEXT NOT NULL,
+    "status" "BillingInvoiceStatus" NOT NULL DEFAULT 'PENDING',
+    "paymentMethod" "BillingPaymentMethod" NOT NULL,
+    "value" DOUBLE PRECISION NOT NULL,
+    "netValue" DOUBLE PRECISION,
+    "description" TEXT,
+    "billingType" TEXT NOT NULL,
+    "dueDate" TIMESTAMP(3) NOT NULL,
+    "paidAt" TIMESTAMP(3),
+    "refundedAt" TIMESTAMP(3),
+    "invoiceUrl" TEXT,
+    "bankSlipUrl" TEXT,
+    "pixQrCode" TEXT,
+    "pixQrCodePayload" TEXT,
+    "pixQrCodeImage" TEXT,
+    "pixExpirationDate" TIMESTAMP(3),
+    "pixEmailSentAt" TIMESTAMP(3),
+    "pixWhatsappSentAt" TIMESTAMP(3),
+    "pixResendCount" INTEGER NOT NULL DEFAULT 0,
+    "pixLastResendAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "billing_invoices_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "billing_audit_logs" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "organizationId" UUID,
+    "userId" UUID,
+    "actor" "AuditActor" NOT NULL DEFAULT 'SYSTEM',
+    "action" TEXT NOT NULL,
+    "entity" TEXT NOT NULL,
+    "entityId" TEXT NOT NULL,
+    "asaasEventId" TEXT,
+    "asaasPaymentId" TEXT,
+    "previousState" JSONB,
+    "newState" JSONB,
+    "metadata" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "billing_audit_logs_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -1223,9 +1092,6 @@ CREATE UNIQUE INDEX "org_onboarding_statuses_name_key" ON "org_onboarding_status
 
 -- CreateIndex
 CREATE UNIQUE INDEX "crm_sale_statuses_name_key" ON "crm_sale_statuses"("name");
-
--- CreateIndex
-CREATE UNIQUE INDEX "billing_subscription_statuses_name_key" ON "billing_subscription_statuses"("name");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "whatsapp_onboarding_statuses_name_key" ON "whatsapp_onboarding_statuses"("name");
@@ -1274,6 +1140,9 @@ CREATE INDEX "crm_ticket_tracking_metaAdId_idx" ON "crm_ticket_tracking"("metaAd
 
 -- CreateIndex
 CREATE UNIQUE INDEX "org_organizations_slug_key" ON "org_organizations"("slug");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "org_organizations_asaasCustomerId_key" ON "org_organizations"("asaasCustomerId");
 
 -- CreateIndex
 CREATE INDEX "crm_projects_organizationId_idx" ON "crm_projects"("organizationId");
@@ -1348,6 +1217,9 @@ CREATE UNIQUE INDEX "crm_leads_organizationId_remote_jid_key" ON "crm_leads"("or
 CREATE INDEX "crm_conversations_organizationId_idx" ON "crm_conversations"("organizationId");
 
 -- CreateIndex
+CREATE INDEX "crm_conversations_projectId_idx" ON "crm_conversations"("projectId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "crm_conversations_leadId_instanceId_key" ON "crm_conversations"("leadId", "instanceId");
 
 -- CreateIndex
@@ -1369,10 +1241,10 @@ CREATE INDEX "crm_tickets_status_idx" ON "crm_tickets"("status");
 CREATE INDEX "crm_tickets_stageId_idx" ON "crm_tickets"("stageId");
 
 -- CreateIndex
-CREATE INDEX "crm_ticket_stages_organizationId_order_idx" ON "crm_ticket_stages"("organizationId", "order");
+CREATE INDEX "crm_ticket_stages_organizationId_projectId_order_idx" ON "crm_ticket_stages"("organizationId", "projectId", "order");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "crm_ticket_stages_organizationId_name_key" ON "crm_ticket_stages"("organizationId", "name");
+CREATE UNIQUE INDEX "crm_ticket_stages_organizationId_projectId_name_key" ON "crm_ticket_stages"("organizationId", "projectId", "name");
 
 -- CreateIndex
 CREATE INDEX "crm_sales_organizationId_idx" ON "crm_sales"("organizationId");
@@ -1427,129 +1299,6 @@ CREATE INDEX "crm_item_categories_active_idx" ON "crm_item_categories"("active")
 
 -- CreateIndex
 CREATE UNIQUE INDEX "crm_item_categories_organizationId_name_key" ON "crm_item_categories"("organizationId", "name");
-
--- CreateIndex
-CREATE UNIQUE INDEX "ai_lead_contexts_leadId_key" ON "ai_lead_contexts"("leadId");
-
--- CreateIndex
-CREATE INDEX "ai_lead_contexts_organizationId_projectId_idx" ON "ai_lead_contexts"("organizationId", "projectId");
-
--- CreateIndex
-CREATE INDEX "ai_lead_contexts_projectId_lifecycleStage_idx" ON "ai_lead_contexts"("projectId", "lifecycleStage");
-
--- CreateIndex
-CREATE INDEX "ai_lead_contexts_projectId_aiScore_idx" ON "ai_lead_contexts"("projectId", "aiScore");
-
--- CreateIndex
-CREATE INDEX "ai_events_organizationId_createdAt_idx" ON "ai_events"("organizationId", "createdAt");
-
--- CreateIndex
-CREATE INDEX "ai_events_projectId_createdAt_idx" ON "ai_events"("projectId", "createdAt");
-
--- CreateIndex
-CREATE INDEX "ai_events_leadId_createdAt_idx" ON "ai_events"("leadId", "createdAt");
-
--- CreateIndex
-CREATE INDEX "ai_events_ticketId_createdAt_idx" ON "ai_events"("ticketId", "createdAt");
-
--- CreateIndex
-CREATE INDEX "ai_events_organizationId_projectId_type_idx" ON "ai_events"("organizationId", "projectId", "type");
-
--- CreateIndex
-CREATE UNIQUE INDEX "ai_agents_slug_key" ON "ai_agents"("slug");
-
--- CreateIndex
-CREATE INDEX "ai_agents_type_idx" ON "ai_agents"("type");
-
--- CreateIndex
-CREATE INDEX "ai_agents_channel_idx" ON "ai_agents"("channel");
-
--- CreateIndex
-CREATE INDEX "ai_agents_isSystem_idx" ON "ai_agents"("isSystem");
-
--- CreateIndex
-CREATE INDEX "ai_agent_project_configs_organizationId_projectId_idx" ON "ai_agent_project_configs"("organizationId", "projectId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "ai_agent_project_configs_agentId_projectId_key" ON "ai_agent_project_configs"("agentId", "projectId");
-
--- CreateIndex
-CREATE INDEX "ai_cadences_projectId_isActive_idx" ON "ai_cadences"("projectId", "isActive");
-
--- CreateIndex
-CREATE INDEX "ai_cadences_organizationId_projectId_idx" ON "ai_cadences"("organizationId", "projectId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "ai_cadences_organizationId_projectId_slug_key" ON "ai_cadences"("organizationId", "projectId", "slug");
-
--- CreateIndex
-CREATE INDEX "ai_cadence_steps_cadenceId_idx" ON "ai_cadence_steps"("cadenceId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "ai_cadence_steps_cadenceId_order_key" ON "ai_cadence_steps"("cadenceId", "order");
-
--- CreateIndex
-CREATE INDEX "ai_cadence_enrollments_organizationId_projectId_status_next_idx" ON "ai_cadence_enrollments"("organizationId", "projectId", "status", "nextStepAt");
-
--- CreateIndex
-CREATE INDEX "ai_cadence_enrollments_cadenceId_leadId_idx" ON "ai_cadence_enrollments"("cadenceId", "leadId");
-
--- CreateIndex
-CREATE INDEX "ai_cadence_enrollments_leadId_status_idx" ON "ai_cadence_enrollments"("leadId", "status");
-
--- CreateIndex
-CREATE INDEX "ai_cadence_enrollments_organizationId_projectId_idx" ON "ai_cadence_enrollments"("organizationId", "projectId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "ai_project_configs_projectId_key" ON "ai_project_configs"("projectId");
-
--- CreateIndex
-CREATE INDEX "ai_project_configs_organizationId_projectId_idx" ON "ai_project_configs"("organizationId", "projectId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "ai_conversation_states_conversationId_key" ON "ai_conversation_states"("conversationId");
-
--- CreateIndex
-CREATE INDEX "ai_conversation_states_organizationId_projectId_idx" ON "ai_conversation_states"("organizationId", "projectId");
-
--- CreateIndex
-CREATE INDEX "ai_conversation_states_projectId_pendingMessagesUpdatedAt_idx" ON "ai_conversation_states"("projectId", "pendingMessagesUpdatedAt");
-
--- CreateIndex
-CREATE UNIQUE INDEX "ai_skills_slug_key" ON "ai_skills"("slug");
-
--- CreateIndex
-CREATE INDEX "ai_skills_organizationId_projectId_idx" ON "ai_skills"("organizationId", "projectId");
-
--- CreateIndex
-CREATE INDEX "ai_skills_isSystem_isActive_idx" ON "ai_skills"("isSystem", "isActive");
-
--- CreateIndex
-CREATE INDEX "ai_skill_versions_skillId_isPublished_idx" ON "ai_skill_versions"("skillId", "isPublished");
-
--- CreateIndex
-CREATE UNIQUE INDEX "ai_skill_versions_skillId_version_key" ON "ai_skill_versions"("skillId", "version");
-
--- CreateIndex
-CREATE UNIQUE INDEX "ai_skill_execution_logs_executionKey_key" ON "ai_skill_execution_logs"("executionKey");
-
--- CreateIndex
-CREATE INDEX "ai_skill_execution_logs_organizationId_projectId_createdAt_idx" ON "ai_skill_execution_logs"("organizationId", "projectId", "createdAt");
-
--- CreateIndex
-CREATE INDEX "ai_skill_execution_logs_conversationId_createdAt_idx" ON "ai_skill_execution_logs"("conversationId", "createdAt");
-
--- CreateIndex
-CREATE INDEX "ai_skill_execution_logs_ticketId_createdAt_idx" ON "ai_skill_execution_logs"("ticketId", "createdAt");
-
--- CreateIndex
-CREATE INDEX "ai_skill_execution_logs_skillId_createdAt_idx" ON "ai_skill_execution_logs"("skillId", "createdAt");
-
--- CreateIndex
-CREATE INDEX "ai_crisis_keywords_organizationId_projectId_isActive_idx" ON "ai_crisis_keywords"("organizationId", "projectId", "isActive");
-
--- CreateIndex
-CREATE UNIQUE INDEX "ai_crisis_keywords_projectId_keyword_key" ON "ai_crisis_keywords"("projectId", "keyword");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "org_companies_organizationId_key" ON "org_companies"("organizationId");
@@ -1684,6 +1433,54 @@ CREATE INDEX "whatsapp_campaigns_status_idx" ON "whatsapp_campaigns"("status");
 CREATE INDEX "whatsapp_campaigns_scheduledAt_idx" ON "whatsapp_campaigns"("scheduledAt");
 
 -- CreateIndex
+CREATE INDEX "crm_lead_tags_organizationId_idx" ON "crm_lead_tags"("organizationId");
+
+-- CreateIndex
+CREATE INDEX "crm_lead_tags_projectId_idx" ON "crm_lead_tags"("projectId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "crm_lead_tags_organizationId_projectId_name_key" ON "crm_lead_tags"("organizationId", "projectId", "name");
+
+-- CreateIndex
+CREATE INDEX "crm_lead_tag_assignments_leadId_idx" ON "crm_lead_tag_assignments"("leadId");
+
+-- CreateIndex
+CREATE INDEX "crm_lead_tag_assignments_tagId_idx" ON "crm_lead_tag_assignments"("tagId");
+
+-- CreateIndex
+CREATE INDEX "whatsapp_contact_lists_organizationId_idx" ON "whatsapp_contact_lists"("organizationId");
+
+-- CreateIndex
+CREATE INDEX "whatsapp_contact_lists_projectId_idx" ON "whatsapp_contact_lists"("projectId");
+
+-- CreateIndex
+CREATE INDEX "whatsapp_contact_list_members_listId_idx" ON "whatsapp_contact_list_members"("listId");
+
+-- CreateIndex
+CREATE INDEX "whatsapp_contact_list_members_normalizedPhone_idx" ON "whatsapp_contact_list_members"("normalizedPhone");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "whatsapp_contact_list_members_listId_normalizedPhone_key" ON "whatsapp_contact_list_members"("listId", "normalizedPhone");
+
+-- CreateIndex
+CREATE INDEX "whatsapp_audience_segments_organizationId_idx" ON "whatsapp_audience_segments"("organizationId");
+
+-- CreateIndex
+CREATE INDEX "whatsapp_audience_segments_projectId_idx" ON "whatsapp_audience_segments"("projectId");
+
+-- CreateIndex
+CREATE INDEX "whatsapp_campaign_events_campaignId_idx" ON "whatsapp_campaign_events"("campaignId");
+
+-- CreateIndex
+CREATE INDEX "whatsapp_campaign_events_type_idx" ON "whatsapp_campaign_events"("type");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "whatsapp_campaign_variants_dispatchGroupId_key" ON "whatsapp_campaign_variants"("dispatchGroupId");
+
+-- CreateIndex
+CREATE INDEX "whatsapp_campaign_variants_campaignId_idx" ON "whatsapp_campaign_variants"("campaignId");
+
+-- CreateIndex
 CREATE INDEX "whatsapp_campaign_dispatch_groups_campaignId_idx" ON "whatsapp_campaign_dispatch_groups"("campaignId");
 
 -- CreateIndex
@@ -1714,13 +1511,13 @@ CREATE INDEX "whatsapp_campaign_recipients_status_idx" ON "whatsapp_campaign_rec
 CREATE UNIQUE INDEX "whatsapp_campaign_recipients_campaignId_normalizedPhone_key" ON "whatsapp_campaign_recipients"("campaignId", "normalizedPhone");
 
 -- CreateIndex
-CREATE INDEX "whatsapp_campaign_imports_campaignId_idx" ON "whatsapp_campaign_imports"("campaignId");
+CREATE INDEX "whatsapp_opt_outs_organizationId_idx" ON "whatsapp_opt_outs"("organizationId");
 
 -- CreateIndex
-CREATE INDEX "whatsapp_campaign_approvals_campaignId_idx" ON "whatsapp_campaign_approvals"("campaignId");
+CREATE INDEX "whatsapp_opt_outs_organizationId_createdAt_idx" ON "whatsapp_opt_outs"("organizationId", "createdAt");
 
 -- CreateIndex
-CREATE INDEX "whatsapp_campaign_approvals_userId_idx" ON "whatsapp_campaign_approvals"("userId");
+CREATE UNIQUE INDEX "whatsapp_opt_outs_organizationId_phone_key" ON "whatsapp_opt_outs"("organizationId", "phone");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "whatsapp_messages_wamid_key" ON "whatsapp_messages"("wamid");
@@ -1810,73 +1607,82 @@ CREATE INDEX "org_audit_logs_createdAt_idx" ON "org_audit_logs"("createdAt");
 CREATE INDEX "org_audit_logs_requestId_idx" ON "org_audit_logs"("requestId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "billing_subscriptions_providerCustomerId_key" ON "billing_subscriptions"("providerCustomerId");
+CREATE UNIQUE INDEX "billing_subscriptions_organizationId_key" ON "billing_subscriptions"("organizationId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "billing_subscriptions_providerSubscriptionId_key" ON "billing_subscriptions"("providerSubscriptionId");
+CREATE UNIQUE INDEX "billing_subscriptions_asaasId_key" ON "billing_subscriptions"("asaasId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "billing_subscriptions_pixAutomaticAuthId_key" ON "billing_subscriptions"("pixAutomaticAuthId");
+
+-- CreateIndex
+CREATE INDEX "billing_subscriptions_organizationId_idx" ON "billing_subscriptions"("organizationId");
+
+-- CreateIndex
+CREATE INDEX "billing_subscriptions_offerId_idx" ON "billing_subscriptions"("offerId");
+
+-- CreateIndex
+CREATE INDEX "billing_subscriptions_asaasId_idx" ON "billing_subscriptions"("asaasId");
 
 -- CreateIndex
 CREATE INDEX "billing_subscriptions_status_idx" ON "billing_subscriptions"("status");
 
 -- CreateIndex
-CREATE INDEX "billing_subscriptions_nextResetDate_idx" ON "billing_subscriptions"("nextResetDate");
+CREATE INDEX "billing_subscriptions_isActive_idx" ON "billing_subscriptions"("isActive");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "billing_subscriptions_organizationId_key" ON "billing_subscriptions"("organizationId");
+CREATE INDEX "billing_subscriptions_expiresAt_idx" ON "billing_subscriptions"("expiresAt");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "billing_subscription_items_stripeSubscriptionItemId_key" ON "billing_subscription_items"("stripeSubscriptionItemId");
-
--- CreateIndex
-CREATE INDEX "billing_subscription_items_subscriptionId_idx" ON "billing_subscription_items"("subscriptionId");
-
--- CreateIndex
-CREATE INDEX "billing_subscription_items_planId_idx" ON "billing_subscription_items"("planId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "billing_subscription_items_subscriptionId_planId_key" ON "billing_subscription_items"("subscriptionId", "planId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "billing_webhook_logs_eventId_key" ON "billing_webhook_logs"("eventId");
-
--- CreateIndex
-CREATE INDEX "billing_webhook_logs_isProcessed_idx" ON "billing_webhook_logs"("isProcessed");
-
--- CreateIndex
-CREATE INDEX "billing_webhook_logs_provider_idx" ON "billing_webhook_logs"("provider");
-
--- CreateIndex
-CREATE INDEX "billing_webhook_logs_createdAt_idx" ON "billing_webhook_logs"("createdAt");
-
--- CreateIndex
-CREATE UNIQUE INDEX "billing_plans_name_key" ON "billing_plans"("name");
-
--- CreateIndex
-CREATE UNIQUE INDEX "billing_plans_slug_key" ON "billing_plans"("slug");
-
--- CreateIndex
-CREATE UNIQUE INDEX "billing_plans_stripeProductId_key" ON "billing_plans"("stripeProductId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "billing_plans_stripePriceId_key" ON "billing_plans"("stripePriceId");
-
--- CreateIndex
-CREATE INDEX "billing_plans_slug_idx" ON "billing_plans"("slug");
-
--- CreateIndex
-CREATE INDEX "billing_plans_kind_idx" ON "billing_plans"("kind");
-
--- CreateIndex
-CREATE INDEX "billing_plans_addonType_idx" ON "billing_plans"("addonType");
+CREATE UNIQUE INDEX "billing_plans_code_key" ON "billing_plans"("code");
 
 -- CreateIndex
 CREATE INDEX "billing_plans_isActive_idx" ON "billing_plans"("isActive");
 
 -- CreateIndex
-CREATE INDEX "billing_plans_stripeProductId_idx" ON "billing_plans"("stripeProductId");
+CREATE UNIQUE INDEX "billing_offers_code_key" ON "billing_offers"("code");
 
 -- CreateIndex
-CREATE INDEX "billing_plan_history_planId_changedAt_idx" ON "billing_plan_history"("planId", "changedAt");
+CREATE INDEX "billing_offers_planId_idx" ON "billing_offers"("planId");
+
+-- CreateIndex
+CREATE INDEX "billing_offers_planId_paymentMethod_isActive_idx" ON "billing_offers"("planId", "paymentMethod", "isActive");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "billing_invoices_asaasId_key" ON "billing_invoices"("asaasId");
+
+-- CreateIndex
+CREATE INDEX "billing_invoices_organizationId_idx" ON "billing_invoices"("organizationId");
+
+-- CreateIndex
+CREATE INDEX "billing_invoices_subscriptionId_idx" ON "billing_invoices"("subscriptionId");
+
+-- CreateIndex
+CREATE INDEX "billing_invoices_offerId_idx" ON "billing_invoices"("offerId");
+
+-- CreateIndex
+CREATE INDEX "billing_invoices_asaasId_idx" ON "billing_invoices"("asaasId");
+
+-- CreateIndex
+CREATE INDEX "billing_invoices_status_idx" ON "billing_invoices"("status");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "billing_audit_logs_asaasEventId_key" ON "billing_audit_logs"("asaasEventId");
+
+-- CreateIndex
+CREATE INDEX "billing_audit_logs_organizationId_idx" ON "billing_audit_logs"("organizationId");
+
+-- CreateIndex
+CREATE INDEX "billing_audit_logs_userId_idx" ON "billing_audit_logs"("userId");
+
+-- CreateIndex
+CREATE INDEX "billing_audit_logs_action_idx" ON "billing_audit_logs"("action");
+
+-- CreateIndex
+CREATE INDEX "billing_audit_logs_entity_entityId_idx" ON "billing_audit_logs"("entity", "entityId");
+
+-- CreateIndex
+CREATE INDEX "billing_audit_logs_asaasEventId_idx" ON "billing_audit_logs"("asaasEventId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "whatsapp_template_logs_wamid_key" ON "whatsapp_template_logs"("wamid");
@@ -1996,111 +1802,6 @@ ALTER TABLE "crm_item_categories" ADD CONSTRAINT "crm_item_categories_organizati
 ALTER TABLE "crm_item_categories" ADD CONSTRAINT "crm_item_categories_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ai_lead_contexts" ADD CONSTRAINT "ai_lead_contexts_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ai_lead_contexts" ADD CONSTRAINT "ai_lead_contexts_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ai_lead_contexts" ADD CONSTRAINT "ai_lead_contexts_leadId_fkey" FOREIGN KEY ("leadId") REFERENCES "crm_leads"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ai_events" ADD CONSTRAINT "ai_events_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ai_events" ADD CONSTRAINT "ai_events_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ai_events" ADD CONSTRAINT "ai_events_leadId_fkey" FOREIGN KEY ("leadId") REFERENCES "crm_leads"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ai_events" ADD CONSTRAINT "ai_events_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "crm_tickets"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ai_events" ADD CONSTRAINT "ai_events_agentId_fkey" FOREIGN KEY ("agentId") REFERENCES "ai_agents"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ai_agent_project_configs" ADD CONSTRAINT "ai_agent_project_configs_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ai_agent_project_configs" ADD CONSTRAINT "ai_agent_project_configs_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ai_agent_project_configs" ADD CONSTRAINT "ai_agent_project_configs_agentId_fkey" FOREIGN KEY ("agentId") REFERENCES "ai_agents"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ai_cadences" ADD CONSTRAINT "ai_cadences_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ai_cadences" ADD CONSTRAINT "ai_cadences_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ai_cadences" ADD CONSTRAINT "ai_cadences_agentId_fkey" FOREIGN KEY ("agentId") REFERENCES "ai_agents"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ai_cadence_steps" ADD CONSTRAINT "ai_cadence_steps_cadenceId_fkey" FOREIGN KEY ("cadenceId") REFERENCES "ai_cadences"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ai_cadence_enrollments" ADD CONSTRAINT "ai_cadence_enrollments_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ai_cadence_enrollments" ADD CONSTRAINT "ai_cadence_enrollments_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ai_cadence_enrollments" ADD CONSTRAINT "ai_cadence_enrollments_cadenceId_fkey" FOREIGN KEY ("cadenceId") REFERENCES "ai_cadences"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ai_cadence_enrollments" ADD CONSTRAINT "ai_cadence_enrollments_leadId_fkey" FOREIGN KEY ("leadId") REFERENCES "crm_leads"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ai_cadence_enrollments" ADD CONSTRAINT "ai_cadence_enrollments_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "crm_tickets"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ai_project_configs" ADD CONSTRAINT "ai_project_configs_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ai_project_configs" ADD CONSTRAINT "ai_project_configs_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ai_conversation_states" ADD CONSTRAINT "ai_conversation_states_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ai_conversation_states" ADD CONSTRAINT "ai_conversation_states_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ai_conversation_states" ADD CONSTRAINT "ai_conversation_states_conversationId_fkey" FOREIGN KEY ("conversationId") REFERENCES "crm_conversations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ai_skills" ADD CONSTRAINT "ai_skills_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ai_skills" ADD CONSTRAINT "ai_skills_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ai_skill_versions" ADD CONSTRAINT "ai_skill_versions_skillId_fkey" FOREIGN KEY ("skillId") REFERENCES "ai_skills"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ai_skill_execution_logs" ADD CONSTRAINT "ai_skill_execution_logs_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ai_skill_execution_logs" ADD CONSTRAINT "ai_skill_execution_logs_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ai_skill_execution_logs" ADD CONSTRAINT "ai_skill_execution_logs_conversationId_fkey" FOREIGN KEY ("conversationId") REFERENCES "crm_conversations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ai_skill_execution_logs" ADD CONSTRAINT "ai_skill_execution_logs_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "crm_tickets"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ai_skill_execution_logs" ADD CONSTRAINT "ai_skill_execution_logs_skillId_fkey" FOREIGN KEY ("skillId") REFERENCES "ai_skills"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ai_crisis_keywords" ADD CONSTRAINT "ai_crisis_keywords_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ai_crisis_keywords" ADD CONSTRAINT "ai_crisis_keywords_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "org_companies" ADD CONSTRAINT "org_companies_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -2164,10 +1865,37 @@ ALTER TABLE "whatsapp_campaigns" ADD CONSTRAINT "whatsapp_campaigns_projectId_fk
 ALTER TABLE "whatsapp_campaigns" ADD CONSTRAINT "whatsapp_campaigns_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "auth_user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "whatsapp_campaigns" ADD CONSTRAINT "whatsapp_campaigns_approvedById_fkey" FOREIGN KEY ("approvedById") REFERENCES "auth_user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "whatsapp_campaigns" ADD CONSTRAINT "whatsapp_campaigns_cancelledById_fkey" FOREIGN KEY ("cancelledById") REFERENCES "auth_user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "whatsapp_campaigns" ADD CONSTRAINT "whatsapp_campaigns_cancelledById_fkey" FOREIGN KEY ("cancelledById") REFERENCES "auth_user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "crm_lead_tags" ADD CONSTRAINT "crm_lead_tags_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "crm_lead_tag_assignments" ADD CONSTRAINT "crm_lead_tag_assignments_leadId_fkey" FOREIGN KEY ("leadId") REFERENCES "crm_leads"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "crm_lead_tag_assignments" ADD CONSTRAINT "crm_lead_tag_assignments_tagId_fkey" FOREIGN KEY ("tagId") REFERENCES "crm_lead_tags"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "whatsapp_contact_lists" ADD CONSTRAINT "whatsapp_contact_lists_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "whatsapp_contact_list_members" ADD CONSTRAINT "whatsapp_contact_list_members_listId_fkey" FOREIGN KEY ("listId") REFERENCES "whatsapp_contact_lists"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "whatsapp_audience_segments" ADD CONSTRAINT "whatsapp_audience_segments_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "whatsapp_audience_segments" ADD CONSTRAINT "whatsapp_audience_segments_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "whatsapp_campaign_events" ADD CONSTRAINT "whatsapp_campaign_events_campaignId_fkey" FOREIGN KEY ("campaignId") REFERENCES "whatsapp_campaigns"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "whatsapp_campaign_variants" ADD CONSTRAINT "whatsapp_campaign_variants_campaignId_fkey" FOREIGN KEY ("campaignId") REFERENCES "whatsapp_campaigns"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "whatsapp_campaign_variants" ADD CONSTRAINT "whatsapp_campaign_variants_dispatchGroupId_fkey" FOREIGN KEY ("dispatchGroupId") REFERENCES "whatsapp_campaign_dispatch_groups"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "whatsapp_campaign_dispatch_groups" ADD CONSTRAINT "whatsapp_campaign_dispatch_groups_campaignId_fkey" FOREIGN KEY ("campaignId") REFERENCES "whatsapp_campaigns"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -2185,13 +1913,13 @@ ALTER TABLE "whatsapp_campaign_recipients" ADD CONSTRAINT "whatsapp_campaign_rec
 ALTER TABLE "whatsapp_campaign_recipients" ADD CONSTRAINT "whatsapp_campaign_recipients_leadId_fkey" FOREIGN KEY ("leadId") REFERENCES "crm_leads"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "whatsapp_campaign_imports" ADD CONSTRAINT "whatsapp_campaign_imports_campaignId_fkey" FOREIGN KEY ("campaignId") REFERENCES "whatsapp_campaigns"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "whatsapp_campaign_recipients" ADD CONSTRAINT "whatsapp_campaign_recipients_variantId_fkey" FOREIGN KEY ("variantId") REFERENCES "whatsapp_campaign_variants"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "whatsapp_campaign_approvals" ADD CONSTRAINT "whatsapp_campaign_approvals_campaignId_fkey" FOREIGN KEY ("campaignId") REFERENCES "whatsapp_campaigns"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "whatsapp_opt_outs" ADD CONSTRAINT "whatsapp_opt_outs_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "whatsapp_campaign_approvals" ADD CONSTRAINT "whatsapp_campaign_approvals_userId_fkey" FOREIGN KEY ("userId") REFERENCES "auth_user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "whatsapp_opt_outs" ADD CONSTRAINT "whatsapp_opt_outs_campaignId_fkey" FOREIGN KEY ("campaignId") REFERENCES "whatsapp_campaigns"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "whatsapp_messages" ADD CONSTRAINT "whatsapp_messages_conversation_uuid_fkey" FOREIGN KEY ("conversation_uuid") REFERENCES "crm_conversations"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -2245,19 +1973,25 @@ ALTER TABLE "org_audit_logs" ADD CONSTRAINT "org_audit_logs_organizationId_fkey"
 ALTER TABLE "org_audit_logs" ADD CONSTRAINT "org_audit_logs_userId_fkey" FOREIGN KEY ("userId") REFERENCES "auth_user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "billing_subscriptions" ADD CONSTRAINT "billing_subscriptions_status_fkey" FOREIGN KEY ("status") REFERENCES "billing_subscription_statuses"("name") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "billing_subscriptions" ADD CONSTRAINT "billing_subscriptions_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "billing_subscriptions" ADD CONSTRAINT "billing_subscriptions_planId_fkey" FOREIGN KEY ("planId") REFERENCES "billing_plans"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "billing_subscriptions" ADD CONSTRAINT "billing_subscriptions_offerId_fkey" FOREIGN KEY ("offerId") REFERENCES "billing_offers"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "billing_subscription_items" ADD CONSTRAINT "billing_subscription_items_subscriptionId_fkey" FOREIGN KEY ("subscriptionId") REFERENCES "billing_subscriptions"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "billing_offers" ADD CONSTRAINT "billing_offers_planId_fkey" FOREIGN KEY ("planId") REFERENCES "billing_plans"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "billing_subscription_items" ADD CONSTRAINT "billing_subscription_items_planId_fkey" FOREIGN KEY ("planId") REFERENCES "billing_plans"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "billing_invoices" ADD CONSTRAINT "billing_invoices_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "billing_plan_history" ADD CONSTRAINT "billing_plan_history_planId_fkey" FOREIGN KEY ("planId") REFERENCES "billing_plans"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "billing_invoices" ADD CONSTRAINT "billing_invoices_subscriptionId_fkey" FOREIGN KEY ("subscriptionId") REFERENCES "billing_subscriptions"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "billing_invoices" ADD CONSTRAINT "billing_invoices_offerId_fkey" FOREIGN KEY ("offerId") REFERENCES "billing_offers"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "billing_audit_logs" ADD CONSTRAINT "billing_audit_logs_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "billing_audit_logs" ADD CONSTRAINT "billing_audit_logs_userId_fkey" FOREIGN KEY ("userId") REFERENCES "auth_user"("id") ON DELETE SET NULL ON UPDATE CASCADE;

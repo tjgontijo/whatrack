@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AlertCircle, ArrowLeft, Building2, CheckCircle2, Loader2, UserRound } from 'lucide-react'
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
+import { VisuallyHidden } from 'radix-ui'
 import { toast } from 'sonner'
 
 import { apiFetch } from '@/lib/api-client'
@@ -56,7 +56,7 @@ type OnboardingDialogProps = {
 }
 
 function getEntityTypeFromOrganizationType(
-  organizationType: OnboardingDialogOrganization['organizationType'],
+  organizationType: OnboardingDialogOrganization['organizationType']
 ): EntityType | null {
   if (organizationType === 'pessoa_fisica') return 'individual'
   if (organizationType === 'pessoa_juridica') return 'company'
@@ -64,7 +64,7 @@ function getEntityTypeFromOrganizationType(
 }
 
 function buildInitialCompanyLookupData(
-  organization?: OnboardingDialogOrganization | null,
+  organization?: OnboardingDialogOrganization | null
 ): CompanyLookupData | null {
   if (
     organization?.organizationType !== 'pessoa_juridica' ||
@@ -101,7 +101,9 @@ function getStepIndex(step: Step, isEditMode: boolean) {
 }
 
 function renderProgressDots(step: Step, isEditMode: boolean) {
-  const activeDots = isEditMode ? [true, step !== 'type-select'] : [true, step !== 'type-select', step === 'phone']
+  const activeDots = isEditMode
+    ? [true, step !== 'type-select']
+    : [true, step !== 'type-select', step === 'phone']
 
   return (
     <div className="flex gap-1.5">
@@ -128,7 +130,9 @@ export function OnboardingDialog({
   const { data: session } = authClient.useSession()
 
   const userName = session?.user?.name ?? ''
-  const initialEntityType = getEntityTypeFromOrganizationType(initialOrganization?.organizationType ?? null)
+  const initialEntityType = getEntityTypeFromOrganizationType(
+    initialOrganization?.organizationType ?? null
+  )
   const initialCompanyLookupData = buildInitialCompanyLookupData(initialOrganization)
   const initialDocumentNumber = initialOrganization?.documentNumber ?? ''
   const initialCpf =
@@ -140,7 +144,7 @@ export function OnboardingDialog({
       ? applyCpfCnpjMask(initialDocumentNumber, 'cnpj')
       : ''
   const initialFullName =
-    isEditMode && initialEntityType === 'individual' ? initialOrganization?.name ?? userName : ''
+    isEditMode && initialEntityType === 'individual' ? (initialOrganization?.name ?? userName) : ''
 
   const [step, setStep] = useState<Step>(getInitialStep(mode, initialEntityType))
   const [fullName, setFullName] = useState(initialFullName)
@@ -148,14 +152,15 @@ export function OnboardingDialog({
   const [cnpj, setCnpj] = useState(initialCnpj)
   const [cnpjToFetch, setCnpjToFetch] = useState<string | null>(null)
   const [companyLookupData, setCompanyLookupData] = useState<CompanyLookupData | null>(
-    initialCompanyLookupData,
+    initialCompanyLookupData
   )
   const [phone, setPhone] = useState('')
   const [entityTypeForPhone, setEntityTypeForPhone] = useState<EntityType | null>(null)
 
   const cnpjQuery = useQuery<CompanyLookupData>({
     queryKey: ['company-lookup', cnpjToFetch],
-    queryFn: () => apiFetch(`/api/v1/company/lookup?cnpj=${cnpjToFetch}`) as Promise<CompanyLookupData>,
+    queryFn: () =>
+      apiFetch(`/api/v1/company/lookup?cnpj=${cnpjToFetch}`) as Promise<CompanyLookupData>,
     enabled: !!cnpjToFetch,
     staleTime: 5 * 60 * 1000,
     retry: false,
@@ -233,7 +238,9 @@ export function OnboardingDialog({
 
   function handleSelectType(type: EntityType) {
     if (type === 'individual') {
-      setFullName(initialEntityType === 'individual' ? initialOrganization?.name ?? userName : userName)
+      setFullName(
+        initialEntityType === 'individual' ? (initialOrganization?.name ?? userName) : userName
+      )
       setCpf(initialEntityType === 'individual' ? initialCpf : '')
       setStep('individual')
       return
@@ -280,7 +287,8 @@ export function OnboardingDialog({
   function handleCnpjChange(value: string) {
     const masked = applyCpfCnpjMask(value, 'cnpj')
     const digits = stripCpfCnpj(masked)
-    const shouldReuseInitialLookup = initialEntityType === 'company' && digits === initialDocumentNumber
+    const shouldReuseInitialLookup =
+      initialEntityType === 'company' && digits === initialDocumentNumber
 
     setCnpj(masked)
     setCompanyLookupData(shouldReuseInitialLookup ? initialCompanyLookupData : null)
@@ -312,7 +320,9 @@ export function OnboardingDialog({
               organizationType: 'pessoa_juridica',
               documentType: 'cnpj',
               documentNumber: stripCpfCnpj(cnpj),
-              ...(resolvedCompanyLookupData ? { companyLookupData: resolvedCompanyLookupData } : {}),
+              ...(resolvedCompanyLookupData
+                ? { companyLookupData: resolvedCompanyLookupData }
+                : {}),
               ...(initialEntityType !== 'company' || stripCpfCnpj(cnpj) !== initialDocumentNumber
                 ? {
                     name:
@@ -350,8 +360,7 @@ export function OnboardingDialog({
   const cnpjDigits = stripCpfCnpj(cnpj)
   const phoneDigits = removeWhatsAppMask(phone)
   const canSubmitPf = fullName.trim().length >= 3 && validateDocumentByType('cpf', cpfDigits)
-  const canSubmitPj =
-    validateDocumentByType('cnpj', cnpjDigits) && !!resolvedCompanyLookupData
+  const canSubmitPj = validateDocumentByType('cnpj', cnpjDigits) && !!resolvedCompanyLookupData
   const canSubmitPhone = validateWhatsApp(phoneDigits)
   const stepIndex = getStepIndex(step, isEditMode)
   const totalSteps = isEditMode ? 2 : 3
@@ -366,7 +375,9 @@ export function OnboardingDialog({
       }}
     >
       <DialogTitle asChild>
-        <VisuallyHidden>{isEditMode ? 'Editar dados fiscais' : 'Cadastro de Organização'}</VisuallyHidden>
+        <VisuallyHidden>
+          {isEditMode ? 'Editar dados fiscais' : 'Cadastro de Organização'}
+        </VisuallyHidden>
       </DialogTitle>
       <DialogDescription asChild>
         <VisuallyHidden>
@@ -585,9 +596,13 @@ export function OnboardingDialog({
 
               {resolvedCompanyLookupData && (
                 <div className="bg-muted/50 rounded-lg border p-4 text-sm">
-                  <p className="text-foreground font-semibold">{resolvedCompanyLookupData.razaoSocial}</p>
+                  <p className="text-foreground font-semibold">
+                    {resolvedCompanyLookupData.razaoSocial}
+                  </p>
                   {resolvedCompanyLookupData.nomeFantasia && (
-                    <p className="text-muted-foreground text-xs">{resolvedCompanyLookupData.nomeFantasia}</p>
+                    <p className="text-muted-foreground text-xs">
+                      {resolvedCompanyLookupData.nomeFantasia}
+                    </p>
                   )}
                   <div className="text-muted-foreground mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs">
                     {resolvedCompanyLookupData.municipio && resolvedCompanyLookupData.uf && (

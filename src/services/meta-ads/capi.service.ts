@@ -1,14 +1,8 @@
 import { prisma } from '@/lib/db/prisma'
 import { metaAccessTokenService } from './access-token.service'
 import crypto from 'crypto'
-import axios from 'axios'
 import { logger } from '@/lib/utils/logger'
-
-function requireEnv(name: string): string {
-  const value = process.env[name]
-  if (!value) throw new Error(`[CapiService] ${name} environment variable is required`)
-  return value
-}
+import { MetaApiError, getMetaApiErrorMessage, metaApiRequest } from './meta-api'
 
 interface CapiEventOptions {
   value?: number
@@ -62,7 +56,11 @@ export class MetaCapiService {
       return
     }
 
-    if (!ticket.projectId || !ticket.project || ticket.project.organizationId !== ticket.organizationId) {
+    if (
+      !ticket.projectId ||
+      !ticket.project ||
+      ticket.project.organizationId !== ticket.organizationId
+    ) {
       logger.warn(`[CAPI] Ticket ${ticketId} has invalid or missing project reference.`)
       return
     }
@@ -81,7 +79,9 @@ export class MetaCapiService {
     })
 
     if (!targetPixels || targetPixels.length === 0) {
-      logger.warn(`[CAPI] No Pixels found for project ${ticket.projectId} in organization ${ticket.organizationId}.`)
+      logger.warn(
+        `[CAPI] No Pixels found for project ${ticket.projectId} in organization ${ticket.organizationId}.`
+      )
       return
     }
 
@@ -119,9 +119,12 @@ export class MetaCapiService {
       }
 
       try {
-        const response = await axios.post(
-          `https://graph.facebook.com/${requireEnv('META_API_VERSION')}/${pixel.pixelId}/events`,
-          payload
+        const response = await metaApiRequest<{ events_received?: number }>(
+          `${pixel.pixelId}/events`,
+          {
+            method: 'POST',
+            body: payload,
+          }
         )
 
         // Log to MetaConversionEvent table
@@ -130,7 +133,7 @@ export class MetaCapiService {
           update: {
             status: 'SENT',
             success: true,
-            fbtraceId: response.headers['x-fb-trace-id'],
+            fbtraceId: response.headers.get('x-fb-trace-id'),
             sentAt: new Date(),
           },
           create: {
@@ -142,7 +145,7 @@ export class MetaCapiService {
             eventId: options.eventId,
             ctwaclid: ticket.tracking.ctwaclid,
             metaAdId: ticket.tracking.metaAdId,
-            fbtraceId: response.headers['x-fb-trace-id'] as string,
+            fbtraceId: response.headers.get('x-fb-trace-id') ?? undefined,
             value: options.value,
             currency: options.currency || 'BRL',
           },
@@ -151,16 +154,23 @@ export class MetaCapiService {
         logger.info(
           `[CAPI] Successfully sent ${eventName} to pixel ${pixel.pixelId} for ticket ${ticketId}`
         )
-      } catch (error: any) {
-        const errorMsg = error?.response?.data?.error?.message || error.message
-        logger.error({ err: errorMsg }, `[CAPI] Error sending ${eventName} to pixel ${pixel.pixelId}`)
+      } catch (error: unknown) {
+        const errorMsg = getMetaApiErrorMessage(error)
+        const metaError =
+          error instanceof MetaApiError
+            ? (error.data as { error?: { code?: number | string } })
+            : undefined
+        logger.error(
+          { err: errorMsg },
+          `[CAPI] Error sending ${eventName} to pixel ${pixel.pixelId}`
+        )
 
         await prisma.metaConversionEvent.upsert({
           where: { ticketId_eventName: { ticketId, eventName } },
           update: {
             status: 'FAILED',
             success: false,
-            errorCode: error?.response?.data?.error?.code?.toString(),
+            errorCode: metaError?.error?.code?.toString(),
             errorMessage: errorMsg,
             sentAt: new Date(),
           },
@@ -171,7 +181,7 @@ export class MetaCapiService {
             status: 'FAILED',
             success: false,
             eventId: options.eventId,
-            errorCode: error?.response?.data?.error?.code?.toString(),
+            errorCode: metaError?.error?.code?.toString(),
             errorMessage: errorMsg,
           },
         })

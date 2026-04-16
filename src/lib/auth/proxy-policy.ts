@@ -17,7 +17,7 @@ const AUTH_PAGE_PREFIXES = [
 const PUBLIC_API_EXACT_PATHS = new Set([
   '/api/v1/billing/plans',
   '/api/v1/contact',
-  '/api/v1/billing/webhooks/stripe',
+  '/api/v1/billing/webhook',
   '/api/v1/meta-ads/callback',
   '/api/v1/whatsapp/onboarding/callback',
   '/api/v1/whatsapp/webhook',

@@ -11,7 +11,10 @@ type BillingPlanRecord = {
   id: string
   name: string
   slug: string
+  code: string | null
   description: string | null
+  cycle: string | null
+  accessDays: number
   kind: string
   addonType: string | null
   monthlyPrice: Prisma.Decimal
@@ -31,6 +34,17 @@ type BillingPlanRecord = {
   contactSalesOnly: boolean
   displayOrder: number
   metadata: Prisma.JsonValue | null
+  offers: Array<{
+    id: string
+    code: string
+    paymentMethod: string
+    amount: Prisma.Decimal
+    currency: string
+    maxInstallments: number
+    installmentRate: Prisma.Decimal | null
+    isActive: boolean
+    validUntil: Date | null
+  }>
   deletedAt: Date | null
   createdAt: Date
   updatedAt: Date
@@ -131,8 +145,11 @@ export function mapBillingPlanToPublic(plan: BillingPlanRecord): PublicBillingPl
   return {
     id: plan.id,
     slug: plan.slug,
+    code: plan.code,
     name: plan.name,
     description: plan.description,
+    cycle: plan.cycle,
+    accessDays: plan.accessDays,
     kind: plan.kind as PublicBillingPlan['kind'],
     addonType: plan.addonType as PublicBillingPlan['addonType'],
     subtitle: presentation.subtitle,
@@ -152,6 +169,20 @@ export function mapBillingPlanToPublic(plan: BillingPlanRecord): PublicBillingPl
     displayOrder: plan.displayOrder,
     syncStatus: plan.syncStatus as PublicBillingPlan['syncStatus'],
     stripePriceId: plan.stripePriceId,
+    offers: plan.offers
+      .filter(
+        (offer: BillingPlanRecord['offers'][number]) =>
+          offer.isActive && (!offer.validUntil || offer.validUntil > new Date()),
+      )
+      .map((offer: BillingPlanRecord['offers'][number]) => ({
+        id: offer.id,
+        code: offer.code,
+        paymentMethod: offer.paymentMethod as PublicBillingPlan['offers'][number]['paymentMethod'],
+        amount: Number(offer.amount),
+        currency: offer.currency,
+        maxInstallments: offer.maxInstallments,
+        installmentRate: offer.installmentRate ? Number(offer.installmentRate) : null,
+      })),
   }
 }
 
@@ -159,7 +190,10 @@ export const billingPlanSelect = {
   id: true,
   name: true,
   slug: true,
+  code: true,
   description: true,
+  cycle: true,
+  accessDays: true,
   kind: true,
   addonType: true,
   monthlyPrice: true,
@@ -179,6 +213,19 @@ export const billingPlanSelect = {
   contactSalesOnly: true,
   displayOrder: true,
   metadata: true,
+  offers: {
+    select: {
+      id: true,
+      code: true,
+      paymentMethod: true,
+      amount: true,
+      currency: true,
+      maxInstallments: true,
+      installmentRate: true,
+      isActive: true,
+      validUntil: true,
+    },
+  },
   deletedAt: true,
   createdAt: true,
   updatedAt: true,
@@ -195,12 +242,6 @@ export async function listPublicBillingPlans(options?: {
         isActive: true,
         deletedAt: null,
         ...(options?.selfServeOnly ? { kind: 'base', contactSalesOnly: false } : {}),
-        OR: [
-          { contactSalesOnly: true },
-          {
-            AND: [{ stripePriceId: { not: null } }, { syncStatus: 'synced' }],
-          },
-        ],
       },
       orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }],
       select: billingPlanSelect,
@@ -271,8 +312,8 @@ export async function requireCheckoutReadyBillingPlan(slug: string) {
     throw new BillingPlanCatalogError('Este plano exige contato comercial', 400)
   }
 
-  if (!plan.stripePriceId || plan.syncStatus !== 'synced') {
-    throw new BillingPlanCatalogError('Plano ainda não sincronizado com a Stripe', 409)
+  if (!plan.offers.some((offer) => offer.isActive && !offer.validUntil)) {
+    throw new BillingPlanCatalogError('Plano sem ofertas ativas para checkout', 409)
   }
 
   return plan

@@ -70,10 +70,14 @@ const envSchema = z.object({
   NEXT_PUBLIC_CENTRIFUGO_URL: z.string().url(),
 
   // 7. Payments & Billing
-  STRIPE_SECRET_KEY: z.string().min(1, 'STRIPE_SECRET_KEY is required for Stripe provider'),
+  ASAAS_BASE_URL: z.string().url().optional(),
+  ASAAS_API_KEY: z.string().min(1).optional(),
+  WALLET_ASAAS_ID: z.string().min(1).optional(),
+  ASAAS_WEBHOOK_TOKEN: z.string().min(1).optional(),
+  STRIPE_SECRET_KEY: z.string().min(1).optional(),
   STRIPE_PUBLISHABLE_KEY: z.string().min(1).optional(),
   STRIPE_WEBHOOK_SECRET: z.string().min(1).optional(),
-  ACTIVE_PAYMENT_PROVIDER: z.literal('stripe').default('stripe'),
+  ACTIVE_PAYMENT_PROVIDER: z.enum(['asaas', 'stripe']).default('asaas'),
   POLAR_ACCESS_TOKEN: z.string().min(1).optional(),
   POLAR_SUCCESS_URL: z.string().url().optional(),
 

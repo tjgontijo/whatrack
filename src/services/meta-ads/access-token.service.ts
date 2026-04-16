@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db/prisma'
 import { encryption } from '@/lib/utils/encryption'
-import axios from 'axios'
+import { metaApiRequest } from './meta-api'
 
 function requireEnv(name: string): string {
   const value = process.env[name]
@@ -30,20 +30,17 @@ export class MetaAccessTokenService {
    * Exchange OAuth Code for Short-Lived User Access Token
    */
   async getShortLivedToken(code: string, redirectUri?: string): Promise<string> {
-    const response = await axios.get(
-      `https://graph.facebook.com/${requireEnv('META_API_VERSION')}/oauth/access_token`,
-      {
-        params: {
-          client_id: requireEnv('META_ADS_APP_ID'),
-          client_secret: requireEnv('META_ADS_APP_SECRET'),
-          redirect_uri:
-            redirectUri ||
-            process.env.META_OAUTH_REDIRECT_URI ||
-            `${process.env.APP_URL}/api/v1/meta-ads/callback`,
-          code,
-        },
-      }
-    )
+    const response = await metaApiRequest<{ access_token: string }>('oauth/access_token', {
+      params: {
+        client_id: requireEnv('META_ADS_APP_ID'),
+        client_secret: requireEnv('META_ADS_APP_SECRET'),
+        redirect_uri:
+          redirectUri ||
+          process.env.META_OAUTH_REDIRECT_URI ||
+          `${process.env.APP_URL}/api/v1/meta-ads/callback`,
+        code,
+      },
+    })
 
     return response.data.access_token
   }
@@ -54,8 +51,8 @@ export class MetaAccessTokenService {
   async getLongLivedToken(
     shortLivedToken: string
   ): Promise<{ accessToken: string; expiresAt: Date }> {
-    const response = await axios.get(
-      `https://graph.facebook.com/${requireEnv('META_API_VERSION')}/oauth/access_token`,
+    const response = await metaApiRequest<{ access_token: string; expires_in?: number }>(
+      'oauth/access_token',
       {
         params: {
           grant_type: 'fb_exchange_token',
@@ -81,15 +78,12 @@ export class MetaAccessTokenService {
    * Get User Info (Name and ID) using the valid token
    */
   async getUserInfo(accessToken: string): Promise<MetaUserInfo> {
-    const response = await axios.get(
-      `https://graph.facebook.com/${requireEnv('META_API_VERSION')}/me`,
-      {
-        params: {
-          access_token: accessToken,
-          fields: 'id,name',
-        },
-      }
-    )
+    const response = await metaApiRequest<MetaUserInfo>('me', {
+      params: {
+        access_token: accessToken,
+        fields: 'id,name',
+      },
+    })
 
     return response.data
   }
@@ -101,15 +95,12 @@ export class MetaAccessTokenService {
     const appId = requireEnv('META_ADS_APP_ID')
     const appSecret = requireEnv('META_ADS_APP_SECRET')
     const appToken = `${appId}|${appSecret}`
-    const response = await axios.get(
-      `https://graph.facebook.com/${requireEnv('META_API_VERSION')}/debug_token`,
-      {
-        params: {
-          input_token: accessToken,
-          access_token: appToken,
-        },
-      }
-    )
+    const response = await metaApiRequest<MetaTokenDebug>('debug_token', {
+      params: {
+        input_token: accessToken,
+        access_token: appToken,
+      },
+    })
 
     return response.data.data
   }
@@ -117,11 +108,7 @@ export class MetaAccessTokenService {
   /**
    * Save or Update Meta Connection for an organization
    */
-  async upsertConnection(
-    organizationId: string,
-    accessToken: string,
-    projectId: string
-  ) {
+  async upsertConnection(organizationId: string, accessToken: string, projectId: string) {
     const debug = await this.debugToken(accessToken)
     if (!debug.is_valid) throw new Error('Invalid Meta Access Token')
 

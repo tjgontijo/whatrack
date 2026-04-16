@@ -57,8 +57,6 @@ export function AccountBillingCard({
   }
 
   const planName = formatPlanLabel(subscription.planName, subscription.planType)
-  const trialActive =
-    subscription.trialEndsAt != null && new Date(subscription.trialEndsAt).getTime() > Date.now()
 
   return (
     <Card>
@@ -79,19 +77,25 @@ export function AccountBillingCard({
 
           <div className="rounded-lg border border-border bg-muted/30 p-4">
             <p className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
-              Status
+              Método
             </p>
             <p className="mt-1 text-lg font-semibold text-foreground">
-              {trialActive ? 'Teste grátis ativo' : getBillingStatusLabel(subscription.status)}
+              {subscription.paymentMethod === 'CREDIT_CARD'
+                ? 'Cartão de crédito'
+                : subscription.paymentMethod === 'PIX_AUTOMATIC'
+                  ? 'PIX Automático'
+                  : subscription.paymentMethod === 'PIX'
+                    ? 'PIX'
+                    : getBillingStatusLabel(subscription.status)}
             </p>
           </div>
 
           <div className="rounded-lg border border-border bg-muted/30 p-4">
             <p className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
-              Clientes incluídos
+              Renovação
             </p>
             <p className="mt-1 text-lg font-semibold text-foreground">
-              {subscription.entitlements.includedProjects.toLocaleString('pt-BR')}
+              {new Date(subscription.nextResetDate).toLocaleDateString('pt-BR')}
             </p>
           </div>
         </div>

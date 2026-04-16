@@ -33,11 +33,11 @@ describe('BillingPageContent', () => {
       isLoading: false,
     })
     useBillingSubscriptionMock.mockReturnValue({
-      subscription: { id: 'sub-1' },
+      subscription: { id: 'sub-1', isActive: true },
       isLoading: false,
     })
 
-    render(<BillingPageContent />)
+    render(<BillingPageContent availablePlans={[]} />)
 
     const content = screen.getByTestId('billing-page-content')
 
@@ -45,7 +45,7 @@ describe('BillingPageContent', () => {
     expect(screen.getByText('billing-status')).toBeInTheDocument()
   })
 
-  it('keeps plan selection visible while the local trial is active', () => {
+  it('keeps plan selection visible while the subscription is pending activation', () => {
     useOrganizationMock.mockReturnValue({
       data: { id: 'org-1' },
       isLoading: false,
@@ -53,8 +53,7 @@ describe('BillingPageContent', () => {
     useBillingSubscriptionMock.mockReturnValue({
       subscription: {
         id: 'sub-1',
-        trialEndsAt: '2099-03-31T00:00:00.000Z',
-        providerSubscriptionId: null,
+        isActive: false,
       },
       isLoading: false,
     })

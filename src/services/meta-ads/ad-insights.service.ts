@@ -1,13 +1,7 @@
 import { prisma } from '@/lib/db/prisma'
 import { metaAccessTokenService } from './access-token.service'
-import axios from 'axios'
 import { logger } from '@/lib/utils/logger'
-
-function requireEnv(name: string): string {
-  const value = process.env[name]
-  if (!value) throw new Error(`[AdInsightsService] ${name} environment variable is required`)
-  return value
-}
+import { MetaApiError, metaApiRequest } from './meta-api'
 
 export class MetaAdInsightsService {
   /**
@@ -41,17 +35,16 @@ export class MetaAdInsightsService {
       for (const acc of activeAccounts) {
         try {
           // 1. Get Spend from Meta (Account Level)
-          const accountInsightsResponse = await axios.get(
-            `https://graph.facebook.com/${requireEnv('META_API_VERSION')}/${acc.adAccountId}/insights`,
-            {
-              params: {
-                access_token: token,
-                level: 'account',
-                time_range: JSON.stringify({ since: dateStartStr, until: dateEndStr }),
-                fields: 'spend,impressions,clicks',
-              },
-            }
-          )
+          const accountInsightsResponse = await metaApiRequest<{
+            data?: Array<{ spend?: string; impressions?: string; clicks?: string }>
+          }>(`${acc.adAccountId}/insights`, {
+            params: {
+              access_token: token,
+              level: 'account',
+              time_range: JSON.stringify({ since: dateStartStr, until: dateEndStr }),
+              fields: 'spend,impressions,clicks',
+            },
+          })
 
           const metaData = accountInsightsResponse.data.data?.[0] || {
             spend: '0',
@@ -60,18 +53,17 @@ export class MetaAdInsightsService {
           }
 
           // 1.b Get Spend from Meta (Campaign Level)
-          const campaignInsightsResponse = await axios.get(
-            `https://graph.facebook.com/${requireEnv('META_API_VERSION')}/${acc.adAccountId}/insights`,
-            {
-              params: {
-                access_token: token,
-                level: 'campaign',
-                time_range: JSON.stringify({ since: dateStartStr, until: dateEndStr }),
-                fields: 'campaign_id,campaign_name,spend,impressions,clicks',
-                limit: 100,
-              },
-            }
-          )
+          const campaignInsightsResponse = await metaApiRequest<{
+            data?: Array<Record<string, string>>
+          }>(`${acc.adAccountId}/insights`, {
+            params: {
+              access_token: token,
+              level: 'campaign',
+              time_range: JSON.stringify({ since: dateStartStr, until: dateEndStr }),
+              fields: 'campaign_id,campaign_name,spend,impressions,clicks',
+              limit: 100,
+            },
+          })
 
           const metaCampaigns = campaignInsightsResponse.data.data || []
 
@@ -138,10 +130,14 @@ export class MetaAdInsightsService {
               clicks: Number(camp.clicks),
             })
           }
-        } catch (error: any) {
+        } catch (error: unknown) {
           logger.error(
             `[Insights] Error fetching for account ${acc.adAccountId}:`,
-            error?.response?.data || error.message
+            error instanceof MetaApiError
+              ? error.data
+              : error instanceof Error
+                ? error.message
+                : error
           )
         }
       }

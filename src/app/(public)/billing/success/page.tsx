@@ -14,7 +14,8 @@ export default function BillingSuccessPage() {
   const router = useRouter()
   const planName = searchParams.get('planName') || searchParams.get('plan') || 'WhaTrack'
   const nextPath = resolveInternalPath(searchParams.get('next'), '/welcome')
-  const normalizedPlanName = planName === 'platform_base' ? 'plano base' : planName
+  const normalizedPlanName =
+    planName === 'monthly' ? 'plano mensal' : planName === 'annual' ? 'plano anual' : planName
 
   useEffect(() => {
     const timer = setTimeout(() => {

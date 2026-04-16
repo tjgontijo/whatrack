@@ -17,7 +17,7 @@ function serializeSubscription(
     id: subscription.id,
     organizationId: subscription.organizationId,
     planType: subscription.planType,
-    planName: subscription.plan?.name ?? null,
+    planName: subscription.planName,
     status: subscription.status as SubscriptionResponse['status'],
     canceledAtPeriodEnd: subscription.canceledAtPeriodEnd,
     billingCycleStartDate: subscription.billingCycleStartDate.toISOString(),
@@ -27,13 +27,32 @@ function serializeSubscription(
     createdAt: subscription.createdAt.toISOString(),
     canceledAt: subscription.canceledAt?.toISOString() ?? null,
     provider: subscription.provider ?? undefined,
-    providerSubscriptionId: subscription.providerSubscriptionId ?? undefined,
-    items: subscription.items.map((item) => ({
-      ...item,
-      kind: item.kind as SubscriptionResponse['items'][number]['kind'],
-      addonType: item.addonType as SubscriptionResponse['items'][number]['addonType'],
-    })),
-    entitlements: subscription.entitlements,
+    asaasId: subscription.asaasId ?? undefined,
+    asaasCustomerId: subscription.asaasCustomerId ?? undefined,
+    offerCode: subscription.offerCode ?? undefined,
+    paymentMethod: subscription.paymentMethod as SubscriptionResponse['paymentMethod'],
+    isActive: subscription.isActive,
+    purchaseDate: subscription.purchaseDate?.toISOString() ?? null,
+    expiresAt: subscription.expiresAt?.toISOString() ?? null,
+    failureReason: subscription.failureReason ?? null,
+    failureCount: subscription.failureCount,
+    lastInvoice: subscription.lastInvoice
+      ? {
+          id: subscription.lastInvoice.id,
+          asaasId: subscription.lastInvoice.asaasId,
+          status: subscription.lastInvoice.status,
+          paymentMethod: subscription.lastInvoice.paymentMethod as NonNullable<
+            SubscriptionResponse['lastInvoice']
+          >['paymentMethod'],
+          value: subscription.lastInvoice.value,
+          dueDate: subscription.lastInvoice.dueDate.toISOString(),
+          paidAt: subscription.lastInvoice.paidAt?.toISOString() ?? null,
+          invoiceUrl: subscription.lastInvoice.invoiceUrl ?? null,
+          pixQrCodePayload: subscription.lastInvoice.pixQrCodePayload ?? null,
+          pixQrCodeImage: subscription.lastInvoice.pixQrCodeImage ?? null,
+          pixExpirationDate: subscription.lastInvoice.pixExpirationDate?.toISOString() ?? null,
+        }
+      : null,
   }
 }
 

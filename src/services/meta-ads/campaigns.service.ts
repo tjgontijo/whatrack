@@ -1,13 +1,7 @@
 import { prisma } from '@/lib/db/prisma'
 import { metaAccessTokenService } from './access-token.service'
-import axios from 'axios'
 import { logger } from '@/lib/utils/logger'
-
-function requireEnv(name: string): string {
-  const value = process.env[name]
-  if (!value) throw new Error(`[CampaignsService] ${name} environment variable is required`)
-  return value
-}
+import { MetaApiError, metaApiRequest } from './meta-api'
 
 export class MetaCampaignsService {
   async getCampaigns(
@@ -57,16 +51,13 @@ export class MetaCampaignsService {
             `insights.time_range(${timeRangeStr}){spend,impressions,clicks,inline_link_clicks,reach,actions,action_values}`,
           ].join(',')
 
-          const response = await axios.get(
-            `https://graph.facebook.com/${requireEnv('META_API_VERSION')}/${acc.adAccountId}/campaigns`,
-            {
-              params: {
-                access_token: token,
-                fields: fields,
-                limit: 100,
-              },
-            }
-          )
+          const response = await metaApiRequest<{ data?: any[] }>(`${acc.adAccountId}/campaigns`, {
+            params: {
+              access_token: token,
+              fields: fields,
+              limit: 100,
+            },
+          })
 
           const campaignsData = response.data.data || []
 
@@ -151,10 +142,14 @@ export class MetaCampaignsService {
               metaCpatc: cpatcMeta,
             })
           }
-        } catch (error: any) {
+        } catch (error: unknown) {
           logger.error(
             `[Campaigns Service] Error fetching for account ${acc.adAccountId}:`,
-            error?.response?.data || error.message
+            error instanceof MetaApiError
+              ? error.data
+              : error instanceof Error
+                ? error.message
+                : error
           )
         }
       }

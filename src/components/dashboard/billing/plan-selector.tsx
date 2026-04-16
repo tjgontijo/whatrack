@@ -1,17 +1,43 @@
 'use client'
 
-import { useState } from 'react'
-import { Check, Loader2, Mail, ArrowRight } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { useMemo, useState } from 'react'
+import { Check, CreditCard, Loader2, QrCode } from 'lucide-react'
 import { motion } from 'motion/react'
 import { toast } from 'sonner'
+
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { apiFetch } from '@/lib/api-client'
 import { cn } from '@/lib/utils/utils'
 import { useOrganization } from '@/hooks/organization/use-organization'
-import { useRequiredProjectPath } from '@/hooks/project/project-route-context'
-import { apiFetch } from '@/lib/api-client'
 import type { PublicBillingPlan } from '@/schemas/billing/billing-plan-schemas'
 
-type CheckoutState = 'idle' | 'loading' | 'error'
+type CheckoutState = 'idle' | 'loading'
+type PaymentMethod = 'CREDIT_CARD' | 'PIX' | 'PIX_AUTOMATIC'
+
+type CheckoutResult = {
+  invoiceId?: string | null
+  paymentMethod: PaymentMethod
+  pix?: {
+    qrCodePayload: string
+    qrCodeImage?: string | null
+    expirationDate?: string | null
+  } | null
+  pixAutomatic?: {
+    authorizationId: string
+    qrCodePayload: string
+    qrCodeImage?: string | null
+    expirationDate?: string | null
+  } | null
+}
 
 interface PlanSelectorProps {
   plans: PublicBillingPlan[]
@@ -20,204 +46,369 @@ interface PlanSelectorProps {
   showHeader?: boolean
 }
 
+function getAvailablePaymentMethods(plan: PublicBillingPlan): PaymentMethod[] {
+  return plan.offers.map((offer) => offer.paymentMethod)
+}
+
+function getDefaultPaymentMethod(plan: PublicBillingPlan): PaymentMethod {
+  const methods = getAvailablePaymentMethods(plan)
+  return methods.includes('CREDIT_CARD') ? 'CREDIT_CARD' : methods[0]
+}
+
 export function PlanSelector({
   plans,
-  onClose: _,
-  redirectPath,
   showHeader = true,
 }: PlanSelectorProps) {
   const { data: org } = useOrganization()
-  const defaultRedirectPath = useRequiredProjectPath('/billing')
   const basePlans = plans.filter((plan) => plan.kind === 'base')
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
+  const [selectedPlanCode, setSelectedPlanCode] = useState<string>(basePlans[0]?.code ?? 'monthly')
+  const selectedPlan = useMemo(
+    () => basePlans.find((plan) => (plan.code ?? plan.slug) === selectedPlanCode) ?? basePlans[0],
+    [basePlans, selectedPlanCode],
+  )
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
+    selectedPlan ? getDefaultPaymentMethod(selectedPlan) : 'CREDIT_CARD',
+  )
+  const [installments, setInstallments] = useState('1')
+  const [cpfCnpj, setCpfCnpj] = useState('')
+  const [holderName, setHolderName] = useState('')
+  const [cardNumber, setCardNumber] = useState('')
+  const [expiryMonth, setExpiryMonth] = useState('')
+  const [expiryYear, setExpiryYear] = useState('')
+  const [ccv, setCcv] = useState('')
   const [state, setState] = useState<CheckoutState>('idle')
+  const [result, setResult] = useState<CheckoutResult | null>(null)
 
-  async function handleSelectPlan(plan: PublicBillingPlan) {
-    if (plan.contactSalesOnly) {
-      window.location.href =
-        'mailto:contato@whatrack.com?subject=Plano Agency - WhaTrack'
+  if (!selectedPlan) {
+    return null
+  }
+
+  const availableMethods = getAvailablePaymentMethods(selectedPlan)
+  const selectedOffer = selectedPlan.offers.find((offer) => offer.paymentMethod === paymentMethod)
+  const isCreditCard = paymentMethod === 'CREDIT_CARD'
+  const maxInstallments = selectedOffer?.maxInstallments ?? 1
+
+  async function handleSubmit() {
+    if (!org?.id) {
+      toast.error('Selecione uma organização primeiro')
       return
     }
 
-    setSelectedPlan(plan.id)
+    if (!cpfCnpj.trim()) {
+      toast.error('Informe CPF ou CNPJ')
+      return
+    }
+
+    if (isCreditCard && (!holderName || !cardNumber || !expiryMonth || !expiryYear || !ccv)) {
+      toast.error('Preencha os dados do cartão')
+      return
+    }
+
     setState('loading')
+    setResult(null)
 
     try {
-      if (!org?.id) {
-        toast.error('Selecione uma organização primeiro')
-        setState('idle')
-        return
-      }
-
-      const data = await apiFetch('/api/v1/billing/checkout', {
+      const data = (await apiFetch('/api/v1/billing/checkout', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ planType: plan.slug, redirectPath: redirectPath ?? defaultRedirectPath }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          planCode: selectedPlan.code ?? selectedPlan.slug,
+          paymentMethod,
+          cpfCnpj,
+          installments: Number(installments),
+          creditCard: isCreditCard
+            ? {
+                holderName,
+                number: cardNumber,
+                expiryMonth,
+                expiryYear,
+                ccv,
+              }
+            : undefined,
+        }),
         orgId: org.id,
-      })
+      })) as CheckoutResult
 
-      if ((data as any).url) {
-        window.location.href = (data as any).url
-      }
+      setResult(data)
+      toast.success(
+        paymentMethod === 'CREDIT_CARD'
+          ? 'Checkout enviado'
+          : paymentMethod === 'PIX_AUTOMATIC'
+            ? 'Autorize o PIX Automático para concluir'
+            : 'PIX gerado com sucesso',
+      )
     } catch (error) {
-      setState('error')
-      toast.error('Erro ao processar checkout. Tente novamente.')
-      setTimeout(() => setState('idle'), 3000)
+      toast.error(error instanceof Error ? error.message : 'Erro ao processar checkout')
+    } finally {
+      setState('idle')
     }
   }
 
   return (
-    <div className="w-full">
-      {/* Header */}
-      {showHeader && (
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold text-foreground">
-            Escolha seu plano
-          </h2>
+    <div className="space-y-6">
+      {showHeader ? (
+        <div>
+          <h2 className="text-lg font-semibold text-foreground">Contratar plano</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Cartão de crédito é o fluxo principal. PIX automático fica disponível no mensal e PIX comum no anual.
+          </p>
         </div>
-      )}
+      ) : null}
 
-      {/* Cards de plano */}
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 md:grid-cols-2">
         {basePlans.map((plan, index) => {
-          const isLoadingThis = state === 'loading' && selectedPlan === plan.id
-          const isErrorThis = state === 'error' && selectedPlan === plan.id
+          const planCode = plan.code ?? plan.slug
+          const isSelected = planCode === selectedPlanCode
 
           return (
-            <motion.div
+            <motion.button
               key={plan.id}
-              initial={{ opacity: 0, y: 14 }}
+              type="button"
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.07 }}
+              transition={{ duration: 0.2, delay: index * 0.05 }}
+              onClick={() => {
+                setSelectedPlanCode(planCode)
+                setPaymentMethod(getDefaultPaymentMethod(plan))
+                setInstallments('1')
+                setResult(null)
+              }}
               className={cn(
-                'relative flex flex-col overflow-hidden rounded-xl border transition-all',
-                plan.isHighlighted
-                  ? 'border-primary/30 bg-primary/5 ring-1 ring-primary/20'
-                  : 'border-border bg-card hover:border-border/80',
+                'rounded-lg border p-5 text-left transition-colors',
+                isSelected ? 'border-primary bg-primary/5' : 'border-border bg-card',
               )}
             >
-              {/* Linha de destaque no topo */}
-              {plan.isHighlighted && (
-                <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-primary to-transparent" />
-              )}
-
-              <div className="flex flex-1 flex-col p-5">
-                {/* Cabeçalho do plano */}
-                <div className="mb-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="text-sm font-semibold text-foreground">
-                      {plan.name}
-                    </h3>
-                    {plan.isHighlighted && (
-                      <span className="shrink-0 rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary-foreground">
-                        Popular
-                      </span>
-                    )}
-                  </div>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {plan.subtitle}
-                  </p>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h3 className="text-base font-semibold text-foreground">{plan.name}</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">{plan.subtitle}</p>
                 </div>
-
-                {/* Preço */}
-                <div className="mb-4">
-                  {!plan.contactSalesOnly ? (
-                    <>
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-xs text-muted-foreground">R$</span>
-                        <span className="text-2xl font-bold text-foreground">
-                          {plan.monthlyPrice.toLocaleString('pt-BR', {
-                            minimumFractionDigits: 0,
-                            maximumFractionDigits: 0,
-                          })}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          /mês
-                        </span>
-                      </div>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        Inclui {plan.includedProjects} cliente(s) ativo(s)
-                      </p>
-                    </>
-                  ) : (
-                    <div className="text-lg font-semibold text-primary">
-                      Sob consulta
-                    </div>
-                  )}
-                </div>
-
-                {/* CTA */}
-                <Button
-                  onClick={() => handleSelectPlan(plan)}
-                  disabled={state === 'loading'}
-                  size="sm"
-                  variant={plan.isHighlighted ? 'default' : 'outline'}
-                  className={cn(
-                    'mb-4 w-full',
-                    plan.isHighlighted &&
-                    'bg-primary text-primary-foreground hover:bg-primary/90',
-                  )}
-                >
-                  {isLoadingThis ? (
-                    <>
-                      <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-                      Aguarde...
-                    </>
-                  ) : isErrorThis ? (
-                    'Tentar novamente'
-                  ) : plan.contactSalesOnly ? (
-                    <>
-                      <Mail className="mr-1.5 h-3.5 w-3.5" />
-                      Falar com vendas
-                    </>
-                  ) : (
-                    <>
-                      {plan.cta}
-                      <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-                    </>
-                  )}
-                </Button>
-
-                {/* Divisor */}
-                <div className="mb-4 h-px bg-border" />
-
-                {/* Features */}
-                <ul className="flex flex-1 flex-col gap-2">
-                  {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-2">
-                      <div
-                        className={cn(
-                          'mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full',
-                          plan.isHighlighted
-                            ? 'bg-primary/15 text-primary'
-                            : 'bg-muted text-muted-foreground',
-                        )}
-                      >
-                        <Check className="h-2.5 w-2.5" />
-                      </div>
-                      <span className="text-xs text-muted-foreground">
-                        {feature}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-
-                {/* Adicionais */}
-                {plan.additionals.length > 0 && (
-                  <div className="mt-4 rounded-lg border border-border bg-muted/30 px-3 py-2">
-                    {plan.additionals.map((item, i) => (
-                      <p key={i} className="text-xs text-muted-foreground">
-                        + {item}
-                      </p>
-                    ))}
-                  </div>
-                )}
+                {isSelected ? (
+                  <span className="rounded-full bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
+                    Selecionado
+                  </span>
+                ) : null}
               </div>
-            </motion.div>
+
+              <div className="mt-4 flex items-baseline gap-1">
+                <span className="text-sm text-muted-foreground">R$</span>
+                <span className="text-3xl font-semibold text-foreground">
+                  {selectedPlan.code === planCode && selectedOffer
+                    ? selectedOffer.amount.toLocaleString('pt-BR', {
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                      })
+                    : plan.monthlyPrice.toLocaleString('pt-BR', {
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                      })}
+                </span>
+                <span className="text-sm text-muted-foreground">
+                  /{plan.code === 'annual' ? 'ano' : 'mês'}
+                </span>
+              </div>
+
+              <ul className="mt-4 space-y-2">
+                {plan.features.map((feature) => (
+                  <li key={feature} className="flex items-start gap-2 text-sm text-muted-foreground">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+            </motion.button>
           )
         })}
+      </div>
+
+      <div className="grid gap-4 rounded-lg border border-border bg-card p-5 md:grid-cols-2">
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="billing-method">Forma de pagamento</Label>
+            <Select
+              value={paymentMethod}
+              onValueChange={(value) => {
+                setPaymentMethod(value as PaymentMethod)
+                setInstallments('1')
+                setResult(null)
+              }}
+            >
+              <SelectTrigger id="billing-method">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {availableMethods.includes('CREDIT_CARD') ? (
+                  <SelectItem value="CREDIT_CARD">Cartão de crédito</SelectItem>
+                ) : null}
+                {availableMethods.includes('PIX_AUTOMATIC') ? (
+                  <SelectItem value="PIX_AUTOMATIC">PIX Automático</SelectItem>
+                ) : null}
+                {availableMethods.includes('PIX') ? <SelectItem value="PIX">PIX anual</SelectItem> : null}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="cpf-cnpj">CPF ou CNPJ</Label>
+            <Input
+              id="cpf-cnpj"
+              value={cpfCnpj}
+              onChange={(event) => setCpfCnpj(event.target.value)}
+              placeholder="Somente números"
+            />
+          </div>
+
+          {isCreditCard ? (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="holder-name">Nome no cartão</Label>
+                <Input
+                  id="holder-name"
+                  value={holderName}
+                  onChange={(event) => setHolderName(event.target.value)}
+                  placeholder="Nome como está no cartão"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="card-number">Número do cartão</Label>
+                <Input
+                  id="card-number"
+                  value={cardNumber}
+                  onChange={(event) => setCardNumber(event.target.value)}
+                  placeholder="0000 0000 0000 0000"
+                />
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div className="space-y-2">
+                  <Label htmlFor="expiry-month">Mês</Label>
+                  <Input
+                    id="expiry-month"
+                    value={expiryMonth}
+                    onChange={(event) => setExpiryMonth(event.target.value)}
+                    placeholder="MM"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="expiry-year">Ano</Label>
+                  <Input
+                    id="expiry-year"
+                    value={expiryYear}
+                    onChange={(event) => setExpiryYear(event.target.value)}
+                    placeholder="AAAA"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="card-ccv">CCV</Label>
+                  <Input
+                    id="card-ccv"
+                    value={ccv}
+                    onChange={(event) => setCcv(event.target.value)}
+                    placeholder="123"
+                  />
+                </div>
+              </div>
+
+              {selectedPlan.code === 'annual' && maxInstallments > 1 ? (
+                <div className="space-y-2">
+                  <Label htmlFor="installments">Parcelas</Label>
+                  <Select value={installments} onValueChange={setInstallments}>
+                    <SelectTrigger id="installments">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: maxInstallments }, (_, index) => (
+                        <SelectItem key={index + 1} value={String(index + 1)}>
+                          {index + 1}x
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : null}
+            </>
+          ) : null}
+        </div>
+
+        <div className="flex flex-col justify-between rounded-lg border border-border bg-muted/30 p-4">
+          <div className="space-y-3">
+            <div>
+              <p className="text-sm font-medium text-foreground">{selectedPlan.name}</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {paymentMethod === 'CREDIT_CARD'
+                  ? 'Cobrança principal do MVP com checkout transparente.'
+                  : paymentMethod === 'PIX_AUTOMATIC'
+                    ? 'Autoriza o débito recorrente via PIX e gera um QR Code inicial.'
+                    : 'Gera um PIX avulso para pagamento anual.'}
+              </p>
+            </div>
+
+            <div className="rounded-lg border border-border bg-card p-4">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Valor</p>
+              <p className="mt-1 text-2xl font-semibold text-foreground">
+                {selectedOffer
+                  ? new Intl.NumberFormat('pt-BR', {
+                      style: 'currency',
+                      currency: selectedOffer.currency,
+                    }).format(selectedOffer.amount)
+                  : 'R$ 0,00'}
+              </p>
+            </div>
+
+            {result?.pix ? (
+              <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
+                <div className="mb-2 flex items-center gap-2 text-sm font-medium text-foreground">
+                  <QrCode className="h-4 w-4" />
+                  PIX gerado
+                </div>
+                {result.pix.qrCodeImage ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    alt="QR Code PIX"
+                    src={`data:image/png;base64,${result.pix.qrCodeImage}`}
+                    className="mb-3 h-40 w-40 rounded-md border border-border bg-white p-2"
+                  />
+                ) : null}
+                <p className="break-all text-xs text-muted-foreground">{result.pix.qrCodePayload}</p>
+              </div>
+            ) : null}
+
+            {result?.pixAutomatic ? (
+              <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
+                <div className="mb-2 flex items-center gap-2 text-sm font-medium text-foreground">
+                  <QrCode className="h-4 w-4" />
+                  Autorize o PIX Automático
+                </div>
+                {result.pixAutomatic.qrCodeImage ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    alt="QR Code PIX Automático"
+                    src={`data:image/png;base64,${result.pixAutomatic.qrCodeImage}`}
+                    className="mb-3 h-40 w-40 rounded-md border border-border bg-white p-2"
+                  />
+                ) : null}
+                <p className="break-all text-xs text-muted-foreground">
+                  {result.pixAutomatic.qrCodePayload}
+                </p>
+              </div>
+            ) : null}
+          </div>
+
+          <Button onClick={handleSubmit} disabled={state === 'loading'} className="mt-4 w-full">
+            {state === 'loading' ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Processando
+              </>
+            ) : (
+              <>
+                <CreditCard className="mr-2 h-4 w-4" />
+                Continuar
+              </>
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   )

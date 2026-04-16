@@ -1,4 +1,4 @@
-#!/usr/bin/env npx ts-node
+#!/usr/bin/env npx tsx
 
 /**
  * PRD 32 Phase 3: Ownership Ambiguity Analysis Script
@@ -8,7 +8,7 @@
  * - Which orgs need manual review (multiple projects)
  * - Asset distribution across organizations
  *
- * Usage: npm run ts-node src/scripts/analyze-ownership-ambiguity.ts
+ * Usage: npx tsx src/scripts/analyze-ownership-ambiguity.ts
  *
  * Output: Summary report with categorization and next steps
  */
@@ -101,7 +101,8 @@ async function analyzeOrganizations(): Promise<AnalysisReport> {
         }),
       ])
 
-    const totalAssets = metaConnectionCount + metaAdAccountCount + metaPixelCount + whatsappConfigCount
+    const totalAssets =
+      metaConnectionCount + metaAdAccountCount + metaPixelCount + whatsappConfigCount
 
     // Determine mapping strategy
     const mappingStrategy: 'AUTO_MAPPABLE' | 'MANUAL_MAPPING_REQUIRED' =
@@ -192,9 +193,15 @@ function formatReport(report: AnalysisReport): string {
   lines.push('║ SUMMARY' + ' '.repeat(51) + '║')
   lines.push('╠' + '═'.repeat(58) + '╣')
   lines.push(`║ Total Organizations: ${report.totalOrganizations.toString().padEnd(38)} ║`)
-  lines.push(`║ Auto-Mappable (1 project): ${report.summary.autoMappableCount.toString().padEnd(32)} ║`)
-  lines.push(`║ Manual Mapping (2+ projects): ${report.summary.manualMappingCount.toString().padEnd(30)} ║`)
-  lines.push(`║ Total Assets Awaiting Mapping: ${report.summary.totalAssetsAwaitingMapping.toString().padEnd(28)} ║`)
+  lines.push(
+    `║ Auto-Mappable (1 project): ${report.summary.autoMappableCount.toString().padEnd(32)} ║`
+  )
+  lines.push(
+    `║ Manual Mapping (2+ projects): ${report.summary.manualMappingCount.toString().padEnd(30)} ║`
+  )
+  lines.push(
+    `║ Total Assets Awaiting Mapping: ${report.summary.totalAssetsAwaitingMapping.toString().padEnd(28)} ║`
+  )
   lines.push('╚' + '═'.repeat(58) + '╝')
   lines.push('')
 
@@ -208,7 +215,9 @@ function formatReport(report: AnalysisReport): string {
   lines.push(`Meta Ad Accounts: ${autoMappableAssets.metaAdAccounts}`)
   lines.push(`Meta Pixels: ${autoMappableAssets.metaPixels}`)
   lines.push(`WhatsApp Configs: ${autoMappableAssets.whatsappConfigs}`)
-  lines.push(`Total: ${autoMappableAssets.metaConnections + autoMappableAssets.metaAdAccounts + autoMappableAssets.metaPixels + autoMappableAssets.whatsappConfigs}`)
+  lines.push(
+    `Total: ${autoMappableAssets.metaConnections + autoMappableAssets.metaAdAccounts + autoMappableAssets.metaPixels + autoMappableAssets.whatsappConfigs}`
+  )
   lines.push('')
 
   // Manual mapping breakdown
@@ -234,7 +243,9 @@ function formatReport(report: AnalysisReport): string {
 
   // Filter for display
   const autoMapOrgs = report.organizations.filter((o) => o.mappingStrategy === 'AUTO_MAPPABLE')
-  const manualOrgs = report.organizations.filter((o) => o.mappingStrategy === 'MANUAL_MAPPING_REQUIRED')
+  const manualOrgs = report.organizations.filter(
+    (o) => o.mappingStrategy === 'MANUAL_MAPPING_REQUIRED'
+  )
 
   // Show auto-mappable organizations (brief)
   if (autoMapOrgs.length > 0) {
@@ -243,9 +254,7 @@ function formatReport(report: AnalysisReport): string {
 
     for (const org of autoMapOrgs) {
       if (org.totalAssets > 0) {
-        lines.push(
-          `${org.orgName} (${org.orgId.slice(0, 8)}...) → Project: ${org.projectNames[0]}`
-        )
+        lines.push(`${org.orgName} (${org.orgId.slice(0, 8)}...) → Project: ${org.projectNames[0]}`)
         lines.push(
           `  Assets: ${org.metaConnections} connections, ${org.metaAdAccounts} ad accounts, ${org.metaPixels} pixels, ${org.whatsappConfigs} phone(s)`
         )

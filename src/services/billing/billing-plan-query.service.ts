@@ -39,7 +39,10 @@ function mapBillingPlan(
     id: string
     name: string
     slug: string
+    code: string | null
     description: string | null
+    cycle: string | null
+    accessDays: number
     kind: string
     addonType: string | null
     monthlyPrice: { toString(): string }
@@ -59,6 +62,7 @@ function mapBillingPlan(
     contactSalesOnly: boolean
     displayOrder: number
     metadata: Prisma.JsonValue | null
+    offers: []
     deletedAt: Date | null
     createdAt: Date
     updatedAt: Date
@@ -112,7 +116,10 @@ const planSelect = {
   id: true,
   name: true,
   slug: true,
+  code: true,
   description: true,
+  cycle: true,
+  accessDays: true,
   kind: true,
   addonType: true,
   monthlyPrice: true,
@@ -132,6 +139,11 @@ const planSelect = {
   contactSalesOnly: true,
   displayOrder: true,
   metadata: true,
+  offers: {
+    select: {
+      id: true,
+    },
+  },
   deletedAt: true,
   createdAt: true,
   updatedAt: true,

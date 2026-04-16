@@ -1,7 +1,7 @@
 /**
  * POST /api/v1/billing/checkout
  *
- * Creates a checkout session for a billing plan
+ * Creates an Asaas transparent checkout payment
  * Requires organization access
  */
 
@@ -12,6 +12,14 @@ import { rateLimitMiddleware } from '@/lib/utils/rate-limit.middleware'
 import { BillingCheckoutError, createCheckoutSession } from '@/services/billing/billing-checkout.service'
 import { logger } from '@/lib/utils/logger'
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
+
+function getRequestIp(request: NextRequest) {
+  return (
+    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+    request.headers.get('x-real-ip') ??
+    undefined
+  )
+}
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const rateLimitResponse = await rateLimitMiddleware(request, '/api/v1/billing/checkout')
@@ -33,22 +41,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       })
     }
 
-    const origin = request.nextUrl.origin || request.headers.get('origin') || 'http://localhost:3000'
-
     const checkoutSession = await createCheckoutSession({
       organizationId: auth.organizationId,
       userId: auth.userId,
-      planType: parsed.data.planType,
-      origin,
-      redirectPath: parsed.data.redirectPath,
+      input: parsed.data,
+      remoteIp: getRequestIp(request),
     })
 
-    const response = checkoutResponseSchema.parse({
-      url: checkoutSession.url,
-      provider: checkoutSession.provider,
-    })
+    const response = checkoutResponseSchema.parse(checkoutSession)
 
-    logger.info({ context: response.url }, '[API/Checkout] Session created successfully. Redirect URL')
+    logger.info({ context: response }, '[API/Checkout] Asaas checkout created successfully')
     return apiSuccess(response)
   } catch (error) {
     if (error instanceof SyntaxError) {

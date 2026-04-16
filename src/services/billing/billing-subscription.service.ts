@@ -1,15 +1,9 @@
-import { Prisma } from '@generated/prisma/client'
-
 import { prisma } from '@/lib/db/prisma'
-import type { SubscriptionStatus } from '@/types/billing/billing'
-import { isSubscriptionStatus } from '@/types/billing/billing'
-import {
-  getBillingAddonPlans,
-  getBillingPlanBySlug,
-  getDefaultTrialBillingPlan,
-} from './billing-plan-catalog.service'
+import { isSubscriptionStatus, type SubscriptionStatus } from '@/types/billing/billing'
+import { getBillingPlanBySlug, getDefaultTrialBillingPlan } from './billing-plan-catalog.service'
 
-const BILLING_CYCLE_DAYS = 30
+const DEFAULT_TRIAL_PROJECT_LIMIT = 1
+const DEFAULT_TRIAL_RESOURCE_LIMIT = 1
 
 export class SubscriptionNotFoundError extends Error {
   constructor(organizationId: string) {
@@ -36,15 +30,27 @@ function ensureSubscriptionStatus(status: string): SubscriptionStatus {
 export interface CreateSubscriptionParams {
   organizationId: string
   planType: string
+  offerId?: string | null
   provider?: string
   providerCustomerId?: string
   providerSubscriptionId?: string | null
+  asaasCustomerId?: string | null
+  asaasId?: string | null
+  paymentMethod?: string | null
   status?: SubscriptionStatus
   billingCycleStartDate?: Date
   billingCycleEndDate?: Date
   nextResetDate?: Date
+  purchaseDate?: Date | null
+  expiresAt?: Date | null
   trialEndsAt?: Date | null
   canceledAtPeriodEnd?: boolean
+  isActive?: boolean
+  pixAutomaticAuthId?: string | null
+  failureReason?: string | null
+  failureCount?: number
+  lastFailureAt?: Date | null
+  nextRetryAt?: Date | null
 }
 
 export interface StartOrganizationTrialParams {
@@ -89,8 +95,8 @@ async function getOrganizationResourceCounts(organizationId: string) {
 
   return {
     projects,
-    whatsappByProject: whatsappByProject.map((entry) => entry._count._all),
-    metaByProject: metaByProject.map((entry) => entry._count._all),
+    whatsappByProject: whatsappByProject.map((entry: { _count: { _all: number } }) => entry._count._all),
+    metaByProject: metaByProject.map((entry: { _count: { _all: number } }) => entry._count._all),
   }
 }
 
@@ -152,34 +158,33 @@ export async function getOrganizationBillingEntitlements(
   }
 }
 
-export async function assertProjectCreationAllowed(organizationId: string) {
-  const subscription = await prisma.billingSubscription.findUnique({
+async function getTrialSubscription(organizationId: string) {
+  return prisma.billingSubscription.findUnique({
     where: { organizationId },
     select: {
-      providerSubscriptionId: true,
       trialEndsAt: true,
-      plan: {
-        select: {
-          includedProjects: true,
-        },
-      },
+      isActive: true,
+      paymentMethod: true,
     },
   })
+}
 
-  if (!subscription) return
+function isTrialStillActive(trialEndsAt: Date | null | undefined) {
+  return Boolean(trialEndsAt && trialEndsAt.getTime() > Date.now())
+}
 
-  const trialActive =
-    subscription.trialEndsAt != null && subscription.trialEndsAt.getTime() > Date.now()
-  const localTrial = trialActive && !subscription.providerSubscriptionId
-
-  if (!localTrial) return
+export async function assertProjectCreationAllowed(organizationId: string) {
+  const subscription = await getTrialSubscription(organizationId)
+  if (!subscription || subscription.isActive || !isTrialStillActive(subscription.trialEndsAt)) {
+    return
+  }
 
   const currentProjects = await prisma.project.count({
     where: { organizationId },
   })
 
-  if (currentProjects >= 1) {
-    throw new Error('O trial libera apenas 1 cliente ativo. Faça upgrade para criar outro projeto.')
+  if (currentProjects >= DEFAULT_TRIAL_PROJECT_LIMIT) {
+    throw new Error('O trial libera apenas 1 cliente ativo. Contrate um plano para criar outro projeto.')
   }
 }
 
@@ -189,20 +194,10 @@ export async function assertWhatsAppAllowedForProject(input: {
 }) {
   if (!input.projectId) return
 
-  const subscription = await prisma.billingSubscription.findUnique({
-    where: { organizationId: input.organizationId },
-    select: {
-      providerSubscriptionId: true,
-      trialEndsAt: true,
-    },
-  })
-
-  if (!subscription) return
-
-  const trialActive =
-    subscription.trialEndsAt != null && subscription.trialEndsAt.getTime() > Date.now()
-  const localTrial = trialActive && !subscription.providerSubscriptionId
-  if (!localTrial) return
+  const subscription = await getTrialSubscription(input.organizationId)
+  if (!subscription || subscription.isActive || !isTrialStillActive(subscription.trialEndsAt)) {
+    return
+  }
 
   const count = await prisma.whatsAppConfig.count({
     where: {
@@ -212,7 +207,7 @@ export async function assertWhatsAppAllowedForProject(input: {
     },
   })
 
-  if (count >= 1) {
+  if (count >= DEFAULT_TRIAL_RESOURCE_LIMIT) {
     throw new Error('O trial libera apenas 1 número de WhatsApp por cliente.')
   }
 }
@@ -223,20 +218,10 @@ export async function assertMetaAdAccountAllowedForProject(input: {
 }) {
   if (!input.projectId) return
 
-  const subscription = await prisma.billingSubscription.findUnique({
-    where: { organizationId: input.organizationId },
-    select: {
-      providerSubscriptionId: true,
-      trialEndsAt: true,
-    },
-  })
-
-  if (!subscription) return
-
-  const trialActive =
-    subscription.trialEndsAt != null && subscription.trialEndsAt.getTime() > Date.now()
-  const localTrial = trialActive && !subscription.providerSubscriptionId
-  if (!localTrial) return
+  const subscription = await getTrialSubscription(input.organizationId)
+  if (!subscription || subscription.isActive || !isTrialStillActive(subscription.trialEndsAt)) {
+    return
+  }
 
   const count = await prisma.metaAdAccount.count({
     where: {
@@ -246,7 +231,7 @@ export async function assertMetaAdAccountAllowedForProject(input: {
     },
   })
 
-  if (count >= 1) {
+  if (count >= DEFAULT_TRIAL_RESOURCE_LIMIT) {
     throw new Error('O trial libera apenas 1 conta Meta Ads por cliente.')
   }
 }
@@ -256,7 +241,7 @@ export async function createSubscription(params: CreateSubscriptionParams): Prom
     where: { organizationId: params.organizationId },
   })
 
-  if (existing && existing.status === 'active') {
+  if (existing && existing.isActive && params.status === 'active') {
     throw new SubscriptionAlreadyExistsError(params.organizationId)
   }
 
@@ -266,22 +251,33 @@ export async function createSubscription(params: CreateSubscriptionParams): Prom
   }
 
   const cycleStartDate = params.billingCycleStartDate ?? new Date()
-  const cycleEndDate =
-    params.billingCycleEndDate ??
-    new Date(cycleStartDate.getTime() + BILLING_CYCLE_DAYS * 24 * 60 * 60 * 1000)
+  const cycleEndDate = params.billingCycleEndDate ?? new Date(cycleStartDate)
+  const nextResetDate = params.nextResetDate ?? cycleEndDate
 
   const subscriptionData = {
     organizationId: params.organizationId,
-    provider: params.provider || 'stripe',
-    providerCustomerId: params.providerCustomerId || `cust_${params.organizationId}`,
-    providerSubscriptionId: params.providerSubscriptionId ?? null,
     planId: plan.id,
+    offerId: params.offerId ?? null,
+    provider: params.provider ?? 'asaas',
+    providerCustomerId: params.providerCustomerId ?? params.organizationId,
+    providerSubscriptionId: params.providerSubscriptionId ?? null,
+    asaasCustomerId: params.asaasCustomerId ?? null,
+    asaasId: params.asaasId ?? null,
     billingCycleStartDate: cycleStartDate,
     billingCycleEndDate: cycleEndDate,
-    nextResetDate: params.nextResetDate ?? cycleEndDate,
+    nextResetDate,
     trialEndsAt: params.trialEndsAt ?? null,
-    status: params.status || 'active',
+    purchaseDate: params.purchaseDate ?? null,
+    expiresAt: params.expiresAt ?? null,
+    status: params.status ?? 'pending',
     canceledAtPeriodEnd: params.canceledAtPeriodEnd ?? false,
+    paymentMethod: params.paymentMethod ?? null,
+    isActive: params.isActive ?? false,
+    pixAutomaticAuthId: params.pixAutomaticAuthId ?? null,
+    failureReason: params.failureReason ?? null,
+    failureCount: params.failureCount ?? 0,
+    lastFailureAt: params.lastFailureAt ?? null,
+    nextRetryAt: params.nextRetryAt ?? null,
   }
 
   if (existing) {
@@ -289,11 +285,12 @@ export async function createSubscription(params: CreateSubscriptionParams): Prom
       where: { id: existing.id },
       data: subscriptionData,
     })
-  } else {
-    await prisma.billingSubscription.create({
-      data: subscriptionData,
-    })
+    return
   }
+
+  await prisma.billingSubscription.create({
+    data: subscriptionData,
+  })
 }
 
 export async function startOrganizationTrial(params: StartOrganizationTrialParams) {
@@ -303,7 +300,6 @@ export async function startOrganizationTrial(params: StartOrganizationTrialParam
       id: true,
       organizationId: true,
       trialEndsAt: true,
-      providerSubscriptionId: true,
       status: true,
       plan: {
         select: { slug: true },
@@ -333,7 +329,7 @@ export async function startOrganizationTrial(params: StartOrganizationTrialParam
   const created = await prisma.billingSubscription.create({
     data: {
       organizationId: params.organizationId,
-      provider: 'stripe',
+      provider: 'asaas',
       providerCustomerId: `trial_${params.organizationId}`,
       providerSubscriptionId: null,
       planId: plan.id,
@@ -341,14 +337,17 @@ export async function startOrganizationTrial(params: StartOrganizationTrialParam
       billingCycleEndDate: cycleEndDate,
       nextResetDate: cycleEndDate,
       trialEndsAt: cycleEndDate,
-      status: 'active',
+      purchaseDate: null,
+      expiresAt: cycleEndDate,
+      status: 'pending',
       canceledAtPeriodEnd: false,
+      paymentMethod: null,
+      isActive: false,
     },
     select: {
       id: true,
       organizationId: true,
       trialEndsAt: true,
-      providerSubscriptionId: true,
       status: true,
       plan: {
         select: { slug: true },
@@ -366,12 +365,8 @@ export async function syncOrganizationSubscriptionItems(organizationId: string) 
   const subscription = await prisma.billingSubscription.findUnique({
     where: { organizationId },
     select: {
-      id: true,
-      providerSubscriptionId: true,
       plan: {
         select: {
-          id: true,
-          stripePriceId: true,
           includedProjects: true,
           includedWhatsAppPerProject: true,
           includedMetaAdAccountsPerProject: true,
@@ -385,134 +380,12 @@ export async function syncOrganizationSubscriptionItems(organizationId: string) 
     return null
   }
 
-  const entitlements = await getOrganizationBillingEntitlements(organizationId, {
+  return getOrganizationBillingEntitlements(organizationId, {
     includedProjects: subscription.plan.includedProjects,
     includedWhatsAppPerProject: subscription.plan.includedWhatsAppPerProject,
     includedMetaAdAccountsPerProject: subscription.plan.includedMetaAdAccountsPerProject,
     includedConversionsPerProject: subscription.plan.includedConversionsPerProject,
   })
-
-  const addonPlans = await getBillingAddonPlans()
-  const additionalProjectPlan = addonPlans.find((plan) => plan.addonType === 'project')
-  const additionalWhatsAppPlan = addonPlans.find((plan) => plan.addonType === 'whatsapp_number')
-  const additionalMetaPlan = addonPlans.find((plan) => plan.addonType === 'meta_ad_account')
-
-  const desiredItems = [
-    {
-      planId: subscription.plan.id,
-      stripePriceId: subscription.plan.stripePriceId,
-      quantity: 1,
-      unitPrice: null,
-    },
-    additionalProjectPlan
-      ? {
-          planId: additionalProjectPlan.id,
-          stripePriceId: additionalProjectPlan.stripePriceId,
-          quantity: entitlements.additionalProjects,
-          unitPrice: additionalProjectPlan.monthlyPrice,
-        }
-      : null,
-    additionalWhatsAppPlan
-      ? {
-          planId: additionalWhatsAppPlan.id,
-          stripePriceId: additionalWhatsAppPlan.stripePriceId,
-          quantity: entitlements.additionalWhatsAppNumbers,
-          unitPrice: additionalWhatsAppPlan.monthlyPrice,
-        }
-      : null,
-    additionalMetaPlan
-      ? {
-          planId: additionalMetaPlan.id,
-          stripePriceId: additionalMetaPlan.stripePriceId,
-          quantity: entitlements.additionalMetaAdAccounts,
-          unitPrice: additionalMetaPlan.monthlyPrice,
-        }
-      : null,
-  ].filter(
-    (
-      item,
-    ): item is {
-      planId: string
-      stripePriceId: string
-      quantity: number
-      unitPrice: Prisma.Decimal | null
-    } => Boolean(item?.stripePriceId),
-  )
-
-  let syncedItems: Array<{
-    planId: string
-    stripeSubscriptionItemId: string | null
-    quantity: number
-  }> = desiredItems.map((item) => ({
-    planId: item.planId,
-    stripeSubscriptionItemId: null,
-    quantity: item.quantity,
-  }))
-
-  if (subscription.providerSubscriptionId) {
-    const { providerRegistry, ensurePaymentProviders } = await import('@/lib/billing/providers/init')
-    ensurePaymentProviders()
-    const provider = providerRegistry.getActive()
-
-    if (!provider.syncSubscriptionItems) {
-      throw new Error('Active payment provider does not support multi-item sync')
-    }
-
-    syncedItems = await provider.syncSubscriptionItems({
-      subscriptionId: subscription.providerSubscriptionId,
-      items: desiredItems.map((item) => ({
-        planId: item.planId,
-        stripePriceId: item.stripePriceId,
-        quantity: item.quantity,
-      })),
-    })
-  }
-
-  const existingItems = await prisma.billingSubscriptionItem.findMany({
-    where: { subscriptionId: subscription.id },
-    select: { id: true, planId: true },
-  })
-
-  const existingPlanIds = new Set(existingItems.map((item) => item.planId))
-  const desiredPlanIds = new Set(syncedItems.map((item) => item.planId))
-
-  for (const item of syncedItems) {
-    const unitPrice = desiredItems.find((desired) => desired.planId === item.planId)?.unitPrice
-    if (!unitPrice) continue
-
-    await prisma.billingSubscriptionItem.upsert({
-      where: {
-        subscriptionId_planId: {
-          subscriptionId: subscription.id,
-          planId: item.planId,
-        },
-      },
-      update: {
-        quantity: item.quantity,
-        stripeSubscriptionItemId: item.stripeSubscriptionItemId,
-        unitPrice,
-      },
-      create: {
-        subscriptionId: subscription.id,
-        planId: item.planId,
-        quantity: item.quantity,
-        stripeSubscriptionItemId: item.stripeSubscriptionItemId,
-        unitPrice,
-      },
-    })
-  }
-
-  const removableIds = existingItems
-    .filter((item) => existingPlanIds.has(item.planId) && !desiredPlanIds.has(item.planId))
-    .map((item) => item.id)
-
-  if (removableIds.length > 0) {
-    await prisma.billingSubscriptionItem.deleteMany({
-      where: { id: { in: removableIds } },
-    })
-  }
-
-  return entitlements
 }
 
 export async function getActiveSubscription(organizationId: string) {
@@ -530,10 +403,16 @@ export async function getActiveSubscription(organizationId: string) {
       createdAt: true,
       canceledAt: true,
       provider: true,
-      providerSubscriptionId: true,
+      asaasId: true,
+      asaasCustomerId: true,
+      paymentMethod: true,
+      isActive: true,
+      purchaseDate: true,
+      expiresAt: true,
+      failureReason: true,
+      failureCount: true,
       plan: {
         select: {
-          id: true,
           slug: true,
           name: true,
           includedProjects: true,
@@ -542,19 +421,26 @@ export async function getActiveSubscription(organizationId: string) {
           includedConversionsPerProject: true,
         },
       },
-      items: {
+      offer: {
         select: {
-          quantity: true,
-          unitPrice: true,
-          currency: true,
-          plan: {
-            select: {
-              slug: true,
-              name: true,
-              kind: true,
-              addonType: true,
-            },
-          },
+          code: true,
+        },
+      },
+      invoices: {
+        orderBy: [{ createdAt: 'desc' }],
+        take: 1,
+        select: {
+          id: true,
+          asaasId: true,
+          status: true,
+          paymentMethod: true,
+          value: true,
+          dueDate: true,
+          paidAt: true,
+          invoiceUrl: true,
+          pixQrCodePayload: true,
+          pixQrCodeImage: true,
+          pixExpirationDate: true,
         },
       },
     },
@@ -571,19 +457,20 @@ export async function getActiveSubscription(organizationId: string) {
     includedConversionsPerProject: subscription.plan?.includedConversionsPerProject ?? 0,
   })
 
+  const lastInvoice = subscription.invoices[0] ?? null
+
   return {
     ...subscription,
-    planType: subscription.plan?.slug ?? 'platform_base',
-    items: subscription.items.map((item) => ({
-      planSlug: item.plan.slug,
-      planName: item.plan.name,
-      kind: item.plan.kind,
-      addonType: item.plan.addonType,
-      quantity: item.quantity,
-      unitPrice: Number(item.unitPrice),
-      currency: item.currency,
-    })),
+    planType: subscription.plan?.slug ?? 'monthly',
+    planName: subscription.plan?.name ?? null,
+    offerCode: subscription.offer?.code ?? null,
     entitlements,
+    lastInvoice: lastInvoice
+      ? {
+          ...lastInvoice,
+          value: Number(lastInvoice.value),
+        }
+      : null,
   }
 }
 
@@ -597,6 +484,7 @@ export async function updateSubscriptionStatus(
     where: { id: subscriptionId },
     data: {
       status: validatedStatus,
+      isActive: validatedStatus === 'active',
       ...(validatedStatus === 'canceled' && { canceledAt: new Date() }),
     },
   })
@@ -610,18 +498,17 @@ export async function cancelSubscription(
   canceledAtPeriodEnd: boolean
   canceledAt: Date | null
 }> {
-  const subscription = await getActiveSubscription(organizationId)
-  const subscriptionId = subscription.providerSubscriptionId
+  const subscription = await prisma.billingSubscription.findUnique({
+    where: { organizationId },
+    select: {
+      id: true,
+      status: true,
+    },
+  })
 
-  if (!subscriptionId) {
-    throw new Error('Subscription is missing provider subscription ID')
+  if (!subscription) {
+    throw new SubscriptionNotFoundError(organizationId)
   }
-
-  const { providerRegistry, ensurePaymentProviders } = await import('@/lib/billing/providers/init')
-  ensurePaymentProviders()
-
-  const provider = providerRegistry.getActive()
-  await provider.cancelSubscription(subscriptionId, atPeriodEnd)
 
   const updatedSubscription = await prisma.billingSubscription.update({
     where: { id: subscription.id },
@@ -631,6 +518,7 @@ export async function cancelSubscription(
         }
       : {
           status: 'canceled',
+          isActive: false,
           canceledAtPeriodEnd: false,
           canceledAt: new Date(),
         },

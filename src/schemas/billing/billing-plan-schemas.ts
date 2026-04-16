@@ -172,10 +172,13 @@ export const billingPlanHistoryResponseSchema = z.object({
 export const publicBillingPlanSchema = z.object({
   id: z.string(),
   slug: z.string(),
+  code: z.string().nullable(),
   name: z.string(),
   description: z.string().nullable(),
   kind: z.enum(billingPlanKinds),
   addonType: z.enum(billingPlanAddonTypes).nullable(),
+  cycle: z.string().nullable(),
+  accessDays: z.number().int().min(0),
   subtitle: z.string().nullable(),
   cta: z.string(),
   trialDays: z.number().int().min(0),
@@ -193,6 +196,17 @@ export const publicBillingPlanSchema = z.object({
   displayOrder: z.number().int(),
   syncStatus: z.enum(billingPlanSyncStatuses),
   stripePriceId: z.string().nullable(),
+  offers: z.array(
+    z.object({
+      id: z.string(),
+      code: z.string(),
+      paymentMethod: z.enum(['CREDIT_CARD', 'PIX', 'PIX_AUTOMATIC']),
+      amount: z.number(),
+      currency: z.string(),
+      maxInstallments: z.number().int().min(1),
+      installmentRate: z.number().nullable(),
+    }),
+  ),
 })
 
 export const publicBillingPlanListResponseSchema = z.object({

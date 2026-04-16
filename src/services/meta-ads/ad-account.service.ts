@@ -1,16 +1,10 @@
 import { prisma } from '@/lib/db/prisma'
 import { metaAccessTokenService } from './access-token.service'
-import axios from 'axios'
 import {
   assertMetaAdAccountAllowedForProject,
   syncOrganizationSubscriptionItems,
 } from '@/services/billing/billing-subscription.service'
-
-function requireEnv(name: string): string {
-  const value = process.env[name]
-  if (!value) throw new Error(`[AdAccountService] ${name} environment variable is required`)
-  return value
-}
+import { metaApiRequest } from './meta-api'
 
 interface MetaAdAccountResponse {
   id: string
@@ -38,16 +32,13 @@ export class MetaAdAccountService {
     const token = await metaAccessTokenService.getDecryptedToken(connectionId)
 
     // Fetch accounts available to this user
-    const response = await axios.get(
-      `https://graph.facebook.com/${requireEnv('META_API_VERSION')}/me/adaccounts`,
-      {
-        params: {
-          access_token: token,
-          fields: 'id,name,account_status',
-          limit: 100,
-        },
-      }
-    )
+    const response = await metaApiRequest<{ data: MetaAdAccountResponse[] }>('me/adaccounts', {
+      params: {
+        access_token: token,
+        fields: 'id,name,account_status',
+        limit: 100,
+      },
+    })
 
     const accounts: MetaAdAccountResponse[] = response.data.data
 
@@ -89,7 +80,7 @@ export class MetaAdAccountService {
     input: {
       isActive?: boolean
       projectId?: string
-    },
+    }
   ) {
     const existing = await prisma.metaAdAccount.findUnique({
       where: { id: accountId },
@@ -104,7 +95,8 @@ export class MetaAdAccountService {
       throw new Error('Conta Meta Ads não encontrada')
     }
 
-    const nextProjectId = typeof input.projectId !== 'undefined' ? input.projectId : existing.projectId
+    const nextProjectId =
+      typeof input.projectId !== 'undefined' ? input.projectId : existing.projectId
     const nextIsActive = typeof input.isActive === 'boolean' ? input.isActive : true
 
     if (nextIsActive) {

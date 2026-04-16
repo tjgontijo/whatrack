@@ -17,8 +17,9 @@ export async function seedTicketStages(prisma: PrismaClient) {
     for (const stage of DEFAULT_TICKET_STAGES) {
       await prisma.ticketStage.upsert({
         where: {
-          organizationId_name: {
+          organizationId_projectId_name: {
             organizationId: organization.id,
+            projectId: null,
             name: stage.name,
           },
         },
@@ -30,6 +31,7 @@ export async function seedTicketStages(prisma: PrismaClient) {
         },
         create: {
           organizationId: organization.id,
+          projectId: null,
           ...stage,
         },
       })
