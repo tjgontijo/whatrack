@@ -10,6 +10,11 @@ export const billingPlanAddonTypes = [
 ] as const
 
 export const billingPlanMetadataSchema = z.object({
+  slug: z.string().optional(),
+  description: z.string().optional(),
+  kind: z.enum(billingPlanKinds).optional(),
+  addonType: z.enum(billingPlanAddonTypes).nullable().optional(),
+  monthlyPrice: z.number().optional(),
   subtitle: z.string().trim().max(160).nullable().optional(),
   cta: z.string().trim().max(80).nullable().optional(),
   trialDays: z.number().int().min(0).max(30).optional(),

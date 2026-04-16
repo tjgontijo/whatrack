@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/db/prisma'
-import { BillingPaymentMethod } from '@prisma/client'
+import { BillingPaymentMethod } from '@generated/prisma/client'
 import { BillingCatalogService } from './catalog.service'
 import { BillingCustomerService } from './customer.service'
 import { AsaasClient } from './asaas-client'
@@ -20,6 +20,7 @@ function formatCurrency(value: number): string {
 export class PixAutomaticService {
   static async createAuthorization(params: {
     organizationId: string
+    userId: string
     cpfCnpj: string
     planCode: 'monthly' | 'annual'
   }) {
@@ -40,22 +41,23 @@ export class PixAutomaticService {
 
     const organization = await prisma.organization.findUnique({
       where: { id: params.organizationId },
-      select: { id: true, companyName: true, asaasCustomerId: true },
+      select: { id: true, asaasCustomerId: true },
     })
 
     if (!organization) throw new Error('Organization not found')
 
     let customerId = organization.asaasCustomerId
     if (!customerId) {
-      const newCustomer = await BillingCustomerService.createOrGetAsaasCustomer({
+      await BillingCustomerService.ensureCustomer({
         organizationId: params.organizationId,
+        userId: params.userId,
         cpfCnpj: params.cpfCnpj,
       })
-      customerId = newCustomer
-    } else {
-      await BillingCustomerService.updateAsaasCustomer(customerId, {
-        cpfCnpj: params.cpfCnpj,
+      const updated = await prisma.organization.findUnique({
+        where: { id: params.organizationId },
+        select: { asaasCustomerId: true },
       })
+      customerId = updated?.asaasCustomerId ?? organization.asaasCustomerId
     }
 
     const nextMonth = new Date()
@@ -101,7 +103,6 @@ export class PixAutomaticService {
 
     await BillingAuditService.log({
       organizationId: params.organizationId,
-      actor: 'SYSTEM',
       action: 'PIX_AUTOMATIC_INITIATED',
       entity: 'BillingSubscription',
       entityId: subscription.id,

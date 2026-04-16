@@ -45,8 +45,7 @@ export class BillingCatalogService {
     const plans = await prisma.billingPlan.findMany({
       where: {
         isActive: true,
-        deletedAt: null,
-        code: { in: ['monthly', 'annual'] },
+        code: { in: ['starter_monthly', 'growth_monthly', 'agency_monthly', 'pro_monthly', 'enterprise_monthly'] },
       },
       orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }],
       include: {
@@ -63,8 +62,8 @@ export class BillingCatalogService {
 
     return plans.map((plan: (typeof plans)[number]) => ({
       id: plan.id,
-      code: assertPlanCode(plan.code ?? plan.slug),
-      slug: plan.slug,
+      code: assertPlanCode(plan.code),
+      slug: plan.code,
       name: plan.name,
       cycle: plan.cycle === 'YEARLY' ? 'YEARLY' : 'MONTHLY',
       accessDays: plan.accessDays,

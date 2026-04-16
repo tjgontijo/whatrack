@@ -1,12 +1,13 @@
 import type { SubscriptionStatus } from '@/types/billing/billing'
 
 export const BILLING_STATUS_LABELS: Record<SubscriptionStatus, string> = {
-  active: 'Ativo',
-  pending: 'Aguardando confirmacao',
-  paused: 'Aguardando confirmação',
-  canceled: 'Cancelado',
-  past_due: 'Pagamento pendente',
-  inactive: 'Inativo',
+  INACTIVE: 'Inativo',
+  PENDING: 'Aguardando confirmação',
+  ACTIVE: 'Ativo',
+  OVERDUE: 'Pagamento pendente',
+  CANCELED: 'Cancelado',
+  EXPIRED: 'Expirado',
+  FAILED: 'Falha',
 }
 
 export function getBillingStatusLabel(status: SubscriptionStatus): string {

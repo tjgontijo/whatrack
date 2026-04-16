@@ -107,10 +107,9 @@ async function upsertSubscription(input: {
       offerId: input.offer.id,
       asaasCustomerId: input.asaasCustomerId,
       asaasId: input.asaasId,
-      paymentMethod: input.paymentMethod,
-      status: input.status,
+      paymentMethod: input.paymentMethod as any,
+      status: input.status as any,
       isActive: input.isActive,
-      purchaseDate: input.purchaseDate ?? null,
       expiresAt: input.expiresAt ?? null,
       trialEndsAt: input.trialEndsAt ?? null,
       failureReason: null,
@@ -124,10 +123,9 @@ async function upsertSubscription(input: {
       offerId: input.offer.id,
       asaasCustomerId: input.asaasCustomerId,
       asaasId: input.asaasId,
-      paymentMethod: input.paymentMethod,
-      status: input.status,
+      paymentMethod: input.paymentMethod as any,
+      status: input.status as any,
       isActive: input.isActive,
-      purchaseDate: input.purchaseDate ?? null,
       expiresAt: input.expiresAt ?? null,
       trialEndsAt: input.trialEndsAt ?? null,
       pixAutomaticAuthId: input.pixAutomaticAuthId ?? null,
@@ -148,8 +146,8 @@ async function upsertInvoice(input: {
     update: {
       subscriptionId: input.subscriptionId,
       offerId: input.offerId,
-      status: input.payment.status,
-      paymentMethod: input.paymentMethod,
+      status: input.payment.status as any,
+      paymentMethod: input.paymentMethod as any,
       value: input.payment.value,
       netValue: input.payment.netValue ?? null,
       description: input.payment.description ?? null,
@@ -170,8 +168,8 @@ async function upsertInvoice(input: {
       subscriptionId: input.subscriptionId,
       offerId: input.offerId,
       asaasId: input.payment.id,
-      status: input.payment.status,
-      paymentMethod: input.paymentMethod,
+      status: input.payment.status as any,
+      paymentMethod: input.paymentMethod as any,
       value: input.payment.value,
       netValue: input.payment.netValue ?? null,
       description: input.payment.description ?? null,
@@ -336,9 +334,9 @@ export class BillingPaymentService {
       asaasId: payment.id,
       paymentMethod: 'CREDIT_CARD',
       status,
-      purchaseDate: status === 'active' ? now : null,
-      expiresAt: status === 'active' ? expiresAt : null,
-      isActive: status === 'active',
+      purchaseDate: status === 'ACTIVE' ? now : null,
+      expiresAt: status === 'ACTIVE' ? expiresAt : null,
+      isActive: status === 'ACTIVE',
     })
     const invoice = await upsertInvoice({
       organizationId: input.organizationId,
@@ -364,7 +362,7 @@ export class BillingPaymentService {
       invoiceId: invoice.id,
       status,
       paymentMethod: 'CREDIT_CARD' as const,
-      requiresAction: status !== 'active',
+      requiresAction: status !== 'ACTIVE',
     }
   }
 
@@ -400,9 +398,9 @@ export class BillingPaymentService {
       asaasId: payment.id,
       paymentMethod: 'PIX',
       status,
-      purchaseDate: status === 'active' ? now : null,
-      expiresAt: status === 'active' ? expiresAt : null,
-      isActive: status === 'active',
+      purchaseDate: status === 'ACTIVE' ? now : null,
+      expiresAt: status === 'ACTIVE' ? expiresAt : null,
+      isActive: status === 'ACTIVE',
     })
     const invoice = await upsertInvoice({
       organizationId: input.organizationId,
@@ -538,7 +536,7 @@ export class BillingPaymentService {
     await prisma.billingInvoice.update({
       where: { id: invoice.id },
       data: {
-        status: payment.status,
+        status: payment.status as any,
         paidAt,
         netValue: payment.netValue ?? null,
         invoiceUrl: payment.invoiceUrl ?? null,

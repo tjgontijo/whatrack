@@ -11,12 +11,13 @@ import { CheckoutPixQrcode } from './checkout-pix-qrcode'
 import { CheckoutStatusTokenService } from '@/services/billing/checkout-status-token.service'
 
 const statusTone = {
-  active: 'border-emerald-500/20 bg-emerald-500/5 text-emerald-700 dark:text-emerald-400',
-  pending: 'border-amber-500/20 bg-amber-500/5 text-amber-700 dark:text-amber-400',
-  paused: 'border-amber-500/20 bg-amber-500/5 text-amber-700 dark:text-amber-400',
-  canceled: 'border-destructive/20 bg-destructive/5 text-destructive',
-  past_due: 'border-destructive/20 bg-destructive/5 text-destructive',
-  inactive: 'border-border bg-muted/30 text-muted-foreground',
+  INACTIVE: 'border-border bg-muted/30 text-muted-foreground',
+  PENDING: 'border-amber-500/20 bg-amber-500/5 text-amber-700 dark:text-amber-400',
+  ACTIVE: 'border-emerald-500/20 bg-emerald-500/5 text-emerald-700 dark:text-emerald-400',
+  OVERDUE: 'border-destructive/20 bg-destructive/5 text-destructive',
+  CANCELED: 'border-destructive/20 bg-destructive/5 text-destructive',
+  EXPIRED: 'border-destructive/20 bg-destructive/5 text-destructive',
+  FAILED: 'border-destructive/20 bg-destructive/5 text-destructive',
 } as const
 
 function formatCurrency(value: number) {
@@ -74,7 +75,7 @@ export function BillingStatus() {
             Próxima renovação
           </div>
           <p className="mt-2 text-base font-semibold text-foreground">
-            {formatDate(new Date(subscription.nextResetDate), 'dd/MM/yyyy')}
+            {subscription.expiresAt ? formatDate(new Date(subscription.expiresAt), 'dd/MM/yyyy') : 'Aguardando'}
           </p>
         </div>
 
@@ -107,7 +108,7 @@ export function BillingStatus() {
         </div>
       </div>
 
-      {subscription.failureReason && subscription.status === 'FAILED' ? (
+      {subscription.failureReason ? (
         <SubscriptionFailureAlert
           failureReason={subscription.failureReason}
           failureCount={subscription.failureCount}

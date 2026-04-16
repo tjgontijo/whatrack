@@ -14,8 +14,8 @@ export type BillingFailureReason = 'EXPIRED' | 'DENIED' | 'CANCELED_BY_USER' | '
 interface SubscriptionFailureAlertProps {
   failureReason: BillingFailureReason
   failureCount: number
-  lastFailureAt: string | null
-  nextRetryAt: string | null
+  lastFailureAt?: string | null
+  nextRetryAt?: string | null
   subscriptionId: string
   isRetrying?: boolean
 }

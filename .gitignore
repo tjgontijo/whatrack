@@ -17,6 +17,9 @@
 /.next/
 /out/
 
+# map
+*.map
+
 # production
 /build
 

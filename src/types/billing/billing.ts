@@ -18,12 +18,13 @@ export function isSelfServePlanType(value: string): value is SelfServePlanType {
 }
 
 export const BILLING_SUBSCRIPTION_STATUSES = [
-  'active',
-  'pending',
-  'paused',
-  'canceled',
-  'past_due',
-  'inactive',
+  'INACTIVE',
+  'PENDING',
+  'ACTIVE',
+  'OVERDUE',
+  'CANCELED',
+  'EXPIRED',
+  'FAILED',
 ] as const
 
 export type SubscriptionStatus = (typeof BILLING_SUBSCRIPTION_STATUSES)[number]

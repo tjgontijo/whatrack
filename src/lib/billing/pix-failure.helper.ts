@@ -1,4 +1,4 @@
-import { BillingFailureReason } from '@prisma/client'
+type BillingFailureReason = 'EXPIRED' | 'DENIED' | 'CANCELED_BY_USER' | 'FAILED_DEBIT' | 'OTHER'
 
 const FAILURE_REASON_VALUES = {
   EXPIRED: 'EXPIRED',

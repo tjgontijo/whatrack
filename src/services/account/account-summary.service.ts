@@ -16,17 +16,12 @@ function serializeSubscription(
   return {
     id: subscription.id,
     organizationId: subscription.organizationId,
-    planType: subscription.planType,
+    planType: subscription.planType as any,
     planName: subscription.planName,
     status: subscription.status as SubscriptionResponse['status'],
-    canceledAtPeriodEnd: subscription.canceledAtPeriodEnd,
-    billingCycleStartDate: subscription.billingCycleStartDate.toISOString(),
-    billingCycleEndDate: subscription.billingCycleEndDate.toISOString(),
-    nextResetDate: subscription.nextResetDate.toISOString(),
     trialEndsAt: subscription.trialEndsAt?.toISOString() ?? null,
     createdAt: subscription.createdAt.toISOString(),
     canceledAt: subscription.canceledAt?.toISOString() ?? null,
-    provider: subscription.provider ?? undefined,
     asaasId: subscription.asaasId ?? undefined,
     asaasCustomerId: subscription.asaasCustomerId ?? undefined,
     offerCode: subscription.offerCode ?? undefined,
@@ -36,6 +31,9 @@ function serializeSubscription(
     expiresAt: subscription.expiresAt?.toISOString() ?? null,
     failureReason: subscription.failureReason ?? null,
     failureCount: subscription.failureCount,
+    lastFailureAt: subscription.lastFailureAt?.toISOString() ?? null,
+    lastFailureMessage: subscription.lastFailureMessage ?? null,
+    nextRetryAt: subscription.nextRetryAt?.toISOString() ?? null,
     lastInvoice: subscription.lastInvoice
       ? {
           id: subscription.lastInvoice.id,

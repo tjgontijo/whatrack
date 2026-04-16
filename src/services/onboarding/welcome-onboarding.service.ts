@@ -293,7 +293,7 @@ export async function completeWelcomeOnboarding(input: {
   const defaultTrialPlan = await getDefaultTrialBillingPlan()
   const trial = await startOrganizationTrial({
     organizationId: organization.organization.id,
-    planType: defaultTrialPlan.slug,
+    planType: defaultTrialPlan.code,
     trialDays: 14,
   })
 

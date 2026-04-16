@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { BillingSubscriptionStatus, BillingPaymentMethod } from '@prisma/client'
+import { BillingSubscriptionStatus, BillingPaymentMethod } from '@generated/prisma/client'
 import { BillingAsaasConfigService } from './asaas-config.service'
 import { BillingAuditService } from './audit.service'
 import { BillingPaymentService } from './payment.service'
@@ -111,7 +111,6 @@ export class BillingWebhookHandler {
           entity: 'BillingSubscription',
           entityId: eventId,
           asaasEventId: eventId,
-          actor: 'SYSTEM',
           newState: payload,
         })
       }

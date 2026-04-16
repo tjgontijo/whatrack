@@ -1,4 +1,4 @@
-import type { Prisma } from '@generated/prisma/client'
+import type { Prisma, BillingCycle } from '@generated/prisma/client'
 
 import { prisma } from '@/lib/db/prisma'
 import type {
@@ -9,7 +9,7 @@ import type {
   BillingPlanListQuery,
   BillingPlanListResponse,
 } from '@/schemas/billing/billing-plan-schemas'
-import { buildBillingPlanPresentation } from './billing-plan-catalog.service'
+import { buildBillingPlanPresentation, parseBillingPlanMetadata } from './billing-plan-catalog.service'
 
 function buildBillingPlanWhere(query: BillingPlanListQuery): Prisma.BillingPlanWhereInput {
   const search = query.query?.trim()
@@ -17,140 +17,96 @@ function buildBillingPlanWhere(query: BillingPlanListQuery): Prisma.BillingPlanW
   return {
     ...(search
       ? {
-          OR: [
-            { name: { contains: search, mode: 'insensitive' } },
-            { slug: { contains: search, mode: 'insensitive' } },
-            { description: { contains: search, mode: 'insensitive' } },
-          ],
+          OR: [{ name: { contains: search, mode: 'insensitive' } }, { code: { contains: search, mode: 'insensitive' } }],
         }
       : {}),
-    ...(query.status === 'active'
-      ? { isActive: true, deletedAt: null }
-      : query.status === 'inactive'
-        ? { OR: [{ isActive: false }, { deletedAt: { not: null } }] }
-        : {}),
-    ...(query.syncStatus !== 'all' ? { syncStatus: query.syncStatus } : {}),
-    ...(query.kind !== 'all' ? { kind: query.kind } : {}),
+    ...(query.status === 'active' ? { isActive: true } : query.status === 'inactive' ? { isActive: false } : {}),
   }
 }
 
-function mapBillingPlan(
-  plan: {
-    id: string
-    name: string
-    slug: string
-    code: string | null
-    description: string | null
-    cycle: string | null
-    accessDays: number
-    kind: string
-    addonType: string | null
-    monthlyPrice: { toString(): string }
-    currency: string
-    includedProjects: number
-    includedWhatsAppPerProject: number
-    includedMetaAdAccountsPerProject: number
-    includedConversionsPerProject: number
-    supportLevel: string
-    stripeProductId: string | null
-    stripePriceId: string | null
-    syncStatus: string
-    syncError: string | null
-    syncedAt: Date | null
-    isActive: boolean
-    isHighlighted: boolean
-    contactSalesOnly: boolean
-    displayOrder: number
-    metadata: Prisma.JsonValue | null
-    offers: []
-    deletedAt: Date | null
-    createdAt: Date
-    updatedAt: Date
-    _count: {
-      subscriptions: number
-      subscriptionItems: number
-    }
-  },
-): BillingPlanListItem {
-  const presentation = buildBillingPlanPresentation({
-    ...plan,
-    monthlyPrice: plan.monthlyPrice as Prisma.Decimal,
-  })
+function mapBillingPlan(plan: any): BillingPlanListItem {
+  const metadata = parseBillingPlanMetadata(plan.metadata)
+  const presentation = {
+    subtitle: metadata.subtitle ?? `Até ${plan.includedProjects.toLocaleString('pt-BR')} clientes ativos incluídos`,
+    cta: metadata.cta ?? 'Teste grátis por 14 dias',
+    trialDays: typeof metadata.trialDays === 'number' ? metadata.trialDays : 14,
+    features:
+      metadata.features && metadata.features.length > 0
+        ? metadata.features
+        : [
+            `${plan.includedProjects} clientes ativos incluídos`,
+            `${plan.includedWhatsAppPerProject} WhatsApp por cliente`,
+            `${plan.includedMetaAdAccountsPerProject} conta Meta Ads por cliente`,
+            `${plan.includedConversionsPerProject} conversões por cliente / mês`,
+          ],
+    additionals: metadata.additionals ?? [],
+  }
 
   return {
     id: plan.id,
     name: plan.name,
-    slug: plan.slug,
-    description: plan.description,
-    kind: plan.kind as BillingPlanListItem['kind'],
-    addonType: plan.addonType as BillingPlanListItem['addonType'],
+    slug: metadata.slug ?? plan.code,
+    description: metadata.description ?? null,
+    kind: (metadata.kind as BillingPlanListItem['kind']) ?? 'base',
+    addonType: (metadata.addonType as BillingPlanListItem['addonType']) ?? null,
     subtitle: presentation.subtitle,
     cta: presentation.cta,
     trialDays: presentation.trialDays,
     features: presentation.features,
     additionals: presentation.additionals,
-    monthlyPrice: plan.monthlyPrice.toString(),
-    currency: plan.currency,
+    monthlyPrice: String(metadata.monthlyPrice ?? 0),
+    currency: 'BRL',
     includedProjects: plan.includedProjects,
     includedWhatsAppPerProject: plan.includedWhatsAppPerProject,
     includedMetaAdAccountsPerProject: plan.includedMetaAdAccountsPerProject,
     includedConversionsPerProject: plan.includedConversionsPerProject,
     supportLevel: plan.supportLevel,
-    stripeProductId: plan.stripeProductId,
-    stripePriceId: plan.stripePriceId,
-    syncStatus: plan.syncStatus as BillingPlanListItem['syncStatus'],
-    syncError: plan.syncError,
-    syncedAt: plan.syncedAt?.toISOString() ?? null,
+    stripeProductId: null,
+    stripePriceId: null,
+    syncStatus: 'synced' as const,
+    syncError: null,
+    syncedAt: null,
     isActive: plan.isActive,
     isHighlighted: plan.isHighlighted,
     contactSalesOnly: plan.contactSalesOnly,
     displayOrder: plan.displayOrder,
-    deletedAt: plan.deletedAt?.toISOString() ?? null,
+    deletedAt: null,
     createdAt: plan.createdAt.toISOString(),
     updatedAt: plan.updatedAt.toISOString(),
-    subscriptionCount: plan._count.subscriptions + plan._count.subscriptionItems,
+    subscriptionCount: 0,
   }
 }
 
 const planSelect = {
   id: true,
-  name: true,
-  slug: true,
   code: true,
-  description: true,
+  name: true,
   cycle: true,
   accessDays: true,
-  kind: true,
-  addonType: true,
-  monthlyPrice: true,
-  currency: true,
+  isActive: true,
+  sortOrder: true,
+  createdAt: true,
+  updatedAt: true,
   includedProjects: true,
   includedWhatsAppPerProject: true,
   includedMetaAdAccountsPerProject: true,
   includedConversionsPerProject: true,
   supportLevel: true,
-  stripeProductId: true,
-  stripePriceId: true,
-  syncStatus: true,
-  syncError: true,
-  syncedAt: true,
-  isActive: true,
+  displayOrder: true,
   isHighlighted: true,
   contactSalesOnly: true,
-  displayOrder: true,
   metadata: true,
   offers: {
     select: {
       id: true,
-    },
-  },
-  deletedAt: true,
-  createdAt: true,
-  updatedAt: true,
-  _count: {
-    select: {
-      subscriptions: true,
-      subscriptionItems: true,
+      code: true,
+      paymentMethod: true,
+      amount: true,
+      currency: true,
+      maxInstallments: true,
+      installmentRate: true,
+      isActive: true,
+      validUntil: true,
     },
   },
 } as const

@@ -37,7 +37,7 @@ export function useBillingSubscription(
     gcTime: 10 * 60 * 1000,
     refetchOnMount: 'always',
     refetchInterval: (query) =>
-      query.state.data?.subscription?.status === 'paused' ? 5 * 1000 : false,
+      query.state.data?.subscription?.status === 'PENDING' ? 5 * 1000 : false,
     retry: 1,
   })
 

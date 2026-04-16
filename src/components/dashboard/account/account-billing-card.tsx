@@ -95,7 +95,9 @@ export function AccountBillingCard({
               Renovação
             </p>
             <p className="mt-1 text-lg font-semibold text-foreground">
-              {new Date(subscription.nextResetDate).toLocaleDateString('pt-BR')}
+              {subscription.expiresAt
+                ? new Date(subscription.expiresAt).toLocaleDateString('pt-BR')
+                : 'Aguardando'}
             </p>
           </div>
         </div>

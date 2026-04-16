@@ -31,20 +31,13 @@ export interface CreateSubscriptionParams {
   organizationId: string
   planType: string
   offerId?: string | null
-  provider?: string
-  providerCustomerId?: string
-  providerSubscriptionId?: string | null
   asaasCustomerId?: string | null
   asaasId?: string | null
   paymentMethod?: string | null
   status?: SubscriptionStatus
-  billingCycleStartDate?: Date
-  billingCycleEndDate?: Date
-  nextResetDate?: Date
   purchaseDate?: Date | null
   expiresAt?: Date | null
   trialEndsAt?: Date | null
-  canceledAtPeriodEnd?: boolean
   isActive?: boolean
   pixAutomaticAuthId?: string | null
   failureReason?: string | null
@@ -241,7 +234,7 @@ export async function createSubscription(params: CreateSubscriptionParams): Prom
     where: { organizationId: params.organizationId },
   })
 
-  if (existing && existing.isActive && params.status === 'active') {
+  if (existing && existing.isActive && params.status === 'ACTIVE' && !existing.canceledAt) {
     throw new SubscriptionAlreadyExistsError(params.organizationId)
   }
 
@@ -250,31 +243,38 @@ export async function createSubscription(params: CreateSubscriptionParams): Prom
     throw new Error(`Billing plan not found for slug: ${params.planType}`)
   }
 
-  const cycleStartDate = params.billingCycleStartDate ?? new Date()
-  const cycleEndDate = params.billingCycleEndDate ?? new Date(cycleStartDate)
-  const nextResetDate = params.nextResetDate ?? cycleEndDate
+  const status: SubscriptionStatus = params.status ?? 'PENDING'
+  const paymentMethod = params.paymentMethod as any
 
-  const subscriptionData = {
+  const subscriptionCreateData = {
     organizationId: params.organizationId,
-    planId: plan.id,
     offerId: params.offerId ?? null,
-    provider: params.provider ?? 'asaas',
-    providerCustomerId: params.providerCustomerId ?? params.organizationId,
-    providerSubscriptionId: params.providerSubscriptionId ?? null,
     asaasCustomerId: params.asaasCustomerId ?? null,
     asaasId: params.asaasId ?? null,
-    billingCycleStartDate: cycleStartDate,
-    billingCycleEndDate: cycleEndDate,
-    nextResetDate,
-    trialEndsAt: params.trialEndsAt ?? null,
-    purchaseDate: params.purchaseDate ?? null,
-    expiresAt: params.expiresAt ?? null,
-    status: params.status ?? 'pending',
-    canceledAtPeriodEnd: params.canceledAtPeriodEnd ?? false,
-    paymentMethod: params.paymentMethod ?? null,
+    trialEndsAt: params.trialEndsAt,
+    expiresAt: params.expiresAt,
+    status,
+    paymentMethod,
     isActive: params.isActive ?? false,
     pixAutomaticAuthId: params.pixAutomaticAuthId ?? null,
-    failureReason: params.failureReason ?? null,
+    failureReason: params.failureReason as any,
+    failureCount: params.failureCount ?? 0,
+    lastFailureAt: params.lastFailureAt ?? null,
+    nextRetryAt: params.nextRetryAt ?? null,
+    ...(params.purchaseDate ? { purchaseDate: params.purchaseDate } : {}),
+  }
+
+  const subscriptionUpdateData = {
+    offerId: params.offerId ?? null,
+    asaasCustomerId: params.asaasCustomerId ?? null,
+    asaasId: params.asaasId ?? null,
+    trialEndsAt: params.trialEndsAt,
+    expiresAt: params.expiresAt,
+    status,
+    paymentMethod,
+    isActive: params.isActive ?? false,
+    pixAutomaticAuthId: params.pixAutomaticAuthId ?? null,
+    failureReason: params.failureReason as any,
     failureCount: params.failureCount ?? 0,
     lastFailureAt: params.lastFailureAt ?? null,
     nextRetryAt: params.nextRetryAt ?? null,
@@ -283,13 +283,13 @@ export async function createSubscription(params: CreateSubscriptionParams): Prom
   if (existing) {
     await prisma.billingSubscription.update({
       where: { id: existing.id },
-      data: subscriptionData,
+      data: subscriptionUpdateData,
     })
     return
   }
 
   await prisma.billingSubscription.create({
-    data: subscriptionData,
+    data: subscriptionCreateData,
   })
 }
 
@@ -301,16 +301,16 @@ export async function startOrganizationTrial(params: StartOrganizationTrialParam
       organizationId: true,
       trialEndsAt: true,
       status: true,
-      plan: {
-        select: { slug: true },
-      },
     },
   })
 
   if (existing) {
     return {
-      ...existing,
-      planType: existing.plan?.slug ?? null,
+      id: existing.id,
+      organizationId: existing.organizationId,
+      trialEndsAt: existing.trialEndsAt,
+      status: existing.status,
+      planType: params.planType ?? null,
     }
   }
 
@@ -329,18 +329,9 @@ export async function startOrganizationTrial(params: StartOrganizationTrialParam
   const created = await prisma.billingSubscription.create({
     data: {
       organizationId: params.organizationId,
-      provider: 'asaas',
-      providerCustomerId: `trial_${params.organizationId}`,
-      providerSubscriptionId: null,
-      planId: plan.id,
-      billingCycleStartDate: cycleStartDate,
-      billingCycleEndDate: cycleEndDate,
-      nextResetDate: cycleEndDate,
       trialEndsAt: cycleEndDate,
-      purchaseDate: null,
       expiresAt: cycleEndDate,
-      status: 'pending',
-      canceledAtPeriodEnd: false,
+      status: 'PENDING',
       paymentMethod: null,
       isActive: false,
     },
@@ -349,15 +340,15 @@ export async function startOrganizationTrial(params: StartOrganizationTrialParam
       organizationId: true,
       trialEndsAt: true,
       status: true,
-      plan: {
-        select: { slug: true },
-      },
     },
   })
 
   return {
-    ...created,
-    planType: created.plan?.slug ?? null,
+    id: created.id,
+    organizationId: created.organizationId,
+    trialEndsAt: created.trialEndsAt,
+    status: created.status,
+    planType: params.planType ?? null,
   }
 }
 
@@ -365,26 +356,30 @@ export async function syncOrganizationSubscriptionItems(organizationId: string) 
   const subscription = await prisma.billingSubscription.findUnique({
     where: { organizationId },
     select: {
-      plan: {
+      offer: {
         select: {
-          includedProjects: true,
-          includedWhatsAppPerProject: true,
-          includedMetaAdAccountsPerProject: true,
-          includedConversionsPerProject: true,
+          plan: {
+            select: {
+              includedProjects: true,
+              includedWhatsAppPerProject: true,
+              includedMetaAdAccountsPerProject: true,
+              includedConversionsPerProject: true,
+            },
+          },
         },
       },
     },
   })
 
-  if (!subscription?.plan) {
+  if (!subscription?.offer?.plan) {
     return null
   }
 
   return getOrganizationBillingEntitlements(organizationId, {
-    includedProjects: subscription.plan.includedProjects,
-    includedWhatsAppPerProject: subscription.plan.includedWhatsAppPerProject,
-    includedMetaAdAccountsPerProject: subscription.plan.includedMetaAdAccountsPerProject,
-    includedConversionsPerProject: subscription.plan.includedConversionsPerProject,
+    includedProjects: subscription.offer.plan.includedProjects,
+    includedWhatsAppPerProject: subscription.offer.plan.includedWhatsAppPerProject,
+    includedMetaAdAccountsPerProject: subscription.offer.plan.includedMetaAdAccountsPerProject,
+    includedConversionsPerProject: subscription.offer.plan.includedConversionsPerProject,
   })
 }
 
@@ -395,14 +390,9 @@ export async function getActiveSubscription(organizationId: string) {
       id: true,
       organizationId: true,
       status: true,
-      canceledAtPeriodEnd: true,
-      billingCycleStartDate: true,
-      billingCycleEndDate: true,
-      nextResetDate: true,
       trialEndsAt: true,
       createdAt: true,
       canceledAt: true,
-      provider: true,
       asaasId: true,
       asaasCustomerId: true,
       paymentMethod: true,
@@ -411,19 +401,22 @@ export async function getActiveSubscription(organizationId: string) {
       expiresAt: true,
       failureReason: true,
       failureCount: true,
-      plan: {
-        select: {
-          slug: true,
-          name: true,
-          includedProjects: true,
-          includedWhatsAppPerProject: true,
-          includedMetaAdAccountsPerProject: true,
-          includedConversionsPerProject: true,
-        },
-      },
+      lastFailureAt: true,
+      lastFailureMessage: true,
+      nextRetryAt: true,
       offer: {
         select: {
           code: true,
+          plan: {
+            select: {
+              code: true,
+              name: true,
+              includedProjects: true,
+              includedWhatsAppPerProject: true,
+              includedMetaAdAccountsPerProject: true,
+              includedConversionsPerProject: true,
+            },
+          },
         },
       },
       invoices: {
@@ -451,18 +444,18 @@ export async function getActiveSubscription(organizationId: string) {
   }
 
   const entitlements = await getOrganizationBillingEntitlements(organizationId, {
-    includedProjects: subscription.plan?.includedProjects ?? 0,
-    includedWhatsAppPerProject: subscription.plan?.includedWhatsAppPerProject ?? 0,
-    includedMetaAdAccountsPerProject: subscription.plan?.includedMetaAdAccountsPerProject ?? 0,
-    includedConversionsPerProject: subscription.plan?.includedConversionsPerProject ?? 0,
+    includedProjects: subscription.offer?.plan?.includedProjects ?? 0,
+    includedWhatsAppPerProject: subscription.offer?.plan?.includedWhatsAppPerProject ?? 0,
+    includedMetaAdAccountsPerProject: subscription.offer?.plan?.includedMetaAdAccountsPerProject ?? 0,
+    includedConversionsPerProject: subscription.offer?.plan?.includedConversionsPerProject ?? 0,
   })
 
   const lastInvoice = subscription.invoices[0] ?? null
 
   return {
     ...subscription,
-    planType: subscription.plan?.slug ?? 'monthly',
-    planName: subscription.plan?.name ?? null,
+    planType: subscription.offer?.plan?.code ?? 'monthly',
+    planName: subscription.offer?.plan?.name ?? null,
     offerCode: subscription.offer?.code ?? null,
     entitlements,
     lastInvoice: lastInvoice
@@ -484,8 +477,8 @@ export async function updateSubscriptionStatus(
     where: { id: subscriptionId },
     data: {
       status: validatedStatus,
-      isActive: validatedStatus === 'active',
-      ...(validatedStatus === 'canceled' && { canceledAt: new Date() }),
+      isActive: validatedStatus === 'ACTIVE',
+      ...(validatedStatus === 'CANCELED' && { canceledAt: new Date() }),
     },
   })
 }
@@ -514,23 +507,22 @@ export async function cancelSubscription(
     where: { id: subscription.id },
     data: atPeriodEnd
       ? {
-          canceledAtPeriodEnd: true,
+          // Defer cancellation - will be handled at period end
         }
       : {
-          status: 'canceled',
+          status: 'CANCELED',
           isActive: false,
-          canceledAtPeriodEnd: false,
           canceledAt: new Date(),
         },
     select: {
       status: true,
-      canceledAtPeriodEnd: true,
       canceledAt: true,
     },
   })
 
   return {
-    ...updatedSubscription,
     status: ensureSubscriptionStatus(updatedSubscription.status),
+    canceledAtPeriodEnd: atPeriodEnd,
+    canceledAt: updatedSubscription.canceledAt,
   }
 }
