@@ -1007,6 +1007,7 @@ CREATE TABLE "billing_subscriptions" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "organizationId" UUID NOT NULL,
     "offerId" UUID,
+    "currentPlanId" UUID,
     "asaasId" TEXT,
     "asaasCustomerId" TEXT,
     "pixAutomaticAuthId" TEXT,
@@ -1082,8 +1083,8 @@ CREATE TABLE "billing_invoices" (
     "asaasId" TEXT NOT NULL,
     "status" TEXT NOT NULL DEFAULT 'PENDING',
     "paymentMethod" TEXT NOT NULL,
-    "value" DOUBLE PRECISION NOT NULL,
-    "netValue" DOUBLE PRECISION,
+    "value" DECIMAL(10,2) NOT NULL,
+    "netValue" DECIMAL(10,2),
     "description" TEXT,
     "billingType" TEXT NOT NULL,
     "dueDate" TIMESTAMP(3) NOT NULL,
@@ -1103,6 +1104,20 @@ CREATE TABLE "billing_invoices" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "billing_invoices_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "billing_plan_history" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "subscriptionId" UUID NOT NULL,
+    "planId" UUID NOT NULL,
+    "startedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "endedAt" TIMESTAMP(3),
+    "reason" TEXT NOT NULL,
+    "projectCountAtChange" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "billing_plan_history_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -1695,6 +1710,9 @@ CREATE INDEX "billing_subscriptions_organizationId_idx" ON "billing_subscription
 CREATE INDEX "billing_subscriptions_offerId_idx" ON "billing_subscriptions"("offerId");
 
 -- CreateIndex
+CREATE INDEX "billing_subscriptions_currentPlanId_idx" ON "billing_subscriptions"("currentPlanId");
+
+-- CreateIndex
 CREATE INDEX "billing_subscriptions_asaasId_idx" ON "billing_subscriptions"("asaasId");
 
 -- CreateIndex
@@ -1741,6 +1759,15 @@ CREATE INDEX "billing_invoices_asaasId_idx" ON "billing_invoices"("asaasId");
 
 -- CreateIndex
 CREATE INDEX "billing_invoices_status_idx" ON "billing_invoices"("status");
+
+-- CreateIndex
+CREATE INDEX "billing_plan_history_subscriptionId_idx" ON "billing_plan_history"("subscriptionId");
+
+-- CreateIndex
+CREATE INDEX "billing_plan_history_planId_idx" ON "billing_plan_history"("planId");
+
+-- CreateIndex
+CREATE INDEX "billing_plan_history_subscriptionId_startedAt_idx" ON "billing_plan_history"("subscriptionId", "startedAt" DESC);
 
 -- CreateIndex
 CREATE UNIQUE INDEX "billing_audit_logs_asaasEventId_key" ON "billing_audit_logs"("asaasEventId");
@@ -2055,6 +2082,9 @@ ALTER TABLE "billing_subscriptions" ADD CONSTRAINT "billing_subscriptions_organi
 ALTER TABLE "billing_subscriptions" ADD CONSTRAINT "billing_subscriptions_offerId_fkey" FOREIGN KEY ("offerId") REFERENCES "billing_offers"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "billing_subscriptions" ADD CONSTRAINT "billing_subscriptions_currentPlanId_fkey" FOREIGN KEY ("currentPlanId") REFERENCES "billing_plans"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "billing_subscriptions" ADD CONSTRAINT "billing_subscriptions_status_fkey" FOREIGN KEY ("status") REFERENCES "billing_subscription_statuses"("name") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -2086,6 +2116,12 @@ ALTER TABLE "billing_invoices" ADD CONSTRAINT "billing_invoices_status_fkey" FOR
 
 -- AddForeignKey
 ALTER TABLE "billing_invoices" ADD CONSTRAINT "billing_invoices_paymentMethod_fkey" FOREIGN KEY ("paymentMethod") REFERENCES "billing_payment_methods"("name") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "billing_plan_history" ADD CONSTRAINT "billing_plan_history_subscriptionId_fkey" FOREIGN KEY ("subscriptionId") REFERENCES "billing_subscriptions"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "billing_plan_history" ADD CONSTRAINT "billing_plan_history_planId_fkey" FOREIGN KEY ("planId") REFERENCES "billing_plans"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "billing_audit_logs" ADD CONSTRAINT "billing_audit_logs_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE SET NULL ON UPDATE CASCADE;

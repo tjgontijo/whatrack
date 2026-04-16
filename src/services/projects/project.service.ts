@@ -5,6 +5,7 @@ import {
   assertProjectCreationAllowed,
   syncOrganizationSubscriptionItems,
 } from '@/services/billing/billing-subscription.service'
+import { billingAutoUpgradeService } from '@/services/billing/billing-auto-upgrade.service'
 import type {
   ProjectAssociationCounts,
   ProjectCreateInput,
@@ -194,6 +195,14 @@ export async function createProject(input: {
   })
 
   await syncOrganizationSubscriptionItems(input.organizationId)
+
+  const projectCount = (
+    await prisma.project.count({
+      where: { organizationId: input.organizationId },
+    })
+  )
+
+  await billingAutoUpgradeService.performAutoUpgradeIfNeeded(input.organizationId, projectCount)
 
   return mapProject(created)
 }

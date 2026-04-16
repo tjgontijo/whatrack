@@ -1377,6 +1377,7 @@ model BillingSubscription {
   id                        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   organizationId            String    @unique @db.Uuid
   offerId                   String?   @db.Uuid
+  currentPlanId             String?   @db.Uuid
   asaasId                   String?   @unique
   asaasCustomerId           String?
   pixAutomaticAuthId        String?   @unique
@@ -1399,13 +1400,16 @@ model BillingSubscription {
 
   organization     Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   offer            BillingOffer?             @relation(fields: [offerId], references: [id])
+  currentPlan      BillingPlan?              @relation("currentPlan", fields: [currentPlanId], references: [id], onDelete: SetNull)
   invoices         BillingInvoice[]
+  planHistory      BillingPlanHistory[]
   statusRef        BillingSubscriptionStatus @relation(fields: [status], references: [name])
   paymentMethodRef BillingPaymentMethod?     @relation(fields: [paymentMethod], references: [name])
   failureReasonRef BillingFailureReason?     @relation(fields: [failureReason], references: [name])
 
   @@index([organizationId])
   @@index([offerId])
+  @@index([currentPlanId])
   @@index([asaasId])
   @@index([status])
   @@index([isActive])
@@ -1440,8 +1444,10 @@ model BillingPlan {
   // Metadata
   metadata Json?
 
-  offers   BillingOffer[]
-  cycleRef BillingCycle   @relation(fields: [cycle], references: [name])
+  offers               BillingOffer[]
+  currentSubscriptions BillingSubscription[] @relation("currentPlan")
+  planHistory          BillingPlanHistory[]
+  cycleRef             BillingCycle          @relation(fields: [cycle], references: [name])
 
   @@index([isActive])
   @@map("billing_plans")
@@ -1480,8 +1486,8 @@ model BillingInvoice {
   asaasId           String    @unique
   status            String    @default("PENDING")
   paymentMethod     String
-  value             Float
-  netValue          Float?
+  value             Decimal   @db.Decimal(10, 2)
+  netValue          Decimal?  @db.Decimal(10, 2)
   description       String?
   billingType       String
   dueDate           DateTime
@@ -1512,6 +1518,25 @@ model BillingInvoice {
   @@index([asaasId])
   @@index([status])
   @@map("billing_invoices")
+}
+
+model BillingPlanHistory {
+  id                   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  subscriptionId       String   @db.Uuid
+  planId               String   @db.Uuid
+  startedAt            DateTime @default(now())
+  endedAt              DateTime?
+  reason               String
+  projectCountAtChange Int
+  createdAt            DateTime @default(now())
+
+  subscription BillingSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  plan         BillingPlan         @relation(fields: [planId], references: [id], onDelete: Restrict)
+
+  @@index([subscriptionId])
+  @@index([planId])
+  @@index([subscriptionId, startedAt(sort: Desc)])
+  @@map("billing_plan_history")
 }
 
 model BillingAuditLog {

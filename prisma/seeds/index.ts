@@ -5,6 +5,7 @@ import { seedLookupTables } from './seed_lookup_tables'
 import { seedTicketStages } from './seed_ticket_stages'
 import { seedBillingPlans } from './seed_billing_plans'
 import { seedBillingOffers } from './seed_billing_offers'
+import { seedBillingPlanHistory } from './seed_billing_plan_history'
 import { seedSystemOrg } from './seed_system_org'
 
 interface PgTableRow {
@@ -93,6 +94,7 @@ export async function runSeed() {
     await seedLookupTables(prisma)
     await seedBillingPlans(prisma)
     await seedBillingOffers(prisma)
+    await seedBillingPlanHistory(prisma)
 
     // 1. Ensure system organization exists
     await seedSystemOrg(prisma)
