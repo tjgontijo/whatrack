@@ -129,9 +129,6 @@ export default function SignUpPage() {
     >
       <div className="text-left">
         <h1 className="text-foreground text-3xl font-bold tracking-tight">Comece seu teste grátis</h1>
-        <p className="text-muted-foreground mt-2 text-sm font-medium">
-          Conecte seus anúncios Meta às vendas no WhatsApp. 14 dias grátis, sem cartão agora.
-        </p>
       </div>
 
       <Form {...form}>
