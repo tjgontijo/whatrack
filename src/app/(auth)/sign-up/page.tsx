@@ -1,16 +1,18 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 import Link from 'next/link'
+import { Eye, EyeOff } from 'lucide-react'
 
 import { FormProvider as Form, Controller } from 'react-hook-form'
 import { Field, FieldLabel, FieldError } from '@/components/ui/field'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/components/ui/input-group'
 import { authClient } from '@/lib/auth/auth-client'
 import { signUpSchema, type SignUpData } from '@/schemas/auth/sign-up'
 import { getAuthErrorMessage } from '@/lib/auth/error-messages'
@@ -43,6 +45,8 @@ export default function SignUpPage() {
   const funnelIntent = readFunnelIntent(searchParams)
   const invitationQuery = useMemo(() => buildInvitationQuery(invitationId, nextParam), [invitationId, nextParam])
   const funnelQuery = useMemo(() => buildFunnelQueryString(funnelIntent), [funnelIntent])
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   const form = useForm<SignUpData>({
     resolver: zodResolver(signUpSchema),
@@ -237,47 +241,73 @@ export default function SignUpPage() {
             />
           ) : null}
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:gap-5">
-            <Controller
-              control={form.control}
-              name="password"
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={field.name}>Senha</FieldLabel>
-                  <Input
+          <Controller
+            control={form.control}
+            name="password"
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>Senha</FieldLabel>
+                <InputGroup className="focus-visible:ring-primary focus-visible:border-primary h-11 shadow-sm transition-shadow lg:h-12">
+                  <InputGroupInput
                     id={field.name}
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     placeholder="Mín. 8 caracteres"
                     autoComplete="new-password"
-                    className="focus-visible:ring-primary focus-visible:border-primary h-11 px-4 shadow-sm transition-shadow lg:h-12"
                     disabled={isSubmitting}
                     {...field}
                   />
-                  <FieldError errors={[fieldState.error]} />
-                </Field>
-              )}
-            />
+                  <InputGroupAddon align="inline-end">
+                    <InputGroupButton
+                      type="button"
+                      variant="ghost"
+                      size="icon-xs"
+                      aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                      onClick={() => setShowPassword((value) => !value)}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </InputGroupButton>
+                  </InputGroupAddon>
+                </InputGroup>
+                <FieldError errors={[fieldState.error]} />
+              </Field>
+            )}
+          />
 
-            <Controller
-              control={form.control}
-              name="confirmPassword"
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={field.name}>Confirmar senha</FieldLabel>
-                  <Input
+          <Controller
+            control={form.control}
+            name="confirmPassword"
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>Confirmar senha</FieldLabel>
+                <InputGroup className="focus-visible:ring-primary focus-visible:border-primary h-11 shadow-sm transition-shadow lg:h-12">
+                  <InputGroupInput
                     id={field.name}
-                    type="password"
+                    type={showConfirmPassword ? 'text' : 'password'}
                     placeholder="Repita a senha"
                     autoComplete="new-password"
-                    className="focus-visible:ring-primary focus-visible:border-primary h-11 px-4 shadow-sm transition-shadow lg:h-12"
                     disabled={isSubmitting}
                     {...field}
                   />
-                  <FieldError errors={[fieldState.error]} />
-                </Field>
-              )}
-            />
-          </div>
+                  <InputGroupAddon align="inline-end">
+                    <InputGroupButton
+                      type="button"
+                      variant="ghost"
+                      size="icon-xs"
+                      aria-label={showConfirmPassword ? 'Ocultar confirmação de senha' : 'Mostrar confirmação de senha'}
+                      onClick={() => setShowConfirmPassword((value) => !value)}
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </InputGroupButton>
+                  </InputGroupAddon>
+                </InputGroup>
+                <FieldError errors={[fieldState.error]} />
+              </Field>
+            )}
+          />
 
           <Button
             type="submit"
