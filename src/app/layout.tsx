@@ -8,13 +8,13 @@ import { getMessages } from '@/lib/i18n/messages'
 import Providers from '@/components/shared/providers'
 
 export const metadata: Metadata = {
-  title: 'WhaTrack | Prove o ROI dos seus clientes no WhatsApp',
+  title: 'WhaTrack | Rastreamento de vendas WhatsApp e Meta Ads',
   description:
-    'Plataforma para agências e gestores de tráfego conectarem Meta Ads ao WhatsApp, rastrearem conversões e provarem resultado para cada cliente.',
+    'O Meta entrega o lead no WhatsApp mas não sabe que você vendeu. O WhaTrack registra cada venda e devolve o dado ao algoritmo. CAC e ROAS reais por campanha e anúncio.',
   openGraph: {
-    title: 'WhaTrack | Prove o ROI dos seus clientes no WhatsApp',
+    title: 'WhaTrack | Rastreamento de vendas WhatsApp e Meta Ads',
     description:
-      'Conecte Meta Ads e WhatsApp, rastreie conversões reais e mostre relatórios de ROI que seus clientes entendem.',
+      'O Meta entrega o lead no WhatsApp mas não sabe que você vendeu. O WhaTrack registra cada venda e devolve o dado ao algoritmo. CAC e ROAS reais por campanha e anúncio.',
     type: 'website',
   },
 }

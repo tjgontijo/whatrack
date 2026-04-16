@@ -1,3 +1,26 @@
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'WhaTrack | Conecte seus anúncios Meta às vendas no WhatsApp',
+  description:
+    'O Meta entrega o lead no WhatsApp mas não sabe que você vendeu. O WhaTrack registra cada venda e devolve o dado ao algoritmo. CAC e ROAS reais, por campanha e anúncio.',
+  openGraph: {
+    title: 'WhaTrack | Conecte seus anúncios Meta às vendas no WhatsApp',
+    description:
+      'O Meta entrega o lead no WhatsApp mas não sabe que você vendeu. O WhaTrack registra cada venda e devolve o dado ao algoritmo. CAC e ROAS reais, por campanha e anúncio.',
+    type: 'website',
+  },
+  keywords: [
+    'rastreamento whatsapp',
+    'meta ads whatsapp',
+    'rastrear vendas whatsapp',
+    'api conversão meta',
+    'whatrack',
+    'rastreamento leads whatsapp',
+    'cac roas whatsapp',
+  ],
+}
+
 import {
   LandingHeader,
   LandingHero,
