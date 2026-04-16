@@ -10,7 +10,7 @@ test.describe('Sign Up & Account Creation', () => {
       name: 'Test User',
       email,
       password,
-      cpf: '12345678901',
+      documentNumber: '12345678901',
     })
 
     // Wait for successful redirect
@@ -23,7 +23,7 @@ test.describe('Sign Up & Account Creation', () => {
   test('should require valid email format', async ({ page }) => {
     await page.goto('/sign-up')
 
-    await page.fill('input[name="fullName"]', 'Test User')
+    await page.fill('input[name="name"]', 'Test User')
     await page.fill('input[name="email"]', 'invalid-email')
     await page.fill('input[name="password"]', generateTestPassword())
     await page.fill('input[name="confirmPassword"]', generateTestPassword())
@@ -43,7 +43,7 @@ test.describe('Sign Up & Account Creation', () => {
 
     await page.goto('/sign-up')
 
-    await page.fill('input[name="fullName"]', 'Test User')
+    await page.fill('input[name="name"]', 'Test User')
     await page.fill('input[name="email"]', email)
     await page.fill('input[name="password"]', password)
     await page.fill('input[name="confirmPassword"]', 'DifferentPassword123!@#')
@@ -60,7 +60,7 @@ test.describe('Sign Up & Account Creation', () => {
   test('should require strong password', async ({ page }) => {
     await page.goto('/sign-up')
 
-    await page.fill('input[name="fullName"]', 'Test User')
+    await page.fill('input[name="name"]', 'Test User')
     await page.fill('input[name="email"]', generateTestEmail())
     await page.fill('input[name="password"]', '123') // Too weak
     await page.fill('input[name="confirmPassword"]', '123')
@@ -99,7 +99,7 @@ test.describe('Sign Up & Account Creation', () => {
       name: 'Auto Login Test',
       email,
       password,
-      cpf: '12345678901',
+      documentNumber: '12345678901',
     })
 
     await waitForSignUpSuccess(page)
@@ -138,7 +138,7 @@ test.describe('Sign Up & Account Creation', () => {
       const isRequired = await cpfInput.evaluate((el: HTMLInputElement) => el.required)
 
       if (isRequired) {
-        await page.fill('input[name="fullName"]', 'CPF Test')
+        await page.fill('input[name="name"]', 'CPF Test')
         await page.fill('input[name="email"]', generateTestEmail())
         await page.fill('input[name="password"]', generateTestPassword())
 
@@ -158,7 +158,7 @@ test.describe('Sign Up & Account Creation', () => {
       name: 'CPF Validation Test',
       email,
       password: generateTestPassword(),
-      cpf: 'invalid-cpf',
+      documentNumber: 'invalid-cpf',
     })
 
     // Should show error
@@ -178,7 +178,7 @@ test.describe('Sign Up & Account Creation', () => {
     const email = generateTestEmail()
 
     await page.goto('/sign-up')
-    await page.fill('input[name="fullName"]', 'Error Test')
+    await page.fill('input[name="name"]', 'Error Test')
     await page.fill('input[name="email"]', email)
     await page.fill('input[name="password"]', generateTestPassword())
     await page.fill('input[name="confirmPassword"]', generateTestPassword())
@@ -191,7 +191,7 @@ test.describe('Sign Up & Account Creation', () => {
     await expect(error).toBeVisible({ timeout: 5000 })
 
     // Should stay on form
-    const fullNameInput = page.locator('input[name="fullName"]')
+    const fullNameInput = page.locator('input[name="name"]')
     await expect(fullNameInput).toHaveValue('Error Test')
   })
 

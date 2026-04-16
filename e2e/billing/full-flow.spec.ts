@@ -22,10 +22,10 @@ test.describe('Full User Journey: Sign Up → Projects → Auto Upgrade → Paym
     // ===== STEP 1: Sign Up =====
     console.log('📝 Creating account...')
     await signUp(page, {
-      fullName: 'Full Flow Test User',
+      name: 'Full Flow Test User',
       email,
       password,
-      cpf: '12345678901',
+      documentNumber: '12345678901',
     })
 
     await waitForSignUpSuccess(page)
@@ -163,7 +163,7 @@ test.describe('Full User Journey: Sign Up → Projects → Auto Upgrade → Paym
 
     // Quick sign up and project setup
     await signUp(page, {
-      fullName: 'Retry Test User',
+      name: 'Retry Test User',
       email,
       password,
     })

@@ -108,7 +108,7 @@ test.describe('Billing Auto-Upgrade Flow', () => {
       await page.goto('/checkout')
 
       // Fill billing info
-      await page.fill('input[name="fullName"]', 'Test User')
+      await page.fill('input[name="name"]', 'Test User')
       await page.fill('input[name="email"]', 'test@asaas.com')
       await page.fill('input[name="cpf"]', '12345678901')
 
@@ -134,7 +134,7 @@ test.describe('Billing Auto-Upgrade Flow', () => {
       await page.goto('/checkout')
 
       // Fill billing info
-      await page.fill('input[name="fullName"]', 'Test User')
+      await page.fill('input[name="name"]', 'Test User')
       await page.fill('input[name="email"]', 'test@asaas.com')
       await page.fill('input[name="cpf"]', '12345678901')
 
@@ -159,7 +159,7 @@ test.describe('Billing Auto-Upgrade Flow', () => {
       await page.goto('/checkout')
 
       // Fill billing info
-      await page.fill('input[name="fullName"]', 'Test User')
+      await page.fill('input[name="name"]', 'Test User')
       await page.fill('input[name="email"]', 'test@asaas.com')
       await page.fill('input[name="cpf"]', '12345678901')
 
