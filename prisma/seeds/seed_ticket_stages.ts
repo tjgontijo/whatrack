@@ -15,26 +15,36 @@ export async function seedTicketStages(prisma: PrismaClient) {
 
   for (const organization of organizations) {
     for (const stage of DEFAULT_TICKET_STAGES) {
-      await prisma.ticketStage.upsert({
+      // Check if stage exists first
+      const existingStage = await prisma.ticketStage.findFirst({
         where: {
-          organizationId_projectId_name: {
-            organizationId: organization.id,
-            projectId: null,
-            name: stage.name,
-          },
-        },
-        update: {
-          color: stage.color,
-          order: stage.order,
-          isDefault: stage.isDefault,
-          isClosed: stage.isClosed,
-        },
-        create: {
           organizationId: organization.id,
           projectId: null,
-          ...stage,
+          name: stage.name,
         },
       })
+
+      if (existingStage) {
+        // Update existing stage
+        await prisma.ticketStage.update({
+          where: { id: existingStage.id },
+          data: {
+            color: stage.color,
+            order: stage.order,
+            isDefault: stage.isDefault,
+            isClosed: stage.isClosed,
+          },
+        })
+      } else {
+        // Create new stage
+        await prisma.ticketStage.create({
+          data: {
+            organizationId: organization.id,
+            projectId: null,
+            ...stage,
+          },
+        })
+      }
     }
 
     console.log(`Ticket stages ensured for organization: ${organization.name}`)
