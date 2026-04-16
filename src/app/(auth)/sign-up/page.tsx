@@ -51,7 +51,7 @@ export default function SignUpPage() {
       email: '',
       password: '',
       confirmPassword: '',
-      documentType: 'CPF',
+      documentType: null,
       documentNumber: '',
     },
   })
@@ -178,13 +178,13 @@ export default function SignUpPage() {
             )}
           />
 
-          {/* Tipo de documento */}
+          {/* Dados fiscais */}
           <Controller
             control={form.control}
             name="documentType"
-            render={({ field }) => (
-              <Field>
-                <FieldLabel>Tipo de pessoa</FieldLabel>
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel>Documento fiscal</FieldLabel>
                 <div className="flex gap-3">
                   {(['CPF', 'CNPJ'] as const).map((type) => (
                     <button
@@ -201,44 +201,44 @@ export default function SignUpPage() {
                           : 'border-border text-muted-foreground hover:border-primary/50'
                       }`}
                     >
-                      {type === 'CPF' ? 'Pessoa Física (CPF)' : 'Pessoa Jurídica (CNPJ)'}
+                      {type}
                     </button>
                   ))}
                 </div>
-              </Field>
-            )}
-          />
-
-          {/* Número do documento */}
-          <Controller
-            control={form.control}
-            name="documentNumber"
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>
-                  {documentType === 'CPF' ? 'CPF' : 'CNPJ'}
-                </FieldLabel>
-                <Input
-                  id={field.name}
-                  placeholder={documentType === 'CPF' ? '000.000.000-00' : '00.000.000/0000-00'}
-                  autoComplete="off"
-                  inputMode="numeric"
-                  className="focus-visible:ring-primary focus-visible:border-primary h-11 px-4 shadow-sm transition-shadow lg:h-12"
-                  disabled={isSubmitting}
-                  value={applyCpfCnpjMask(field.value, documentType === 'CPF' ? 'cpf' : 'cnpj')}
-                  onChange={(e) => {
-                    const raw = stripCpfCnpj(e.target.value)
-                    const maxLen = documentType === 'CPF' ? 11 : 14
-                    field.onChange(raw.slice(0, maxLen))
-                  }}
-                  onBlur={field.onBlur}
-                  name={field.name}
-                  ref={field.ref}
-                />
                 <FieldError errors={[fieldState.error]} />
               </Field>
             )}
           />
+
+          {documentType ? (
+            <Controller
+              control={form.control}
+              name="documentNumber"
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>{documentType}</FieldLabel>
+                  <Input
+                    id={field.name}
+                    placeholder={documentType === 'CPF' ? '000.000.000-00' : '00.000.000/0000-00'}
+                    autoComplete="off"
+                    inputMode="numeric"
+                    className="focus-visible:ring-primary focus-visible:border-primary h-11 px-4 shadow-sm transition-shadow lg:h-12"
+                    disabled={isSubmitting}
+                    value={applyCpfCnpjMask(field.value, documentType === 'CPF' ? 'cpf' : 'cnpj')}
+                    onChange={(e) => {
+                      const raw = stripCpfCnpj(e.target.value)
+                      const maxLen = documentType === 'CPF' ? 11 : 14
+                      field.onChange(raw.slice(0, maxLen))
+                    }}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                    ref={field.ref}
+                  />
+                  <FieldError errors={[fieldState.error]} />
+                </Field>
+              )}
+            />
+          ) : null}
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:gap-5">
             <Controller
