@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db/prisma'
 import { billingPlanDetectionService } from './billing-plan-detection.service'
 import { billingProratingService } from './billing-prorating.service'
 import { billingPlanHistoryService } from './billing-plan-history.service'
+import { billingNotificationService } from './billing-notification.service'
 
 export interface AutoUpgradeResult {
   upgraded: boolean
@@ -181,6 +182,21 @@ export class BillingAutoUpgradeService {
         invoiceId: invoice.id,
       }
     })
+  }
+
+  async sendUpgradeNotification(input: {
+    organizationId: string
+    oldPlanName: string
+    newPlanName: string
+    upgradeDate: Date
+    nextChargeDate: Date
+    nextChargeAmount: Prisma.Decimal
+  }): Promise<void> {
+    try {
+      await billingNotificationService.sendAutoUpgradeNotification(input)
+    } catch (_error) {
+      // Silently fail - notification is not critical
+    }
   }
 }
 

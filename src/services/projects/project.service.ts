@@ -202,7 +202,24 @@ export async function createProject(input: {
     })
   )
 
-  await billingAutoUpgradeService.performAutoUpgradeIfNeeded(input.organizationId, projectCount)
+  const upgradeResult = await billingAutoUpgradeService.performAutoUpgradeIfNeeded(
+    input.organizationId,
+    projectCount,
+  )
+
+  // Send notification asynchronously (non-blocking)
+  if (upgradeResult.upgraded && upgradeResult.newPlanCode) {
+    billingAutoUpgradeService.sendUpgradeNotification({
+      organizationId: input.organizationId,
+      oldPlanName: upgradeResult.oldPlanId ? 'Plano anterior' : 'Desconhecido',
+      newPlanName: upgradeResult.newPlanCode,
+      upgradeDate: new Date(),
+      nextChargeDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      nextChargeAmount: upgradeResult.proratingResult?.netAmount || new (require('@prisma/client').Prisma.Decimal)(0),
+    }).catch(() => {
+      // Silently fail
+    })
+  }
 
   return mapProject(created)
 }
