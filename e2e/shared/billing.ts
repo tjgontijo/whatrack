@@ -19,10 +19,11 @@ interface CardFillOptions {
   number: string
   expiry?: string
   cvc?: string
+  holderName?: string
 }
 
 export async function fillCardDetails(page: Page, options: CardFillOptions) {
-  const { number, expiry = '12/25', cvc = '123' } = options
+  const { number, expiry = '12/25', cvc = '123', holderName = TEST_FULL_NAME } = options
 
   // Try to find card iframe (different payment providers have different structures)
   const frames = page.frames()
@@ -41,7 +42,17 @@ export async function fillCardDetails(page: Page, options: CardFillOptions) {
     }
   }
 
-  // Fallback: try direct page selectors
+  // Current checkout implementation uses transparent form fields in-page.
+  const checkoutNameInput = page.locator('input[autocomplete="cc-name"]').first()
+  if (await checkoutNameInput.isVisible().catch(() => false)) {
+    await checkoutNameInput.fill(holderName.toUpperCase())
+    await page.locator('input[autocomplete="cc-number"]').first().fill(number)
+    await page.locator('input[autocomplete="cc-exp"]').first().fill(expiry)
+    await page.locator('input[autocomplete="cc-csc"]').first().fill(cvc)
+    return
+  }
+
+  // Legacy fallback selectors.
   await page.fill('input[name="cardNumber"]', number)
   await page.fill('input[name="expiry"]', expiry)
   await page.fill('input[name="cvc"]', cvc)
@@ -61,11 +72,13 @@ export async function fillBillingInfo(page: Page, overrides?: Record<string, str
 }
 
 export async function completeCheckout(page: Page) {
-  await page.click('button:has-text("Complete Purchase"), button:has-text("Pay Now"), button:has-text("Process Payment")')
+  await page.click(
+    'button:has-text("Assinar plano"), button:has-text("Ativar plano"), button:has-text("Complete Purchase"), button:has-text("Pay Now"), button:has-text("Process Payment")',
+  )
 }
 
 export async function waitForPaymentSuccess(page: Page, timeout = 15000) {
-  await page.waitForURL('**/checkout/success', { timeout })
+  await page.waitForURL(/\/(billing\/success|checkout\/success)(\/|$|\?)/, { timeout })
 }
 
 export async function waitForPaymentError(page: Page, timeout = 10000) {

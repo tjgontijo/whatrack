@@ -1,0 +1,41 @@
+import { spawn } from 'node:child_process'
+import dotenv from 'dotenv'
+import { fileURLToPath } from 'node:url'
+import { dirname, join } from 'node:path'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+const projectRoot = dirname(__dirname)
+
+// Load .env.test with override
+const result = dotenv.config({ path: join(projectRoot, '.env.test'), override: true })
+
+// Merge loaded env vars into process.env
+if (result.parsed) {
+  Object.assign(process.env, result.parsed)
+}
+
+const child = spawn('npm', ['run', 'dev'], {
+  stdio: 'inherit',
+  env: process.env,
+  cwd: projectRoot,
+})
+
+const forward = (signal) => {
+  if (!child.killed) {
+    child.kill(signal)
+  }
+}
+
+process.on('SIGINT', () => forward('SIGINT'))
+process.on('SIGTERM', () => forward('SIGTERM'))
+process.on('SIGHUP', () => forward('SIGHUP'))
+
+child.on('exit', (code, signal) => {
+  if (signal) {
+    process.kill(process.pid, signal)
+    return
+  }
+
+  process.exit(code ?? 0)
+})

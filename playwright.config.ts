@@ -1,8 +1,37 @@
 import { defineConfig, devices } from '@playwright/test'
+import { existsSync } from 'node:fs'
 import dotenv from 'dotenv'
 
 // Load test environment
 dotenv.config({ path: '.env.test' })
+
+const shouldStartCloudflareTunnel = ['1', 'true', 'yes', 'on'].includes(
+  (process.env.E2E_START_CLOUDFLARE_TUNNEL || '').toLowerCase(),
+)
+
+const cloudflareConfigPath = existsSync('.cloudflared-config.yml')
+  ? '.cloudflared-config.yml'
+  : 'cloudflared-config.yml'
+
+const appServer = {
+  command: 'node scripts/dev-e2e.mjs',
+  url: 'http://localhost:3000',
+  reuseExistingServer: false,
+  timeout: 120 * 1000,
+  env: {
+    ...process.env,
+    DATABASE_URL: process.env.DATABASE_URL,
+  },
+}
+
+const tunnelServer = {
+  command:
+    process.env.E2E_CLOUDFLARE_TUNNEL_COMMAND ||
+    `cloudflared tunnel --config ${cloudflareConfigPath} run webhook`,
+  url: process.env.E2E_CLOUDFLARE_TUNNEL_URL || 'https://webhook.whatrack.com',
+  reuseExistingServer: true,
+  timeout: 90 * 1000,
+}
 
 export default defineConfig({
   testDir: './e2e',
@@ -11,11 +40,12 @@ export default defineConfig({
   fullyParallel: false, // Run sequentially to avoid DB conflicts
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: 1,
   timeout: 30 * 1000,
+  outputDir: 'e2e/test-results',
   reporter: [
-    ['html', { outputFolder: 'playwright-report' }],
-    ['json', { outputFile: 'test-results.json' }],
+    ['html', { outputFolder: 'e2e/playwright-report' }],
+    ['json', { outputFile: 'e2e/test-results.json' }],
     ['list'],
   ],
   use: {
@@ -32,14 +62,5 @@ export default defineConfig({
     },
   ],
 
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:3000',
-    reuseExistingServer: false,
-    timeout: 120 * 1000,
-    env: {
-      ...process.env,
-      DATABASE_URL: process.env.DATABASE_URL || 'file:./test.db',
-    },
-  },
+  webServer: shouldStartCloudflareTunnel ? [appServer, tunnelServer] : appServer,
 })

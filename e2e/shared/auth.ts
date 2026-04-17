@@ -1,19 +1,38 @@
 import { Page } from '@playwright/test'
 
-export async function loginAsTestUser(page: Page) {
+type LoginCredentials = {
+  email?: string
+  password?: string
+}
+
+function resolveCredentials(input?: LoginCredentials) {
+  const email = input?.email ?? process.env.E2E_LOGIN_EMAIL
+  const password = input?.password ?? process.env.E2E_LOGIN_PASSWORD
+
+  if (!email || !password) {
+    throw new Error(
+      'Missing login credentials. Set E2E_LOGIN_EMAIL and E2E_LOGIN_PASSWORD or pass explicit credentials.',
+    )
+  }
+
+  return { email, password }
+}
+
+export async function loginAsTestUser(page: Page, credentials?: LoginCredentials) {
+  const { email, password } = resolveCredentials(credentials)
+
   await page.goto('/sign-in')
-  await page.fill('input[type="email"]', 'test@example.com')
-  await page.fill('input[type="password"]', 'password123')
-  await page.click('button:has-text("Sign in")')
-  await page.waitForNavigation()
+  await page.fill('input[type="email"]', email)
+  await page.fill('input[type="password"]', password)
+  await page.click('button[type="submit"]')
+  await page.waitForURL((url) => !url.pathname.includes('/sign-in'))
 }
 
 export async function logout(page: Page) {
-  await page.click('[data-testid="user-menu"]')
-  await page.click('text=Sign out')
-  await page.waitForNavigation()
+  await page.goto('/sign-in')
+  await page.context().clearCookies()
 }
 
 export async function waitForAuth(page: Page) {
-  await page.waitForURL('**/dashboard/**')
+  await page.waitForURL((url) => !url.pathname.includes('/sign-in'))
 }

@@ -1,6 +1,8 @@
 import { execSync } from 'child_process'
 import dotenv from 'dotenv'
 
+const E2E_PRISMA_SCHEMA = 'prisma/schema.prisma'
+
 export async function setupTestDatabase() {
   console.log('🗄️  Setting up test database...')
 
@@ -8,16 +10,19 @@ export async function setupTestDatabase() {
   dotenv.config({ path: '.env.test', override: true })
 
   try {
-    // Drop and recreate test database schema
+    // Reset schema against dedicated Postgres test database.
     console.log('🔄 Resetting database schema...')
-    execSync('npx prisma db push --accept-data-loss', {
+    execSync(`npx prisma db push --schema ${E2E_PRISMA_SCHEMA} --force-reset`, {
       stdio: 'inherit',
       env: { ...process.env, NODE_ENV: 'test' },
     })
 
-    // Seed test data
-    console.log('🌱 Seeding test data...')
-    await seedTestData()
+    // Seed lookup/billing/system data required by signup and onboarding flows.
+    console.log('🌱 Seeding database...')
+    execSync('node --import tsx/esm prisma/seed.ts', {
+      stdio: 'inherit',
+      env: { ...process.env, NODE_ENV: 'test' },
+    })
 
     console.log('✅ Test database ready!')
   } catch (error) {
@@ -27,11 +32,8 @@ export async function setupTestDatabase() {
 }
 
 export async function seedTestData() {
-  // Seed with basic test data needed for tests
-  console.log('   - Seeding users...')
-  console.log('   - Seeding organizations...')
-  console.log('   - Seeding billing plans...')
-  console.log('   - Seeding projects...')
+  // Intentionally disabled for now. Seed data will be recreated per test flow.
+  return
 }
 
 export async function teardownTestDatabase() {

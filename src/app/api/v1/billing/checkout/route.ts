@@ -62,6 +62,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     logger.error({ err: error }, 'Checkout creation error')
-    return apiError('Failed to create checkout session', 500, error)
+    return apiError('Failed to create checkout session', 500, error, {
+      ...(process.env.NODE_ENV !== 'production'
+        ? {
+            debug: {
+              name: error instanceof Error ? error.name : typeof error,
+              message: error instanceof Error ? error.message : String(error),
+            },
+          }
+        : {}),
+    })
   }
 }

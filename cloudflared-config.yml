@@ -1,0 +1,7 @@
+tunnel: 635f677e-242e-4e38-a876-45c6ecbadb4a
+credentials-file: /Users/thiago/.cloudflared/635f677e-242e-4e38-a876-45c6ecbadb4a.json
+
+ingress:
+  - hostname: webhook.whatrack.com
+    service: http://localhost:3000
+  - service: http_status:404
