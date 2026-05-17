@@ -1,4 +1,4 @@
-import { CatalogPageContent } from '@/components/dashboard/catalog/catalog-page-content'
+import { CatalogPageContent } from '@/features/catalog/components/catalog-page-content'
 import { requireWorkspacePageAccess } from '@/server/auth/require-workspace-page-access'
 
 type CatalogRoutePageProps = {
