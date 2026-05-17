@@ -46,7 +46,6 @@ export async function createWhatsAppOnboardingSession(
     }
   }
 
-  // Use Meta's standard OAuth dialog URL for redirect flows
   const onboardingUrl = new URL('https://www.facebook.com/dialog/oauth')
   onboardingUrl.searchParams.set('client_id', metaAppId)
   onboardingUrl.searchParams.set('redirect_uri', `${appUrl}/api/v1/whatsapp/onboarding/callback`)
@@ -54,7 +53,6 @@ export async function createWhatsAppOnboardingSession(
   onboardingUrl.searchParams.set('scope', 'whatsapp_business_messaging,whatsapp_business_management,business_management')
   onboardingUrl.searchParams.set('response_type', 'code')
   onboardingUrl.searchParams.set('config_id', metaConfigId)
-  // extras will be added by buildWhatsAppEmbeddedSignupUrl on the frontend
 
   return {
     onboardingUrl: onboardingUrl.toString(),
@@ -87,6 +85,77 @@ async function markOnboardingFailed(
       errorCode: errorCode ?? undefined,
     },
   })
+}
+
+/**
+ * Creates WhatsAppConfig for the specific phone the user connected.
+ * Called by whoever arrives last in the Meet in the Middle pattern:
+ * - OAuth callback (has accessToken) if postMessage (has phoneNumberId+wabaId) arrived first
+ * - /phone-number endpoint (has phoneNumberId+wabaId) if OAuth callback arrived first
+ */
+export async function createWhatsAppConfigFromOnboarding(
+  onboarding: {
+    organizationId: string
+    projectId: string
+    phoneNumberId: string | null
+    wabaId: string | null
+  },
+  accessToken: string
+): Promise<boolean> {
+  const { organizationId, projectId, phoneNumberId, wabaId } = onboarding
+  if (!phoneNumberId || !wabaId) return false
+
+  try {
+    const connection = await prisma.whatsAppConnection.findFirst({
+      where: { organizationId, wabaId },
+    })
+
+    const phones = await MetaCloudService.listPhoneNumbers({ wabaId, accessToken })
+    const phone = phones.find((p: any) => p.id === phoneNumberId)
+
+    if (!phone) {
+      logger.warn({ phoneNumberId, wabaId }, '[Onboarding] Phone not found in WABA')
+      return false
+    }
+
+    const encryptedToken = encryption.encrypt(accessToken)
+
+    await prisma.whatsAppConfig.upsert({
+      where: { phoneId: phoneNumberId },
+      create: {
+        organizationId,
+        projectId,
+        connectionId: connection?.id ?? null,
+        wabaId,
+        phoneId: phoneNumberId,
+        displayPhone: phone.display_phone_number || 'Unknown',
+        verifiedName: phone.verified_name || 'WhatsApp Business',
+        accessToken: encryptedToken,
+        accessTokenEncrypted: true,
+        status: 'connected',
+        connectedAt: new Date(),
+      },
+      update: {
+        organizationId,
+        projectId,
+        connectionId: connection?.id ?? null,
+        wabaId,
+        displayPhone: phone.display_phone_number || 'Unknown',
+        verifiedName: phone.verified_name || 'WhatsApp Business',
+        accessToken: encryptedToken,
+        accessTokenEncrypted: true,
+        status: 'connected',
+        connectedAt: new Date(),
+        disconnectedAt: null,
+      },
+    })
+
+    logger.info({ phoneNumberId }, '[Onboarding] ✅ WhatsAppConfig created')
+    return true
+  } catch (err) {
+    logger.error({ err, phoneNumberId }, '[Onboarding] Error creating WhatsAppConfig')
+    return false
+  }
 }
 
 export async function handleWhatsAppOnboardingCallback(
@@ -142,52 +211,22 @@ export async function handleWhatsAppOnboardingCallback(
     return { success: false, message }
   }
 
+  // List WABAs — create WABA-level connections (no phone configs here)
   let wabas: Array<{ wabaId: string; wabaName: string; businessId: string }> = []
   try {
     wabas = await MetaCloudService.listWabas(accessToken)
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to list WABAs'
-    await markOnboardingFailed(onboarding.id, message)
-    return { success: false, message }
-  }
-
-  if (wabas.length === 0) {
-    const message = 'No WhatsApp Business Accounts found. Please complete the signup process.'
-    await markOnboardingFailed(onboarding.id, message)
-    return { success: false, message }
-  }
-
-  const encryptedToken = encryption.encrypt(accessToken)
-  let totalPhones = 0
-
-  // If the webhook already identified the WABA (via PARTNER_ADDED), use only that.
-  // Prevents processing WABAs from other accounts the user happens to have in granular_scopes.
-  const targetWabaId = onboarding.wabaId
-  if (targetWabaId) {
-    const filtered = wabas.filter((w) => w.wabaId === targetWabaId)
-    if (filtered.length > 0) {
-      logger.info(
-        { targetWabaId, before: wabas.length, after: filtered.length },
-        '[Onboarding] Filtered WABAs to the one identified by PARTNER_ADDED webhook'
-      )
-      wabas = filtered
-    } else {
-      logger.warn(
-        { targetWabaId, available: wabas.map((w) => w.wabaId) },
-        '[Onboarding] targetWabaId not in granular_scopes — processing all as fallback'
-      )
-    }
+    logger.warn({ error }, '[Onboarding] Failed to list WABAs')
   }
 
   logger.info(
     { wabaCount: wabas.length, organizationId: onboarding.organizationId },
-    '[Onboarding] 🚀 Processing WABAs'
+    '[Onboarding] Processing WABAs (connections only — no phone configs yet)'
   )
 
   for (const waba of wabas) {
     try {
-      logger.info(`[Onboarding] Processing WABA: ${waba.wabaId} (${waba.wabaName})`)
-      const connection = await prisma.whatsAppConnection.upsert({
+      await prisma.whatsAppConnection.upsert({
         where: {
           organizationId_wabaId: {
             organizationId: onboarding.organizationId,
@@ -212,139 +251,74 @@ export async function handleWhatsAppOnboardingCallback(
         },
       })
 
-      let phones: Array<{
-        id: string
-        display_phone_number?: string
-        verified_name?: string
-      }> = []
-      try {
-        phones = await MetaCloudService.listPhoneNumbers({
-          wabaId: waba.wabaId,
-          accessToken,
-        })
-        logger.info({ wabaId: waba.wabaId, count: phones.length, phoneIds: phones.map(p => p.id) }, '[Onboarding] 📞 Phones fetched from WABA')
-      } catch (err) {
-        logger.warn({ err, wabaId: waba.wabaId }, '[Onboarding] ⚠️ Failed to list phones for WABA')
-        phones = []
-      }
-
-      // If Meta returns no phones for this WABA, skip it.
-      if (phones.length === 0) {
-        logger.info({ wabaId: waba.wabaId }, '[Onboarding] ℹ️ No phones found in WABA, skipping')
-        continue
-      }
-
-      // If coexistence flow already set a specific phoneNumberId, use only that phone.
-      // Avoids creating configs for all WABA numbers when user connected just one.
-      if (onboarding.phoneNumberId) {
-        const before = phones.length
-        phones = phones.filter(p => p.id === onboarding.phoneNumberId)
-        logger.info(
-          { phoneNumberId: onboarding.phoneNumberId, before, after: phones.length },
-          '[Onboarding] 🔍 Filtered phones to connected number only'
-        )
-        if (phones.length === 0) {
-          // Phone not in this WABA — skip it entirely. It belongs to a different WABA in granular_scopes.
-          logger.info(
-            { phoneNumberId: onboarding.phoneNumberId, wabaId: waba.wabaId },
-            '[Onboarding] Phone not in this WABA — skipping'
-          )
-          continue
-        }
-      }
-
-      await prisma.whatsAppConfig.deleteMany({
-        where: {
-          organizationId: onboarding.organizationId,
-          wabaId: waba.wabaId,
-          phoneId: buildPendingPhoneId(waba.wabaId),
-        },
-      })
-
-      for (const phone of phones) {
-        // Anti-stealing check: Do not import phones that are ACTIVELY connected to another project!
-        const existingConfig = await prisma.whatsAppConfig.findUnique({
-          where: { phoneId: phone.id }
-        })
-
-        if (existingConfig && existingConfig.projectId !== onboarding.projectId && existingConfig.status === 'connected') {
-          // This phone is actively being used by another client project. 
-          // Since the user is likely an agency admin who shared all their WABAs by accident in the Meta UI, 
-          // we must strictly protect the other project's instance from being stolen/moved here.
-          continue;
-        }
-
-        // If it was already disconnected in THIS project, we shouldn't force it back to connected
-        // simply because the user re-authorized the whole Business Manager for another number.
-        // We only reconnect if it was pending or error or we are creating new.
-        const shouldRevive = !existingConfig || existingConfig.status !== 'disconnected'
-
-        await prisma.whatsAppConfig.upsert({
-          where: { phoneId: phone.id },
-          create: {
-            organizationId: onboarding.organizationId,
-            projectId: onboarding.projectId,
-            connectionId: connection.id,
-            wabaId: waba.wabaId,
-            phoneId: phone.id,
-            displayPhone: phone.display_phone_number,
-            verifiedName: phone.verified_name,
-            accessToken: encryptedToken,
-            accessTokenEncrypted: true,
-            status: 'connected',
-            connectedAt: new Date(),
-          },
-          update: {
-            organizationId: onboarding.organizationId,
-            projectId: onboarding.projectId,
-            connectionId: connection.id,
-            displayPhone: phone.display_phone_number,
-            verifiedName: phone.verified_name,
-            accessToken: encryptedToken,
-            accessTokenEncrypted: true,
-            status: shouldRevive ? 'connected' : 'disconnected',
-            connectedAt: shouldRevive ? new Date() : existingConfig?.connectedAt,
-            disconnectedAt: shouldRevive ? null : existingConfig?.disconnectedAt,
-          },
-        })
-
-        totalPhones++
-      }
-
+      // Subscribe to WABA webhooks
       try {
         await MetaCloudService.subscribeToWaba(waba.wabaId, accessToken)
       } catch {
         // non-blocking
       }
 
-      await prisma.whatsAppAuditLog.create({
-        data: {
+      // Clean up pending placeholders
+      await prisma.whatsAppConfig.deleteMany({
+        where: {
           organizationId: onboarding.organizationId,
-          connectionId: connection.id,
-          action: 'ONBOARDING_COMPLETED',
-          description: `WhatsApp connected: ${waba.wabaName} with ${phones.length} phone number(s)`,
-          trackingCode: input.state,
-          metadata: {
-            wabaId: waba.wabaId,
-            businessId: waba.businessId,
-            phoneCount: phones.length,
-          },
+          wabaId: waba.wabaId,
+          phoneId: buildPendingPhoneId(waba.wabaId),
         },
-      })
+      }).catch(() => {})
     } catch {
       // continue with other WABAs
     }
   }
 
-  await prisma.whatsAppOnboarding.update({
+  const encryptedToken = encryption.encrypt(accessToken)
+
+  // Meet in the Middle: store token, then check if postMessage already arrived with phoneNumberId
+  const updatedOnboarding = await prisma.whatsAppOnboarding.update({
     where: { id: onboarding.id },
     data: {
+      accessToken: encryptedToken,
       status: 'completed',
       completedAt: new Date(),
-      wabaId: wabas[0]?.wabaId,
-      ownerBusinessId: wabas[0]?.businessId,
+      // Set wabaId/businessId only if not already set by postMessage or PARTNER_ADDED webhook
+      ...(!onboarding.wabaId && wabas[0] ? {
+        wabaId: wabas[0].wabaId,
+        ownerBusinessId: wabas[0].businessId,
+      } : {}),
     },
   })
 
-  return { success: true, totalPhones }
+  logger.info(
+    { phoneNumberId: updatedOnboarding.phoneNumberId, wabaId: updatedOnboarding.wabaId, hasToken: true },
+    '[Onboarding] Token stored — checking Meet in the Middle condition'
+  )
+
+  // If postMessage already set phoneNumberId + wabaId, we are the last to arrive — create config
+  if (updatedOnboarding.phoneNumberId && updatedOnboarding.wabaId) {
+    logger.info(
+      { phoneNumberId: updatedOnboarding.phoneNumberId },
+      '[Onboarding] OAuth arrived last — creating WhatsAppConfig now'
+    )
+
+    const created = await createWhatsAppConfigFromOnboarding(updatedOnboarding, accessToken)
+
+    await prisma.whatsAppAuditLog.create({
+      data: {
+        organizationId: onboarding.organizationId,
+        action: 'ONBOARDING_COMPLETED',
+        description: `WhatsApp connected: phone ${updatedOnboarding.phoneNumberId}`,
+        trackingCode: input.state,
+        metadata: {
+          phoneNumberId: updatedOnboarding.phoneNumberId,
+          wabaId: updatedOnboarding.wabaId,
+        },
+      },
+    }).catch(() => {})
+
+    return { success: true, totalPhones: created ? 1 : 0 }
+  }
+
+  // postMessage hasn't arrived yet — it will create the config when it arrives
+  logger.info('[Onboarding] postMessage arrived last — waiting for phoneNumberId')
+  return { success: true, totalPhones: 0 }
 }

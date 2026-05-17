@@ -781,6 +781,7 @@ model WhatsAppOnboarding {
   wabaId            String?
   ownerBusinessId   String?
   phoneNumberId     String?
+  accessToken       String?
   errorMessage      String?
   errorCode         String?
   createdAt         DateTime                 @default(now())
