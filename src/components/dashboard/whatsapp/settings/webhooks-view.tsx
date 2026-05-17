@@ -13,7 +13,7 @@ import { authClient } from '@/lib/auth/auth-client'
 import { formatPayloadHumanly, formatPhoneNumber } from './webhook-payload-formatter'
 import { WebhookLogDetailDialog } from './webhook-log-detail-dialog'
 
-import { useRequiredProjectPath, useRequiredProjectRouteContext } from '@/features/projects/hooks/project-route-context'
+import { useRequiredProjectPath, useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
 
 type DatePreset = 'all' | 'today' | '7d' | '30d'
 

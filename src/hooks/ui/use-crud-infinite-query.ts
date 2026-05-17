@@ -3,7 +3,7 @@
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { useOrganization } from '@/hooks/organization/use-organization'
-import { useProjectRouteContext } from '@/features/projects/hooks/project-route-context'
+import { useProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
 import { apiFetch } from '@/lib/api-client'
 
 

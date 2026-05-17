@@ -16,7 +16,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import { useRequiredProjectRouteContext } from '@/features/projects/hooks/project-route-context'
+import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
 import { whatsappApi } from '@/lib/whatsapp/client'
 
 // ─── Types ────────────────────────────────────────────────────────────────────

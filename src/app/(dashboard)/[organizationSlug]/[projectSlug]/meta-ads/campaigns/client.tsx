@@ -13,7 +13,7 @@ import {
 } from '@tanstack/react-table'
 import { campaignsColumns, MetaCampaign } from './columns'
 import { apiFetch } from '@/lib/api-client'
-import { useRequiredProjectRouteContext } from '@/features/projects/hooks/project-route-context'
+import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
 
 import { Button } from '@/components/ui/button'
 import { RefreshCw, Search, Settings2 } from 'lucide-react'

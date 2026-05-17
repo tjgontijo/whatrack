@@ -17,6 +17,7 @@ import { authClient } from '@/lib/auth/auth-client'
 import { signUpSchema, type SignUpData } from '@/schemas/auth/sign-up'
 import { getAuthErrorMessage } from '@/lib/auth/error-messages'
 import { acceptOrganizationInvitation, buildInvitationQuery } from '@/lib/auth/invitation-client'
+import { apiFetch } from '@/lib/api-client'
 import { buildFunnelQueryString, readFunnelIntent } from '@/lib/funnel/funnel-intent'
 import { applyCpfCnpjMask, stripCpfCnpj } from '@/lib/mask/cpf-cnpj'
 
@@ -46,6 +47,23 @@ export default function SignUpPage() {
   const invitationQuery = useMemo(() => buildInvitationQuery(invitationId, nextParam), [invitationId, nextParam])
   const funnelQuery = useMemo(() => buildFunnelQueryString(funnelIntent), [funnelIntent])
   const isTrialIntent = funnelIntent.intent === 'start-trial'
+  const ownerEmail = (process.env.NEXT_PUBLIC_OWNER_EMAIL ?? '').trim().toLowerCase()
+  const postAuthResolutionQuery = useMemo(() => {
+    const params = new URLSearchParams()
+
+    if (nextParam?.trim()) {
+      params.set('next', nextParam)
+    }
+
+    for (const [key, value] of Object.entries(funnelIntent)) {
+      if (value?.trim()) {
+        params.set(key, value)
+      }
+    }
+
+    const query = params.toString()
+    return query ? `?${query}` : ''
+  }, [funnelIntent, nextParam])
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
@@ -117,7 +135,26 @@ export default function SignUpPage() {
         return
       }
 
-      const nextPath = isTrialIntent ? `/welcome${funnelQuery}` : `/checkout${funnelQuery}`
+      const isOwner = ownerEmail.length > 0 && values.email.trim().toLowerCase() === ownerEmail
+
+      let nextPath = isTrialIntent ? `/welcome${funnelQuery}` : `/checkout${funnelQuery}`
+
+      if (isOwner) {
+        try {
+          const response = (await apiFetch(`/api/v1/auth/post-auth-path${postAuthResolutionQuery}`)) as {
+            path?: string
+          }
+          if (response.path) {
+            nextPath = response.path
+          } else {
+            nextPath = '/welcome'
+          }
+        } catch (postAuthError) {
+          console.error('[sign-up] erro ao resolver destino pós-auth do owner', postAuthError)
+          nextPath = '/welcome'
+        }
+      }
+
       router.push(nextPath)
     } catch (error) {
       console.error('[sign-up] erro ao criar conta', error)

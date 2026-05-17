@@ -8,7 +8,7 @@ import Link from 'next/link'
 import { toast } from 'sonner'
 
 import { apiFetch } from '@/lib/api-client'
-import { useRequiredProjectPath, useRequiredProjectRouteContext } from '@/features/projects/hooks/project-route-context'
+import { useRequiredProjectPath, useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'

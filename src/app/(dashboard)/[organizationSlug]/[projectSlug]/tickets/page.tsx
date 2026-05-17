@@ -13,7 +13,7 @@ import { ViewSwitcher } from '@/components/dashboard/crud/view-switcher'
 import { HeaderPageShell } from '@/components/dashboard/layout'
 import { PipelineConfigSheet } from '@/components/dashboard/pipeline/pipeline-config-sheet'
 import { useCrudInfiniteQuery } from '@/hooks/ui/use-crud-infinite-query'
-import { useRequiredProjectRouteContext } from '@/features/projects/hooks/project-route-context'
+import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
 import {
   type ColumnDef,
   type CardConfig,

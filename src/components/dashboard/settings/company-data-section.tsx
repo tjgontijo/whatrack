@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { formatCnpj, isValidCnpjFormat, stripCnpj } from '@/lib/mask/cnpj'
 import { apiFetch } from '@/lib/api-client'
-import { useRequiredProjectRouteContext } from '@/features/projects/hooks/project-route-context'
+import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
 import { SettingsGroup } from './settings-group'
 import { SettingsRow } from './settings-row'
 

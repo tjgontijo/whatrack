@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 
 import { apiFetch } from '@/lib/api-client'
 import { useOrganization } from '@/hooks/organization/use-organization'
-import { useProjectRouteContext } from './project-route-context'
+import { useProjectRouteContext } from './use-project-route-context'
 
 interface ProjectSummary {
   id: string

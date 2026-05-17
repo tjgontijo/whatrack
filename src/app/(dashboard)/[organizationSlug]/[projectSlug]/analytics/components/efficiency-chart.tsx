@@ -8,7 +8,7 @@ const formatDealValue = (value: number | string | null | undefined) => {
 }
 
 import { apiFetch } from '@/lib/api-client'
-import { useRequiredProjectRouteContext } from '@/features/projects/hooks/project-route-context'
+import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
 
 export default function EfficiencyChart({
   startDate,

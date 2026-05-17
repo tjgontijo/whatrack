@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { useOrganization } from '@/hooks/organization/use-organization'
-import { useProjectRouteContext } from '@/features/projects/hooks/project-route-context'
+import { useProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
 import { apiFetch } from '@/lib/api-client'
 
 

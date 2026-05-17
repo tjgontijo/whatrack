@@ -28,7 +28,7 @@ import type {
   BillingPlanListQuery,
   BillingPlanListResponse,
 } from '@/schemas/billing/billing-plan-schemas'
-import { useRequiredProjectPath } from '@/features/projects/hooks/project-route-context'
+import { useRequiredProjectPath } from '@/features/projects/hooks/use-project-route-context'
 import { apiFetch } from '@/lib/api-client'
 import { BillingPlanFormDialog } from './billing-plan-form-dialog'
 import { BillingPlanHistorySheet } from './billing-plan-history-sheet'

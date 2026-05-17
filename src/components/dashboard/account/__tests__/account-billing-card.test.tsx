@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const useRequiredProjectPathMock = vi.hoisted(() => vi.fn())
 
-vi.mock('@/features/projects/hooks/project-route-context', () => ({
+vi.mock('@/features/projects/hooks/use-project-route-context', () => ({
   useRequiredProjectPath: useRequiredProjectPathMock,
 }))
 

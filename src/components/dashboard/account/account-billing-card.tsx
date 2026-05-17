@@ -4,7 +4,7 @@ import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useRequiredProjectPath } from '@/features/projects/hooks/project-route-context'
+import { useRequiredProjectPath } from '@/features/projects/hooks/use-project-route-context'
 import { getBillingStatusLabel } from '@/lib/billing/subscription-status'
 import type { SubscriptionResponse } from '@/schemas/billing/billing-schemas'
 
