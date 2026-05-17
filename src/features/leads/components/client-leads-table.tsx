@@ -9,7 +9,7 @@ import { CrudCardView } from '@/components/dashboard/crud/crud-card-view'
 import { ViewSwitcher } from '@/components/dashboard/crud/view-switcher'
 import { HeaderPageShell } from '@/components/dashboard/layout'
 import { useCrudInfiniteQuery } from '@/hooks/ui/use-crud-infinite-query'
-import { NewLeadDrawer } from '@/components/dashboard/leads/new-lead-drawer'
+import { NewLeadDrawer } from '@/features/leads/components/new-lead-drawer'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {

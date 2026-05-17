@@ -2,8 +2,8 @@
 
 import { useState, useMemo } from 'react'
 import { HeaderPageShell, HeaderTabs, type HeaderTab } from '@/components/dashboard/layout'
-import { CategoriesTable } from '@/components/dashboard/item-categories/categories-table'
-import { ItemsTable } from '@/components/dashboard/items/items-table'
+import { CategoriesTable } from '@/features/item-categories/components/categories-table'
+import { ItemsTable } from '@/features/items/components/items-table'
 import { Button } from '@/components/ui/button'
 import {
   Select,

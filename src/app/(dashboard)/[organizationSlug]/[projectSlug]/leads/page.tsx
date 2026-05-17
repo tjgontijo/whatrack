@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Suspense } from 'react'
-import ClientLeadsTable from '@/components/dashboard/leads/client-leads-table'
+import ClientLeadsTable from '@/features/leads/components/client-leads-table'
 import { RefreshCw } from 'lucide-react'
 
 function LeadsPageFallback() {
