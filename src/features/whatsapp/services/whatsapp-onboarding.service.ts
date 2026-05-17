@@ -244,8 +244,12 @@ export async function handleWhatsAppOnboardingCallback(
           '[Onboarding] 🔍 Filtered phones to connected number only'
         )
         if (phones.length === 0) {
-          logger.warn('[Onboarding] ⚠️ phoneNumberId from postMessage not found in WABA phones — skipping filter')
-          phones = await MetaCloudService.listPhoneNumbers({ wabaId: waba.wabaId, accessToken })
+          // Phone not in this WABA — skip it entirely. It belongs to a different WABA in granular_scopes.
+          logger.info(
+            { phoneNumberId: onboarding.phoneNumberId, wabaId: waba.wabaId },
+            '[Onboarding] Phone not in this WABA — skipping'
+          )
+          continue
         }
       }
 
