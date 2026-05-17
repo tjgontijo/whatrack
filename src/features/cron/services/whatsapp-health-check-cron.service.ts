@@ -1,4 +1,4 @@
-import { whatsappHealthCheckJob } from '@/jobs/whatsapp-health-check.job'
+import { whatsappHealthCheckJob } from '@/features/whatsapp/jobs/whatsapp-health-check.job'
 import { executeLockedCronJob } from '@/features/cron/services/cron-execution.service'
 
 export async function runWhatsAppHealthCheckCronJob() {
