@@ -14,9 +14,6 @@ import {
 
 export type OnboardingStatus = 'idle' | 'pending' | 'success'
 
-const POLL_INTERVAL_MS = 3000
-const POLL_MAX_ATTEMPTS = 200 // 10 minutes total
-
 export function useWhatsAppOnboarding(onSuccess?: () => void) {
   const { organizationId } = useRequiredProjectRouteContext()
   const { data: project } = useProject()
@@ -30,7 +27,15 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
   const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const pollAttemptsRef = useRef(0)
   const trackingCodeRef = useRef<string | null>(null)
+  const popupWatcherRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const sdkReady = isWhatsAppEmbeddedSignupConfigured()
+
+  const stopPopupWatcher = useCallback(() => {
+    if (popupWatcherRef.current) {
+      clearInterval(popupWatcherRef.current)
+      popupWatcherRef.current = null
+    }
+  }, [])
 
   const stopPolling = useCallback(() => {
     if (pollIntervalRef.current) {
@@ -44,6 +49,7 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
     if (callbackHandledRef.current) return
     callbackHandledRef.current = true
     stopPolling()
+    stopPopupWatcher()
     setStatus('success')
     setError(null)
     toast.success('WhatsApp conectado com sucesso!')
@@ -54,12 +60,13 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
       window.removeEventListener('focus', onFocusRef.current)
       onFocusRef.current = null
     }
-  }, [onSuccess, stopPolling])
+  }, [onSuccess, stopPolling, stopPopupWatcher])
 
   const handleFailure = useCallback((message: string) => {
     if (callbackHandledRef.current) return
     callbackHandledRef.current = true
     stopPolling()
+    stopPopupWatcher()
     setStatus('idle')
     setError(message)
     toast.error(message)
@@ -69,7 +76,7 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
       window.removeEventListener('focus', onFocusRef.current)
       onFocusRef.current = null
     }
-  }, [stopPolling])
+  }, [stopPolling, stopPopupWatcher])
 
   const checkInstances = useCallback(async (projectId: string): Promise<boolean> => {
     try {
@@ -178,8 +185,11 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
 
   // Cleanup on unmount
   useEffect(() => {
-    return () => stopPolling()
-  }, [stopPolling])
+    return () => {
+      stopPolling()
+      stopPopupWatcher()
+    }
+  }, [stopPolling, stopPopupWatcher])
 
   const startOnboarding = useCallback(async () => {
     if (isCompletionLoading) {
@@ -232,20 +242,18 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
         return
       }
 
-      // Start polling immediately — catches the case where popup never closes
-      startPolling(project.id)
-
-      // Also watch for popup close via focus event as a secondary signal
-      const onFocus = () => {
-        if (popupRef.current && !popupRef.current.closed) return
-        window.removeEventListener('focus', onFocus)
-        onFocusRef.current = null
-        // Polling will handle success/failure — just stop if already handled
-        if (callbackHandledRef.current) stopPolling()
-      }
-
-      onFocusRef.current = onFocus
-      window.addEventListener('focus', onFocus)
+      // Watch for popup close every 500ms — only start retries after popup closes
+      // Primary success path is the postMessage (handleSuccess called from fetch.then())
+      // This is the fallback for when postMessage doesn't fire
+      stopPopupWatcher()
+      const projectId = project.id
+      popupWatcherRef.current = setInterval(() => {
+        if (!popupRef.current || !popupRef.current.closed) return
+        stopPopupWatcher()
+        if (callbackHandledRef.current) return
+        // Popup closed without postMessage success — poll as fallback
+        startPolling(projectId)
+      }, 500)
     } catch (err) {
       setStatus('idle')
       stopPolling()
@@ -274,6 +282,7 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
       setError(null)
       callbackHandledRef.current = false
       stopPolling()
+      stopPopupWatcher()
       window.localStorage.removeItem(WHATSAPP_ONBOARDING_RESULT_STORAGE_KEY)
     },
     setError,
