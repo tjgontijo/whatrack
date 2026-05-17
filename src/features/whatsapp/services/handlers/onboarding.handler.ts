@@ -117,9 +117,9 @@ export async function onboardingHandler(payload: any, eventType: string): Promis
       )
 
       // PROACTIVE SYNC: Create WhatsAppConfig(s) immediately
-      // If webhook includes phone_number_id, create only that config.
-      // Otherwise, fetch all phones from WABA as fallback.
-      const specificPhoneId = value.waba_info?.phone_number_id
+      // Priority: 1) phone_number_id from webhook, 2) phoneNumberId from postMessage (set before webhook fires),
+      // 3) sync all as last resort (OAuth callback will clean up extras using phoneNumberId)
+      const specificPhoneId = value.waba_info?.phone_number_id || onboarding.phoneNumberId
       try {
         const { MetaCloudService } = await import('@/features/whatsapp/services/meta-cloud.service')
         const allPhones = await MetaCloudService.listPhoneNumbers({ wabaId })
@@ -303,9 +303,9 @@ export async function onboardingHandler(payload: any, eventType: string): Promis
       })
 
       // PROACTIVE SYNC: Create WhatsAppConfig(s) immediately for Hosted ES
-      // If webhook includes phone_number_id, create only that config.
-      // Otherwise (coexistence QR flow), fetch all phones from WABA as fallback.
-      const specificPhoneId = value.waba_info?.phone_number_id
+      // Priority: 1) phone_number_id from webhook, 2) phoneNumberId from postMessage already stored on onboarding,
+      // 3) sync all as last resort
+      const specificPhoneId = value.waba_info?.phone_number_id || recentOnboarding.phoneNumberId
       try {
         const { MetaCloudService } = await import('@/features/whatsapp/services/meta-cloud.service')
         const allPhones = await MetaCloudService.listPhoneNumbers({ wabaId })
