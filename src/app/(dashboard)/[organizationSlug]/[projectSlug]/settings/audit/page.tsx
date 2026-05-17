@@ -1,5 +1,5 @@
 import { HeaderPageShell, RefreshButton } from '@/features/dashboard/components/layout'
-import { AuditLogsTable } from '@/components/dashboard/settings/audit-logs-table'
+import { AuditLogsTable } from '@/features/settings/components/audit-logs-table'
 import { requireWorkspacePageAccess } from '@/server/auth/require-workspace-page-access'
 import { listOrganizationAuditResourceTypes } from '@/features/organizations/services/organization-audit.service'
 

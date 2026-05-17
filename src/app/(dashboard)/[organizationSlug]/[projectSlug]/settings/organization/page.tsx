@@ -1,5 +1,5 @@
 import { HeaderPageShell, RefreshButton } from '@/features/dashboard/components/layout'
-import { OrganizationFiscalDataSection } from '@/components/dashboard/settings/organization-fiscal-data-section'
+import { OrganizationFiscalDataSection } from '@/features/settings/components/organization-fiscal-data-section'
 import { requireWorkspacePageAccess } from '@/server/auth/require-workspace-page-access'
 import { getOrganizationCompany } from '@/features/company/services/company.service'
 import { getOrganizationMe } from '@/features/organizations/services/organization.service'
