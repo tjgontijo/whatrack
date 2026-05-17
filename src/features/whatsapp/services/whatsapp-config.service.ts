@@ -126,45 +126,32 @@ export async function disconnectWhatsAppConfig(params: DisconnectWhatsAppConfigP
 }
 
 export async function listWhatsAppInstances(organizationId: string, projectId: string) {
-  const phoneNumbersResponse = await listWhatsAppPhoneNumbers(organizationId)
-  const phoneNumbers = phoneNumbersResponse.data.phoneNumbers as WhatsAppPhoneNumberWithConfig[]
-
-  // Check which configs are still active (not disconnected)
-  const configs = await MetaCloudService.getAllConfigs(organizationId)
-  const activeConfigIds = new Set(
-    configs
-      .filter((config) => config.status === 'connected')
-      .map((config) => config.id)
-  )
-
-  const instances = phoneNumbers
-    .filter((phone) => {
-      return (
-        phone.projectId === projectId &&
-        phone.status === 'CONNECTED' &&
-        typeof phone.configId === 'string' &&
-        phone.configId.length > 0 &&
-        activeConfigIds.has(phone.configId) // Only include if config is still active in DB
-      )
-    })
-    .sort((a, b) => a.display_phone_number.localeCompare(b.display_phone_number, 'pt-BR'))
+  const configs = await prisma.whatsAppConfig.findMany({
+    where: {
+      organizationId,
+      projectId,
+      status: 'connected',
+    },
+    include: {
+      project: { select: { name: true } },
+    },
+    orderBy: { displayPhone: 'asc' },
+  })
 
   return {
-    items: instances.map((instance) => ({
-      id: instance.configId!,
-      metaPhoneId: instance.id,
-      displayPhone: instance.display_phone_number || 'Número não disponível',
-      verifiedName: instance.verified_name || 'Sem nome verificado',
-      status: instance.status,
-      qualityRating: (instance as any).quality_rating ?? 'UNKNOWN',
-      accountMode: (instance as any).account_mode ?? 'LIVE',
-      throughputLevel: (instance as any).throughput?.level ?? 'STANDARD',
-      wabaId:
-        typeof instance.webhook_configuration?.whatsapp_business_account === 'string'
-          ? instance.webhook_configuration.whatsapp_business_account
-          : null,
-      projectId: instance.projectId,
-      projectName: instance.projectName ?? null,
+    items: configs.map((config) => ({
+      id: config.id,
+      metaPhoneId: config.phoneId,
+      displayPhone: config.displayPhone || 'Número não disponível',
+      verifiedName: config.verifiedName || 'Sem nome verificado',
+      status: 'connected',
+      qualityRating: 'UNKNOWN',
+      accountMode: 'LIVE',
+      throughputLevel: 'STANDARD',
+      wabaId: config.wabaId,
+      projectId: config.projectId,
+      projectName: config.project?.name ?? null,
+      lastWebhookAt: config.lastWebhookAt?.toISOString() ?? null,
     })),
   }
 }

@@ -160,11 +160,27 @@ export async function handleWhatsAppOnboardingCallback(
   const encryptedToken = encryption.encrypt(accessToken)
   let totalPhones = 0
 
+  // If the webhook already identified the WABA (via PARTNER_ADDED), use only that.
+  // Prevents processing WABAs from other accounts the user happens to have in granular_scopes.
+  const targetWabaId = onboarding.wabaId
+  if (targetWabaId) {
+    const filtered = wabas.filter((w) => w.wabaId === targetWabaId)
+    if (filtered.length > 0) {
+      logger.info(
+        { targetWabaId, before: wabas.length, after: filtered.length },
+        '[Onboarding] Filtered WABAs to the one identified by PARTNER_ADDED webhook'
+      )
+      wabas = filtered
+    } else {
+      logger.warn(
+        { targetWabaId, available: wabas.map((w) => w.wabaId) },
+        '[Onboarding] targetWabaId not in granular_scopes — processing all as fallback'
+      )
+    }
+  }
+
   logger.info(
-    { 
-      wabaCount: wabas.length, 
-      organizationId: onboarding.organizationId,
-    }, 
+    { wabaCount: wabas.length, organizationId: onboarding.organizationId },
     '[Onboarding] 🚀 Processing WABAs'
   )
 

@@ -71,37 +71,44 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
     }
   }, [stopPolling])
 
+  const checkInstances = useCallback(async (projectId: string): Promise<boolean> => {
+    try {
+      const res = await fetch(`/api/v1/whatsapp/instances?projectId=${projectId}`, {
+        headers: { [ORGANIZATION_HEADER]: organizationId },
+      })
+      if (!res.ok) return false
+      const data = await res.json() as { items: { status: string }[] }
+      return data.items?.some((i) => i.status === 'connected') ?? false
+    } catch {
+      return false
+    }
+  }, [organizationId])
+
+  // Retry with delays after popup closes: 1s, 3s, 6s
   const startPolling = useCallback((projectId: string) => {
     stopPolling()
-    pollAttemptsRef.current = 0
+    const delays = [1000, 3000, 6000]
+    let attempt = 0
 
-    pollIntervalRef.current = setInterval(async () => {
-      pollAttemptsRef.current++
-
-      try {
-        const res = await fetch(`/api/v1/whatsapp/instances?projectId=${projectId}`, {
-          headers: { [ORGANIZATION_HEADER]: organizationId },
-        })
-        if (!res.ok) return
-
-        const data = await res.json() as { items: { status: string }[] }
-        const connected = data.items?.some((i) => i.status === 'connected')
-
+    const tryNext = () => {
+      if (attempt >= delays.length) {
+        setStatus('idle')
+        toast.error('Conexão não detectada. Verifique as configurações e tente novamente.')
+        return
+      }
+      pollIntervalRef.current = setTimeout(async () => {
+        const connected = await checkInstances(projectId)
         if (connected) {
           handleSuccess()
           return
         }
-      } catch {
-        // ignore, keep polling
-      }
+        attempt++
+        tryNext()
+      }, delays[attempt])
+    }
 
-      if (pollAttemptsRef.current >= POLL_MAX_ATTEMPTS) {
-        stopPolling()
-        setStatus('idle')
-        toast.error('Tempo esgotado. Feche o popup e tente novamente se a conexão não aparecer.')
-      }
-    }, POLL_INTERVAL_MS)
-  }, [organizationId, handleSuccess, stopPolling])
+    tryNext()
+  }, [organizationId, checkInstances, handleSuccess, stopPolling])
 
   // Listen for localStorage result (set by callback page)
   useEffect(() => {
