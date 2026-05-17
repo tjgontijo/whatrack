@@ -122,7 +122,9 @@ export async function messageHandler(
   })
 
   if (!config) {
-    throw new Error(`WhatsAppConfig not found for phoneId: ${phoneNumberId}`)
+    // Phone not registered in this platform — ignore silently, always return 200 to Meta
+    logger.warn(`[MessageHandler] Ignoring message for unregistered phoneId: ${phoneNumberId}`)
+    return
   }
 
   logger.info(`[MessageHandler] Processing for Organization: ${config.organizationId}`)
