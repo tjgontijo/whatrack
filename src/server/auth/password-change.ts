@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { auth } from '@/lib/auth/auth'
-import { changeMeAccountPasswordSchema } from '@/schemas/me/me-account-schemas'
+import { changeMeAccountPasswordSchema } from '@/features/me/schemas/me-account.schemas'
 import { logger } from '@/lib/utils/logger'
 
 function errorMessageFromUnknown(error: unknown): string {

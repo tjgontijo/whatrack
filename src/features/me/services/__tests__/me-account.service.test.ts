@@ -14,7 +14,7 @@ const auditServiceMock = vi.hoisted(() => ({
 vi.mock('@/lib/db/prisma', () => ({ prisma: prismaMock }))
 vi.mock('@/services/audit/audit.service', () => ({ auditService: auditServiceMock }))
 
-import { updateMeAccount } from '@/services/me/me-account.service'
+import { updateMeAccount } from '@/features/me/services/me-account.service'
 
 describe('me-account.service', () => {
   beforeEach(() => {

@@ -14,7 +14,7 @@ import {
   removeWhatsAppMask,
 } from '@/lib/mask/phone-mask'
 import { cn } from '@/lib/utils/utils'
-import type { UpdateMeAccountInput } from '@/schemas/me/me-account-schemas'
+import type { UpdateMeAccountInput } from '@/features/me/schemas/me-account.schemas'
 import type { AccountProfileSummary } from '@/types/account/account-summary'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'

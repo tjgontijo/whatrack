@@ -13,7 +13,7 @@ const getActiveSubscriptionMock = vi.hoisted(() => vi.fn())
 vi.mock('@/lib/db/prisma', () => ({
   prisma: prismaMock,
 }))
-vi.mock('@/services/me/me-account.service', () => ({
+vi.mock('@/features/me/services/me-account.service', () => ({
   getMeAccount: getMeAccountMock,
 }))
 vi.mock('@/features/organizations/services/organization.service', () => ({
