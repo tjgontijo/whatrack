@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { requireSuperAdmin } from '@/lib/auth/guards'
 import { apiError } from '@/lib/utils/api-response'
-import { listSystemWebhookLogs } from '@/services/system/system-webhook-log.service'
+import { listSystemWebhookLogs } from '@/features/system/services/system-webhook-log.service'
 import { logger } from '@/lib/utils/logger'
 
 export const dynamic = 'force-dynamic'

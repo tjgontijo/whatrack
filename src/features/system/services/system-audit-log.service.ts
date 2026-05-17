@@ -1,7 +1,7 @@
 import type { Prisma } from '@generated/prisma/client'
 
 import { prisma } from '@/lib/db/prisma'
-import type { AuditLogPeriodPreset, SystemAuditLogsQueryInput } from '@/schemas/system/system-schemas'
+import type { AuditLogPeriodPreset, SystemAuditLogsQueryInput } from '@/features/system/schemas/system.schemas'
 
 function startOfDay(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0)
