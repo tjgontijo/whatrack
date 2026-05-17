@@ -18,6 +18,24 @@ const saleStatuses = [
   { name: 'cancelled', description: 'Venda cancelada.' },
 ]
 
+const leadSources = [
+  { name: 'live_message', description: 'Lead originário de mensagem ao vivo.' },
+  { name: 'outbound_message', description: 'Lead originário de mensagem enviada.' },
+  { name: 'history_sync', description: 'Lead importado do histórico sincronizado.' },
+  { name: 'direct_creation', description: 'Lead criado manualmente.' },
+]
+
+const ticketStatuses = [
+  { name: 'open', description: 'Ticket aberto.' },
+  { name: 'closed', description: 'Ticket fechado.' },
+  { name: 'pending', description: 'Ticket pendente.' },
+]
+
+const messageDirections = [
+  { name: 'INBOUND', description: 'Mensagem recebida do cliente.' },
+  { name: 'OUTBOUND', description: 'Mensagem enviada para o cliente.' },
+]
+
 const whatsappOnboardingStatuses = [
   { name: 'pending', description: 'Aguardando autorização do usuário.' },
   { name: 'authorized', description: 'Autorizado via OAuth.' },
@@ -130,6 +148,9 @@ export async function seedLookupTables(prisma: PrismaClient) {
   await upsertByName(prisma.userRole, userRoles)
   await upsertByName(prisma.onboardingStatus, onboardingStatuses)
   await upsertByName(prisma.saleStatus, saleStatuses)
+  await upsertByName(prisma.leadSource, leadSources)
+  await upsertByName(prisma.ticketStatus, ticketStatuses)
+  await upsertByName(prisma.messageDirection, messageDirections)
   await upsertByName(prisma.whatsAppOnboardingStatus, whatsappOnboardingStatuses)
   await upsertByName(prisma.whatsAppConnectionStatus, whatsappConnectionStatuses)
   await upsertByName(prisma.whatsAppHealthStatus, whatsappHealthStatuses)

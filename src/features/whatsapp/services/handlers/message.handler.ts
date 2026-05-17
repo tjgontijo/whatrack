@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db/prisma'
+import { lookupCache } from '@/lib/db/lookup-cache'
 import { getDefaultTicketStage } from '@/features/tickets/services/ensure-ticket-stages'
 import { publishToCentrifugo } from '@/lib/centrifugo/server'
 import { metaAdEnrichmentService } from '@/features/meta-ads/services/ad-enrichment.service'
@@ -151,15 +152,24 @@ export async function messageHandler(
       // START TRANSACTION
       // ----------------------------------------------------------------------
       await prisma.$transaction(async (tx) => {
+        // Get lookup IDs upfront (outside tx for performance)
+        const sourceId = await lookupCache.getLeadSourceId(isEcho ? 'outbound_message' : 'live_message')
+
         // 1. Find/Create Lead (upsert by waId to avoid race conditions on concurrent messages)
         const existingLead = await tx.lead.findFirst({
           where: {
             organizationId: config.organizationId,
             OR: [{ waId: contactPhone }, { phone: contactPhone }],
           },
+          select: {
+            id: true,
+            sourceId: true,
+            source: { select: { name: true } },
+            pushName: true,
+          },
         })
 
-        const wasHistoryLead = existingLead?.source === 'history_sync'
+        const wasHistoryLead = existingLead?.source?.name === 'history_sync'
 
         let lead
         if (existingLead) {
@@ -170,6 +180,7 @@ export async function messageHandler(
               lastMessageAt: messageTimestamp,
               pushName: pushName ?? existingLead.pushName ?? undefined,
             },
+            select: { id: true },
           })
         } else {
           try {
@@ -181,14 +192,16 @@ export async function messageHandler(
                 waId: contactPhone,
                 pushName: pushName || undefined,
                 lastMessageAt: messageTimestamp,
-                source: isEcho ? 'outbound_message' : 'live_message',
+                sourceId,
               },
+              select: { id: true },
             })
           } catch (err: unknown) {
             // Handle race condition: another concurrent message created the lead first (P2002)
             if (err && typeof err === 'object' && 'code' in err && err.code === 'P2002') {
               const raceLead = await tx.lead.findFirst({
                 where: { organizationId: config.organizationId, waId: contactPhone },
+                select: { id: true, pushName: true },
               })
               if (!raceLead) throw err
               lead = await tx.lead.update({
@@ -198,6 +211,7 @@ export async function messageHandler(
                   lastMessageAt: messageTimestamp,
                   pushName: pushName ?? raceLead.pushName ?? undefined,
                 },
+                select: { id: true },
               })
             } else {
               throw err
@@ -220,9 +234,13 @@ export async function messageHandler(
         })
 
         // 3. Ticket Management (Expiry & Last-Touch)
+        const openStatusId = await lookupCache.getTicketStatusId('open')
+        const closedStatusId = await lookupCache.getTicketStatusId('closed')
+
         let ticket = await tx.ticket.findFirst({
-          where: { conversationId: conversation.id, status: 'open' },
+          where: { conversationId: conversation.id, statusId: openStatusId },
           orderBy: { createdAt: 'desc' },
+          select: { id: true, createdAt: true },
         })
 
         // Check Expiration
@@ -241,7 +259,7 @@ export async function messageHandler(
               where: { id: ticket.id },
               data: {
                 ...(config.projectId ? { projectId: config.projectId } : {}),
-                status: 'closed',
+                statusId: closedStatusId,
                 closedReason: 'expired_attribution',
                 closedAt: messageTimestamp,
               },
@@ -263,15 +281,16 @@ export async function messageHandler(
               leadId: lead.id,
               conversationId: conversation.id,
               stageId: defaultStage.id,
+              statusId: openStatusId,
               stageEnteredAt: new Date(),
               windowExpiresAt,
               windowOpen: true,
-              status: 'open',
               createdBy: 'SYSTEM',
               messagesCount: 0,
               source: 'incoming_message',
               originatedFrom: wasHistoryLead ? 'history_lead' : 'new_contact',
             },
+            select: { id: true },
           })
         } else {
           // Renew window
@@ -311,6 +330,7 @@ export async function messageHandler(
         }
 
         const direction = isEcho ? 'OUTBOUND' : 'INBOUND'
+        const directionId = await lookupCache.getMessageDirectionId(direction)
 
         // Detect if it's a reply to a template (action tracking)
         const contextId = message.context?.id
@@ -323,9 +343,9 @@ export async function messageHandler(
             wamid: messageId,
             leadId: lead.id,
             instanceId: config.id,
-            conversationId: conversation.id,
+            appConversationId: conversation.id,
             ticketId: ticket.id,
-            direction,
+            directionId,
             type: messageType,
             body: messageBody || null,
             status: isEcho ? 'sent' : 'delivered',
@@ -334,6 +354,7 @@ export async function messageHandler(
             source: 'live',
             rawMeta: message,
           },
+          select: { id: true },
         })
 
         // 5. Update counts and KPIs

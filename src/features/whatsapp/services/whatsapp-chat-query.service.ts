@@ -49,11 +49,18 @@ export async function listWhatsAppChats(params: ListWhatsAppChatsParams) {
           id: true,
           tickets: {
             where: {
-              status: 'open',
+              status: {
+                name: 'open',
+              },
             },
             select: {
               id: true,
-              status: true,
+              status: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
               stage: {
                 select: {
                   id: true,
@@ -101,7 +108,7 @@ export async function listWhatsAppChats(params: ListWhatsAppChatsParams) {
       currentTicket: currentTicket
         ? {
             id: currentTicket.id,
-            status: currentTicket.status,
+            status: currentTicket.status.name,
             stage: currentTicket.stage,
             tracking: currentTicket.tracking,
           }

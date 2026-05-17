@@ -13,6 +13,33 @@ CREATE TABLE "auth_user_roles" (
 );
 
 -- CreateTable
+CREATE TABLE "crm_lead_sources" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "name" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+
+    CONSTRAINT "crm_lead_sources_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "crm_ticket_statuses" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "name" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+
+    CONSTRAINT "crm_ticket_statuses_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "crm_message_directions" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "name" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+
+    CONSTRAINT "crm_message_directions_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "org_onboarding_statuses" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "name" TEXT NOT NULL,
@@ -91,7 +118,7 @@ CREATE TABLE "auth_user" (
     "banReason" TEXT,
     "banExpires" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "auth_user_pkey" PRIMARY KEY ("id")
 );
@@ -106,7 +133,7 @@ CREATE TABLE "auth_session" (
     "impersonatedBy" TEXT,
     "userId" UUID NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
     "activeOrganizationId" UUID,
 
     CONSTRAINT "auth_session_pkey" PRIMARY KEY ("id")
@@ -126,7 +153,7 @@ CREATE TABLE "auth_account" (
     "scope" TEXT,
     "password" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "auth_account_pkey" PRIMARY KEY ("id")
 );
@@ -138,7 +165,7 @@ CREATE TABLE "auth_verification" (
     "value" TEXT NOT NULL,
     "expiresAt" TIMESTAMP(3) NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "auth_verification_pkey" PRIMARY KEY ("id")
 );
@@ -307,8 +334,8 @@ CREATE TABLE "crm_leads" (
     "profilePicUrl" TEXT,
     "last_message_at" TIMESTAMP(3),
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "source" TEXT NOT NULL DEFAULT 'direct_creation',
+    "updated_at" TIMESTAMP(3) NOT NULL,
+    "sourceId" UUID NOT NULL,
     "lastSyncedAt" TIMESTAMP(3),
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "deletedAt" TIMESTAMP(3),
@@ -353,7 +380,7 @@ CREATE TABLE "crm_tickets" (
     "windowOpen" BOOLEAN NOT NULL DEFAULT true,
     "assigneeId" UUID,
     "dealValue" DECIMAL(12,2),
-    "status" TEXT NOT NULL DEFAULT 'open',
+    "statusId" UUID NOT NULL,
     "closedAt" TIMESTAMP(3),
     "closedReason" TEXT,
     "createdBy" TEXT NOT NULL DEFAULT 'SYSTEM',
@@ -366,7 +393,7 @@ CREATE TABLE "crm_tickets" (
     "resolutionTimeSec" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    "leadId" TEXT NOT NULL,
+    "leadId" UUID NOT NULL,
     "source" TEXT NOT NULL DEFAULT 'incoming_message',
     "originatedFrom" TEXT,
 
@@ -814,16 +841,16 @@ CREATE TABLE "whatsapp_messages" (
     "wamid" TEXT NOT NULL,
     "leadId" UUID NOT NULL,
     "instanceId" UUID NOT NULL,
-    "conversation_uuid" UUID,
+    "app_conversation_id" UUID,
     "ticketId" UUID,
     "campaignRecipientId" UUID,
-    "direction" TEXT NOT NULL,
+    "directionId" UUID NOT NULL,
     "type" TEXT NOT NULL,
     "body" TEXT,
     "mediaUrl" TEXT,
     "status" TEXT NOT NULL,
     "timestamp" TIMESTAMP(3) NOT NULL,
-    "conversationId" TEXT,
+    "meta_conversation_id" TEXT,
     "source" TEXT NOT NULL DEFAULT 'live',
     "rawMeta" JSONB,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1158,6 +1185,15 @@ CREATE TABLE "whatsapp_template_logs" (
 CREATE UNIQUE INDEX "auth_user_roles_name_key" ON "auth_user_roles"("name");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "crm_lead_sources_name_key" ON "crm_lead_sources"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "crm_ticket_statuses_name_key" ON "crm_ticket_statuses"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "crm_message_directions_name_key" ON "crm_message_directions"("name");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "org_onboarding_statuses_name_key" ON "org_onboarding_statuses"("name");
 
 -- CreateIndex
@@ -1266,19 +1302,19 @@ CREATE UNIQUE INDEX "org_member_permission_overrides_memberId_permissionKey_key"
 CREATE INDEX "crm_leads_organizationId_idx" ON "crm_leads"("organizationId");
 
 -- CreateIndex
+CREATE INDEX "crm_leads_organizationId_phone_idx" ON "crm_leads"("organizationId", "phone");
+
+-- CreateIndex
 CREATE INDEX "crm_leads_projectId_idx" ON "crm_leads"("projectId");
 
 -- CreateIndex
 CREATE INDEX "crm_leads_organizationId_projectId_idx" ON "crm_leads"("organizationId", "projectId");
 
 -- CreateIndex
-CREATE INDEX "crm_leads_source_idx" ON "crm_leads"("source");
+CREATE INDEX "crm_leads_sourceId_idx" ON "crm_leads"("sourceId");
 
 -- CreateIndex
 CREATE INDEX "crm_leads_isActive_idx" ON "crm_leads"("isActive");
-
--- CreateIndex
-CREATE UNIQUE INDEX "crm_leads_organizationId_phone_key" ON "crm_leads"("organizationId", "phone");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "crm_leads_organizationId_remote_jid_key" ON "crm_leads"("organizationId", "remote_jid");
@@ -1305,7 +1341,10 @@ CREATE INDEX "crm_tickets_organizationId_projectId_idx" ON "crm_tickets"("organi
 CREATE INDEX "crm_tickets_conversationId_idx" ON "crm_tickets"("conversationId");
 
 -- CreateIndex
-CREATE INDEX "crm_tickets_status_idx" ON "crm_tickets"("status");
+CREATE INDEX "crm_tickets_statusId_idx" ON "crm_tickets"("statusId");
+
+-- CreateIndex
+CREATE INDEX "crm_tickets_leadId_idx" ON "crm_tickets"("leadId");
 
 -- CreateIndex
 CREATE INDEX "crm_tickets_stageId_idx" ON "crm_tickets"("stageId");
@@ -1599,16 +1638,22 @@ CREATE INDEX "whatsapp_messages_leadId_idx" ON "whatsapp_messages"("leadId");
 CREATE INDEX "whatsapp_messages_instanceId_idx" ON "whatsapp_messages"("instanceId");
 
 -- CreateIndex
-CREATE INDEX "whatsapp_messages_conversation_uuid_idx" ON "whatsapp_messages"("conversation_uuid");
+CREATE INDEX "whatsapp_messages_app_conversation_id_idx" ON "whatsapp_messages"("app_conversation_id");
 
 -- CreateIndex
 CREATE INDEX "whatsapp_messages_ticketId_idx" ON "whatsapp_messages"("ticketId");
+
+-- CreateIndex
+CREATE INDEX "whatsapp_messages_directionId_idx" ON "whatsapp_messages"("directionId");
 
 -- CreateIndex
 CREATE INDEX "whatsapp_messages_source_idx" ON "whatsapp_messages"("source");
 
 -- CreateIndex
 CREATE INDEX "whatsapp_messages_timestamp_idx" ON "whatsapp_messages"("timestamp");
+
+-- CreateIndex
+CREATE INDEX "whatsapp_messages_meta_conversation_id_idx" ON "whatsapp_messages"("meta_conversation_id");
 
 -- CreateIndex
 CREATE INDEX "whatsapp_messages_campaignRecipientId_idx" ON "whatsapp_messages"("campaignRecipientId");
@@ -1842,6 +1887,9 @@ ALTER TABLE "crm_leads" ADD CONSTRAINT "crm_leads_organizationId_fkey" FOREIGN K
 ALTER TABLE "crm_leads" ADD CONSTRAINT "crm_leads_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "crm_leads" ADD CONSTRAINT "crm_leads_sourceId_fkey" FOREIGN KEY ("sourceId") REFERENCES "crm_lead_sources"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "crm_conversations" ADD CONSTRAINT "crm_conversations_instanceId_fkey" FOREIGN KEY ("instanceId") REFERENCES "whatsapp_configs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -1864,6 +1912,12 @@ ALTER TABLE "crm_tickets" ADD CONSTRAINT "crm_tickets_projectId_fkey" FOREIGN KE
 
 -- AddForeignKey
 ALTER TABLE "crm_tickets" ADD CONSTRAINT "crm_tickets_stageId_fkey" FOREIGN KEY ("stageId") REFERENCES "crm_ticket_stages"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "crm_tickets" ADD CONSTRAINT "crm_tickets_statusId_fkey" FOREIGN KEY ("statusId") REFERENCES "crm_ticket_statuses"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "crm_tickets" ADD CONSTRAINT "crm_tickets_leadId_fkey" FOREIGN KEY ("leadId") REFERENCES "crm_leads"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "crm_ticket_stages" ADD CONSTRAINT "crm_ticket_stages_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -2025,7 +2079,7 @@ ALTER TABLE "whatsapp_opt_outs" ADD CONSTRAINT "whatsapp_opt_outs_organizationId
 ALTER TABLE "whatsapp_opt_outs" ADD CONSTRAINT "whatsapp_opt_outs_campaignId_fkey" FOREIGN KEY ("campaignId") REFERENCES "whatsapp_campaigns"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "whatsapp_messages" ADD CONSTRAINT "whatsapp_messages_conversation_uuid_fkey" FOREIGN KEY ("conversation_uuid") REFERENCES "crm_conversations"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "whatsapp_messages" ADD CONSTRAINT "whatsapp_messages_app_conversation_id_fkey" FOREIGN KEY ("app_conversation_id") REFERENCES "crm_conversations"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "whatsapp_messages" ADD CONSTRAINT "whatsapp_messages_instanceId_fkey" FOREIGN KEY ("instanceId") REFERENCES "whatsapp_configs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -2035,6 +2089,9 @@ ALTER TABLE "whatsapp_messages" ADD CONSTRAINT "whatsapp_messages_leadId_fkey" F
 
 -- AddForeignKey
 ALTER TABLE "whatsapp_messages" ADD CONSTRAINT "whatsapp_messages_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "crm_tickets"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "whatsapp_messages" ADD CONSTRAINT "whatsapp_messages_directionId_fkey" FOREIGN KEY ("directionId") REFERENCES "crm_message_directions"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "whatsapp_messages" ADD CONSTRAINT "whatsapp_messages_campaignRecipientId_fkey" FOREIGN KEY ("campaignRecipientId") REFERENCES "whatsapp_campaign_recipients"("id") ON DELETE SET NULL ON UPDATE CASCADE;
