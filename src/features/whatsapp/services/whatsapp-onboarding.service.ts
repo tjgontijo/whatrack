@@ -218,6 +218,20 @@ export async function handleWhatsAppOnboardingCallback(
         continue
       }
 
+      // If coexistence flow already set a specific phoneNumberId, use only that phone.
+      // Avoids creating configs for all WABA numbers when user connected just one.
+      if (onboarding.phoneNumberId) {
+        const before = phones.length
+        phones = phones.filter(p => p.id === onboarding.phoneNumberId)
+        logger.info(
+          { phoneNumberId: onboarding.phoneNumberId, before, after: phones.length },
+          '[Onboarding] 🔍 Filtered phones to connected number only'
+        )
+        if (phones.length === 0) {
+          logger.warn('[Onboarding] ⚠️ phoneNumberId from postMessage not found in WABA phones — skipping filter')
+          phones = await MetaCloudService.listPhoneNumbers({ wabaId: waba.wabaId, accessToken })
+        }
+      }
 
       await prisma.whatsAppConfig.deleteMany({
         where: {
