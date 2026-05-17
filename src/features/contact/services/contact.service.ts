@@ -1,4 +1,4 @@
-import type { ContactRequestInput } from '@/schemas/contact/contact-schemas'
+import type { ContactRequestInput } from '@/features/contact/schemas/contact.schemas'
 
 interface WebhookTracking {
   trafficSource: string
