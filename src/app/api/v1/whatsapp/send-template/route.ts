@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
 
 import { apiError } from '@/lib/utils/api-response'
-import { MetaCloudService } from '@/services/whatsapp/meta-cloud.service'
-import { WhatsAppTemplateAnalyticsService } from '@/services/whatsapp/whatsapp-template-analytics.service'
-import { whatsappSendTemplateSchema } from '@/schemas/whatsapp/whatsapp-schemas'
+import { MetaCloudService } from '@/features/whatsapp/services/meta-cloud.service'
+import { WhatsAppTemplateAnalyticsService } from '@/features/whatsapp/services/whatsapp-template-analytics.service'
+import { whatsappSendTemplateSchema } from '@/features/whatsapp/schemas/whatsapp-schemas'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { logger } from '@/lib/utils/logger'
 

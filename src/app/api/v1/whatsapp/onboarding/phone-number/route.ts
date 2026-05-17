@@ -79,7 +79,7 @@ export async function POST(request: Request) {
         })
 
         // 2. We use MetaCloudService (which defaults to System User Token) to fetch phone details
-        const { MetaCloudService } = await import('@/services/whatsapp/meta-cloud.service')
+        const { MetaCloudService } = await import('@/features/whatsapp/services/meta-cloud.service')
         
         let phones: Array<{ id: string; display_phone_number?: string; verified_name?: string }> = []
         try {

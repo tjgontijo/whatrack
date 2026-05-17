@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
 
 import { apiError } from '@/lib/utils/api-response'
-import { whatsappDisconnectSchema } from '@/schemas/whatsapp/whatsapp-schemas'
+import { whatsappDisconnectSchema } from '@/features/whatsapp/schemas/whatsapp-schemas'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { disconnectWhatsAppConfig } from '@/services/whatsapp/whatsapp-config.service'
+import { disconnectWhatsAppConfig } from '@/features/whatsapp/services/whatsapp-config.service'
 import { logger } from '@/lib/utils/logger'
 
 export const dynamic = 'force-dynamic'

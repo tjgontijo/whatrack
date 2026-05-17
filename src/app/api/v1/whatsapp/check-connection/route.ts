@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth/auth'
 import { headers } from 'next/headers'
-import { MetaCloudService } from '@/services/whatsapp/meta-cloud.service'
+import { MetaCloudService } from '@/features/whatsapp/services/meta-cloud.service'
 
 export const dynamic = 'force-dynamic'
 

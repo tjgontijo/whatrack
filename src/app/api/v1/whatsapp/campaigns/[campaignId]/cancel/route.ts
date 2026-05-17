@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server'
 
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { cancelCampaign } from '@/services/whatsapp/whatsapp-campaign.service'
-import { whatsappCampaignCancelSchema } from '@/schemas/whatsapp/whatsapp-campaign-schemas'
+import { cancelCampaign } from '@/features/whatsapp/services/whatsapp-campaign.service'
+import { whatsappCampaignCancelSchema } from '@/features/whatsapp/schemas/whatsapp-campaign-schemas'
 
 export const dynamic = 'force-dynamic'
 

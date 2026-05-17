@@ -2,10 +2,10 @@ import { after } from 'next/server'
 
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { dispatchCampaign } from '@/services/whatsapp/whatsapp-campaign.service'
-import { whatsappCampaignDispatchSchema } from '@/schemas/whatsapp/whatsapp-campaign-schemas'
+import { dispatchCampaign } from '@/features/whatsapp/services/whatsapp-campaign.service'
+import { whatsappCampaignDispatchSchema } from '@/features/whatsapp/schemas/whatsapp-campaign-schemas'
 import { logger } from '@/lib/utils/logger'
-import { runCampaignDispatch } from '@/services/whatsapp/whatsapp-campaign-execution.service'
+import { runCampaignDispatch } from '@/features/whatsapp/services/whatsapp-campaign-execution.service'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 300 // 5 min max na Vercel (plano free permite até 60s, pro até 300s)

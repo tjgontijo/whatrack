@@ -4,9 +4,9 @@ import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import {
   metaAdAccountToggleBodySchema,
   metaRouteParamsSchema,
-} from '@/schemas/meta-ads/meta-ads-schemas'
+} from '@/features/meta-ads/schemas/meta-ads-schemas'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
-import { toggleMetaAdAccount } from '@/services/meta-ads/meta-account-query.service'
+import { toggleMetaAdAccount } from '@/features/meta-ads/services/meta-account-query.service'
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const access = await validatePermissionAccess(req, 'manage:integrations')

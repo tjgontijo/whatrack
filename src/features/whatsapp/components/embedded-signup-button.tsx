@@ -4,7 +4,7 @@ import { ExternalLink, Loader2, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { useWhatsAppOnboarding } from '@/hooks/whatsapp/use-whatsapp-onboarding'
+import { useWhatsAppOnboarding } from '@/features/whatsapp/hooks/use-whatsapp-onboarding'
 
 interface EmbeddedSignupButtonProps {
   onSuccess?: () => void

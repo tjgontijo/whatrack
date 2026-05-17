@@ -4,7 +4,7 @@ import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { authorizeCronRequest } from '@/server/cron/cron-auth'
 import { getJobTracker } from '@/lib/db/queue'
 import { prisma } from '@/lib/db/prisma'
-import { autoSelectWinner } from '@/services/whatsapp/whatsapp-campaign-ab.service'
+import { autoSelectWinner } from '@/features/whatsapp/services/whatsapp-campaign-ab.service'
 import { logger } from '@/lib/utils/logger'
 import { cronTriggerBodySchema } from '@/features/cron/schemas/cron.schemas'
 

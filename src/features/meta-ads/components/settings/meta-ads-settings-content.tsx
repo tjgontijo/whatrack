@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { MetaIcon } from '@/components/shared/icons'
-import { useMetaAdsOnboarding } from '@/hooks/meta-ads/use-meta-ads-onboarding'
+import { useMetaAdsOnboarding } from '@/features/meta-ads/hooks/use-meta-ads-onboarding'
 import { metaAdsClient } from '@/lib/meta-ads/client'
 import type { MetaAdAccountSummary, MetaConnectionSummary, MetaPixelConfig } from '@/types/meta-ads/meta-ads'
 import { MetaPixelsConfigArea } from './meta-pixels-config-area'

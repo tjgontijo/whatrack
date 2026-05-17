@@ -2,8 +2,8 @@ import { timingSafeEqual } from 'node:crypto'
 
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
-import { whatsappManualSendTemplateSchema } from '@/schemas/whatsapp/whatsapp-schemas'
-import { sendManualTemplate } from '@/services/whatsapp/whatsapp-manual-send.service'
+import { whatsappManualSendTemplateSchema } from '@/features/whatsapp/schemas/whatsapp-schemas'
+import { sendManualTemplate } from '@/features/whatsapp/services/whatsapp-manual-send.service'
 
 export const dynamic = 'force-dynamic'
 

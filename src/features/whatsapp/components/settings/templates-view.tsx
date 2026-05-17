@@ -18,7 +18,7 @@ import type { ColumnDef, RowActions } from '@/features/dashboard/components/crud
 import { whatsappApi } from '@/lib/whatsapp/client'
 import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 import type { WhatsAppTemplate } from '@/types/whatsapp/whatsapp'
-import type { TemplateStats } from '@/services/whatsapp/whatsapp-template-analytics.service'
+import type { TemplateStats } from '@/features/whatsapp/services/whatsapp-template-analytics.service'
 
 interface TemplatesViewProps {
   templates: WhatsAppTemplate[]

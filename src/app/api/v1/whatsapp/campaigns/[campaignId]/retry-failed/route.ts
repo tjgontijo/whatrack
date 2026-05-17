@@ -4,7 +4,7 @@ import { prisma } from '@/lib/db/prisma'
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { logger } from '@/lib/utils/logger'
-import { runCampaignDispatch } from '@/services/whatsapp/whatsapp-campaign-execution.service'
+import { runCampaignDispatch } from '@/features/whatsapp/services/whatsapp-campaign-execution.service'
 
 export const maxDuration = 300
 

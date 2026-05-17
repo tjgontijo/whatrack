@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useWhatsAppInstances } from '@/hooks/whatsapp/use-whatsapp-instances'
+import { useWhatsAppInstances } from '@/features/whatsapp/hooks/use-whatsapp-instances'
 
 interface InstanceSelectorProps {
   selectedInstanceId: string | null

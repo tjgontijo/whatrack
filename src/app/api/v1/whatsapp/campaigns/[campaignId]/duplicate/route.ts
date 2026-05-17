@@ -1,6 +1,6 @@
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { duplicateCampaign } from '@/services/whatsapp/whatsapp-campaign-duplicate.service'
+import { duplicateCampaign } from '@/features/whatsapp/services/whatsapp-campaign-duplicate.service'
 
 export const dynamic = 'force-dynamic'
 

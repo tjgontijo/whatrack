@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils/utils'
 
 import { apiFetch } from '@/lib/api-client'
 import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
-import { useRealtime } from '@/hooks/whatsapp/use-realtime'
+import { useRealtime } from '@/features/whatsapp/hooks/use-realtime'
 
 import { ChatList } from '@/features/whatsapp/components/inbox/chat-list'
 import { ChatWindow } from '@/features/whatsapp/components/inbox/chat-window'

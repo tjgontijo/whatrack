@@ -5,7 +5,7 @@ import { rateLimitMiddleware } from '@/lib/utils/rate-limit.middleware'
 import {
   processWhatsAppWebhookPayload,
   verifyWhatsAppWebhookQuery,
-} from '@/services/whatsapp/whatsapp-webhook.service'
+} from '@/features/whatsapp/services/whatsapp-webhook.service'
 
 export const dynamic = 'force-dynamic'
 

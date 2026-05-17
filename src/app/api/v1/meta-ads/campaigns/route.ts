@@ -1,9 +1,9 @@
 import { NextRequest } from 'next/server'
 
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
-import { campaignsQuerySchema } from '@/schemas/meta-ads/meta-ads-schemas'
+import { campaignsQuerySchema } from '@/features/meta-ads/schemas/meta-ads-schemas'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
-import { metaCampaignsService } from '@/services/meta-ads/campaigns.service'
+import { metaCampaignsService } from '@/features/meta-ads/services/campaigns.service'
 import { logger } from '@/lib/utils/logger'
 
 export async function GET(req: NextRequest) {

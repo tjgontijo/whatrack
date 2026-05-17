@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { apiError } from '@/lib/utils/api-response'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { buildMetaAdsAuthorizeUrl } from '@/services/meta-ads/meta-oauth.service'
-import { createMetaOAuthState } from '@/services/meta-ads/meta-oauth-state.service'
+import { buildMetaAdsAuthorizeUrl } from '@/features/meta-ads/services/meta-oauth.service'
+import { createMetaOAuthState } from '@/features/meta-ads/services/meta-oauth-state.service'
 import { logger } from '@/lib/utils/logger'
 import { prisma } from '@/lib/db/prisma'
 

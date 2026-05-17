@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db/prisma'
 import { TokenEncryption } from '@/lib/utils/encryption'
-import { whatsappCache } from '@/services/whatsapp/cache.service'
+import { whatsappCache } from '@/features/whatsapp/services/cache.service'
 import { CACHE_KEYS, CACHE_TTL } from '@/lib/db/cache-keys'
 import { getRedis } from '@/lib/db/redis'
 import { logger } from '@/lib/utils/logger'

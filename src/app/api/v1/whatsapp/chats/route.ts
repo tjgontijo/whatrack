@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
 
 import { apiError } from '@/lib/utils/api-response'
-import { whatsappChatsQuerySchema } from '@/schemas/whatsapp/whatsapp-schemas'
+import { whatsappChatsQuerySchema } from '@/features/whatsapp/schemas/whatsapp-schemas'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { listWhatsAppChats } from '@/services/whatsapp/whatsapp-chat-query.service'
+import { listWhatsAppChats } from '@/features/whatsapp/services/whatsapp-chat-query.service'
 import { logger } from '@/lib/utils/logger'
 
 export const dynamic = 'force-dynamic'

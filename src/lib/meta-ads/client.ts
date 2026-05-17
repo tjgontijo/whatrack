@@ -3,7 +3,7 @@ import type {
   MetaAdAccountToggleBodyInput,
   MetaPixelCreateBodyInput,
   MetaPixelUpdateBodyInput,
-} from '@/schemas/meta-ads/meta-ads-schemas'
+} from '@/features/meta-ads/schemas/meta-ads-schemas'
 import type {
   MetaAdAccountSummary,
   MetaConnectionSummary,

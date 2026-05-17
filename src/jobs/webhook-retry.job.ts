@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db/prisma'
 import { getRedis } from '@/lib/db/redis'
-import { WebhookProcessor } from '@/services/whatsapp/webhook-processor'
+import { WebhookProcessor } from '@/features/whatsapp/services/webhook-processor'
 import { resendProvider } from '@/services/mail/resend'
 import { generateWebhookFailureAlertEmail } from '@/services/mail/templates/WebhookFailureAlertEmail'
 import { logger } from '@/lib/utils/logger'

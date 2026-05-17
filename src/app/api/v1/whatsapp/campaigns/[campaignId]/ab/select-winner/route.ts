@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server'
 
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { selectWinner } from '@/services/whatsapp/whatsapp-campaign-ab.service'
+import { selectWinner } from '@/features/whatsapp/services/whatsapp-campaign-ab.service'
 import { AbTestSelectWinnerSchema } from '@/lib/whatsapp/schemas/whatsapp-ab-schemas'
 
 export const dynamic = 'force-dynamic'

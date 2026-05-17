@@ -3,7 +3,7 @@ import { inngest } from '@/server/inngest/client'
 import {
   processDispatchGroup,
   checkAndCompleteCampaign,
-} from '@/services/whatsapp/whatsapp-campaign-execution.service'
+} from '@/features/whatsapp/services/whatsapp-campaign-execution.service'
 import { logger } from '@/lib/utils/logger'
 
 export const whatsappCampaignDispatchFunction = inngest.createFunction(

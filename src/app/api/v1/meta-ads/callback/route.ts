@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { completeMetaAdsOAuthCallback } from '@/services/meta-ads/meta-oauth.service'
+import { completeMetaAdsOAuthCallback } from '@/features/meta-ads/services/meta-oauth.service'
 
 function successPopupResponse(req: NextRequest) {
   const dashboardUrl = new URL('/welcome?integration=meta-ads&status=success', req.url).toString()

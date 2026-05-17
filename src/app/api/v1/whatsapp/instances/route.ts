@@ -1,13 +1,13 @@
 import { NextRequest } from 'next/server'
 
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
-import { whatsappInstanceProjectUpdateSchema } from '@/schemas/whatsapp/whatsapp-schemas'
+import { whatsappInstanceProjectUpdateSchema } from '@/features/whatsapp/schemas/whatsapp-schemas'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { resolveProjectScope } from '@/server/project/project-scope'
 import {
   assignWhatsAppConfigProject,
   listWhatsAppInstances,
-} from '@/services/whatsapp/whatsapp-config.service'
+} from '@/features/whatsapp/services/whatsapp-config.service'
 import { logger } from '@/lib/utils/logger'
 
 export const dynamic = 'force-dynamic'

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { listRecipients } from '@/services/whatsapp/whatsapp-campaign-query.service'
+import { listRecipients } from '@/features/whatsapp/services/whatsapp-campaign-query.service'
 
 export const dynamic = 'force-dynamic'
 

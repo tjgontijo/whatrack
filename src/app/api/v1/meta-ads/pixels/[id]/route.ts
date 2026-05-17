@@ -4,9 +4,9 @@ import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import {
   metaPixelUpdateBodySchema,
   metaRouteParamsSchema,
-} from '@/schemas/meta-ads/meta-ads-schemas'
+} from '@/features/meta-ads/schemas/meta-ads-schemas'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
-import { deleteMetaPixel, updateMetaPixel } from '@/services/meta-ads/meta-pixel.service'
+import { deleteMetaPixel, updateMetaPixel } from '@/features/meta-ads/services/meta-pixel.service'
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const access = await validatePermissionAccess(req, 'manage:integrations')

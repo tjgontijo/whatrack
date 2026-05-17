@@ -37,7 +37,7 @@ vi.mock('@/lib/db/prisma', () => ({
   prisma: prismaMock,
 }))
 
-vi.mock('@/services/meta-ads/capi.service', () => ({
+vi.mock('@/features/meta-ads/services/capi.service', () => ({
   metaCapiService: capiMock,
 }))
 

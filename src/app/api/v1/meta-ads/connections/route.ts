@@ -1,13 +1,13 @@
 import { NextRequest } from 'next/server'
 
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
-import { metaConnectionDeleteQuerySchema } from '@/schemas/meta-ads/meta-ads-schemas'
+import { metaConnectionDeleteQuerySchema } from '@/features/meta-ads/schemas/meta-ads-schemas'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { resolveProjectScope } from '@/server/project/project-scope'
 import {
   deleteMetaConnection,
   listMetaConnections,
-} from '@/services/meta-ads/meta-connection.service'
+} from '@/features/meta-ads/services/meta-connection.service'
 
 export async function GET(req: NextRequest) {
   const access = await validatePermissionAccess(req, 'view:integrations')

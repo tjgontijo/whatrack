@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth/auth'
 import { headers } from 'next/headers'
 import { prisma } from '@/lib/db/prisma'
-import { MetaCloudService } from '@/services/whatsapp/meta-cloud.service'
+import { MetaCloudService } from '@/features/whatsapp/services/meta-cloud.service'
 import { encryptToken } from '@/lib/whatsapp/token-crypto'
 
 export const dynamic = 'force-dynamic'

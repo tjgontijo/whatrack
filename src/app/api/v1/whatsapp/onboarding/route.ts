@@ -3,7 +3,7 @@ import { NextRequest } from 'next/server'
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { rateLimitMiddleware } from '@/lib/utils/rate-limit.middleware'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
-import { createWhatsAppOnboardingSession } from '@/services/whatsapp/whatsapp-onboarding.service'
+import { createWhatsAppOnboardingSession } from '@/features/whatsapp/services/whatsapp-onboarding.service'
 import { logger } from '@/lib/utils/logger'
 
 export async function GET(request: NextRequest) {

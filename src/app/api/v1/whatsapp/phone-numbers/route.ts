@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 
 import { apiError } from '@/lib/utils/api-response'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { listWhatsAppPhoneNumbers } from '@/services/whatsapp/whatsapp-config.service'
+import { listWhatsAppPhoneNumbers } from '@/features/whatsapp/services/whatsapp-config.service'
 import { logger } from '@/lib/utils/logger'
 
 export const dynamic = 'force-dynamic'
