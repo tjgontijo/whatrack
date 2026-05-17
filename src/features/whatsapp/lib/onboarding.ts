@@ -12,18 +12,10 @@ export function buildWhatsAppEmbeddedSignupUrl(
   trackingCode: string
 ): string {
   const url = new URL(onboardingUrl)
-  const extras = {
-    featureType: 'whatsapp_business_app_onboarding',
-    sessionInfoVersion: '3',
-    version: 'v3',
-    sessionInfo: { trackingCode },
-  }
 
   if (url.searchParams.get('state') !== trackingCode) {
     url.searchParams.set('state', trackingCode)
   }
-
-  url.searchParams.set('extras', JSON.stringify(extras))
 
   return url.toString()
 }

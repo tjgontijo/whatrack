@@ -133,6 +133,7 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
 
     // postMessage from callback (via opener chain or Meta popup)
     const handleMessage = (event: MessageEvent) => {
+      console.log('[DEBUG] postMessage received:', event.data)
       // 1. Listen for Meta's message (FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING)
       try {
         let msgData = event.data
@@ -235,6 +236,7 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
       const specs = `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
 
       popupRef.current = window.open(url, 'wa_onboarding', specs)
+      console.log('[DEBUG] Popup opened:', popupRef.current ? 'success' : 'blocked')
 
       if (!popupRef.current) {
         setStatus('idle')
