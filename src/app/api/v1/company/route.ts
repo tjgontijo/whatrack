@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { apiError } from '@/lib/utils/api-response'
-import { saveCompanySchema } from '@/schemas/company/company-schemas'
+import { saveCompanySchema } from '@/features/company/schemas/company.schemas'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import {
   getOrganizationCompany,
   saveOrganizationCompany,
-} from '@/services/company/company.service'
+} from '@/features/company/services/company.service'
 import { logger } from '@/lib/utils/logger'
 
 export async function GET(request: NextRequest) {

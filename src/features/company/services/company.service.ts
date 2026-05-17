@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db/prisma'
 import { stripCnpj } from '@/lib/mask/cnpj'
-import type { SaveCompanyInput } from '@/schemas/company/company-schemas'
+import type { SaveCompanyInput } from '@/features/company/schemas/company.schemas'
 
 function buildCompanyPayload(input: SaveCompanyInput, userId: string) {
   return {

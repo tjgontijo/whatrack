@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { apiError } from '@/lib/utils/api-response'
-import { lookupCnpjSchema } from '@/schemas/company/company-schemas'
-import { fetchCnpjData, ReceitaWsError } from '@/services/company/receitaws'
+import { lookupCnpjSchema } from '@/features/company/schemas/company.schemas'
+import { fetchCnpjData, ReceitaWsError } from '@/features/company/services/receitaws'
 import { getOrSyncUser } from '@/server/auth/server'
 import { logger } from '@/lib/utils/logger'
 
