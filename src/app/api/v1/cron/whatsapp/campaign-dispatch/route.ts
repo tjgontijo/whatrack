@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server'
 
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
-import { cronTriggerBodySchema } from '@/schemas/cron/cron-schemas'
+import { cronTriggerBodySchema } from '@/features/cron/schemas/cron.schemas'
 import { authorizeCronRequest } from '@/server/cron/cron-auth'
 import { getJobTracker } from '@/lib/db/queue'
 import { prisma } from '@/lib/db/prisma'

@@ -6,7 +6,7 @@ import { getJobTracker } from '@/lib/db/queue'
 import { prisma } from '@/lib/db/prisma'
 import { autoSelectWinner } from '@/services/whatsapp/whatsapp-campaign-ab.service'
 import { logger } from '@/lib/utils/logger'
-import { cronTriggerBodySchema } from '@/schemas/cron/cron-schemas'
+import { cronTriggerBodySchema } from '@/features/cron/schemas/cron.schemas'
 
 export const maxDuration = 300
 

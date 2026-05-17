@@ -19,7 +19,7 @@ vi.mock('@/lib/utils/logger', () => ({
   logger: loggerMock,
 }))
 
-import { executeLockedCronJob } from '@/services/cron/cron-execution.service'
+import { executeLockedCronJob } from '@/features/cron/services/cron-execution.service'
 
 describe('executeLockedCronJob', () => {
   beforeEach(() => {

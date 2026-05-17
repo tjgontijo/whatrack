@@ -1,5 +1,5 @@
 import { webhookRetryJob } from '@/jobs/webhook-retry.job'
-import { executeLockedCronJob } from '@/services/cron/cron-execution.service'
+import { executeLockedCronJob } from '@/features/cron/services/cron-execution.service'
 
 export async function runWebhookRetryCronJob() {
   return executeLockedCronJob({

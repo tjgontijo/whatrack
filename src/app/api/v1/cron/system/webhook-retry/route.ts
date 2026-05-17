@@ -1,9 +1,9 @@
 import { NextRequest } from 'next/server'
 
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
-import { cronTriggerBodySchema } from '@/schemas/cron/cron-schemas'
+import { cronTriggerBodySchema } from '@/features/cron/schemas/cron.schemas'
 import { authorizeCronRequest } from '@/server/cron/cron-auth'
-import { runWebhookRetryCronJob } from '@/services/cron/webhook-retry-cron.service'
+import { runWebhookRetryCronJob } from '@/features/cron/services/webhook-retry-cron.service'
 
 export const maxDuration = 60
 const ENDPOINT = '/api/v1/cron/system/webhook-retry'
