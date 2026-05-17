@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { buildDashboardSummaryQuery } from '@/lib/dashboard/summary-query'
+import { buildDashboardSummaryQuery } from '@/features/dashboard/utils/summary-query'
 
 describe('buildDashboardSummaryQuery', () => {
   it('includes item category and item filters in the query string', () => {

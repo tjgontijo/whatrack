@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/utils/api-response'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
-import { getHourlyHeatmap } from '@/services/analytics'
+import { getHourlyHeatmap } from '@/features/analytics/server'
 import { logger } from '@/lib/utils/logger'
 
 export async function GET(req: NextRequest) {

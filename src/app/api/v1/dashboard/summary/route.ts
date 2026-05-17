@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server'
 
 import { apiError } from '@/lib/utils/api-response'
-import { dashboardSummaryQuerySchema } from '@/schemas/dashboard/dashboard-schemas'
+import { dashboardSummaryQuerySchema } from '@/features/dashboard/schemas/dashboard-schemas'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { resolveProjectScope } from '@/server/project/project-scope'
-import { getDashboardSummary } from '@/services/dashboard/dashboard-summary.service'
+import { getDashboardSummary } from '@/features/dashboard/server'
 import { logger } from '@/lib/utils/logger'
 
 export async function GET(request: Request) {

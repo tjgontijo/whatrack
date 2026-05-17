@@ -15,12 +15,12 @@ import { FunnelChart } from '@/components/dashboard/charts/funnel-chart'
 import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
 import { formatCurrencyBRL } from '@/lib/mask/formatters'
 import { apiFetch } from '@/lib/api-client'
-import { buildDashboardSummaryQuery } from '@/lib/dashboard/summary-query'
+import { buildDashboardSummaryQuery } from '@/features/dashboard/utils/summary-query'
 
 import {
   dashboardSummaryResponseSchema,
   type DashboardSummaryResponse,
-} from '@/schemas/dashboard/dashboard-summary'
+} from '@/features/dashboard/schemas/dashboard-summary'
 
 const NO_TRAFFIC_SOURCE_VALUE = '__no-source__'
 

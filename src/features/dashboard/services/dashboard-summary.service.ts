@@ -1,18 +1,18 @@
 import { prisma } from '@/lib/db/prisma'
-import { dashboardSummaryResponseSchema } from '@/schemas/dashboard/dashboard-summary'
-import type { DashboardSummaryQueryInput } from '@/schemas/dashboard/dashboard-schemas'
+import { dashboardSummaryResponseSchema } from '@/features/dashboard/schemas/dashboard-summary'
+import type { DashboardSummaryQueryInput } from '@/features/dashboard/schemas/dashboard-schemas'
 import {
   buildSalesWhere,
   resolveFiltersDateRange,
   type SummaryFilters,
-} from '@/services/dashboard/build-filters'
-import { buildFinancialSummary } from '@/services/dashboard/build-financial-summary'
-import { buildSalesByService } from '@/services/dashboard/build-sales-by-service'
-import { buildFunnel } from '@/services/dashboard/build-funnel'
-import { buildOriginsSummary } from '@/services/dashboard/build-origins'
-import { buildPaidCampaignsSummary } from '@/services/dashboard/build-paid-campaigns'
-import { buildItemFilters } from '@/services/dashboard/build-item-filters'
-import { buildItemsCost } from '@/services/dashboard/build-items-cost'
+} from '@/features/dashboard/services/build-filters'
+import { buildFinancialSummary } from '@/features/dashboard/services/build-financial-summary'
+import { buildSalesByService } from '@/features/dashboard/services/build-sales-by-service'
+import { buildFunnel } from '@/features/dashboard/services/build-funnel'
+import { buildOriginsSummary } from '@/features/dashboard/services/build-origins'
+import { buildPaidCampaignsSummary } from '@/features/dashboard/services/build-paid-campaigns'
+import { buildItemFilters } from '@/features/dashboard/services/build-item-filters'
+import { buildItemsCost } from '@/features/dashboard/services/build-items-cost'
 
 export async function getDashboardSummary(
   organizationId: string,

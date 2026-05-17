@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { buildSalesWhere } from '@/services/dashboard/build-filters'
+import { buildSalesWhere } from '@/features/dashboard/services/build-filters'
 
 describe('buildSalesWhere', () => {
   it('includes item category filter when provided', () => {
