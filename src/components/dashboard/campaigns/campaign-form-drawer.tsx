@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Loader2, Megaphone, UploadCloud } from 'lucide-react'
 import { toast } from 'sonner'
 
-import { CrudEditDrawer } from '@/components/dashboard/crud'
+import { CrudEditDrawer } from '@/features/dashboard/components/crud'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'

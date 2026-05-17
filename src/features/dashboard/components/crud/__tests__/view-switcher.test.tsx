@@ -8,7 +8,7 @@ vi.mock('@/hooks/ui/use-mobile', () => ({
   useIsMobile: useIsMobileMock,
 }))
 
-import { ViewSwitcher } from '@/components/dashboard/crud/view-switcher'
+import { ViewSwitcher } from '@/features/dashboard/components/crud/view-switcher'
 
 describe('ViewSwitcher', () => {
   beforeEach(() => {

@@ -21,7 +21,7 @@ import { Separator } from '@/components/ui/separator'
 import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 import { apiFetch } from '@/lib/api-client'
 import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
-import { CrudEditDrawer } from '@/components/dashboard/crud'
+import { CrudEditDrawer } from '@/features/dashboard/components/crud'
 
 type CategoryOption = {
   id: string

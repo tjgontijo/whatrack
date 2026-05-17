@@ -4,14 +4,14 @@ import * as React from 'react'
 import { useState, useDeferredValue, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 
-import { CrudEmptyState } from '@/components/dashboard/crud/crud-data-view'
-import { CrudListView } from '@/components/dashboard/crud/crud-list-view'
-import { HeaderPageShell } from '@/components/dashboard/layout'
+import { CrudEmptyState } from '@/features/dashboard/components/crud/crud-data-view'
+import { CrudListView } from '@/features/dashboard/components/crud/crud-list-view'
+import { HeaderPageShell } from '@/features/dashboard/components/layout'
 import { useCrudInfiniteQuery } from '@/hooks/ui/use-crud-infinite-query'
 import {
   type ColumnDef,
   type RowActions,
-} from '@/components/dashboard/crud/types'
+} from '@/features/dashboard/components/crud/types'
 
 import {
   Select,

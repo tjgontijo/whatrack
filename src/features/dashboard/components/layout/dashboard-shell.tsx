@@ -3,8 +3,8 @@
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 
-import { AppSidebar } from '@/components/dashboard/sidebar/app-sidebar'
-import type { AppSidebarProps } from '@/components/dashboard/sidebar/app-sidebar'
+import { AppSidebar } from '@/features/dashboard/components/sidebar/app-sidebar'
+import type { AppSidebarProps } from '@/features/dashboard/components/sidebar/app-sidebar'
 import { TooltipProvider } from '@/components/ui/tooltip'
 
 type DashboardShellProps = Omit<AppSidebarProps, 'collapsed' | 'onToggle'> & {

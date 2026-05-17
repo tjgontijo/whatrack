@@ -7,15 +7,15 @@ import { MoreHorizontal, Pencil, Trash2, Power, PowerOff } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
-import { CrudEmptyState } from '@/components/dashboard/crud/crud-data-view'
-import { CrudListView } from '@/components/dashboard/crud/crud-list-view'
-import { DeleteConfirmDialog } from '@/components/dashboard/crud/delete-confirm-dialog'
-import { HeaderPageShell } from '@/components/dashboard/layout'
+import { CrudEmptyState } from '@/features/dashboard/components/crud/crud-data-view'
+import { CrudListView } from '@/features/dashboard/components/crud/crud-list-view'
+import { DeleteConfirmDialog } from '@/features/dashboard/components/crud/delete-confirm-dialog'
+import { HeaderPageShell } from '@/features/dashboard/components/layout'
 import { useCrudInfiniteQuery } from '@/hooks/ui/use-crud-infinite-query'
 import {
   type ColumnDef,
   type RowActions,
-} from '@/components/dashboard/crud/types'
+} from '@/features/dashboard/components/crud/types'
 import {
   DropdownMenu,
   DropdownMenuContent,

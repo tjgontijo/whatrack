@@ -1,8 +1,8 @@
 import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
-import { CrudCardView } from '@/components/dashboard/crud/crud-card-view'
-import { CrudListView } from '@/components/dashboard/crud/crud-list-view'
+import { CrudCardView } from '@/features/dashboard/components/crud/crud-card-view'
+import { CrudListView } from '@/features/dashboard/components/crud/crud-list-view'
 
 describe('crud shared views spacing', () => {
   it('does not add a page-level top margin to CrudListView', () => {

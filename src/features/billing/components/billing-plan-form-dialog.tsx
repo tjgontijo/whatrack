@@ -6,7 +6,7 @@ import { Controller, useForm } from 'react-hook-form'
 import { Layers3 } from 'lucide-react'
 import { toast } from 'sonner'
 
-import { CrudEditDrawer } from '@/components/dashboard/crud'
+import { CrudEditDrawer } from '@/features/dashboard/components/crud'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'

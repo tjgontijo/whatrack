@@ -1,5 +1,5 @@
 import { MetaAdsSettingsContent } from '@/components/dashboard/meta-ads/settings/meta-ads-settings-content'
-import { HeaderPageShell } from '@/components/dashboard/layout'
+import { HeaderPageShell } from '@/features/dashboard/components/layout'
 import { requireWorkspacePageAccess } from '@/server/auth/require-workspace-page-access'
 
 type SettingsMetaAdsPageProps = {

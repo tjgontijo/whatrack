@@ -5,7 +5,7 @@ import { useIsFetching, useMutation, useQuery, useQueryClient } from '@tanstack/
 import { Loader2, Plus, Send } from 'lucide-react'
 import { toast } from 'sonner'
 
-import { HeaderPageShell, HeaderTabs, type HeaderTab } from '@/components/dashboard/layout'
+import { HeaderPageShell, HeaderTabs, type HeaderTab } from '@/features/dashboard/components/layout'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'

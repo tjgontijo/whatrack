@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 
-import { HeaderPageShell } from '@/components/dashboard/layout'
+import { HeaderPageShell } from '@/features/dashboard/components/layout'
 import { ProfileSettingsContent } from '@/components/dashboard/settings/profile-settings-content'
 import { getAccountSummary } from '@/features/account'
 import { requireWorkspacePageAccess } from '@/server/auth/require-workspace-page-access'

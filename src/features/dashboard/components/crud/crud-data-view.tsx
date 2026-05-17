@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { Package } from 'lucide-react'
-import { EmptyState } from '@/components/dashboard/states/empty-state'
+import { EmptyState } from '@/features/dashboard/components/states/empty-state'
 import { ViewType } from './types'
 
 interface CrudDataViewProps<T> {

@@ -1,6 +1,6 @@
 'use client'
 
-import { CrudEmptyState } from '@/components/dashboard/crud/crud-data-view'
+import { CrudEmptyState } from '@/features/dashboard/components/crud/crud-data-view'
 import { useOrganization } from '@/features/organizations/hooks/use-organization'
 import { useBillingSubscription } from '@/features/billing/hooks/use-billing-subscription'
 import type { PublicBillingPlan } from '@/features/billing/schemas/billing-plan-schemas'

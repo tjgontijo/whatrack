@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 
-import { HeaderPageShell, HeaderTabs, RefreshButton } from '@/components/dashboard/layout'
+import { HeaderPageShell, HeaderTabs, RefreshButton } from '@/features/dashboard/components/layout'
 import { TeamAccessContent } from './team-access-content'
 import type { OrganizationRole } from './team-access-content'
 

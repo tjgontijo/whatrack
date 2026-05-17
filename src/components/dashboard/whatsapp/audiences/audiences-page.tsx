@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { HeaderPageShell, HeaderTabs } from '@/components/dashboard/layout'
+import { HeaderPageShell, HeaderTabs } from '@/features/dashboard/components/layout'
 import { Plus, Users, Filter, Tags } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ContactListsTab } from './contact-lists-tab'

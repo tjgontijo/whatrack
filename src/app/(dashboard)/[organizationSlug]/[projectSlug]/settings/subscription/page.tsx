@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 
-import { HeaderPageShell, RefreshButton } from '@/components/dashboard/layout'
+import { HeaderPageShell, RefreshButton } from '@/features/dashboard/components/layout'
 import { BillingPageContent } from '@/features/billing/components/billing-page-content'
 import { BillingPageSkeleton } from '@/features/billing/components/billing-page-skeleton'
 import { requireWorkspacePageAccess } from '@/server/auth/require-workspace-page-access'

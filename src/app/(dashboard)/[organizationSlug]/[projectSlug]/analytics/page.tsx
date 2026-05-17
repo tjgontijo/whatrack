@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 import { BarChart3 } from 'lucide-react'
-import { PageShell, PageHeader, PageContent } from '@/components/dashboard/layout'
-import { LoadingPage } from '@/components/dashboard/states'
+import { PageShell, PageHeader, PageContent } from '@/features/dashboard/components/layout'
+import { LoadingPage } from '@/features/dashboard/components/states'
 import AnalyticsDashboard from './components/analytics-dashboard'
 
 export const metadata = {

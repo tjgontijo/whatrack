@@ -3,7 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { MessageSquare, Plug, TrendingUp } from 'lucide-react'
 
-import { SectionHeader, SectionTabsList, SectionTabsTrigger } from '@/components/dashboard/layout'
+import { SectionHeader, SectionTabsList, SectionTabsTrigger } from '@/features/dashboard/components/layout'
 import { MetaAdsSettingsContent } from '@/components/dashboard/meta-ads/settings/meta-ads-settings-content'
 import { WhatsAppSettingsHub } from '@/components/dashboard/whatsapp/settings/whatsapp-settings-hub'
 import { Tabs, TabsContent } from '@/components/ui/tabs'

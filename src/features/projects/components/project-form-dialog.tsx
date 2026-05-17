@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form'
 import { FolderKanban } from 'lucide-react'
 import { toast } from 'sonner'
 
-import { CrudEditDrawer } from '@/components/dashboard/crud'
+import { CrudEditDrawer } from '@/features/dashboard/components/crud'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useOrganization } from '@/features/organizations/hooks/use-organization'

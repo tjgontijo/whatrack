@@ -1,7 +1,7 @@
 'use client'
 
 import { ExternalLink, Loader2, MessageCircle } from 'lucide-react'
-import { EmptyState } from '@/components/dashboard/states/empty-state'
+import { EmptyState } from '@/features/dashboard/components/states/empty-state'
 import { Button } from '@/components/ui/button'
 import { InstanceCardDetail, type WhatsAppInstance } from './instance-card-detail'
 

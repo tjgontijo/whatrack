@@ -5,7 +5,7 @@ import { useState, useDeferredValue, useMemo } from 'react'
 import { Search, Filter, Ban, Info, MessageSquare } from 'lucide-react'
 
 import { useCrudInfiniteQuery } from '@/hooks/ui/use-crud-infinite-query'
-import { CrudListView } from '@/components/dashboard/crud/crud-list-view'
+import { CrudListView } from '@/features/dashboard/components/crud/crud-list-view'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -30,7 +30,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { type ColumnDef } from '@/components/dashboard/crud/types'
+import { type ColumnDef } from '@/features/dashboard/components/crud/types'
 import { formatWhatsAppWithFlag } from '@/lib/mask/phone-mask'
 
 type CampaignRecipient = {

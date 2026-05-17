@@ -5,13 +5,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { User, Calendar, MessageSquare, DollarSign, TrendingUp, SlidersHorizontal } from 'lucide-react'
 import { toast } from 'sonner'
 
-import { CrudDataView, CrudEmptyState } from '@/components/dashboard/crud/crud-data-view'
-import { CrudListView } from '@/components/dashboard/crud/crud-list-view'
-import { CrudCardView } from '@/components/dashboard/crud/crud-card-view'
-import { CrudKanbanView } from '@/components/dashboard/crud/crud-kanban-view'
-import { ViewSwitcher } from '@/components/dashboard/crud/view-switcher'
-import { HeaderPageShell } from '@/components/dashboard/layout'
-import { PipelineConfigSheet } from '@/components/dashboard/pipeline/pipeline-config-sheet'
+import { CrudDataView, CrudEmptyState } from '@/features/dashboard/components/crud/crud-data-view'
+import { CrudListView } from '@/features/dashboard/components/crud/crud-list-view'
+import { CrudCardView } from '@/features/dashboard/components/crud/crud-card-view'
+import { CrudKanbanView } from '@/features/dashboard/components/crud/crud-kanban-view'
+import { ViewSwitcher } from '@/features/dashboard/components/crud/view-switcher'
+import { HeaderPageShell } from '@/features/dashboard/components/layout'
+import { PipelineConfigSheet } from '@/features/dashboard/components/pipeline/pipeline-config-sheet'
 import { useCrudInfiniteQuery } from '@/hooks/ui/use-crud-infinite-query'
 import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
 import {
@@ -19,7 +19,7 @@ import {
   type CardConfig,
   type KanbanColumn,
   type ViewType,
-} from '@/components/dashboard/crud/types'
+} from '@/features/dashboard/components/crud/types'
 
 import {
   Select,

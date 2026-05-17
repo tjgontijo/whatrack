@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { applyWhatsAppMask, normalizeWhatsApp, validateWhatsApp } from '@/lib/mask/phone-mask'
-import { CrudEditDrawer } from '@/components/dashboard/crud'
+import { CrudEditDrawer } from '@/features/dashboard/components/crud'
 
 const ORIGIN_OPTIONS = [
   { label: 'Instagram', value: 'Instagram' },

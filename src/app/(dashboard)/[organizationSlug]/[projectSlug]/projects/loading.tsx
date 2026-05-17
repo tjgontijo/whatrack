@@ -1,9 +1,9 @@
 import { FolderKanban } from 'lucide-react'
 
-import { PageContent } from '@/components/dashboard/layout/page-content'
-import { PageHeader } from '@/components/dashboard/layout/page-header'
-import { PageShell } from '@/components/dashboard/layout/page-shell'
-import { TableSkeleton } from '@/components/dashboard/states/table-skeleton'
+import { PageContent } from '@/features/dashboard/components/layout/page-content'
+import { PageHeader } from '@/features/dashboard/components/layout/page-header'
+import { PageShell } from '@/features/dashboard/components/layout/page-shell'
+import { TableSkeleton } from '@/features/dashboard/components/states/table-skeleton'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 

@@ -7,7 +7,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { Check, ChevronsUpDown, LayoutDashboard, Plus, Settings } from 'lucide-react'
 
 import { OrganizationStatusBadge } from '@/features/organizations/components/organization-status-badge'
-import { UserDropdownMenu } from '@/components/dashboard/sidebar/user-dropdown-menu'
+import { UserDropdownMenu } from '@/features/dashboard/components/sidebar/user-dropdown-menu'
 import { Button } from '@/components/ui/button'
 import {
   Command,

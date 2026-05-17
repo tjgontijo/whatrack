@@ -3,8 +3,8 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
 import { Button } from '@/components/ui/button'
-import { HeaderPageShell } from '@/components/dashboard/layout/header-page-shell'
-import { HeaderTabs } from '@/components/dashboard/layout/header-tabs'
+import { HeaderPageShell } from '@/features/dashboard/components/layout/header-page-shell'
+import { HeaderTabs } from '@/features/dashboard/components/layout/header-tabs'
 
 describe('HeaderPageShell', () => {
   it('renders only the title when no optional controls are provided', () => {

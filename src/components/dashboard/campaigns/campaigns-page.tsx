@@ -10,9 +10,9 @@ import {
   CrudDataView,
   CrudListView,
   type ColumnDef,
-} from '@/components/dashboard/crud'
-import { HeaderPageShell, HeaderTabs } from '@/components/dashboard/layout'
-import { CrudEmptyState } from '@/components/dashboard/crud/crud-data-view'
+} from '@/features/dashboard/components/crud'
+import { HeaderPageShell, HeaderTabs } from '@/features/dashboard/components/layout'
+import { CrudEmptyState } from '@/features/dashboard/components/crud/crud-data-view'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useRequiredProjectPath, useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'

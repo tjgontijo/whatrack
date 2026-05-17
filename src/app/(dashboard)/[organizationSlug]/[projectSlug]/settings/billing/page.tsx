@@ -1,6 +1,6 @@
 import { notFound, redirect } from 'next/navigation'
 
-import { HeaderPageShell, RefreshButton } from '@/components/dashboard/layout'
+import { HeaderPageShell, RefreshButton } from '@/features/dashboard/components/layout'
 import { BillingPlanList } from '@/features/billing/components/billing-plan-list'
 import { isAdmin } from '@/lib/auth/rbac/roles'
 import { billingPlanListQuerySchema } from '@/features/billing/schemas/billing-plan-schemas'

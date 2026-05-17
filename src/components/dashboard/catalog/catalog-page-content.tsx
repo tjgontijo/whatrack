@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { HeaderPageShell, HeaderTabs, type HeaderTab } from '@/components/dashboard/layout'
+import { HeaderPageShell, HeaderTabs, type HeaderTab } from '@/features/dashboard/components/layout'
 import { CategoriesTable } from '@/features/item-categories/components/categories-table'
 import { ItemsTable } from '@/features/items/components/items-table'
 import { Button } from '@/components/ui/button'

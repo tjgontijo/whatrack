@@ -6,7 +6,7 @@ import { ptBR } from 'date-fns/locale'
 import { Calendar as CalendarIcon, EyeIcon, Loader2 } from 'lucide-react'
 import { TableVirtuoso } from 'react-virtuoso'
 
-import { CrudEmptyState } from '@/components/dashboard/crud/crud-data-view'
+import { CrudEmptyState } from '@/features/dashboard/components/crud/crud-data-view'
 import {
   AUDIT_LOG_PERIOD_PRESETS,
   type AuditLogPeriodPreset,

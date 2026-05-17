@@ -12,15 +12,15 @@ import {
   CrudListView,
   ViewSwitcher,
   DeleteConfirmDialog,
-} from '@/components/dashboard/crud'
-import { HeaderPageShell } from '@/components/dashboard/layout'
+} from '@/features/dashboard/components/crud'
+import { HeaderPageShell } from '@/features/dashboard/components/layout'
 import type {
   CardConfig,
   ColumnDef,
   RowActions,
   ViewType,
-} from '@/components/dashboard/crud/types'
-import { CrudEmptyState } from '@/components/dashboard/crud/crud-data-view'
+} from '@/features/dashboard/components/crud/types'
+import { CrudEmptyState } from '@/features/dashboard/components/crud/crud-data-view'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'

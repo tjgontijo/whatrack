@@ -16,9 +16,9 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 import { CampaignAbMetrics } from '@/components/dashboard/campaigns/campaign-ab-metrics'
 import { CampaignRecipientsTable } from '@/components/dashboard/campaigns/campaign-recipients-table'
-import { DashboardMetricCard, DashboardMetricGrid } from '@/components/dashboard/charts/card'
-import { FunnelChart } from '@/components/dashboard/charts/funnel-chart'
-import { DashboardPieChart } from '@/components/dashboard/charts/pie'
+import { DashboardMetricCard, DashboardMetricGrid } from '@/features/dashboard/components/charts/card'
+import { FunnelChart } from '@/features/dashboard/components/charts/funnel-chart'
+import { DashboardPieChart } from '@/features/dashboard/components/charts/pie'
 
 const STATUS_LABELS: Record<string, string> = {
   DRAFT: 'Rascunho',

@@ -29,8 +29,8 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 
-import { DeleteConfirmDialog } from '@/components/dashboard/crud/delete-confirm-dialog'
-import { EmptyState, LoadingPage } from '@/components/dashboard/states'
+import { DeleteConfirmDialog } from '@/features/dashboard/components/crud/delete-confirm-dialog'
+import { EmptyState, LoadingPage } from '@/features/dashboard/components/states'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {

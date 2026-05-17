@@ -4,11 +4,11 @@ import * as React from 'react'
 import { useState, useDeferredValue, useMemo, useCallback } from 'react'
 import { ShoppingCart } from 'lucide-react'
 
-import { CrudDataView, CrudEmptyState } from '@/components/dashboard/crud/crud-data-view'
-import { CrudListView } from '@/components/dashboard/crud/crud-list-view'
-import { CrudCardView } from '@/components/dashboard/crud/crud-card-view'
-import { ViewSwitcher } from '@/components/dashboard/crud/view-switcher'
-import { HeaderPageShell } from '@/components/dashboard/layout'
+import { CrudDataView, CrudEmptyState } from '@/features/dashboard/components/crud/crud-data-view'
+import { CrudListView } from '@/features/dashboard/components/crud/crud-list-view'
+import { CrudCardView } from '@/features/dashboard/components/crud/crud-card-view'
+import { ViewSwitcher } from '@/features/dashboard/components/crud/view-switcher'
+import { HeaderPageShell } from '@/features/dashboard/components/layout'
 import { useCrudInfiniteQuery } from '@/hooks/ui/use-crud-infinite-query'
 import {
   Select,
@@ -23,7 +23,7 @@ import {
   type ColumnDef,
   type RowActions,
   type ViewType,
-} from '@/components/dashboard/crud/types'
+} from '@/features/dashboard/components/crud/types'
 import { formatCurrencyBRL } from '@/lib/mask/formatters'
 
 type SaleListItem = {

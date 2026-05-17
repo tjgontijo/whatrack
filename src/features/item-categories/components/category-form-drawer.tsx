@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button'
 import { useOrganization } from '@/features/organizations/hooks/use-organization'
 import { apiFetch } from '@/lib/api-client'
 import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
-import { CrudEditDrawer } from '@/components/dashboard/crud'
+import { CrudEditDrawer } from '@/features/dashboard/components/crud'
 
 const categorySchema = z.object({
   name: z.string().trim().min(1, 'Nome obrigatório'),
