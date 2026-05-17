@@ -1,7 +1,7 @@
 'use client'
 
 import { HeaderPageShell } from '@/features/dashboard/components/layout'
-import { OptOutManager } from '@/components/dashboard/campaigns/opt-out-manager'
+import { OptOutManager } from '@/features/campaigns/components/opt-out-manager'
 import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
 
 export default function OptOutsPage() {
