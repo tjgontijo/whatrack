@@ -8,7 +8,7 @@ import type {
   BillingPlanListItem,
   BillingPlanListQuery,
   BillingPlanListResponse,
-} from '@/schemas/billing/billing-plan-schemas'
+} from '@/features/billing/schemas/billing-plan-schemas'
 import { buildBillingPlanPresentation, parseBillingPlanMetadata } from './billing-plan-catalog.service'
 
 function buildBillingPlanWhere(query: BillingPlanListQuery): Prisma.BillingPlanWhereInput {

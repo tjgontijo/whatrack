@@ -2,8 +2,8 @@
 
 import { CrudEmptyState } from '@/components/dashboard/crud/crud-data-view'
 import { useOrganization } from '@/features/organizations/hooks/use-organization'
-import { useBillingSubscription } from '@/hooks/billing/use-billing-subscription'
-import type { PublicBillingPlan } from '@/schemas/billing/billing-plan-schemas'
+import { useBillingSubscription } from '@/features/billing/hooks/use-billing-subscription'
+import type { PublicBillingPlan } from '@/features/billing/schemas/billing-plan-schemas'
 import { BillingStatus } from './billing-status'
 import { PlanSelector } from './plan-selector'
 

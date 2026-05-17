@@ -4,7 +4,7 @@ import { MetaCloudService } from '@/services/whatsapp/meta-cloud.service'
 import {
   assertWhatsAppAllowedForProject,
   syncOrganizationSubscriptionItems,
-} from '@/services/billing/billing-subscription.service'
+} from '@/features/billing/services/billing-subscription.service'
 
 const PENDING_PHONE_ID_PREFIX = 'pending_'
 

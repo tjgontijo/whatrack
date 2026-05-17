@@ -5,7 +5,7 @@ import { auditService } from '@/services/audit/audit.service'
 import type {
   BillingPlanCreateInput,
   BillingPlanUpdateInput,
-} from '@/schemas/billing/billing-plan-schemas'
+} from '@/features/billing/schemas/billing-plan-schemas'
 import { getBillingPlanDetail } from './billing-plan-query.service'
 
 export class BillingPlanMutationError extends Error {

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { apiFetch } from '@/lib/api-client'
 import { formatDate } from '@/lib/date/format-date'
-import type { BillingPlanHistoryResponse } from '@/schemas/billing/billing-plan-schemas'
+import type { BillingPlanHistoryResponse } from '@/features/billing/schemas/billing-plan-schemas'
 
 type BillingPlanHistorySheetProps = {
   open: boolean

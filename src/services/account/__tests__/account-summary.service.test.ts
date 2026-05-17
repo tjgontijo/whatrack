@@ -19,7 +19,7 @@ vi.mock('@/services/me/me-account.service', () => ({
 vi.mock('@/features/organizations/services/organization.service', () => ({
   getOrganizationMe: getOrganizationMeMock,
 }))
-vi.mock('@/services/billing/billing-subscription.service', () => ({
+vi.mock('@/features/billing/services/billing-subscription.service', () => ({
   getActiveSubscription: getActiveSubscriptionMock,
   SubscriptionNotFoundError: class SubscriptionNotFoundError extends Error {},
 }))

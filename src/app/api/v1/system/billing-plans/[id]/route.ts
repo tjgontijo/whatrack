@@ -5,12 +5,12 @@ import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import {
   billingPlanDetailSchema,
   billingPlanUpdateSchema,
-} from '@/schemas/billing/billing-plan-schemas'
+} from '@/features/billing/schemas/billing-plan-schemas'
 import {
   BillingPlanMutationError,
   updateBillingPlan,
-} from '@/services/billing/billing-plan.service'
-import { getBillingPlanDetail } from '@/services/billing/billing-plan-query.service'
+} from '@/features/billing/services/billing-plan.service'
+import { getBillingPlanDetail } from '@/features/billing/services/billing-plan-query.service'
 import { logger } from '@/lib/utils/logger'
 
 export const dynamic = 'force-dynamic'

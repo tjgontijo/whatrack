@@ -3,7 +3,7 @@
 import { CheckCircle2, AlertCircle, Clock3 } from 'lucide-react'
 import { motion } from 'motion/react'
 
-import { useBillingSubscription } from '@/hooks/billing/use-billing-subscription'
+import { useBillingSubscription } from '@/features/billing/hooks/use-billing-subscription'
 import { useOrganization } from '@/features/organizations/hooks/use-organization'
 import { formatDate } from '@/lib/date/format-date'
 import { getBillingStatusLabel } from '@/lib/billing/subscription-status'

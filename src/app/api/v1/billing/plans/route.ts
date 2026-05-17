@@ -4,8 +4,8 @@ import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import {
   billingPlanPublicQuerySchema,
   publicBillingPlanListResponseSchema,
-} from '@/schemas/billing/billing-plan-schemas'
-import { listPublicBillingPlans } from '@/services/billing/billing-plan-catalog.service'
+} from '@/features/billing/schemas/billing-plan-schemas'
+import { listPublicBillingPlans } from '@/features/billing/services/billing-plan-catalog.service'
 import { logger } from '@/lib/utils/logger'
 
 export const dynamic = 'force-dynamic'

@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { CheckoutStatusTokenService } from '@/services/billing/checkout-status-token.service'
-import { PixAutomaticService } from '@/services/billing/pix-automatic.service'
+import { CheckoutStatusTokenService } from '@/features/billing/services/checkout-status-token.service'
+import { PixAutomaticService } from '@/features/billing/services/pix-automatic.service'
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
 
 export async function GET(

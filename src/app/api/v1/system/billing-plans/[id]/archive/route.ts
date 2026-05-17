@@ -5,11 +5,11 @@ import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import {
   billingPlanArchiveSchema,
   billingPlanDetailSchema,
-} from '@/schemas/billing/billing-plan-schemas'
+} from '@/features/billing/schemas/billing-plan-schemas'
 import {
   archiveBillingPlan,
   BillingPlanMutationError,
-} from '@/services/billing/billing-plan.service'
+} from '@/features/billing/services/billing-plan.service'
 import { logger } from '@/lib/utils/logger'
 
 type RouteContext = {

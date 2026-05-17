@@ -9,7 +9,7 @@ import { useRef } from 'react'
 import { useSession } from '@/lib/auth/auth-client'
 import { useRouter } from 'next/navigation'
 import { appendFunnelIntent } from '@/lib/funnel/funnel-intent'
-import type { PublicBillingPlan } from '@/schemas/billing/billing-plan-schemas'
+import type { PublicBillingPlan } from '@/features/billing/schemas/billing-plan-schemas'
 
 interface LandingPricingProps {
   variant?: LandingVariant

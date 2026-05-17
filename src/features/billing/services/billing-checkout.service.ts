@@ -1,4 +1,4 @@
-import type { CheckoutRequest } from '@/schemas/billing/billing-schemas'
+import type { CheckoutRequest } from '@/features/billing/schemas/billing-schemas'
 import { BillingPaymentService } from './payment.service'
 
 export class BillingCheckoutError extends Error {

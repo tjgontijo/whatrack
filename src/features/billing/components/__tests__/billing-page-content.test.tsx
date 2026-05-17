@@ -8,19 +8,19 @@ vi.mock('@/features/organizations/hooks/use-organization', () => ({
   useOrganization: useOrganizationMock,
 }))
 
-vi.mock('@/hooks/billing/use-billing-subscription', () => ({
+vi.mock('@/features/billing/hooks/use-billing-subscription', () => ({
   useBillingSubscription: useBillingSubscriptionMock,
 }))
 
-vi.mock('@/components/dashboard/billing/billing-status', () => ({
+vi.mock('@/features/billing/components/billing-status', () => ({
   BillingStatus: () => <div>billing-status</div>,
 }))
 
-vi.mock('@/components/dashboard/billing/plan-selector', () => ({
+vi.mock('@/features/billing/components/plan-selector', () => ({
   PlanSelector: () => <div>plan-selector</div>,
 }))
 
-import { BillingPageContent } from '@/components/dashboard/billing/billing-page-content'
+import { BillingPageContent } from '@/features/billing/components/billing-page-content'
 
 describe('BillingPageContent', () => {
   beforeEach(() => {

@@ -7,9 +7,9 @@ import {
   billingPlanListQuerySchema,
   billingPlanDetailSchema,
   billingPlanListResponseSchema,
-} from '@/schemas/billing/billing-plan-schemas'
-import { createBillingPlan, BillingPlanMutationError } from '@/services/billing/billing-plan.service'
-import { listBillingPlans } from '@/services/billing/billing-plan-query.service'
+} from '@/features/billing/schemas/billing-plan-schemas'
+import { createBillingPlan, BillingPlanMutationError } from '@/features/billing/services/billing-plan.service'
+import { listBillingPlans } from '@/features/billing/services/billing-plan-query.service'
 import { logger } from '@/lib/utils/logger'
 
 export const dynamic = 'force-dynamic'

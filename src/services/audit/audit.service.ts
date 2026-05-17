@@ -15,6 +15,50 @@ export interface AuditLogInput {
 }
 
 class AuditService {
+    private async sleep(ms: number) {
+        await new Promise((resolve) => setTimeout(resolve, ms))
+    }
+
+    private isOrganizationFkError(error: unknown): boolean {
+        if (!error || typeof error !== 'object') return false
+        const candidate = error as { code?: string; meta?: { field_name?: string } }
+        return candidate.code === 'P2003' && String(candidate.meta?.field_name ?? '').includes('organizationId')
+    }
+
+    private async persistWithRetry(auditData: {
+        organizationId?: string
+        userId?: string
+        action: string
+        resourceType: string
+        resourceId?: string
+        before?: any
+        after?: any
+        ip?: string
+        userAgent?: string
+        requestId?: string
+        metadata?: Record<string, any>
+    }) {
+        const maxAttempts = 4
+        const retryableAction = auditData.action === 'organization.create' || auditData.action === 'member.create'
+
+        for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+            try {
+                await prisma.orgAuditLog.create({ data: auditData })
+                return
+            } catch (error) {
+                const isLastAttempt = attempt === maxAttempts
+                const shouldRetry = retryableAction && this.isOrganizationFkError(error) && !isLastAttempt
+
+                if (shouldRetry) {
+                    await this.sleep(attempt * 75)
+                    continue
+                }
+
+                throw error
+            }
+        }
+    }
+
     /**
      * Logs an audit event to the database and Pino.
      * This operation is fire-and-forget (not awaited by default) to avoid blocking the main request.
@@ -46,10 +90,8 @@ class AuditService {
                 orgId: auditData.organizationId
             })
 
-            // Persist to database
-            await prisma.orgAuditLog.create({
-                data: auditData
-            })
+            // Persist to database with retry for transaction visibility races.
+            await this.persistWithRetry(auditData)
 
         } catch (err) {
             // Never throw error in audit logging

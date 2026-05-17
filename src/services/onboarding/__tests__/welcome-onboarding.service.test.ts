@@ -36,11 +36,11 @@ vi.mock('@/lib/db/prisma', () => ({
   prisma: prismaMock,
 }))
 
-vi.mock('@/services/billing/billing-plan-catalog.service', () => ({
+vi.mock('@/features/billing/services/billing-plan-catalog.service', () => ({
   getDefaultTrialBillingPlan: getDefaultTrialBillingPlanMock,
 }))
 
-vi.mock('@/services/billing/billing-subscription.service', () => ({
+vi.mock('@/features/billing/services/billing-subscription.service', () => ({
   startOrganizationTrial: startOrganizationTrialMock,
 }))
 

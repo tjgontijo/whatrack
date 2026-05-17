@@ -1,4 +1,4 @@
-import type { SubscriptionResponse } from '@/schemas/billing/billing-schemas'
+import type { SubscriptionResponse } from '@/features/billing/schemas/billing-schemas'
 
 export type AccountProfileSummary = {
   id: string

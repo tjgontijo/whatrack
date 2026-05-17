@@ -18,9 +18,9 @@ import {
 import { apiFetch } from '@/lib/api-client'
 import { cn } from '@/lib/utils/utils'
 import { useOrganization } from '@/features/organizations/hooks/use-organization'
-import type { PublicBillingPlan } from '@/schemas/billing/billing-plan-schemas'
+import type { PublicBillingPlan } from '@/features/billing/schemas/billing-plan-schemas'
 import { CheckoutPixQrcode } from './checkout-pix-qrcode'
-import { CheckoutStatusTokenService } from '@/services/billing/checkout-status-token.service'
+import { CheckoutStatusTokenService } from '@/features/billing/services/checkout-status-token.service'
 
 type CheckoutState = 'idle' | 'loading'
 type PaymentMethod = 'CREDIT_CARD' | 'PIX' | 'PIX_AUTOMATIC'

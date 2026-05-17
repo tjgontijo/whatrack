@@ -1,10 +1,10 @@
 import { notFound, redirect } from 'next/navigation'
 
 import { HeaderPageShell, RefreshButton } from '@/components/dashboard/layout'
-import { BillingPlanList } from '@/components/dashboard/billing/billing-plan-list'
+import { BillingPlanList } from '@/features/billing/components/billing-plan-list'
 import { isAdmin } from '@/lib/auth/rbac/roles'
-import { billingPlanListQuerySchema } from '@/schemas/billing/billing-plan-schemas'
-import { listBillingPlans } from '@/services/billing/billing-plan-query.service'
+import { billingPlanListQuerySchema } from '@/features/billing/schemas/billing-plan-schemas'
+import { listBillingPlans } from '@/features/billing/services/billing-plan-query.service'
 import { getServerSession } from '@/server/auth/server-session'
 
 type BillingSettingsPageProps = {

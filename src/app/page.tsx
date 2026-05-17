@@ -33,7 +33,7 @@ import {
   LandingFooter,
   LANDING_CONTENT,
 } from '@/components/landing'
-import { listPublicBillingPlans } from '@/services/billing/billing-plan-catalog.service'
+import { listPublicBillingPlans } from '@/features/billing/services/billing-plan-catalog.service'
 
 export default async function HomePage() {
   const content = LANDING_CONTENT.generic

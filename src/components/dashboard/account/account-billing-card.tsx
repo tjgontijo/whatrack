@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useRequiredProjectPath } from '@/features/projects/hooks/use-project-route-context'
 import { getBillingStatusLabel } from '@/lib/billing/subscription-status'
-import type { SubscriptionResponse } from '@/schemas/billing/billing-schemas'
+import type { SubscriptionResponse } from '@/features/billing/schemas/billing-schemas'
 
 type AccountBillingCardProps = {
   subscription: SubscriptionResponse | null

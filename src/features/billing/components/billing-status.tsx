@@ -3,13 +3,13 @@
 import { AlertCircle, CheckCircle2, Clock3, CreditCard, QrCode } from 'lucide-react'
 import { motion } from 'motion/react'
 
-import { useBillingSubscription } from '@/hooks/billing/use-billing-subscription'
+import { useBillingSubscription } from '@/features/billing/hooks/use-billing-subscription'
 import { formatDate } from '@/lib/date/format-date'
 import { getBillingStatusLabel } from '@/lib/billing/subscription-status'
 import { SubscriptionFailureAlert } from './subscription-failure-alert'
 import { CheckoutPixQrcode } from './checkout-pix-qrcode'
 import { BillingPlanInvoice } from './billing-plan-invoice'
-import { CheckoutStatusTokenService } from '@/services/billing/checkout-status-token.service'
+import { CheckoutStatusTokenService } from '@/features/billing/services/checkout-status-token.service'
 
 const statusTone = {
   INACTIVE: 'border-border bg-muted/30 text-muted-foreground',

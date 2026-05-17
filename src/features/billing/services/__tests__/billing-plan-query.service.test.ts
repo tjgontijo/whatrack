@@ -11,7 +11,7 @@ vi.mock('@/lib/db/prisma', () => ({
   prisma: prismaMock,
 }))
 
-import { listBillingPlans } from '@/services/billing/billing-plan-query.service'
+import { listBillingPlans } from '@/features/billing/services/billing-plan-query.service'
 
 describe('billing-plan-query.service', () => {
   beforeEach(() => {

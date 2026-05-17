@@ -5,8 +5,8 @@ import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import {
   billingPlanHistoryQuerySchema,
   billingPlanHistoryResponseSchema,
-} from '@/schemas/billing/billing-plan-schemas'
-import { listBillingPlanHistory } from '@/services/billing/billing-plan-query.service'
+} from '@/features/billing/schemas/billing-plan-schemas'
+import { listBillingPlanHistory } from '@/features/billing/services/billing-plan-query.service'
 import { logger } from '@/lib/utils/logger'
 
 type RouteContext = {

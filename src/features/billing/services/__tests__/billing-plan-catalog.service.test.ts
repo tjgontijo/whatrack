@@ -10,7 +10,7 @@ vi.mock('@/lib/db/prisma', () => ({
   prisma: prismaMock,
 }))
 
-import { listPublicBillingPlans } from '@/services/billing/billing-plan-catalog.service'
+import { listPublicBillingPlans } from '@/features/billing/services/billing-plan-catalog.service'
 
 describe('billing-plan-catalog.service', () => {
   beforeEach(() => {

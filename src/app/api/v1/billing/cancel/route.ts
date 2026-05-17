@@ -7,8 +7,8 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { cancelRequestSchema, cancelResponseSchema } from '@/schemas/billing/billing-schemas'
-import { cancelSubscription, SubscriptionNotFoundError } from '@/services/billing/billing-subscription.service'
+import { cancelRequestSchema, cancelResponseSchema } from '@/features/billing/schemas/billing-schemas'
+import { cancelSubscription, SubscriptionNotFoundError } from '@/features/billing/services/billing-subscription.service'
 import { logger } from '@/lib/utils/logger'
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
 

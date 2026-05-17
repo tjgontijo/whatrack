@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { CheckoutStatusTokenService } from '@/services/billing/checkout-status-token.service'
+import { CheckoutStatusTokenService } from '@/features/billing/services/checkout-status-token.service'
 import { prisma } from '@/lib/db/prisma'
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
 

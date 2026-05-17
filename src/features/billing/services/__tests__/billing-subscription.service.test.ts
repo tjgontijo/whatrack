@@ -33,7 +33,7 @@ vi.mock('@/lib/billing/providers/init', () => ({
   },
 }))
 
-import { cancelSubscription } from '@/services/billing/billing-subscription.service'
+import { cancelSubscription } from '@/features/billing/services/billing-subscription.service'
 
 describe('billing-subscription.service', () => {
   beforeEach(() => {

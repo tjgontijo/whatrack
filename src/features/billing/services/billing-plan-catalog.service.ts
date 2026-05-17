@@ -5,7 +5,7 @@ import {
   billingPlanMetadataSchema,
   type BillingPlanMetadata,
   type PublicBillingPlan,
-} from '@/schemas/billing/billing-plan-schemas'
+} from '@/features/billing/schemas/billing-plan-schemas'
 
 type BillingPlanRecord = {
   id: string

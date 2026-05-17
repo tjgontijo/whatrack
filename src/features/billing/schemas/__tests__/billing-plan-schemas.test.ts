@@ -5,7 +5,7 @@ import {
   billingPlanCreateSchema,
   billingPlanListQuerySchema,
   billingPlanListResponseSchema,
-} from '@/schemas/billing/billing-plan-schemas'
+} from '@/features/billing/schemas/billing-plan-schemas'
 
 describe('billing-plan-schemas', () => {
   it('applies defensive defaults to list queries', () => {

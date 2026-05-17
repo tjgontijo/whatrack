@@ -4,7 +4,7 @@ import { cookies } from 'next/headers'
 import { getServerSession } from '@/server/auth/server-session'
 import { ORGANIZATION_COOKIE, PROJECT_COOKIE } from '@/lib/constants/http-headers'
 import { prisma } from '@/lib/db/prisma'
-import { listPublicBillingPlans } from '@/services/billing/billing-plan-catalog.service'
+import { listPublicBillingPlans } from '@/features/billing/services/billing-plan-catalog.service'
 import { CheckoutPageContent } from './checkout-page-content'
 
 export const dynamic = 'force-dynamic'

@@ -7,9 +7,9 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { checkoutRequestSchema, checkoutResponseSchema } from '@/schemas/billing/billing-schemas'
+import { checkoutRequestSchema, checkoutResponseSchema } from '@/features/billing/schemas/billing-schemas'
 import { rateLimitMiddleware } from '@/lib/utils/rate-limit.middleware'
-import { BillingCheckoutError, createCheckoutSession } from '@/services/billing/billing-checkout.service'
+import { BillingCheckoutError, createCheckoutSession } from '@/features/billing/services/billing-checkout.service'
 import { logger } from '@/lib/utils/logger'
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
 

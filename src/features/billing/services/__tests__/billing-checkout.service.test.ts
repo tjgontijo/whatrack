@@ -35,7 +35,7 @@ vi.mock('@/lib/billing/providers/init', () => ({
   },
 }))
 
-vi.mock('@/services/billing/billing-plan-catalog.service', () => ({
+vi.mock('@/features/billing/services/billing-plan-catalog.service', () => ({
   BillingPlanCatalogError: class BillingPlanCatalogError extends Error {
     constructor(
       message: string,
@@ -47,7 +47,7 @@ vi.mock('@/services/billing/billing-plan-catalog.service', () => ({
   requireCheckoutReadyBillingPlan: requireCheckoutReadyBillingPlanMock,
 }))
 
-import { createCheckoutSession } from '@/services/billing/billing-checkout.service'
+import { createCheckoutSession } from '@/features/billing/services/billing-checkout.service'
 
 describe('billing-checkout.service', () => {
   beforeEach(() => {

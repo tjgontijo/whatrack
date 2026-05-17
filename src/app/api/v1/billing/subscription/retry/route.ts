@@ -10,7 +10,7 @@ import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/utils/logger'
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
-import { BillingAuditService } from '@/services/billing/audit.service'
+import { BillingAuditService } from '@/features/billing/services/audit.service'
 
 export async function POST(request: NextRequest) {
   const auth = await validateFullAccess(request)

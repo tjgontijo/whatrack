@@ -28,12 +28,12 @@ vi.mock('@/lib/db/prisma', () => ({
   prisma: prismaMock,
 }))
 
-vi.mock('@/services/billing/billing-subscription.service', () => ({
+vi.mock('@/features/billing/services/billing-subscription.service', () => ({
   updateSubscriptionStatus: updateSubscriptionStatusMock,
   createSubscription: createSubscriptionMock,
 }))
 
-vi.mock('@/services/billing/billing-plan-catalog.service', () => ({
+vi.mock('@/features/billing/services/billing-plan-catalog.service', () => ({
   getBillingPlanBySlug: getBillingPlanBySlugMock,
   getBillingPlanByStripePriceId: getBillingPlanByStripePriceIdMock,
 }))
@@ -46,7 +46,7 @@ vi.mock('stripe', () => ({
   },
 }))
 
-import { handleStripeWebhook } from '@/services/billing/handlers/stripe-webhook.handler'
+import { handleStripeWebhook } from '@/features/billing/services/handlers/stripe-webhook.handler'
 
 describe('stripe-webhook.handler', () => {
   beforeEach(() => {

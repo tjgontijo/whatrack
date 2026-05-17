@@ -3,7 +3,7 @@ import { metaAccessTokenService } from './access-token.service'
 import {
   assertMetaAdAccountAllowedForProject,
   syncOrganizationSubscriptionItems,
-} from '@/services/billing/billing-subscription.service'
+} from '@/features/billing/services/billing-subscription.service'
 import { metaApiRequest } from './meta-api'
 
 interface MetaAdAccountResponse {

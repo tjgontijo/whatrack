@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import type { SubscriptionResponse } from '@/schemas/billing/billing-schemas'
+import type { SubscriptionResponse } from '@/features/billing/schemas/billing-schemas'
 import { useOrganization } from '@/features/organizations/hooks/use-organization'
 import { apiFetch } from '@/lib/api-client'
 

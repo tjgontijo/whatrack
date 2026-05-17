@@ -23,7 +23,7 @@ import {
   billingPlanKinds,
   billingPlanSupportLevels,
   type BillingPlanListItem,
-} from '@/schemas/billing/billing-plan-schemas'
+} from '@/features/billing/schemas/billing-plan-schemas'
 
 type BillingPlanFormDialogProps = {
   open: boolean

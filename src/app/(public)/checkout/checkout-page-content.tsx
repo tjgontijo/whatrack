@@ -9,7 +9,7 @@ import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import type { PublicBillingPlan } from '@/schemas/billing/billing-plan-schemas'
+import type { PublicBillingPlan } from '@/features/billing/schemas/billing-plan-schemas'
 
 interface CheckoutPageContentProps {
   plans: PublicBillingPlan[]

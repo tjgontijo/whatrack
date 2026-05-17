@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { BillingWebhookHandler } from '@/services/billing/webhook.handler'
+import { BillingWebhookHandler } from '@/features/billing/services/webhook.handler'
 import { rateLimitMiddleware } from '@/lib/utils/rate-limit.middleware'
 
 export const dynamic = 'force-dynamic'

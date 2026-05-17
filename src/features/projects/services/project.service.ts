@@ -6,8 +6,8 @@ import { prisma } from '@/lib/db/prisma'
 import {
   assertProjectCreationAllowed,
   syncOrganizationSubscriptionItems,
-} from '@/services/billing/billing-subscription.service'
-import { billingAutoUpgradeService } from '@/services/billing/billing-auto-upgrade.service'
+} from '@/features/billing/services/billing-subscription.service'
+import { billingAutoUpgradeService } from '@/features/billing/services/billing-auto-upgrade.service'
 import type {
   ProjectAssociationCounts,
   ProjectCreateInput,

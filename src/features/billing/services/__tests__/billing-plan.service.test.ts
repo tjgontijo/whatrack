@@ -22,7 +22,7 @@ vi.mock('@/services/audit/audit.service', () => ({
   },
 }))
 
-vi.mock('@/services/billing/billing-plan-query.service', () => ({
+vi.mock('@/features/billing/services/billing-plan-query.service', () => ({
   getBillingPlanDetail: getBillingPlanDetailMock,
 }))
 
@@ -30,7 +30,7 @@ import {
   archiveBillingPlan,
   createBillingPlan,
   updateBillingPlan,
-} from '@/services/billing/billing-plan.service'
+} from '@/features/billing/services/billing-plan.service'
 
 describe('billing-plan.service', () => {
   beforeEach(() => {
