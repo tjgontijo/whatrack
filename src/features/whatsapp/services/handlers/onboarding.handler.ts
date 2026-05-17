@@ -116,55 +116,9 @@ export async function onboardingHandler(payload: any, eventType: string): Promis
         }
       )
 
-      // PROACTIVE SYNC: Create WhatsAppConfig(s) immediately
-      // Priority: 1) phone_number_id from webhook, 2) phoneNumberId from postMessage (set before webhook fires),
-      // 3) sync all as last resort (OAuth callback will clean up extras using phoneNumberId)
-      const specificPhoneId = value.waba_info?.phone_number_id || onboarding.phoneNumberId
-      try {
-        const { MetaCloudService } = await import('@/features/whatsapp/services/meta-cloud.service')
-        const allPhones = await MetaCloudService.listPhoneNumbers({ wabaId })
-
-        const phonesToSync = specificPhoneId
-          ? allPhones.filter((p: any) => p.id === specificPhoneId)
-          : allPhones
-
-        logger.info(
-          { specificPhoneId, total: allPhones.length, syncing: phonesToSync.length },
-          '[OnboardingHandler] Proactive phone sync from Webhook'
-        )
-
-        for (const phone of phonesToSync) {
-          await prisma.whatsAppConfig.upsert({
-            where: { phoneId: phone.id },
-            create: {
-              organizationId: onboarding.organizationId,
-              projectId: onboarding.projectId,
-              connectionId: connection.id,
-              wabaId,
-              phoneId: phone.id,
-              displayPhone: phone.display_phone_number || 'Unknown',
-              verifiedName: phone.verified_name || 'WhatsApp Business',
-              status: 'connected',
-              tokenStatus: 'valid',
-              connectedAt: new Date(),
-            },
-            update: {
-              organizationId: onboarding.organizationId,
-              projectId: onboarding.projectId,
-              connectionId: connection.id,
-              wabaId,
-              displayPhone: phone.display_phone_number || 'Unknown',
-              verifiedName: phone.verified_name || 'WhatsApp Business',
-              status: 'connected',
-              tokenStatus: 'valid',
-            },
-          })
-          logger.info(`[OnboardingHandler] ✅ WhatsAppConfig synced for phone ${phone.id}`)
-        }
-      } catch (err) {
-        logger.error({ err }, '[OnboardingHandler] Error during proactive phone sync')
-      }
-
+      // WhatsAppConfig is created by the OAuth callback (handleWhatsAppOnboardingCallback),
+      // which always runs after the postMessage and has the exact phoneNumberId the user connected.
+      // Creating configs here would risk registering ALL WABA phones instead of just the connected one.
       logger.info(
         `[OnboardingHandler] PARTNER_ADDED: Connection created for org ${onboarding.organizationId}`
       )
@@ -302,56 +256,8 @@ export async function onboardingHandler(payload: any, eventType: string): Promis
         metadata: { wabaId, ownerBusinessId },
       })
 
-      // PROACTIVE SYNC: Create WhatsAppConfig(s) immediately for Hosted ES
-      // Priority: 1) phone_number_id from webhook, 2) phoneNumberId from postMessage already stored on onboarding,
-      // 3) sync all as last resort
-      const specificPhoneId = value.waba_info?.phone_number_id || recentOnboarding.phoneNumberId
-      try {
-        const { MetaCloudService } = await import('@/features/whatsapp/services/meta-cloud.service')
-        const allPhones = await MetaCloudService.listPhoneNumbers({ wabaId })
-
-        // Filter to specific phone if known, otherwise sync all
-        const phonesToSync = specificPhoneId
-          ? allPhones.filter((p: any) => p.id === specificPhoneId)
-          : allPhones
-
-        logger.info(
-          { specificPhoneId, total: allPhones.length, syncing: phonesToSync.length },
-          '[OnboardingHandler] Hosted ES proactive phone sync'
-        )
-
-        for (const phone of phonesToSync) {
-          await prisma.whatsAppConfig.upsert({
-            where: { phoneId: phone.id },
-            create: {
-              organizationId: recentOnboarding.organizationId,
-              projectId: recentOnboarding.projectId,
-              connectionId: connection.id,
-              wabaId,
-              phoneId: phone.id,
-              displayPhone: phone.display_phone_number || 'Unknown',
-              verifiedName: phone.verified_name || 'WhatsApp Business',
-              status: 'connected',
-              tokenStatus: 'valid',
-              connectedAt: new Date(),
-            },
-            update: {
-              organizationId: recentOnboarding.organizationId,
-              projectId: recentOnboarding.projectId,
-              connectionId: connection.id,
-              wabaId,
-              displayPhone: phone.display_phone_number || 'Unknown',
-              verifiedName: phone.verified_name || 'WhatsApp Business',
-              status: 'connected',
-              tokenStatus: 'valid',
-            },
-          })
-          logger.info(`[OnboardingHandler] ✅ WhatsAppConfig synced for phone ${phone.id}`)
-        }
-      } catch (err) {
-        logger.error({ err }, '[OnboardingHandler] Error during Hosted ES proactive sync')
-      }
-
+      // WhatsAppConfig is created by the OAuth callback (handleWhatsAppOnboardingCallback).
+      // See Caso 1 comment for rationale.
       logger.info(
         `[OnboardingHandler] Hosted ES PARTNER_ADDED: connection created for org ${recentOnboarding.organizationId}`
       )
