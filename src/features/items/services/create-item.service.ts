@@ -3,7 +3,7 @@ import 'server-only'
 import { ensureProjectBelongsToOrganization, resolveProjectScope } from '@/server/project/project-scope'
 
 import { createItemSchema } from '@/features/items/schemas/item.schemas'
-import { createItemRepository } from '@/features/items/repositories/item.repository'
+import { createItemRepository } from '@/features/items/repositories'
 import { toItemListItem } from '@/features/items/services/shared'
 import type { ItemListItem } from '@/features/items/types'
 

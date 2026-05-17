@@ -4,7 +4,7 @@ import {
   deactivateItemRepository,
   deleteItemRepository,
   findItemDeleteContextRepository,
-} from '@/features/items/repositories/item.repository'
+} from '@/features/items/repositories'
 import type { DeleteItemResult } from '@/features/items/types'
 
 export async function deleteItemService(input: {

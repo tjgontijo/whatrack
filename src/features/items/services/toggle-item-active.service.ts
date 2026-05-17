@@ -3,7 +3,7 @@ import 'server-only'
 import {
   findItemSummaryRepository,
   updateItemRepository,
-} from '@/features/items/repositories/item.repository'
+} from '@/features/items/repositories'
 import type { ItemSummary, NotFoundError } from '@/features/items/types'
 
 export async function toggleItemActiveService(input: {

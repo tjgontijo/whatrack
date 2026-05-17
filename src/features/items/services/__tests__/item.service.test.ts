@@ -14,7 +14,7 @@ vi.mock('@/lib/db/prisma', () => ({
   prisma: prismaMock,
 }))
 
-import { deleteItem, listItems, toggleItemActive } from '@/services/items/item.service'
+import { deleteItem, listItems, toggleItemActive } from '@/features/items'
 
 describe('item.service', () => {
   beforeEach(() => {

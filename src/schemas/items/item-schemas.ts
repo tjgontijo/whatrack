@@ -1,8 +1,0 @@
-export {
-  createItemSchema,
-  itemListQuerySchema,
-  updateItemSchema,
-  type CreateItemInput,
-  type ItemListQueryInput,
-  type UpdateItemInput,
-} from '@/features/items/schemas/item.schemas'

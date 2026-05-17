@@ -1,6 +1,6 @@
 import 'server-only'
 
-import { getItemByIdRepository } from '@/features/items/repositories/item.repository'
+import { getItemByIdRepository } from '@/features/items/repositories'
 
 export async function getItemByIdService(input: {
   organizationId: string
