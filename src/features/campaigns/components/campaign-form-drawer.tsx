@@ -15,11 +15,11 @@ import {
   buildCampaignCsvPreview,
   validateCampaignCsvModel,
   type CampaignCsvParseResult,
-} from '@/lib/whatsapp/campaign-csv'
-import { whatsappApi } from '@/lib/whatsapp/client'
+} from '@/features/whatsapp/lib/campaign-csv'
+import { whatsappApi } from '@/features/whatsapp/lib/client'
 import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
 import { useProject } from '@/features/projects/hooks/use-project'
-import type { WhatsAppTemplate } from '@/types/whatsapp/whatsapp'
+import type { WhatsAppTemplate } from '@/features/whatsapp/types/whatsapp'
 import { CampaignWizardStepBasic } from './campaign-wizard-step-basic'
 import { CampaignWizardStepRecipients } from './campaign-wizard-step-recipients'
 import { CampaignWizardStepDispatch } from './campaign-wizard-step-dispatch'

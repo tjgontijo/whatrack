@@ -15,9 +15,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { CrudListView, DeleteConfirmDialog } from '@/features/dashboard/components/crud'
 import { CrudEmptyState } from '@/features/dashboard/components/crud/crud-data-view'
 import type { ColumnDef, RowActions } from '@/features/dashboard/components/crud/types'
-import { whatsappApi } from '@/lib/whatsapp/client'
+import { whatsappApi } from '@/features/whatsapp/lib/client'
 import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
-import type { WhatsAppTemplate } from '@/types/whatsapp/whatsapp'
+import type { WhatsAppTemplate } from '@/features/whatsapp/types/whatsapp'
 import type { TemplateStats } from '@/features/whatsapp/services/whatsapp-template-analytics.service'
 
 interface TemplatesViewProps {

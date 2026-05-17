@@ -3,7 +3,7 @@ import { auth } from '@/lib/auth/auth'
 import { headers } from 'next/headers'
 import { prisma } from '@/lib/db/prisma'
 import { MetaCloudService } from '@/features/whatsapp/services/meta-cloud.service'
-import { encryptToken } from '@/lib/whatsapp/token-crypto'
+import { encryptToken } from '@/features/whatsapp/lib/token-crypto'
 
 export const dynamic = 'force-dynamic'
 

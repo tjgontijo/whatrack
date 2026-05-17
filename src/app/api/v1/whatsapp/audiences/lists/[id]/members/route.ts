@@ -1,6 +1,6 @@
 import { apiError, apiSuccess } from '@/lib/utils/api-response';
 import { validateFullAccess } from '@/server/auth/validate-organization-access';
-import { listContactListMembers, addMemberToList, bulkImportMembers } from '@/lib/whatsapp/services/whatsapp-contact-list.service';
+import { listContactListMembers, addMemberToList, bulkImportMembers } from '@/features/whatsapp/lib/services/whatsapp-contact-list.service';
 
 export const dynamic = 'force-dynamic';
 

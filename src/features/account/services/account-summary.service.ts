@@ -1,10 +1,10 @@
 import { prisma } from '@/lib/db/prisma'
-import type { AccountSummary } from '@/types/account/account-summary'
+import type { AccountSummary } from '@/features/account/types/account-summary'
 import { getActiveSubscription, SubscriptionNotFoundError } from '@/features/billing/services/billing-subscription.service'
 import { getMeAccount } from '@/features/me/services/me-account.service'
 import { getOrganizationMe } from '@/features/organizations/services/organization.service'
 import type { SubscriptionResponse } from '@/features/billing/schemas/billing-schemas'
-import type { AccountOrganizationSummary, AccountProfileSummary } from '@/types/account/account-summary'
+import type { AccountOrganizationSummary, AccountProfileSummary } from '@/features/account/types/account-summary'
 
 function toIsoString(value: Date | string) {
   return value instanceof Date ? value.toISOString() : new Date(value).toISOString()

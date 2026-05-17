@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import type { WhatsAppTemplate } from '@/types/whatsapp/whatsapp'
+import type { WhatsAppTemplate } from '@/features/whatsapp/types/whatsapp'
 
 interface TemplatePreviewCardProps {
   template?: WhatsAppTemplate | null

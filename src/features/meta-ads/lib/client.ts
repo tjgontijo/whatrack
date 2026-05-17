@@ -9,7 +9,7 @@ import type {
   MetaConnectionSummary,
   MetaPixelConfig,
   MetaRoiResponse,
-} from '@/types/meta-ads/meta-ads'
+} from '@/features/meta-ads/types/meta-ads'
 
 export const META_ADS_CONNECT_PATH = '/api/v1/meta-ads/connect'
 

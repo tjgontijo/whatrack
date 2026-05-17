@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { CrudEditDrawer } from '@/features/dashboard/components/crud'
-import { whatsappApi } from '@/lib/whatsapp/client'
+import { whatsappApi } from '@/features/whatsapp/lib/client'
 import { applyWhatsAppMask, removeWhatsAppMask } from '@/lib/mask/phone-mask'
 import type { WhatsAppInstance } from '@/features/whatsapp/components/settings/instance-card-detail'
 

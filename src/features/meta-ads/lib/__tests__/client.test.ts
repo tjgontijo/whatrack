@@ -6,7 +6,7 @@ vi.mock('@/lib/api-client', () => ({
   apiFetch: apiFetchMock,
 }))
 
-import { metaAdsClient } from '@/lib/meta-ads/client'
+import { metaAdsClient } from '@/features/meta-ads/lib/client'
 
 describe('metaAdsClient', () => {
   beforeEach(() => {

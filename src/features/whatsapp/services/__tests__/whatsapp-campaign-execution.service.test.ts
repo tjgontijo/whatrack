@@ -21,7 +21,7 @@ vi.mock('@/lib/db/prisma', () => ({ prisma: prismaMock }))
 vi.mock('@/features/whatsapp/services/meta-cloud.service', () => ({
   MetaCloudService: { sendTemplate: sendTemplateMock },
 }))
-vi.mock('@/lib/whatsapp/token-crypto', () => ({
+vi.mock('@/features/whatsapp/lib/token-crypto', () => ({
   resolveAccessToken: vi.fn(() => 'resolved-token'),
 }))
 vi.mock('@/lib/utils/logger', () => ({ logger: { info: vi.fn(), error: vi.fn() } }))

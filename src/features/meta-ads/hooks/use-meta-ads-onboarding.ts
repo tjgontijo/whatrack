@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { toast } from 'sonner'
 import { useOrganizationCompletion } from '@/features/organizations/hooks/use-organization-completion'
-import { META_ADS_CONNECT_PATH } from '@/lib/meta-ads/client'
+import { META_ADS_CONNECT_PATH } from '@/features/meta-ads/lib/client'
 
 export function useMetaAdsOnboarding(organizationId: string | undefined, onSuccess?: () => void) {
   const [isPending, setIsPending] = useState(false)

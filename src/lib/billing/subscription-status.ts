@@ -1,4 +1,4 @@
-import type { SubscriptionStatus } from '@/types/billing/billing'
+import type { SubscriptionStatus } from '@/features/billing/types/billing'
 
 export const BILLING_STATUS_LABELS: Record<SubscriptionStatus, string> = {
   INACTIVE: 'Inativo',

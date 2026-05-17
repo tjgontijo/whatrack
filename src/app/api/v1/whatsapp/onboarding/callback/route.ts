@@ -1,5 +1,5 @@
 import { handleWhatsAppOnboardingCallback } from '@/features/whatsapp/services/whatsapp-onboarding.service'
-import { WHATSAPP_ONBOARDING_RESULT_STORAGE_KEY } from '@/lib/whatsapp/onboarding'
+import { WHATSAPP_ONBOARDING_RESULT_STORAGE_KEY } from '@/features/whatsapp/lib/onboarding'
 
 function escapeHtml(value: string): string {
   return value

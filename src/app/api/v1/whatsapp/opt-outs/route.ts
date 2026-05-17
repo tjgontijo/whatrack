@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server'
 import { apiSuccess, apiError } from '@/lib/utils/api-response'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { addOptOut, listOptOuts, AddOptOutSchema } from '@/lib/whatsapp/services/whatsapp-opt-out.service'
+import { addOptOut, listOptOuts, AddOptOutSchema } from '@/features/whatsapp/lib/services/whatsapp-opt-out.service'
 
 export const dynamic = 'force-dynamic'
 

@@ -7,7 +7,7 @@ import { Webhook, Shield, Copy, Database, RefreshCw, EyeOff, Eye } from 'lucide-
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { useQuery } from '@tanstack/react-query'
-import { whatsappApi } from '@/lib/whatsapp/client'
+import { whatsappApi } from '@/features/whatsapp/lib/client'
 import { Badge } from '@/components/ui/badge'
 import { authClient } from '@/lib/auth/auth-client'
 import { formatPayloadHumanly, formatPhoneNumber } from './webhook-payload-formatter'

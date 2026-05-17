@@ -5,7 +5,7 @@ import {
   buildCampaignTemplateCsvModel,
   parseCampaignCsv,
   validateCampaignCsvModel,
-} from '@/lib/whatsapp/campaign-csv'
+} from '@/features/whatsapp/lib/campaign-csv'
 
 describe('campaign-csv', () => {
   it('parses csv with quoted values', () => {

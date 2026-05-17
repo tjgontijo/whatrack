@@ -11,8 +11,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import { CrudEditDrawer } from '@/features/dashboard/components/crud/crud-edit-drawer'
 import { Label } from '@/components/ui/label'
-import { metaAdsClient } from '@/lib/meta-ads/client'
-import type { MetaPixelConfig } from '@/types/meta-ads/meta-ads'
+import { metaAdsClient } from '@/features/meta-ads/lib/client'
+import type { MetaPixelConfig } from '@/features/meta-ads/types/meta-ads'
 
 interface MetaPixelsConfigAreaProps {
   organizationId: string | undefined

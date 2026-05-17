@@ -7,7 +7,7 @@ import {
   isPlanType,
   isSelfServePlanType,
   isSubscriptionStatus,
-} from '@/types/billing/billing'
+} from '@/features/billing/types/billing'
 
 describe('billing type contract', () => {
   it('defines the supported plan catalogs for launch', () => {

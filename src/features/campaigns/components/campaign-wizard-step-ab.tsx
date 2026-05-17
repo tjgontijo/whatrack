@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import type { WhatsAppTemplate } from '@/types/whatsapp/whatsapp'
+import type { WhatsAppTemplate } from '@/features/whatsapp/types/whatsapp'
 
 const VARIANT_LABELS = ['A', 'B', 'C', 'D', 'E'] as const
 type VariantLabel = typeof VARIANT_LABELS[number]

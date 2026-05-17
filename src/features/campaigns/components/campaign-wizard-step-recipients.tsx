@@ -18,7 +18,7 @@ import {
   buildCampaignTemplateCsvModel,
   type CampaignCsvParseResult,
   type CampaignCsvPreviewResult,
-} from '@/lib/whatsapp/campaign-csv'
+} from '@/features/whatsapp/lib/campaign-csv'
 
 interface CampaignWizardStepRecipientsProps {
   templateName: string

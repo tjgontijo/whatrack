@@ -3,7 +3,7 @@ import {
   BILLING_PAYMENT_METHODS,
   BILLING_PLAN_TYPES,
   BILLING_SUBSCRIPTION_STATUSES,
-} from '@/types/billing/billing'
+} from '@/features/billing/types/billing'
 
 const checkoutPlanSchema = z.enum(BILLING_PLAN_TYPES)
 const paymentMethodSchema = z.enum(BILLING_PAYMENT_METHODS)

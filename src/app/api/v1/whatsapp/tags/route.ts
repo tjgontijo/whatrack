@@ -1,7 +1,7 @@
 import { apiError, apiSuccess } from '@/lib/utils/api-response';
 import { validateFullAccess } from '@/server/auth/validate-organization-access';
-import { listLeadTags, createLeadTag } from '@/lib/whatsapp/services/whatsapp-lead-tag.service';
-import { leadTagSchema } from '@/lib/whatsapp/schemas/audience';
+import { listLeadTags, createLeadTag } from '@/features/whatsapp/lib/services/whatsapp-lead-tag.service';
+import { leadTagSchema } from '@/features/whatsapp/lib/schemas/audience';
 
 export const dynamic = 'force-dynamic';
 

@@ -18,16 +18,16 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils/utils'
 import { apiFetch } from '@/lib/api-client'
-import { whatsappApi } from '@/lib/whatsapp/client'
+import { whatsappApi } from '@/features/whatsapp/lib/client'
 import {
   parseCampaignCsv,
   buildCampaignCsvPreview,
   validateCampaignCsvModel,
   type CampaignCsvParseResult,
-} from '@/lib/whatsapp/campaign-csv'
+} from '@/features/whatsapp/lib/campaign-csv'
 import { useRequiredProjectPath, useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
 import { useProject } from '@/features/projects/hooks/use-project'
-import type { WhatsAppTemplate } from '@/types/whatsapp/whatsapp'
+import type { WhatsAppTemplate } from '@/features/whatsapp/types/whatsapp'
 
 import { CampaignWizardStepBasic } from '../campaign-wizard-step-basic'
 import { CampaignWizardStepRecipients } from '../campaign-wizard-step-recipients'

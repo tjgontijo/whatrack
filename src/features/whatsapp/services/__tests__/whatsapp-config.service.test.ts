@@ -9,7 +9,7 @@ vi.mock('@/features/whatsapp/services/meta-cloud.service', () => ({
   MetaCloudService: metaCloudMock,
 }))
 
-vi.mock('@/lib/whatsapp/token-crypto', () => ({
+vi.mock('@/features/whatsapp/lib/token-crypto', () => ({
   resolveAccessToken: vi.fn(() => 'resolved-token'),
 }))
 

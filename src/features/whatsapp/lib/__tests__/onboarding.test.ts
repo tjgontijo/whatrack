@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   buildWhatsAppEmbeddedSignupUrl,
   isWhatsAppEmbeddedSignupConfigured,
-} from '@/lib/whatsapp/onboarding'
+} from '@/features/whatsapp/lib/onboarding'
 
 describe('whatsapp onboarding helpers', () => {
   it('detects when embedded signup is configured', () => {

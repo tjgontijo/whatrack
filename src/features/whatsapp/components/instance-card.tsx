@@ -5,7 +5,7 @@ import { Phone, CheckCircle2, ArrowRight } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { useRequiredProjectPath } from '@/features/projects/hooks/use-project-route-context'
-import type { WhatsAppPhoneNumber } from '@/types/whatsapp/whatsapp'
+import type { WhatsAppPhoneNumber } from '@/features/whatsapp/types/whatsapp'
 
 interface InstanceCardProps {
   phone: WhatsAppPhoneNumber

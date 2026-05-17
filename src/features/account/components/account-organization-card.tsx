@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { applyCpfCnpjMask } from '@/lib/mask/cpf-cnpj'
-import type { AccountOrganizationSummary } from '@/types/account/account-summary'
+import type { AccountOrganizationSummary } from '@/features/account/types/account-summary'
 export type AccountOrganization = AccountOrganizationSummary
 
 type AccountOrganizationCardProps = {

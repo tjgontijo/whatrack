@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db/prisma'
 import { MetaCloudService } from '@/features/whatsapp/services/meta-cloud.service'
-import { resolveAccessToken } from '@/lib/whatsapp/token-crypto'
+import { resolveAccessToken } from '@/features/whatsapp/lib/token-crypto'
 import { logger } from '@/lib/utils/logger'
 import { WhatsAppChatService } from '@/features/whatsapp/services/whatsapp-chat.service'
 

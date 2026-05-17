@@ -1,13 +1,13 @@
 import { prisma } from '@/lib/db/prisma';
 import { logger } from '@/lib/utils/logger';
-import { getOptOutSet } from '@/lib/whatsapp/services/whatsapp-opt-out.service';
+import { getOptOutSet } from '@/features/whatsapp/lib/services/whatsapp-opt-out.service';
 import type {
   WhatsAppCampaignCreateInput,
   WhatsAppCampaignUpdateInput,
 } from '@/features/whatsapp/schemas/whatsapp-campaign-schemas';
 import { Prisma } from '@generated/prisma';
-import { queryLeadsByFilters } from '@/lib/whatsapp/queries/lead-segment-query';
-import { WhatsAppCampaignEventType } from '@/lib/whatsapp/types/campaign-events';
+import { queryLeadsByFilters } from '@/features/whatsapp/lib/queries/lead-segment-query';
+import { WhatsAppCampaignEventType } from '@/features/whatsapp/lib/types/campaign-events';
 
 type CreateCampaignResult =
   | { success: true; data: { id: string } }

@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/db/prisma'
-import { isSubscriptionStatus, type SubscriptionStatus } from '@/types/billing/billing'
+import { isSubscriptionStatus, type SubscriptionStatus } from '@/features/billing/types/billing'
 import { getBillingPlanBySlug, getDefaultTrialBillingPlan } from './billing-plan-catalog.service'
 
 const DEFAULT_TRIAL_PROJECT_LIMIT = 1

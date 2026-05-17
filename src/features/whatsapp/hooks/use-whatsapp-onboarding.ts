@@ -10,7 +10,7 @@ import {
   buildWhatsAppEmbeddedSignupUrl,
   isWhatsAppEmbeddedSignupConfigured,
   WHATSAPP_ONBOARDING_RESULT_STORAGE_KEY,
-} from '@/lib/whatsapp/onboarding'
+} from '@/features/whatsapp/lib/onboarding'
 
 export type OnboardingStatus = 'idle' | 'pending' | 'success'
 

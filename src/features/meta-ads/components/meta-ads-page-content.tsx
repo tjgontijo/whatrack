@@ -7,8 +7,8 @@ import { MetaAdsCampaignsClient } from '@/app/(dashboard)/[organizationSlug]/[pr
 import { MetaROIContent } from '@/features/meta-ads/components/dashboard/meta-roi-content'
 import { HeaderPageShell, HeaderTabs } from '@/features/dashboard/components/layout'
 import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
-import { metaAdsClient } from '@/lib/meta-ads/client'
-import type { MetaRoiResponse } from '@/types/meta-ads/meta-ads'
+import { metaAdsClient } from '@/features/meta-ads/lib/client'
+import type { MetaRoiResponse } from '@/features/meta-ads/types/meta-ads'
 
 const TABS = [
   { key: 'overview', label: 'Visão Geral' },

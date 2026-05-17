@@ -8,7 +8,7 @@ import type {
   MetaRoiAccountSummary,
   MetaRoiCampaignSummary,
   MetaRoiResponse,
-} from '@/types/meta-ads/meta-ads'
+} from '@/features/meta-ads/types/meta-ads'
 
 interface MetaROIContentProps {
   roiData: MetaRoiResponse | undefined

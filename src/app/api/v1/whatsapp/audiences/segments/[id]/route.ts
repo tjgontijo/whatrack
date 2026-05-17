@@ -1,7 +1,7 @@
 import { apiError, apiSuccess } from '@/lib/utils/api-response';
 import { validateFullAccess } from '@/server/auth/validate-organization-access';
-import { getAudienceSegmentById, updateAudienceSegment, deleteAudienceSegment } from '@/lib/whatsapp/services/whatsapp-audience-segment.service';
-import { queryLeadsByFilters } from '@/lib/whatsapp/queries/lead-segment-query';
+import { getAudienceSegmentById, updateAudienceSegment, deleteAudienceSegment } from '@/features/whatsapp/lib/services/whatsapp-audience-segment.service';
+import { queryLeadsByFilters } from '@/features/whatsapp/lib/queries/lead-segment-query';
 
 export const dynamic = 'force-dynamic';
 

@@ -15,7 +15,7 @@ import {
 } from '@/lib/mask/phone-mask'
 import { cn } from '@/lib/utils/utils'
 import type { UpdateMeAccountInput } from '@/features/me/schemas/me-account.schemas'
-import type { AccountProfileSummary } from '@/types/account/account-summary'
+import type { AccountProfileSummary } from '@/features/account/types/account-summary'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'

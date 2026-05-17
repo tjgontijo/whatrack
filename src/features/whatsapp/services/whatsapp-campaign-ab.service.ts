@@ -2,8 +2,8 @@ import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/utils/logger'
 import { ok, fail } from '@/lib/shared/result'
 import type { Result } from '@/lib/shared/result'
-import { WhatsAppCampaignEventType } from '@/lib/whatsapp/types/campaign-events'
-import type { AbTestCreateInput } from '@/lib/whatsapp/schemas/whatsapp-ab-schemas'
+import { WhatsAppCampaignEventType } from '@/features/whatsapp/lib/types/campaign-events'
+import type { AbTestCreateInput } from '@/features/whatsapp/lib/schemas/whatsapp-ab-schemas'
 import { runCampaignDispatch } from '@/features/whatsapp/services/whatsapp-campaign-execution.service'
 
 export interface AbTestVariant {

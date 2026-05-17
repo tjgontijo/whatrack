@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/db/prisma'
-import { verifyWebhookSignature } from '@/lib/whatsapp/webhook-signature'
+import { verifyWebhookSignature } from '@/features/whatsapp/lib/webhook-signature'
 import { whatsappWebhookVerifySchema } from '@/features/whatsapp/schemas/whatsapp-schemas'
 import { WebhookProcessor } from '@/features/whatsapp/services/webhook-processor'
 import { WhatsAppChatService } from '@/features/whatsapp/services/whatsapp-chat.service'

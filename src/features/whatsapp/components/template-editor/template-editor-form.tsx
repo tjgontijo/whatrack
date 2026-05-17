@@ -26,10 +26,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
-import { whatsappApi } from '@/lib/whatsapp/client'
+import { whatsappApi } from '@/features/whatsapp/lib/client'
 import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
 import { TemplatePreview } from './template-preview'
-import type { WhatsAppTemplate } from '@/types/whatsapp/whatsapp'
+import type { WhatsAppTemplate } from '@/features/whatsapp/types/whatsapp'
 
 // ─── Schema ──────────────────────────────────────────────────────────────────
 

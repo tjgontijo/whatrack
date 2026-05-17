@@ -1,7 +1,7 @@
 import { apiError, apiSuccess } from '@/lib/utils/api-response';
 import { validateFullAccess } from '@/server/auth/validate-organization-access';
-import { listAudienceSegments, createAudienceSegment } from '@/lib/whatsapp/services/whatsapp-audience-segment.service';
-import { whatsappAudienceSegmentSchema } from '@/lib/whatsapp/schemas/audience';
+import { listAudienceSegments, createAudienceSegment } from '@/features/whatsapp/lib/services/whatsapp-audience-segment.service';
+import { whatsappAudienceSegmentSchema } from '@/features/whatsapp/lib/schemas/audience';
 
 export const dynamic = 'force-dynamic';
 
