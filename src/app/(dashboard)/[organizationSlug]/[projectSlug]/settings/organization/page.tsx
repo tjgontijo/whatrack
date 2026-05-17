@@ -2,7 +2,7 @@ import { HeaderPageShell, RefreshButton } from '@/components/dashboard/layout'
 import { OrganizationFiscalDataSection } from '@/components/dashboard/settings/organization-fiscal-data-section'
 import { requireWorkspacePageAccess } from '@/server/auth/require-workspace-page-access'
 import { getOrganizationCompany } from '@/services/company/company.service'
-import { getOrganizationMe } from '@/services/organizations/organization.service'
+import { getOrganizationMe } from '@/features/organizations/services/organization.service'
 
 type OrganizationSettingsPageProps = {
   params: Promise<{ organizationSlug: string }>

@@ -7,7 +7,7 @@ import { getDefaultTrialBillingPlan } from '@/services/billing/billing-plan-cata
 import { startOrganizationTrial } from '@/services/billing/billing-subscription.service'
 import { ensureSystemRolesForOrganization } from '@/server/organization/organization-rbac.service'
 import type { WelcomeOnboardingInput } from '@/schemas/onboarding/welcome-onboarding'
-import type { CompanyLookupData } from '@/schemas/organizations/organization-onboarding'
+import type { CompanyLookupData } from '@/features/organizations/schemas/organization-onboarding'
 
 type WelcomeUser = {
   id: string

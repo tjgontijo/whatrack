@@ -2,7 +2,7 @@
 
 import { Kanban } from 'lucide-react'
 
-import { useOrganization } from '@/hooks/organization/use-organization'
+import { useOrganization } from '@/features/organizations/hooks/use-organization'
 import { useProject } from '@/features/projects/hooks/use-project'
 import { PageShell, PageHeader, PageContent } from '@/components/dashboard/layout'
 import { PipelineStagesManager } from '@/components/dashboard/pipeline/pipeline-stages-manager'

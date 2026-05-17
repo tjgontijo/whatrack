@@ -3,7 +3,7 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import type { OrgAuditLog } from '@generated/prisma/client'
-import { useOrganization } from '@/hooks/organization/use-organization'
+import { useOrganization } from '@/features/organizations/hooks/use-organization'
 import { apiFetch } from '@/lib/api-client'
 
 

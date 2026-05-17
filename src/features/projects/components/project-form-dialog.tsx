@@ -10,7 +10,7 @@ import { toast } from 'sonner'
 import { CrudEditDrawer } from '@/components/dashboard/crud'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { useOrganization } from '@/hooks/organization/use-organization'
+import { useOrganization } from '@/features/organizations/hooks/use-organization'
 import { apiFetch } from '@/lib/api-client'
 import { normalizeSlug } from '@/lib/utils/slug'
 import {

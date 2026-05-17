@@ -32,7 +32,7 @@ import {
   createOrganizationFromOnboarding,
   getOrCreateCurrentOrganization,
   updateOrganizationById,
-} from '@/services/organizations/organization-management.service'
+} from '@/features/organizations/services/organization-management.service'
 
 describe('organization-management.service', () => {
   beforeEach(() => {

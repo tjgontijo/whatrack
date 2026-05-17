@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { toast } from 'sonner'
-import { useOrganizationCompletion } from '@/hooks/organization/use-organization-completion'
+import { useOrganizationCompletion } from '@/features/organizations/hooks/use-organization-completion'
 import { META_ADS_CONNECT_PATH } from '@/lib/meta-ads/client'
 
 export function useMetaAdsOnboarding(organizationId: string | undefined, onSuccess?: () => void) {

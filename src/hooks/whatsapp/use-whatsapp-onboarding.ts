@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
-import { useOrganizationCompletion } from '@/hooks/organization/use-organization-completion'
+import { useOrganizationCompletion } from '@/features/organizations/hooks/use-organization-completion'
 import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
 import { useProject } from '@/features/projects/hooks/use-project'
 import { apiFetch } from '@/lib/api-client'

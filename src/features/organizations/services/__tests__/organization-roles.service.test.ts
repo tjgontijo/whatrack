@@ -30,7 +30,7 @@ vi.mock('@/services/audit/audit.service', () => ({ auditService: auditServiceMoc
 import {
   createOrganizationRoleWithAudit,
   deleteOrganizationRoleWithAudit,
-} from '@/services/organizations/organization-roles.service'
+} from '@/features/organizations/services/organization-roles.service'
 
 describe('organization-roles.service', () => {
   beforeEach(() => {

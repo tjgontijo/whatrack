@@ -1,8 +1,8 @@
 import { TeamSettingsShell } from '@/components/dashboard/account/team-settings-shell'
 import { requireWorkspacePageAccess } from '@/server/auth/require-workspace-page-access'
-import { listOrganizationMembers } from '@/services/organizations/organization-members.service'
-import { listOrganizationPendingInvitations } from '@/services/organizations/organization-invitations.service'
-import { listOrganizationRolesWithCatalog } from '@/services/organizations/organization-roles.service'
+import { listOrganizationMembers } from '@/features/organizations/services/organization-members.service'
+import { listOrganizationPendingInvitations } from '@/features/organizations/services/organization-invitations.service'
+import { listOrganizationRolesWithCatalog } from '@/features/organizations/services/organization-roles.service'
 
 type TeamPageProps = {
   params: Promise<{ organizationSlug: string }>

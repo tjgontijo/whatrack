@@ -3,11 +3,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/utils/api-response'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { toRbacErrorResponse } from '@/server/organization/rbac-http'
-import { createOrganizationRoleSchema } from '@/schemas/organizations/organization-role-schemas'
+import { createOrganizationRoleSchema } from '@/features/organizations/schemas/organization-role-schemas'
 import {
   createOrganizationRoleWithAudit,
   listOrganizationRolesWithCatalog,
-} from '@/services/organizations/organization-roles.service'
+} from '@/features/organizations/services/organization-roles.service'
 
 export async function GET(request: NextRequest) {
   const access = await validatePermissionAccess(request, 'manage:members')

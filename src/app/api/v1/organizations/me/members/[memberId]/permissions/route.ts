@@ -3,11 +3,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/utils/api-response'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { toRbacErrorResponse } from '@/server/organization/rbac-http'
-import { updateOrganizationMemberOverridesSchema } from '@/schemas/organizations/organization-member-schemas'
+import { updateOrganizationMemberOverridesSchema } from '@/features/organizations/schemas/organization-member-schemas'
 import {
   getOrganizationMemberPermissionOverrides,
   updateOrganizationMemberPermissionOverrides,
-} from '@/services/organizations/organization-members.service'
+} from '@/features/organizations/services/organization-members.service'
 
 export async function GET(
   request: NextRequest,

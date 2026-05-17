@@ -1,7 +1,7 @@
 import { HeaderPageShell, RefreshButton } from '@/components/dashboard/layout'
 import { AuditLogsTable } from '@/components/dashboard/settings/audit-logs-table'
 import { requireWorkspacePageAccess } from '@/server/auth/require-workspace-page-access'
-import { listOrganizationAuditResourceTypes } from '@/services/organizations/organization-audit.service'
+import { listOrganizationAuditResourceTypes } from '@/features/organizations/services/organization-audit.service'
 
 type AuditPageProps = {
   params: Promise<{ organizationSlug: string }>

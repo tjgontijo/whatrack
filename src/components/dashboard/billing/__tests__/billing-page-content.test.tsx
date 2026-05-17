@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const useOrganizationMock = vi.hoisted(() => vi.fn())
 const useBillingSubscriptionMock = vi.hoisted(() => vi.fn())
 
-vi.mock('@/hooks/organization/use-organization', () => ({
+vi.mock('@/features/organizations/hooks/use-organization', () => ({
   useOrganization: useOrganizationMock,
 }))
 

@@ -16,7 +16,7 @@ vi.mock('@/lib/db/prisma', () => ({
 vi.mock('@/services/me/me-account.service', () => ({
   getMeAccount: getMeAccountMock,
 }))
-vi.mock('@/services/organizations/organization.service', () => ({
+vi.mock('@/features/organizations/services/organization.service', () => ({
   getOrganizationMe: getOrganizationMeMock,
 }))
 vi.mock('@/services/billing/billing-subscription.service', () => ({

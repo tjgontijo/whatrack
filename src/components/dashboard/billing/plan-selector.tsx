@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/select'
 import { apiFetch } from '@/lib/api-client'
 import { cn } from '@/lib/utils/utils'
-import { useOrganization } from '@/hooks/organization/use-organization'
+import { useOrganization } from '@/features/organizations/hooks/use-organization'
 import type { PublicBillingPlan } from '@/schemas/billing/billing-plan-schemas'
 import { CheckoutPixQrcode } from './checkout-pix-qrcode'
 import { CheckoutStatusTokenService } from '@/services/billing/checkout-status-token.service'

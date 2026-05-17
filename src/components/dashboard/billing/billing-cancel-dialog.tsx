@@ -12,7 +12,7 @@ import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils/utils'
-import { useOrganization } from '@/hooks/organization/use-organization'
+import { useOrganization } from '@/features/organizations/hooks/use-organization'
 import { apiFetch } from '@/lib/api-client'
 
 

@@ -2,7 +2,7 @@ import { prisma } from '@/lib/db/prisma'
 import type { AccountSummary } from '@/types/account/account-summary'
 import { getActiveSubscription, SubscriptionNotFoundError } from '@/services/billing/billing-subscription.service'
 import { getMeAccount } from '@/services/me/me-account.service'
-import { getOrganizationMe } from '@/services/organizations/organization.service'
+import { getOrganizationMe } from '@/features/organizations/services/organization.service'
 import type { SubscriptionResponse } from '@/schemas/billing/billing-schemas'
 import type { AccountOrganizationSummary, AccountProfileSummary } from '@/types/account/account-summary'
 

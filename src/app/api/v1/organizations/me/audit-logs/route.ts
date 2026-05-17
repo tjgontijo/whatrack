@@ -2,8 +2,8 @@ import { NextRequest } from 'next/server'
 
 import { organizationJson } from '@/server/http/organization-json'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
-import { organizationAuditLogsQuerySchema } from '@/schemas/organizations/organization-schemas'
-import { listOrganizationAuditLogs } from '@/services/organizations/organization-audit.service'
+import { organizationAuditLogsQuerySchema } from '@/features/organizations/schemas/organization-schemas'
+import { listOrganizationAuditLogs } from '@/features/organizations/services/organization-audit.service'
 
 export async function GET(req: NextRequest) {
   const access = await validatePermissionAccess(req, 'view:audit')

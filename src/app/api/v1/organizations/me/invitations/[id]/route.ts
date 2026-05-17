@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server'
 
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { organizationJson } from '@/server/http/organization-json'
-import { deleteOrganizationInvitation } from '@/services/organizations/organization-invitations.service'
+import { deleteOrganizationInvitation } from '@/features/organizations/services/organization-invitations.service'
 
 export async function DELETE(
   request: NextRequest,

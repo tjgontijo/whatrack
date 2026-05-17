@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { INTEGRATION_IDENTITY_REQUIRED_MESSAGE, ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
-import { useOrganization } from '@/hooks/organization/use-organization'
+import { useOrganization } from '@/features/organizations/hooks/use-organization'
 
 export type OrganizationCompletionResponse = {
   hasOrganization: boolean

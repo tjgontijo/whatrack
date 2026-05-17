@@ -2,8 +2,8 @@ import { NextRequest } from 'next/server'
 
 import { validateFullAccess, validateOwnerAccess } from '@/server/auth/validate-organization-access'
 import { organizationJson } from '@/server/http/organization-json'
-import { updateOrganizationSchema } from '@/schemas/organizations/organization-schemas'
-import { getOrganizationMe, updateOrganizationMe } from '@/services/organizations/organization.service'
+import { updateOrganizationSchema } from '@/features/organizations/schemas/organization-schemas'
+import { getOrganizationMe, updateOrganizationMe } from '@/features/organizations/services/organization.service'
 
 export async function GET(req: NextRequest) {
   const access = await validateFullAccess(req)

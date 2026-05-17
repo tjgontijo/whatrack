@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { Check, ChevronsUpDown, LayoutDashboard, Plus, Settings } from 'lucide-react'
 
-import { OrganizationStatusBadge } from '@/components/dashboard/organization/organization-status-badge'
+import { OrganizationStatusBadge } from '@/features/organizations/components/organization-status-badge'
 import { UserDropdownMenu } from '@/components/dashboard/sidebar/user-dropdown-menu'
 import { Button } from '@/components/ui/button'
 import {

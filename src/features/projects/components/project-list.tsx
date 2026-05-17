@@ -24,7 +24,7 @@ import { CrudEmptyState } from '@/components/dashboard/crud/crud-data-view'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { useRequiredProjectPath } from '@/features/projects/hooks/project-route-context'
+import { useRequiredProjectPath } from '@/features/projects/hooks/use-project-route-context'
 import { useCrudInfiniteQuery } from '@/hooks/ui/use-crud-infinite-query'
 import { apiFetch } from '@/lib/api-client'
 import type {

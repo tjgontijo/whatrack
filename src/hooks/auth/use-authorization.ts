@@ -9,7 +9,7 @@ import {
   isOwner,
 } from '@/lib/auth/rbac/roles'
 import type { Permission } from '@/lib/auth/rbac/roles'
-import { useOrganization } from '@/hooks/organization/use-organization'
+import { useOrganization } from '@/features/organizations/hooks/use-organization'
 import { apiFetch } from '@/lib/api-client'
 
 

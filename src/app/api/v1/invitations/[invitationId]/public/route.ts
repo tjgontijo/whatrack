@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 
 import { apiError } from '@/lib/utils/api-response'
-import { getPublicInvitation } from '@/services/organizations/organization-invitations.service'
+import { getPublicInvitation } from '@/features/organizations/services/organization-invitations.service'
 
 export async function GET(
   _request: Request,

@@ -3,11 +3,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/utils/api-response'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { toRbacErrorResponse } from '@/server/organization/rbac-http'
-import { updateOrganizationRoleSchema } from '@/schemas/organizations/organization-role-schemas'
+import { updateOrganizationRoleSchema } from '@/features/organizations/schemas/organization-role-schemas'
 import {
   deleteOrganizationRoleWithAudit,
   updateOrganizationRoleWithAudit,
-} from '@/services/organizations/organization-roles.service'
+} from '@/features/organizations/services/organization-roles.service'
 
 export async function PATCH(
   request: NextRequest,

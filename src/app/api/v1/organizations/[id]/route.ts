@@ -8,8 +8,8 @@ import { NextResponse } from 'next/server'
 
 import { apiError } from '@/lib/utils/api-response'
 import { getOrSyncUser } from '@/server/auth/server'
-import { updateOrganizationByIdSchema } from '@/schemas/organizations/organization-schemas'
-import { updateOrganizationById } from '@/services/organizations/organization-management.service'
+import { updateOrganizationByIdSchema } from '@/features/organizations/schemas/organization-schemas'
+import { updateOrganizationById } from '@/features/organizations/services/organization-management.service'
 import { logger } from '@/lib/utils/logger'
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {

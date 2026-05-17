@@ -6,7 +6,7 @@
  */
 import { useQuery } from '@tanstack/react-query'
 import { isOwner, isAdmin, type RoleName } from '@/lib/auth/rbac/roles'
-import { useOrganization } from '@/hooks/organization/use-organization'
+import { useOrganization } from '@/features/organizations/hooks/use-organization'
 import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 
 interface OrganizationMember {

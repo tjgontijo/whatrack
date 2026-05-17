@@ -16,8 +16,8 @@ import {
   validateWhatsApp,
   WHATSAPP_MASK_MAX_LENGTH,
 } from '@/lib/mask/phone-mask'
-import type { CompanyLookupData } from '@/schemas/organizations/organization-onboarding'
-import type { UpdateOrganizationInput } from '@/schemas/organizations/organization-schemas'
+import type { CompanyLookupData } from '@/features/organizations/schemas/organization-onboarding'
+import type { UpdateOrganizationInput } from '@/features/organizations/schemas/organization-schemas'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'

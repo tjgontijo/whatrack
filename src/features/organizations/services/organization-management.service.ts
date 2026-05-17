@@ -8,8 +8,8 @@ import { calculateMetrics } from '@/services/onboarding-metrics/metrics-calculat
 import {
   normalizeOnboardingDocument,
   type OrganizationOnboardingInput,
-} from '@/schemas/organizations/organization-onboarding'
-import type { UpdateOrganizationByIdInput } from '@/schemas/organizations/organization-schemas'
+} from '@/features/organizations/schemas/organization-onboarding'
+import type { UpdateOrganizationByIdInput } from '@/features/organizations/schemas/organization-schemas'
 
 const onboardingStatuses = [
   { name: 'pending', description: 'Onboarding iniciado e aguardando conclusão.' },

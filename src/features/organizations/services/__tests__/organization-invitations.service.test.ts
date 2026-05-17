@@ -51,7 +51,7 @@ vi.mock('@/lib/env/require-env', () => ({
 import {
   createOrganizationInvitation,
   resendOrganizationInvitation,
-} from '@/services/organizations/organization-invitations.service'
+} from '@/features/organizations/services/organization-invitations.service'
 
 describe('organization-invitations.service', () => {
   beforeEach(() => {

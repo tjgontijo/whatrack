@@ -9,8 +9,8 @@ import { Prisma } from '@generated/prisma/client'
 
 import { apiError } from '@/lib/utils/api-response'
 import { getOrSyncUser } from '@/server/auth/server'
-import { organizationOnboardingSchema } from '@/schemas/organizations/organization-onboarding'
-import { createOrganizationFromOnboarding } from '@/services/organizations/organization-management.service'
+import { organizationOnboardingSchema } from '@/features/organizations/schemas/organization-onboarding'
+import { createOrganizationFromOnboarding } from '@/features/organizations/services/organization-management.service'
 import { logger } from '@/lib/utils/logger'
 
 export async function POST(request: Request) {

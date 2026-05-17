@@ -8,7 +8,7 @@ import { NextResponse } from 'next/server'
 
 import { apiError } from '@/lib/utils/api-response'
 import { getOrSyncUser } from '@/server/auth/server'
-import { getOrCreateCurrentOrganization } from '@/services/organizations/organization-management.service'
+import { getOrCreateCurrentOrganization } from '@/features/organizations/services/organization-management.service'
 import { logger } from '@/lib/utils/logger'
 
 export async function GET(request: Request) {

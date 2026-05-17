@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server'
 
 import { organizationJson } from '@/server/http/organization-json'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
-import { removeOrganizationMember } from '@/services/organizations/organization-members.service'
+import { removeOrganizationMember } from '@/features/organizations/services/organization-members.service'
 
 export async function DELETE(
   req: NextRequest,

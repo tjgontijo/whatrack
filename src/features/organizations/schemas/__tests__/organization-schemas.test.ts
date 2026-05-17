@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { updateOrganizationSchema } from '@/schemas/organizations/organization-schemas'
+import { updateOrganizationSchema } from '@/features/organizations/schemas/organization-schemas'
 
 describe('updateOrganizationSchema', () => {
   it('accepts company lookup data for fiscal identity updates', () => {

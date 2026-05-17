@@ -20,7 +20,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { useRequiredProjectPath } from '@/features/projects/hooks/project-route-context'
+import { useRequiredProjectPath } from '@/features/projects/hooks/use-project-route-context'
 import type { ProjectDetail } from '@/features/projects'
 
 type ProjectDetailProps = {

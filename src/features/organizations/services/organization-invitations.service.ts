@@ -5,7 +5,7 @@ import { resendProvider } from '@/services/mail/resend'
 import { generateInvitationEmail } from '@/services/mail/templates/InvitationEmail'
 import { getOrganizationRoleByKey } from '@/server/organization/organization-rbac.service'
 import { assertCanDelegatePermissions } from '@/server/organization/permission-delegation-policy'
-import type { CreateOrganizationInvitationInput } from '@/schemas/organizations/organization-invitation-schemas'
+import type { CreateOrganizationInvitationInput } from '@/features/organizations/schemas/organization-invitation-schemas'
 import { logger } from '@/lib/utils/logger'
 
 const APP_URL = requireEnv('APP_URL')

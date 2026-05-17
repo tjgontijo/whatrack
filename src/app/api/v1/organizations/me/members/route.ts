@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/utils/api-response'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { toRbacErrorResponse } from '@/server/organization/rbac-http'
-import { listOrganizationMembers } from '@/services/organizations/organization-members.service'
+import { listOrganizationMembers } from '@/features/organizations/services/organization-members.service'
 
 export async function GET(request: NextRequest) {
   const access = await validatePermissionAccess(request, 'manage:members')

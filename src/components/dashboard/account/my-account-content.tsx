@@ -13,7 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import type { UpdateMeAccountInput } from '@/schemas/me/me-account-schemas'
 import type { AccountSummary } from '@/types/account/account-summary'
-import { OnboardingDialog } from '@/components/dashboard/organization/onboarding-dialog'
+import { OnboardingDialog } from '@/features/organizations/components/onboarding-dialog'
 import { AccountProfileCard } from './account-profile-card'
 import { AccountOrganizationCard } from './account-organization-card'
 import { AccountBillingCard } from './account-billing-card'

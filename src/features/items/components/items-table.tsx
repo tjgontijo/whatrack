@@ -25,7 +25,7 @@ import { Button } from '@/components/ui/button'
 
 import { ItemFormDrawer } from './item-form-drawer'
 import { apiFetch } from '@/lib/api-client'
-import { useOrganization } from '@/hooks/organization/use-organization'
+import { useOrganization } from '@/features/organizations/hooks/use-organization'
 
 
 type Item = {

@@ -1,7 +1,7 @@
 'use client'
 
 import { AlertTriangle, ArrowRight } from 'lucide-react'
-import { OrganizationIdentityDrawer } from '@/components/dashboard/organization/organization-identity-drawer'
+import { OrganizationIdentityDrawer } from '@/features/organizations/components/organization-identity-drawer'
 import { Button } from '@/components/ui/button'
 import {
     Popover,

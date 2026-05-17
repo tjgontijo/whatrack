@@ -10,8 +10,8 @@ import {
   normalizeDocumentNumber,
   validateIdentityDocument,
 } from '@/lib/document/document-identity'
-import type { UpdateOrganizationInput } from '@/schemas/organizations/organization-schemas'
-import type { CompanyLookupData } from '@/schemas/organizations/organization-onboarding'
+import type { UpdateOrganizationInput } from '@/features/organizations/schemas/organization-schemas'
+import type { CompanyLookupData } from '@/features/organizations/schemas/organization-onboarding'
 import { logger } from '@/lib/utils/logger'
 
 type ServiceError = {

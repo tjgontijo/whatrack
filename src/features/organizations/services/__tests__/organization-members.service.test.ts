@@ -34,7 +34,7 @@ import {
   listOrganizationMembers,
   removeOrganizationMember,
   updateOrganizationMemberRole,
-} from '@/services/organizations/organization-members.service'
+} from '@/features/organizations/services/organization-members.service'
 
 describe('organization-members.service', () => {
   beforeEach(() => {
