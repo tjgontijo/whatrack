@@ -7,12 +7,29 @@ import { useProject } from '@/features/projects/hooks/use-project'
 import { apiFetch } from '@/lib/api-client'
 import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 import {
-  buildWhatsAppEmbeddedSignupUrl,
   isWhatsAppEmbeddedSignupConfigured,
   WHATSAPP_ONBOARDING_RESULT_STORAGE_KEY,
 } from '@/features/whatsapp/lib/onboarding'
 
 export type OnboardingStatus = 'idle' | 'pending' | 'success'
+
+declare global {
+  interface Window {
+    FB: {
+      init: (params: { appId: string; cookie: boolean; xfbml: boolean; version: string }) => void
+      login: (
+        callback: (response: { authResponse?: { code?: string } | null }) => void,
+        params: {
+          config_id: string
+          response_type: string
+          override_default_response_type: boolean
+          extras?: Record<string, unknown>
+        }
+      ) => void
+    }
+    fbAsyncInit?: () => void
+  }
+}
 
 export function useWhatsAppOnboarding(onSuccess?: () => void) {
   const { organizationId } = useRequiredProjectRouteContext()
@@ -21,62 +38,57 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
     useOrganizationCompletion()
   const [status, setStatus] = useState<OnboardingStatus>('idle')
   const [error, setError] = useState<string | null>(null)
-  const popupRef = useRef<Window | null>(null)
-  const onFocusRef = useRef<(() => void) | null>(null)
   const callbackHandledRef = useRef(false)
-  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const pollAttemptsRef = useRef(0)
+  const pollIntervalRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const trackingCodeRef = useRef<string | null>(null)
-  const popupWatcherRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const sdkReady = isWhatsAppEmbeddedSignupConfigured()
 
-  const stopPopupWatcher = useCallback(() => {
-    if (popupWatcherRef.current) {
-      clearInterval(popupWatcherRef.current)
-      popupWatcherRef.current = null
+  // Load FB SDK once
+  useEffect(() => {
+    if (typeof window === 'undefined' || window.FB) return
+
+    window.fbAsyncInit = () => {
+      window.FB.init({
+        appId: process.env.NEXT_PUBLIC_META_APP_ID!,
+        cookie: true,
+        xfbml: true,
+        version: 'v25.0',
+      })
     }
+
+    const script = document.createElement('script')
+    script.async = true
+    script.defer = true
+    script.src = 'https://connect.facebook.net/en_US/sdk.js'
+    document.head.appendChild(script)
   }, [])
 
   const stopPolling = useCallback(() => {
     if (pollIntervalRef.current) {
-      clearInterval(pollIntervalRef.current)
+      clearTimeout(pollIntervalRef.current)
       pollIntervalRef.current = null
     }
-    pollAttemptsRef.current = 0
   }, [])
 
   const handleSuccess = useCallback(() => {
     if (callbackHandledRef.current) return
     callbackHandledRef.current = true
     stopPolling()
-    stopPopupWatcher()
     setStatus('success')
     setError(null)
     toast.success('WhatsApp conectado com sucesso!')
     onSuccess?.()
-    if (popupRef.current && !popupRef.current.closed) popupRef.current.close()
-    popupRef.current = null
-    if (onFocusRef.current) {
-      window.removeEventListener('focus', onFocusRef.current)
-      onFocusRef.current = null
-    }
-  }, [onSuccess, stopPolling, stopPopupWatcher])
+    window.localStorage.removeItem(WHATSAPP_ONBOARDING_RESULT_STORAGE_KEY)
+  }, [onSuccess, stopPolling])
 
   const handleFailure = useCallback((message: string) => {
     if (callbackHandledRef.current) return
     callbackHandledRef.current = true
     stopPolling()
-    stopPopupWatcher()
     setStatus('idle')
     setError(message)
     toast.error(message)
-    if (popupRef.current && !popupRef.current.closed) popupRef.current.close()
-    popupRef.current = null
-    if (onFocusRef.current) {
-      window.removeEventListener('focus', onFocusRef.current)
-      onFocusRef.current = null
-    }
-  }, [stopPolling, stopPopupWatcher])
+  }, [stopPolling])
 
   const checkInstances = useCallback(async (projectId: string): Promise<boolean> => {
     try {
@@ -91,7 +103,7 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
     }
   }, [organizationId])
 
-  // Retry with delays after popup closes: 1s, 3s, 6s
+  // Polling fallback after FB.login() callback — only if postMessage Meet in the Middle hasn't resolved
   const startPolling = useCallback((projectId: string) => {
     stopPolling()
     const delays = [1000, 3000, 6000]
@@ -99,8 +111,10 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
 
     const tryNext = () => {
       if (attempt >= delays.length) {
-        setStatus('idle')
-        toast.error('Conexão não detectada. Verifique as configurações e tente novamente.')
+        if (!callbackHandledRef.current) {
+          setStatus('idle')
+          toast.error('Conexão não detectada. Verifique as configurações e tente novamente.')
+        }
         return
       }
       pollIntervalRef.current = setTimeout(async () => {
@@ -115,9 +129,10 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
     }
 
     tryNext()
-  }, [organizationId, checkInstances, handleSuccess, stopPolling])
+  }, [checkInstances, handleSuccess, stopPolling])
 
-  // Listen for localStorage result (set by callback page)
+  // Listen for postMessage from Meta SDK (FINISH event with phone_number_id)
+  // and localStorage result from callback page
   useEffect(() => {
     const handleStorage = (event: StorageEvent) => {
       if (event.key !== WHATSAPP_ONBOARDING_RESULT_STORAGE_KEY || !event.newValue) return
@@ -131,45 +146,42 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
       }
     }
 
-    // postMessage from callback (via opener chain or Meta popup)
     const handleMessage = (event: MessageEvent) => {
       console.log('[DEBUG] postMessage received:', event.data)
-      // 1. Listen for Meta's message (FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING)
       try {
         let msgData = event.data
         if (typeof msgData === 'string') {
           msgData = JSON.parse(msgData)
         }
-        
-        // Meta sometimes wraps the payload in an array
         if (Array.isArray(msgData)) {
           msgData = msgData[0]
         }
 
-        if (
-          msgData?.type === 'WA_EMBEDDED_SIGNUP' &&
-          msgData?.event === 'FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING'
-        ) {
-          const phoneNumberId = msgData.data?.phone_number_id
-          const wabaId = msgData.data?.waba_id
-          const trackingCode = trackingCodeRef.current
-          
-          if (phoneNumberId && trackingCode) {
-            fetch('/api/v1/whatsapp/onboarding/phone-number', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ state: trackingCode, phoneNumberId, wabaId })
-            }).then(() => {
-              if (popupRef.current) popupRef.current.close()
-              handleSuccess()
-            }).catch(console.error)
+        if (msgData?.type === 'WA_EMBEDDED_SIGNUP') {
+          // v3 format: { type: 'WA_EMBEDDED_SIGNUP', data: { event: 'FINISH', phone_number_id, waba_id } }
+          // legacy format: { type: 'WA_EMBEDDED_SIGNUP', event: 'FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING', data: { phone_number_id, waba_id } }
+          const isFinish =
+            msgData.data?.event === 'FINISH' ||
+            msgData.event === 'FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING'
+
+          if (isFinish) {
+            const phoneNumberId = msgData.data?.phone_number_id
+            const wabaId = msgData.data?.waba_id
+            const trackingCode = trackingCodeRef.current
+
+            if (phoneNumberId && trackingCode) {
+              fetch('/api/v1/whatsapp/onboarding/phone-number', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ state: trackingCode, phoneNumberId, wabaId }),
+              }).catch(console.error)
+            }
           }
         }
-      } catch (err) {
+      } catch {
         // ignore JSON parse errors
       }
 
-      // 2. Listen for our own callback page's message
       if (event.data?.type === 'WA_CALLBACK_SUCCESS') handleSuccess()
       else if (event.data?.type === 'WA_CALLBACK_ERROR') {
         handleFailure(event.data?.message || 'Erro ao conectar.')
@@ -184,13 +196,11 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
     }
   }, [handleFailure, handleSuccess])
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       stopPolling()
-      stopPopupWatcher()
     }
-  }, [stopPolling, stopPopupWatcher])
+  }, [stopPolling])
 
   const startOnboarding = useCallback(async () => {
     if (isCompletionLoading) {
@@ -209,53 +219,66 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
       toast.error('Nenhum projeto encontrado. Crie um projeto antes de conectar WhatsApp.')
       return
     }
+    if (!window.FB) {
+      toast.error('SDK da Meta não carregado. Recarregue a página e tente novamente.')
+      return
+    }
 
     setStatus('pending')
     setError(null)
     callbackHandledRef.current = false
     window.localStorage.removeItem(WHATSAPP_ONBOARDING_RESULT_STORAGE_KEY)
 
-    if (onFocusRef.current) {
-      window.removeEventListener('focus', onFocusRef.current)
-      onFocusRef.current = null
-    }
-    if (popupRef.current && !popupRef.current.closed) popupRef.current.close()
-
     try {
-      const { onboardingUrl, trackingCode } = await apiFetch(
+      const { trackingCode } = await apiFetch(
         `/api/v1/whatsapp/onboarding?projectId=${project.id}`,
         { method: 'GET', orgId: organizationId }
       )
       trackingCodeRef.current = trackingCode
-      const url = buildWhatsAppEmbeddedSignupUrl(onboardingUrl, trackingCode)
 
-      const width = 640
-      const height = 720
-      const left = Math.round((window.screen.width - width) / 2)
-      const top = Math.round((window.screen.height - height) / 2)
-      const specs = `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
-
-      popupRef.current = window.open(url, 'wa_onboarding', specs)
-      console.log('[DEBUG] Popup opened:', popupRef.current ? 'success' : 'blocked')
-
-      if (!popupRef.current) {
-        setStatus('idle')
-        toast.error('Popup bloqueado. Permita popups para este site e tente novamente.')
-        return
-      }
-
-      // Watch for popup close every 500ms — only start retries after popup closes
-      // Primary success path is the postMessage (handleSuccess called from fetch.then())
-      // This is the fallback for when postMessage doesn't fire
-      stopPopupWatcher()
       const projectId = project.id
-      popupWatcherRef.current = setInterval(() => {
-        if (!popupRef.current || !popupRef.current.closed) return
-        stopPopupWatcher()
-        if (callbackHandledRef.current) return
-        // Popup closed without postMessage success — poll as fallback
-        startPolling(projectId)
-      }, 500)
+
+      window.FB.login(
+        (response) => {
+          if (!response.authResponse?.code) {
+            setStatus('idle')
+            toast.error('Autorização cancelada ou sem resposta do Facebook.')
+            return
+          }
+
+          // Exchange code for token — Meet in the Middle half B
+          fetch('/api/v1/whatsapp/onboarding/exchange', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              [ORGANIZATION_HEADER]: organizationId,
+            },
+            body: JSON.stringify({ code: response.authResponse.code, state: trackingCode }),
+          })
+            .then((r) => r.json())
+            .then((data) => {
+              if (data.success) {
+                // If postMessage (phone-number) arrived first, handleSuccess was already called
+                // Otherwise start polling as fallback
+                if (!callbackHandledRef.current) {
+                  startPolling(projectId)
+                }
+              } else {
+                handleFailure(data.error || 'Erro ao processar autorização.')
+              }
+            })
+            .catch(() => handleFailure('Erro ao conectar com o servidor.'))
+        },
+        {
+          config_id: process.env.NEXT_PUBLIC_META_CONFIG_ID!,
+          response_type: 'code',
+          override_default_response_type: true,
+          extras: {
+            featureType: 'whatsapp_business_app_onboarding',
+            sessionInfoVersion: '3',
+          },
+        }
+      )
     } catch (err) {
       setStatus('idle')
       stopPolling()
@@ -272,6 +295,7 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
     sdkReady,
     startPolling,
     stopPolling,
+    handleFailure,
   ])
 
   return {
@@ -284,7 +308,6 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
       setError(null)
       callbackHandledRef.current = false
       stopPolling()
-      stopPopupWatcher()
       window.localStorage.removeItem(WHATSAPP_ONBOARDING_RESULT_STORAGE_KEY)
     },
     setError,
