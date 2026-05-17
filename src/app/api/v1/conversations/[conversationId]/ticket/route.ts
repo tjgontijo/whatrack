@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { apiError } from '@/lib/utils/api-response'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
-import { getConversationOpenTicket } from '@/services/conversations/conversation-ticket.service'
+import { getConversationOpenTicket } from '@/features/conversations/services/conversation-ticket.service'
 import { logger } from '@/lib/utils/logger'
 
 export async function GET(

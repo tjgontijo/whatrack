@@ -56,6 +56,16 @@ PRD-001-next-feature-architecture-migration/
 
 ---
 
+## Regra Mandatoria Desta Migracao
+
+Tudo que for de dominio (nao compartilhado) deve ser movido para `src/features/[domain]`.
+
+- Nao manter compatibilidade em `src/services/**` ou `src/schemas/**` para dominio migrado.
+- Nao manter componente de dominio em `src/components/dashboard/**` apos migracao do dominio.
+- Nao manter hook de dominio em `src/hooks/**` apos migracao do dominio.
+
+---
+
 ## 🔴 Problemas Criticos
 
 ### T1: Ausencia de arquitetura por feature

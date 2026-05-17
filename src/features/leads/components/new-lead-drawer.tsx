@@ -70,7 +70,7 @@ export type NewLeadDrawerProps = {
   onOpenChange: (open: boolean) => void
 }
 
-import { useRequiredProjectRouteContext } from '@/features/projects/hooks/project-route-context'
+import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
 import { apiFetch } from '@/lib/api-client'
 
 export function NewLeadDrawer({

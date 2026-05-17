@@ -24,6 +24,60 @@ Sem esses itens, a task nao pode ser marcada como concluida.
 
 ---
 
+## Regra Estrutural Obrigatoria (Sem Excecao)
+
+Tudo que for **especifico de dominio** deve ficar em `src/features/[domain]`.
+
+Isso vale para:
+
+- `components`
+- `hooks`
+- `services`
+- `schemas`
+- `repositories`
+- `queries` e `mutations`
+
+Somente pode permanecer fora de `features` o que for realmente compartilhado/global, por exemplo:
+
+- `src/components/ui/**`
+- `src/components/shared/**`
+- `src/server/**` (auth, acesso, contexto e infraestrutura server compartilhada)
+- `src/lib/**` de utilitarios cross-domain
+
+Proibicoes:
+
+- Nao criar camada de compatibilidade em `src/services/**` ou `src/schemas/**` para dominio migrado.
+- Nao manter componente de dominio em `src/components/dashboard/**` apos migracao do dominio.
+- Nao manter hook de dominio em `src/hooks/**` apos migracao do dominio.
+
+Definicao pratica:
+
+- Se o arquivo atende apenas um dominio, ele deve ser movido para `src/features/[domain]`.
+- Se o arquivo atende 2+ dominios de forma neutra, pode ficar em camada compartilhada.
+
+---
+
+## Revisao Obrigatoria Antes de Cada Dominio
+
+Antes de iniciar qualquer dominio, revisar e classificar arquivos destes diretorios:
+
+- `src/components`
+- `src/hooks`
+- `src/services`
+- `src/schemas`
+- `src/lib`
+- `src/server`
+- `src/types`
+
+Checklist da revisao:
+
+- [ ] Mapear arquivos do dominio fora de `features`
+- [ ] Definir destino final por arquivo (`features` vs compartilhado)
+- [ ] Incluir no escopo da task a remocao do caminho legado
+- [ ] Garantir que imports finais nao apontam para caminho legado do dominio
+
+---
+
 ## 🔴 Fase 1: Fundacao Arquitetural (1-2 semanas)
 
 ### T1: Definir estrutura alvo e contratos de camada (2-3 dias)
@@ -81,7 +135,7 @@ Sem esses itens, a task nao pode ser marcada como concluida.
 - [ ] Plano de regressao padrao disponivel
 - [ ] `lint`, `test`, `build` e `commit` executados
 
-### T4: Dominio piloto `items` (2-4 dias)
+### T4: Dominio piloto `items` (2-4 dias) - concluido
 
 **Problema:** validar estrategia antes de escala.
 
@@ -90,7 +144,7 @@ Sem esses itens, a task nao pode ser marcada como concluida.
 **O que fazer:**
 
 1. Migrar `items` para `src/features/items`.
-2. Extrair repositories por operacao.
+2. Extrair repositories por operacao, com um arquivo por operação de banco.
 3. Manter contrato HTTP atual.
 
 **Aceitacao:**
@@ -107,8 +161,8 @@ Sem esses itens, a task nao pode ser marcada como concluida.
 
 ### T5: Migrar `organizations` (4-6 dias)
 ### T6: Migrar `projects` (3-5 dias)
-### T7: Migrar `item-categories` (2-4 dias)
-### T8: Migrar `leads` + `sales` (5-7 dias)
+### T7: Migrar `item-categories` (2-4 dias) - concluido
+### T8: Migrar `leads` + `sales` (5-7 dias) - concluido
 
 **Problema:** dominios base da operacao concentram regras de acesso e dados criticos.
 
@@ -118,12 +172,15 @@ Sem esses itens, a task nao pode ser marcada como concluida.
 
 1. Migrar por dominio, preservando contratos publicos.
 2. Extrair repositories e schemas para cada feature.
-3. Ajustar testes de integracao e unidade.
+3. Garantir `repositories/` com um arquivo por operação de banco.
+4. Ajustar testes de integracao e unidade.
+5. Mover para `features/[domain]` todos os componentes/hooks/services/schemas nao compartilhados do dominio.
 
 **Aceitacao:**
 
 - [ ] Dominios core sem acesso db em routes
-- [ ] Repositories criados por operacao principal
+- [ ] Repositories criados por operacao principal, um arquivo por operação
+- [ ] Sem artefato legado de dominio em `src/services`, `src/schemas`, `src/components/dashboard`, `src/hooks`
 - [ ] Cobertura minima preservada, a confirmar baseline
 - [ ] Cada dominio core finalizado com `lint`, `test`, `build` e `commit`
 
@@ -170,6 +227,7 @@ Sem esses itens, a task nao pode ser marcada como concluida.
 1. Encerrar migracao dos dominios restantes.
 2. Remover caminhos legados e dead code.
 3. Publicar guia final de arquitetura e ownership.
+4. Garantir que `src/components`, `src/hooks`, `src/services` e `src/schemas` contenham apenas shared/global.
 
 **Aceitacao:**
 

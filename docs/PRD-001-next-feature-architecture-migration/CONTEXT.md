@@ -21,6 +21,27 @@ A migracao para arquitetura por feature organiza o sistema por dominio funcional
 
 ---
 
+## Regra de Posicionamento de Codigo
+
+Diretriz obrigatoria para esta migracao:
+
+- Codigo especifico de dominio deve morar em `src/features/[domain]`.
+- Codigo compartilhado pode ficar fora de `features` apenas quando for neutro e reutilizado por multiplos dominios.
+
+Aplicacao por diretorio:
+
+- `src/components`: somente `ui`, `shared` e shells realmente globais.
+- `src/hooks`: somente hooks cross-domain; hooks de dominio vao para `features/[domain]/hooks`.
+- `src/services`: nao e destino final para dominio migrado; services de dominio vao para `features/[domain]/services`.
+- `src/schemas`: nao e destino final para dominio migrado; schemas de dominio vao para `features/[domain]/schemas`.
+- `src/lib` e `src/server`: manter apenas infraestrutura e utilitarios compartilhados.
+
+Regra de corte:
+
+- Dominio migrado nao pode manter wrappers/bridges de compatibilidade em caminhos legados.
+
+---
+
 ## 🔄 Fluxo Completo
 
 ```txt
@@ -87,6 +108,7 @@ hardening-final
 #### dominios-migrados
 
 - Dominios migrados por ondas, sem quebrar contratos.
+- Sem sobras de codigo de dominio fora de `features` (exceto shared justificado).
 
 #### hardening-final
 
@@ -155,3 +177,4 @@ Exemplo alvo em `items`:
 - Primeiro criar fundacao comum.
 - Depois migrar dominios com maior impacto de negocio e volume de mudanca.
 - Finalizar com dominios perifericos e hardening em CI.
+- Em cada dominio: revisar `components/hooks/services/schemas` e mover tudo que nao for compartilhado para `features/[domain]`.
