@@ -45,8 +45,8 @@ import {
   deleteProject,
   listProjects,
   updateProject,
-} from '@/services/projects/project.service'
-import { archiveProject } from '@/services/projects/project-archive.service'
+} from '@/features/projects/server'
+import { archiveProject } from '@/features/projects/server'
 
 describe('project.service', () => {
   beforeEach(() => {

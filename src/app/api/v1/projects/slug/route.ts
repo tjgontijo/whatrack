@@ -1,5 +1,5 @@
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
-import { projectSlugCheckSchema } from '@/schemas/projects/project-schemas'
+import { projectSlugCheckSchema } from '@/features/projects'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/utils/logger'

@@ -16,7 +16,7 @@ import { normalizeSlug } from '@/lib/utils/slug'
 import {
   projectCreateSchema,
   type ProjectListItem,
-} from '@/schemas/projects/project-schemas'
+} from '@/features/projects'
 
 type ProjectFormDialogProps = {
   open: boolean

@@ -25,8 +25,8 @@ import {
   validateCampaignCsvModel,
   type CampaignCsvParseResult,
 } from '@/lib/whatsapp/campaign-csv'
-import { useRequiredProjectPath, useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
-import { useProject } from '@/hooks/project/use-project'
+import { useRequiredProjectPath, useRequiredProjectRouteContext } from '@/features/projects/hooks/project-route-context'
+import { useProject } from '@/features/projects/hooks/use-project'
 import type { WhatsAppTemplate } from '@/types/whatsapp/whatsapp'
 
 import { CampaignWizardStepBasic } from '../campaign-wizard-step-basic'

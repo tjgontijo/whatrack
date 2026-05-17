@@ -13,7 +13,7 @@ import { metaAdsClient } from '@/lib/meta-ads/client'
 import type { MetaAdAccountSummary, MetaConnectionSummary, MetaPixelConfig } from '@/types/meta-ads/meta-ads'
 import { MetaPixelsConfigArea } from './meta-pixels-config-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ProjectSelector } from '@/components/dashboard/projects/project-selector'
+import { ProjectSelector } from '@/features/projects/components/project-selector'
 
 const META_ADS_TAB_IDS = {
   adAccountsTrigger: 'meta-ads-tab-trigger-ad-accounts',

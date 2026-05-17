@@ -1,11 +1,11 @@
 import { FolderKanban } from 'lucide-react'
 import { notFound, redirect } from 'next/navigation'
 
-import { ProjectDetailView } from '@/components/dashboard/projects/project-detail'
+import { ProjectDetailView } from '@/features/projects/components/project-detail'
 import { PageContent } from '@/components/dashboard/layout/page-content'
 import { PageHeader } from '@/components/dashboard/layout/page-header'
 import { PageShell } from '@/components/dashboard/layout/page-shell'
-import { getProjectById } from '@/services/projects/project.service'
+import { getProjectById } from '@/features/projects/server'
 import { getServerSession } from '@/server/auth/server-session'
 import { getCurrentOrganizationId } from '@/server/organization/get-current-organization-id'
 

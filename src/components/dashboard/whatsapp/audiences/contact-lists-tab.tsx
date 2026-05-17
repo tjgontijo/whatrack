@@ -3,7 +3,7 @@
 import React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { apiFetch } from '@/lib/api-client'
-import { useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
+import { useRequiredProjectRouteContext } from '@/features/projects/hooks/project-route-context'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Users, MoreVertical, Calendar } from 'lucide-react'

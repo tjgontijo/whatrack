@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query'
 import { MetaAdsCampaignsClient } from '@/app/(dashboard)/[organizationSlug]/[projectSlug]/meta-ads/campaigns/client'
 import { MetaROIContent } from '@/components/dashboard/meta-ads/dashboard/meta-roi-content'
 import { HeaderPageShell, HeaderTabs } from '@/components/dashboard/layout'
-import { useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
+import { useRequiredProjectRouteContext } from '@/features/projects/hooks/project-route-context'
 import { metaAdsClient } from '@/lib/meta-ads/client'
 import type { MetaRoiResponse } from '@/types/meta-ads/meta-ads'
 

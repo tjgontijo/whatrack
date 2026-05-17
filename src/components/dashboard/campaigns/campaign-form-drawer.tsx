@@ -17,8 +17,8 @@ import {
   type CampaignCsvParseResult,
 } from '@/lib/whatsapp/campaign-csv'
 import { whatsappApi } from '@/lib/whatsapp/client'
-import { useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
-import { useProject } from '@/hooks/project/use-project'
+import { useRequiredProjectRouteContext } from '@/features/projects/hooks/project-route-context'
+import { useProject } from '@/features/projects/hooks/use-project'
 import type { WhatsAppTemplate } from '@/types/whatsapp/whatsapp'
 import { CampaignWizardStepBasic } from './campaign-wizard-step-basic'
 import { CampaignWizardStepRecipients } from './campaign-wizard-step-recipients'

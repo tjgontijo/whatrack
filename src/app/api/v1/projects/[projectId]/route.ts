@@ -5,12 +5,12 @@ import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import {
   projectDeleteQuerySchema,
   projectUpdateSchema,
-} from '@/schemas/projects/project-schemas'
+} from '@/features/projects'
 import {
   deleteProject,
   getProjectById,
   updateProject,
-} from '@/services/projects/project.service'
+} from '@/features/projects/server'
 import { logger } from '@/lib/utils/logger'
 
 type RouteContext = {

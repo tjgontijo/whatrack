@@ -15,7 +15,7 @@ import { HeaderPageShell, HeaderTabs } from '@/components/dashboard/layout'
 import { CrudEmptyState } from '@/components/dashboard/crud/crud-data-view'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { useRequiredProjectPath, useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
+import { useRequiredProjectPath, useRequiredProjectRouteContext } from '@/features/projects/hooks/project-route-context'
 import { apiFetch } from '@/lib/api-client'
 
 const STATUS_LABELS: Record<string, string> = {

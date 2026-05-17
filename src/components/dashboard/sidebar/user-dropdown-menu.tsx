@@ -21,7 +21,7 @@ import {
   DropdownMenuPortal,
 } from '@/components/ui/dropdown-menu'
 import { SidebarMenuButton } from '@/components/ui/sidebar'
-import { useRequiredProjectPath } from '@/hooks/project/project-route-context'
+import { useRequiredProjectPath } from '@/features/projects/hooks/project-route-context'
 import { authClient } from '@/lib/auth/auth-client'
 
 interface UserDropdownMenuProps {

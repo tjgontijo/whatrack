@@ -1,3 +1,5 @@
+import 'server-only'
+
 import { Prisma } from '@generated/prisma/client'
 
 import { prisma } from '@/lib/db/prisma'
@@ -14,7 +16,7 @@ import type {
   ProjectListQuery,
   ProjectListResponse,
   ProjectUpdateInput,
-} from '@/schemas/projects/project-schemas'
+} from '@/features/projects/schemas/project.schemas'
 
 type ProjectSummaryRow = {
   id: string

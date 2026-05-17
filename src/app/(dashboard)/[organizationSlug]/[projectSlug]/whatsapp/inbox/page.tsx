@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils/utils'
 
 import { apiFetch } from '@/lib/api-client'
-import { useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
+import { useRequiredProjectRouteContext } from '@/features/projects/hooks/project-route-context'
 import { useRealtime } from '@/hooks/whatsapp/use-realtime'
 
 import { ChatList } from '@/components/dashboard/whatsapp/inbox/chat-list'

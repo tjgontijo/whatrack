@@ -5,8 +5,8 @@ import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import {
   projectCreateSchema,
   projectListQuerySchema,
-} from '@/schemas/projects/project-schemas'
-import { createProject, listProjects } from '@/services/projects/project.service'
+} from '@/features/projects'
+import { createProject, listProjects } from '@/features/projects/server'
 import { logger } from '@/lib/utils/logger'
 
 export async function GET(request: Request) {

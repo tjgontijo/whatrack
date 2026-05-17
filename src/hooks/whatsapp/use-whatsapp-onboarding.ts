@@ -2,8 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
 import { useOrganizationCompletion } from '@/hooks/organization/use-organization-completion'
-import { useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
-import { useProject } from '@/hooks/project/use-project'
+import { useRequiredProjectRouteContext } from '@/features/projects/hooks/project-route-context'
+import { useProject } from '@/features/projects/hooks/use-project'
 import { apiFetch } from '@/lib/api-client'
 import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 import {

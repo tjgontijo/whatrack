@@ -3,7 +3,7 @@ import type {
   ProjectDetail,
   ProjectListItem,
   ProjectListResponse,
-} from '@/schemas/projects/project-schemas'
+} from '@/features/projects'
 
 export type ProjectSummary = ProjectListItem
 export type ProjectOverview = ProjectDetail

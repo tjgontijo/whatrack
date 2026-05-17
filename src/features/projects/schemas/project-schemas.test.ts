@@ -6,7 +6,7 @@ import {
   projectDeleteQuerySchema,
   projectListQuerySchema,
   projectUpdateSchema,
-} from '@/schemas/projects/project-schemas'
+} from '@/features/projects'
 
 describe('project-schemas', () => {
   it('parses paginated list query with defaults', () => {

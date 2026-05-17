@@ -2,7 +2,7 @@ import { revalidateTag } from 'next/cache'
 
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { archiveProject } from '@/services/projects/project-archive.service'
+import { archiveProject } from '@/features/projects/server'
 import { logger } from '@/lib/utils/logger'
 
 type RouteContext = {

@@ -20,7 +20,7 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 import { apiFetch } from '@/lib/api-client'
-import { useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
+import { useRequiredProjectRouteContext } from '@/features/projects/hooks/project-route-context'
 import { CrudEditDrawer } from '@/components/dashboard/crud'
 
 type CategoryOption = {

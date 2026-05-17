@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 import { RefreshCw } from 'lucide-react'
 
-import { ProjectList } from '@/components/dashboard/projects/project-list'
+import { ProjectList } from '@/features/projects/components/project-list'
 
 export const metadata = {
   title: 'Projetos | WhaTrack',

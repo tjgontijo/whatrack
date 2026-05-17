@@ -6,7 +6,7 @@ import { logger } from '@/lib/utils/logger'
 import { prisma } from '@/lib/db/prisma'
 import {
   projectCurrentUpdateSchema,
-} from '@/schemas/projects/project-schemas'
+} from '@/features/projects'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { getCurrentProjectId } from '@/server/project/get-current-project-id'
 

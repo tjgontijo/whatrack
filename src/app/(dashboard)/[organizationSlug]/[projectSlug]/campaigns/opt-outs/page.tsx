@@ -2,7 +2,7 @@
 
 import { HeaderPageShell } from '@/components/dashboard/layout'
 import { OptOutManager } from '@/components/dashboard/campaigns/opt-out-manager'
-import { useRequiredProjectRouteContext } from '@/hooks/project/project-route-context'
+import { useRequiredProjectRouteContext } from '@/features/projects/hooks/project-route-context'
 
 export default function OptOutsPage() {
   const { organizationId } = useRequiredProjectRouteContext()
