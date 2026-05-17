@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
-import { AccountOrganizationCard } from '@/components/dashboard/account/account-organization-card'
+import { AccountOrganizationCard } from '@/features/account/components/account-organization-card'
 
 describe('AccountOrganizationCard', () => {
   it('renders current fiscal information and opens the edit flow on demand', async () => {

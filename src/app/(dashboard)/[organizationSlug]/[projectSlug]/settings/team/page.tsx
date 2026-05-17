@@ -1,4 +1,4 @@
-import { TeamSettingsShell } from '@/components/dashboard/account/team-settings-shell'
+import { TeamSettingsShell } from '@/features/account/components/team-settings-shell'
 import { requireWorkspacePageAccess } from '@/server/auth/require-workspace-page-access'
 import { listOrganizationMembers } from '@/features/organizations/services/organization-members.service'
 import { listOrganizationPendingInvitations } from '@/features/organizations/services/organization-invitations.service'

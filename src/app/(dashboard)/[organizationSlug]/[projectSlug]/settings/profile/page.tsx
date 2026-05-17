@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 
 import { HeaderPageShell } from '@/components/dashboard/layout'
 import { ProfileSettingsContent } from '@/components/dashboard/settings/profile-settings-content'
-import { getAccountSummary } from '@/services/account/account-summary.service'
+import { getAccountSummary } from '@/features/account'
 import { requireWorkspacePageAccess } from '@/server/auth/require-workspace-page-access'
 
 type ProfilePageProps = {

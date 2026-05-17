@@ -7,7 +7,7 @@ vi.mock('@/features/projects/hooks/use-project-route-context', () => ({
   useRequiredProjectPath: useRequiredProjectPathMock,
 }))
 
-import { AccountBillingCard } from '@/components/dashboard/account/account-billing-card'
+import { AccountBillingCard } from '@/features/account/components/account-billing-card'
 
 describe('AccountBillingCard', () => {
   beforeEach(() => {

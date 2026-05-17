@@ -24,7 +24,7 @@ vi.mock('@/features/billing/services/billing-subscription.service', () => ({
   SubscriptionNotFoundError: class SubscriptionNotFoundError extends Error {},
 }))
 
-import { getAccountSummary } from '@/services/account/account-summary.service'
+import { getAccountSummary } from '@/features/account'
 
 describe('getAccountSummary', () => {
   beforeEach(() => {

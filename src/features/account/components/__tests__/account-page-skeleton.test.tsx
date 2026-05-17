@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
-import { AccountPageSkeleton } from '@/components/dashboard/account/account-page-skeleton'
+import { AccountPageSkeleton } from '@/features/account/components/account-page-skeleton'
 
 describe('AccountPageSkeleton', () => {
   it('renders a stable placeholder layout for the account page', () => {

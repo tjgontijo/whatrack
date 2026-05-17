@@ -1,4 +1,4 @@
-import { AccountPageSkeleton } from '@/components/dashboard/account/account-page-skeleton'
+import { AccountPageSkeleton } from '@/features/account/components/account-page-skeleton'
 import { Skeleton } from '@/components/ui/skeleton'
 
 export default function Loading() {

@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
-import { AccountProfileCard } from '@/components/dashboard/account/account-profile-card'
+import { AccountProfileCard } from '@/features/account/components/account-profile-card'
 
 describe('AccountProfileCard', () => {
   it('renders persisted account data and normalizes phone on submit', async () => {
