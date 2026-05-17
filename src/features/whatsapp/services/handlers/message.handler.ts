@@ -180,7 +180,7 @@ export async function messageHandler(
               lastMessageAt: messageTimestamp,
               pushName: pushName ?? existingLead.pushName ?? undefined,
             },
-            select: { id: true },
+            select: { id: true, firstMessageAt: true },
           })
         } else {
           try {
@@ -194,14 +194,14 @@ export async function messageHandler(
                 lastMessageAt: messageTimestamp,
                 sourceId,
               },
-              select: { id: true },
+              select: { id: true, firstMessageAt: true },
             })
           } catch (err: unknown) {
             // Handle race condition: another concurrent message created the lead first (P2002)
             if (err && typeof err === 'object' && 'code' in err && err.code === 'P2002') {
               const raceLead = await tx.lead.findFirst({
                 where: { organizationId: config.organizationId, waId: contactPhone },
-                select: { id: true, pushName: true },
+                select: { id: true, pushName: true, firstMessageAt: true },
               })
               if (!raceLead) throw err
               lead = await tx.lead.update({
@@ -211,7 +211,7 @@ export async function messageHandler(
                   lastMessageAt: messageTimestamp,
                   pushName: pushName ?? raceLead.pushName ?? undefined,
                 },
-                select: { id: true },
+                select: { id: true, firstMessageAt: true },
               })
             } else {
               throw err
@@ -240,7 +240,7 @@ export async function messageHandler(
         let ticket = await tx.ticket.findFirst({
           where: { conversationId: conversation.id, statusId: openStatusId },
           orderBy: { createdAt: 'desc' },
-          select: { id: true, createdAt: true },
+          select: { id: true, createdAt: true, firstResponseTimeSec: true },
         })
 
         // Check Expiration
@@ -287,10 +287,8 @@ export async function messageHandler(
               windowOpen: true,
               createdBy: 'SYSTEM',
               messagesCount: 0,
-              source: 'incoming_message',
-              originatedFrom: wasHistoryLead ? 'history_lead' : 'new_contact',
             },
-            select: { id: true },
+            select: { id: true, createdAt: true, firstResponseTimeSec: true },
           })
         } else {
           // Renew window
@@ -351,7 +349,6 @@ export async function messageHandler(
             status: isEcho ? 'sent' : 'delivered',
             timestamp: messageTimestamp,
             metaConversationId: value.conversation_id || null,
-            source: 'live',
             rawMeta: message,
           },
           select: { id: true },

@@ -27,7 +27,7 @@ export async function queryLeadsByFilters(organizationId: string, filters: Audie
             some: {
               tickets: {
                 some: {
-                  status: 'open',
+                  status: { name: 'open' },
                   ...(filters.stageId ? { stageId: filters.stageId } : {}),
                   ...(filters.stageTimeMinDays !== undefined
                     ? {

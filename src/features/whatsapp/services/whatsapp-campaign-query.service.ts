@@ -310,7 +310,7 @@ export async function listRecipients(
       include: {
         dispatchGroup: { select: { templateName: true, status: true } },
         messages: {
-          where: { direction: 'INBOUND' },
+          where: { direction: { name: 'INBOUND' } },
           orderBy: { createdAt: 'asc' },
           take: 1,
           select: { body: true, type: true, rawMeta: true },

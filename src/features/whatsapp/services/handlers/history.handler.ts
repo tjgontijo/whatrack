@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db/prisma'
+import { lookupCache } from '@/lib/db/lookup-cache'
 import { logger } from '@/lib/utils/logger'
 
 /**
@@ -68,6 +69,11 @@ export async function historyHandler(payload: any): Promise<void> {
     return
   }
 
+  // Get lookup IDs before processing threads
+  const sourceId = await lookupCache.getLeadSourceId('history_sync')
+  const inboundDirectionId = await lookupCache.getMessageDirectionId('INBOUND')
+  const outboundDirectionId = await lookupCache.getMessageDirectionId('OUTBOUND')
+
   // Get metadata from first chunk
   const firstChunk = historyData[0]
   const chunkMetadata = firstChunk?.metadata || {}
@@ -114,7 +120,7 @@ export async function historyHandler(payload: any): Promise<void> {
       // Normalize phone number
       const normalizedPhone = waId.startsWith('+') ? waId : `+${waId}`
 
-      // 1. UPSERT Lead with source='history_sync'
+      // 1. UPSERT Lead with sourceId='history_sync'
       const lead = await prisma.lead.upsert({
         where: {
           organizationId_waId: {
@@ -128,13 +134,12 @@ export async function historyHandler(payload: any): Promise<void> {
           waId,
           phone: normalizedPhone,
           pushName: username,
-          source: 'history_sync', // ✅ Mark as history source
+          sourceId,
           lastSyncedAt: new Date(),
         },
         update: {
           ...(config.projectId ? { projectId: config.projectId } : {}),
           lastSyncedAt: new Date(),
-          // Don't override source if already set
           pushName: username ?? undefined,
         },
       })
@@ -173,7 +178,7 @@ export async function historyHandler(payload: any): Promise<void> {
 
           // Determine direction based on history_context
           const fromMe = msg.history_context?.from_me || false
-          const direction = fromMe ? 'OUTBOUND' : 'INBOUND'
+          const directionId = fromMe ? outboundDirectionId : inboundDirectionId
 
           // Extract message content
           let messageBody = ''
@@ -190,18 +195,16 @@ export async function historyHandler(payload: any): Promise<void> {
               wamid: messageId,
               leadId: lead.id,
               instanceId: config.id,
-              conversationId: conversation.id,
-              ticketId: null, // ❌ NO TICKET FOR HISTORY
-              direction,
+              appConversationId: conversation.id,
+              ticketId: null,
+              directionId,
               type: messageType,
               body: messageBody || null,
               status: msg.history_context?.status || 'read',
               timestamp: messageTimestamp,
-              source: 'history', // ✅ Mark as history source
-              rawMeta: msg, // Store raw payload
+              rawMeta: msg,
             },
             update: {
-              // On duplicate, update minimal fields
               status: msg.history_context?.status || 'read',
               updatedAt: new Date(),
             },

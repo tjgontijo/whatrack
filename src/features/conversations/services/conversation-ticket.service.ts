@@ -27,11 +27,11 @@ export async function getConversationOpenTicket(params: GetConversationTicketPar
       conversationId: params.conversationId,
       organizationId: params.organizationId,
       projectId: params.projectId ?? undefined,
-      status: 'open',
+      status: { name: 'open' },
     },
     select: {
       id: true,
-      status: true,
+      status: { select: { id: true, name: true } },
       windowOpen: true,
       windowExpiresAt: true,
       dealValue: true,
@@ -92,7 +92,7 @@ export async function getConversationOpenTicket(params: GetConversationTicketPar
   return {
     data: {
       id: ticket.id,
-      status: ticket.status,
+      status: ticket.status.name,
       windowOpen: ticket.windowOpen,
       windowExpiresAt: ticket.windowExpiresAt?.toISOString() || null,
       dealValue: ticket.dealValue ? ticket.dealValue.toString() : null,

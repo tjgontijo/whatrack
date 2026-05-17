@@ -77,7 +77,7 @@ export async function statusHandler(payload: any): Promise<void> {
         where: { wamid },
         select: {
           id: true,
-          conversationId: true,
+          appConversationId: true,
           status: true,
         },
       })
@@ -120,7 +120,7 @@ export async function statusHandler(payload: any): Promise<void> {
         type: 'message_status_updated',
         messageId: message.id,
         wamid,
-        conversationId: message.conversationId,
+        conversationId: message.appConversationId,
         status: newStatus,
         timestamp,
       })

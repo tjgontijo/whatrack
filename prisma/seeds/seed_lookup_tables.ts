@@ -29,6 +29,8 @@ const ticketStatuses = [
   { name: 'open', description: 'Ticket aberto.' },
   { name: 'closed', description: 'Ticket fechado.' },
   { name: 'pending', description: 'Ticket pendente.' },
+  { name: 'closed_won', description: 'Ticket fechado com sucesso.' },
+  { name: 'closed_lost', description: 'Ticket fechado sem sucesso.' },
 ]
 
 const messageDirections = [

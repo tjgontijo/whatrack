@@ -1,6 +1,7 @@
 import { Prisma } from '@generated/prisma/client'
 
 import { prisma } from '@/lib/db/prisma'
+import { lookupCache } from '@/lib/db/lookup-cache'
 import { ensureProjectBelongsToOrganization } from '@/server/project/project-scope'
 import { metaCapiService } from '@/features/meta-ads/services/capi.service'
 import { syncCompletedSaleForTicket } from '@/features/sales'
@@ -57,7 +58,7 @@ type TicketServiceError = {
 const ticketListSelect = Prisma.validator<Prisma.TicketSelect>()({
   id: true,
   projectId: true,
-  status: true,
+  status: { select: { id: true, name: true } },
   windowOpen: true,
   windowExpiresAt: true,
   dealValue: true,
@@ -87,7 +88,7 @@ type TicketListRecord = Prisma.TicketGetPayload<{ select: typeof ticketListSelec
 const ticketSummarySelect = Prisma.validator<Prisma.TicketSelect>()({
   id: true,
   projectId: true,
-  status: true,
+  status: { select: { id: true, name: true } },
   windowOpen: true,
   windowExpiresAt: true,
   dealValue: true,
@@ -248,7 +249,7 @@ function mapTicketListItem(ticket: TicketListRecord) {
           name: ticket.project.name,
         }
       : null,
-    status: ticket.status,
+    status: ticket.status.name,
     windowOpen: ticket.windowOpen,
     windowExpiresAt: ticket.windowExpiresAt ? ticket.windowExpiresAt.toISOString() : null,
     dealValue: ticket.dealValue ? Number(ticket.dealValue) : null,
@@ -274,7 +275,7 @@ function mapTicketSummary(ticket: TicketSummaryRecord) {
           name: ticket.project.name,
         }
       : null,
-    status: ticket.status,
+    status: ticket.status.name,
     windowOpen: ticket.windowOpen,
     windowExpiresAt: ticket.windowExpiresAt?.toISOString() || null,
     dealValue: ticket.dealValue ? Number(ticket.dealValue) : null,
@@ -297,7 +298,7 @@ function mapClosedTicket(ticket: TicketCloseRecord) {
           name: ticket.project.name,
         }
       : null,
-    status: ticket.status,
+    status: ticket.status.name,
     windowOpen: ticket.windowOpen,
     windowExpiresAt: ticket.windowExpiresAt?.toISOString() || null,
     dealValue: ticket.dealValue ? Number(ticket.dealValue) : null,
@@ -355,7 +356,7 @@ export async function listTickets(params: TicketListParams) {
   const statsWhere = buildWhereFilters({ ...params, status: undefined })
 
   const whereWithStatus: Prisma.TicketWhereInput = params.status
-    ? { AND: [where, { status: params.status }] }
+    ? { AND: [where, { status: { name: params.status } }] }
     : where
 
   const [tickets, total, openCount, closedWonCount, closedLostCount, totalDealValue] =
@@ -368,11 +369,11 @@ export async function listTickets(params: TicketListParams) {
         select: ticketListSelect,
       }),
       prisma.ticket.count({ where: whereWithStatus }),
-      prisma.ticket.count({ where: { AND: [statsWhere, { status: 'open' }] } }),
-      prisma.ticket.count({ where: { AND: [statsWhere, { status: 'closed_won' }] } }),
-      prisma.ticket.count({ where: { AND: [statsWhere, { status: 'closed_lost' }] } }),
+      prisma.ticket.count({ where: { AND: [statsWhere, { status: { name: 'open' } }] } }),
+      prisma.ticket.count({ where: { AND: [statsWhere, { status: { name: 'closed_won' } }] } }),
+      prisma.ticket.count({ where: { AND: [statsWhere, { status: { name: 'closed_lost' } }] } }),
       prisma.ticket.aggregate({
-        where: { AND: [statsWhere, { status: 'closed_won' }] },
+        where: { AND: [statsWhere, { status: { name: 'closed_won' } }] },
         _sum: { dealValue: true },
       }),
     ])
@@ -457,7 +458,7 @@ export async function createTicket(params: CreateTicketParams) {
   if (!conversation) return { error: 'Conversa não encontrada', status: 404 as const }
 
   const existing = await prisma.ticket.findFirst({
-    where: { conversationId, status: 'open' },
+    where: { conversationId, status: { name: 'open' } },
     select: { id: true },
   })
   if (existing) {
@@ -490,6 +491,8 @@ export async function createTicket(params: CreateTicketParams) {
     if (!assignee) return { error: 'Atribuído não encontrado', status: 404 as const }
   }
 
+  const openStatusId = await lookupCache.getTicketStatusId('open')
+
   const ticket = await prisma.ticket.create({
     data: {
       organizationId,
@@ -498,10 +501,10 @@ export async function createTicket(params: CreateTicketParams) {
       leadId: conversation.leadId,
       conversationId,
       stageId: targetStageId,
+      statusId: openStatusId,
       stageEnteredAt: new Date(),
       assigneeId: assigneeId || null,
       dealValue,
-      status: 'open',
       windowOpen: true,
       windowExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
       createdBy,
@@ -536,10 +539,10 @@ export async function updateTicket(params: UpdateTicketParams) {
 
   const existing = await prisma.ticket.findFirst({
     where: { id: ticketId, organizationId },
-    select: { stageId: true, status: true },
+    select: { stageId: true, status: { select: { name: true } } },
   })
   if (!existing) return { error: 'Ticket não encontrado', status: 404 as const }
-  if (existing.status !== 'open') {
+  if (existing.status.name !== 'open') {
     return { error: 'Ticket já está fechado', status: 409 as const }
   }
 
@@ -604,28 +607,29 @@ export async function updateTicketAndTrackCapi(params: UpdateTicketParams) {
 export async function closeTicket(params: CloseTicketParams) {
   const existing = await prisma.ticket.findFirst({
     where: { id: params.ticketId, organizationId: params.organizationId },
-    select: { id: true, status: true, createdAt: true, leadId: true, projectId: true },
+    select: { id: true, status: { select: { name: true } }, createdAt: true, leadId: true, projectId: true },
   })
 
   if (!existing) {
     return { error: 'Ticket não encontrado', status: 404 as const }
   }
 
-  if (existing.status !== 'open') {
+  if (existing.status.name !== 'open') {
     return {
       error: 'Ticket já está fechado',
-      currentStatus: existing.status,
+      currentStatus: existing.status.name,
       status: 409 as const,
     }
   }
 
-  const newStatus = params.reason === 'won' ? 'closed_won' : 'closed_lost'
+  const newStatusName = params.reason === 'won' ? 'closed_won' : 'closed_lost'
+  const newStatusId = await lookupCache.getTicketStatusId(newStatusName)
 
   const closed = await prisma.$transaction(async (tx) => {
     const now = new Date()
     const resolutionTimeSec = Math.floor((now.getTime() - existing.createdAt.getTime()) / 1000)
 
-    if (newStatus === 'closed_won' && typeof params.dealValue === 'number' && params.dealValue > 0) {
+    if (newStatusName === 'closed_won' && typeof params.dealValue === 'number' && params.dealValue > 0) {
       await syncCompletedSaleForTicket(tx, {
         organizationId: params.organizationId,
         ticketId: params.ticketId,
@@ -638,7 +642,7 @@ export async function closeTicket(params: CloseTicketParams) {
     const updatedTicket = await tx.ticket.update({
       where: { id: params.ticketId },
       data: {
-        status: newStatus,
+        statusId: newStatusId,
         closedAt: now,
         closedReason: params.closedReason,
         resolutionTimeSec,
@@ -647,7 +651,7 @@ export async function closeTicket(params: CloseTicketParams) {
       select: ticketCloseSelect,
     })
 
-    if (newStatus === 'closed_won' && typeof params.dealValue === 'number' && params.dealValue > 0) {
+    if (newStatusName === 'closed_won' && typeof params.dealValue === 'number' && params.dealValue > 0) {
       await tx.lead.update({
         where: { id: existing.leadId },
         data: {

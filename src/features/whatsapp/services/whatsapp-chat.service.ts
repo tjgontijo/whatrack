@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db/prisma'
 import { getDefaultTicketStage } from '@/features/tickets/services/ensure-ticket-stages'
+import { lookupCache } from '@/lib/db/lookup-cache'
 import { logger } from '@/lib/utils/logger'
 
 const WINDOW_MS = 24 * 60 * 60 * 1000
@@ -73,18 +74,23 @@ export class WhatsAppChatService {
 
       const organizationId = instance.organizationId
 
+      // Get lookup IDs before transaction
+      const sourceId = await lookupCache.getLeadSourceId('live_message')
+      const directionId = await lookupCache.getMessageDirectionId('INBOUND')
+      const openStatusId = await lookupCache.getTicketStatusId('open')
+
       // 1. Find or Create Lead
-      // We search by phone OR waId within the organization
+      // We search by waId within the organization
       const lead = await prisma.lead.upsert({
         where: {
-          organizationId_phone: {
+          organizationId_waId: {
             organizationId,
-            phone: from,
+            waId: from,
           },
         },
         update: {
           ...(instance.projectId ? { projectId: instance.projectId } : {}),
-          waId: from,
+          phone: from,
           pushName: contactProfile?.name || undefined,
           lastMessageAt: new Date(parseInt(timestamp) * 1000),
         },
@@ -94,6 +100,7 @@ export class WhatsAppChatService {
           phone: from,
           waId: from,
           pushName: contactProfile?.name,
+          sourceId,
           lastMessageAt: new Date(parseInt(timestamp) * 1000),
         },
       })
@@ -114,7 +121,7 @@ export class WhatsAppChatService {
       })
 
       let ticket = await prisma.ticket.findFirst({
-        where: { conversationId: conversation.id, status: 'open' },
+        where: { conversationId: conversation.id, statusId: openStatusId },
         orderBy: { createdAt: 'desc' },
       })
 
@@ -126,18 +133,15 @@ export class WhatsAppChatService {
           data: {
             organizationId,
             projectId: instance.projectId,
-            leadId: lead.id, // ✅ Add leadId
+            leadId: lead.id,
             conversationId: conversation.id,
             stageId: defaultStage.id,
             stageEnteredAt: new Date(),
             windowExpiresAt: new Date(messageTimestamp.getTime() + WINDOW_MS),
             windowOpen: true,
-            status: 'open',
+            statusId: openStatusId,
             createdBy: 'SYSTEM',
             messagesCount: 0,
-            // ✅ Source tracking
-            source: 'incoming_message',
-            originatedFrom: 'existing',
           },
         })
       } else {
@@ -210,9 +214,9 @@ export class WhatsAppChatService {
           wamid,
           leadId: lead.id,
           instanceId,
-          conversationId: conversation.id,
+          appConversationId: conversation.id,
           ticketId: ticket.id,
-          direction: 'INBOUND',
+          directionId,
           type,
           body: body || '',
           mediaUrl,
@@ -268,16 +272,22 @@ export class WhatsAppChatService {
 
       if (!instance) throw new Error(`Instance ${instanceId} not found`)
 
+      // Get lookup IDs before transaction
+      const sourceId = await lookupCache.getLeadSourceId('outbound_message')
+      const directionId = await lookupCache.getMessageDirectionId('OUTBOUND')
+      const openStatusId = await lookupCache.getTicketStatusId('open')
+
       // 1. Find or Create Lead (Recipient)
       const lead = await prisma.lead.upsert({
         where: {
-          organizationId_phone: {
+          organizationId_waId: {
             organizationId: instance.organizationId,
-            phone: customerPhone,
+            waId: customerPhone,
           },
         },
         update: {
           ...(instance.projectId ? { projectId: instance.projectId } : {}),
+          phone: customerPhone,
           lastMessageAt: new Date(parseInt(timestamp) * 1000),
         },
         create: {
@@ -285,6 +295,7 @@ export class WhatsAppChatService {
           projectId: instance.projectId,
           phone: customerPhone,
           waId: customerPhone,
+          sourceId,
           lastMessageAt: new Date(parseInt(timestamp) * 1000),
         },
       })
@@ -308,7 +319,7 @@ export class WhatsAppChatService {
       })
 
       let ticket = await prisma.ticket.findFirst({
-        where: { conversationId: conversation.id, status: 'open' },
+        where: { conversationId: conversation.id, statusId: openStatusId },
         orderBy: { createdAt: 'desc' },
       })
 
@@ -318,17 +329,14 @@ export class WhatsAppChatService {
           data: {
             organizationId: instance.organizationId,
             projectId: instance.projectId,
-            leadId: lead.id, // ✅ Add leadId
+            leadId: lead.id,
             conversationId: conversation.id,
             stageId: defaultStage.id,
             stageEnteredAt: new Date(),
             windowOpen: false,
-            status: 'open',
+            statusId: openStatusId,
             createdBy: 'SYSTEM',
             messagesCount: 0,
-            // ✅ Source tracking
-            source: 'incoming_message',
-            originatedFrom: 'existing',
           },
         })
       }
@@ -344,9 +352,9 @@ export class WhatsAppChatService {
           wamid,
           leadId: lead.id,
           instanceId,
-          conversationId: conversation.id,
+          appConversationId: conversation.id,
           ticketId: ticket.id,
-          direction: 'OUTBOUND',
+          directionId,
           type,
           body: body || '',
           status: 'active',
@@ -434,9 +442,17 @@ export class WhatsAppChatService {
   }) {
     const { instanceId, organizationId, projectId, phone, campaignId, campaignName, wamid, body, shouldCreateLeads = true } = params
     try {
+      // Get lookup IDs before operations
+      const sourceId = await lookupCache.getLeadSourceId('direct_creation')
+      const directionId = await lookupCache.getMessageDirectionId('OUTBOUND')
+      const openStatusId = await lookupCache.getTicketStatusId('open')
+
       // 1. Find or Create Lead
-      let lead = await prisma.lead.findUnique({
-        where: { organizationId_phone: { organizationId, phone } },
+      let lead = await prisma.lead.findFirst({
+        where: {
+          organizationId,
+          OR: [{ waId: phone }, { phone }],
+        },
       })
 
       if (!lead) {
@@ -451,7 +467,7 @@ export class WhatsAppChatService {
             projectId: projectId ?? null,
             phone,
             waId: phone,
-            source: `campaign:${campaignName}`,
+            sourceId,
             lastMessageAt: new Date(),
           },
         })
@@ -484,7 +500,7 @@ export class WhatsAppChatService {
 
       // 3. Ensure Ticket
       let ticket = await prisma.ticket.findFirst({
-        where: { conversationId: conversation.id, status: 'open' },
+        where: { conversationId: conversation.id, statusId: openStatusId },
         orderBy: { createdAt: 'desc' },
       })
 
@@ -499,11 +515,10 @@ export class WhatsAppChatService {
             conversationId: conversation.id,
             stageId: defaultStage.id,
             stageEnteredAt: new Date(),
-            windowOpen: false, // Outbound template doesn't open the window for free-form replies
-            status: 'open',
+            windowOpen: false,
+            statusId: openStatusId,
             createdBy: 'SYSTEM',
             messagesCount: 0,
-            source: 'whatsapp_campaign',
           },
         })
       }
@@ -514,15 +529,14 @@ export class WhatsAppChatService {
           wamid,
           leadId: lead.id,
           instanceId,
-          conversationId: conversation.id,
+          appConversationId: conversation.id,
           ticketId: ticket.id,
-          campaignRecipientId: undefined, // Will be linked via campaign execution if needed
-          direction: 'OUTBOUND',
+          campaignRecipientId: undefined,
+          directionId,
           type: 'template',
           body: body || '',
           status: 'sent',
           timestamp: new Date(),
-          source: 'campaign',
         },
       })
 

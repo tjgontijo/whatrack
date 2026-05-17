@@ -1,5 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/db/prisma'
+import { lookupCache } from '@/lib/db/lookup-cache'
 
 export async function createLeadRepository(input: {
   organizationId: string
@@ -8,7 +9,11 @@ export async function createLeadRepository(input: {
   phone?: string
   mail?: string | null
   waId?: string | null
+  sourceId?: string
 }) {
+  // Use provided sourceId or fetch 'direct_creation' as default
+  const sourceId = input.sourceId || (await lookupCache.getLeadSourceId('direct_creation'))
+
   return prisma.lead.create({
     data: {
       organizationId: input.organizationId,
@@ -17,6 +22,7 @@ export async function createLeadRepository(input: {
       phone: input.phone,
       mail: input.mail || null,
       waId: input.waId,
+      sourceId,
     },
   })
 }

@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db/prisma'
+import { lookupCache } from '@/lib/db/lookup-cache'
 import { logger } from '@/lib/utils/logger'
 
 /**
@@ -57,6 +58,9 @@ export async function stateSyncHandler(payload: any): Promise<void> {
     return
   }
 
+  // Get sourceId before processing contacts
+  const sourceId = await lookupCache.getLeadSourceId('direct_creation')
+
   let contactsAdded = 0
   let contactsUpdated = 0
   let contactsDeleted = 0
@@ -85,7 +89,7 @@ export async function stateSyncHandler(payload: any): Promise<void> {
       const normalizedPhone = waId.startsWith('+') ? waId : `+${waId}`
 
       if (action === 'add' || action === 'update') {
-        // UPSERT Lead with source='state_sync'
+        // UPSERT Lead
         const lead = await prisma.lead.upsert({
           where: {
             organizationId_waId: {
@@ -99,7 +103,7 @@ export async function stateSyncHandler(payload: any): Promise<void> {
             waId,
             phone: normalizedPhone,
             pushName: displayName,
-            source: 'state_sync', // ✅ Mark as state sync source
+            sourceId,
             lastSyncedAt: new Date(),
             isActive: true,
           },
@@ -108,7 +112,7 @@ export async function stateSyncHandler(payload: any): Promise<void> {
             pushName: displayName,
             lastSyncedAt: new Date(),
             isActive: true,
-            deletedAt: null, // Reactivate if was deleted
+            deletedAt: null,
           },
         })
 
