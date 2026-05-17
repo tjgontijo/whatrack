@@ -23,7 +23,6 @@ export async function listLeadsService(input: {
     q,
     page: parsed.page,
     pageSize: parsed.pageSize,
-    dateRange: parsed.dateRange,
     dateFilter: resolveOptionalDateRange(parsed.dateRange),
   })
 

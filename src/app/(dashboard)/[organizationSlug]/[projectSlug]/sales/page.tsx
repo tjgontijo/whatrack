@@ -2,7 +2,7 @@
 
 import { Suspense } from 'react'
 
-import ClientSalesTable from '@/components/dashboard/sales/client-sales-table'
+import ClientSalesTable from '@/features/sales/components/client-sales-table'
 import { RefreshCw } from 'lucide-react'
 
 function TableSkeleton() {

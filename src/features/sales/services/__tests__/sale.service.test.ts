@@ -15,7 +15,7 @@ vi.mock('@/lib/db/prisma', () => ({
   prisma: prismaMock,
 }))
 
-import { createSale, listSales } from '@/services/sales/sale.service'
+import { createSale, listSales } from '@/features/sales'
 
 describe('sale.service', () => {
   beforeEach(() => {

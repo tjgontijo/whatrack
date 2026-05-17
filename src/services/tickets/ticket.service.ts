@@ -3,7 +3,7 @@ import { Prisma } from '@generated/prisma/client'
 import { prisma } from '@/lib/db/prisma'
 import { ensureProjectBelongsToOrganization } from '@/server/project/project-scope'
 import { metaCapiService } from '@/services/meta-ads/capi.service'
-import { syncCompletedSaleForTicket } from '@/services/sales/sale.service'
+import { syncCompletedSaleForTicket } from '@/features/sales'
 import { getDefaultTicketStage } from './ensure-ticket-stages'
 import { logger } from '@/lib/utils/logger'
 
