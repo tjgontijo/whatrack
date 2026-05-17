@@ -1,4 +1,4 @@
-import { MetaAdsPageContent } from '@/components/dashboard/meta-ads/meta-ads-page-content'
+import { MetaAdsPageContent } from '@/features/meta-ads/components/meta-ads-page-content'
 import { requireWorkspacePageAccess } from '@/server/auth/require-workspace-page-access'
 
 type MetaAdsPageProps = {

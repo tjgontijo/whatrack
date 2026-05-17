@@ -18,7 +18,7 @@ vi.mock('@/components/dashboard/whatsapp/settings/whatsapp-settings-page', () =>
   ),
 }))
 
-vi.mock('@/components/dashboard/meta-ads/settings/meta-ads-settings-content', () => ({
+vi.mock('@/features/meta-ads/components/settings/meta-ads-settings-content', () => ({
   MetaAdsSettingsContent: ({ organizationId }: { organizationId?: string }) => (
     <div>meta-ads:{organizationId}</div>
   ),
