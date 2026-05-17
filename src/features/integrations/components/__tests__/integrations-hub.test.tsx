@@ -24,7 +24,7 @@ vi.mock('@/components/dashboard/meta-ads/settings/meta-ads-settings-content', ()
   ),
 }))
 
-import { IntegrationsHub } from '@/components/dashboard/integrations/integrations-hub'
+import { IntegrationsHub } from '@/features/integrations/components/integrations-hub'
 
 describe('IntegrationsHub', () => {
   beforeEach(() => {
