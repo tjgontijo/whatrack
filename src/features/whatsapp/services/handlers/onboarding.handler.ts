@@ -116,46 +116,53 @@ export async function onboardingHandler(payload: any, eventType: string): Promis
         }
       )
 
-      // PROACTIVE SYNC: Create the WhatsAppConfig immediately if we have the phone_number_id
+      // PROACTIVE SYNC: Create WhatsAppConfig(s) immediately
+      // If webhook includes phone_number_id, create only that config.
+      // Otherwise, fetch all phones from WABA as fallback.
       const specificPhoneId = value.waba_info?.phone_number_id
-      if (specificPhoneId) {
-        logger.info({ specificPhoneId, wabaId }, '[OnboardingHandler] Proactively creating WhatsAppConfig from Webhook')
-        try {
-          const { MetaCloudService } = await import('@/features/whatsapp/services/meta-cloud.service')
-          const phones = await MetaCloudService.listPhoneNumbers({ wabaId })
-          const targetPhone = phones.find((p: any) => p.id === specificPhoneId)
+      try {
+        const { MetaCloudService } = await import('@/features/whatsapp/services/meta-cloud.service')
+        const allPhones = await MetaCloudService.listPhoneNumbers({ wabaId })
 
-          if (targetPhone) {
-            await prisma.whatsAppConfig.upsert({
-              where: { phoneId: specificPhoneId },
-              create: {
-                organizationId: onboarding.organizationId,
-                projectId: onboarding.projectId,
-                connectionId: connection.id,
-                wabaId,
-                phoneId: specificPhoneId,
-                displayPhone: targetPhone.display_phone_number || 'Unknown',
-                verifiedName: targetPhone.verified_name || 'WhatsApp Business',
-                status: 'connected',
-                tokenStatus: 'valid',
-                connectedAt: new Date(),
-              },
-              update: {
-                organizationId: onboarding.organizationId,
-                projectId: onboarding.projectId,
-                connectionId: connection.id,
-                wabaId,
-                displayPhone: targetPhone.display_phone_number || 'Unknown',
-                verifiedName: targetPhone.verified_name || 'WhatsApp Business',
-                status: 'connected',
-                tokenStatus: 'valid',
-              },
-            })
-            logger.info(`[OnboardingHandler] ✅ WhatsAppConfig created for phone ${specificPhoneId}`)
-          }
-        } catch (err) {
-          logger.error({ err }, '[OnboardingHandler] Error during proactive phone sync')
+        const phonesToSync = specificPhoneId
+          ? allPhones.filter((p: any) => p.id === specificPhoneId)
+          : allPhones
+
+        logger.info(
+          { specificPhoneId, total: allPhones.length, syncing: phonesToSync.length },
+          '[OnboardingHandler] Proactive phone sync from Webhook'
+        )
+
+        for (const phone of phonesToSync) {
+          await prisma.whatsAppConfig.upsert({
+            where: { phoneId: phone.id },
+            create: {
+              organizationId: onboarding.organizationId,
+              projectId: onboarding.projectId,
+              connectionId: connection.id,
+              wabaId,
+              phoneId: phone.id,
+              displayPhone: phone.display_phone_number || 'Unknown',
+              verifiedName: phone.verified_name || 'WhatsApp Business',
+              status: 'connected',
+              tokenStatus: 'valid',
+              connectedAt: new Date(),
+            },
+            update: {
+              organizationId: onboarding.organizationId,
+              projectId: onboarding.projectId,
+              connectionId: connection.id,
+              wabaId,
+              displayPhone: phone.display_phone_number || 'Unknown',
+              verifiedName: phone.verified_name || 'WhatsApp Business',
+              status: 'connected',
+              tokenStatus: 'valid',
+            },
+          })
+          logger.info(`[OnboardingHandler] ✅ WhatsAppConfig synced for phone ${phone.id}`)
         }
+      } catch (err) {
+        logger.error({ err }, '[OnboardingHandler] Error during proactive phone sync')
       }
 
       logger.info(
@@ -295,45 +302,54 @@ export async function onboardingHandler(payload: any, eventType: string): Promis
         metadata: { wabaId, ownerBusinessId },
       })
 
-      // PROACTIVE SYNC: Create the WhatsAppConfig immediately for Hosted ES
+      // PROACTIVE SYNC: Create WhatsAppConfig(s) immediately for Hosted ES
+      // If webhook includes phone_number_id, create only that config.
+      // Otherwise (coexistence QR flow), fetch all phones from WABA as fallback.
       const specificPhoneId = value.waba_info?.phone_number_id
-      if (specificPhoneId) {
-        logger.info({ specificPhoneId, wabaId }, '[OnboardingHandler] Proactively creating WhatsAppConfig for Hosted ES')
-        try {
-          const { MetaCloudService } = await import('@/features/whatsapp/services/meta-cloud.service')
-          const phones = await MetaCloudService.listPhoneNumbers({ wabaId })
-          const targetPhone = phones.find((p: any) => p.id === specificPhoneId)
+      try {
+        const { MetaCloudService } = await import('@/features/whatsapp/services/meta-cloud.service')
+        const allPhones = await MetaCloudService.listPhoneNumbers({ wabaId })
 
-          if (targetPhone) {
-            await prisma.whatsAppConfig.upsert({
-              where: { phoneId: specificPhoneId },
-              create: {
-                organizationId: recentOnboarding.organizationId,
-                projectId: recentOnboarding.projectId,
-                connectionId: connection.id,
-                wabaId,
-                phoneId: specificPhoneId,
-                displayPhone: targetPhone.display_phone_number || 'Unknown',
-                verifiedName: targetPhone.verified_name || 'WhatsApp Business',
-                status: 'connected',
-                tokenStatus: 'valid',
-                connectedAt: new Date(),
-              },
-              update: {
-                organizationId: recentOnboarding.organizationId,
-                projectId: recentOnboarding.projectId,
-                connectionId: connection.id,
-                wabaId,
-                displayPhone: targetPhone.display_phone_number || 'Unknown',
-                verifiedName: targetPhone.verified_name || 'WhatsApp Business',
-                status: 'connected',
-                tokenStatus: 'valid',
-              },
-            })
-          }
-        } catch (err) {
-          logger.error({ err }, '[OnboardingHandler] Error during Hosted ES proactive sync')
+        // Filter to specific phone if known, otherwise sync all
+        const phonesToSync = specificPhoneId
+          ? allPhones.filter((p: any) => p.id === specificPhoneId)
+          : allPhones
+
+        logger.info(
+          { specificPhoneId, total: allPhones.length, syncing: phonesToSync.length },
+          '[OnboardingHandler] Hosted ES proactive phone sync'
+        )
+
+        for (const phone of phonesToSync) {
+          await prisma.whatsAppConfig.upsert({
+            where: { phoneId: phone.id },
+            create: {
+              organizationId: recentOnboarding.organizationId,
+              projectId: recentOnboarding.projectId,
+              connectionId: connection.id,
+              wabaId,
+              phoneId: phone.id,
+              displayPhone: phone.display_phone_number || 'Unknown',
+              verifiedName: phone.verified_name || 'WhatsApp Business',
+              status: 'connected',
+              tokenStatus: 'valid',
+              connectedAt: new Date(),
+            },
+            update: {
+              organizationId: recentOnboarding.organizationId,
+              projectId: recentOnboarding.projectId,
+              connectionId: connection.id,
+              wabaId,
+              displayPhone: phone.display_phone_number || 'Unknown',
+              verifiedName: phone.verified_name || 'WhatsApp Business',
+              status: 'connected',
+              tokenStatus: 'valid',
+            },
+          })
+          logger.info(`[OnboardingHandler] ✅ WhatsAppConfig synced for phone ${phone.id}`)
         }
+      } catch (err) {
+        logger.error({ err }, '[OnboardingHandler] Error during Hosted ES proactive sync')
       }
 
       logger.info(
