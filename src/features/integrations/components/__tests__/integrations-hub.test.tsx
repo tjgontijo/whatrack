@@ -12,7 +12,7 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => searchParamsMock(),
 }))
 
-vi.mock('@/components/dashboard/whatsapp/settings/whatsapp-settings-page', () => ({
+vi.mock('@/features/whatsapp/components/settings/whatsapp-settings-hub', () => ({
   WhatsAppSettingsPage: ({ organizationId }: { organizationId?: string }) => (
     <div>whatsapp:{organizationId}</div>
   ),

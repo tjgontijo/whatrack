@@ -3,7 +3,7 @@ import {
   translateAccountEvent,
   translateMessageType,
   translateStatus,
-} from '@/components/dashboard/whatsapp/settings/webhook-payload-formatter'
+} from '@/features/whatsapp/components/settings/webhook-payload-formatter'
 
 describe('webhook payload formatter helpers', () => {
   it('translates known message types', () => {

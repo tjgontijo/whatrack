@@ -1,4 +1,4 @@
-import { WhatsAppSettingsHub } from '@/components/dashboard/whatsapp/settings/whatsapp-settings-hub'
+import { WhatsAppSettingsHub } from '@/features/whatsapp/components/settings/whatsapp-settings-hub'
 import { requireWorkspacePageAccess } from '@/server/auth/require-workspace-page-access'
 
 type SettingsWhatsAppPageProps = {

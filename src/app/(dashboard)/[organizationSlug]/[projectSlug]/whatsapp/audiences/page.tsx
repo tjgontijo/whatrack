@@ -1,5 +1,5 @@
 import React from 'react'
-import { AudiencesPage } from '@/components/dashboard/whatsapp/audiences/audiences-page'
+import { AudiencesPage } from '@/features/whatsapp/components/audiences/audiences-page'
 
 export default function WhatsAppAudiencesPage() {
   return <AudiencesPage />

@@ -11,10 +11,10 @@ import { apiFetch } from '@/lib/api-client'
 import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
 import { useRealtime } from '@/hooks/whatsapp/use-realtime'
 
-import { ChatList } from '@/components/dashboard/whatsapp/inbox/chat-list'
-import { ChatWindow } from '@/components/dashboard/whatsapp/inbox/chat-window'
-import { TicketPanel } from '@/components/dashboard/whatsapp/inbox/ticket-panel'
-import { ChatItem, ChatListResponse } from '@/components/dashboard/whatsapp/inbox/types'
+import { ChatList } from '@/features/whatsapp/components/inbox/chat-list'
+import { ChatWindow } from '@/features/whatsapp/components/inbox/chat-window'
+import { TicketPanel } from '@/features/whatsapp/components/inbox/ticket-panel'
+import { ChatItem, ChatListResponse } from '@/features/whatsapp/components/inbox/types'
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable'
 
 export default function WhatsAppInboxPage() {

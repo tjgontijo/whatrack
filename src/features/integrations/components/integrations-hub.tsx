@@ -5,7 +5,7 @@ import { MessageSquare, Plug, TrendingUp } from 'lucide-react'
 
 import { SectionHeader, SectionTabsList, SectionTabsTrigger } from '@/features/dashboard/components/layout'
 import { MetaAdsSettingsContent } from '@/features/meta-ads/components/settings/meta-ads-settings-content'
-import { WhatsAppSettingsHub } from '@/components/dashboard/whatsapp/settings/whatsapp-settings-hub'
+import { WhatsAppSettingsHub } from '@/features/whatsapp/components/settings/whatsapp-settings-hub'
 import { Tabs, TabsContent } from '@/components/ui/tabs'
 
 type IntegrationsHubProps = {
