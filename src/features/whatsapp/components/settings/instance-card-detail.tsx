@@ -107,7 +107,7 @@ export function InstanceCardDetail({ instance, onSendTestClick, onDisconnectClic
   const parsed = parsePhoneNumberFromString(clean)
   const formattedPhone = parsed?.formatInternational() ?? instance.displayPhone
 
-  const statusCfg = STATUS[instance.status as keyof typeof STATUS] ?? STATUS.PENDING
+  const statusCfg = STATUS[instance.status?.toUpperCase() as keyof typeof STATUS] ?? STATUS.PENDING
   const qualityCfg = QUALITY[instance.qualityRating as keyof typeof QUALITY] ?? null
 
   return (
