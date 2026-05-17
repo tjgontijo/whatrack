@@ -4,7 +4,7 @@ import {
   deactivateItemCategoryRepository,
   deleteItemCategoryRepository,
   findItemCategoryDeleteContextRepository,
-} from '@/features/item-categories/repositories/item-category.repository'
+} from '@/features/item-categories/repositories'
 import type { DeleteItemCategoryResult } from '@/features/item-categories/types'
 
 export async function deleteItemCategoryService(input: {

@@ -8,7 +8,7 @@ import { updateItemCategorySchema } from '@/features/item-categories/schemas/ite
 import {
   findItemCategorySummaryRepository,
   updateItemCategoryRepository,
-} from '@/features/item-categories/repositories/item-category.repository'
+} from '@/features/item-categories/repositories'
 import type {
   CategoryConflictError,
   CategoryNotFoundError,

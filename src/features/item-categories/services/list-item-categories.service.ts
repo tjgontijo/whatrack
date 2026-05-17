@@ -3,7 +3,7 @@ import 'server-only'
 import { resolveProjectScope } from '@/server/project/project-scope'
 
 import { itemCategoryListQuerySchema } from '@/features/item-categories/schemas/item-category.schemas'
-import { listItemCategoriesRepository } from '@/features/item-categories/repositories/item-category.repository'
+import { listItemCategoriesRepository } from '@/features/item-categories/repositories'
 import { normalizePage, normalizePageSize, toItemCategoryListItem } from '@/features/item-categories/services/shared'
 import type { ItemCategoryListResponse } from '@/features/item-categories/types'
 
