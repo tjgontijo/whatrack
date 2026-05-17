@@ -3,8 +3,8 @@ import { NextResponse } from 'next/server'
 import { apiError } from '@/lib/utils/api-response'
 import { validateFullAccess, validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { resolveProjectScope } from '@/server/project/project-scope'
-import { createTicketStageSchema } from '@/schemas/tickets/ticket-stage-schemas'
-import { createTicketStage, listTicketStages } from '@/services/ticket-stages/ticket-stage.service'
+import { createTicketStageSchema } from '@/features/ticket-stages/schemas/ticket-stage.schemas'
+import { createTicketStage, listTicketStages } from '@/features/ticket-stages/services/ticket-stage.service'
 import { logger } from '@/lib/utils/logger'
 
 export async function GET(req: Request) {

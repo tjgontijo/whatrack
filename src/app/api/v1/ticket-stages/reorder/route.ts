@@ -3,8 +3,8 @@ import { NextResponse } from 'next/server'
 import { apiError } from '@/lib/utils/api-response'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { resolveProjectScope } from '@/server/project/project-scope'
-import { reorderTicketStageSchema } from '@/schemas/tickets/ticket-stage-schemas'
-import { reorderTicketStages } from '@/services/ticket-stages/ticket-stage.service'
+import { reorderTicketStageSchema } from '@/features/ticket-stages/schemas/ticket-stage.schemas'
+import { reorderTicketStages } from '@/features/ticket-stages/services/ticket-stage.service'
 import { logger } from '@/lib/utils/logger'
 
 export async function PUT(req: Request) {

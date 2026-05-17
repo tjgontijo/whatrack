@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/db/prisma'
-import { getDefaultTicketStage } from '@/services/tickets/ensure-ticket-stages'
+import { getDefaultTicketStage } from '@/features/tickets/services/ensure-ticket-stages'
 import { logger } from '@/lib/utils/logger'
 
 const WINDOW_MS = 24 * 60 * 60 * 1000

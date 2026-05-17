@@ -5,8 +5,8 @@ import { revalidateTag } from 'next/cache'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { resolveProjectScope } from '@/server/project/project-scope'
 import { isDateRangePreset, resolveDateRange } from '@/lib/date/date-range'
-import { ticketsQuerySchema, createTicketSchema } from '@/schemas/tickets/ticket-schemas'
-import { listTickets, createTicket } from '@/services/tickets/ticket.service'
+import { ticketsQuerySchema, createTicketSchema } from '@/features/tickets/schemas/ticket.schemas'
+import { listTickets, createTicket } from '@/features/tickets/services/ticket.service'
 import { logger } from '@/lib/utils/logger'
 
 export async function GET(req: Request) {

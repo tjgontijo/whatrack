@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/db/prisma'
-import { getDefaultTicketStage } from '@/services/tickets/ensure-ticket-stages'
+import { getDefaultTicketStage } from '@/features/tickets/services/ensure-ticket-stages'
 import { publishToCentrifugo } from '@/lib/centrifugo/server'
 import { metaAdEnrichmentService } from '@/services/meta-ads/ad-enrichment.service'
 import { logger } from '@/lib/utils/logger'

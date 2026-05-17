@@ -23,7 +23,7 @@ import {
   deleteTicketStage,
   reorderTicketStages,
   updateTicketStage,
-} from '@/services/ticket-stages/ticket-stage.service'
+} from '@/features/ticket-stages/services/ticket-stage.service'
 
 describe('ticket-stage.service', () => {
   beforeEach(() => {

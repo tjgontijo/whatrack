@@ -45,7 +45,7 @@ import {
   closeTicket,
   listTickets,
   updateTicketAndTrackCapi,
-} from '@/services/tickets/ticket.service'
+} from '@/features/tickets/services/ticket.service'
 
 describe('ticket.service', () => {
   beforeEach(() => {

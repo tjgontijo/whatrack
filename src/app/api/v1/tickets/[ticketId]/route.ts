@@ -4,8 +4,8 @@ import { revalidateTag } from 'next/cache'
 
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { resolveProjectScope } from '@/server/project/project-scope'
-import { updateTicketSchema } from '@/schemas/tickets/ticket-schemas'
-import { getTicketById, updateTicketAndTrackCapi } from '@/services/tickets/ticket.service'
+import { updateTicketSchema } from '@/features/tickets/schemas/ticket.schemas'
+import { getTicketById, updateTicketAndTrackCapi } from '@/features/tickets/services/ticket.service'
 import { logger } from '@/lib/utils/logger'
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ ticketId: string }> }) {
