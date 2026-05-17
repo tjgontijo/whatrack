@@ -18,9 +18,10 @@ export async function POST(request: Request) {
 
     const { code, state } = validation.data
 
+    // Pass null as baseUrl — JS SDK flow omits redirect_uri in token exchange
     const result = await handleWhatsAppOnboardingCallback(
       { code, state, error: null, errorDescription: null },
-      new URL(request.url).origin
+      null
     )
 
     if (!result.success) {

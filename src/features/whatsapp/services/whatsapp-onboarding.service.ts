@@ -159,7 +159,7 @@ export async function createWhatsAppConfigFromOnboarding(
 
 export async function handleWhatsAppOnboardingCallback(
   input: HandleOnboardingCallbackInput,
-  baseUrl?: string
+  baseUrl?: string | null
 ): Promise<HandleOnboardingCallbackResult> {
   if (input.error) {
     const message = `${input.error}: ${input.errorDescription || 'Unknown error'}`
@@ -201,7 +201,8 @@ export async function handleWhatsAppOnboardingCallback(
 
   let accessToken = ''
   try {
-    const redirectUri = baseUrl ? `${baseUrl}/api/v1/whatsapp/onboarding/callback` : undefined
+    // null = JS SDK flow (omit redirect_uri), undefined/string = server-side redirect flow
+    const redirectUri = baseUrl === null ? null : baseUrl ? `${baseUrl}/api/v1/whatsapp/onboarding/callback` : undefined
     const tokenData = await MetaCloudService.exchangeCodeForToken(input.code, redirectUri)
     accessToken = tokenData.access_token
   } catch (error) {
