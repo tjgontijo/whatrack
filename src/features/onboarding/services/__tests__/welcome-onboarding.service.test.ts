@@ -48,7 +48,7 @@ vi.mock('@/server/organization/organization-rbac.service', () => ({
   ensureSystemRolesForOrganization: ensureSystemRolesForOrganizationMock,
 }))
 
-import { completeWelcomeOnboarding } from '@/services/onboarding/welcome-onboarding.service'
+import { completeWelcomeOnboarding } from '@/features/onboarding/services/welcome-onboarding.service'
 
 describe('completeWelcomeOnboarding', () => {
   beforeEach(() => {

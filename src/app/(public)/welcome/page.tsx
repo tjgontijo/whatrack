@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 
 import { getServerSession } from '@/server/auth/server-session'
 import { resolveDefaultWorkspacePath } from '@/server/navigation/resolve-default-workspace-path'
-import { getWelcomeState } from '@/services/onboarding/welcome-query.service'
+import { getWelcomeState } from '@/features/onboarding/services/welcome-query.service'
 import { WelcomePageContent } from '@/components/welcome/welcome-page-content'
 
 export const dynamic = 'force-dynamic'

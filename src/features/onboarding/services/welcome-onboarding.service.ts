@@ -6,7 +6,7 @@ import { normalizeSlug } from '@/lib/utils/slug'
 import { getDefaultTrialBillingPlan } from '@/features/billing/services/billing-plan-catalog.service'
 import { startOrganizationTrial } from '@/features/billing/services/billing-subscription.service'
 import { ensureSystemRolesForOrganization } from '@/server/organization/organization-rbac.service'
-import type { WelcomeOnboardingInput } from '@/schemas/onboarding/welcome-onboarding'
+import type { WelcomeOnboardingInput } from '@/features/onboarding/schemas/welcome-onboarding.schemas'
 import type { CompanyLookupData } from '@/features/organizations/schemas/organization-onboarding'
 
 type WelcomeUser = {

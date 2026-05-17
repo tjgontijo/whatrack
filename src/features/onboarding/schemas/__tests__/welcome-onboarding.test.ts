@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { welcomeOnboardingSchema } from '@/schemas/onboarding/welcome-onboarding'
+import { welcomeOnboardingSchema } from '@/features/onboarding/schemas/welcome-onboarding.schemas'
 
 describe('welcomeOnboardingSchema', () => {
   it('accepts pessoa fisica payload with valid cpf', () => {

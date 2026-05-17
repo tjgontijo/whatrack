@@ -4,7 +4,7 @@ import { nanoid } from 'nanoid'
 import { prisma } from '@/lib/db/prisma'
 import { normalizeSlug } from '@/lib/utils/slug'
 import { auditService } from '@/services/audit/audit.service'
-import { calculateMetrics } from '@/services/onboarding-metrics/metrics-calculator'
+import { calculateMetrics } from '@/features/onboarding/services/metrics/metrics-calculator'
 import {
   normalizeOnboardingDocument,
   type OrganizationOnboardingInput,
