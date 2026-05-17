@@ -366,6 +366,7 @@ model Member {
   permissionOverrides MemberPermissionOverride[]
   user                User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@unique([organizationId, userId])
   @@index([organizationId, role])
   @@map("org_members")
 }

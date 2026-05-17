@@ -7,6 +7,7 @@ import { seedBillingPlans } from './seed_billing_plans'
 import { seedBillingOffers } from './seed_billing_offers'
 import { seedBillingPlanHistory } from './seed_billing_plan_history'
 import { seedSystemOrg } from './seed_system_org'
+import { seedAdminUser } from './seed_admin_user'
 
 interface PgTableRow {
   tablename: string
@@ -101,6 +102,9 @@ export async function runSeed() {
 
     // 2. Setup ticket stages for all organizations
     await seedTicketStages(prisma)
+
+    // 3. Seed admin user
+    await seedAdminUser(prisma)
 
     console.log('✅ Seed concluído com sucesso!')
   } catch (error) {

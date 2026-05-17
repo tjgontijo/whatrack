@@ -1,6 +1,4 @@
-import 'server-only'
-
-import { requireEnv } from '@/lib/env/require-env.server'
+import { requireEnv } from '@/lib/env/require-env'
 
 /**
  * Server-only helper for email/template branding.

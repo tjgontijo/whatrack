@@ -1,6 +1,6 @@
 // src/lib/mail/resend.ts
 import { Resend } from 'resend'
-import { requireEnv } from '@/lib/env/require-env.server'
+import { requireEnv } from '@/lib/env/require-env'
 import { EmailPayload, EmailResponse, EmailProvider } from './types'
 import { logger } from '@/lib/utils/logger'
 

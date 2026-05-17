@@ -4,7 +4,7 @@ import { admin, organization } from 'better-auth/plugins'
 import { randomUUID } from 'crypto'
 
 import { prisma } from '../db/prisma'
-import { requireEnv } from '../env/require-env.server'
+import { requireEnv } from '../env/require-env'
 import { authDeliveryService } from '@/services/delivery/auth-delivery'
 import { auditService } from '@/services/audit/audit.service'
 import { logger } from '@/lib/utils/logger'
