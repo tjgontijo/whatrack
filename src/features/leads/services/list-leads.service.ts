@@ -3,7 +3,7 @@ import 'server-only'
 import { resolveProjectScope } from '@/server/project/project-scope'
 
 import { leadsQuerySchema, leadsResponseSchema } from '@/features/leads/schemas/lead.schemas'
-import { listLeadsRepository } from '@/features/leads/repositories/lead.repository'
+import { listLeadsRepository } from '@/features/leads/repositories'
 import { resolveOptionalDateRange } from '@/features/leads/services/shared'
 
 export async function listLeadsService(input: {

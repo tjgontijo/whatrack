@@ -3,7 +3,7 @@ import 'server-only'
 import { ensureProjectBelongsToOrganization, resolveProjectScope } from '@/server/project/project-scope'
 
 import { createLeadSchema } from '@/features/leads/schemas/lead.schemas'
-import { createLeadRepository } from '@/features/leads/repositories/lead.repository'
+import { createLeadRepository } from '@/features/leads/repositories'
 import { rethrowLeadConflict } from '@/features/leads/services/shared'
 
 export async function createLeadService(input: {

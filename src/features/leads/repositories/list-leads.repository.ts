@@ -1,28 +1,7 @@
 import 'server-only'
 
 import { Prisma } from '@generated/prisma/client'
-
 import { prisma } from '@/lib/db/prisma'
-
-export async function createLeadRepository(input: {
-  organizationId: string
-  projectId?: string | null
-  name?: string
-  phone?: string
-  mail?: string | null
-  waId?: string | null
-}) {
-  return prisma.lead.create({
-    data: {
-      organizationId: input.organizationId,
-      projectId: input.projectId ?? null,
-      name: input.name,
-      phone: input.phone,
-      mail: input.mail || null,
-      waId: input.waId,
-    },
-  })
-}
 
 export async function listLeadsRepository(input: {
   organizationId: string
@@ -30,7 +9,6 @@ export async function listLeadsRepository(input: {
   q: string
   page: number
   pageSize: number
-  dateRange?: string
   dateFilter?: { gte: Date; lte: Date } | null
 }) {
   const filters: Prisma.LeadWhereInput[] = []
@@ -55,7 +33,6 @@ export async function listLeadsRepository(input: {
     organizationId: input.organizationId,
     ...(input.projectId ? { projectId: input.projectId } : {}),
   }
-
   const where: Prisma.LeadWhereInput = filters.length > 0 ? { AND: [baseWhere, ...filters] } : baseWhere
 
   const [items, total] = await Promise.all([
@@ -71,11 +48,7 @@ export async function listLeadsRepository(input: {
         mail: true,
         waId: true,
         projectId: true,
-        project: {
-          select: {
-            name: true,
-          },
-        },
+        project: { select: { name: true } },
         createdAt: true,
       },
     }),
@@ -83,32 +56,4 @@ export async function listLeadsRepository(input: {
   ])
 
   return { items, total }
-}
-
-export async function findLeadByIdRepository(organizationId: string, leadId: string) {
-  return prisma.lead.findFirst({ where: { id: leadId, organizationId } })
-}
-
-export async function updateLeadRepository(input: {
-  leadId: string
-  projectId?: string | null
-  name?: string
-  phone?: string
-  mail?: string | null
-  waId?: string | null
-}) {
-  return prisma.lead.update({
-    where: { id: input.leadId },
-    data: {
-      name: input.name,
-      phone: input.phone,
-      mail: input.mail ?? undefined,
-      waId: input.waId,
-      ...(typeof input.projectId !== 'undefined' ? { projectId: input.projectId } : {}),
-    },
-  })
-}
-
-export async function deleteLeadRepository(leadId: string) {
-  await prisma.lead.delete({ where: { id: leadId } })
 }

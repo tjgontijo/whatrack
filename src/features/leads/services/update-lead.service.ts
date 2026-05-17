@@ -3,7 +3,7 @@ import 'server-only'
 import { ensureProjectBelongsToOrganization, resolveProjectScope } from '@/server/project/project-scope'
 
 import { updateLeadSchema } from '@/features/leads/schemas/lead.schemas'
-import { findLeadByIdRepository, updateLeadRepository } from '@/features/leads/repositories/lead.repository'
+import { findLeadByIdRepository, updateLeadRepository } from '@/features/leads/repositories'
 import { rethrowLeadConflict } from '@/features/leads/services/shared'
 
 export async function updateLeadService(input: {

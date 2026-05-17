@@ -1,6 +1,6 @@
 import 'server-only'
 
-import { deleteLeadRepository, findLeadByIdRepository } from '@/features/leads/repositories/lead.repository'
+import { deleteLeadRepository, findLeadByIdRepository } from '@/features/leads/repositories'
 
 export async function deleteLeadService(input: {
   organizationId: string

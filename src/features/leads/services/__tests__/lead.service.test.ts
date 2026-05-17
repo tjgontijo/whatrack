@@ -15,7 +15,7 @@ vi.mock('@/lib/db/prisma', () => ({
   prisma: prismaMock,
 }))
 
-import { createLead, LeadConflictError, listLeads } from '@/services/leads/lead.service'
+import { createLead, LeadConflictError, listLeads } from '@/features/leads'
 
 describe('lead.service', () => {
   beforeEach(() => {
