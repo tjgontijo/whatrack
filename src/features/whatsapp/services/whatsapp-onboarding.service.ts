@@ -1,5 +1,3 @@
-import { createId } from '@paralleldrive/cuid2'
-
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/utils/logger'
 import { encryption } from '@/lib/utils/encryption'
@@ -22,18 +20,19 @@ export async function createWhatsAppOnboardingSession(
   projectId: string,
   baseUrl?: string
 ): Promise<CreateOnboardingSessionResult | { error: string }> {
-  const trackingCode = createId()
   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000)
 
-  await prisma.whatsAppOnboarding.create({
+  const onboarding = await prisma.whatsAppOnboarding.create({
     data: {
       organizationId,
       projectId,
-      trackingCode,
       expiresAt,
       status: 'pending',
     },
+    select: { trackingCode: true },
   })
+
+  const trackingCode = onboarding.trackingCode
 
   const metaAppId = process.env.NEXT_PUBLIC_META_APP_ID
   const metaConfigId = process.env.NEXT_PUBLIC_META_CONFIG_ID

@@ -771,7 +771,7 @@ model WhatsAppOnboarding {
   id                String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   organizationId    String                   @db.Uuid
   projectId         String                   @db.Uuid
-  trackingCode      String                   @unique
+  trackingCode      String                   @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   authorizationCode String?
   status            String                   @default("pending")
   initiatedAt       DateTime                 @default(now())
