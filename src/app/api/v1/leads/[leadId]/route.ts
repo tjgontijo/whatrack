@@ -1,27 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError } from '@/lib/utils/api-response'
-import { resolveProjectScope } from '@/server/project/project-scope'
 
-import { updateLeadSchema } from '@/schemas/leads/lead-schemas'
-import {
-  deleteLead,
-  getLeadById,
-  LeadConflictError,
-  updateLead,
-} from '@/services/leads/lead.service'
-import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import { apiError } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import { deleteLeadService, getLeadByIdService, updateLeadService } from '@/features/leads/server'
+import { LeadConflictError } from '@/features/leads'
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ leadId: string }> }) {
   const access = await validateFullAccess(req)
   if (!access.hasAccess || !access.organizationId) {
     return apiError(access.error ?? 'Acesso negado', 403)
   }
-  const organizationId = access.organizationId
+
   const { leadId } = await params
 
   try {
-    const lead = await getLeadById(organizationId, leadId)
+    const lead = await getLeadByIdService(access.organizationId, leadId)
 
     if (!lead) {
       return apiError('Lead não encontrado', 404)
@@ -39,26 +33,17 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ lead
   if (!access.hasAccess || !access.organizationId) {
     return apiError(access.error ?? 'Acesso negado', 403)
   }
-  const organizationId = access.organizationId
+
   const { leadId } = await params
 
   try {
-    const body = await req.json()
-    const validated = updateLeadSchema.parse(body)
-    const projectId =
-      typeof validated.projectId !== 'undefined'
-        ? await resolveProjectScope({
-            organizationId,
-            projectId: validated.projectId,
-          })
-        : undefined
-
-    const updated = await updateLead({
-      organizationId,
+    const payload = await req.json()
+    const updated = await updateLeadService({
+      organizationId: access.organizationId,
       leadId,
-      projectId,
-      input: validated,
+      payload,
     })
+
     if (!updated) {
       return apiError('Lead não encontrado', 404)
     }
@@ -88,14 +73,15 @@ export async function DELETE(
   if (!access.hasAccess || !access.organizationId) {
     return apiError(access.error ?? 'Acesso negado', 403)
   }
-  const organizationId = access.organizationId
+
   const { leadId } = await params
 
   try {
-    const deleted = await deleteLead({
-      organizationId,
+    const deleted = await deleteLeadService({
+      organizationId: access.organizationId,
       leadId,
     })
+
     if (!deleted) {
       return apiError('Lead não encontrado', 404)
     }

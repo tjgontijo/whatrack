@@ -1,32 +1,22 @@
 import { NextResponse } from 'next/server'
+
 import { apiError } from '@/lib/utils/api-response'
-import { resolveProjectScope } from '@/server/project/project-scope'
-import {
-  createLeadSchema,
-  leadsQuerySchema,
-} from '@/schemas/leads/lead-schemas'
-import { createLead, LeadConflictError, listLeads } from '@/services/leads/lead.service'
-import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { logger } from '@/lib/utils/logger'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import { createLeadService, listLeadsService } from '@/features/leads/server'
+import { LeadConflictError } from '@/features/leads'
 
 export async function POST(req: Request) {
   const access = await validateFullAccess(req)
   if (!access.hasAccess || !access.organizationId) {
     return apiError(access.error ?? 'Acesso negado', 403)
   }
-  const organizationId = access.organizationId
 
   try {
-    const body = await req.json()
-    const validated = createLeadSchema.parse(body)
-    const projectId = await resolveProjectScope({
-      organizationId,
-      projectId: validated.projectId,
-    })
-    const lead = await createLead({
-      organizationId,
-      projectId,
-      input: validated,
+    const payload = await req.json()
+    const lead = await createLeadService({
+      organizationId: access.organizationId,
+      payload,
     })
 
     return NextResponse.json(lead, { status: 201 })
@@ -53,25 +43,13 @@ export async function GET(req: Request) {
   if (!access.hasAccess || !access.organizationId) {
     return apiError(access.error ?? 'Acesso negado', 403)
   }
-  const organizationId = access.organizationId
 
   const { searchParams } = new URL(req.url)
-  const parsed = leadsQuerySchema.safeParse(Object.fromEntries(searchParams))
-  if (!parsed.success) {
-    return apiError('Parâmetros inválidos', 400, undefined, { details: parsed.error.flatten() })
-  }
 
   try {
-    const payload = await listLeads({
-      organizationId,
-      projectId: await resolveProjectScope({
-        organizationId,
-        projectId: parsed.data.projectId,
-      }),
-      q: parsed.data.q,
-      page: parsed.data.page,
-      pageSize: parsed.data.pageSize,
-      dateRange: parsed.data.dateRange,
+    const payload = await listLeadsService({
+      organizationId: access.organizationId,
+      filters: Object.fromEntries(searchParams),
     })
 
     return NextResponse.json(payload)
