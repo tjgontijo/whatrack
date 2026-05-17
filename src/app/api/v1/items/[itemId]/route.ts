@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError } from '@/lib/utils/api-response'
 
-import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { resolveProjectScope } from '@/server/project/project-scope'
-import { updateItemSchema } from '@/schemas/items/item-schemas'
-import { deleteItem, getItemById, updateItem } from '@/services/items/item.service'
+import { apiError } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import { deleteItemService, getItemByIdService, updateItemService } from '@/features/items/server'
 
 export async function GET(
   req: NextRequest,
@@ -15,11 +13,15 @@ export async function GET(
   if (!access.hasAccess || !access.organizationId) {
     return apiError(access.error ?? 'Acesso negado', 403)
   }
-  const organizationId = access.organizationId
+
   const { itemId } = await params
 
   try {
-    const item = await getItemById({ organizationId, itemId })
+    const item = await getItemByIdService({
+      organizationId: access.organizationId,
+      itemId,
+    })
+
     if (!item) {
       return apiError('Item não encontrado', 404)
     }
@@ -39,27 +41,15 @@ export async function PUT(
   if (!access.hasAccess || !access.organizationId) {
     return apiError(access.error ?? 'Acesso negado', 403)
   }
-  const organizationId = access.organizationId
+
   const { itemId } = await params
 
   try {
-    const body = await req.json()
-    const validated = updateItemSchema.parse(body)
-    const projectId =
-      typeof validated.projectId !== 'undefined'
-        ? await resolveProjectScope({
-            organizationId,
-            projectId: validated.projectId,
-          })
-        : undefined
-
-    const updated = await updateItem({
-      organizationId,
+    const payload = await req.json()
+    const updated = await updateItemService({
+      organizationId: access.organizationId,
       itemId,
-      name: validated.name,
-      categoryId: validated.categoryId,
-      active: validated.active,
-      projectId,
+      payload,
     })
 
     if ('error' in updated) {
@@ -81,12 +71,12 @@ export async function DELETE(
   if (!access.hasAccess || !access.organizationId) {
     return apiError(access.error ?? 'Acesso negado', 403)
   }
-  const organizationId = access.organizationId
+
   const { itemId } = await params
 
   try {
-    const result = await deleteItem({
-      organizationId,
+    const result = await deleteItemService({
+      organizationId: access.organizationId,
       itemId,
     })
 

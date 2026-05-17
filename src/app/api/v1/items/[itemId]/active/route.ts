@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError } from '@/lib/utils/api-response'
 
-import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { toggleItemActive } from '@/services/items/item.service'
+import { apiError } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import { toggleItemActiveService } from '@/features/items/server'
 
 export async function PATCH(
   req: NextRequest,
@@ -13,12 +13,12 @@ export async function PATCH(
   if (!access.hasAccess || !access.organizationId) {
     return apiError(access.error ?? 'Acesso negado', 403)
   }
-  const organizationId = access.organizationId
+
   const { itemId } = await params
 
   try {
-    const updated = await toggleItemActive({
-      organizationId,
+    const updated = await toggleItemActiveService({
+      organizationId: access.organizationId,
       itemId,
     })
 
