@@ -15,8 +15,8 @@ export function PipelineSettings() {
   return (
     <PageShell maxWidth='3xl'>
       <PageHeader
-        title='Pipeline'
-        description='Gerencie as fases do seu funil de deals'
+        title='Funil de Negociações'
+        description='Gerencie as fases do seu funil comercial'
         icon={Kanban}
       />
 

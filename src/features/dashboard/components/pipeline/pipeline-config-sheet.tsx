@@ -18,7 +18,7 @@ export function PipelineConfigSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side='right' className='w-full overflow-y-auto sm:max-w-md'>
         <SheetHeader className='border-border border-b pb-4'>
-          <SheetTitle>Configurar Pipeline</SheetTitle>
+          <SheetTitle>Configurar Funil</SheetTitle>
         </SheetHeader>
 
         <div className='mt-4'>

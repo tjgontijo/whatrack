@@ -357,7 +357,7 @@ export default function DealsPage() {
   return (
     <>
       <HeaderPageShell
-        title='Pipeline'
+        title='Negociações'
         selector={
           <ViewSwitcher view={view} setView={setView} enabledViews={['kanban', 'list', 'cards']} />
         }
@@ -377,7 +377,7 @@ export default function DealsPage() {
             onClick={() => setPipelineSheetOpen(true)}
           >
             <SlidersHorizontal className='h-3.5 w-3.5' />
-            Configurar pipeline
+            Configurar funil
           </Button>
         }
       >
