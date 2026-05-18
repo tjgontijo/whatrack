@@ -1,3 +1,4 @@
+import "server-only"
 interface BusinessInputs {
   leadsPerDay: string
   avgTicket: string

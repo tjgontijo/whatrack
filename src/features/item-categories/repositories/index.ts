@@ -1,3 +1,4 @@
+import "server-only"
 export { createItemCategoryRepository } from './create-item-category.repository'
 export { deactivateItemCategoryRepository } from './deactivate-item-category.repository'
 export { deleteItemCategoryRepository } from './delete-item-category.repository'

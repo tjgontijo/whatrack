@@ -1,3 +1,4 @@
+import "server-only"
 import { whatsappAuditService } from '@/features/whatsapp/services/audit.service'
 import { whatsappCache } from '@/features/whatsapp/services/cache.service'
 import { prisma } from '@/lib/db/prisma'

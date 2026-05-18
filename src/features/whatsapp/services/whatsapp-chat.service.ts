@@ -1,3 +1,4 @@
+import "server-only"
 import { getDefaultTicketStage } from '@/features/tickets/services/ensure-ticket-stages'
 import { lookupCache } from '@/lib/db/lookup-cache'
 import { prisma } from '@/lib/db/prisma'

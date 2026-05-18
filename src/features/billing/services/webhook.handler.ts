@@ -1,3 +1,4 @@
+import "server-only"
 import { type NextRequest, NextResponse } from 'next/server'
 import { mapPixAutomaticFailureReason } from '@/lib/billing/pix-failure.helper'
 import { prisma } from '@/lib/db/prisma'

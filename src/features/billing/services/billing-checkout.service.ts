@@ -1,3 +1,4 @@
+import "server-only"
 import type { CheckoutRequest } from '@/features/billing/schemas/billing-schemas'
 import { BillingPaymentService } from './payment.service'
 

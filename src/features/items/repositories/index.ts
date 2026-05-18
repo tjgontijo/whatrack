@@ -1,3 +1,4 @@
+import "server-only"
 export { createItemRepository } from './create-item.repository'
 export { deactivateItemRepository } from './deactivate-item.repository'
 export { deleteItemRepository } from './delete-item.repository'

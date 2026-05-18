@@ -1,3 +1,4 @@
+import "server-only"
 import { verifyWebhookSignature } from '@/features/whatsapp/lib/webhook-signature'
 import { whatsappWebhookVerifySchema } from '@/features/whatsapp/schemas/whatsapp-schemas'
 import { WebhookProcessor } from '@/features/whatsapp/services/webhook-processor'

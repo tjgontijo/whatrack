@@ -1,3 +1,4 @@
+import "server-only"
 import type { CreateOrganizationInvitationInput } from '@/features/organizations/schemas/organization-invitation-schemas'
 import { prisma } from '@/lib/db/prisma'
 import { requireEnv } from '@/lib/env/require-env'

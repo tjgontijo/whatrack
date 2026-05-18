@@ -1,3 +1,4 @@
+import "server-only"
 import { executeLockedCronJob } from '@/features/cron/services/cron-execution.service'
 import { webhookRetryJob } from '@/features/whatsapp/jobs/webhook-retry.job'
 

@@ -14,6 +14,7 @@ import {
   BillingCheckoutError,
   createCheckoutSession,
 } from '@/features/billing/services/billing-checkout.service'
+import { CheckoutStatusTokenService } from '@/features/billing/services/checkout-status-token.service'
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
 import { rateLimitMiddleware } from '@/lib/utils/rate-limit.middleware'
@@ -54,7 +55,26 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       remoteIp: getRequestIp(request),
     })
 
-    const response = checkoutResponseSchema.parse(checkoutSession)
+    const session = checkoutSession as typeof checkoutSession & {
+      pixAutomatic?: { authorizationId: string; [key: string]: unknown } | null
+    }
+
+    const enriched = {
+      ...session,
+      invoiceStatusToken: session.invoiceId
+        ? CheckoutStatusTokenService.createInvoiceToken(session.invoiceId)
+        : null,
+      pixAutomatic: session.pixAutomatic
+        ? {
+            ...session.pixAutomatic,
+            authorizationStatusToken: CheckoutStatusTokenService.createAuthorizationToken(
+              session.pixAutomatic.authorizationId
+            ),
+          }
+        : session.pixAutomatic,
+    }
+
+    const response = checkoutResponseSchema.parse(enriched)
 
     logger.info({ context: response }, '[API/Checkout] Asaas checkout created successfully')
     return apiSuccess(response)

@@ -1,3 +1,4 @@
+import "server-only"
 import { prisma } from '@/lib/db/prisma'
 import { encryption } from '@/lib/utils/encryption'
 import { metaApiRequest } from './meta-api'

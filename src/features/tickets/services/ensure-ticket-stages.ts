@@ -1,3 +1,4 @@
+import "server-only"
 import { DEFAULT_TICKET_STAGES } from '@/lib/constants/ticket-stages'
 
 type DbClient = any

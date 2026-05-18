@@ -1,3 +1,4 @@
+import "server-only"
 import { metaAdEnrichmentService } from '@/features/meta-ads/services/ad-enrichment.service'
 import { getDefaultTicketStage } from '@/features/tickets/services/ensure-ticket-stages'
 import { attributeInboundMessageToCampaign } from '@/features/whatsapp/services/whatsapp-campaign-attribution.service'

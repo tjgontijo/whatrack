@@ -1,3 +1,4 @@
+import "server-only"
 import crypto from 'node:crypto'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/utils/logger'

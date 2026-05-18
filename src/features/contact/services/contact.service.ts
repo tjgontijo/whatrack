@@ -1,3 +1,4 @@
+import "server-only"
 import type { ContactRequestInput } from '@/features/contact/schemas/contact.schemas'
 
 interface WebhookTracking {

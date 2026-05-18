@@ -1,3 +1,4 @@
+import "server-only"
 import type { DateRange } from '@/lib/date/date-range'
 
 export type OriginSummary = {

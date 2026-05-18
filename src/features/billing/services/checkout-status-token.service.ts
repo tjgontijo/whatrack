@@ -1,3 +1,4 @@
+import "server-only"
 import { createHmac, timingSafeEqual } from 'node:crypto'
 
 const CHECKOUT_STATUS_TOKEN_TTL_MS = 1000 * 60 * 60 * 24 // 24 hours

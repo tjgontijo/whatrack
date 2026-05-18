@@ -1,3 +1,4 @@
+import "server-only"
 export type FinancialSummaryInput = {
   totalRevenue: number
   salesCount: number

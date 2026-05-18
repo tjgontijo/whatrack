@@ -1,3 +1,4 @@
+import "server-only"
 // Note: db not directly used in processor, handlers manage database access
 
 import { logger } from '@/lib/utils/logger'

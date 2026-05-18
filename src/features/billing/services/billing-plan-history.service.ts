@@ -1,3 +1,4 @@
+import "server-only"
 import { prisma } from '@/lib/db/prisma'
 
 export type PlanChangeReason = 'trial_to_paid' | 'manual' | 'auto_upgrade' | 'downgrade'

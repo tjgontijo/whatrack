@@ -1,3 +1,4 @@
+import "server-only"
 import { stripCnpj } from '@/lib/mask/cnpj'
 
 /**

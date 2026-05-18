@@ -1,3 +1,4 @@
+import "server-only"
 import type { DashboardSummaryQueryInput } from '@/features/dashboard/schemas/dashboard-schemas'
 import { dashboardSummaryResponseSchema } from '@/features/dashboard/schemas/dashboard-summary'
 import {

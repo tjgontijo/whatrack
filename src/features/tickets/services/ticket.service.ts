@@ -1,3 +1,4 @@
+import "server-only"
 import { Prisma } from '@generated/prisma/client'
 import { metaCapiService } from '@/features/meta-ads/services/capi.service'
 import { syncCompletedSaleForTicket } from '@/features/sales'

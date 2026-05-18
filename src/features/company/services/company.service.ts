@@ -1,3 +1,4 @@
+import "server-only"
 import type { SaveCompanyInput } from '@/features/company/schemas/company.schemas'
 import { prisma } from '@/lib/db/prisma'
 import { stripCnpj } from '@/lib/mask/cnpj'

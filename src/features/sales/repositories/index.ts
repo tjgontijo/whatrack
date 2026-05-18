@@ -1,3 +1,4 @@
+import "server-only"
 export { createSaleRepository } from '@/features/sales/repositories/create-sale.repository'
 export { deleteSaleRepository } from '@/features/sales/repositories/delete-sale.repository'
 export { findSaleForDeleteRepository } from '@/features/sales/repositories/find-sale-for-delete.repository'

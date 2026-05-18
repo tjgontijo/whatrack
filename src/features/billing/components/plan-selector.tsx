@@ -16,7 +16,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import type { PublicBillingPlan } from '@/features/billing/schemas/billing-plan-schemas'
-import { CheckoutStatusTokenService } from '@/features/billing/services/checkout-status-token.service'
 import { useOrganization } from '@/features/organizations/hooks/use-organization'
 import { apiFetch } from '@/lib/api-client'
 import { cn } from '@/lib/utils/utils'
@@ -27,6 +26,7 @@ type PaymentMethod = 'CREDIT_CARD' | 'PIX' | 'PIX_AUTOMATIC'
 
 type CheckoutResult = {
   invoiceId?: string | null
+  invoiceStatusToken?: string | null
   paymentMethod: PaymentMethod
   pix?: {
     qrCodePayload: string
@@ -35,6 +35,7 @@ type CheckoutResult = {
   } | null
   pixAutomatic?: {
     authorizationId: string
+    authorizationStatusToken?: string | null
     qrCodePayload: string
     qrCodeImage?: string | null
     expirationDate?: string | null
@@ -367,7 +368,7 @@ export function PlanSelector({ plans, showHeader = true }: PlanSelectorProps) {
                 qrCodePayload={result.pix.qrCodePayload}
                 expirationDate={result.pix.expirationDate ?? null}
                 invoiceId={result.invoiceId}
-                statusToken={CheckoutStatusTokenService.createInvoiceToken(result.invoiceId)}
+                statusToken={result.invoiceStatusToken ?? ''}
                 type='pix'
               />
             ) : null}
@@ -378,9 +379,7 @@ export function PlanSelector({ plans, showHeader = true }: PlanSelectorProps) {
                 qrCodePayload={result.pixAutomatic.qrCodePayload}
                 expirationDate={result.pixAutomatic.expirationDate ?? null}
                 invoiceId={result.pixAutomatic.authorizationId}
-                statusToken={CheckoutStatusTokenService.createAuthorizationToken(
-                  result.pixAutomatic.authorizationId
-                )}
+                statusToken={result.pixAutomatic.authorizationStatusToken ?? ''}
                 type='pix_automatic'
               />
             ) : null}

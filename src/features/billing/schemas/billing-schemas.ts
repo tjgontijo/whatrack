@@ -55,6 +55,7 @@ export const checkoutResponseSchema = z.object({
   provider: z.literal('asaas'),
   subscriptionId: z.string(),
   invoiceId: z.string().nullable().optional(),
+  invoiceStatusToken: z.string().nullable().optional(),
   status: z.enum(BILLING_SUBSCRIPTION_STATUSES),
   paymentMethod: paymentMethodSchema,
   requiresAction: z.boolean().default(false),
@@ -69,6 +70,7 @@ export const checkoutResponseSchema = z.object({
   pixAutomatic: z
     .object({
       authorizationId: z.string(),
+      authorizationStatusToken: z.string().nullable().optional(),
       qrCodePayload: z.string(),
       qrCodeImage: z.string().nullable().optional(),
       expirationDate: z.string().nullable().optional(),

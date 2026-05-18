@@ -1,3 +1,4 @@
+import "server-only"
 import { prisma } from '@/lib/db/prisma'
 import { type WhatsAppContactList, whatsappContactListSchema } from '../schemas/audience'
 

@@ -1,3 +1,4 @@
+import "server-only"
 import type { WhatsAppCampaignListQuery } from '@/features/whatsapp/schemas/whatsapp-campaign-schemas'
 import { prisma } from '@/lib/db/prisma'
 

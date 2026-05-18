@@ -1,3 +1,4 @@
+import "server-only"
 import { CACHE_KEYS, CACHE_TTL } from '@/lib/db/cache-keys'
 import { prisma } from '@/lib/db/prisma'
 import { getRedis, isRedisConnected } from '@/lib/db/redis'

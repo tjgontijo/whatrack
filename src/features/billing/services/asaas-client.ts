@@ -1,3 +1,4 @@
+import "server-only"
 import { BillingAsaasConfigService } from './asaas-config.service'
 import { billingLog } from './logger'
 

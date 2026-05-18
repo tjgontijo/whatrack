@@ -1,3 +1,4 @@
+import "server-only"
 import type { Prisma } from '@generated/prisma'
 import { queryLeadsByFilters } from '@/features/whatsapp/lib/queries/lead-segment-query'
 import { getOptOutSet } from '@/features/whatsapp/lib/services/whatsapp-opt-out.service'

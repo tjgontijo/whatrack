@@ -1,3 +1,4 @@
+import "server-only"
 import { prisma } from '@/lib/db/prisma'
 
 export type BillingCatalogPlanCode = 'starter_monthly' | 'pro_monthly' | 'business_monthly'

@@ -1,3 +1,4 @@
+import "server-only"
 import { MetaCloudService } from '@/features/whatsapp/services/meta-cloud.service'
 import { prisma } from '@/lib/db/prisma'
 import { encryption } from '@/lib/utils/encryption'

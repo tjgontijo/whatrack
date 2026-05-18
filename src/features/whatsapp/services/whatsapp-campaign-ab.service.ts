@@ -1,3 +1,4 @@
+import "server-only"
 import type { AbTestCreateInput } from '@/features/whatsapp/lib/schemas/whatsapp-ab-schemas'
 import { WhatsAppCampaignEventType } from '@/features/whatsapp/lib/types/campaign-events'
 import { runCampaignDispatch } from '@/features/whatsapp/services/whatsapp-campaign-execution.service'

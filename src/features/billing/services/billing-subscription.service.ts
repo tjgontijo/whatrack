@@ -1,3 +1,4 @@
+import "server-only"
 import { isSubscriptionStatus, type SubscriptionStatus } from '@/features/billing/types/billing'
 import { prisma } from '@/lib/db/prisma'
 import { getBillingPlanBySlug, getDefaultTrialBillingPlan } from './billing-plan-catalog.service'

@@ -1,3 +1,4 @@
+import "server-only"
 type MetaQueryValue = string | number | boolean | null | undefined
 
 type MetaApiRequestOptions = {

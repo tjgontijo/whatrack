@@ -1,3 +1,4 @@
+import "server-only"
 import { metaAdAccountService } from '@/features/meta-ads/services/ad-account.service'
 import { prisma } from '@/lib/db/prisma'
 

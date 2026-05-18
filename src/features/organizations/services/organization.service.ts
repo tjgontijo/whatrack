@@ -1,3 +1,4 @@
+import "server-only"
 import { Prisma } from '@generated/prisma/client'
 import type { CompanyLookupData } from '@/features/organizations/schemas/organization-onboarding'
 import type { UpdateOrganizationInput } from '@/features/organizations/schemas/organization-schemas'

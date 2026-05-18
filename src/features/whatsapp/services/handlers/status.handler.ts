@@ -1,3 +1,4 @@
+import "server-only"
 import { updateRecipientStatusFromWebhook } from '@/features/whatsapp/services/whatsapp-campaign-attribution.service'
 import { WhatsAppTemplateAnalyticsService } from '@/features/whatsapp/services/whatsapp-template-analytics.service'
 import { publishToCentrifugo } from '@/lib/centrifugo/server'

@@ -1,3 +1,4 @@
+import "server-only"
 import { resolveAccessToken } from '@/features/whatsapp/lib/token-crypto'
 import { MetaCloudService } from '@/features/whatsapp/services/meta-cloud.service'
 import { WhatsAppChatService } from '@/features/whatsapp/services/whatsapp-chat.service'

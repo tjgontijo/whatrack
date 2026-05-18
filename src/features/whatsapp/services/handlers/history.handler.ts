@@ -1,3 +1,4 @@
+import "server-only"
 import { lookupCache } from '@/lib/db/lookup-cache'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/utils/logger'

@@ -1,3 +1,4 @@
+import "server-only"
 import { getJobTracker, type JobType } from '@/lib/db/queue'
 import { logger } from '@/lib/utils/logger'
 

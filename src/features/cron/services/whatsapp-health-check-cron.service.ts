@@ -1,3 +1,4 @@
+import "server-only"
 import { executeLockedCronJob } from '@/features/cron/services/cron-execution.service'
 import { whatsappHealthCheckJob } from '@/features/whatsapp/jobs/whatsapp-health-check.job'
 

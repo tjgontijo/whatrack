@@ -1,3 +1,4 @@
+import "server-only"
 import { Prisma } from '@generated/prisma/client'
 import { getDefaultTrialBillingPlan } from '@/features/billing/services/billing-plan-catalog.service'
 import { startOrganizationTrial } from '@/features/billing/services/billing-subscription.service'

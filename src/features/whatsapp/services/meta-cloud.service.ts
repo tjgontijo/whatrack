@@ -1,3 +1,4 @@
+import "server-only"
 import { resolveAccessToken } from '@/features/whatsapp/lib/token-crypto'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/utils/logger'
