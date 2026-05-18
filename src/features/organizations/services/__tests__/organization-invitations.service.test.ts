@@ -41,9 +41,9 @@ const emailTemplateMock = vi.hoisted(() => ({
 vi.mock('@/lib/db/prisma', () => ({ prisma: prismaMock }))
 vi.mock('@/server/organization/organization-rbac.service', () => rbacServiceMock)
 vi.mock('@/server/organization/permission-delegation-policy', () => permissionPolicyMock)
-vi.mock('@/services/audit/audit.service', () => ({ auditService: auditServiceMock }))
-vi.mock('@/services/mail/resend', () => ({ resendProvider: resendProviderMock }))
-vi.mock('@/services/mail/templates/InvitationEmail', () => emailTemplateMock)
+vi.mock('@/lib/audit/audit.service', () => ({ auditService: auditServiceMock }))
+vi.mock('@/lib/mail/resend', () => ({ resendProvider: resendProviderMock }))
+vi.mock('@/lib/mail/templates/InvitationEmail', () => emailTemplateMock)
 vi.mock('@/lib/env/require-env', () => ({
   requireEnv: vi.fn(() => 'http://localhost:3000'),
 }))

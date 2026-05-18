@@ -1,7 +1,7 @@
-import { generateMagicLinkEmail } from '@/services/mail/templates/MagicLinkEmail'
-import { generateOtpEmail } from '@/services/mail/templates/OtpEmail'
-import { generatePasswordResetEmail } from '@/services/mail/templates/PasswordResetEmail'
-import { resolveAppName } from '@/services/mail/templates/shared/app-name.server'
+import { generateMagicLinkEmail } from '@/lib/mail/templates/MagicLinkEmail'
+import { generateOtpEmail } from '@/lib/mail/templates/OtpEmail'
+import { generatePasswordResetEmail } from '@/lib/mail/templates/PasswordResetEmail'
+import { resolveAppName } from '@/lib/mail/templates/shared/app-name.server'
 
 import type { DeliveryData, DeliveryType, EmailTemplate } from './types'
 

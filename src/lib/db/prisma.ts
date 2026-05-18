@@ -1,6 +1,6 @@
 import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '@/lib/db/client'
-import { auditService } from '@/services/audit/audit.service'
+import { auditService } from '@/lib/audit/audit.service'
 
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL!,

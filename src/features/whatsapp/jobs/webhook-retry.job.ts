@@ -2,8 +2,8 @@ import { WebhookProcessor } from '@/features/whatsapp/services/webhook-processor
 import { prisma } from '@/lib/db/prisma'
 import { getRedis } from '@/lib/db/redis'
 import { logger } from '@/lib/utils/logger'
-import { resendProvider } from '@/services/mail/resend'
-import { generateWebhookFailureAlertEmail } from '@/services/mail/templates/WebhookFailureAlertEmail'
+import { resendProvider } from '@/lib/mail/resend'
+import { generateWebhookFailureAlertEmail } from '@/lib/mail/templates/WebhookFailureAlertEmail'
 
 const MAX_RETRIES = 3
 const ALERT_THROTTLE_SECONDS = 3600 // 1 alert per webhook per hour

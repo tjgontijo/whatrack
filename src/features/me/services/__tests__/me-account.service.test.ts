@@ -12,7 +12,7 @@ const auditServiceMock = vi.hoisted(() => ({
 }))
 
 vi.mock('@/lib/db/prisma', () => ({ prisma: prismaMock }))
-vi.mock('@/services/audit/audit.service', () => ({ auditService: auditServiceMock }))
+vi.mock('@/lib/audit/audit.service', () => ({ auditService: auditServiceMock }))
 
 import { updateMeAccount } from '@/features/me/services/me-account.service'
 

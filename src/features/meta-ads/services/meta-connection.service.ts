@@ -1,6 +1,6 @@
 import "server-only"
 import { prisma } from '@/lib/db/prisma'
-import { auditService } from '@/services/audit/audit.service'
+import { auditService } from '@/lib/audit/audit.service'
 
 export async function listMetaConnections(organizationId: string, projectId: string) {
   return prisma.metaConnection.findMany({

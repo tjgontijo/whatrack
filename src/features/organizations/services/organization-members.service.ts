@@ -10,7 +10,7 @@ import {
   assertCanDelegatePermissions,
   getDelegatablePermissionCatalog,
 } from '@/server/organization/permission-delegation-policy'
-import { auditService } from '@/services/audit/audit.service'
+import { auditService } from '@/lib/audit/audit.service'
 
 type ServiceError = {
   error: string

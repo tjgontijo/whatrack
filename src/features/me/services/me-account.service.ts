@@ -1,7 +1,7 @@
 import "server-only"
 import type { UpdateMeAccountInput } from '@/features/me/schemas/me-account.schemas'
 import { prisma } from '@/lib/db/prisma'
-import { auditService } from '@/services/audit/audit.service'
+import { auditService } from '@/lib/audit/audit.service'
 
 export async function getMeAccount(userId: string) {
   return prisma.user.findUnique({

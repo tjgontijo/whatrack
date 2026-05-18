@@ -25,7 +25,7 @@ const auditServiceMock = vi.hoisted(() => ({
 vi.mock('@/lib/db/prisma', () => ({ prisma: prismaMock }))
 vi.mock('@/server/organization/organization-rbac.service', () => rbacServiceMock)
 vi.mock('@/server/organization/permission-delegation-policy', () => permissionPolicyMock)
-vi.mock('@/services/audit/audit.service', () => ({ auditService: auditServiceMock }))
+vi.mock('@/lib/audit/audit.service', () => ({ auditService: auditServiceMock }))
 
 import {
   createOrganizationRoleWithAudit,

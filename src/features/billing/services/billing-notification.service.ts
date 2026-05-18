@@ -2,8 +2,8 @@ import "server-only"
 import type { Prisma } from '@generated/prisma/client'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/utils/logger'
-import { renderBillingAutoUpgradeEmail } from '@/services/mail/email-renderer'
-import { resendProvider } from '@/services/mail/resend'
+import { renderBillingAutoUpgradeEmail } from '@/lib/mail/email-renderer'
+import { resendProvider } from '@/lib/mail/resend'
 
 export class BillingNotificationService {
   async sendAutoUpgradeNotification(input: {

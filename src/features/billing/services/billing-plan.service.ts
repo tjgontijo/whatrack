@@ -4,7 +4,7 @@ import type {
   BillingPlanUpdateInput,
 } from '@/features/billing/schemas/billing-plan-schemas'
 import { prisma } from '@/lib/db/prisma'
-import { auditService } from '@/services/audit/audit.service'
+import { auditService } from '@/lib/audit/audit.service'
 import { getBillingPlanDetail } from './billing-plan-query.service'
 
 export class BillingPlanMutationError extends Error {

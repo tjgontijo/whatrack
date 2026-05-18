@@ -12,7 +12,7 @@ import {
 import { logger } from '@/lib/utils/logger'
 import { getOrganizationIdentityStatus } from '@/server/organization/is-identity-complete'
 import { listEffectivePermissions } from '@/server/organization/organization-rbac.service'
-import { auditService } from '@/services/audit/audit.service'
+import { auditService } from '@/lib/audit/audit.service'
 
 type ServiceError = {
   error: string

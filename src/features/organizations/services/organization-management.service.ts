@@ -9,7 +9,7 @@ import {
 import type { UpdateOrganizationByIdInput } from '@/features/organizations/schemas/organization-schemas'
 import { prisma } from '@/lib/db/prisma'
 import { normalizeSlug } from '@/lib/utils/slug'
-import { auditService } from '@/services/audit/audit.service'
+import { auditService } from '@/lib/audit/audit.service'
 
 const onboardingStatuses = [
   { name: 'pending', description: 'Onboarding iniciado e aguardando conclusão.' },

@@ -5,9 +5,9 @@ import { requireEnv } from '@/lib/env/require-env'
 import { logger } from '@/lib/utils/logger'
 import { getOrganizationRoleByKey } from '@/server/organization/organization-rbac.service'
 import { assertCanDelegatePermissions } from '@/server/organization/permission-delegation-policy'
-import { auditService } from '@/services/audit/audit.service'
-import { resendProvider } from '@/services/mail/resend'
-import { generateInvitationEmail } from '@/services/mail/templates/InvitationEmail'
+import { auditService } from '@/lib/audit/audit.service'
+import { resendProvider } from '@/lib/mail/resend'
+import { generateInvitationEmail } from '@/lib/mail/templates/InvitationEmail'
 
 const APP_URL = requireEnv('APP_URL')
 
