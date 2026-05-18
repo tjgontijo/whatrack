@@ -1,10 +1,11 @@
 import "server-only"
+import { env } from '@/lib/env/env'
 import { resolveAccessToken } from '@/features/whatsapp/lib/token-crypto'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/utils/logger'
 
 const GRAPH_API_URL = 'https://graph.facebook.com'
-export const API_VERSION = process.env.META_API_VERSION
+export const API_VERSION = env.META_API_VERSION
 
 interface SendTemplateParams {
   phoneId: string
@@ -44,7 +45,7 @@ export class MetaCloudService {
    * Fallback global (ENV) — usado quando não temos o contexto de organização.
    */
   static get accessToken() {
-    const token = process.env.META_ACCESS_TOKEN
+    const token = env.META_ACCESS_TOKEN
     if (!token)
       throw new Error('[MetaCloudService] META_ACCESS_TOKEN environment variable is required')
     return token
@@ -57,14 +58,14 @@ export class MetaCloudService {
   static async exchangeCodeForToken(code: string, redirectUri?: string | null) {
     const url = `${GRAPH_API_URL}/${API_VERSION}/oauth/access_token`
 
-    const appId = process.env.NEXT_PUBLIC_META_APP_ID
+    const appId = env.NEXT_PUBLIC_META_APP_ID
 
     // For JS SDK flow: redirectUri can be null (don't include in request)
     // For server-side redirect flow: use default or provided URI
     const finalRedirectUri =
       redirectUri === null
         ? null
-        : redirectUri || `${process.env.APP_URL}/api/v1/whatsapp/onboarding/callback`
+        : redirectUri || `${env.APP_URL}/api/v1/whatsapp/onboarding/callback`
 
     logger.info(
       {
@@ -80,7 +81,7 @@ export class MetaCloudService {
 
     if (!appId)
       throw new Error('[MetaCloudService] NEXT_PUBLIC_META_APP_ID environment variable is required')
-    const appSecret = process.env.META_APP_SECRET
+    const appSecret = env.META_APP_SECRET
     if (!appSecret)
       throw new Error('[MetaCloudService] META_APP_SECRET environment variable is required')
 
@@ -745,8 +746,8 @@ export class MetaCloudService {
     app_id: string
     error?: { message: string; code: number }
   }> {
-    const appId = process.env.META_APP_ID || process.env.NEXT_PUBLIC_META_APP_ID
-    const appSecret = process.env.META_APP_SECRET
+    const appId = env.META_APP_ID || env.NEXT_PUBLIC_META_APP_ID
+    const appSecret = env.META_APP_SECRET
     const appToken = `${appId}|${appSecret}`
 
     const url = `${GRAPH_API_URL}/${API_VERSION}/debug_token?input_token=${encodeURIComponent(inputToken)}`

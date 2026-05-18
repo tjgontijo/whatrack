@@ -3,7 +3,6 @@ import { removeOptOut } from '@/features/whatsapp/lib/services/whatsapp-opt-out.
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
-export const dynamic = 'force-dynamic'
 
 export async function DELETE(
   request: NextRequest,

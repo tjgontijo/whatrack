@@ -7,7 +7,6 @@ import { listPublicBillingPlans } from '@/features/billing/services/billing-plan
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
 
-export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {

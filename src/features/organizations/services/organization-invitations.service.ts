@@ -1,7 +1,7 @@
 import "server-only"
 import type { CreateOrganizationInvitationInput } from '@/features/organizations/schemas/organization-invitation-schemas'
 import { prisma } from '@/lib/db/prisma'
-import { requireEnv } from '@/lib/env/require-env'
+import { env } from '@/lib/env/env'
 import { logger } from '@/lib/utils/logger'
 import { getOrganizationRoleByKey } from '@/server/organization/organization-rbac.service'
 import { assertCanDelegatePermissions } from '@/server/organization/permission-delegation-policy'
@@ -9,7 +9,7 @@ import { auditService } from '@/lib/audit/audit.service'
 import { resendProvider } from '@/lib/mail/resend'
 import { generateInvitationEmail } from '@/lib/mail/templates/InvitationEmail'
 
-const APP_URL = requireEnv('APP_URL')
+const APP_URL = env.APP_URL
 
 type ServiceError = {
   error: string

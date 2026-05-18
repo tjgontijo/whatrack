@@ -1,4 +1,5 @@
 import "server-only"
+import { env } from '@/lib/env/env'
 type MetaQueryValue = string | number | boolean | null | undefined
 
 type MetaApiRequestOptions = {
@@ -19,9 +20,7 @@ export class MetaApiError extends Error {
 }
 
 function requireMetaApiVersion(): string {
-  const value = process.env.META_API_VERSION
-  if (!value) throw new Error('[MetaApi] META_API_VERSION environment variable is required')
-  return value
+  return env.META_API_VERSION
 }
 
 function buildMetaUrl(path: string, params?: Record<string, MetaQueryValue>) {

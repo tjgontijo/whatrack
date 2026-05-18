@@ -3,11 +3,11 @@ import { MetaCloudService } from '@/features/whatsapp/services/meta-cloud.servic
 import { apiError } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import { env } from '@/lib/env/env'
 
-export const dynamic = 'force-dynamic'
 
 const GRAPH_API_URL = 'https://graph.facebook.com'
-const API_VERSION = process.env.META_API_VERSION
+const API_VERSION = env.META_API_VERSION
 
 interface ActivateStepResult {
   success: boolean

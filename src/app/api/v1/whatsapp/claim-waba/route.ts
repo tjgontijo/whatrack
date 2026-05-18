@@ -6,7 +6,6 @@ import { MetaCloudService } from '@/features/whatsapp/services/meta-cloud.servic
 import { auth } from '@/lib/auth/auth'
 import { findProjectInOrg } from '@/features/projects/repositories/find-project-in-org.repository'
 
-export const dynamic = 'force-dynamic'
 
 /**
  * POST /api/v1/whatsapp/claim-waba

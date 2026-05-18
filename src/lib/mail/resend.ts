@@ -1,12 +1,12 @@
 // src/lib/mail/resend.ts
 import { Resend } from 'resend'
-import { requireEnv } from '@/lib/env/require-env'
+import { env } from '@/lib/env/env'
 import { logger } from '@/lib/utils/logger'
 import type { EmailPayload, EmailProvider, EmailResponse } from './types'
 
-const RESEND_API_KEY = requireEnv('RESEND_API_KEY')
-const RESEND_FROM = requireEnv('RESEND_FROM')
-const APP_NAME = requireEnv('APP_NAME')
+const RESEND_API_KEY = env.RESEND_API_KEY!
+const RESEND_FROM = env.RESEND_FROM!
+const APP_NAME = env.APP_NAME
 
 function resolveFromHeader(from: string, appName: string): string {
   if (from.includes('<') && from.includes('>')) {

@@ -19,6 +19,7 @@ import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
 import { rateLimitMiddleware } from '@/lib/utils/rate-limit.middleware'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import { env } from '@/lib/env/env'
 
 function getRequestIp(request: NextRequest) {
   return (
@@ -89,7 +90,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     logger.error({ err: error }, 'Checkout creation error')
     return apiError('Failed to create checkout session', 500, error, {
-      ...(process.env.NODE_ENV !== 'production'
+      ...(env.NODE_ENV !== 'production'
         ? {
             debug: {
               name: error instanceof Error ? error.name : typeof error,

@@ -2,8 +2,8 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { requireSuperAdmin } from '@/lib/auth/guards'
 import { apiError } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
+import { env } from '@/lib/env/env'
 
-export const dynamic = 'force-dynamic'
 
 /**
  * GET /api/v1/system/webhook-verify-token
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     const user = await requireSuperAdmin(request)
     if (user instanceof NextResponse) return user
 
-    const verifyToken = process.env.META_WEBHOOK_VERIFY_TOKEN || ''
+    const verifyToken = env.META_WEBHOOK_VERIFY_TOKEN ?? ''
 
     return NextResponse.json({
       verifyToken,

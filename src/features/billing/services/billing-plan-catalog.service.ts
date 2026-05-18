@@ -140,7 +140,6 @@ export function mapBillingPlanToPublic(plan: BillingPlanRecord): PublicBillingPl
     contactSalesOnly: plan.contactSalesOnly,
     displayOrder: plan.displayOrder,
     syncStatus: 'synced' as const,
-    stripePriceId: null,
     offers: plan.offers
       .filter(
         (offer: BillingPlanRecord['offers'][number]) =>

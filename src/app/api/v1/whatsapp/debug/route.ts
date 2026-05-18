@@ -3,7 +3,6 @@ import { findWhatsAppDebugData } from '@/features/whatsapp/repositories/find-wha
 import { apiError } from '@/lib/utils/api-response'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
-export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {

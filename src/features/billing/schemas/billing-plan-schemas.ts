@@ -117,8 +117,6 @@ export const billingPlanListItemSchema = z.object({
   includedMetaAdAccountsPerProject: z.number().int(),
   includedConversionsPerProject: z.number().int(),
   supportLevel: z.string(),
-  stripeProductId: z.string().nullable(),
-  stripePriceId: z.string().nullable(),
   syncStatus: z.enum(billingPlanSyncStatuses),
   syncError: z.string().nullable(),
   syncedAt: z.string().datetime().nullable(),
@@ -194,7 +192,6 @@ export const publicBillingPlanSchema = z.object({
   contactSalesOnly: z.boolean(),
   displayOrder: z.number().int(),
   syncStatus: z.enum(billingPlanSyncStatuses),
-  stripePriceId: z.string().nullable(),
   offers: z.array(
     z.object({
       id: z.string(),

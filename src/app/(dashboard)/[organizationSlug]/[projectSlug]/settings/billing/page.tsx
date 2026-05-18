@@ -21,7 +21,7 @@ function normalizeSearchParams(searchParams: Record<string, string | string[] | 
 
 export const metadata = {
   title: 'Planos e Cobrança | WhaTrack',
-  description: 'Gerencie o catálogo interno de planos e a sincronização com a Stripe.',
+  description: 'Gerencie o catálogo interno de planos e as configurações de faturamento.',
 }
 
 export default async function BillingSettingsPage({ searchParams }: BillingSettingsPageProps) {

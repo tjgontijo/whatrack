@@ -100,7 +100,7 @@ describe('getAccountSummary', () => {
       trialEndsAt: null,
       createdAt: new Date('2026-03-01T00:00:00.000Z'),
       canceledAt: null,
-      provider: 'stripe',
+      provider: 'asaas',
       providerSubscriptionId: 'sub-1',
       items: [
         {

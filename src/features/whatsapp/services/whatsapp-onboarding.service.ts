@@ -1,4 +1,5 @@
 import "server-only"
+import { env } from '@/lib/env/env'
 import { MetaCloudService } from '@/features/whatsapp/services/meta-cloud.service'
 import { prisma } from '@/lib/db/prisma'
 import { encryption } from '@/lib/utils/encryption'
@@ -35,9 +36,9 @@ export async function createWhatsAppOnboardingSession(
 
   const trackingCode = onboarding.trackingCode
 
-  const metaAppId = process.env.NEXT_PUBLIC_META_APP_ID
-  const metaConfigId = process.env.NEXT_PUBLIC_META_CONFIG_ID
-  const appUrl = baseUrl || process.env.APP_URL
+  const metaAppId = env.NEXT_PUBLIC_META_APP_ID
+  const metaConfigId = env.NEXT_PUBLIC_META_CONFIG_ID
+  const appUrl = baseUrl || env.APP_URL
 
   if (!metaAppId || !metaConfigId || !appUrl) {
     return {

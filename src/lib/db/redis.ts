@@ -1,5 +1,6 @@
 import { Redis } from 'ioredis'
 import { logger } from '@/lib/utils/logger'
+import { env } from '@/lib/env/env'
 
 let redis: Redis | null = null
 let isConnected = false
@@ -12,7 +13,7 @@ let isConnected = false
  */
 export function getRedis(): Redis {
   if (!redis) {
-    const redisUrl = process.env.REDIS_URL
+    const redisUrl = env.REDIS_URL
 
     if (!redisUrl) {
       throw new Error(

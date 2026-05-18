@@ -1,9 +1,10 @@
 import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '@/lib/db/client'
 import { auditService } from '@/lib/audit/audit.service'
+import { env } from '@/lib/env/env'
 
 const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL!,
+  connectionString: env.DATABASE_URL,
 })
 
 // Selective Audit Models

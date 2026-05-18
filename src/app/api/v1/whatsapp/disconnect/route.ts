@@ -5,7 +5,6 @@ import { apiError } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
-export const dynamic = 'force-dynamic'
 
 export async function POST(request: Request) {
   try {

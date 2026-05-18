@@ -89,25 +89,6 @@ export function BillingPlanList({ data, filters }: BillingPlanListProps) {
     router.refresh()
   }
 
-  async function handleSync(planId: string) {
-    try {
-      setSyncingPlanId(planId)
-      await apiFetch(`/api/v1/system/billing-plans/${planId}/sync-stripe`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({}),
-      })
-      toast.success('Plano sincronizado com a Stripe')
-      router.refresh()
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Falha ao sincronizar com Stripe')
-    } finally {
-      setSyncingPlanId(null)
-    }
-  }
-
   async function handleArchive(planId: string, planName: string) {
     const confirmed = window.confirm(
       `Arquivar o plano "${planName}"? Ele sairá do catálogo para novas contratações.`
@@ -139,8 +120,7 @@ export function BillingPlanList({ data, filters }: BillingPlanListProps) {
         <CardHeader>
           <CardTitle>Catálogo de planos</CardTitle>
           <CardDescription>
-            Primeira fatia administrativa do billing. Aqui já dá para auditar catálogo, sync com
-            Stripe e uso atual por plano.
+            Catálogo administrativo do billing. Aqui você pode gerenciar os planos, auditar o catálogo e visualizar o uso atual por plano.
           </CardDescription>
           <CardAction>
             <Button onClick={() => setEditingPlanId('new')}>
@@ -229,7 +209,6 @@ export function BillingPlanList({ data, filters }: BillingPlanListProps) {
                 <TableHead>Plano</TableHead>
                 <TableHead>Preço</TableHead>
                 <TableHead>Modelo</TableHead>
-                <TableHead>Sync Stripe</TableHead>
                 <TableHead>Assinaturas</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className='text-right'>Ações</TableHead>
@@ -283,15 +262,6 @@ export function BillingPlanList({ data, filters }: BillingPlanListProps) {
                     </TableCell>
 
                     <TableCell className='align-top'>
-                      <div className='flex flex-col gap-2'>
-                        <BillingPlanSyncBadge syncStatus={plan.syncStatus} />
-                        <span className='text-muted-foreground text-xs'>
-                          {plan.stripePriceId ? `Price: ${plan.stripePriceId}` : 'Sem price ID'}
-                        </span>
-                      </div>
-                    </TableCell>
-
-                    <TableCell className='align-top'>
                       <span className='font-medium'>{plan.subscriptionCount}</span>
                     </TableCell>
 
@@ -319,20 +289,6 @@ export function BillingPlanList({ data, filters }: BillingPlanListProps) {
                         >
                           <History className='mr-1.5 h-3.5 w-3.5' />
                           Histórico
-                        </Button>
-
-                        <Button
-                          variant='outline'
-                          size='sm'
-                          onClick={() => handleSync(plan.id)}
-                          disabled={syncingPlanId === plan.id}
-                        >
-                          {syncingPlanId === plan.id ? (
-                            <Loader2 className='mr-1.5 h-3.5 w-3.5 animate-spin' />
-                          ) : (
-                            <RefreshCw className='mr-1.5 h-3.5 w-3.5' />
-                          )}
-                          Sync
                         </Button>
 
                         {!plan.deletedAt && (

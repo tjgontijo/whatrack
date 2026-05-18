@@ -69,8 +69,6 @@ function mapBillingPlan(plan: any): BillingPlanListItem {
     includedMetaAdAccountsPerProject: plan.includedMetaAdAccountsPerProject,
     includedConversionsPerProject: plan.includedConversionsPerProject,
     supportLevel: plan.supportLevel,
-    stripeProductId: null,
-    stripePriceId: null,
     syncStatus: 'synced' as const,
     syncError: null,
     syncedAt: null,

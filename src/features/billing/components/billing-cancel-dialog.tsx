@@ -25,12 +25,12 @@ const CANCEL_OPTIONS = [
   {
     value: 'period-end' as const,
     label: 'Encerrar no fim do período',
-    description: 'A Stripe mantém o acesso ativo até a data de renovação atual.',
+    description: 'A assinatura permanece ativa até a data de renovação atual.',
   },
   {
     value: 'immediate' as const,
     label: 'Encerrar acesso agora',
-    description: 'A assinatura será encerrada imediatamente no provider e no Whatrack.',
+    description: 'A assinatura será encerrada imediatamente no provedor e no Whatrack.',
   },
 ]
 
@@ -77,7 +77,7 @@ export function BillingCancelDialog({ open, onOpenChange, planName }: BillingCan
 
         <div className='space-y-4'>
           <p className='text-muted-foreground text-sm'>
-            O cancelamento reflete o estado real da assinatura na Stripe. Ao encerrar, você perderá
+            O cancelamento reflete o estado real da assinatura no provedor de pagamento. Ao encerrar, você perderá
             acesso ao plano <span className='font-medium text-foreground'>{planName}</span>. Eventos
             registrados neste ciclo não serão reembolsados.
           </p>

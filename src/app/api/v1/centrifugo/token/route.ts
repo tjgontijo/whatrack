@@ -4,6 +4,7 @@ import { apiError } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
 import { rateLimitMiddleware } from '@/lib/utils/rate-limit.middleware'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import { env } from '@/lib/env/env'
 
 /**
  * GET /api/v1/centrifugo/token
@@ -30,12 +31,7 @@ export async function GET(request: NextRequest) {
       return apiError(access.error || 'Unauthorized', 401)
     }
 
-    const secret = process.env.CENTRIFUGO_TOKEN_HMAC_SECRET_KEY
-
-    if (!secret) {
-      logger.error('[Centrifugo] CENTRIFUGO_TOKEN_HMAC_SECRET_KEY not configured')
-      return apiError('Server configuration error', 500)
-    }
+    const secret = env.CENTRIFUGO_TOKEN_HMAC_SECRET_KEY
 
     // Generate JWT token with user and organization context
     const now = Math.floor(Date.now() / 1000)

@@ -7,10 +7,11 @@ import { auditService } from '@/lib/audit/audit.service'
 import { authDeliveryService } from '@/lib/auth/delivery/auth-delivery'
 import { prisma } from '../db/prisma'
 import { requireEnv } from '../env/require-env'
+import { env } from '@/lib/env/env'
 
 const appBaseURL = requireEnv('BETTER_AUTH_URL')
 const betterAuthSecret = requireEnv('BETTER_AUTH_SECRET')
-const OWNER_EMAIL = process.env.OWNER_EMAIL
+const OWNER_EMAIL = env.OWNER_EMAIL
 
 export const auth = betterAuth({
   secret: betterAuthSecret,

@@ -1,3 +1,4 @@
+import { env } from '@/lib/env/env'
 import { createHmac, timingSafeEqual } from 'node:crypto'
 import { logger } from '@/lib/utils/logger'
 
@@ -10,7 +11,7 @@ import { logger } from '@/lib/utils/logger'
  * @see https://developers.facebook.com/docs/graph-api/webhooks/getting-started#verification-requests
  */
 export function verifyWebhookSignature(rawBody: string, signatureHeader: string | null): boolean {
-  const appSecret = process.env.META_APP_SECRET
+  const appSecret = env.META_APP_SECRET
 
   if (!appSecret) {
     logger.error('[WebhookSignature] META_APP_SECRET not configured')

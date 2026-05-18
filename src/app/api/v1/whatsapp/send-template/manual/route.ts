@@ -1,13 +1,13 @@
 import { timingSafeEqual } from 'node:crypto'
+import { env } from '@/lib/env/env'
 import { whatsappManualSendTemplateSchema } from '@/features/whatsapp/schemas/whatsapp-schemas'
 import { sendManualTemplate } from '@/features/whatsapp/services/whatsapp-manual-send.service'
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
 
-export const dynamic = 'force-dynamic'
 
 function hasValidBearerToken(authorizationHeader: string | null): boolean {
-  const expectedToken = process.env.WHATSAPP_MANUAL_SEND_BEARER_TOKEN
+  const expectedToken = env.WHATSAPP_MANUAL_SEND_BEARER_TOKEN
   if (!expectedToken) {
     return false
   }
@@ -29,7 +29,7 @@ function hasValidBearerToken(authorizationHeader: string | null): boolean {
 
 export async function POST(request: Request) {
   try {
-    if (!process.env.WHATSAPP_MANUAL_SEND_BEARER_TOKEN) {
+    if (!env.WHATSAPP_MANUAL_SEND_BEARER_TOKEN) {
       return apiError('WHATSAPP_MANUAL_SEND_BEARER_TOKEN not configured', 500)
     }
 

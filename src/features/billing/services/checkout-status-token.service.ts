@@ -1,4 +1,5 @@
 import "server-only"
+import { env } from '@/lib/env/env'
 import { createHmac, timingSafeEqual } from 'node:crypto'
 
 const CHECKOUT_STATUS_TOKEN_TTL_MS = 1000 * 60 * 60 * 24 // 24 hours
@@ -10,9 +11,7 @@ type CheckoutStatusPayload = {
 }
 
 function getSecret() {
-  const secret = process.env.BETTER_AUTH_SECRET
-  if (!secret) throw new Error('BETTER_AUTH_SECRET is not configured')
-  return secret
+  return env.BETTER_AUTH_SECRET
 }
 
 function sign(payload: string) {

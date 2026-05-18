@@ -5,6 +5,7 @@ import { findProjectInOrg } from '@/features/projects/repositories/find-project-
 import { apiError } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import { env } from '@/lib/env/env'
 
 export async function GET(req: NextRequest) {
   const access = await validateFullAccess(req)
@@ -13,9 +14,9 @@ export async function GET(req: NextRequest) {
     return apiError(access.error || 'Unauthorized', 401)
   }
 
-  const clientId = process.env.META_ADS_APP_ID
+  const clientId = env.META_ADS_APP_ID
   const origin = req.nextUrl.origin
-  const redirectUri = process.env.META_OAUTH_REDIRECT_URI || `${origin}/api/v1/meta-ads/callback`
+  const redirectUri = env.META_OAUTH_REDIRECT_URI || `${origin}/api/v1/meta-ads/callback`
 
   if (!clientId) {
     logger.error('[MetaAdsConnect] META_ADS_APP_ID not configured')

@@ -3,7 +3,6 @@ import { NextResponse } from 'next/server'
 import { MetaCloudService } from '@/features/whatsapp/services/meta-cloud.service'
 import { auth } from '@/lib/auth/auth'
 
-export const dynamic = 'force-dynamic'
 
 /**
  * POST /api/v1/whatsapp/check-connection

@@ -6,7 +6,6 @@ import { ORGANIZATION_COOKIE, PROJECT_COOKIE } from '@/lib/constants/http-header
 import { getServerSession } from '@/server/auth/server-session'
 import { CheckoutPageContent } from './checkout-page-content'
 
-export const dynamic = 'force-dynamic'
 
 export default async function CheckoutPage({
   searchParams,

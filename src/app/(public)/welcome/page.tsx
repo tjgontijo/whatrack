@@ -4,7 +4,6 @@ import { getWelcomeState } from '@/features/onboarding/services/welcome-query.se
 import { getServerSession } from '@/server/auth/server-session'
 import { resolveDefaultWorkspacePath } from '@/server/navigation/resolve-default-workspace-path'
 
-export const dynamic = 'force-dynamic'
 
 export default async function WelcomePage() {
   const session = await getServerSession()

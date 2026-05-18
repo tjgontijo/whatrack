@@ -67,10 +67,6 @@ const envSchema = z.object({
   ASAAS_API_KEY: z.string().min(1).optional(),
   WALLET_ASAAS_ID: z.string().min(1).optional(),
   ASAAS_WEBHOOK_TOKEN: z.string().min(1).optional(),
-  STRIPE_SECRET_KEY: z.string().min(1).optional(),
-  STRIPE_PUBLISHABLE_KEY: z.string().min(1).optional(),
-  STRIPE_WEBHOOK_SECRET: z.string().min(1).optional(),
-  ACTIVE_PAYMENT_PROVIDER: z.enum(['asaas', 'stripe']).default('asaas'),
   POLAR_ACCESS_TOKEN: z.string().min(1).optional(),
   POLAR_SUCCESS_URL: z.string().url().optional(),
 
@@ -83,6 +79,8 @@ const envSchema = z.object({
   ENCRYPTION_CURRENT_VERSION: z.string().default('v1'),
 
   CRON_SECRET: z.string().min(32, 'CRON_SECRET must be at least 32 characters'),
+  WHATSAPP_MANUAL_SEND_BEARER_TOKEN: z.string().min(1).optional(),
+  HISTORY_SYNC_ALERT_TOKEN: z.string().min(1).optional(),
 
   // Logging
   LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error']).default('info'),

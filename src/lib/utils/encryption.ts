@@ -1,4 +1,5 @@
 import crypto from 'node:crypto'
+import { env } from '@/lib/env/env'
 
 const algorithm = 'aes-256-gcm'
 
@@ -28,7 +29,7 @@ export class TokenEncryption {
     this.keys = new Map()
 
     // Load versioned keys from ENCRYPTION_KEYS if available
-    const keysJson = process.env.ENCRYPTION_KEYS
+    const keysJson = env.ENCRYPTION_KEYS
     if (keysJson) {
       try {
         const parsed = JSON.parse(keysJson) as Record<string, string>
@@ -54,7 +55,7 @@ export class TokenEncryption {
       )
     }
 
-    this.currentVersion = process.env.ENCRYPTION_CURRENT_VERSION || 'v1'
+    this.currentVersion = env.ENCRYPTION_CURRENT_VERSION
 
     if (!this.keys.has(this.currentVersion)) {
       throw new Error(`[Encryption] No key found for current version "${this.currentVersion}"`)

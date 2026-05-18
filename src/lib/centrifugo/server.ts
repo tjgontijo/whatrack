@@ -1,14 +1,15 @@
 import { logger } from '@/lib/utils/logger'
+import { env } from '@/lib/env/env'
 
 export async function publishToCentrifugo(channel: string, data: any) {
-  const url = `${process.env.CENTRIFUGO_URL}/api/publish`
+  const url = `${env.CENTRIFUGO_URL}/api/publish`
 
   try {
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `apikey ${process.env.CENTRIFUGO_API_KEY}`,
+        Authorization: `apikey ${env.CENTRIFUGO_API_KEY}`,
       },
       body: JSON.stringify({
         channel,

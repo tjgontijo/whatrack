@@ -2,6 +2,7 @@ import "server-only"
 import { prisma } from '@/lib/db/prisma'
 import { encryption } from '@/lib/utils/encryption'
 import { metaApiRequest } from './meta-api'
+import { env } from '@/lib/env/env'
 
 function requireEnv(name: string): string {
   const value = process.env[name]
@@ -37,8 +38,7 @@ export class MetaAccessTokenService {
         client_secret: requireEnv('META_ADS_APP_SECRET'),
         redirect_uri:
           redirectUri ||
-          process.env.META_OAUTH_REDIRECT_URI ||
-          `${process.env.APP_URL}/api/v1/meta-ads/callback`,
+          env.META_OAUTH_REDIRECT_URI || `${env.APP_URL}/api/v1/meta-ads/callback`,
         code,
       },
     })

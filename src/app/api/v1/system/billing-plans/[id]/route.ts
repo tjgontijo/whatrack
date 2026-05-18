@@ -12,7 +12,6 @@ import { requireAdmin } from '@/lib/auth/guards'
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
 
-export const dynamic = 'force-dynamic'
 
 type RouteContext = {
   params: Promise<{ id: string }>

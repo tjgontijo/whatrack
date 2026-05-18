@@ -13,7 +13,6 @@ import { isOrganizationIdentityComplete } from '@/server/organization/is-identit
 import { listEffectivePermissionsForUser } from '@/server/organization/organization-rbac.service'
 import { resolveProjectContext } from '@/server/project/resolve-project-context'
 
-export const dynamic = 'force-dynamic'
 
 interface ProjectScopedLayoutProps {
   children: ReactNode

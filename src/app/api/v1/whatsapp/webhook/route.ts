@@ -5,10 +5,10 @@ import {
 } from '@/features/whatsapp/services/whatsapp-webhook.service'
 import { apiError } from '@/lib/utils/api-response'
 import { rateLimitMiddleware } from '@/lib/utils/rate-limit.middleware'
+import { env } from '@/lib/env/env'
 
-export const dynamic = 'force-dynamic'
 
-const VERIFY_TOKEN = process.env.META_WEBHOOK_VERIFY_TOKEN
+const VERIFY_TOKEN = env.META_WEBHOOK_VERIFY_TOKEN
 
 export async function GET(request: Request) {
   const searchParams = new URL(request.url).searchParams

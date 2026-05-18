@@ -3,7 +3,6 @@ import { cancelCampaign } from '@/features/whatsapp/services/whatsapp-campaign.s
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
-export const dynamic = 'force-dynamic'
 
 export async function POST(
   request: Request,

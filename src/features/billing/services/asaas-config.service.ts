@@ -1,4 +1,5 @@
 import "server-only"
+import { env } from '@/lib/env/env'
 import {
   detectAsaasEnvironmentFromBaseUrl,
   getAsaasBaseUrl,
@@ -15,10 +16,10 @@ export interface BillingAsaasRuntimeConfig {
 
 export class BillingAsaasConfigService {
   static async getRuntimeConfig(): Promise<BillingAsaasRuntimeConfig> {
-    const baseUrl = process.env.ASAAS_BASE_URL?.trim() || getAsaasBaseUrl('sandbox')
-    const apiKey = normalizeAsaasSecret(process.env.ASAAS_API_KEY ?? null)
-    const webhookToken = normalizeAsaasSecret(process.env.ASAAS_WEBHOOK_TOKEN ?? null)
-    const walletId = normalizeAsaasSecret(process.env.WALLET_ASAAS_ID ?? null)
+    const baseUrl = env.ASAAS_BASE_URL?.trim() || getAsaasBaseUrl('sandbox')
+    const apiKey = normalizeAsaasSecret(env.ASAAS_API_KEY ?? null)
+    const webhookToken = normalizeAsaasSecret(env.ASAAS_WEBHOOK_TOKEN ?? null)
+    const walletId = normalizeAsaasSecret(env.WALLET_ASAAS_ID ?? null)
     const environment = detectAsaasEnvironmentFromBaseUrl(baseUrl)
 
     return {
