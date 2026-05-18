@@ -1,7 +1,7 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
 import { ResponsiveHeatMapCanvas } from '@nivo/heatmap'
+import { useQuery } from '@tanstack/react-query'
 
 export default function HeatmapHours({
   startDate,
@@ -19,10 +19,10 @@ export default function HeatmapHours({
     },
   })
 
-  if (isLoading) return <div className="bg-card h-full w-full animate-pulse rounded-xl border" />
+  if (isLoading) return <div className='h-full w-full animate-pulse rounded-xl border bg-card' />
   if (error || !data)
     return (
-      <div className="bg-card text-muted-foreground flex h-full w-full items-center justify-center rounded-xl border p-4 text-sm">
+      <div className='flex h-full w-full items-center justify-center rounded-xl border bg-card p-4 text-muted-foreground text-sm'>
         Heatmap não disponível
       </div>
     )
@@ -50,15 +50,15 @@ export default function HeatmapHours({
   })
 
   return (
-    <div className="bg-card flex h-full w-full flex-col overflow-hidden rounded-xl border p-4 shadow-sm">
-      <h3 className="text-foreground mb-4 text-base font-semibold">
+    <div className='flex h-full w-full flex-col overflow-hidden rounded-xl border bg-card p-4 shadow-sm'>
+      <h3 className='mb-4 font-semibold text-base text-foreground'>
         Horários de Pico (Mensagens Recebidas)
       </h3>
-      <div className="bg-background/50 min-h-0 flex-1 rounded-md">
+      <div className='min-h-0 flex-1 rounded-md bg-background/50'>
         <ResponsiveHeatMapCanvas
           data={matrix}
           margin={{ top: 20, right: 20, bottom: 40, left: 40 }}
-          valueFormat=">-.2s"
+          valueFormat='>-.2s'
           axisTop={{
             tickSize: 5,
             tickPadding: 5,
@@ -79,9 +79,9 @@ export default function HeatmapHours({
             type: 'sequential',
             scheme: 'blues',
           }}
-          emptyColor="#f1f5f9"
+          emptyColor='#f1f5f9'
           borderWidth={1}
-          borderColor="#ffffff"
+          borderColor='#ffffff'
         />
       </div>
     </div>

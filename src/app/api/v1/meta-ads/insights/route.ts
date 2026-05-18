@@ -1,9 +1,8 @@
-import { NextRequest } from 'next/server'
-
-import { apiError, apiSuccess } from '@/lib/utils/api-response'
+import type { NextRequest } from 'next/server'
 import { insightsQuerySchema } from '@/features/meta-ads/schemas/meta-ads-schemas'
-import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { metaAdInsightsService } from '@/features/meta-ads/services/ad-insights.service'
+import { apiError, apiSuccess } from '@/lib/utils/api-response'
+import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 
 export async function GET(req: NextRequest) {
   const access = await validatePermissionAccess(req, 'view:campaigns')

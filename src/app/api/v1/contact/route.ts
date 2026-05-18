@@ -1,8 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-
-import { apiError } from '@/lib/utils/api-response'
+import { type NextRequest, NextResponse } from 'next/server'
 import { contactRequestSchema } from '@/features/contact/schemas/contact.schemas'
 import { dispatchContactWebhook } from '@/features/contact/services/contact.service'
+import { apiError } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
 
 export async function POST(request: NextRequest) {

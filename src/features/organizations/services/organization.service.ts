@@ -1,18 +1,17 @@
 import { Prisma } from '@generated/prisma/client'
-
+import type { CompanyLookupData } from '@/features/organizations/schemas/organization-onboarding'
+import type { UpdateOrganizationInput } from '@/features/organizations/schemas/organization-schemas'
 import { prisma } from '@/lib/db/prisma'
-import { auditService } from '@/services/audit/audit.service'
-import { getOrganizationIdentityStatus } from '@/server/organization/is-identity-complete'
-import { listEffectivePermissions } from '@/server/organization/organization-rbac.service'
 import {
   type DocumentType,
   type IdentityType,
   normalizeDocumentNumber,
   validateIdentityDocument,
 } from '@/lib/document/document-identity'
-import type { UpdateOrganizationInput } from '@/features/organizations/schemas/organization-schemas'
-import type { CompanyLookupData } from '@/features/organizations/schemas/organization-onboarding'
 import { logger } from '@/lib/utils/logger'
+import { getOrganizationIdentityStatus } from '@/server/organization/is-identity-complete'
+import { listEffectivePermissions } from '@/server/organization/organization-rbac.service'
+import { auditService } from '@/services/audit/audit.service'
 
 type ServiceError = {
   error: string
@@ -289,7 +288,9 @@ export async function updateOrganizationMe(input: {
     input.data.documentType === undefined ? currentIdentity.documentType : input.data.documentType
   ) as DocumentType | null | undefined
   const nextDocumentNumber =
-    input.data.documentNumber === undefined ? currentIdentity.documentNumber : input.data.documentNumber
+    input.data.documentNumber === undefined
+      ? currentIdentity.documentNumber
+      : input.data.documentNumber
 
   const identityValidation = validateIdentityDocument({
     identityType: nextOrganizationType,
@@ -304,9 +305,9 @@ export async function updateOrganizationMe(input: {
   const normalizedDocument = identityValidation.normalizedDocument
   const isUpdatingToNewCompanyIdentity =
     nextOrganizationType === 'pessoa_juridica' &&
-    (!!normalizedDocument &&
-      (currentIdentity.organizationType !== 'pessoa_juridica' ||
-        currentIdentity.documentNumber !== normalizedDocument))
+    !!normalizedDocument &&
+    (currentIdentity.organizationType !== 'pessoa_juridica' ||
+      currentIdentity.documentNumber !== normalizedDocument)
 
   if (isUpdatingToNewCompanyIdentity && !input.data.companyLookupData) {
     return {
@@ -315,7 +316,11 @@ export async function updateOrganizationMe(input: {
     }
   }
 
-  if (nextOrganizationType === 'pessoa_juridica' && input.data.companyLookupData && normalizedDocument) {
+  if (
+    nextOrganizationType === 'pessoa_juridica' &&
+    input.data.companyLookupData &&
+    normalizedDocument
+  ) {
     const lookupCnpj = normalizeDocumentNumber(input.data.companyLookupData.cnpj)
     if (lookupCnpj !== normalizedDocument) {
       return { error: 'CNPJ consultado difere do documento informado.', status: 400 }
@@ -387,14 +392,12 @@ export async function updateOrganizationMe(input: {
 
         await tx.organizationCompany.upsert({
           where: { organizationId: input.organizationId },
-          update:
-            companyPersistenceData ??
-            {
-              cnpj: normalizedDocument,
-              ...(resolvedOrganizationName !== undefined
-                ? { razaoSocial: resolvedOrganizationName, nomeFantasia: resolvedOrganizationName }
-                : {}),
-            },
+          update: companyPersistenceData ?? {
+            cnpj: normalizedDocument,
+            ...(resolvedOrganizationName !== undefined
+              ? { razaoSocial: resolvedOrganizationName, nomeFantasia: resolvedOrganizationName }
+              : {}),
+          },
           create: companyPersistenceData
             ? {
                 organizationId: input.organizationId,

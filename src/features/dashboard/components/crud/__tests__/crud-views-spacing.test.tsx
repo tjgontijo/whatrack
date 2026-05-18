@@ -16,7 +16,7 @@ describe('crud shared views spacing', () => {
             render: (item) => item.name,
           },
         ]}
-      />,
+      />
     )
 
     expect(container.firstElementChild).not.toHaveClass('mt-6')
@@ -29,7 +29,7 @@ describe('crud shared views spacing', () => {
         config={{
           title: (item) => item.name,
         }}
-      />,
+      />
     )
 
     expect(container.firstElementChild).not.toHaveClass('pt-6')

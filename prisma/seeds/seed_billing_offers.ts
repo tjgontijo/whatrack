@@ -1,13 +1,9 @@
-import { Prisma, PrismaClient } from '@generated/prisma/client'
+import { Prisma, type PrismaClient } from '@generated/prisma/client'
 
 export async function seedBillingOffers(prisma: PrismaClient) {
   console.log('💳 Seeding billing offers...')
 
-  const planCodes = [
-    'starter_monthly',
-    'pro_monthly',
-    'business_monthly',
-  ]
+  const planCodes = ['starter_monthly', 'pro_monthly', 'business_monthly']
 
   const plans = await Promise.all(
     planCodes.map((code) =>
@@ -21,7 +17,9 @@ export async function seedBillingOffers(prisma: PrismaClient) {
   const planMap = new Map(plans.map((p) => [p?.code, p?.id]).filter(([, id]) => !!id))
 
   if (planMap.size !== planCodes.length) {
-    throw new Error(`Billing plans must exist before seeding offers. Found: ${planMap.size}/${planCodes.length}`)
+    throw new Error(
+      `Billing plans must exist before seeding offers. Found: ${planMap.size}/${planCodes.length}`
+    )
   }
 
   const offers = [

@@ -1,14 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server'
-
+import { type NextRequest, NextResponse } from 'next/server'
+import { toggleItemActiveService } from '@/features/items/server'
 import { apiError } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { toggleItemActiveService } from '@/features/items/server'
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: Promise<{ itemId: string }> }
-) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ itemId: string }> }) {
   const access = await validateFullAccess(req)
   if (!access.hasAccess || !access.organizationId) {
     return apiError(access.error ?? 'Acesso negado', 403)

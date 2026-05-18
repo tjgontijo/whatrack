@@ -91,7 +91,7 @@ export const InvitationEmail = ({
               <Text style={supportTitle}>Precisa de ajuda?</Text>
               <Text style={supportText}>
                 ✉️ E-mail:{' '}
-                <Link href="mailto:contato@whatrack.com" style={linkStyle}>
+                <Link href='mailto:contato@whatrack.com' style={linkStyle}>
                   contato@whatrack.com
                 </Link>
               </Text>

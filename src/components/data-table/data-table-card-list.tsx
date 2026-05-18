@@ -1,7 +1,7 @@
 'use client'
 
+import type { Row } from '@tanstack/react-table'
 import * as React from 'react'
-import { Row } from '@tanstack/react-table'
 import { cn } from '@/lib/utils/utils'
 
 interface DataTableCardListProps<TData> {
@@ -23,7 +23,7 @@ export const DataTableCardList = React.forwardRef<HTMLDivElement, DataTableCardL
     if (rows.length === 0) {
       return (
         <div ref={ref} className={cn('py-8 text-center', className)}>
-          <div className="text-muted-foreground text-sm">Nenhum resultado</div>
+          <div className='text-muted-foreground text-sm'>Nenhum resultado</div>
         </div>
       )
     }
@@ -32,10 +32,10 @@ export const DataTableCardList = React.forwardRef<HTMLDivElement, DataTableCardL
       <div
         ref={ref}
         className={cn('grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4', className)}
-        role="list"
+        role='list'
       >
         {rows.map((row) => (
-          <div key={row.id} role="listitem">
+          <div key={row.id} role='listitem'>
             {renderCard(row)}
           </div>
         ))}

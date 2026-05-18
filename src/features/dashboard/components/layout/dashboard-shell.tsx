@@ -1,11 +1,10 @@
 'use client'
 
-import { useState } from 'react'
 import type { ReactNode } from 'react'
-
-import { AppSidebar } from '@/features/dashboard/components/sidebar/app-sidebar'
-import type { AppSidebarProps } from '@/features/dashboard/components/sidebar/app-sidebar'
+import { useState } from 'react'
 import { TooltipProvider } from '@/components/ui/tooltip'
+import type { AppSidebarProps } from '@/features/dashboard/components/sidebar/app-sidebar'
+import { AppSidebar } from '@/features/dashboard/components/sidebar/app-sidebar'
 
 type DashboardShellProps = Omit<AppSidebarProps, 'collapsed' | 'onToggle'> & {
   children: ReactNode
@@ -16,16 +15,16 @@ export function DashboardShell({ children, ...sidebarProps }: DashboardShellProp
 
   return (
     <TooltipProvider delayDuration={300}>
-      <div className="flex min-h-0 flex-1 overflow-hidden">
+      <div className='flex min-h-0 flex-1 overflow-hidden'>
         <AppSidebar
           {...sidebarProps}
           collapsed={collapsed}
           onToggle={() => setCollapsed((v) => !v)}
         />
 
-        <main className="bg-background rounded-tl-xl flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide">
-          <div className="3xl:px-6 min-w-0 px-4 py-4">
-            <div className="max-w-screen-4xl mx-auto w-full min-w-0">{children}</div>
+        <main className='scrollbar-hide flex-1 overflow-y-auto overflow-x-hidden rounded-tl-xl bg-background'>
+          <div className='min-w-0 3xl:px-6 px-4 py-4'>
+            <div className='mx-auto w-full min-w-0 max-w-screen-4xl'>{children}</div>
           </div>
         </main>
       </div>

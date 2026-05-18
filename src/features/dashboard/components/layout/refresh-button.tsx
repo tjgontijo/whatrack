@@ -16,10 +16,10 @@ export function RefreshButton({ queryKey, label }: RefreshButtonProps) {
 
   return (
     <Button
-      type="button"
-      variant="ghost"
-      size="icon-sm"
-      className="h-7 w-7"
+      type='button'
+      variant='ghost'
+      size='icon-sm'
+      className='h-7 w-7'
       title={label ?? 'Atualizar'}
       onClick={() => queryClient.invalidateQueries({ queryKey })}
       disabled={isFetching}

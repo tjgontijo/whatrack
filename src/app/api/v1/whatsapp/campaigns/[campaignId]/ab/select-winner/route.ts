@@ -1,9 +1,8 @@
-import { NextRequest } from 'next/server'
-
+import type { NextRequest } from 'next/server'
+import { AbTestSelectWinnerSchema } from '@/features/whatsapp/lib/schemas/whatsapp-ab-schemas'
+import { selectWinner } from '@/features/whatsapp/services/whatsapp-campaign-ab.service'
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { selectWinner } from '@/features/whatsapp/services/whatsapp-campaign-ab.service'
-import { AbTestSelectWinnerSchema } from '@/features/whatsapp/lib/schemas/whatsapp-ab-schemas'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,7 +22,12 @@ export async function POST(
     return apiError('Payload inválido', 400, undefined, { details: body.error.flatten() })
   }
 
-  const result = await selectWinner(campaignId, body.data.variantId, access.userId, access.organizationId)
+  const result = await selectWinner(
+    campaignId,
+    body.data.variantId,
+    access.userId,
+    access.organizationId
+  )
 
   if (!result.success) {
     return apiError(result.error, 400)

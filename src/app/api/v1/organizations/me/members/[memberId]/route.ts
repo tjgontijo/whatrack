@@ -1,8 +1,7 @@
-import { NextRequest } from 'next/server'
-
-import { organizationJson } from '@/server/http/organization-json'
-import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
+import type { NextRequest } from 'next/server'
 import { removeOrganizationMember } from '@/features/organizations/services/organization-members.service'
+import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
+import { organizationJson } from '@/server/http/organization-json'
 
 export async function DELETE(
   req: NextRequest,

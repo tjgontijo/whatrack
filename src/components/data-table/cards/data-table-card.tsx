@@ -24,7 +24,7 @@ export const DataTableCard = React.forwardRef<HTMLDivElement, DataTableCardProps
         ref={ref}
         onClick={onClick}
         className={cn(
-          'border-border/50 bg-card rounded-lg border p-4',
+          'rounded-lg border border-border/50 bg-card p-4',
           'transition-all duration-200 ease-out',
           'hover:border-border hover:shadow-md',
           onClick && 'cursor-pointer',
@@ -53,7 +53,7 @@ export const DataTableCardHeader = React.forwardRef<HTMLDivElement, DataTableCar
       <div
         ref={ref}
         className={cn(
-          'border-border/30 mb-3 flex items-start justify-between gap-2 border-b pb-3',
+          'mb-3 flex items-start justify-between gap-2 border-border/30 border-b pb-3',
           className
         )}
       >
@@ -76,7 +76,7 @@ interface DataTableCardTitleProps {
 export const DataTableCardTitle = React.forwardRef<HTMLHeadingElement, DataTableCardTitleProps>(
   ({ children, className }, ref) => {
     return (
-      <h3 ref={ref} className={cn('text-foreground truncate text-sm font-semibold', className)}>
+      <h3 ref={ref} className={cn('truncate font-semibold text-foreground text-sm', className)}>
         {children}
       </h3>
     )
@@ -96,7 +96,7 @@ interface DataTableCardMetaProps {
 export const DataTableCardMeta = React.forwardRef<HTMLDivElement, DataTableCardMetaProps>(
   ({ children, className }, ref) => {
     return (
-      <div ref={ref} className={cn('text-muted-foreground whitespace-nowrap text-xs', className)}>
+      <div ref={ref} className={cn('whitespace-nowrap text-muted-foreground text-xs', className)}>
         {children}
       </div>
     )
@@ -138,10 +138,10 @@ export const DataTableCardRow = React.forwardRef<HTMLDivElement, DataTableCardRo
   ({ label, children, className }, ref) => {
     return (
       <div ref={ref} className={cn('flex items-center gap-2', className)}>
-        <span className="text-muted-foreground whitespace-nowrap text-xs font-medium uppercase tracking-wider">
+        <span className='whitespace-nowrap font-medium text-muted-foreground text-xs uppercase tracking-wider'>
           {label}:
         </span>
-        <div className="flex-1 text-sm">{children}</div>
+        <div className='flex-1 text-sm'>{children}</div>
       </div>
     )
   }
@@ -162,7 +162,7 @@ export const DataTableCardFooter = React.forwardRef<HTMLDivElement, DataTableCar
     return (
       <div
         ref={ref}
-        className={cn('border-border/30 flex items-center gap-2 border-t pt-3', className)}
+        className={cn('flex items-center gap-2 border-border/30 border-t pt-3', className)}
       >
         {children}
       </div>

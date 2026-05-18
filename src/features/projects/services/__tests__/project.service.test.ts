@@ -41,12 +41,12 @@ vi.mock('@/lib/db/prisma', () => ({
 }))
 
 import {
+  archiveProject,
   createProject,
   deleteProject,
   listProjects,
   updateProject,
 } from '@/features/projects/server'
-import { archiveProject } from '@/features/projects/server'
 
 describe('project.service', () => {
   beforeEach(() => {
@@ -98,7 +98,7 @@ describe('project.service', () => {
             mode: 'insensitive',
           },
         },
-      }),
+      })
     )
     expect(result.items[0]).toMatchObject({
       id: 'project_1',
@@ -149,7 +149,7 @@ describe('project.service', () => {
           name: 'Cliente Novo',
           slug: 'cliente-novo',
         },
-      }),
+      })
     )
     expect(result).toMatchObject({
       id: 'project_1',

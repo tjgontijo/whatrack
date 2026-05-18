@@ -1,8 +1,8 @@
-import { prisma } from '@/lib/db/prisma'
-import { logger } from '@/lib/utils/logger'
-import { ok, fail } from '@/lib/shared/result'
-import type { Result } from '@/lib/shared/result'
 import { z } from 'zod'
+import { prisma } from '@/lib/db/prisma'
+import type { Result } from '@/lib/shared/result'
+import { fail, ok } from '@/lib/shared/result'
+import { logger } from '@/lib/utils/logger'
 
 export const AddOptOutSchema = z.object({
   phone: z.string().min(5, 'Phone must be at least 5 characters'),
@@ -58,10 +58,7 @@ export async function addOptOut(
       },
     })
 
-    logger.info(
-      { phone: input.phone, source: input.source, organizationId },
-      '[OptOut] Added'
-    )
+    logger.info({ phone: input.phone, source: input.source, organizationId }, '[OptOut] Added')
 
     return ok({ id: optOut.id, phone: optOut.phone })
   } catch (err) {

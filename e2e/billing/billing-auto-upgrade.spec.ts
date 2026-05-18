@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
 import {
   completePaidAcquisitionJourney,
@@ -27,15 +27,13 @@ test.describe('Billing - Project Expansion', () => {
 
     expect(
       createdProject.response.status(),
-      `Unexpected project creation response: ${JSON.stringify(createdProject.body)}`,
+      `Unexpected project creation response: ${JSON.stringify(createdProject.body)}`
     ).toBe(201)
 
     const projects = await listProjectsViaApi(page)
     expect(projects.response.ok()).toBeTruthy()
 
-    const projectSlugs = (projects.body?.items ?? []).map(
-      (item: { slug?: string }) => item.slug,
-    )
+    const projectSlugs = (projects.body?.items ?? []).map((item: { slug?: string }) => item.slug)
     expect(projectSlugs).toContain(projectSlug)
 
     const subscriptionAfter = await getSubscriptionViaApi(page)

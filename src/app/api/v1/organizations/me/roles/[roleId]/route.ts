@@ -1,13 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server'
-
-import { apiError } from '@/lib/utils/api-response'
-import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
-import { toRbacErrorResponse } from '@/server/organization/rbac-http'
+import { type NextRequest, NextResponse } from 'next/server'
 import { updateOrganizationRoleSchema } from '@/features/organizations/schemas/organization-role-schemas'
 import {
   deleteOrganizationRoleWithAudit,
   updateOrganizationRoleWithAudit,
 } from '@/features/organizations/services/organization-roles.service'
+import { apiError } from '@/lib/utils/api-response'
+import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
+import { toRbacErrorResponse } from '@/server/organization/rbac-http'
 
 export async function PATCH(
   request: NextRequest,

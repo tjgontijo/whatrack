@@ -1,23 +1,22 @@
 'use client'
 
-import { startTransition, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { useMutation } from '@tanstack/react-query'
+import { useRouter } from 'next/navigation'
+import { startTransition, useState } from 'react'
 import { toast } from 'sonner'
-
-import { authClient } from '@/lib/auth/auth-client'
-import { getAuthErrorMessage } from '@/lib/auth/error-messages'
-import { isOwner } from '@/lib/auth/rbac/roles'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import type { UpdateMeAccountInput } from '@/features/me/schemas/me-account.schemas'
 import type { AccountSummary } from '@/features/account/types/account-summary'
+import type { UpdateMeAccountInput } from '@/features/me/schemas/me-account.schemas'
 import { OnboardingDialog } from '@/features/organizations/components/onboarding-dialog'
-import { AccountProfileCard } from './account-profile-card'
-import { AccountOrganizationCard } from './account-organization-card'
-import { AccountBillingCard } from './account-billing-card'
 import { apiFetch } from '@/lib/api-client'
+import { authClient } from '@/lib/auth/auth-client'
+import { getAuthErrorMessage } from '@/lib/auth/error-messages'
+import { isOwner } from '@/lib/auth/rbac/roles'
+import { AccountBillingCard } from './account-billing-card'
+import { AccountOrganizationCard } from './account-organization-card'
+import { AccountProfileCard } from './account-profile-card'
 
 async function fetchJson<T>(url: string, init?: RequestInit & { orgId?: string }): Promise<T> {
   return apiFetch(url, init)
@@ -82,8 +81,8 @@ export function MyAccountContent({
         throw new Error(
           getAuthErrorMessage(
             (error as { code?: string; message?: string }).code,
-            (error as { message?: string }).message || 'Não foi possível alterar sua senha.',
-          ),
+            (error as { message?: string }).message || 'Não foi possível alterar sua senha.'
+          )
         )
       }
     },
@@ -99,7 +98,7 @@ export function MyAccountContent({
   })
 
   return (
-    <div className="space-y-6">
+    <div className='space-y-6'>
       {account ? (
         <AccountProfileCard
           key={`${account.id}:${account.updatedAt}`}
@@ -114,27 +113,27 @@ export function MyAccountContent({
           <CardTitle>Segurança</CardTitle>
           <CardDescription>Atualize a senha de acesso da sua conta.</CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4">
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">Senha atual</label>
+        <CardContent className='grid gap-4'>
+          <div className='grid gap-2'>
+            <label className='font-medium text-sm'>Senha atual</label>
             <Input
-              type="password"
+              type='password'
               value={currentPassword}
               onChange={(event) => setCurrentPassword(event.target.value)}
             />
           </div>
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">Nova senha</label>
+          <div className='grid gap-2'>
+            <label className='font-medium text-sm'>Nova senha</label>
             <Input
-              type="password"
+              type='password'
               value={newPassword}
               onChange={(event) => setNewPassword(event.target.value)}
             />
           </div>
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">Confirmar nova senha</label>
+          <div className='grid gap-2'>
+            <label className='font-medium text-sm'>Confirmar nova senha</label>
             <Input
-              type="password"
+              type='password'
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}
             />
@@ -162,7 +161,7 @@ export function MyAccountContent({
             <OnboardingDialog
               key={`${initialOrganization.id}:${initialOrganization.updatedAt}:${initialOrganization.documentNumber ?? ''}`}
               open={isFiscalDialogOpen}
-              mode="edit"
+              mode='edit'
               initialOrganization={initialOrganization}
               onOpenChange={setIsFiscalDialogOpen}
               onCompleted={() => {

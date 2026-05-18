@@ -1,5 +1,8 @@
+import type {
+  CreateOrganizationRoleInput,
+  UpdateOrganizationRoleInput,
+} from '@/features/organizations/schemas/organization-role-schemas'
 import { prisma } from '@/lib/db/prisma'
-import { auditService } from '@/services/audit/audit.service'
 import {
   createOrganizationRole,
   deleteOrganizationRole,
@@ -10,10 +13,7 @@ import {
   assertCanDelegatePermissions,
   getDelegatablePermissionCatalog,
 } from '@/server/organization/permission-delegation-policy'
-import type {
-  CreateOrganizationRoleInput,
-  UpdateOrganizationRoleInput,
-} from '@/features/organizations/schemas/organization-role-schemas'
+import { auditService } from '@/services/audit/audit.service'
 
 type ServiceError = {
   error: string

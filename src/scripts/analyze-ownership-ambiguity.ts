@@ -189,9 +189,9 @@ function formatReport(report: AnalysisReport): string {
   lines.push('')
 
   // High-level summary
-  lines.push('╔' + '═'.repeat(58) + '╗')
-  lines.push('║ SUMMARY' + ' '.repeat(51) + '║')
-  lines.push('╠' + '═'.repeat(58) + '╣')
+  lines.push(`╔${'═'.repeat(58)}╗`)
+  lines.push(`║ SUMMARY${' '.repeat(51)}║`)
+  lines.push(`╠${'═'.repeat(58)}╣`)
   lines.push(`║ Total Organizations: ${report.totalOrganizations.toString().padEnd(38)} ║`)
   lines.push(
     `║ Auto-Mappable (1 project): ${report.summary.autoMappableCount.toString().padEnd(32)} ║`
@@ -202,7 +202,7 @@ function formatReport(report: AnalysisReport): string {
   lines.push(
     `║ Total Assets Awaiting Mapping: ${report.summary.totalAssetsAwaitingMapping.toString().padEnd(28)} ║`
   )
-  lines.push('╚' + '═'.repeat(58) + '╝')
+  lines.push(`╚${'═'.repeat(58)}╝`)
   lines.push('')
 
   // Auto-mappable breakdown

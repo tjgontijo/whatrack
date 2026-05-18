@@ -1,23 +1,25 @@
 'use client'
 
-import { useMemo, useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
-import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Building2, CircleAlert, CircleCheckBig, User } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useMemo, useState, useTransition } from 'react'
+import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
-
-import { authClient } from '@/lib/auth/auth-client'
-import { apiFetch } from '@/lib/api-client'
-import { ORGANIZATION_COOKIE, PROJECT_COOKIE } from '@/lib/constants/http-headers'
-import { applyCpfCnpjMask, stripCpfCnpj } from '@/lib/mask/cpf-cnpj'
-import type { CompanyLookupData } from '@/features/organizations/schemas/organization-onboarding'
-import { welcomeOnboardingSchema, type WelcomeOnboardingInput } from '@/features/onboarding/schemas/welcome-onboarding.schemas'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Field, FieldError, FieldLabel } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
+import {
+  type WelcomeOnboardingInput,
+  welcomeOnboardingSchema,
+} from '@/features/onboarding/schemas/welcome-onboarding.schemas'
+import type { CompanyLookupData } from '@/features/organizations/schemas/organization-onboarding'
+import { apiFetch } from '@/lib/api-client'
+import { authClient } from '@/lib/auth/auth-client'
+import { ORGANIZATION_COOKIE, PROJECT_COOKIE } from '@/lib/constants/http-headers'
+import { applyCpfCnpjMask, stripCpfCnpj } from '@/lib/mask/cpf-cnpj'
 import { cn } from '@/lib/utils/utils'
 
 type WelcomeOnboardingFormProps = {
@@ -37,9 +39,7 @@ type LookupFeedback =
     }
   | null
 
-export function WelcomeOnboardingForm({
-  defaultOrganizationName,
-}: WelcomeOnboardingFormProps) {
+export function WelcomeOnboardingForm({ defaultOrganizationName }: WelcomeOnboardingFormProps) {
   const router = useRouter()
   const [isRefreshing, startTransition] = useTransition()
   const [lookupFeedback, setLookupFeedback] = useState<LookupFeedback>(null)
@@ -52,10 +52,16 @@ export function WelcomeOnboardingForm({
   })
   const identityType = form.watch('identityType')
   const companyLookupData = form.watch('companyLookupData')
-  const documentType = identityType === 'pessoa_juridica' ? 'cnpj' : identityType === 'pessoa_fisica' ? 'cpf' : null
-  const documentLabel = documentType === 'cnpj' ? 'CNPJ' : documentType === 'cpf' ? 'CPF' : 'CPF ou CNPJ'
+  const documentType =
+    identityType === 'pessoa_juridica' ? 'cnpj' : identityType === 'pessoa_fisica' ? 'cpf' : null
+  const documentLabel =
+    documentType === 'cnpj' ? 'CNPJ' : documentType === 'cpf' ? 'CPF' : 'CPF ou CNPJ'
   const documentPlaceholder =
-    documentType === 'cnpj' ? '00.000.000/0000-00' : documentType === 'cpf' ? '000.000.000-00' : 'Selecione o tipo primeiro'
+    documentType === 'cnpj'
+      ? '00.000.000/0000-00'
+      : documentType === 'cpf'
+        ? '000.000.000-00'
+        : 'Selecione o tipo primeiro'
   const companySummary = useMemo(() => {
     if (!companyLookupData) return null
 
@@ -69,9 +75,13 @@ export function WelcomeOnboardingForm({
       .join(' • ')
   }, [companyLookupData])
 
-  async function resolveCompanyLookupData(documentNumber: string): Promise<CompanyLookupData | undefined> {
+  async function resolveCompanyLookupData(
+    documentNumber: string
+  ): Promise<CompanyLookupData | undefined> {
     try {
-      const payload = (await apiFetch(`/api/v1/company/lookup?cnpj=${documentNumber}`)) as CompanyLookupData
+      const payload = (await apiFetch(
+        `/api/v1/company/lookup?cnpj=${documentNumber}`
+      )) as CompanyLookupData
       form.setValue('companyLookupData', payload, { shouldDirty: true })
       setLookupFeedback({
         kind: 'success',
@@ -84,7 +94,8 @@ export function WelcomeOnboardingForm({
       setLookupFeedback({
         kind: 'fallback',
         title: 'Seguiremos apenas com o CNPJ',
-        description: 'A consulta da Receita falhou agora. O cadastro será concluído com o documento informado.',
+        description:
+          'A consulta da Receita falhou agora. O cadastro será concluído com o documento informado.',
       })
       return undefined
     }
@@ -153,15 +164,15 @@ export function WelcomeOnboardingForm({
     !!form.watch('documentNumber')?.trim()
 
   return (
-    <form className="flex flex-col space-y-5" onSubmit={form.handleSubmit(handleSubmit)}>
+    <form className='flex flex-col space-y-5' onSubmit={form.handleSubmit(handleSubmit)}>
       <Field data-invalid={!!form.formState.errors.organizationName}>
-        <FieldLabel htmlFor="welcome-organization-name">Nome da organização</FieldLabel>
+        <FieldLabel htmlFor='welcome-organization-name'>Nome da organização</FieldLabel>
         <Input
-          id="welcome-organization-name"
+          id='welcome-organization-name'
           {...form.register('organizationName')}
           disabled={isSubmitting}
-          placeholder="Nome da sua organização"
-          className="focus-visible:ring-primary focus-visible:border-primary h-12 px-4 shadow-sm"
+          placeholder='Nome da sua organização'
+          className='h-12 px-4 shadow-sm focus-visible:border-primary focus-visible:ring-primary'
         />
         <FieldError errors={[form.formState.errors.organizationName]} />
       </Field>
@@ -170,7 +181,7 @@ export function WelcomeOnboardingForm({
 
       <Field data-invalid={!!form.formState.errors.identityType}>
         <FieldLabel>Tipo fiscal</FieldLabel>
-        <div className="grid grid-cols-2 gap-2">
+        <div className='grid grid-cols-2 gap-2'>
           {(
             [
               { value: 'pessoa_juridica', label: 'Pessoa Jurídica', icon: Building2 },
@@ -181,7 +192,7 @@ export function WelcomeOnboardingForm({
             return (
               <button
                 key={value}
-                type="button"
+                type='button'
                 disabled={isSubmitting}
                 onClick={() => {
                   form.setValue('identityType', value, { shouldDirty: true, shouldValidate: true })
@@ -190,13 +201,15 @@ export function WelcomeOnboardingForm({
                   setLookupFeedback(null)
                 }}
                 className={cn(
-                  'flex flex-col items-center gap-2 border px-4 py-4 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50',
+                  'flex flex-col items-center gap-2 border px-4 py-4 font-medium text-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50',
                   selected
                     ? 'border-primary bg-primary/5 text-primary'
                     : 'border-border bg-background text-muted-foreground hover:border-foreground/30 hover:text-foreground'
                 )}
               >
-                <Icon className={cn('h-6 w-6', selected ? 'text-primary' : 'text-muted-foreground')} />
+                <Icon
+                  className={cn('h-6 w-6', selected ? 'text-primary' : 'text-muted-foreground')}
+                />
                 <span>{label}</span>
               </button>
             )
@@ -207,14 +220,16 @@ export function WelcomeOnboardingForm({
 
       {identityType && (
         <>
-          <Field data-invalid={!!form.formState.errors.documentNumber && form.formState.isSubmitted}>
-            <FieldLabel htmlFor="welcome-document-number">{documentLabel}</FieldLabel>
+          <Field
+            data-invalid={!!form.formState.errors.documentNumber && form.formState.isSubmitted}
+          >
+            <FieldLabel htmlFor='welcome-document-number'>{documentLabel}</FieldLabel>
             <Input
-              id="welcome-document-number"
+              id='welcome-document-number'
               value={form.watch('documentNumber') ?? ''}
               disabled={isSubmitting}
               placeholder={documentPlaceholder}
-              className="focus-visible:ring-primary focus-visible:border-primary h-12 px-4 shadow-sm"
+              className='h-12 px-4 shadow-sm focus-visible:border-primary focus-visible:ring-primary'
               onChange={(event) => {
                 const maskedValue = applyCpfCnpjMask(event.target.value, documentType)
                 form.setValue('documentNumber', maskedValue, {
@@ -233,9 +248,9 @@ export function WelcomeOnboardingForm({
           {lookupFeedback && (
             <Alert variant={lookupFeedback.kind === 'fallback' ? 'destructive' : 'default'}>
               {lookupFeedback.kind === 'fallback' ? (
-                <CircleAlert className="h-4 w-4" />
+                <CircleAlert className='h-4 w-4' />
               ) : (
-                <CircleCheckBig className="h-4 w-4" />
+                <CircleCheckBig className='h-4 w-4' />
               )}
               <AlertTitle>{lookupFeedback.title}</AlertTitle>
               <AlertDescription>
@@ -248,9 +263,9 @@ export function WelcomeOnboardingForm({
       )}
 
       <Button
-        type="submit"
+        type='submit'
         disabled={isSubmitting || !canSubmit}
-        className="shadow-primary/20 mt-2 h-12 w-full text-sm font-semibold shadow-md transition-all hover:-translate-y-0.5"
+        className='mt-2 h-12 w-full font-semibold text-sm shadow-md shadow-primary/20 transition-all hover:-translate-y-0.5'
       >
         {isSubmitting ? 'Preparando sua conta...' : 'Salvar e entrar'}
       </Button>

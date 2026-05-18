@@ -1,42 +1,44 @@
 'use client'
 
-import React from 'react'
-import { useRouter } from 'next/navigation'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
-  Settings,
-  Users,
-  FlaskConical,
-  Send as SendIcon,
+  Check,
   ChevronLeft,
   ChevronRight,
+  FlaskConical,
   Loader2,
-  Check,
+  Send as SendIcon,
+  Settings,
+  Users,
 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import React from 'react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils/utils'
-import { apiFetch } from '@/lib/api-client'
-import { whatsappApi } from '@/features/whatsapp/lib/client'
-import {
-  parseCampaignCsv,
-  buildCampaignCsvPreview,
-  validateCampaignCsvModel,
-  type CampaignCsvParseResult,
-} from '@/features/whatsapp/lib/campaign-csv'
-import { useRequiredProjectPath, useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
 import { useProject } from '@/features/projects/hooks/use-project'
-import type { WhatsAppTemplate } from '@/features/whatsapp/types/whatsapp'
-
-import { CampaignWizardStepBasic } from '../campaign-wizard-step-basic'
-import { CampaignWizardStepRecipients } from '../campaign-wizard-step-recipients'
-import { CampaignWizardStepDispatch } from '../campaign-wizard-step-dispatch'
 import {
-  CampaignWizardStepAb,
-  type AbTestVariantDraft,
+  useRequiredProjectPath,
+  useRequiredProjectRouteContext,
+} from '@/features/projects/hooks/use-project-route-context'
+import {
+  buildCampaignCsvPreview,
+  type CampaignCsvParseResult,
+  parseCampaignCsv,
+  validateCampaignCsvModel,
+} from '@/features/whatsapp/lib/campaign-csv'
+import { whatsappApi } from '@/features/whatsapp/lib/client'
+import type { WhatsAppTemplate } from '@/features/whatsapp/types/whatsapp'
+import { apiFetch } from '@/lib/api-client'
+import { cn } from '@/lib/utils/utils'
+import {
   type AbTestConfigDraft,
+  type AbTestVariantDraft,
+  CampaignWizardStepAb,
 } from '../campaign-wizard-step-ab'
+import { CampaignWizardStepBasic } from '../campaign-wizard-step-basic'
+import { CampaignWizardStepDispatch } from '../campaign-wizard-step-dispatch'
+import { CampaignWizardStepRecipients } from '../campaign-wizard-step-recipients'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -102,7 +104,9 @@ export function CampaignBuilder() {
   // ── Step 1: Basic ───────────────────────────────────────────────────────
   const [name, setName] = React.useState('')
   const [selectedInstanceId, setSelectedInstanceId] = React.useState('')
-  const [templateCategory, setTemplateCategory] = React.useState<WhatsAppTemplate['category'] | ''>('')
+  const [templateCategory, setTemplateCategory] = React.useState<WhatsAppTemplate['category'] | ''>(
+    ''
+  )
   const [selectedTemplateName, setSelectedTemplateName] = React.useState('')
 
   // ── Step 2: A/B ─────────────────────────────────────────────────────────
@@ -129,7 +133,10 @@ export function CampaignBuilder() {
     queryFn: async () => {
       const url = new URL('/api/v1/whatsapp/instances', window.location.origin)
       url.searchParams.set('projectId', activeProjectId)
-      const data = await apiFetch(url.toString(), { orgId: organizationId, projectId: activeProjectId })
+      const data = await apiFetch(url.toString(), {
+        orgId: organizationId,
+        projectId: activeProjectId,
+      })
       return ((data as { items?: WhatsAppInstanceItem[] }).items || []) as WhatsAppInstanceItem[]
     },
     enabled: !!organizationId && !!activeProjectId,
@@ -143,33 +150,33 @@ export function CampaignBuilder() {
 
   const approvedTemplates = React.useMemo(
     () => templates.filter((t) => t.status === 'APPROVED'),
-    [templates],
+    [templates]
   )
 
   const availableCategories = React.useMemo(
     () => Array.from(new Set(approvedTemplates.map((t) => t.category))),
-    [approvedTemplates],
+    [approvedTemplates]
   )
 
   const filteredTemplates = React.useMemo(
     () => approvedTemplates.filter((t) => !templateCategory || t.category === templateCategory),
-    [approvedTemplates, templateCategory],
+    [approvedTemplates, templateCategory]
   )
 
   const selectedTemplate = React.useMemo(
     () => filteredTemplates.find((t) => t.name === selectedTemplateName),
-    [filteredTemplates, selectedTemplateName],
+    [filteredTemplates, selectedTemplateName]
   )
 
   const templateVariableNames = React.useMemo(
     () => extractTemplateVariables(selectedTemplate),
-    [selectedTemplate],
+    [selectedTemplate]
   )
 
   // Reset template on category/instance change
   React.useEffect(() => {
     setSelectedTemplateName('')
-  }, [templateCategory, selectedInstanceId])
+  }, [])
 
   // Reset variable mapping on template change
   React.useEffect(() => {
@@ -189,8 +196,8 @@ export function CampaignBuilder() {
       prev.map((v, i) =>
         i === 0
           ? { ...v, templateName: selectedTemplate.name, templateLang: selectedTemplate.language }
-          : v,
-      ),
+          : v
+      )
     )
   }, [selectedTemplate])
 
@@ -199,13 +206,20 @@ export function CampaignBuilder() {
     if (!parsedCsv || !phoneColumn) return null
     const allMapped = templateVariableNames.every((n) => Boolean(variableColumns[n]))
     if (!allMapped) return null
-    return buildCampaignCsvPreview(parsedCsv.rows, { phoneColumn, variableColumns }, templateVariableNames)
+    return buildCampaignCsvPreview(
+      parsedCsv.rows,
+      { phoneColumn, variableColumns },
+      templateVariableNames
+    )
   }, [parsedCsv, phoneColumn, variableColumns, templateVariableNames])
 
   // ── File handler ─────────────────────────────────────────────────────────
   const handleFileSelected = async (file: File | null) => {
     if (!file) {
-      setParsedCsv(null); setFileError(null); setPhoneColumn(''); setVariableColumns({})
+      setParsedCsv(null)
+      setFileError(null)
+      setPhoneColumn('')
+      setVariableColumns({})
       return
     }
     try {
@@ -215,13 +229,19 @@ export function CampaignBuilder() {
         throw new Error('O CSV está vazio ou não possui cabeçalho/linhas válidas.')
       }
       const validated = validateCampaignCsvModel(parsed, templateVariableNames)
-      setParsedCsv(parsed); setFileError(null)
-      setPhoneColumn(validated.phoneColumn); setVariableColumns(validated.variableColumns)
+      setParsedCsv(parsed)
+      setFileError(null)
+      setPhoneColumn(validated.phoneColumn)
+      setVariableColumns(validated.variableColumns)
       if (validated.missingVariables.length > 0) {
-        toast.info(`${validated.missingVariables.length} variável(is) não detectadas automaticamente. Faça o mapeamento manual.`)
+        toast.info(
+          `${validated.missingVariables.length} variável(is) não detectadas automaticamente. Faça o mapeamento manual.`
+        )
       }
     } catch (error) {
-      setParsedCsv(null); setPhoneColumn(''); setVariableColumns({})
+      setParsedCsv(null)
+      setPhoneColumn('')
+      setVariableColumns({})
       setFileError(error instanceof Error ? error.message : 'Falha ao ler o CSV.')
     }
   }
@@ -239,12 +259,12 @@ export function CampaignBuilder() {
       selectedInstanceId.length > 0 &&
       templateCategory.length > 0 &&
       selectedTemplateName.length > 0,
-    ab: !isAbTest || (
-      abVariants.length >= 2 &&
-      abVariants.every((v) => v.templateName && v.splitPercent > 0) &&
-      new Set(abVariants.map((v) => v.templateName)).size === abVariants.length &&
-      abVariants.reduce((s, v) => s + v.splitPercent, 0) + abConfig.remainderPercent === 100
-    ),
+    ab:
+      !isAbTest ||
+      (abVariants.length >= 2 &&
+        abVariants.every((v) => v.templateName && v.splitPercent > 0) &&
+        new Set(abVariants.map((v) => v.templateName)).size === abVariants.length &&
+        abVariants.reduce((s, v) => s + v.splitPercent, 0) + abConfig.remainderPercent === 100),
     recipients:
       !!parsedCsv &&
       !!csvPreview &&
@@ -330,53 +350,57 @@ export function CampaignBuilder() {
   const selectedInstance = instances.find((i) => i.id === selectedInstanceId)
 
   return (
-    <div className="flex flex-col h-full bg-muted/20 -m-4 md:-m-6">
+    <div className='-m-4 flex h-full flex-col bg-muted/20 md:-m-6'>
       {/* ── Sticky Header ─────────────────────────────────────────────── */}
-      <header className="bg-background border-b px-6 py-4 flex items-center justify-between sticky top-0 z-10 shadow-sm gap-4">
-        <div className="flex flex-col gap-0.5 min-w-0">
-          <h1 className="text-base font-bold tracking-tight truncate">
+      <header className='sticky top-0 z-10 flex items-center justify-between gap-4 border-b bg-background px-6 py-4 shadow-sm'>
+        <div className='flex min-w-0 flex-col gap-0.5'>
+          <h1 className='truncate font-bold text-base tracking-tight'>
             {name.trim() || 'Nova Campanha'}
           </h1>
-          <p className="text-[11px] text-muted-foreground uppercase font-bold tracking-widest">
+          <p className='font-bold text-[11px] text-muted-foreground uppercase tracking-widest'>
             Passo {currentStepIdx + 1} de {steps.length} — {currentStep?.label}
           </p>
         </div>
 
         {/* Step indicators */}
-        <nav className="hidden md:flex items-center gap-1">
+        <nav className='hidden items-center gap-1 md:flex'>
           {steps.map((step, idx) => (
-            <div key={step.id} className="flex items-center">
+            <div key={step.id} className='flex items-center'>
               <div
                 className={cn(
-                  'h-8 w-8 rounded-lg flex items-center justify-center transition-all text-xs font-bold',
+                  'flex h-8 w-8 items-center justify-center rounded-lg font-bold text-xs transition-all',
                   idx === currentStepIdx
                     ? 'bg-primary text-primary-foreground shadow shadow-primary/20'
                     : idx < currentStepIdx
-                      ? 'bg-green-100 text-green-600 border border-green-300'
-                      : 'bg-muted text-muted-foreground/50 border border-border',
+                      ? 'border border-green-300 bg-green-100 text-green-600'
+                      : 'border border-border bg-muted text-muted-foreground/50'
                 )}
               >
-                {idx < currentStepIdx ? <Check className="h-3.5 w-3.5" /> : <step.icon className="h-3.5 w-3.5" />}
+                {idx < currentStepIdx ? (
+                  <Check className='h-3.5 w-3.5' />
+                ) : (
+                  <step.icon className='h-3.5 w-3.5' />
+                )}
               </div>
               <span
                 className={cn(
-                  'hidden lg:block text-xs font-medium mx-2',
-                  idx === currentStepIdx ? 'text-primary' : 'text-muted-foreground',
+                  'mx-2 hidden font-medium text-xs lg:block',
+                  idx === currentStepIdx ? 'text-primary' : 'text-muted-foreground'
                 )}
               >
                 {step.label}
               </span>
               {idx < steps.length - 1 && (
-                <div className="h-px w-4 bg-border mx-1 hidden lg:block" />
+                <div className='mx-1 hidden h-px w-4 bg-border lg:block' />
               )}
             </div>
           ))}
         </nav>
 
         <Button
-          variant="ghost"
-          size="sm"
-          className="shrink-0"
+          variant='ghost'
+          size='sm'
+          className='shrink-0'
           onClick={() => router.push(campaignsPath)}
         >
           Cancelar
@@ -384,25 +408,25 @@ export function CampaignBuilder() {
       </header>
 
       {/* ── Content ───────────────────────────────────────────────────── */}
-      <main className="flex-1 overflow-y-auto px-4 py-6 md:px-8 md:py-10">
-        <div className="max-w-3xl mx-auto">
+      <main className='flex-1 overflow-y-auto px-4 py-6 md:px-8 md:py-10'>
+        <div className='mx-auto max-w-3xl'>
           {currentStep?.id === 'basic' && (
-            <div className="grid gap-6">
-                <CampaignWizardStepBasic
-                  hasActiveProject={!!activeProjectId}
-                  isProjectLoading={isProjectLoading}
-                  instances={instances}
-                  availableCategories={availableCategories}
-                  templates={filteredTemplates}
-                  name={name}
-                  selectedInstanceId={selectedInstanceId}
-                  templateCategory={templateCategory}
-                  selectedTemplateName={selectedTemplateName}
-                  onNameChange={setName}
-                  onInstanceChange={setSelectedInstanceId}
-                  onTemplateCategoryChange={setTemplateCategory}
-                  onTemplateChange={setSelectedTemplateName}
-                />
+            <div className='grid gap-6'>
+              <CampaignWizardStepBasic
+                hasActiveProject={!!activeProjectId}
+                isProjectLoading={isProjectLoading}
+                instances={instances}
+                availableCategories={availableCategories}
+                templates={filteredTemplates}
+                name={name}
+                selectedInstanceId={selectedInstanceId}
+                templateCategory={templateCategory}
+                selectedTemplateName={selectedTemplateName}
+                onNameChange={setName}
+                onInstanceChange={setSelectedInstanceId}
+                onTemplateCategoryChange={setTemplateCategory}
+                onTemplateChange={setSelectedTemplateName}
+              />
             </div>
           )}
 
@@ -431,12 +455,13 @@ export function CampaignBuilder() {
               variableColumns={variableColumns}
               onFileSelected={handleFileSelected}
               onClearFileError={() => {
-                setFileError(null); setParsedCsv(null); setPhoneColumn(''); setVariableColumns({})
+                setFileError(null)
+                setParsedCsv(null)
+                setPhoneColumn('')
+                setVariableColumns({})
               }}
               onPhoneColumnChange={setPhoneColumn}
-              onVariableColumnChange={(n, v) =>
-                setVariableColumns((curr) => ({ ...curr, [n]: v }))
-              }
+              onVariableColumnChange={(n, v) => setVariableColumns((curr) => ({ ...curr, [n]: v }))}
             />
           )}
 
@@ -462,57 +487,57 @@ export function CampaignBuilder() {
       </main>
 
       {/* ── Sticky Footer ─────────────────────────────────────────────── */}
-      <footer className="bg-background border-t px-6 py-3 flex items-center justify-between sticky bottom-0 z-10 gap-4">
+      <footer className='sticky bottom-0 z-10 flex items-center justify-between gap-4 border-t bg-background px-6 py-3'>
         {/* Progress */}
-        <div className="hidden sm:flex items-center gap-3 text-xs text-muted-foreground min-w-0 flex-1">
-          <div className="h-1.5 w-40 bg-muted rounded-full overflow-hidden">
+        <div className='hidden min-w-0 flex-1 items-center gap-3 text-muted-foreground text-xs sm:flex'>
+          <div className='h-1.5 w-40 overflow-hidden rounded-full bg-muted'>
             <div
-              className="h-full bg-primary transition-all duration-500 ease-out rounded-full"
+              className='h-full rounded-full bg-primary transition-all duration-500 ease-out'
               style={{ width: `${((currentStepIdx + 1) / steps.length) * 100}%` }}
             />
           </div>
-          <span className="font-medium whitespace-nowrap">
+          <span className='whitespace-nowrap font-medium'>
             {currentStepIdx + 1} / {steps.length}
           </span>
         </div>
 
-        <div className="flex items-center gap-3 ml-auto">
+        <div className='ml-auto flex items-center gap-3'>
           <Button
-            variant="outline"
-            size="sm"
+            variant='outline'
+            size='sm'
             disabled={currentStepIdx === 0}
             onClick={() => setCurrentStepIdx((i) => Math.max(0, i - 1))}
           >
-            <ChevronLeft className="h-4 w-4 mr-1" />
+            <ChevronLeft className='mr-1 h-4 w-4' />
             Voltar
           </Button>
 
           {isLastStep ? (
             <Button
-              size="sm"
+              size='sm'
               disabled={!canProceedStep.dispatch || createMutation.isPending}
               onClick={() => createMutation.mutate()}
             >
               {createMutation.isPending ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <Loader2 className='mr-2 h-4 w-4 animate-spin' />
                   Criando...
                 </>
               ) : (
                 <>
-                  <Check className="h-4 w-4 mr-1" />
+                  <Check className='mr-1 h-4 w-4' />
                   Criar campanha
                 </>
               )}
             </Button>
           ) : (
             <Button
-              size="sm"
+              size='sm'
               disabled={!canAdvance}
               onClick={() => setCurrentStepIdx((i) => Math.min(steps.length - 1, i + 1))}
             >
               Próximo
-              <ChevronRight className="h-4 w-4 ml-1" />
+              <ChevronRight className='ml-1 h-4 w-4' />
             </Button>
           )}
         </div>

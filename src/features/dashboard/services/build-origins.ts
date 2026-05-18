@@ -1,4 +1,4 @@
-import { DateRange } from '@/lib/date/date-range'
+import type { DateRange } from '@/lib/date/date-range'
 
 export type OriginSummary = {
   label: string

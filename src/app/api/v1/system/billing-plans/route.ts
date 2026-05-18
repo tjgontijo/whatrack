@@ -1,15 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server'
-
-import { requireAdmin } from '@/lib/auth/guards'
-import { apiError, apiSuccess } from '@/lib/utils/api-response'
+import { type NextRequest, NextResponse } from 'next/server'
 import {
   billingPlanCreateSchema,
-  billingPlanListQuerySchema,
   billingPlanDetailSchema,
+  billingPlanListQuerySchema,
   billingPlanListResponseSchema,
 } from '@/features/billing/schemas/billing-plan-schemas'
-import { createBillingPlan, BillingPlanMutationError } from '@/features/billing/services/billing-plan.service'
+import {
+  BillingPlanMutationError,
+  createBillingPlan,
+} from '@/features/billing/services/billing-plan.service'
 import { listBillingPlans } from '@/features/billing/services/billing-plan-query.service'
+import { requireAdmin } from '@/lib/auth/guards'
+import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
 
 export const dynamic = 'force-dynamic'
@@ -20,7 +22,7 @@ export async function GET(request: NextRequest) {
     if (user instanceof NextResponse) return user
 
     const parsed = billingPlanListQuerySchema.safeParse(
-      Object.fromEntries(new URL(request.url).searchParams),
+      Object.fromEntries(new URL(request.url).searchParams)
     )
 
     if (!parsed.success) {

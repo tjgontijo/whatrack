@@ -2,14 +2,14 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
 import { useOrganizationCompletion } from '@/features/organizations/hooks/use-organization-completion'
-import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
 import { useProject } from '@/features/projects/hooks/use-project'
-import { apiFetch } from '@/lib/api-client'
-import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
+import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
 import {
   isWhatsAppEmbeddedSignupConfigured,
   WHATSAPP_ONBOARDING_RESULT_STORAGE_KEY,
 } from '@/features/whatsapp/lib/onboarding'
+import { apiFetch } from '@/lib/api-client'
+import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 
 export type OnboardingStatus = 'idle' | 'pending' | 'success'
 
@@ -34,8 +34,11 @@ declare global {
 export function useWhatsAppOnboarding(onSuccess?: () => void) {
   const { organizationId } = useRequiredProjectRouteContext()
   const { data: project } = useProject()
-  const { isLoading: isCompletionLoading, isModuleBlocked, integrationBlockMessage } =
-    useOrganizationCompletion()
+  const {
+    isLoading: isCompletionLoading,
+    isModuleBlocked,
+    integrationBlockMessage,
+  } = useOrganizationCompletion()
   const [status, setStatus] = useState<OnboardingStatus>('idle')
   const [error, setError] = useState<string | null>(null)
   const callbackHandledRef = useRef(false)
@@ -81,55 +84,64 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
     window.localStorage.removeItem(WHATSAPP_ONBOARDING_RESULT_STORAGE_KEY)
   }, [onSuccess, stopPolling])
 
-  const handleFailure = useCallback((message: string) => {
-    if (callbackHandledRef.current) return
-    callbackHandledRef.current = true
-    stopPolling()
-    setStatus('idle')
-    setError(message)
-    toast.error(message)
-  }, [stopPolling])
+  const handleFailure = useCallback(
+    (message: string) => {
+      if (callbackHandledRef.current) return
+      callbackHandledRef.current = true
+      stopPolling()
+      setStatus('idle')
+      setError(message)
+      toast.error(message)
+    },
+    [stopPolling]
+  )
 
-  const checkInstances = useCallback(async (projectId: string): Promise<boolean> => {
-    try {
-      const res = await fetch(`/api/v1/whatsapp/instances?projectId=${projectId}`, {
-        headers: { [ORGANIZATION_HEADER]: organizationId },
-      })
-      if (!res.ok) return false
-      const data = await res.json() as { items: { status: string }[] }
-      return data.items?.some((i) => i.status === 'connected') ?? false
-    } catch {
-      return false
-    }
-  }, [organizationId])
+  const checkInstances = useCallback(
+    async (projectId: string): Promise<boolean> => {
+      try {
+        const res = await fetch(`/api/v1/whatsapp/instances?projectId=${projectId}`, {
+          headers: { [ORGANIZATION_HEADER]: organizationId },
+        })
+        if (!res.ok) return false
+        const data = (await res.json()) as { items: { status: string }[] }
+        return data.items?.some((i) => i.status === 'connected') ?? false
+      } catch {
+        return false
+      }
+    },
+    [organizationId]
+  )
 
   // Polling fallback after FB.login() callback — only if postMessage Meet in the Middle hasn't resolved
-  const startPolling = useCallback((projectId: string) => {
-    stopPolling()
-    const delays = [1000, 3000, 6000]
-    let attempt = 0
+  const startPolling = useCallback(
+    (projectId: string) => {
+      stopPolling()
+      const delays = [1000, 3000, 6000]
+      let attempt = 0
 
-    const tryNext = () => {
-      if (attempt >= delays.length) {
-        if (!callbackHandledRef.current) {
-          setStatus('idle')
-          toast.error('Conexão não detectada. Verifique as configurações e tente novamente.')
-        }
-        return
-      }
-      pollIntervalRef.current = setTimeout(async () => {
-        const connected = await checkInstances(projectId)
-        if (connected) {
-          handleSuccess()
+      const tryNext = () => {
+        if (attempt >= delays.length) {
+          if (!callbackHandledRef.current) {
+            setStatus('idle')
+            toast.error('Conexão não detectada. Verifique as configurações e tente novamente.')
+          }
           return
         }
-        attempt++
-        tryNext()
-      }, delays[attempt])
-    }
+        pollIntervalRef.current = setTimeout(async () => {
+          const connected = await checkInstances(projectId)
+          if (connected) {
+            handleSuccess()
+            return
+          }
+          attempt++
+          tryNext()
+        }, delays[attempt])
+      }
 
-    tryNext()
-  }, [checkInstances, handleSuccess, stopPolling])
+      tryNext()
+    },
+    [checkInstances, handleSuccess, stopPolling]
+  )
 
   // Listen for postMessage from Meta SDK (FINISH event with phone_number_id)
   // and localStorage result from callback page

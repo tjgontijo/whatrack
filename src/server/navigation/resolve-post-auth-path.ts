@@ -1,6 +1,10 @@
 import 'server-only'
 
-import { appendFunnelIntent, type FunnelIntent, resolvePostAuthPath } from '@/lib/funnel/funnel-intent'
+import {
+  appendFunnelIntent,
+  type FunnelIntent,
+  resolvePostAuthPath,
+} from '@/lib/funnel/funnel-intent'
 
 import { resolveDefaultWorkspacePath } from './resolve-default-workspace-path'
 

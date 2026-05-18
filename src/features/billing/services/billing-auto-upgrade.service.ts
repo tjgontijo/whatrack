@@ -1,9 +1,9 @@
 import { Prisma } from '@generated/prisma/client'
 import { prisma } from '@/lib/db/prisma'
-import { billingPlanDetectionService } from './billing-plan-detection.service'
-import { billingProratingService } from './billing-prorating.service'
-import { billingPlanHistoryService } from './billing-plan-history.service'
 import { billingNotificationService } from './billing-notification.service'
+import { billingPlanDetectionService } from './billing-plan-detection.service'
+import { billingPlanHistoryService } from './billing-plan-history.service'
+import { billingProratingService } from './billing-prorating.service'
 
 export interface AutoUpgradeResult {
   upgraded: boolean
@@ -21,7 +21,10 @@ export interface AutoUpgradeResult {
 }
 
 export class BillingAutoUpgradeService {
-  async performAutoUpgradeIfNeeded(organizationId: string, projectCount: number): Promise<AutoUpgradeResult> {
+  async performAutoUpgradeIfNeeded(
+    organizationId: string,
+    projectCount: number
+  ): Promise<AutoUpgradeResult> {
     const subscription = await prisma.billingSubscription.findUnique({
       where: { organizationId },
       include: {
@@ -159,7 +162,9 @@ export class BillingAutoUpgradeService {
           asaasId: `auto-upgrade-${subscription.id}-${Date.now()}`,
           status: 'PENDING',
           paymentMethod: subscription.paymentMethod || 'CREDIT_CARD',
-          value: proratingResult.netAmount.isNegative() ? new Prisma.Decimal(0) : proratingResult.netAmount,
+          value: proratingResult.netAmount.isNegative()
+            ? new Prisma.Decimal(0)
+            : proratingResult.netAmount,
           netValue: proratingResult.netAmount,
           description: `Auto-upgrade de ${oldPlanCode} para ${newPlanData.code}`,
           billingType: 'PRORATED',

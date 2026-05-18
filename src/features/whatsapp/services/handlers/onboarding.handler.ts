@@ -1,6 +1,6 @@
-import { prisma } from '@/lib/db/prisma'
-import { whatsappCache } from '@/features/whatsapp/services/cache.service'
 import { whatsappAuditService } from '@/features/whatsapp/services/audit.service'
+import { whatsappCache } from '@/features/whatsapp/services/cache.service'
+import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/utils/logger'
 
 /**
@@ -135,10 +135,10 @@ export async function onboardingHandler(payload: any, eventType: string): Promis
 
       if (connection) {
         const connectedDuration = connection.connectedAt
-          ? new Date().getTime() - connection.connectedAt.getTime()
+          ? Date.now() - connection.connectedAt.getTime()
           : undefined
 
-        const updatedConnection = await prisma.whatsAppConnection.update({
+        const _updatedConnection = await prisma.whatsAppConnection.update({
           where: { id: connection.id },
           data: {
             status: 'inactive',
@@ -274,7 +274,7 @@ export async function onboardingHandler(payload: any, eventType: string): Promis
     if (connection) {
       if (eventType === 'PARTNER_REMOVED') {
         const connectedDuration = connection.connectedAt
-          ? new Date().getTime() - connection.connectedAt.getTime()
+          ? Date.now() - connection.connectedAt.getTime()
           : undefined
 
         await prisma.whatsAppConnection.update({
@@ -284,7 +284,10 @@ export async function onboardingHandler(payload: any, eventType: string): Promis
 
         await whatsappCache.invalidateConnection(connection.organizationId, wabaId)
         await whatsappAuditService.logConnectionRemoved(
-          connection.organizationId, connection.id, wabaId, connectedDuration
+          connection.organizationId,
+          connection.id,
+          wabaId,
+          connectedDuration
         )
         logger.info(`[OnboardingHandler] PARTNER_REMOVED via ownerBusinessId`)
       }

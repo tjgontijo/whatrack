@@ -1,13 +1,9 @@
 import { revalidateTag } from 'next/cache'
-
-import { apiError, apiSuccess } from '@/lib/utils/api-response'
-import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import {
-  projectCreateSchema,
-  projectListQuerySchema,
-} from '@/features/projects'
+import { projectCreateSchema, projectListQuerySchema } from '@/features/projects'
 import { createProject, listProjects } from '@/features/projects/server'
+import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 export async function GET(request: Request) {
   try {

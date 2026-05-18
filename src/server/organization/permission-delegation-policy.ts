@@ -22,7 +22,9 @@ export function isPlatformAdminGlobalRole(role: string | null | undefined): bool
   return PLATFORM_ADMIN_GLOBAL_ROLES.has(role)
 }
 
-export function getDelegatablePermissionCatalog(globalRole: string | null | undefined): Permission[] {
+export function getDelegatablePermissionCatalog(
+  globalRole: string | null | undefined
+): Permission[] {
   const catalog = getPlatformPermissions()
   if (isPlatformAdminGlobalRole(globalRole)) {
     return catalog

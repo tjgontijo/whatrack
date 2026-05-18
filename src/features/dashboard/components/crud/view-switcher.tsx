@@ -1,9 +1,9 @@
 'use client'
 
 import * as React from 'react'
-import { cn } from '@/lib/utils/utils'
 import { useIsMobile } from '@/hooks/ui/use-mobile'
-import { ViewType } from './types'
+import { cn } from '@/lib/utils/utils'
+import type { ViewType } from './types'
 
 type ViewSwitcherProps = {
   view: ViewType
@@ -43,10 +43,10 @@ export function ViewSwitcher({
       {visibleTabs.map((v) => (
         <button
           key={v}
-          type="button"
+          type='button'
           onClick={() => setView(v)}
           className={cn(
-            'rounded-md px-2.5 py-1 text-xs font-medium transition-all',
+            'rounded-md px-2.5 py-1 font-medium text-xs transition-all',
             view === v
               ? 'bg-background text-foreground shadow-sm'
               : 'text-muted-foreground hover:text-foreground'

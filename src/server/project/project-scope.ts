@@ -8,7 +8,7 @@ function normalizeProjectId(value: string | null | undefined) {
 
 export async function ensureProjectBelongsToOrganization(
   organizationId: string,
-  projectId: string | null | undefined,
+  projectId: string | null | undefined
 ) {
   const normalized = normalizeProjectId(projectId)
   if (!normalized) {
@@ -34,7 +34,7 @@ export async function resolveProjectScope(input: {
   if (typeof input.projectId !== 'undefined') {
     const explicitProject = await ensureProjectBelongsToOrganization(
       input.organizationId,
-      input.projectId,
+      input.projectId
     )
 
     return explicitProject?.id ?? null

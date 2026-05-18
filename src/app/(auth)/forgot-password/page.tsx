@@ -1,16 +1,14 @@
 'use client'
 
-import { z } from 'zod'
-import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { toast } from 'sonner'
 import Link from 'next/link'
 import { useState } from 'react'
-
-import { FormProvider as Form, Controller } from 'react-hook-form'
-import { Field, FieldLabel, FieldError } from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
+import { Controller, FormProvider as Form, useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+import { z } from 'zod'
 import { Button } from '@/components/ui/button'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
 
 const forgotPasswordSchema = z.object({
   email: z.string().trim().min(1, 'Informe o seu email.').email('Email inválido.'),
@@ -60,28 +58,28 @@ export default function ForgotPasswordPage() {
 
   if (emailSent) {
     return (
-      <div className="bg-background flex min-h-screen items-center justify-center px-4 py-12">
-        <div className="w-full max-w-md space-y-8">
-          <div className="text-center">
-            <h1 className="text-2xl font-semibold tracking-tight">Email enviado!</h1>
-            <p className="text-muted-foreground mt-2 text-sm">
+      <div className='flex min-h-screen items-center justify-center bg-background px-4 py-12'>
+        <div className='w-full max-w-md space-y-8'>
+          <div className='text-center'>
+            <h1 className='font-semibold text-2xl tracking-tight'>Email enviado!</h1>
+            <p className='mt-2 text-muted-foreground text-sm'>
               Verifique sua caixa de entrada e spam
             </p>
           </div>
 
-          <div className="space-y-4">
-            <p className="text-muted-foreground text-center text-sm">
+          <div className='space-y-4'>
+            <p className='text-center text-muted-foreground text-sm'>
               Enviamos um link de recuperação para <strong>{form.getValues('email')}</strong>.
               Clique no link para redefinir sua senha.
             </p>
 
-            <div className="flex flex-col gap-2">
-              <Button onClick={() => setEmailSent(false)} variant="outline" className="w-full">
+            <div className='flex flex-col gap-2'>
+              <Button onClick={() => setEmailSent(false)} variant='outline' className='w-full'>
                 Enviar novamente
               </Button>
 
-              <Link href="/sign-in" className="w-full">
-                <Button variant="ghost" className="w-full">
+              <Link href='/sign-in' className='w-full'>
+                <Button variant='ghost' className='w-full'>
                   Voltar para login
                 </Button>
               </Link>
@@ -93,29 +91,29 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="bg-background flex min-h-screen items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md space-y-8">
-        <div className="text-center">
-          <h1 className="text-2xl font-semibold tracking-tight">Esqueceu sua senha?</h1>
-          <p className="text-muted-foreground mt-2 text-sm">
+    <div className='flex min-h-screen items-center justify-center bg-background px-4 py-12'>
+      <div className='w-full max-w-md space-y-8'>
+        <div className='text-center'>
+          <h1 className='font-semibold text-2xl tracking-tight'>Esqueceu sua senha?</h1>
+          <p className='mt-2 text-muted-foreground text-sm'>
             Digite seu email para receber um link de recuperação
           </p>
         </div>
 
         <Form {...form}>
-          <form className="space-y-6" onSubmit={form.handleSubmit(handleSubmit)}>
+          <form className='space-y-6' onSubmit={form.handleSubmit(handleSubmit)}>
             <Controller
               control={form.control}
-              name="email"
+              name='email'
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel htmlFor={field.name}>Email</FieldLabel>
                   <Input
                     id={field.name}
-                    type="email"
-                    inputMode="email"
-                    autoComplete="email"
-                    placeholder="voce@empresa.com"
+                    type='email'
+                    inputMode='email'
+                    autoComplete='email'
+                    placeholder='voce@empresa.com'
                     disabled={isSubmitting}
                     {...field}
                   />
@@ -124,15 +122,15 @@ export default function ForgotPasswordPage() {
               )}
             />
 
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
+            <Button type='submit' className='w-full' disabled={isSubmitting}>
               {isSubmitting ? 'Enviando…' : 'Enviar link de recuperação'}
             </Button>
           </form>
         </Form>
 
-        <div className="text-muted-foreground text-center text-sm">
+        <div className='text-center text-muted-foreground text-sm'>
           Lembrou sua senha?{' '}
-          <Link href="/sign-in" className="text-primary font-medium hover:underline">
+          <Link href='/sign-in' className='font-medium text-primary hover:underline'>
             Voltar para login
           </Link>
         </div>

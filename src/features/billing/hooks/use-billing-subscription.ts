@@ -12,10 +12,13 @@ interface UseBillingSubscriptionReturn {
   refetch: () => void
 }
 
-async function fetchBillingData(orgId: string): Promise<{ subscription: SubscriptionResponse | null }> {
+async function fetchBillingData(
+  orgId: string
+): Promise<{ subscription: SubscriptionResponse | null }> {
   const subData = await apiFetch('/api/v1/billing/subscription', { orgId })
 
-  const subscription = 'subscription' in subData ? subData.subscription : (subData as SubscriptionResponse)
+  const subscription =
+    'subscription' in subData ? subData.subscription : (subData as SubscriptionResponse)
 
   return { subscription }
 }
@@ -24,7 +27,7 @@ async function fetchBillingData(orgId: string): Promise<{ subscription: Subscrip
  * Hook centralizado com cache (TanStack Query) para evitar múltiplas chamadas redundantes.
  */
 export function useBillingSubscription(
-  organizationIdOverride?: string | null,
+  organizationIdOverride?: string | null
 ): UseBillingSubscriptionReturn {
   const { data: org, isLoading: orgLoading } = useOrganization()
   const organizationId = organizationIdOverride ?? org?.id
@@ -43,7 +46,9 @@ export function useBillingSubscription(
 
   return {
     subscription: query.data?.subscription ?? null,
-    isLoading: organizationIdOverride ? query.isLoading : (query.isLoading && !!organizationId) || orgLoading,
+    isLoading: organizationIdOverride
+      ? query.isLoading
+      : (query.isLoading && !!organizationId) || orgLoading,
     error: query.error as Error | null,
     refetch: () => query.refetch(),
   }

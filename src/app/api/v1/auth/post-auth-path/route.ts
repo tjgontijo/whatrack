@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 
 import { readFunnelIntent } from '@/lib/funnel/funnel-intent'
 import { getServerSession } from '@/server/auth/server-session'

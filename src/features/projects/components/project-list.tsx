@@ -1,35 +1,32 @@
 'use client'
 
-import Link from 'next/link'
-import { useDeferredValue, useMemo, useState } from 'react'
 import { FolderKanban, Pencil, Trash2 } from 'lucide-react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useDeferredValue, useMemo, useState } from 'react'
 import { toast } from 'sonner'
-
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import {
   CrudCardView,
   CrudDataView,
   CrudListView,
-  ViewSwitcher,
   DeleteConfirmDialog,
+  ViewSwitcher,
 } from '@/features/dashboard/components/crud'
-import { HeaderPageShell } from '@/features/dashboard/components/layout'
+import { CrudEmptyState } from '@/features/dashboard/components/crud/crud-data-view'
 import type {
   CardConfig,
   ColumnDef,
   RowActions,
   ViewType,
 } from '@/features/dashboard/components/crud/types'
-import { CrudEmptyState } from '@/features/dashboard/components/crud/crud-data-view'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { HeaderPageShell } from '@/features/dashboard/components/layout'
+import type { ProjectListItem } from '@/features/projects'
 import { useRequiredProjectPath } from '@/features/projects/hooks/use-project-route-context'
 import { useCrudInfiniteQuery } from '@/hooks/ui/use-crud-infinite-query'
 import { apiFetch } from '@/lib/api-client'
-import type {
-  ProjectListItem,
-} from '@/features/projects'
 import { ProjectFormDialog } from './project-form-dialog'
 
 function formatDate(value: string) {
@@ -44,16 +41,16 @@ function buildChannelSummary(project: ProjectListItem) {
 }
 
 const cardConfig: CardConfig<ProjectListItem> = {
-  icon: () => <FolderKanban className="h-6 w-6 text-emerald-600" />,
+  icon: () => <FolderKanban className='h-6 w-6 text-emerald-600' />,
   title: (project) => project.name,
   subtitle: (project) => buildChannelSummary(project),
   badge: (project) => (
-    <Badge variant="outline" className="text-[10px]">
+    <Badge variant='outline' className='text-[10px]'>
       {project.counts.leadCount} leads
     </Badge>
   ),
   footer: (project) => (
-    <span className="text-muted-foreground text-xs">
+    <span className='text-muted-foreground text-xs'>
       Atualizado em {formatDate(project.updatedAt)}
     </span>
   ),
@@ -92,13 +89,11 @@ export function ProjectList() {
         key: 'name',
         label: 'Projeto',
         render: (project) => (
-          <div className="space-y-1">
-            <Link href={`${projectsPath}/${project.id}`} className="font-medium hover:underline">
+          <div className='space-y-1'>
+            <Link href={`${projectsPath}/${project.id}`} className='font-medium hover:underline'>
               {project.name}
             </Link>
-            <div className="text-muted-foreground text-xs">
-              {buildChannelSummary(project)}
-            </div>
+            <div className='text-muted-foreground text-xs'>{buildChannelSummary(project)}</div>
           </div>
         ),
       },
@@ -106,23 +101,23 @@ export function ProjectList() {
         key: 'whatsapp',
         label: 'WhatsApp',
         width: 120,
-        render: (project) => <Badge variant="outline">{project.counts.whatsappCount}</Badge>,
+        render: (project) => <Badge variant='outline'>{project.counts.whatsappCount}</Badge>,
       },
       {
         key: 'metaAds',
         label: 'Meta Ads',
         width: 120,
-        render: (project) => <Badge variant="outline">{project.counts.metaAdsCount}</Badge>,
+        render: (project) => <Badge variant='outline'>{project.counts.metaAdsCount}</Badge>,
       },
       {
         key: 'crm',
         label: 'CRM',
         render: (project) => (
-          <div className="text-sm text-muted-foreground">
+          <div className='text-muted-foreground text-sm'>
             <span>{project.counts.leadCount} leads</span>
-            <span className="mx-2">·</span>
+            <span className='mx-2'>·</span>
             <span>{project.counts.ticketCount} tickets</span>
-            <span className="mx-2">·</span>
+            <span className='mx-2'>·</span>
             <span>{project.counts.saleCount} vendas</span>
           </div>
         ),
@@ -132,11 +127,11 @@ export function ProjectList() {
         label: 'Última atualização',
         width: 180,
         render: (project) => (
-          <span className="text-sm text-muted-foreground">{formatDate(project.updatedAt)}</span>
+          <span className='text-muted-foreground text-sm'>{formatDate(project.updatedAt)}</span>
         ),
       },
     ],
-    [projectsPath],
+    [projectsPath]
   )
 
   async function handleDelete(project: ProjectListItem) {
@@ -163,7 +158,7 @@ export function ProjectList() {
           return
         } catch (forceError) {
           toast.error(
-            forceError instanceof Error ? forceError.message : 'Falha ao forçar exclusão do projeto',
+            forceError instanceof Error ? forceError.message : 'Falha ao forçar exclusão do projeto'
           )
           return
         } finally {
@@ -182,12 +177,8 @@ export function ProjectList() {
       <>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={() => setEditingProject(project)}
-            >
-              <Pencil className="h-3.5 w-3.5" />
+            <Button variant='ghost' size='icon-sm' onClick={() => setEditingProject(project)}>
+              <Pencil className='h-3.5 w-3.5' />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Editar projeto</TooltipContent>
@@ -196,12 +187,12 @@ export function ProjectList() {
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              variant="ghost"
-              size="icon-sm"
-              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+              variant='ghost'
+              size='icon-sm'
+              className='text-destructive hover:bg-destructive/10 hover:text-destructive'
               onClick={() => setDeleteTarget(project)}
             >
-              <Trash2 className="h-3.5 w-3.5" />
+              <Trash2 className='h-3.5 w-3.5' />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Excluir projeto</TooltipContent>
@@ -213,14 +204,14 @@ export function ProjectList() {
   return (
     <>
       <HeaderPageShell
-        title="Projetos"
+        title='Projetos'
         selector={<ViewSwitcher view={view} setView={setView} enabledViews={['list', 'cards']} />}
         onRefresh={() => void refetch()}
         primaryAction={
           <Button
-            type="button"
-            size="sm"
-            className="h-7 gap-1.5 text-xs"
+            type='button'
+            size='sm'
+            className='h-7 gap-1.5 text-xs'
             onClick={() => setIsCreateOpen(true)}
           >
             Novo
@@ -228,7 +219,7 @@ export function ProjectList() {
         }
         searchValue={searchInput}
         onSearchChange={setSearchInput}
-        searchPlaceholder="Buscar por nome do projeto..."
+        searchPlaceholder='Buscar por nome do projeto...'
         isFetchingMore={isFetchingNextPage}
         isLoading={isLoading}
       >
@@ -237,8 +228,8 @@ export function ProjectList() {
           view={view}
           emptyView={
             <CrudEmptyState
-              title="Nenhum projeto cadastrado."
-              description="Crie o primeiro projeto para organizar clientes, instâncias de WhatsApp, contas Meta Ads e dados operacionais."
+              title='Nenhum projeto cadastrado.'
+              description='Crie o primeiro projeto para organizar clientes, instâncias de WhatsApp, contas Meta Ads e dados operacionais.'
             />
           }
           tableView={
@@ -264,7 +255,7 @@ export function ProjectList() {
         open={Boolean(deleteTarget)}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
         trigger={null}
-        title="Excluir projeto?"
+        title='Excluir projeto?'
         description={
           deleteTarget
             ? `Isso removerá o projeto "${deleteTarget.name}". Se existirem registros associados, o sistema pedirá uma confirmação adicional para desassociá-los.`

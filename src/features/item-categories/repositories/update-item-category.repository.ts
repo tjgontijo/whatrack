@@ -1,6 +1,6 @@
 import 'server-only'
-import { prisma } from '@/lib/db/prisma'
 import type { CategorySummary } from '@/features/item-categories/types'
+import { prisma } from '@/lib/db/prisma'
 
 export async function updateItemCategoryRepository(input: {
   categoryId: string

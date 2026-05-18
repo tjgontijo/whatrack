@@ -1,14 +1,14 @@
 import type {
-  WhatsAppTemplate,
   SendTemplateResponse,
-  WhatsAppPhoneNumber,
-  WhatsAppBusinessProfile,
   WhatsAppAccountInfo,
+  WhatsAppBusinessProfile,
   WhatsAppMessage,
+  WhatsAppPhoneNumber,
+  WhatsAppTemplate,
 } from '@/features/whatsapp/types/whatsapp'
 
 const API_VERSION = process.env.META_API_VERSION
-const GRAPH_API_URL = `https://graph.facebook.com/${API_VERSION}`
+const _GRAPH_API_URL = `https://graph.facebook.com/${API_VERSION}`
 
 import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 
@@ -103,7 +103,7 @@ export const whatsappApi = {
     templateName: string,
     orgId: string,
     language?: string,
-    variables?: Array<{ name: string; value: string }>,
+    variables?: Array<{ name: string; value: string }>
   ): Promise<SendTemplateResponse> {
     const res = await fetch('/api/v1/whatsapp/send-template', {
       method: 'POST',
@@ -149,7 +149,10 @@ export const whatsappApi = {
     return data.phoneNumbers || []
   },
 
-  async getPhoneNumberByConfigId(configId: string, orgId: string): Promise<WhatsAppPhoneNumber | null> {
+  async getPhoneNumberByConfigId(
+    configId: string,
+    orgId: string
+  ): Promise<WhatsAppPhoneNumber | null> {
     const phones = await this.listPhoneNumbers(orgId)
     return phones.find((p) => p.configId === configId) || null
   },
@@ -201,10 +204,7 @@ export const whatsappApi = {
   /**
    * Obtém o perfil comercial de um número específico (por Meta Phone ID)
    */
-  async getPhoneProfile(
-    phoneId: string,
-    orgId: string,
-  ): Promise<WhatsAppBusinessProfile | null> {
+  async getPhoneProfile(phoneId: string, orgId: string): Promise<WhatsAppBusinessProfile | null> {
     const res = await fetch(`/api/v1/whatsapp/phone-numbers/${phoneId}/profile`, {
       headers: { [ORGANIZATION_HEADER]: orgId },
     })
@@ -287,7 +287,9 @@ export const whatsappApi = {
   /**
    * Ativa um número de telefone (register + subscribe)
    */
-  async activateNumber(orgId: string): Promise<{ success: boolean; message: string; results: any }> {
+  async activateNumber(
+    orgId: string
+  ): Promise<{ success: boolean; message: string; results: any }> {
     const res = await fetch('/api/v1/whatsapp/activate', {
       method: 'POST',
       headers: {

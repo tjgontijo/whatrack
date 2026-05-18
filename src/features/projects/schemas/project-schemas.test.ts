@@ -20,7 +20,7 @@ describe('project-schemas', () => {
     expect(
       projectCreateSchema.parse({
         name: 'Cliente Acme',
-      }),
+      })
     ).toEqual({
       name: 'Cliente Acme',
     })

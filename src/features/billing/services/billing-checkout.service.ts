@@ -4,7 +4,7 @@ import { BillingPaymentService } from './payment.service'
 export class BillingCheckoutError extends Error {
   constructor(
     message: string,
-    public readonly status: number,
+    public readonly status: number
   ) {
     super(message)
     this.name = 'BillingCheckoutError'
@@ -58,7 +58,7 @@ export async function createCheckoutSession(params: CreateCheckoutSessionParams)
 
     throw new BillingCheckoutError(
       error instanceof Error ? error.message : 'Erro ao iniciar checkout',
-      500,
+      500
     )
   }
 }

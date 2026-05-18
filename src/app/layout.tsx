@@ -1,11 +1,11 @@
-import type { Metadata } from 'next'
 import { GeistMono } from 'geist/font/mono'
 import { GeistSans } from 'geist/font/sans'
+import type { Metadata } from 'next'
 import './globals.css'
 import { cookies } from 'next/headers'
-import { I18nProvider } from '@/lib/i18n/provider'
-import { getMessages } from '@/lib/i18n/messages'
 import Providers from '@/components/shared/providers'
+import { getMessages } from '@/lib/i18n/messages'
+import { I18nProvider } from '@/lib/i18n/provider'
 
 export const metadata: Metadata = {
   title: 'WhaTrack | Rastreamento de vendas WhatsApp e Meta Ads',

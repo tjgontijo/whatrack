@@ -1,25 +1,28 @@
 'use client'
 
-import { useMemo, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { toast } from 'sonner'
-import Link from 'next/link'
 import { Eye, EyeOff } from 'lucide-react'
-
-import { FormProvider as Form, Controller } from 'react-hook-form'
-import { Field, FieldLabel, FieldError } from '@/components/ui/field'
+import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useMemo, useState } from 'react'
+import { Controller, FormProvider as Form, useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/components/ui/input-group'
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from '@/components/ui/input-group'
+import { apiFetch } from '@/lib/api-client'
 import { authClient } from '@/lib/auth/auth-client'
-import { signUpSchema, type SignUpData } from '@/schemas/auth/sign-up'
 import { getAuthErrorMessage } from '@/lib/auth/error-messages'
 import { acceptOrganizationInvitation, buildInvitationQuery } from '@/lib/auth/invitation-client'
-import { apiFetch } from '@/lib/api-client'
 import { buildFunnelQueryString, readFunnelIntent } from '@/lib/funnel/funnel-intent'
 import { applyCpfCnpjMask, stripCpfCnpj } from '@/lib/mask/cpf-cnpj'
+import { type SignUpData, signUpSchema } from '@/schemas/auth/sign-up'
 
 type SignUpErrorShape = {
   code?: string
@@ -44,7 +47,10 @@ export default function SignUpPage() {
   const invitationId = searchParams.get('invitationId')
   const nextParam = searchParams.get('next')
   const funnelIntent = readFunnelIntent(searchParams)
-  const invitationQuery = useMemo(() => buildInvitationQuery(invitationId, nextParam), [invitationId, nextParam])
+  const invitationQuery = useMemo(
+    () => buildInvitationQuery(invitationId, nextParam),
+    [invitationId, nextParam]
+  )
   const funnelQuery = useMemo(() => buildFunnelQueryString(funnelIntent), [funnelIntent])
   const isTrialIntent = funnelIntent.intent === 'start-trial'
   const ownerEmail = (process.env.NEXT_PUBLIC_OWNER_EMAIL ?? '').trim().toLowerCase()
@@ -94,7 +100,7 @@ export default function SignUpPage() {
         const normalizedSignUpError = normalizeSignUpError(signUpError)
         const errorMessage = getAuthErrorMessage(
           normalizedSignUpError.code,
-          normalizedSignUpError.message || 'Não foi possível criar sua conta.',
+          normalizedSignUpError.message || 'Não foi possível criar sua conta.'
         )
         toast.error(errorMessage)
         return
@@ -141,7 +147,9 @@ export default function SignUpPage() {
 
       if (isOwner) {
         try {
-          const response = (await apiFetch(`/api/v1/auth/post-auth-path${postAuthResolutionQuery}`)) as {
+          const response = (await apiFetch(
+            `/api/v1/auth/post-auth-path${postAuthResolutionQuery}`
+          )) as {
             path?: string
           }
           if (response.path) {
@@ -166,31 +174,31 @@ export default function SignUpPage() {
 
   return (
     <div
-      className="animate-in fade-in slide-in-from-bottom-4 w-full space-y-6 duration-500 lg:space-y-8"
-      data-testid="sign-up-page"
+      className='fade-in slide-in-from-bottom-4 w-full animate-in space-y-6 duration-500 lg:space-y-8'
+      data-testid='sign-up-page'
     >
-      <div className="text-left">
-        <h1 className="text-foreground text-3xl font-bold tracking-tight">
+      <div className='text-left'>
+        <h1 className='font-bold text-3xl text-foreground tracking-tight'>
           {isTrialIntent ? 'Comece seu teste grátis' : 'Crie sua conta para continuar'}
         </h1>
       </div>
 
       <Form {...form}>
         <form
-          className="flex flex-col space-y-4 pt-2 lg:space-y-5"
+          className='flex flex-col space-y-4 pt-2 lg:space-y-5'
           onSubmit={form.handleSubmit(handleSubmit)}
         >
           <Controller
             control={form.control}
-            name="name"
+            name='name'
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel htmlFor={field.name}>Nome completo</FieldLabel>
                 <Input
                   id={field.name}
-                  placeholder="Seu nome"
-                  autoComplete="name"
-                  className="focus-visible:ring-primary focus-visible:border-primary h-11 px-4 shadow-sm transition-shadow lg:h-12"
+                  placeholder='Seu nome'
+                  autoComplete='name'
+                  className='h-11 px-4 shadow-sm transition-shadow focus-visible:border-primary focus-visible:ring-primary lg:h-12'
                   disabled={isSubmitting}
                   {...field}
                 />
@@ -201,16 +209,16 @@ export default function SignUpPage() {
 
           <Controller
             control={form.control}
-            name="email"
+            name='email'
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel htmlFor={field.name}>Email</FieldLabel>
                 <Input
                   id={field.name}
-                  type="email"
-                  placeholder="seu@email.com"
-                  autoComplete="email"
-                  className="focus-visible:ring-primary focus-visible:border-primary h-11 px-4 shadow-sm transition-shadow lg:h-12"
+                  type='email'
+                  placeholder='seu@email.com'
+                  autoComplete='email'
+                  className='h-11 px-4 shadow-sm transition-shadow focus-visible:border-primary focus-visible:ring-primary lg:h-12'
                   disabled={isSubmitting}
                   {...field}
                 />
@@ -222,21 +230,21 @@ export default function SignUpPage() {
           {/* Dados fiscais */}
           <Controller
             control={form.control}
-            name="documentType"
+            name='documentType'
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel>Documento fiscal</FieldLabel>
-                <div className="flex gap-3">
+                <div className='flex gap-3'>
                   {(['CPF', 'CNPJ'] as const).map((type) => (
                     <button
                       key={type}
-                      type="button"
+                      type='button'
                       onClick={() => {
                         field.onChange(type)
                         form.setValue('documentNumber', '')
                       }}
                       disabled={isSubmitting}
-                      className={`h-11 flex-1 rounded-lg border text-sm font-medium transition-all lg:h-12 ${
+                      className={`h-11 flex-1 rounded-lg border font-medium text-sm transition-all lg:h-12 ${
                         field.value === type
                           ? 'border-primary bg-primary/10 text-primary'
                           : 'border-border text-muted-foreground hover:border-primary/50'
@@ -254,16 +262,16 @@ export default function SignUpPage() {
           {documentType ? (
             <Controller
               control={form.control}
-              name="documentNumber"
+              name='documentNumber'
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel htmlFor={field.name}>{documentType}</FieldLabel>
                   <Input
                     id={field.name}
                     placeholder={documentType === 'CPF' ? '000.000.000-00' : '00.000.000/0000-00'}
-                    autoComplete="off"
-                    inputMode="numeric"
-                    className="focus-visible:ring-primary focus-visible:border-primary h-11 px-4 shadow-sm transition-shadow lg:h-12"
+                    autoComplete='off'
+                    inputMode='numeric'
+                    className='h-11 px-4 shadow-sm transition-shadow focus-visible:border-primary focus-visible:ring-primary lg:h-12'
                     disabled={isSubmitting}
                     value={applyCpfCnpjMask(field.value, documentType === 'CPF' ? 'cpf' : 'cnpj')}
                     onChange={(e) => {
@@ -283,28 +291,28 @@ export default function SignUpPage() {
 
           <Controller
             control={form.control}
-            name="password"
+            name='password'
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel htmlFor={field.name}>Senha</FieldLabel>
-                <InputGroup className="focus-visible:ring-primary focus-visible:border-primary h-11 shadow-sm transition-shadow lg:h-12">
+                <InputGroup className='h-11 shadow-sm transition-shadow focus-visible:border-primary focus-visible:ring-primary lg:h-12'>
                   <InputGroupInput
                     id={field.name}
                     type={showPassword ? 'text' : 'password'}
-                    placeholder="Mín. 8 caracteres"
-                    autoComplete="new-password"
+                    placeholder='Mín. 8 caracteres'
+                    autoComplete='new-password'
                     disabled={isSubmitting}
                     {...field}
                   />
-                  <InputGroupAddon align="inline-end">
+                  <InputGroupAddon align='inline-end'>
                     <InputGroupButton
-                      type="button"
-                      variant="ghost"
-                      size="icon-xs"
+                      type='button'
+                      variant='ghost'
+                      size='icon-xs'
                       aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
                       onClick={() => setShowPassword((value) => !value)}
                     >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      {showPassword ? <EyeOff className='h-4 w-4' /> : <Eye className='h-4 w-4' />}
                     </InputGroupButton>
                   </InputGroupAddon>
                 </InputGroup>
@@ -315,31 +323,35 @@ export default function SignUpPage() {
 
           <Controller
             control={form.control}
-            name="confirmPassword"
+            name='confirmPassword'
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel htmlFor={field.name}>Confirmar senha</FieldLabel>
-                <InputGroup className="focus-visible:ring-primary focus-visible:border-primary h-11 shadow-sm transition-shadow lg:h-12">
+                <InputGroup className='h-11 shadow-sm transition-shadow focus-visible:border-primary focus-visible:ring-primary lg:h-12'>
                   <InputGroupInput
                     id={field.name}
                     type={showConfirmPassword ? 'text' : 'password'}
-                    placeholder="Repita a senha"
-                    autoComplete="new-password"
+                    placeholder='Repita a senha'
+                    autoComplete='new-password'
                     disabled={isSubmitting}
                     {...field}
                   />
-                  <InputGroupAddon align="inline-end">
+                  <InputGroupAddon align='inline-end'>
                     <InputGroupButton
-                      type="button"
-                      variant="ghost"
-                      size="icon-xs"
-                      aria-label={showConfirmPassword ? 'Ocultar confirmação de senha' : 'Mostrar confirmação de senha'}
+                      type='button'
+                      variant='ghost'
+                      size='icon-xs'
+                      aria-label={
+                        showConfirmPassword
+                          ? 'Ocultar confirmação de senha'
+                          : 'Mostrar confirmação de senha'
+                      }
                       onClick={() => setShowConfirmPassword((value) => !value)}
                     >
                       {showConfirmPassword ? (
-                        <EyeOff className="h-4 w-4" />
+                        <EyeOff className='h-4 w-4' />
                       ) : (
-                        <Eye className="h-4 w-4" />
+                        <Eye className='h-4 w-4' />
                       )}
                     </InputGroupButton>
                   </InputGroupAddon>
@@ -350,8 +362,8 @@ export default function SignUpPage() {
           />
 
           <Button
-            type="submit"
-            className="shadow-primary/20 mt-6 h-12 w-full text-sm font-semibold shadow-md transition-all hover:-translate-y-0.5 lg:mt-8"
+            type='submit'
+            className='mt-6 h-12 w-full font-semibold text-sm shadow-md shadow-primary/20 transition-all hover:-translate-y-0.5 lg:mt-8'
             disabled={isSubmitting}
           >
             {isSubmitting
@@ -363,11 +375,11 @@ export default function SignUpPage() {
         </form>
       </Form>
 
-      <div className="text-muted-foreground border-border/50 border-t pt-2 text-center text-sm lg:pt-4">
+      <div className='border-border/50 border-t pt-2 text-center text-muted-foreground text-sm lg:pt-4'>
         Já tem uma conta?{' '}
         <Link
           href={`/sign-in${invitationQuery}${funnelQuery ? `${invitationQuery ? '&' : '?'}${funnelQuery.slice(1)}` : ''}`}
-          className="text-foreground hover:text-primary font-bold tracking-wide transition-colors hover:underline"
+          className='font-bold text-foreground tracking-wide transition-colors hover:text-primary hover:underline'
         >
           Entrar na plataforma
         </Link>

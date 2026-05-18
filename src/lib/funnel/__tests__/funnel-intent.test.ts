@@ -32,22 +32,22 @@ describe('funnel-intent', () => {
     } as const
 
     expect(buildFunnelQueryString(intent)).toBe(
-      '?intent=start-trial&segment=agencias&source=pricing&campaign=starter',
+      '?intent=start-trial&segment=agencias&source=pricing&campaign=starter'
     )
     expect(appendFunnelIntent('/sign-up', intent)).toBe(
-      '/sign-up?intent=start-trial&segment=agencias&source=pricing&campaign=starter',
+      '/sign-up?intent=start-trial&segment=agencias&source=pricing&campaign=starter'
     )
   })
 
   it('resolves welcome as the default post-auth path for start-trial intent', () => {
     expect(resolvePostAuthPath(null, { intent: 'start-trial', source: 'hero' })).toBe(
-      '/welcome?intent=start-trial&source=hero',
+      '/welcome?intent=start-trial&source=hero'
     )
   })
 
   it('rewrites legacy /app next paths to welcome with the same funnel intent', () => {
     expect(resolvePostAuthPath('/app', { intent: 'start-trial' })).toBe(
-      '/welcome?intent=start-trial',
+      '/welcome?intent=start-trial'
     )
   })
 })

@@ -36,7 +36,7 @@ describe('campaign-csv', () => {
         phoneColumn: 'telefone',
         variableColumns: { nome: 'nome', cupom: 'cupom' },
       },
-      ['nome', 'cupom'],
+      ['nome', 'cupom']
     )
 
     expect(result.totalRows).toBe(4)
@@ -73,7 +73,7 @@ describe('campaign-csv', () => {
         phoneColumn: 'telefone',
         variableColumns: { nome: 'nome' },
       },
-      ['nome'],
+      ['nome']
     )
 
     expect(result.validRows).toBe(1)
@@ -98,7 +98,7 @@ describe('campaign-csv', () => {
 
   it('validates a csv using the template model contract', () => {
     const parsed = parseCampaignCsv(
-      'telefone;nome_do_cliente;numero_do_pedido\n5511999999999;Maria;123',
+      'telefone;nome_do_cliente;numero_do_pedido\n5511999999999;Maria;123'
     )
 
     const result = validateCampaignCsvModel(parsed, ['nome_do_cliente', 'numero_do_pedido'])
@@ -116,7 +116,7 @@ describe('campaign-csv', () => {
     const parsed = parseCampaignCsv('phone;name\n5511999999999;Maria')
 
     expect(() => validateCampaignCsvModel(parsed, ['nome_do_cliente'])).toThrow(
-      'CSV fora do padrão do modelo. Baixe o modelo e envie o arquivo novamente.',
+      'CSV fora do padrão do modelo. Baixe o modelo e envie o arquivo novamente.'
     )
   })
 
@@ -124,7 +124,7 @@ describe('campaign-csv', () => {
     const parsed = parseCampaignCsv('telefone;nome_do_cliente\n5,56198E+12;Maria')
 
     expect(() => validateCampaignCsvModel(parsed, ['nome_do_cliente'])).toThrow(
-      'Linha 2 inválida: o telefone "5,56198E+12" está em notação científica.',
+      'Linha 2 inválida: o telefone "5,56198E+12" está em notação científica.'
     )
   })
 })

@@ -2,7 +2,7 @@ import { test as base, expect } from '@playwright/test'
 import { loginAsTestUser } from '../shared/auth'
 
 type AuthenticatedFixture = {
-  authenticatedPage: void
+  authenticatedPage: undefined
 }
 
 export const test = base.extend<AuthenticatedFixture>({

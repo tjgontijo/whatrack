@@ -17,7 +17,10 @@ function isValidCampaignPhone(value: string): boolean {
 const campaignPhoneSchema = z
   .string()
   .min(1)
-  .refine((value) => isValidCampaignPhone(value), 'Telefone inválido. Use a coluna formatada como texto no CSV.')
+  .refine(
+    (value) => isValidCampaignPhone(value),
+    'Telefone inválido. Use a coluna formatada como texto no CSV.'
+  )
 
 export const whatsappCampaignTypeSchema = z.enum(['MARKETING', 'OPERATIONAL'])
 export const campaignStatusSchema = z.enum([

@@ -1,21 +1,19 @@
 'use client'
 
-import { useMemo } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { z } from 'zod'
-import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { toast } from 'sonner'
 import Link from 'next/link'
-
-import { FormProvider as Form, Controller } from 'react-hook-form'
-import { Field, FieldLabel, FieldError } from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useMemo } from 'react'
+import { Controller, FormProvider as Form, useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+import { z } from 'zod'
 import { Button } from '@/components/ui/button'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
+import { apiFetch } from '@/lib/api-client'
 import { authClient } from '@/lib/auth/auth-client'
 import { getAuthErrorMessage } from '@/lib/auth/error-messages'
 import { acceptOrganizationInvitation, buildInvitationQuery } from '@/lib/auth/invitation-client'
-import { apiFetch } from '@/lib/api-client'
 import {
   buildFunnelQueryString,
   readFunnelIntent,
@@ -56,7 +54,10 @@ export default function LoginPage() {
   const invitationId = searchParams.get('invitationId')
   const nextParam = searchParams.get('next')
   const funnelIntent = readFunnelIntent(searchParams)
-  const invitationQuery = useMemo(() => buildInvitationQuery(invitationId, nextParam), [invitationId, nextParam])
+  const invitationQuery = useMemo(
+    () => buildInvitationQuery(invitationId, nextParam),
+    [invitationId, nextParam]
+  )
   const funnelQuery = useMemo(() => buildFunnelQueryString(funnelIntent), [funnelIntent])
   const nextPath = resolvePostAuthPath(nextParam, funnelIntent)
   const postAuthResolutionQuery = useMemo(() => {
@@ -117,7 +118,9 @@ export default function LoginPage() {
         let destination = nextPath
 
         try {
-          const response = (await apiFetch(`/api/v1/auth/post-auth-path${postAuthResolutionQuery}`)) as {
+          const response = (await apiFetch(
+            `/api/v1/auth/post-auth-path${postAuthResolutionQuery}`
+          )) as {
             path?: string
           }
 
@@ -140,28 +143,28 @@ export default function LoginPage() {
 
   return (
     <div
-      className="animate-in fade-in slide-in-from-bottom-4 w-full space-y-8 duration-500"
-      data-testid="sign-in-page"
+      className='fade-in slide-in-from-bottom-4 w-full animate-in space-y-8 duration-500'
+      data-testid='sign-in-page'
     >
-      <div className="text-left">
-        <h1 className="text-foreground text-3xl font-bold tracking-tight">Acesse sua conta</h1>
+      <div className='text-left'>
+        <h1 className='font-bold text-3xl text-foreground tracking-tight'>Acesse sua conta</h1>
       </div>
 
       <Form {...form}>
-        <form className="flex flex-col space-y-5 pt-4" onSubmit={form.handleSubmit(handleSubmit)}>
+        <form className='flex flex-col space-y-5 pt-4' onSubmit={form.handleSubmit(handleSubmit)}>
           <Controller
             control={form.control}
-            name="email"
+            name='email'
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel htmlFor={field.name}>E-mail</FieldLabel>
                 <Input
                   id={field.name}
-                  type="email"
-                  inputMode="email"
-                  autoComplete="email"
-                  placeholder="voce@empresa.com"
-                  className="focus-visible:ring-primary focus-visible:border-primary h-12 px-4 shadow-sm transition-shadow"
+                  type='email'
+                  inputMode='email'
+                  autoComplete='email'
+                  placeholder='voce@empresa.com'
+                  className='h-12 px-4 shadow-sm transition-shadow focus-visible:border-primary focus-visible:ring-primary'
                   disabled={isSubmitting}
                   {...field}
                 />
@@ -172,23 +175,23 @@ export default function LoginPage() {
 
           <Controller
             control={form.control}
-            name="password"
+            name='password'
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel htmlFor={field.name}>Senha</FieldLabel>
                 <Input
                   id={field.name}
-                  type="password"
-                  autoComplete="current-password"
-                  placeholder="Sua senha secreta"
-                  className="focus-visible:ring-primary focus-visible:border-primary h-12 px-4 shadow-sm transition-shadow"
+                  type='password'
+                  autoComplete='current-password'
+                  placeholder='Sua senha secreta'
+                  className='h-12 px-4 shadow-sm transition-shadow focus-visible:border-primary focus-visible:ring-primary'
                   disabled={isSubmitting}
                   {...field}
                 />
-                <div className="flex justify-end">
+                <div className='flex justify-end'>
                   <Link
-                    href="/forgot-password"
-                    className="text-primary hover:text-primary/80 mt-1 text-xs font-medium transition-colors hover:underline"
+                    href='/forgot-password'
+                    className='mt-1 font-medium text-primary text-xs transition-colors hover:text-primary/80 hover:underline'
                   >
                     Esqueceu a senha?
                   </Link>
@@ -199,8 +202,8 @@ export default function LoginPage() {
           />
 
           <Button
-            type="submit"
-            className="shadow-primary/20 mt-4 h-12 w-full text-sm font-semibold shadow-md transition-all hover:-translate-y-0.5"
+            type='submit'
+            className='mt-4 h-12 w-full font-semibold text-sm shadow-md shadow-primary/20 transition-all hover:-translate-y-0.5'
             disabled={isSubmitting}
           >
             {isSubmitting ? 'Autenticando...' : 'Entrar na plataforma'}
@@ -208,11 +211,11 @@ export default function LoginPage() {
         </form>
       </Form>
 
-      <div className="text-muted-foreground pt-4 text-center text-sm">
+      <div className='pt-4 text-center text-muted-foreground text-sm'>
         Não tem uma conta?{' '}
         <Link
           href={`/sign-up${invitationQuery}${funnelQuery ? `${invitationQuery ? '&' : '?'}${funnelQuery.slice(1)}` : ''}`}
-          className="text-foreground hover:text-primary font-bold tracking-wide transition-colors hover:underline"
+          className='font-bold text-foreground tracking-wide transition-colors hover:text-primary hover:underline'
         >
           Começar teste grátis
         </Link>

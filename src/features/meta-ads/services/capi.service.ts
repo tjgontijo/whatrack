@@ -1,8 +1,7 @@
+import crypto from 'node:crypto'
 import { prisma } from '@/lib/db/prisma'
-import { metaAccessTokenService } from './access-token.service'
-import crypto from 'crypto'
 import { logger } from '@/lib/utils/logger'
-import { MetaApiError, getMetaApiErrorMessage, metaApiRequest } from './meta-api'
+import { getMetaApiErrorMessage, MetaApiError, metaApiRequest } from './meta-api'
 
 interface CapiEventOptions {
   value?: number
@@ -51,7 +50,7 @@ export class MetaCapiService {
       },
     })
 
-    if (!ticket || !ticket.tracking || !ticket.tracking.ctwaclid) {
+    if (!ticket?.tracking?.ctwaclid) {
       logger.info(`[CAPI] Skipping ticket ${ticketId}: No CTWA CLID found.`)
       return
     }

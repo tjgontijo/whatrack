@@ -1,15 +1,14 @@
-import { Prisma } from '@generated/prisma/client'
-
-import { prisma } from '@/lib/db/prisma'
+import type { Prisma } from '@generated/prisma/client'
 import {
-  SYSTEM_ROLE_KEYS,
   getDefaultPermissionsForRole,
   getPermissionCandidates,
   getPlatformPermissions,
   getRoleDefinitions,
   isSystemRoleKey,
   type Permission,
+  SYSTEM_ROLE_KEYS,
 } from '@/lib/auth/rbac/roles'
+import { prisma } from '@/lib/db/prisma'
 
 export type PermissionOverrideEffect = 'allow' | 'deny'
 
@@ -207,7 +206,10 @@ function mapRolePermissions(
   }
 }
 
-async function ensureSystemRolesForOrganizationTx(tx: Prisma.TransactionClient, organizationId: string) {
+async function ensureSystemRolesForOrganizationTx(
+  tx: Prisma.TransactionClient,
+  organizationId: string
+) {
   const definitions = getRoleDefinitions()
 
   for (const definition of definitions) {
@@ -316,7 +318,9 @@ async function getMemberAuthorizationContext(
   })
 }
 
-function buildEffectivePermissionsFromMember(member: MemberWithRoleAndOverrides): EffectivePermissionsResult {
+function buildEffectivePermissionsFromMember(
+  member: MemberWithRoleAndOverrides
+): EffectivePermissionsResult {
   const role = member.organization.organizationRoles.find((item) => item.key === member.role)
 
   const rolePermissions = sanitizePermissions(
@@ -387,7 +391,9 @@ export async function listEffectivePermissionsForUser(input: {
   return buildEffectivePermissionsFromMember(context)
 }
 
-export async function listEffectivePermissions(memberId: string): Promise<EffectivePermissionsResult> {
+export async function listEffectivePermissions(
+  memberId: string
+): Promise<EffectivePermissionsResult> {
   const memberScope = await prisma.member.findUnique({
     where: { id: memberId },
     select: {
@@ -397,7 +403,10 @@ export async function listEffectivePermissions(memberId: string): Promise<Effect
   })
 
   if (!memberScope) {
-    throw new OrganizationRbacError('Membro não encontrado', { status: 404, code: 'MEMBER_NOT_FOUND' })
+    throw new OrganizationRbacError('Membro não encontrado', {
+      status: 404,
+      code: 'MEMBER_NOT_FOUND',
+    })
   }
 
   await ensureSystemRolesForOrganization(memberScope.organizationId)
@@ -435,7 +444,10 @@ export async function listEffectivePermissions(memberId: string): Promise<Effect
   })
 
   if (!member) {
-    throw new OrganizationRbacError('Membro não encontrado', { status: 404, code: 'MEMBER_NOT_FOUND' })
+    throw new OrganizationRbacError('Membro não encontrado', {
+      status: 404,
+      code: 'MEMBER_NOT_FOUND',
+    })
   }
 
   return buildEffectivePermissionsFromMember(member)
@@ -540,7 +552,9 @@ export async function createOrganizationRole(input: {
         isSystem: false,
         permissions: {
           createMany: {
-            data: Array.from(new Set(input.permissions)).map((permissionKey) => ({ permissionKey })),
+            data: Array.from(new Set(input.permissions)).map((permissionKey) => ({
+              permissionKey,
+            })),
             skipDuplicates: true,
           },
         },
@@ -607,7 +621,9 @@ export async function updateOrganizationRole(input: {
         where: { id: role.id },
         data: {
           ...(input.name !== undefined ? { name: input.name.trim() } : {}),
-          ...(input.description !== undefined ? { description: input.description?.trim() || null } : {}),
+          ...(input.description !== undefined
+            ? { description: input.description?.trim() || null }
+            : {}),
         },
         include: {
           permissions: {
@@ -788,7 +804,10 @@ export async function setMemberPermissionOverrides(input: {
   })
 
   if (!member) {
-    throw new OrganizationRbacError('Membro não encontrado', { status: 404, code: 'MEMBER_NOT_FOUND' })
+    throw new OrganizationRbacError('Membro não encontrado', {
+      status: 404,
+      code: 'MEMBER_NOT_FOUND',
+    })
   }
 
   const allow = Array.from(allowSet)

@@ -1,26 +1,28 @@
 'use client'
 
-import * as React from 'react'
-import { z } from 'zod'
 import { useQuery } from '@tanstack/react-query'
 import { BarChart3, RefreshCw, SlidersHorizontal } from 'lucide-react'
+import * as React from 'react'
+import { z } from 'zod'
 
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
-import { PageShell, PageHeader, PageContent } from '@/features/dashboard/components/layout'
-import { FilterSelect } from '@/features/dashboard/components/filters'
-import { DashboardMetricCard, DashboardMetricGrid } from '@/features/dashboard/components/charts/card'
-import { DashboardPieChart } from '@/features/dashboard/components/charts/pie'
-import { FunnelChart } from '@/features/dashboard/components/charts/funnel-chart'
-import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
-import { formatCurrencyBRL } from '@/lib/mask/formatters'
-import { apiFetch } from '@/lib/api-client'
-import { buildDashboardSummaryQuery } from '@/features/dashboard/utils/summary-query'
-
 import {
-  dashboardSummaryResponseSchema,
+  DashboardMetricCard,
+  DashboardMetricGrid,
+} from '@/features/dashboard/components/charts/card'
+import { FunnelChart } from '@/features/dashboard/components/charts/funnel-chart'
+import { DashboardPieChart } from '@/features/dashboard/components/charts/pie'
+import { FilterSelect } from '@/features/dashboard/components/filters'
+import { PageContent, PageHeader, PageShell } from '@/features/dashboard/components/layout'
+import {
   type DashboardSummaryResponse,
+  dashboardSummaryResponseSchema,
 } from '@/features/dashboard/schemas/dashboard-summary'
+import { buildDashboardSummaryQuery } from '@/features/dashboard/utils/summary-query'
+import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
+import { apiFetch } from '@/lib/api-client'
+import { formatCurrencyBRL } from '@/lib/mask/formatters'
 
 const NO_TRAFFIC_SOURCE_VALUE = '__no-source__'
 
@@ -102,8 +104,7 @@ export default function DashboardPageClient() {
   const itemOptions = React.useMemo<FilterOption[]>(() => {
     if (!itemFilters) return [{ label: 'Qualquer', value: 'any' }]
     const category = filters.itemCategory || 'any'
-    const options =
-      itemFilters.itemsByCategory[category] ?? itemFilters.itemsByCategory.any
+    const options = itemFilters.itemsByCategory[category] ?? itemFilters.itemsByCategory.any
     return (options as FilterOption[]) ?? [{ label: 'Qualquer', value: 'any' }]
   }, [filters.itemCategory, itemFilters])
 
@@ -163,46 +164,46 @@ export default function DashboardPageClient() {
   return (
     <PageShell>
       <PageHeader
-        title="Visão Geral"
-        description="Acompanhe suas métricas em tempo real"
+        title='Visão Geral'
+        description='Acompanhe suas métricas em tempo real'
         icon={BarChart3}
         actions={
           <>
-            <Button variant="ghost" size="sm" onClick={() => void refetch()}>
-              <RefreshCw className="h-4 w-4" />
+            <Button variant='ghost' size='sm' onClick={() => void refetch()}>
+              <RefreshCw className='h-4 w-4' />
             </Button>
 
             <Sheet open={isFilterSheetOpen} onOpenChange={setIsFilterSheetOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="sm" className="md:hidden">
-                  <SlidersHorizontal className="h-4 w-4" />
+                <Button variant='ghost' size='sm' className='md:hidden'>
+                  <SlidersHorizontal className='h-4 w-4' />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="bottom" className="h-auto max-h-[85vh] overflow-y-auto px-4 py-6">
-                <SheetHeader className="mb-8">
+              <SheetContent side='bottom' className='h-auto max-h-[85vh] overflow-y-auto px-4 py-6'>
+                <SheetHeader className='mb-8'>
                   <SheetTitle>Filtros</SheetTitle>
                 </SheetHeader>
-                <div className="space-y-8">
+                <div className='space-y-8'>
                   <FilterSelect
-                    label="Período"
+                    label='Período'
                     value={filters.period}
                     options={periodOptions}
                     onValueChange={(value) => handleFilterChange('period', value)}
                   />
                   <FilterSelect
-                    label="Tipo de tráfego"
+                    label='Tipo de tráfego'
                     value={filters.trafficType}
                     options={trafficTypeOptions}
                     onValueChange={(value) => handleFilterChange('trafficType', value)}
                   />
                   <FilterSelect
-                    label="Fonte de tráfego"
+                    label='Fonte de tráfego'
                     value={filters.trafficSource}
                     options={trafficSourceOptions}
                     onValueChange={(value) => handleFilterChange('trafficSource', value)}
                   />
                   <FilterSelect
-                    label="Categoria de item"
+                    label='Categoria de item'
                     value={filters.itemCategory}
                     options={itemCategoryOptions}
                     onValueChange={(value) => {
@@ -211,7 +212,7 @@ export default function DashboardPageClient() {
                     }}
                   />
                   <FilterSelect
-                    label="Item"
+                    label='Item'
                     value={filters.item}
                     options={itemOptions}
                     onValueChange={(value) => handleFilterChange('item', value)}
@@ -223,36 +224,32 @@ export default function DashboardPageClient() {
         }
       />
 
-      <PageContent className="space-y-6">
+      <PageContent className='space-y-6'>
         <DashboardMetricGrid>
           <DashboardMetricCard
-            title="Leads"
+            title='Leads'
             value={data?.funnel.leads ?? 0}
             isLoading={isFetching}
           />
           <DashboardMetricCard
-            title="Agendamentos"
+            title='Agendamentos'
             value={data?.funnel.schedules ?? 0}
             isLoading={isFetching}
           />
           <DashboardMetricCard
-            title="Comparecimentos"
+            title='Comparecimentos'
             value={data?.funnel.attendances ?? 0}
             isLoading={isFetching}
           />
+          <DashboardMetricCard title='Vendas' value={data?.sales ?? 0} isLoading={isFetching} />
           <DashboardMetricCard
-            title="Vendas"
-            value={data?.sales ?? 0}
-            isLoading={isFetching}
-          />
-          <DashboardMetricCard
-            title="Receita"
+            title='Receita'
             value={formatCurrencyBRL(data?.cards.revenue ?? 0)}
             isLoading={isFetching}
           />
         </DashboardMetricGrid>
 
-        <div className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
+        <div className='grid gap-6 xl:grid-cols-[1.4fr_1fr]'>
           <FunnelChart steps={funnelSteps} />
           <DashboardPieChart data={pieData} />
         </div>

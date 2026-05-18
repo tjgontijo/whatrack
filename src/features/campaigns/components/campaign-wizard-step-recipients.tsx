@@ -1,7 +1,7 @@
 'use client'
 
-import React from 'react'
 import { FileSpreadsheet, Phone, TableProperties, UploadCloud } from 'lucide-react'
+import React from 'react'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
@@ -71,7 +71,8 @@ export function CampaignWizardStepRecipients({
     const blob = new Blob([csvModel], { type: 'text/csv;charset=utf-8' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
-    const normalizedTemplateName = templateName.trim().replace(/\s+/g, '-').toLowerCase() || 'template'
+    const normalizedTemplateName =
+      templateName.trim().replace(/\s+/g, '-').toLowerCase() || 'template'
 
     link.href = url
     link.download = `${normalizedTemplateName}-modelo.csv`
@@ -91,7 +92,7 @@ export function CampaignWizardStepRecipients({
       const file = event.dataTransfer.files?.[0] || null
       onFileSelected(file)
     },
-    [onFileSelected],
+    [onFileSelected]
   )
 
   const handleDragOver = React.useCallback((event: React.DragEvent<HTMLDivElement>) => {
@@ -106,23 +107,23 @@ export function CampaignWizardStepRecipients({
   }, [])
 
   return (
-    <div className="space-y-6">
+    <div className='space-y-6'>
       <Card>
         <CardHeader>
           <CardTitle>Importar destinatários</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className='space-y-4'>
           <input
             ref={fileInputRef}
-            id="campaign-csv"
-            type="file"
-            accept=".csv,text/csv"
-            className="sr-only"
+            id='campaign-csv'
+            type='file'
+            accept='.csv,text/csv'
+            className='sr-only'
             onChange={(event) => onFileSelected(event.target.files?.[0] || null)}
           />
 
           <div
-            role="button"
+            role='button'
             tabIndex={0}
             onClick={handleSelectFile}
             onKeyDown={(event) => {
@@ -135,7 +136,7 @@ export function CampaignWizardStepRecipients({
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             className={[
-              'relative min-h-52 rounded-2xl border border-dashed p-6 text-left transition-colors outline-none',
+              'relative min-h-52 rounded-2xl border border-dashed p-6 text-left outline-none transition-colors',
               fileError
                 ? 'border-destructive/50 bg-destructive/5 hover:bg-destructive/10'
                 : isDragging
@@ -143,34 +144,44 @@ export function CampaignWizardStepRecipients({
                   : 'bg-muted/10 hover:bg-muted/20',
             ].join(' ')}
           >
-            <div className="flex h-full min-h-40 flex-col items-center justify-center text-center">
-              <div className="bg-background mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border">
-                {parsedCsv ? <FileSpreadsheet className="h-5 w-5" /> : <UploadCloud className="h-5 w-5" />}
+            <div className='flex h-full min-h-40 flex-col items-center justify-center text-center'>
+              <div className='mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border bg-background'>
+                {parsedCsv ? (
+                  <FileSpreadsheet className='h-5 w-5' />
+                ) : (
+                  <UploadCloud className='h-5 w-5' />
+                )}
               </div>
-              <p className="text-base font-medium">
-                {parsedCsv ? 'Arquivo CSV carregado' : fileError ? 'Arquivo rejeitado' : 'Arraste seu CSV aqui'}
+              <p className='font-medium text-base'>
+                {parsedCsv
+                  ? 'Arquivo CSV carregado'
+                  : fileError
+                    ? 'Arquivo rejeitado'
+                    : 'Arraste seu CSV aqui'}
               </p>
-              <p className={`mt-2 text-sm ${fileError ? 'text-destructive' : 'text-muted-foreground'}`}>
+              <p
+                className={`mt-2 text-sm ${fileError ? 'text-destructive' : 'text-muted-foreground'}`}
+              >
                 {parsedCsv
                   ? `${parsedCsv.rows.length} linhas lidas e ${parsedCsv.columns.length} colunas detectadas`
                   : fileError
                     ? fileError
-                  : 'ou clique para selecionar um arquivo'}
+                    : 'ou clique para selecionar um arquivo'}
               </p>
               {parsedCsv ? (
                 <button
-                  type="button"
+                  type='button'
                   onClick={(event) => {
                     event.stopPropagation()
                     clearSelectedFile()
                   }}
-                  className="text-muted-foreground hover:text-foreground mt-4 text-sm underline underline-offset-4"
+                  className='mt-4 text-muted-foreground text-sm underline underline-offset-4 hover:text-foreground'
                 >
                   limpar arquivo
                 </button>
               ) : fileError ? (
                 <button
-                  type="button"
+                  type='button'
                   onClick={(event) => {
                     event.stopPropagation()
                     if (fileInputRef.current) {
@@ -178,7 +189,7 @@ export function CampaignWizardStepRecipients({
                     }
                     onClearFileError()
                   }}
-                  className="text-muted-foreground hover:text-foreground mt-4 text-sm underline underline-offset-4"
+                  className='mt-4 text-muted-foreground text-sm underline underline-offset-4 hover:text-foreground'
                 >
                   limpar erro
                 </button>
@@ -186,12 +197,12 @@ export function CampaignWizardStepRecipients({
             </div>
 
             <button
-              type="button"
+              type='button'
               onClick={(event) => {
                 event.stopPropagation()
                 handleDownloadModel()
               }}
-              className="text-muted-foreground hover:text-foreground absolute right-5 bottom-4 text-sm underline underline-offset-4"
+              className='absolute right-5 bottom-4 text-muted-foreground text-sm underline underline-offset-4 hover:text-foreground'
             >
               baixar modelo
             </button>
@@ -203,26 +214,26 @@ export function CampaignWizardStepRecipients({
         <>
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TableProperties className="h-4 w-4" />
+              <CardTitle className='flex items-center gap-2'>
+                <TableProperties className='h-4 w-4' />
                 Colunas detectadas
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex flex-wrap gap-2">
+            <CardContent className='space-y-4'>
+              <div className='flex flex-wrap gap-2'>
                 {parsedCsv.columns.map((column) => (
-                  <Badge key={column} variant="outline">
+                  <Badge key={column} variant='outline'>
                     {column}
                   </Badge>
                 ))}
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
+              <div className='grid gap-4 md:grid-cols-2'>
+                <div className='space-y-2'>
                   <Label>Coluna de telefone</Label>
                   <Select value={phoneColumn} onValueChange={onPhoneColumnChange}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecione a coluna de telefone" />
+                      <SelectValue placeholder='Selecione a coluna de telefone' />
                     </SelectTrigger>
                     <SelectContent>
                       {parsedCsv.columns.map((column) => (
@@ -236,7 +247,7 @@ export function CampaignWizardStepRecipients({
 
                 {templateVariableNames.length > 0 ? (
                   templateVariableNames.map((variableName) => (
-                    <div key={variableName} className="space-y-2">
+                    <div key={variableName} className='space-y-2'>
                       <Label>{variableName}</Label>
                       <Select
                         value={variableColumns[variableName] || ''}
@@ -256,7 +267,7 @@ export function CampaignWizardStepRecipients({
                     </div>
                   ))
                 ) : (
-                  <div className="bg-muted/30 rounded-md border p-3 text-sm">
+                  <div className='rounded-md border bg-muted/30 p-3 text-sm'>
                     Este template não possui variáveis para mapear.
                   </div>
                 )}
@@ -268,22 +279,22 @@ export function CampaignWizardStepRecipients({
             <CardHeader>
               <CardTitle>Resumo da leitura</CardTitle>
             </CardHeader>
-            <CardContent className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              <div className="rounded-lg border p-3">
-                <p className="text-muted-foreground text-xs">Linhas lidas</p>
-                <p className="text-xl font-bold">{preview?.totalRows ?? parsedCsv.rows.length}</p>
+            <CardContent className='grid gap-3 sm:grid-cols-2 xl:grid-cols-4'>
+              <div className='rounded-lg border p-3'>
+                <p className='text-muted-foreground text-xs'>Linhas lidas</p>
+                <p className='font-bold text-xl'>{preview?.totalRows ?? parsedCsv.rows.length}</p>
               </div>
-              <div className="rounded-lg border p-3">
-                <p className="text-muted-foreground text-xs">Válidas</p>
-                <p className="text-xl font-bold text-green-600">{preview?.validRows ?? 0}</p>
+              <div className='rounded-lg border p-3'>
+                <p className='text-muted-foreground text-xs'>Válidas</p>
+                <p className='font-bold text-green-600 text-xl'>{preview?.validRows ?? 0}</p>
               </div>
-              <div className="rounded-lg border p-3">
-                <p className="text-muted-foreground text-xs">Sem telefone</p>
-                <p className="text-xl font-bold text-red-600">{preview?.invalidRows ?? 0}</p>
+              <div className='rounded-lg border p-3'>
+                <p className='text-muted-foreground text-xs'>Sem telefone</p>
+                <p className='font-bold text-red-600 text-xl'>{preview?.invalidRows ?? 0}</p>
               </div>
-              <div className="rounded-lg border p-3">
-                <p className="text-muted-foreground text-xs">Duplicadas</p>
-                <p className="text-xl font-bold text-yellow-600">{preview?.duplicates ?? 0}</p>
+              <div className='rounded-lg border p-3'>
+                <p className='text-muted-foreground text-xs'>Duplicadas</p>
+                <p className='font-bold text-xl text-yellow-600'>{preview?.duplicates ?? 0}</p>
               </div>
             </CardContent>
           </Card>
@@ -292,12 +303,15 @@ export function CampaignWizardStepRecipients({
             <CardHeader>
               <CardTitle>Amostra do arquivo</CardTitle>
             </CardHeader>
-            <CardContent className="overflow-x-auto">
-              <table className="w-full min-w-[560px] border-collapse text-sm">
+            <CardContent className='overflow-x-auto'>
+              <table className='w-full min-w-[560px] border-collapse text-sm'>
                 <thead>
-                  <tr className="border-b">
+                  <tr className='border-b'>
                     {parsedCsv.columns.map((column) => (
-                      <th key={column} className="text-muted-foreground px-3 py-2 text-left text-xs">
+                      <th
+                        key={column}
+                        className='px-3 py-2 text-left text-muted-foreground text-xs'
+                      >
                         {column}
                       </th>
                     ))}
@@ -305,9 +319,12 @@ export function CampaignWizardStepRecipients({
                 </thead>
                 <tbody>
                   {(preview?.sampleRows ?? parsedCsv.rows.slice(0, 5)).map((row, index) => (
-                    <tr key={`${index}-${row[phoneColumn] || 'row'}`} className="border-b last:border-0">
+                    <tr
+                      key={`${index}-${row[phoneColumn] || 'row'}`}
+                      className='border-b last:border-0'
+                    >
                       {parsedCsv.columns.map((column) => (
-                        <td key={`${index}-${column}`} className="px-3 py-2 align-top">
+                        <td key={`${index}-${column}`} className='px-3 py-2 align-top'>
                           {row[column] || '—'}
                         </td>
                       ))}
@@ -321,28 +338,30 @@ export function CampaignWizardStepRecipients({
       )}
 
       {!parsedCsv && !fileError && (
-        <div className="bg-muted/10 flex flex-col items-center justify-center space-y-4 rounded-lg border border-dashed py-10 text-center">
-          <div className="space-y-1">
-            <p className="text-sm font-medium">Envie um CSV para continuar</p>
-            <p className="text-muted-foreground text-xs">
+        <div className='flex flex-col items-center justify-center space-y-4 rounded-lg border border-dashed bg-muted/10 py-10 text-center'>
+          <div className='space-y-1'>
+            <p className='font-medium text-sm'>Envie um CSV para continuar</p>
+            <p className='text-muted-foreground text-xs'>
               O mapeamento dos destinatários será feito após o upload.
             </p>
           </div>
-          
-          <div className="max-w-md space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Colunas necessárias:</p>
-            <div className="flex flex-wrap justify-center gap-2">
-              <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
+
+          <div className='max-w-md space-y-3'>
+            <p className='font-semibold text-muted-foreground text-xs uppercase tracking-wider'>
+              Colunas necessárias:
+            </p>
+            <div className='flex flex-wrap justify-center gap-2'>
+              <Badge variant='secondary' className='border-primary/20 bg-primary/10 text-primary'>
                 telefone (obrigatório)
               </Badge>
               {templateVariableNames.map((name) => (
-                <Badge key={name} variant="outline">
+                <Badge key={name} variant='outline'>
                   {name}
                 </Badge>
               ))}
             </div>
             {templateVariableNames.length > 0 && (
-              <p className="text-muted-foreground text-[10px] leading-relaxed">
+              <p className='text-[10px] text-muted-foreground leading-relaxed'>
                 As colunas de variáveis serão usadas para personalizar a mensagem do template.
               </p>
             )}
@@ -352,10 +371,11 @@ export function CampaignWizardStepRecipients({
 
       {preview && preview.validRows > 0 && (
         <Alert>
-          <Phone className="h-4 w-4" />
+          <Phone className='h-4 w-4' />
           <AlertTitle>Prévia pronta para campanha</AlertTitle>
           <AlertDescription>
-            {preview.validRows} destinatários válidos serão usados no envio após a criação da campanha.
+            {preview.validRows} destinatários válidos serão usados no envio após a criação da
+            campanha.
           </AlertDescription>
         </Alert>
       )}

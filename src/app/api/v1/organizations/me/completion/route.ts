@@ -1,8 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-
+import { type NextRequest, NextResponse } from 'next/server'
+import { getOrganizationCompletion } from '@/features/organizations/services/organization.service'
 import { apiError } from '@/lib/utils/api-response'
 import { getServerSession } from '@/server/auth/server'
-import { getOrganizationCompletion } from '@/features/organizations/services/organization.service'
 
 export async function GET(request: NextRequest) {
   const session = await getServerSession(request)

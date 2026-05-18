@@ -1,12 +1,11 @@
-import { NextRequest } from 'next/server'
-
-import { apiError, apiSuccess } from '@/lib/utils/api-response'
-import { authorizeCronRequest } from '@/server/cron/cron-auth'
-import { getJobTracker } from '@/lib/db/queue'
-import { prisma } from '@/lib/db/prisma'
-import { autoSelectWinner } from '@/features/whatsapp/services/whatsapp-campaign-ab.service'
-import { logger } from '@/lib/utils/logger'
+import type { NextRequest } from 'next/server'
 import { cronTriggerBodySchema } from '@/features/cron/schemas/cron.schemas'
+import { autoSelectWinner } from '@/features/whatsapp/services/whatsapp-campaign-ab.service'
+import { prisma } from '@/lib/db/prisma'
+import { getJobTracker } from '@/lib/db/queue'
+import { apiError, apiSuccess } from '@/lib/utils/api-response'
+import { logger } from '@/lib/utils/logger'
+import { authorizeCronRequest } from '@/server/cron/cron-auth'
 
 export const maxDuration = 300
 
@@ -72,7 +71,10 @@ export async function POST(request: NextRequest) {
 
     await jobTracker.releaseLock(JOB_TYPE, jobId)
 
-    logger.info({ eligible: eligible.length, processed, selected, errors: errors.length }, '[AbWinnerCron] Complete')
+    logger.info(
+      { eligible: eligible.length, processed, selected, errors: errors.length },
+      '[AbWinnerCron] Complete'
+    )
 
     return apiSuccess({ success: true, processed, selected, errors })
   } catch (err) {

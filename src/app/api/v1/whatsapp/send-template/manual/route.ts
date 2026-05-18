@@ -1,9 +1,8 @@
 import { timingSafeEqual } from 'node:crypto'
-
-import { apiError, apiSuccess } from '@/lib/utils/api-response'
-import { logger } from '@/lib/utils/logger'
 import { whatsappManualSendTemplateSchema } from '@/features/whatsapp/schemas/whatsapp-schemas'
 import { sendManualTemplate } from '@/features/whatsapp/services/whatsapp-manual-send.service'
+import { apiError, apiSuccess } from '@/lib/utils/api-response'
+import { logger } from '@/lib/utils/logger'
 
 export const dynamic = 'force-dynamic'
 
@@ -38,7 +37,9 @@ export async function POST(request: Request) {
       return apiError('Unauthorized', 401)
     }
 
-    const parsed = whatsappManualSendTemplateSchema.safeParse(await request.json().catch(() => null))
+    const parsed = whatsappManualSendTemplateSchema.safeParse(
+      await request.json().catch(() => null)
+    )
     if (!parsed.success) {
       return apiError('Payload inválido', 400, undefined, {
         details: parsed.error.flatten(),

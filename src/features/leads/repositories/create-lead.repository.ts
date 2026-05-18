@@ -1,6 +1,6 @@
 import 'server-only'
-import { prisma } from '@/lib/db/prisma'
 import { lookupCache } from '@/lib/db/lookup-cache'
+import { prisma } from '@/lib/db/prisma'
 
 export async function createLeadRepository(input: {
   organizationId: string

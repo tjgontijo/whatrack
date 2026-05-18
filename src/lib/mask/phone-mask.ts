@@ -95,11 +95,11 @@ export function normalizeWhatsApp(value: string): string {
 
   // Se tiver 10 ou 11 dígitos (DDD + número), adiciona 55 (Brasil)
   if (numbers.length === 11 || numbers.length === 10) {
-    return '55' + numbers
+    return `55${numbers}`
   }
 
   // Fallback seguro: se for muito curto ou incerto, adiciona 55 se não tiver nada melhor
-  return numbers.length > 0 && !numbers.startsWith('55') ? '55' + numbers : numbers
+  return numbers.length > 0 && !numbers.startsWith('55') ? `55${numbers}` : numbers
 }
 
 /**

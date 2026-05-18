@@ -1,12 +1,12 @@
+import type { CreateOrganizationInvitationInput } from '@/features/organizations/schemas/organization-invitation-schemas'
 import { prisma } from '@/lib/db/prisma'
 import { requireEnv } from '@/lib/env/require-env'
+import { logger } from '@/lib/utils/logger'
+import { getOrganizationRoleByKey } from '@/server/organization/organization-rbac.service'
+import { assertCanDelegatePermissions } from '@/server/organization/permission-delegation-policy'
 import { auditService } from '@/services/audit/audit.service'
 import { resendProvider } from '@/services/mail/resend'
 import { generateInvitationEmail } from '@/services/mail/templates/InvitationEmail'
-import { getOrganizationRoleByKey } from '@/server/organization/organization-rbac.service'
-import { assertCanDelegatePermissions } from '@/server/organization/permission-delegation-policy'
-import type { CreateOrganizationInvitationInput } from '@/features/organizations/schemas/organization-invitation-schemas'
-import { logger } from '@/lib/utils/logger'
 
 const APP_URL = requireEnv('APP_URL')
 
@@ -204,7 +204,11 @@ export async function deleteOrganizationInvitation(input: {
     return { error: 'Somente owner pode remover convite de owner.', status: 403 as const }
   }
 
-  if (input.actorRole === 'admin' && invitation.role && !['user', 'admin'].includes(invitation.role)) {
+  if (
+    input.actorRole === 'admin' &&
+    invitation.role &&
+    !['user', 'admin'].includes(invitation.role)
+  ) {
     return { error: 'Admin pode remover apenas convites de user/admin.', status: 403 as const }
   }
 
@@ -261,11 +265,18 @@ export async function resendOrganizationInvitation(input: {
     return { error: 'Somente owner pode reenviar convite de owner.', status: 403 as const }
   }
 
-  if (input.actorRole === 'admin' && invitation.role && !['user', 'admin'].includes(invitation.role)) {
+  if (
+    input.actorRole === 'admin' &&
+    invitation.role &&
+    !['user', 'admin'].includes(invitation.role)
+  ) {
     return { error: 'Admin pode reenviar apenas convites de user/admin.', status: 403 as const }
   }
 
-  const selectedRole = await getOrganizationRoleByKey(input.organizationId, invitation.role || 'user')
+  const selectedRole = await getOrganizationRoleByKey(
+    input.organizationId,
+    invitation.role || 'user'
+  )
   if (!selectedRole) {
     return { error: 'Papel do convite não encontrado para esta organização.', status: 404 as const }
   }

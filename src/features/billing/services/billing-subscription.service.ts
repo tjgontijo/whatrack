@@ -1,5 +1,5 @@
-import { prisma } from '@/lib/db/prisma'
 import { isSubscriptionStatus, type SubscriptionStatus } from '@/features/billing/types/billing'
+import { prisma } from '@/lib/db/prisma'
 import { getBillingPlanBySlug, getDefaultTrialBillingPlan } from './billing-plan-catalog.service'
 
 const DEFAULT_TRIAL_PROJECT_LIMIT = 1
@@ -88,7 +88,9 @@ async function getOrganizationResourceCounts(organizationId: string) {
 
   return {
     projects,
-    whatsappByProject: whatsappByProject.map((entry: { _count: { _all: number } }) => entry._count._all),
+    whatsappByProject: whatsappByProject.map(
+      (entry: { _count: { _all: number } }) => entry._count._all
+    ),
     metaByProject: metaByProject.map((entry: { _count: { _all: number } }) => entry._count._all),
   }
 }
@@ -123,7 +125,7 @@ export async function getOrganizationBillingEntitlements(
     includedWhatsAppPerProject?: number
     includedMetaAdAccountsPerProject?: number
     includedConversionsPerProject?: number
-  },
+  }
 ): Promise<EntitlementCounts> {
   const includedProjects = options?.includedProjects ?? 0
   const includedWhatsAppPerProject = options?.includedWhatsAppPerProject ?? 0
@@ -177,7 +179,9 @@ export async function assertProjectCreationAllowed(organizationId: string) {
   })
 
   if (currentProjects >= DEFAULT_TRIAL_PROJECT_LIMIT) {
-    throw new Error('O trial libera apenas 1 projeto ativo. Contrate um plano para criar outro projeto.')
+    throw new Error(
+      'O trial libera apenas 1 projeto ativo. Contrate um plano para criar outro projeto.'
+    )
   }
 }
 
@@ -234,7 +238,7 @@ export async function createSubscription(params: CreateSubscriptionParams): Prom
     where: { organizationId: params.organizationId },
   })
 
-  if (existing && existing.isActive && params.status === 'ACTIVE' && !existing.canceledAt) {
+  if (existing?.isActive && params.status === 'ACTIVE' && !existing.canceledAt) {
     throw new SubscriptionAlreadyExistsError(params.organizationId)
   }
 
@@ -446,7 +450,8 @@ export async function getActiveSubscription(organizationId: string) {
   const entitlements = await getOrganizationBillingEntitlements(organizationId, {
     includedProjects: subscription.offer?.plan?.includedProjects ?? 0,
     includedWhatsAppPerProject: subscription.offer?.plan?.includedWhatsAppPerProject ?? 0,
-    includedMetaAdAccountsPerProject: subscription.offer?.plan?.includedMetaAdAccountsPerProject ?? 0,
+    includedMetaAdAccountsPerProject:
+      subscription.offer?.plan?.includedMetaAdAccountsPerProject ?? 0,
     includedConversionsPerProject: subscription.offer?.plan?.includedConversionsPerProject ?? 0,
   })
 
@@ -469,7 +474,7 @@ export async function getActiveSubscription(organizationId: string) {
 
 export async function updateSubscriptionStatus(
   subscriptionId: string,
-  status: string,
+  status: string
 ): Promise<void> {
   const validatedStatus = ensureSubscriptionStatus(status)
 
@@ -485,7 +490,7 @@ export async function updateSubscriptionStatus(
 
 export async function cancelSubscription(
   organizationId: string,
-  atPeriodEnd: boolean = false,
+  atPeriodEnd: boolean = false
 ): Promise<{
   status: SubscriptionStatus
   canceledAtPeriodEnd: boolean

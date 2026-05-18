@@ -4,14 +4,13 @@
  * POST - Create a new organization from explicit onboarding (PF/PJ)
  */
 
-import { NextResponse } from 'next/server'
 import { Prisma } from '@generated/prisma/client'
-
-import { apiError } from '@/lib/utils/api-response'
-import { getOrSyncUser } from '@/server/auth/server'
+import { NextResponse } from 'next/server'
 import { organizationOnboardingSchema } from '@/features/organizations/schemas/organization-onboarding'
 import { createOrganizationFromOnboarding } from '@/features/organizations/services/organization-management.service'
+import { apiError } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
+import { getOrSyncUser } from '@/server/auth/server'
 
 export async function POST(request: Request) {
   try {

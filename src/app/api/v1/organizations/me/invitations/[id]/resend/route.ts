@@ -1,13 +1,9 @@
-import { NextRequest } from 'next/server'
-
+import type { NextRequest } from 'next/server'
+import { resendOrganizationInvitation } from '@/features/organizations/services/organization-invitations.service'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { organizationJson } from '@/server/http/organization-json'
-import { resendOrganizationInvitation } from '@/features/organizations/services/organization-invitations.service'
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const access = await validatePermissionAccess(request, 'manage:members')
   if (!access.hasAccess || !access.organizationId || !access.userId || !access.role) {
     return organizationJson({ error: access.error ?? 'Acesso negado' }, { status: 403 })

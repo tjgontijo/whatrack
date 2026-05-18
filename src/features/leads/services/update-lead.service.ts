@@ -1,10 +1,13 @@
 import 'server-only'
 
-import { ensureProjectBelongsToOrganization, resolveProjectScope } from '@/server/project/project-scope'
+import { findLeadByIdRepository, updateLeadRepository } from '@/features/leads/repositories'
 
 import { updateLeadSchema } from '@/features/leads/schemas/lead.schemas'
-import { findLeadByIdRepository, updateLeadRepository } from '@/features/leads/repositories'
 import { rethrowLeadConflict } from '@/features/leads/services/shared'
+import {
+  ensureProjectBelongsToOrganization,
+  resolveProjectScope,
+} from '@/server/project/project-scope'
 
 export async function updateLeadService(input: {
   organizationId: string

@@ -1,15 +1,8 @@
 'use client'
 
-import * as React from 'react'
-import { useState, useDeferredValue, useMemo, useCallback } from 'react'
 import { ShoppingCart } from 'lucide-react'
-
-import { CrudDataView, CrudEmptyState } from '@/features/dashboard/components/crud/crud-data-view'
-import { CrudListView } from '@/features/dashboard/components/crud/crud-list-view'
-import { CrudCardView } from '@/features/dashboard/components/crud/crud-card-view'
-import { ViewSwitcher } from '@/features/dashboard/components/crud/view-switcher'
-import { HeaderPageShell } from '@/features/dashboard/components/layout'
-import { useCrudInfiniteQuery } from '@/hooks/ui/use-crud-infinite-query'
+import { useDeferredValue, useMemo, useState } from 'react'
+import { Badge } from '@/components/ui/badge'
 import {
   Select,
   SelectContent,
@@ -17,13 +10,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
-import {
-  type CardConfig,
-  type ColumnDef,
-  type RowActions,
-  type ViewType,
+import { CrudCardView } from '@/features/dashboard/components/crud/crud-card-view'
+import { CrudDataView, CrudEmptyState } from '@/features/dashboard/components/crud/crud-data-view'
+import { CrudListView } from '@/features/dashboard/components/crud/crud-list-view'
+import type {
+  CardConfig,
+  ColumnDef,
+  RowActions,
+  ViewType,
 } from '@/features/dashboard/components/crud/types'
+import { ViewSwitcher } from '@/features/dashboard/components/crud/view-switcher'
+import { HeaderPageShell } from '@/features/dashboard/components/layout'
+import { useCrudInfiniteQuery } from '@/hooks/ui/use-crud-infinite-query'
 import { formatCurrencyBRL } from '@/lib/mask/formatters'
 
 type SaleListItem = {
@@ -66,7 +64,7 @@ const columns: ColumnDef<SaleListItem>[] = [
   {
     key: 'totalAmount',
     label: 'Valor da Venda',
-    render: (sale) => <span className="font-semibold">{formatCurrencyBRL(sale.totalAmount)}</span>,
+    render: (sale) => <span className='font-semibold'>{formatCurrencyBRL(sale.totalAmount)}</span>,
   },
   {
     key: 'status',
@@ -77,7 +75,7 @@ const columns: ColumnDef<SaleListItem>[] = [
       return status ? (
         <Badge variant={status.variant}>{status.label}</Badge>
       ) : (
-        <span className="text-muted-foreground">—</span>
+        <span className='text-muted-foreground'>—</span>
       )
     },
   },
@@ -86,9 +84,9 @@ const columns: ColumnDef<SaleListItem>[] = [
     label: 'Observações',
     render: (sale) =>
       sale.notes ? (
-        <span className="block max-w-[260px] truncate text-sm">{sale.notes}</span>
+        <span className='block max-w-[260px] truncate text-sm'>{sale.notes}</span>
       ) : (
-        <span className="text-muted-foreground">Sem observações</span>
+        <span className='text-muted-foreground'>Sem observações</span>
       ),
   },
   {
@@ -96,7 +94,7 @@ const columns: ColumnDef<SaleListItem>[] = [
     label: 'Criada em',
     width: 170,
     render: (sale) => (
-      <span className="text-muted-foreground text-xs">
+      <span className='text-muted-foreground text-xs'>
         {new Date(sale.createdAt).toLocaleString('pt-BR')}
       </span>
     ),
@@ -104,19 +102,19 @@ const columns: ColumnDef<SaleListItem>[] = [
 ]
 
 const cardConfig: CardConfig<SaleListItem> = {
-  icon: () => <ShoppingCart className="text-primary/60 h-7 w-7" />,
+  icon: () => <ShoppingCart className='h-7 w-7 text-primary/60' />,
   title: (sale) => formatCurrencyBRL(sale.totalAmount),
   subtitle: (sale) => new Date(sale.createdAt).toLocaleDateString('pt-BR'),
   badge: (sale) => {
     const status = sale.status ? STATUS_BADGE[sale.status] : null
     return status ? (
-      <Badge variant={status.variant} className="text-[10px]">
+      <Badge variant={status.variant} className='text-[10px]'>
         {status.label}
       </Badge>
     ) : null
   },
   footer: (sale) => (
-    <span className="text-muted-foreground text-xs truncate">
+    <span className='truncate text-muted-foreground text-xs'>
       {sale.notes || 'Sem observações'}
     </span>
   ),
@@ -155,15 +153,15 @@ export default function ClientSalesTable() {
 
   const filtersNode = (
     <>
-      <div className="space-y-1.5">
-        <p className="text-muted-foreground text-xs font-medium">Status</p>
+      <div className='space-y-1.5'>
+        <p className='font-medium text-muted-foreground text-xs'>Status</p>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="border-border h-8 w-full text-xs">
+          <SelectTrigger className='h-8 w-full border-border text-xs'>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             {STATUS_OPTIONS.map((option) => (
-              <SelectItem key={option.value} value={option.value} className="text-xs">
+              <SelectItem key={option.value} value={option.value} className='text-xs'>
                 {option.label}
               </SelectItem>
             ))}
@@ -171,15 +169,15 @@ export default function ClientSalesTable() {
         </Select>
       </div>
 
-      <div className="space-y-1.5">
-        <p className="text-muted-foreground text-xs font-medium">Período</p>
+      <div className='space-y-1.5'>
+        <p className='font-medium text-muted-foreground text-xs'>Período</p>
         <Select value={dateRange} onValueChange={setDateRange}>
-          <SelectTrigger className="border-border h-8 w-full text-xs">
+          <SelectTrigger className='h-8 w-full border-border text-xs'>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             {DATE_OPTIONS.map((option) => (
-              <SelectItem key={option.value} value={option.value} className="text-xs">
+              <SelectItem key={option.value} value={option.value} className='text-xs'>
                 {option.label}
               </SelectItem>
             ))}
@@ -191,11 +189,11 @@ export default function ClientSalesTable() {
 
   return (
     <HeaderPageShell
-      title="Vendas"
+      title='Vendas'
       selector={<ViewSwitcher view={view} setView={setView} enabledViews={['list', 'cards']} />}
       searchValue={searchInput}
       onSearchChange={setSearchInput}
-      searchPlaceholder="Pesquisar valor, status, observação..."
+      searchPlaceholder='Pesquisar valor, status, observação...'
       onRefresh={() => void refetch()}
       isFetchingMore={isFetchingNextPage}
       filters={filtersNode}
@@ -219,7 +217,7 @@ export default function ClientSalesTable() {
             config={cardConfig}
             rowActions={rowActions}
             onEndReached={hasNextPage ? fetchNextPage : undefined}
-            gridClassName="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+            gridClassName='grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
           />
         }
       />

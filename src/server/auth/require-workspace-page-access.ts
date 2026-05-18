@@ -2,8 +2,8 @@ import { redirect } from 'next/navigation'
 
 import { getPermissionCandidates, isAdmin, isOwner, type Permission } from '@/lib/auth/rbac/roles'
 import { getServerSession } from '@/server/auth/server-session'
-import { resolveDefaultWorkspacePath } from '@/server/navigation/resolve-default-workspace-path'
 import { validateOrganizationAccess } from '@/server/auth/validate-organization-access'
+import { resolveDefaultWorkspacePath } from '@/server/navigation/resolve-default-workspace-path'
 import { listEffectivePermissionsForUser } from '@/server/organization/organization-rbac.service'
 import { resolveOrganizationContext } from '@/server/project/resolve-project-context'
 

@@ -1,13 +1,11 @@
 import 'server-only'
 
-import { Prisma } from '@generated/prisma/client'
-
-import { prisma } from '@/lib/db/prisma'
+import type { Prisma } from '@generated/prisma/client'
+import { billingAutoUpgradeService } from '@/features/billing/services/billing-auto-upgrade.service'
 import {
   assertProjectCreationAllowed,
   syncOrganizationSubscriptionItems,
 } from '@/features/billing/services/billing-subscription.service'
-import { billingAutoUpgradeService } from '@/features/billing/services/billing-auto-upgrade.service'
 import type {
   ProjectAssociationCounts,
   ProjectCreateInput,
@@ -17,6 +15,7 @@ import type {
   ProjectListResponse,
   ProjectUpdateInput,
 } from '@/features/projects/schemas/project.schemas'
+import { prisma } from '@/lib/db/prisma'
 
 type ProjectSummaryRow = {
   id: string
@@ -198,29 +197,31 @@ export async function createProject(input: {
 
   await syncOrganizationSubscriptionItems(input.organizationId)
 
-  const projectCount = (
-    await prisma.project.count({
-      where: { organizationId: input.organizationId },
-    })
-  )
+  const projectCount = await prisma.project.count({
+    where: { organizationId: input.organizationId },
+  })
 
   const upgradeResult = await billingAutoUpgradeService.performAutoUpgradeIfNeeded(
     input.organizationId,
-    projectCount,
+    projectCount
   )
 
   // Send notification asynchronously (non-blocking)
   if (upgradeResult.upgraded && upgradeResult.newPlanCode) {
-    billingAutoUpgradeService.sendUpgradeNotification({
-      organizationId: input.organizationId,
-      oldPlanName: upgradeResult.oldPlanId ? 'Plano anterior' : 'Desconhecido',
-      newPlanName: upgradeResult.newPlanCode,
-      upgradeDate: new Date(),
-      nextChargeDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-      nextChargeAmount: upgradeResult.proratingResult?.netAmount || new (require('@prisma/client').Prisma.Decimal)(0),
-    }).catch(() => {
-      // Silently fail
-    })
+    billingAutoUpgradeService
+      .sendUpgradeNotification({
+        organizationId: input.organizationId,
+        oldPlanName: upgradeResult.oldPlanId ? 'Plano anterior' : 'Desconhecido',
+        newPlanName: upgradeResult.newPlanCode,
+        upgradeDate: new Date(),
+        nextChargeDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        nextChargeAmount:
+          upgradeResult.proratingResult?.netAmount ||
+          new (require('@prisma/client').Prisma.Decimal)(0),
+      })
+      .catch(() => {
+        // Silently fail
+      })
   }
 
   return mapProject(created)

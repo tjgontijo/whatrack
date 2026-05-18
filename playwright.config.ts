@@ -1,12 +1,12 @@
-import { defineConfig, devices } from '@playwright/test'
 import { existsSync } from 'node:fs'
+import { defineConfig, devices } from '@playwright/test'
 import dotenv from 'dotenv'
 
 // Load test environment
 dotenv.config({ path: '.env.test' })
 
 const shouldStartCloudflareTunnel = ['1', 'true', 'yes', 'on'].includes(
-  (process.env.E2E_START_CLOUDFLARE_TUNNEL || '').toLowerCase(),
+  (process.env.E2E_START_CLOUDFLARE_TUNNEL || '').toLowerCase()
 )
 
 const cloudflareConfigPath = existsSync('.cloudflared-config.yml')

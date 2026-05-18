@@ -1,9 +1,8 @@
 import { revalidateTag } from 'next/cache'
-
-import { apiError, apiSuccess } from '@/lib/utils/api-response'
-import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { archiveProject } from '@/features/projects/server'
+import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 type RouteContext = {
   params: Promise<{

@@ -1,22 +1,21 @@
 'use client'
 
-import React, { useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
-  DndContext,
-  PointerSensor,
   closestCenter,
+  DndContext,
   type DragEndEvent,
+  PointerSensor,
   useSensor,
   useSensors,
 } from '@dnd-kit/core'
 import {
-  SortableContext,
   arrayMove,
+  SortableContext,
   useSortable,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   CheckCircle2,
   GripVertical,
@@ -27,10 +26,8 @@ import {
   Trash2,
   XCircle,
 } from 'lucide-react'
+import { useState } from 'react'
 import { toast } from 'sonner'
-
-import { DeleteConfirmDialog } from '@/features/dashboard/components/crud/delete-confirm-dialog'
-import { EmptyState, LoadingPage } from '@/features/dashboard/components/states'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -43,6 +40,8 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
+import { DeleteConfirmDialog } from '@/features/dashboard/components/crud/delete-confirm-dialog'
+import { EmptyState, LoadingPage } from '@/features/dashboard/components/states'
 import { apiFetch } from '@/lib/api-client'
 
 const PRESET_COLORS = [
@@ -102,44 +101,50 @@ function StageItem({
         transition,
         opacity: isDragging ? 0.4 : 1,
       }}
-      className="border-border bg-card hover:bg-muted/30 group flex items-center gap-3 rounded-xl border p-3 transition-colors"
+      className='group flex items-center gap-3 rounded-xl border border-border bg-card p-3 transition-colors hover:bg-muted/30'
     >
       <button
-        type="button"
+        type='button'
         {...attributes}
         {...listeners}
-        className="text-muted-foreground/40 hover:text-muted-foreground cursor-grab transition-colors active:cursor-grabbing"
+        className='cursor-grab text-muted-foreground/40 transition-colors hover:text-muted-foreground active:cursor-grabbing'
       >
-        <GripVertical className="h-4 w-4" />
+        <GripVertical className='h-4 w-4' />
       </button>
 
-      <span className="h-3 w-3 shrink-0 rounded-full" style={{ backgroundColor: stage.color }} />
+      <span className='h-3 w-3 shrink-0 rounded-full' style={{ backgroundColor: stage.color }} />
 
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <span className="truncate text-sm font-medium">{stage.name}</span>
+      <div className='min-w-0 flex-1'>
+        <div className='flex items-center gap-2'>
+          <span className='truncate font-medium text-sm'>{stage.name}</span>
           {stage.isDefault && (
-            <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">
+            <Badge variant='secondary' className='px-1.5 py-0 text-[10px]'>
               Padrão
             </Badge>
           )}
           {stage.isClosed && (
-            <Badge variant="outline" className="text-muted-foreground px-1.5 py-0 text-[10px]">
+            <Badge variant='outline' className='px-1.5 py-0 text-[10px] text-muted-foreground'>
               Fechada
             </Badge>
           )}
         </div>
-        <p className="text-muted-foreground mt-0.5 text-[11px]">
+        <p className='mt-0.5 text-[11px] text-muted-foreground'>
           {stage.ticketsCount} ticket{stage.ticketsCount !== 1 ? 's' : ''}
         </p>
       </div>
 
-      <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-        <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(stage)}>
-          <Pencil className="h-3.5 w-3.5" />
+      <div className='flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100'>
+        <Button
+          type='button'
+          variant='ghost'
+          size='icon'
+          className='h-7 w-7'
+          onClick={() => onEdit(stage)}
+        >
+          <Pencil className='h-3.5 w-3.5' />
         </Button>
         <DeleteConfirmDialog
-          title="Excluir fase?"
+          title='Excluir fase?'
           description={
             stage.ticketsCount > 0
               ? `A fase "${stage.name}" tem ${stage.ticketsCount} ticket(s) que serão movidos para a fase padrão antes da exclusão.`
@@ -147,14 +152,14 @@ function StageItem({
           }
           trigger={
             <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="text-destructive hover:text-destructive h-7 w-7"
+              type='button'
+              variant='ghost'
+              size='icon'
+              className='h-7 w-7 text-destructive hover:text-destructive'
               disabled={stage.isDefault}
               title={stage.isDefault ? 'Não é possível excluir a fase padrão' : 'Excluir'}
             >
-              <Trash2 className="h-3.5 w-3.5" />
+              <Trash2 className='h-3.5 w-3.5' />
             </Button>
           }
           onConfirm={() => onDelete(stage)}
@@ -186,30 +191,30 @@ function StageDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className='max-w-md'>
         <DialogHeader>
           <DialogTitle>{stage ? 'Editar Fase' : 'Nova Fase'}</DialogTitle>
         </DialogHeader>
 
-        <div key={stage?.id ?? (open ? 'new' : 'closed')} className="space-y-5 py-2">
-          <div className="space-y-2">
+        <div key={stage?.id ?? (open ? 'new' : 'closed')} className='space-y-5 py-2'>
+          <div className='space-y-2'>
             <Label>Nome da fase</Label>
             <Input
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              placeholder="Ex: Em análise"
+              placeholder='Ex: Em análise'
               autoFocus
             />
           </div>
 
-          <div className="space-y-2">
+          <div className='space-y-2'>
             <Label>Cor</Label>
-            <div className="flex flex-wrap gap-2">
+            <div className='flex flex-wrap gap-2'>
               {PRESET_COLORS.map((color) => (
                 <button
                   key={color}
-                  type="button"
-                  className="h-7 w-7 rounded-full border-2 transition-all"
+                  type='button'
+                  className='h-7 w-7 rounded-full border-2 transition-all'
                   style={{
                     backgroundColor: color,
                     borderColor: form.color === color ? 'white' : 'transparent',
@@ -222,12 +227,12 @@ function StageDialog({
             </div>
           </div>
 
-          <div className="border-border flex items-center justify-between rounded-lg border px-4 py-3">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="text-primary h-4 w-4" />
+          <div className='flex items-center justify-between rounded-lg border border-border px-4 py-3'>
+            <div className='flex items-center gap-2'>
+              <CheckCircle2 className='h-4 w-4 text-primary' />
               <div>
-                <p className="text-sm font-medium">Fase padrão</p>
-                <p className="text-muted-foreground text-xs">Novos tickets entram aqui</p>
+                <p className='font-medium text-sm'>Fase padrão</p>
+                <p className='text-muted-foreground text-xs'>Novos tickets entram aqui</p>
               </div>
             </div>
             <Switch
@@ -236,12 +241,12 @@ function StageDialog({
             />
           </div>
 
-          <div className="border-border flex items-center justify-between rounded-lg border px-4 py-3">
-            <div className="flex items-center gap-2">
-              <XCircle className="text-muted-foreground h-4 w-4" />
+          <div className='flex items-center justify-between rounded-lg border border-border px-4 py-3'>
+            <div className='flex items-center gap-2'>
+              <XCircle className='h-4 w-4 text-muted-foreground' />
               <div>
-                <p className="text-sm font-medium">Fase de fechamento</p>
-                <p className="text-muted-foreground text-xs">
+                <p className='font-medium text-sm'>Fase de fechamento</p>
+                <p className='text-muted-foreground text-xs'>
                   Tickets nesta fase são considerados fechados
                 </p>
               </div>
@@ -254,13 +259,22 @@ function StageDialog({
         </div>
 
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>
+          <Button
+            type='button'
+            variant='outline'
+            onClick={() => onOpenChange(false)}
+            disabled={isSaving}
+          >
             Cancelar
           </Button>
-          <Button type="button" onClick={() => onSave(form)} disabled={!form.name.trim() || isSaving}>
+          <Button
+            type='button'
+            onClick={() => onSave(form)}
+            disabled={!form.name.trim() || isSaving}
+          >
             {isSaving ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
                 Salvando...
               </>
             ) : (
@@ -307,7 +321,8 @@ export function PipelineStagesManager({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
-        orgId: organizationId, projectId,
+        orgId: organizationId,
+        projectId,
       })
       return data
     },
@@ -326,7 +341,8 @@ export function PipelineStagesManager({
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
-        orgId: organizationId, projectId,
+        orgId: organizationId,
+        projectId,
       })
       return data
     },
@@ -401,34 +417,34 @@ export function PipelineStagesManager({
   const isSaving = createMutation.isPending || updateMutation.isPending
 
   if (!organizationId) {
-    return <LoadingPage message="Carregando pipeline..." />
+    return <LoadingPage message='Carregando pipeline...' />
   }
 
   if (isLoading) {
-    return <LoadingPage message="Carregando fases..." />
+    return <LoadingPage message='Carregando fases...' />
   }
 
   return (
     <>
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-muted-foreground text-xs font-semibold uppercase tracking-widest">
+      <div className='flex items-center justify-between gap-3'>
+        <p className='font-semibold text-muted-foreground text-xs uppercase tracking-widest'>
           {stages.length} fase{stages.length !== 1 ? 's' : ''} — arraste para reordenar
         </p>
         <Button
-          type="button"
+          type='button'
           onClick={() => {
             setEditingStage(null)
             setDialogOpen(true)
           }}
-          size="sm"
-          className="gap-2"
+          size='sm'
+          className='gap-2'
         >
-          <Plus className="h-4 w-4" />
+          <Plus className='h-4 w-4' />
           Adicionar Fase
         </Button>
       </div>
 
-      <div className="mt-4 space-y-2">
+      <div className='mt-4 space-y-2'>
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={stages.map((s) => s.id)} strategy={verticalListSortingStrategy}>
             {stages.map((stage) => (
@@ -448,7 +464,7 @@ export function PipelineStagesManager({
         {stages.length === 0 && (
           <EmptyState
             icon={Kanban}
-            title="Nenhuma fase configurada"
+            title='Nenhuma fase configurada'
             description='Clique em "Adicionar Fase" para começar'
           />
         )}

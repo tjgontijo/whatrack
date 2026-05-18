@@ -1,10 +1,11 @@
 // Note: db not directly used in processor, handlers manage database access
-import { onboardingHandler } from './handlers/onboarding.handler'
-import { messageHandler } from './handlers/message.handler'
-import { statusHandler } from './handlers/status.handler'
-import { historyHandler } from './handlers/history.handler'
-import { stateSyncHandler } from './handlers/state-sync.handler'
+
 import { logger } from '@/lib/utils/logger'
+import { historyHandler } from './handlers/history.handler'
+import { messageHandler } from './handlers/message.handler'
+import { onboardingHandler } from './handlers/onboarding.handler'
+import { stateSyncHandler } from './handlers/state-sync.handler'
+import { statusHandler } from './handlers/status.handler'
 
 /**
  * WhatsApp Webhook Processor
@@ -94,11 +95,17 @@ export class WebhookProcessor {
     const field = change.field
     const value = change.value
 
-    logger.info({ context: { field, hasValue: !!value } }, '[WebhookProcessor.extractEventType] Field')
+    logger.info(
+      { context: { field, hasValue: !!value } },
+      '[WebhookProcessor.extractEventType] Field'
+    )
 
     // Account update events (PARTNER_ADDED, PARTNER_REMOVED, etc)
     if (field === 'account_update') {
-      logger.info({ context: value?.event }, '[WebhookProcessor.extractEventType] Account update event')
+      logger.info(
+        { context: value?.event },
+        '[WebhookProcessor.extractEventType] Account update event'
+      )
       return value?.event || null
     }
 

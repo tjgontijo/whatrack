@@ -23,9 +23,7 @@ describe('internal path helpers', () => {
   })
 
   it('rewrites legacy workspace paths to welcome', () => {
-    expect(resolveInternalPath('/dashboard/billing?plan=pro', '/welcome')).toBe(
-      '/welcome?plan=pro'
-    )
+    expect(resolveInternalPath('/dashboard/billing?plan=pro', '/welcome')).toBe('/welcome?plan=pro')
     expect(resolveInternalPath('/app', '/welcome')).toBe('/welcome')
   })
 })

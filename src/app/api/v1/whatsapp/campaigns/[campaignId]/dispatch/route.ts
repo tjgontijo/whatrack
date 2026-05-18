@@ -1,7 +1,7 @@
+import { whatsappCampaignDispatchSchema } from '@/features/whatsapp/schemas/whatsapp-campaign-schemas'
+import { dispatchCampaign } from '@/features/whatsapp/services/whatsapp-campaign.service'
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { dispatchCampaign } from '@/features/whatsapp/services/whatsapp-campaign.service'
-import { whatsappCampaignDispatchSchema } from '@/features/whatsapp/schemas/whatsapp-campaign-schemas'
 import { enqueueCampaignDispatch } from '@/server/queues/campaign.queue'
 
 export const dynamic = 'force-dynamic'
@@ -28,7 +28,7 @@ export async function POST(
     campaignId,
     access.userId,
     parsed.data.immediate,
-    scheduledAt,
+    scheduledAt
   )
 
   if (!result.success) {

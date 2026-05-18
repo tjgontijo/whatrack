@@ -1,13 +1,12 @@
-import { NextResponse } from 'next/server'
-import { apiError } from '@/lib/utils/api-response'
 import { revalidateTag } from 'next/cache'
-
+import { NextResponse } from 'next/server'
+import { createTicketSchema, ticketsQuerySchema } from '@/features/tickets/schemas/ticket.schemas'
+import { createTicket, listTickets } from '@/features/tickets/services/ticket.service'
+import { isDateRangePreset, resolveDateRange } from '@/lib/date/date-range'
+import { apiError } from '@/lib/utils/api-response'
+import { logger } from '@/lib/utils/logger'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { resolveProjectScope } from '@/server/project/project-scope'
-import { isDateRangePreset, resolveDateRange } from '@/lib/date/date-range'
-import { ticketsQuerySchema, createTicketSchema } from '@/features/tickets/schemas/ticket.schemas'
-import { listTickets, createTicket } from '@/features/tickets/services/ticket.service'
-import { logger } from '@/lib/utils/logger'
 
 export async function GET(req: Request) {
   const access = await validatePermissionAccess(req, 'view:tickets')
@@ -104,7 +103,12 @@ export async function POST(req: Request) {
     })
 
     if ('error' in result) {
-      return apiError(result.error, result.status, undefined, 'ticketId' in result ? { ticketId: result.ticketId } : undefined)
+      return apiError(
+        result.error,
+        result.status,
+        undefined,
+        'ticketId' in result ? { ticketId: result.ticketId } : undefined
+      )
     }
 
     await revalidateTag(`org-${access.organizationId}`, 'max')

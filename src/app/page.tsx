@@ -22,16 +22,16 @@ export const metadata: Metadata = {
 }
 
 import {
-  LandingHeader,
-  LandingHero,
-  LandingProblem,
-  LandingSolution,
+  LANDING_CONTENT,
   LandingComparison,
-  LandingHowItWorks,
-  LandingPricing,
   LandingCTA,
   LandingFooter,
-  LANDING_CONTENT,
+  LandingHeader,
+  LandingHero,
+  LandingHowItWorks,
+  LandingPricing,
+  LandingProblem,
+  LandingSolution,
 } from '@/components/landing'
 import { listPublicBillingPlans } from '@/features/billing/services/billing-plan-catalog.service'
 
@@ -40,14 +40,14 @@ export default async function HomePage() {
   const plans = await listPublicBillingPlans()
 
   return (
-    <div className="bg-background text-foreground flex min-h-screen flex-col">
-      <LandingHeader variant="generic" />
+    <div className='flex min-h-screen flex-col bg-background text-foreground'>
+      <LandingHeader variant='generic' />
       <LandingHero content={content.hero} />
       <LandingProblem content={content.problem} />
       <LandingSolution content={content.solution} />
       <LandingComparison />
       <LandingHowItWorks content={content.howItWorks} />
-      <LandingPricing variant="generic" plans={plans} />
+      <LandingPricing variant='generic' plans={plans} />
       <LandingCTA content={content.cta} />
       <LandingFooter />
     </div>

@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { BillingWebhookHandler } from '@/features/billing/services/webhook.handler'
 import { rateLimitMiddleware } from '@/lib/utils/rate-limit.middleware'
 

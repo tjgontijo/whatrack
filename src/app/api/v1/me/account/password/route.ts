@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { handlePasswordChange } from '@/server/auth/password-change'
 
 export async function PATCH(request: NextRequest) {

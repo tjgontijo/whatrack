@@ -197,7 +197,10 @@ export function isAdmin(userRole: string | null | undefined): boolean {
   return normalized === 'admin' || normalized === 'owner'
 }
 
-export function hasPermission(userRole: string | null | undefined, permission: Permission): boolean {
+export function hasPermission(
+  userRole: string | null | undefined,
+  permission: Permission
+): boolean {
   const normalized = normalizeRole(userRole)
   if (!normalized) return false
   const roleDefinition = ROLE_DEFINITIONS.find((definition) => definition.name === normalized)

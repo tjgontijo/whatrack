@@ -1,8 +1,8 @@
 import { prisma } from '@/lib/db/prisma'
-import { BillingCatalogService } from './catalog.service'
-import { BillingCustomerService } from './customer.service'
 import { AsaasClient } from './asaas-client'
 import { BillingAuditService } from './audit.service'
+import { BillingCatalogService } from './catalog.service'
+import { BillingCustomerService } from './customer.service'
 import { billingLog } from './logger'
 
 function todayDateString() {

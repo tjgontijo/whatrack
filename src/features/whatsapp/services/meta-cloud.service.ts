@@ -1,5 +1,5 @@
-import { prisma } from '@/lib/db/prisma'
 import { resolveAccessToken } from '@/features/whatsapp/lib/token-crypto'
+import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/utils/logger'
 
 const GRAPH_API_URL = 'https://graph.facebook.com'
@@ -71,7 +71,7 @@ export class MetaCloudService {
           url,
           appId,
           redirectUri: finalRedirectUri || '(omitted - JS SDK flow)',
-          code: code.substring(0, 10) + '...',
+          code: `${code.substring(0, 10)}...`,
         },
       },
       '[MetaCloudService] Exchanging code for token'
@@ -107,7 +107,15 @@ export class MetaCloudService {
       throw new Error(data.error?.message || 'Failed to exchange code for token')
     }
 
-    logger.info({ context: { access_token: data.access_token ? 'OK' : 'MISSING', expires_in: data.expires_in } }, '[MetaCloudService] Token received')
+    logger.info(
+      {
+        context: {
+          access_token: data.access_token ? 'OK' : 'MISSING',
+          expires_in: data.expires_in,
+        },
+      },
+      '[MetaCloudService] Token received'
+    )
 
     return data as { access_token: string; expires_in?: number }
   }
@@ -122,7 +130,7 @@ export class MetaCloudService {
     logger.info('[MetaCloudService] Fetching WABAs via debug_token...')
 
     try {
-      const debugData = await this.debugToken(accessToken)
+      const debugData = await MetaCloudService.debugToken(accessToken)
       logger.info({ context: debugData }, '[MetaCloudService] Debug token response')
 
       const granularScopes = debugData.granular_scopes || []
@@ -134,21 +142,27 @@ export class MetaCloudService {
         }
       }
 
-      logger.info({ context: { count: wabaIds.length, wabaIds } }, '[MetaCloudService] Found WABA IDs from granular_scopes')
+      logger.info(
+        { context: { count: wabaIds.length, wabaIds } },
+        '[MetaCloudService] Found WABA IDs from granular_scopes'
+      )
 
       if (wabaIds.length > 0) {
         const allWabas: Array<{ wabaId: string; wabaName: string; businessId: string }> = []
 
         for (const wabaId of wabaIds) {
           try {
-            const wabaInfo = await this.getAccountInfo({ wabaId, accessToken })
+            const wabaInfo = await MetaCloudService.getAccountInfo({ wabaId, accessToken })
             allWabas.push({
               wabaId,
               wabaName: wabaInfo.name || 'WhatsApp Business',
               businessId: wabaInfo.owner_business_info?.id || 'unknown',
             })
           } catch (err) {
-            logger.warn({ err, context: { wabaId } }, '[MetaCloudService] Failed to get info for WABA')
+            logger.warn(
+              { err, context: { wabaId } },
+              '[MetaCloudService] Failed to get info for WABA'
+            )
             allWabas.push({
               wabaId,
               wabaName: 'WhatsApp Business',
@@ -192,7 +206,10 @@ export class MetaCloudService {
       }
     }
 
-    logger.info({ context: { wabaCount: allWabas.length, businessCount: businesses.length } }, '[MetaCloudService] Found WABAs')
+    logger.info(
+      { context: { wabaCount: allWabas.length, businessCount: businesses.length } },
+      '[MetaCloudService] Found WABAs'
+    )
     return allWabas
   }
 
@@ -204,7 +221,7 @@ export class MetaCloudService {
     logger.info('[MetaCloudService] Fetching shared phone numbers via debug_token...')
 
     try {
-      const debugData = await this.debugToken(accessToken)
+      const debugData = await MetaCloudService.debugToken(accessToken)
       const granularScopes = debugData.granular_scopes || []
       const phoneIds: string[] = []
 
@@ -214,7 +231,10 @@ export class MetaCloudService {
         }
       }
 
-      logger.info({ context: { count: phoneIds.length, phoneIds } }, '[MetaCloudService] Found Phone IDs from granular_scopes')
+      logger.info(
+        { context: { count: phoneIds.length, phoneIds } },
+        '[MetaCloudService] Found Phone IDs from granular_scopes'
+      )
       return phoneIds
     } catch (err) {
       logger.warn({ err }, '[MetaCloudService] Failed to extract shared phone numbers from token')
@@ -261,7 +281,7 @@ export class MetaCloudService {
     variables,
     accessToken,
   }: SendTemplateParams) {
-    const token = accessToken || this.accessToken
+    const token = accessToken || MetaCloudService.accessToken
     const url = `${GRAPH_API_URL}/${API_VERSION}/${phoneId}/messages`
 
     const templateComponents =
@@ -316,14 +336,8 @@ export class MetaCloudService {
   /**
    * Send a free-form WhatsApp text message inside the customer service window.
    */
-  static async sendText({
-    phoneId,
-    to,
-    text,
-    previewUrl = false,
-    accessToken,
-  }: SendTextParams) {
-    const token = accessToken || this.accessToken
+  static async sendText({ phoneId, to, text, previewUrl = false, accessToken }: SendTextParams) {
+    const token = accessToken || MetaCloudService.accessToken
     const url = `${GRAPH_API_URL}/${API_VERSION}/${phoneId}/messages`
 
     const payload = {
@@ -362,7 +376,7 @@ export class MetaCloudService {
    * Fetch templates for a WABA
    */
   static async getTemplates({ wabaId, accessToken }: GetTemplatesParams) {
-    const token = accessToken || this.accessToken
+    const token = accessToken || MetaCloudService.accessToken
     const url = `${GRAPH_API_URL}/${API_VERSION}/${wabaId}/message_templates?limit=50`
 
     logger.info({ context: { url } }, '[MetaCloudService] Fetching templates')
@@ -388,10 +402,13 @@ export class MetaCloudService {
    * Create a new message template
    */
   static async createTemplate({ wabaId, accessToken, template }: CreateTemplateParams) {
-    const token = accessToken || this.accessToken
+    const token = accessToken || MetaCloudService.accessToken
     const url = `${GRAPH_API_URL}/${API_VERSION}/${wabaId}/message_templates`
 
-    logger.info({ context: { wabaId, templateName: template.name, url } }, '[MetaCloudService] Creating template')
+    logger.info(
+      { context: { wabaId, templateName: template.name, url } },
+      '[MetaCloudService] Creating template'
+    )
 
     const response = await fetch(url, {
       method: 'POST',
@@ -435,7 +452,7 @@ export class MetaCloudService {
     accessToken?: string
     components: any[]
   }) {
-    const token = accessToken || this.accessToken
+    const token = accessToken || MetaCloudService.accessToken
     const url = `${GRAPH_API_URL}/${API_VERSION}/${templateId}`
 
     logger.info({ context: { templateId, url } }, '[MetaCloudService] Editing template')
@@ -484,7 +501,7 @@ export class MetaCloudService {
     accessToken?: string
     name: string
   }) {
-    const token = accessToken || this.accessToken
+    const token = accessToken || MetaCloudService.accessToken
     const url = `${GRAPH_API_URL}/${API_VERSION}/${wabaId}/message_templates?name=${name}`
 
     logger.info({ context: { url, name } }, '[MetaCloudService] Deleting template')
@@ -510,7 +527,7 @@ export class MetaCloudService {
    * Fetch phone numbers for a WABA
    */
   static async listPhoneNumbers({ wabaId, accessToken }: { wabaId: string; accessToken?: string }) {
-    const token = accessToken || this.accessToken
+    const token = accessToken || MetaCloudService.accessToken
     const url = `${GRAPH_API_URL}/${API_VERSION}/${wabaId}/phone_numbers?fields=display_phone_number,verified_name,status,quality_rating,throughput`
 
     logger.info({ context: { url } }, '[MetaCloudService] Fetching phone numbers')
@@ -542,7 +559,7 @@ export class MetaCloudService {
     phoneId: string
     accessToken?: string
   }) {
-    const token = accessToken || this.accessToken
+    const token = accessToken || MetaCloudService.accessToken
     const url = `${GRAPH_API_URL}/${API_VERSION}/${phoneId}/whatsapp_business_profile`
 
     logger.info({ context: { url } }, '[MetaCloudService] Fetching business profile')
@@ -568,7 +585,7 @@ export class MetaCloudService {
    * Fetch WABA account info
    */
   static async getAccountInfo({ wabaId, accessToken }: { wabaId: string; accessToken?: string }) {
-    const token = accessToken || this.accessToken
+    const token = accessToken || MetaCloudService.accessToken
     const url = `${GRAPH_API_URL}/${API_VERSION}/${wabaId}`
 
     logger.info({ context: { url } }, '[MetaCloudService] Fetching account info')
@@ -605,7 +622,7 @@ export class MetaCloudService {
     limit?: number
     after?: string
   }) {
-    const token = accessToken || this.accessToken
+    const token = accessToken || MetaCloudService.accessToken
     let url = `${GRAPH_API_URL}/${API_VERSION}/${phoneId}/message_history?limit=${limit}&fields=id,message_id,events{delivery_status,timestamp,application,webhook_uri,error_description}`
 
     if (after) {
@@ -642,7 +659,7 @@ export class MetaCloudService {
     phoneId: string
     accessToken?: string
   }) {
-    const token = accessToken || this.accessToken
+    const token = accessToken || MetaCloudService.accessToken
     const url = `${GRAPH_API_URL}/${API_VERSION}/${phoneId}/deregister`
 
     logger.info({ context: { url } }, '[MetaCloudService] Deregistering phone')
@@ -662,10 +679,13 @@ export class MetaCloudService {
 
     if (!response.ok) {
       if (data.error?.message?.includes('not available for API solution for SMB businesses')) {
-        logger.info({ context: { phoneId } }, '[MetaCloudService] Skipping deregister (Not allowed for SMB apps)')
+        logger.info(
+          { context: { phoneId } },
+          '[MetaCloudService] Skipping deregister (Not allowed for SMB apps)'
+        )
         return data
       }
-      
+
       logger.error({ err: data, context: { phoneId } }, '[MetaCloudService] Deregister error')
       throw new Error(data.error?.message || 'Failed to deregister phone')
     }

@@ -1,36 +1,25 @@
 'use client'
 
-import React from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
 import {
-  AlertCircle,
-  Clock,
-  User,
-  DollarSign,
-  Link as LinkIcon,
-  AlertTriangle,
-  Copy,
-  Megaphone,
-  Smartphone,
-  UserMinus,
-  ShieldAlert,
-  RefreshCw,
   Activity,
-  MessageSquare,
-  Timer,
   ArrowDownRight,
   ArrowUpRight,
+  Copy,
+  DollarSign,
+  Megaphone,
+  MessageSquare,
+  RefreshCw,
+  ShieldAlert,
+  Smartphone,
+  Timer,
+  User,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { apiFetch } from '@/lib/api-client'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   Select,
   SelectContent,
@@ -38,7 +27,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ChatItem } from './types'
+import { apiFetch } from '@/lib/api-client'
+import type { ChatItem } from './types'
 
 interface TicketPanelProps {
   conversationId: string
@@ -102,12 +92,7 @@ const STATUS_BADGE_MAP: Record<string, { bg: string; text: string; label: string
   closed_lost: { bg: 'bg-red-500/10', text: 'text-red-700', label: 'Perdido' },
 }
 
-export function TicketPanel({
-  conversationId,
-  organizationId,
-  projectId,
-  chat,
-}: TicketPanelProps) {
+export function TicketPanel({ conversationId, organizationId, projectId, chat }: TicketPanelProps) {
   const queryClient = useQueryClient()
 
   const { data, isLoading, error } = useQuery({
@@ -217,74 +202,74 @@ export function TicketPanel({
 
   if (isLoading) {
     return (
-      <div className="bg-card flex h-full flex-col items-center justify-center gap-3 p-6">
-        <RefreshCw className="text-primary/40 h-8 w-8 animate-spin" />
-        <p className="text-muted-foreground text-sm font-medium">Carregando detalhes...</p>
+      <div className='flex h-full flex-col items-center justify-center gap-3 bg-card p-6'>
+        <RefreshCw className='h-8 w-8 animate-spin text-primary/40' />
+        <p className='font-medium text-muted-foreground text-sm'>Carregando detalhes...</p>
       </div>
     )
   }
 
   if (error || !ticket) {
     return (
-      <div className="flex h-full flex-col items-center justify-center p-6 text-center">
-        <div className="bg-muted/50 mb-4 rounded-full p-4">
-          <ShieldAlert className="text-muted-foreground h-8 w-8" />
+      <div className='flex h-full flex-col items-center justify-center p-6 text-center'>
+        <div className='mb-4 rounded-full bg-muted/50 p-4'>
+          <ShieldAlert className='h-8 w-8 text-muted-foreground' />
         </div>
-        <h3 className="mb-1 text-lg font-semibold">Nenhum CRM Localizado</h3>
-        <p className="text-muted-foreground text-sm">
+        <h3 className='mb-1 font-semibold text-lg'>Nenhum CRM Localizado</h3>
+        <p className='text-muted-foreground text-sm'>
           As informações de negociação aparecerão aqui.
         </p>
       </div>
     )
   }
 
-  const statusBadge = STATUS_BADGE_MAP[ticket.status]
-  const windowStatus = getWindowStatus()
+  const _statusBadge = STATUS_BADGE_MAP[ticket.status]
+  const _windowStatus = getWindowStatus()
 
   return (
-    <div className="bg-background border-border/40 flex h-full min-h-0 flex-col border-l">
-      <div className="custom-scrollbar flex-1 overflow-y-auto overflow-x-hidden">
-        <div className="flex flex-col space-y-6 p-6">
+    <div className='flex h-full min-h-0 flex-col border-border/40 border-l bg-background'>
+      <div className='custom-scrollbar flex-1 overflow-y-auto overflow-x-hidden'>
+        <div className='flex flex-col space-y-6 p-6'>
           {/* Header do Lead */}
-          <div className="flex flex-col items-center space-y-3 text-center">
-            <Avatar className="border-border/50 h-20 w-20 border-2 shadow-sm">
+          <div className='flex flex-col items-center space-y-3 text-center'>
+            <Avatar className='h-20 w-20 border-2 border-border/50 shadow-sm'>
               <AvatarImage src={chat?.profilePicUrl || undefined} />
-              <AvatarFallback className="bg-primary/5 text-primary text-xl font-medium uppercase">
+              <AvatarFallback className='bg-primary/5 font-medium text-primary text-xl uppercase'>
                 {chat?.name?.substring(0, 2) || 'LE'}
               </AvatarFallback>
             </Avatar>
-            <div className="space-y-1">
-              <h2 className="text-xl font-bold tracking-tight">{chat?.name || 'Lead'}</h2>
-              <div className="text-muted-foreground flex items-center justify-center gap-2">
-                <Smartphone className="h-3.5 w-3.5" />
-                <span className="text-sm">{chat?.phone || 'Sem Telefone'}</span>
-                <button className="text-muted-foreground hover:text-foreground transition-colors">
-                  <Copy className="h-3 w-3" />
+            <div className='space-y-1'>
+              <h2 className='font-bold text-xl tracking-tight'>{chat?.name || 'Lead'}</h2>
+              <div className='flex items-center justify-center gap-2 text-muted-foreground'>
+                <Smartphone className='h-3.5 w-3.5' />
+                <span className='text-sm'>{chat?.phone || 'Sem Telefone'}</span>
+                <button className='text-muted-foreground transition-colors hover:text-foreground'>
+                  <Copy className='h-3 w-3' />
                 </button>
               </div>
             </div>
           </div>
           {/* Destaque: Tráfego Pago (Aha! Moment UX) */}
           {ticket.tracking?.sourceType === 'paid' && (
-            <div className="relative overflow-hidden rounded-xl border border-[#c13584]/20 bg-gradient-to-br from-[#c13584]/10 to-[#833ab4]/5 p-4">
-              <div className="absolute right-0 top-0 p-3 opacity-20">
-                <Megaphone className="h-12 w-12 text-[#c13584]" />
+            <div className='relative overflow-hidden rounded-xl border border-[#c13584]/20 bg-gradient-to-br from-[#c13584]/10 to-[#833ab4]/5 p-4'>
+              <div className='absolute top-0 right-0 p-3 opacity-20'>
+                <Megaphone className='h-12 w-12 text-[#c13584]' />
               </div>
-              <div className="relative z-10">
-                <div className="mb-2 flex items-center gap-2">
-                  <Badge className="border-0 bg-[#c13584] text-[10px] font-bold uppercase tracking-wider text-white hover:bg-[#c13584]/90">
+              <div className='relative z-10'>
+                <div className='mb-2 flex items-center gap-2'>
+                  <Badge className='border-0 bg-[#c13584] font-bold text-[10px] text-white uppercase tracking-wider hover:bg-[#c13584]/90'>
                     ✨ Meta Ads
                   </Badge>
-                  <span className="text-xs font-medium text-[#c13584]">Lead pago via clique</span>
+                  <span className='font-medium text-[#c13584] text-xs'>Lead pago via clique</span>
                 </div>
                 {ticket.tracking.utmCampaign && (
-                  <p className="text-foreground mb-1 text-sm font-semibold">
+                  <p className='mb-1 font-semibold text-foreground text-sm'>
                     Campanha: {ticket.tracking.utmCampaign}
                   </p>
                 )}
                 {ticket.tracking.ctwaclid && (
                   <p
-                    className="text-muted-foreground/80 max-w-[200px] truncate font-mono text-[10px]"
+                    className='max-w-[200px] truncate font-mono text-[10px] text-muted-foreground/80'
                     title={ticket.tracking.ctwaclid}
                   >
                     ID: {ticket.tracking.ctwaclid}
@@ -294,26 +279,26 @@ export function TicketPanel({
             </div>
           )}
           {/* CRM Interno */}
-          <div className="space-y-4 pt-2">
-            <h3 className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
+          <div className='space-y-4 pt-2'>
+            <h3 className='font-bold text-muted-foreground text-xs uppercase tracking-wider'>
               Oportunidade
             </h3>
-            <div className="grid gap-3">
+            <div className='grid gap-3'>
               {/* Seletor de Etapas (Stages) */}
-              <div className="flex flex-col gap-1.5">
-                <Label className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider">
+              <div className='flex flex-col gap-1.5'>
+                <Label className='font-bold text-[10px] text-muted-foreground uppercase tracking-wider'>
                   Etapa do Funil
                 </Label>
                 <Select value={ticket.stage?.id || ''} onValueChange={handleUpdateStage}>
-                  <SelectTrigger className="bg-card border-border/50 h-9 w-full shadow-sm">
+                  <SelectTrigger className='h-9 w-full border-border/50 bg-card shadow-sm'>
                     <SelectValue>
                       {ticket.stage ? (
-                        <div className="flex items-center gap-2">
+                        <div className='flex items-center gap-2'>
                           <div
-                            className="h-2 w-2 rounded-full"
+                            className='h-2 w-2 rounded-full'
                             style={{ backgroundColor: ticket.stage.color }}
                           />
-                          <span className="text-sm font-medium">{ticket.stage.name}</span>
+                          <span className='font-medium text-sm'>{ticket.stage.name}</span>
                         </div>
                       ) : (
                         'Selecione...'
@@ -323,12 +308,12 @@ export function TicketPanel({
                   <SelectContent>
                     {stages.map((stage: any) => (
                       <SelectItem key={stage.id} value={stage.id}>
-                        <div className="flex items-center gap-2">
+                        <div className='flex items-center gap-2'>
                           <div
-                            className="h-2 w-2 rounded-full"
+                            className='h-2 w-2 rounded-full'
                             style={{ backgroundColor: stage.color }}
                           />
-                          <span className="text-sm font-medium">{stage.name}</span>
+                          <span className='font-medium text-sm'>{stage.name}</span>
                         </div>
                       </SelectItem>
                     ))}
@@ -337,26 +322,26 @@ export function TicketPanel({
               </div>
 
               {/* Responsável */}
-              <div className="border-border/40 flex flex-col gap-1.5 border-t pt-3">
-                <Label className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider">
+              <div className='flex flex-col gap-1.5 border-border/40 border-t pt-3'>
+                <Label className='font-bold text-[10px] text-muted-foreground uppercase tracking-wider'>
                   Responsável
                 </Label>
-                <div className="border-border/50 bg-muted/20 flex items-center rounded-md border px-3 py-2">
-                  <User className="text-muted-foreground mr-2 h-4 w-4" />
-                  <span className="text-foreground/90 text-sm">
+                <div className='flex items-center rounded-md border border-border/50 bg-muted/20 px-3 py-2'>
+                  <User className='mr-2 h-4 w-4 text-muted-foreground' />
+                  <span className='text-foreground/90 text-sm'>
                     {ticket.assignee?.name || 'Não atribuído'}
                   </span>
                 </div>
               </div>
 
               {/* Valor Estimado */}
-              <div className="flex flex-col gap-1.5">
-                <Label className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider">
+              <div className='flex flex-col gap-1.5'>
+                <Label className='font-bold text-[10px] text-muted-foreground uppercase tracking-wider'>
                   Valor Estimado
                 </Label>
-                <div className="border-border/50 bg-muted/20 flex items-center rounded-md border px-3 py-2">
-                  <DollarSign className="mr-2 h-4 w-4 text-green-600/70" />
-                  <span className="text-foreground/90 text-sm font-semibold">
+                <div className='flex items-center rounded-md border border-border/50 bg-muted/20 px-3 py-2'>
+                  <DollarSign className='mr-2 h-4 w-4 text-green-600/70' />
+                  <span className='font-semibold text-foreground/90 text-sm'>
                     {formatDealValue(ticket.dealValue)}
                   </span>
                 </div>
@@ -366,58 +351,58 @@ export function TicketPanel({
 
           {/* Dossiê & KPIs do Atendimento */}
           {ticket.kpis && (
-            <div className="pt-2">
-              <h3 className="text-muted-foreground mb-3 text-xs font-bold uppercase tracking-wider">
+            <div className='pt-2'>
+              <h3 className='mb-3 font-bold text-muted-foreground text-xs uppercase tracking-wider'>
                 Dossiê do Atendimento
               </h3>
-              <div className="grid grid-cols-2 gap-2">
+              <div className='grid grid-cols-2 gap-2'>
                 {/* Contagem de Mensagens (Vendedor x Lead) */}
-                <div className="border-border/50 bg-card col-span-2 flex items-center justify-between rounded-lg border p-3">
-                  <div className="flex items-center gap-2">
-                    <MessageSquare className="text-primary/70 h-4 w-4" />
-                    <span className="text-muted-foreground text-xs font-medium">
+                <div className='col-span-2 flex items-center justify-between rounded-lg border border-border/50 bg-card p-3'>
+                  <div className='flex items-center gap-2'>
+                    <MessageSquare className='h-4 w-4 text-primary/70' />
+                    <span className='font-medium text-muted-foreground text-xs'>
                       Volume da Conversa
                     </span>
                   </div>
-                  <div className="flex items-center gap-3 text-xs font-bold">
+                  <div className='flex items-center gap-3 font-bold text-xs'>
                     <span
-                      className="flex items-center gap-1 text-green-600"
-                      title="Mensagens da Clínica"
+                      className='flex items-center gap-1 text-green-600'
+                      title='Mensagens da Clínica'
                     >
-                      <ArrowUpRight className="h-3 w-3" /> {ticket.kpis.outboundMessagesCount}
+                      <ArrowUpRight className='h-3 w-3' /> {ticket.kpis.outboundMessagesCount}
                     </span>
-                    <span className="text-border">|</span>
+                    <span className='text-border'>|</span>
                     <span
-                      className="flex items-center gap-1 text-blue-600"
-                      title="Mensagens do Cliente"
+                      className='flex items-center gap-1 text-blue-600'
+                      title='Mensagens do Cliente'
                     >
-                      <ArrowDownRight className="h-3 w-3" /> {ticket.kpis.inboundMessagesCount}
+                      <ArrowDownRight className='h-3 w-3' /> {ticket.kpis.inboundMessagesCount}
                     </span>
                   </div>
                 </div>
 
                 {/* Tempo 1a Resposta */}
-                <div className="border-border/40 bg-muted/10 col-span-1 flex flex-col gap-1 rounded-lg border p-3">
-                  <div className="text-muted-foreground mb-1 flex items-center gap-1.5">
-                    <Timer className="h-3.5 w-3.5" />
-                    <span className="text-[10px] font-bold uppercase tracking-wider">
+                <div className='col-span-1 flex flex-col gap-1 rounded-lg border border-border/40 bg-muted/10 p-3'>
+                  <div className='mb-1 flex items-center gap-1.5 text-muted-foreground'>
+                    <Timer className='h-3.5 w-3.5' />
+                    <span className='font-bold text-[10px] uppercase tracking-wider'>
                       1ª Resposta
                     </span>
                   </div>
-                  <span className="text-foreground text-sm font-bold">
+                  <span className='font-bold text-foreground text-sm'>
                     {formatTimer(ticket.kpis.firstResponseTimeSec)}
                   </span>
                 </div>
 
                 {/* Tempo de Resolução */}
-                <div className="border-border/40 bg-muted/10 col-span-1 flex flex-col gap-1 rounded-lg border p-3">
-                  <div className="text-muted-foreground mb-1 flex items-center gap-1.5">
-                    <Activity className="h-3.5 w-3.5" />
-                    <span className="text-[10px] font-bold uppercase tracking-wider">
+                <div className='col-span-1 flex flex-col gap-1 rounded-lg border border-border/40 bg-muted/10 p-3'>
+                  <div className='mb-1 flex items-center gap-1.5 text-muted-foreground'>
+                    <Activity className='h-3.5 w-3.5' />
+                    <span className='font-bold text-[10px] uppercase tracking-wider'>
                       Resolução
                     </span>
                   </div>
-                  <span className="text-foreground text-sm font-bold">
+                  <span className='font-bold text-foreground text-sm'>
                     {formatTimer(ticket.kpis.resolutionTimeSec)}
                   </span>
                 </div>
@@ -427,30 +412,30 @@ export function TicketPanel({
 
           {/* Histórico do Lead / LTV */}
           {ticket.leadInsights && (
-            <div className="pt-2">
-              <h3 className="text-muted-foreground mb-3 text-xs font-bold uppercase tracking-wider">
+            <div className='pt-2'>
+              <h3 className='mb-3 font-bold text-muted-foreground text-xs uppercase tracking-wider'>
                 Histórico do Cliente
               </h3>
-              <div className="flex flex-col gap-2">
-                <div className="border-border/50 bg-card flex items-center justify-between rounded-lg border p-3">
-                  <div className="flex items-center gap-2">
-                    <User className="text-primary/70 h-4 w-4" />
-                    <span className="text-muted-foreground text-xs font-medium">
+              <div className='flex flex-col gap-2'>
+                <div className='flex items-center justify-between rounded-lg border border-border/50 bg-card p-3'>
+                  <div className='flex items-center gap-2'>
+                    <User className='h-4 w-4 text-primary/70' />
+                    <span className='font-medium text-muted-foreground text-xs'>
                       Oportunidades Iniciais
                     </span>
                   </div>
-                  <span className="text-xs font-bold">
+                  <span className='font-bold text-xs'>
                     {ticket.leadInsights.totalTickets} tickets
                   </span>
                 </div>
-                <div className="flex items-center justify-between rounded-lg border border-emerald-500/20 bg-gradient-to-r from-emerald-500/5 to-transparent p-3">
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="h-4 w-4 text-emerald-600" />
-                    <span className="text-muted-foreground text-xs font-medium">
+                <div className='flex items-center justify-between rounded-lg border border-emerald-500/20 bg-gradient-to-r from-emerald-500/5 to-transparent p-3'>
+                  <div className='flex items-center gap-2'>
+                    <DollarSign className='h-4 w-4 text-emerald-600' />
+                    <span className='font-medium text-muted-foreground text-xs'>
                       Valor Gerado (LTV)
                     </span>
                   </div>
-                  <span className="text-sm font-bold text-emerald-600">
+                  <span className='font-bold text-emerald-600 text-sm'>
                     {formatDealValue(ticket.leadInsights.lifetimeValue)}
                   </span>
                 </div>

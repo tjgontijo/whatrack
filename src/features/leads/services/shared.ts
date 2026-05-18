@@ -1,11 +1,12 @@
 import 'server-only'
 
-import { Prisma } from '@generated/prisma/client'
-
-import { isDateRangePreset, resolveDateRange } from '@/lib/date/date-range'
+import type { Prisma } from '@generated/prisma/client'
 import { LeadConflictError, type LeadConflictField } from '@/features/leads/types'
+import { isDateRangePreset, resolveDateRange } from '@/lib/date/date-range'
 
-export function parseLeadConflictField(error: Prisma.PrismaClientKnownRequestError): LeadConflictField {
+export function parseLeadConflictField(
+  error: Prisma.PrismaClientKnownRequestError
+): LeadConflictField {
   const target = (error.meta as { target?: string[] } | undefined)?.target
   const field = target?.[1]
 
@@ -21,7 +22,9 @@ export function rethrowLeadConflict(error: unknown): never {
     'code' in error &&
     (error as Prisma.PrismaClientKnownRequestError).code === 'P2002'
   ) {
-    throw new LeadConflictError(parseLeadConflictField(error as Prisma.PrismaClientKnownRequestError))
+    throw new LeadConflictError(
+      parseLeadConflictField(error as Prisma.PrismaClientKnownRequestError)
+    )
   }
 
   throw error

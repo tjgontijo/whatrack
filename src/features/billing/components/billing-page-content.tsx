@@ -1,9 +1,9 @@
 'use client'
 
-import { CrudEmptyState } from '@/features/dashboard/components/crud/crud-data-view'
-import { useOrganization } from '@/features/organizations/hooks/use-organization'
 import { useBillingSubscription } from '@/features/billing/hooks/use-billing-subscription'
 import type { PublicBillingPlan } from '@/features/billing/schemas/billing-plan-schemas'
+import { CrudEmptyState } from '@/features/dashboard/components/crud/crud-data-view'
+import { useOrganization } from '@/features/organizations/hooks/use-organization'
 import { BillingStatus } from './billing-status'
 import { PlanSelector } from './plan-selector'
 
@@ -23,10 +23,10 @@ export function BillingPageContent({ availablePlans }: BillingPageContentProps) 
   // Se não tem subscription, mostrar seletor de planos
   if (!subscription) {
     return (
-      <div className="space-y-6" data-testid="billing-page-empty-state">
+      <div className='space-y-6' data-testid='billing-page-empty-state'>
         <CrudEmptyState
-          title="Nenhuma assinatura encontrada."
-          description="Tente buscar por termos diferentes ou verifique os filtros."
+          title='Nenhuma assinatura encontrada.'
+          description='Tente buscar por termos diferentes ou verifique os filtros.'
         />
         <PlanSelector plans={availablePlans} showHeader={false} />
       </div>
@@ -34,7 +34,7 @@ export function BillingPageContent({ availablePlans }: BillingPageContentProps) 
   }
 
   return (
-    <div className="space-y-6" data-testid="billing-page-content">
+    <div className='space-y-6' data-testid='billing-page-content'>
       <BillingStatus />
       {pendingSubscription ? <PlanSelector plans={availablePlans} /> : null}
     </div>

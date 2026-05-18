@@ -1,10 +1,9 @@
-import { NextRequest } from 'next/server'
-
+import type { NextRequest } from 'next/server'
+import { createWhatsAppOnboardingSession } from '@/features/whatsapp/services/whatsapp-onboarding.service'
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
+import { logger } from '@/lib/utils/logger'
 import { rateLimitMiddleware } from '@/lib/utils/rate-limit.middleware'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
-import { createWhatsAppOnboardingSession } from '@/features/whatsapp/services/whatsapp-onboarding.service'
-import { logger } from '@/lib/utils/logger'
 
 export async function GET(request: NextRequest) {
   const rateLimitResponse = await rateLimitMiddleware(request, '/api/v1/whatsapp/onboarding')
@@ -23,13 +22,15 @@ export async function GET(request: NextRequest) {
     }
 
     // Validate projectId belongs to organization
-    const project = await import('@/lib/db/prisma').then(m => m.prisma.project.findFirst({
-      where: {
-        id: projectId,
-        organizationId: access.organizationId,
-      },
-      select: { id: true },
-    }))
+    const project = await import('@/lib/db/prisma').then((m) =>
+      m.prisma.project.findFirst({
+        where: {
+          id: projectId,
+          organizationId: access.organizationId,
+        },
+        select: { id: true },
+      })
+    )
 
     if (!project) {
       return apiError('Projeto não encontrado ou não pertence à sua organização', 400)

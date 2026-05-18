@@ -1,12 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { apiError } from '@/lib/utils/api-response'
 import { revalidateTag } from 'next/cache'
-
-import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
-import { resolveProjectScope } from '@/server/project/project-scope'
+import { type NextRequest, NextResponse } from 'next/server'
 import { updateTicketSchema } from '@/features/tickets/schemas/ticket.schemas'
 import { getTicketById, updateTicketAndTrackCapi } from '@/features/tickets/services/ticket.service'
+import { apiError } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
+import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
+import { resolveProjectScope } from '@/server/project/project-scope'
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ ticketId: string }> }) {
   const access = await validatePermissionAccess(req, 'view:tickets')

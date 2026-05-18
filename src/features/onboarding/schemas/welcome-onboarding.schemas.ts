@@ -1,7 +1,6 @@
 import { z } from 'zod'
-
-import { normalizeDocumentNumber, validateDocumentByType } from '@/lib/document/document-identity'
 import { companyLookupDataSchema } from '@/features/organizations/schemas/organization-onboarding'
+import { normalizeDocumentNumber, validateDocumentByType } from '@/lib/document/document-identity'
 
 export const welcomeOnboardingSchema = z
   .object({

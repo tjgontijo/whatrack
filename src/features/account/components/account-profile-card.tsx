@@ -5,13 +5,13 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import type { AccountProfileSummary } from '@/features/account/types/account-summary'
+import type { UpdateMeAccountInput } from '@/features/me/schemas/me-account.schemas'
 import {
-  WHATSAPP_MASK_MAX_LENGTH,
   applyWhatsAppMask,
   removeWhatsAppMask,
+  WHATSAPP_MASK_MAX_LENGTH,
 } from '@/lib/mask/phone-mask'
-import type { UpdateMeAccountInput } from '@/features/me/schemas/me-account.schemas'
-import type { AccountProfileSummary } from '@/features/account/types/account-summary'
 export type AccountProfile = AccountProfileSummary
 
 type AccountProfileCardProps = {
@@ -20,11 +20,7 @@ type AccountProfileCardProps = {
   onSubmit: (data: UpdateMeAccountInput) => void
 }
 
-export function AccountProfileCard({
-  account,
-  isPending,
-  onSubmit,
-}: AccountProfileCardProps) {
+export function AccountProfileCard({ account, isPending, onSubmit }: AccountProfileCardProps) {
   const [profileName, setProfileName] = useState(account.name)
   const [profileEmail, setProfileEmail] = useState(account.email)
   const [profilePhone, setProfilePhone] = useState(applyWhatsAppMask(account.phone ?? ''))
@@ -35,40 +31,40 @@ export function AccountProfileCard({
         <CardTitle>Perfil</CardTitle>
         <CardDescription>Atualize os dados da sua conta.</CardDescription>
       </CardHeader>
-      <CardContent className="grid gap-4">
-        <div className="grid gap-2">
-          <label className="text-sm font-medium" htmlFor="account-profile-name">
+      <CardContent className='grid gap-4'>
+        <div className='grid gap-2'>
+          <label className='font-medium text-sm' htmlFor='account-profile-name'>
             Nome
           </label>
           <Input
-            id="account-profile-name"
-            autoComplete="name"
+            id='account-profile-name'
+            autoComplete='name'
             value={profileName}
             onChange={(event) => setProfileName(event.target.value)}
           />
         </div>
-        <div className="grid gap-2">
-          <label className="text-sm font-medium" htmlFor="account-profile-email">
+        <div className='grid gap-2'>
+          <label className='font-medium text-sm' htmlFor='account-profile-email'>
             E-mail
           </label>
           <Input
-            id="account-profile-email"
-            autoComplete="email"
-            type="email"
+            id='account-profile-email'
+            autoComplete='email'
+            type='email'
             value={profileEmail}
             onChange={(event) => setProfileEmail(event.target.value)}
           />
         </div>
-        <div className="grid gap-2">
-          <label className="text-sm font-medium" htmlFor="account-profile-phone">
+        <div className='grid gap-2'>
+          <label className='font-medium text-sm' htmlFor='account-profile-phone'>
             Telefone
           </label>
           <Input
-            id="account-profile-phone"
-            autoComplete="tel"
-            inputMode="tel"
+            id='account-profile-phone'
+            autoComplete='tel'
+            inputMode='tel'
             maxLength={WHATSAPP_MASK_MAX_LENGTH}
-            placeholder="(11) 98888-8888"
+            placeholder='(11) 98888-8888'
             value={profilePhone}
             onChange={(event) => setProfilePhone(applyWhatsAppMask(event.target.value))}
           />

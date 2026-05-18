@@ -1,9 +1,11 @@
-import { NextRequest } from 'next/server'
-
+import type { NextRequest } from 'next/server'
+import { updateOrganizationSchema } from '@/features/organizations/schemas/organization-schemas'
+import {
+  getOrganizationMe,
+  updateOrganizationMe,
+} from '@/features/organizations/services/organization.service'
 import { validateFullAccess, validateOwnerAccess } from '@/server/auth/validate-organization-access'
 import { organizationJson } from '@/server/http/organization-json'
-import { updateOrganizationSchema } from '@/features/organizations/schemas/organization-schemas'
-import { getOrganizationMe, updateOrganizationMe } from '@/features/organizations/services/organization.service'
 
 export async function GET(req: NextRequest) {
   const access = await validateFullAccess(req)
@@ -33,7 +35,10 @@ export async function PUT(req: NextRequest) {
   const body = await req.json().catch(() => null)
   const parsed = updateOrganizationSchema.safeParse(body)
   if (!parsed.success) {
-    return organizationJson({ error: 'Dados inválidos', details: parsed.error.flatten() }, { status: 400 })
+    return organizationJson(
+      { error: 'Dados inválidos', details: parsed.error.flatten() },
+      { status: 400 }
+    )
   }
 
   const result = await updateOrganizationMe({
@@ -44,7 +49,10 @@ export async function PUT(req: NextRequest) {
   })
 
   if ('error' in result) {
-    return organizationJson({ error: result.error, ...(result.details ? { details: result.details } : {}) }, { status: result.status })
+    return organizationJson(
+      { error: result.error, ...(result.details ? { details: result.details } : {}) },
+      { status: result.status }
+    )
   }
 
   return organizationJson(result, { status: 200 })

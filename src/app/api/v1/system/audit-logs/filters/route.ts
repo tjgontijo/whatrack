@@ -1,8 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-
+import { type NextRequest, NextResponse } from 'next/server'
+import { listSystemAuditLogFilters } from '@/features/system/services/system-audit-log.service'
 import { requirePermission } from '@/lib/auth/guards'
 import { apiError } from '@/lib/utils/api-response'
-import { listSystemAuditLogFilters } from '@/features/system/services/system-audit-log.service'
 import { logger } from '@/lib/utils/logger'
 
 export const dynamic = 'force-dynamic'

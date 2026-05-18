@@ -1,15 +1,15 @@
 import 'server-only'
 
-import { ensureProjectBelongsToOrganization, resolveProjectScope } from '@/server/project/project-scope'
+import { createLeadRepository } from '@/features/leads/repositories'
 
 import { createLeadSchema } from '@/features/leads/schemas/lead.schemas'
-import { createLeadRepository } from '@/features/leads/repositories'
 import { rethrowLeadConflict } from '@/features/leads/services/shared'
+import {
+  ensureProjectBelongsToOrganization,
+  resolveProjectScope,
+} from '@/server/project/project-scope'
 
-export async function createLeadService(input: {
-  organizationId: string
-  payload: unknown
-}) {
+export async function createLeadService(input: { organizationId: string; payload: unknown }) {
   const parsed = createLeadSchema.parse(input.payload)
   const projectId = await resolveProjectScope({
     organizationId: input.organizationId,

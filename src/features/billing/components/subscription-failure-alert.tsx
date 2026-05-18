@@ -1,15 +1,19 @@
 'use client'
 
-import { useCallback, useState } from 'react'
-import { motion } from 'motion/react'
 import { AlertCircle, AlertTriangle, Loader2, Phone } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { motion } from 'motion/react'
+import { useCallback, useState } from 'react'
 import { toast } from 'sonner'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
 import { getPixFailureMessage } from '@/lib/billing/pix-failure.helper'
 
-export type BillingFailureReason = 'EXPIRED' | 'DENIED' | 'CANCELED_BY_USER' | 'FAILED_DEBIT' | 'OTHER'
+export type BillingFailureReason =
+  | 'EXPIRED'
+  | 'DENIED'
+  | 'CANCELED_BY_USER'
+  | 'FAILED_DEBIT'
+  | 'OTHER'
 
 interface SubscriptionFailureAlertProps {
   failureReason: BillingFailureReason
@@ -56,7 +60,7 @@ export function SubscriptionFailureAlert({
       }
 
       toast.success('Tentativa de pagamento iniciada')
-    } catch (error) {
+    } catch (_error) {
       toast.error('Erro ao tentar novamente')
     } finally {
       setIsRetryLoading(false)
@@ -66,7 +70,7 @@ export function SubscriptionFailureAlert({
   const handleContactSupport = () => {
     // Open WhatsApp support
     const whatsappUrl = `https://wa.me/5511999999999?text=${encodeURIComponent(
-      `Olá, tenho um problema com minha cobrança. ID: ${subscriptionId}`,
+      `Olá, tenho um problema com minha cobrança. ID: ${subscriptionId}`
     )}`
     window.open(whatsappUrl, '_blank')
   }
@@ -77,31 +81,33 @@ export function SubscriptionFailureAlert({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <Alert variant={severity === 'DESTRUCTIVE' ? 'destructive' : 'default'} className="border-2">
-        <SeverityIcon className="h-5 w-5" />
-        <AlertTitle className="text-base font-semibold">
+      <Alert variant={severity === 'DESTRUCTIVE' ? 'destructive' : 'default'} className='border-2'>
+        <SeverityIcon className='h-5 w-5' />
+        <AlertTitle className='font-semibold text-base'>
           {severity === 'DESTRUCTIVE' ? 'Ação urgente necessária' : 'Problema no pagamento'}
         </AlertTitle>
-        <AlertDescription className="mt-2 space-y-4">
+        <AlertDescription className='mt-2 space-y-4'>
           {/* Main error message */}
-          <p className="text-sm leading-relaxed">{failureMessage}</p>
+          <p className='text-sm leading-relaxed'>{failureMessage}</p>
 
           {/* Failure info */}
-          <div className="rounded-md bg-slate-50 p-3 text-xs space-y-1">
-            <div className="flex justify-between">
-              <span className="text-slate-600">Tentativas falhadas:</span>
-              <span className="font-semibold text-slate-900">{failureCount}</span>
+          <div className='space-y-1 rounded-md bg-slate-50 p-3 text-xs'>
+            <div className='flex justify-between'>
+              <span className='text-slate-600'>Tentativas falhadas:</span>
+              <span className='font-semibold text-slate-900'>{failureCount}</span>
             </div>
             {lastFailureAt && (
-              <div className="flex justify-between">
-                <span className="text-slate-600">Última tentativa:</span>
-                <span className="text-slate-700">{new Date(lastFailureAt).toLocaleDateString('pt-BR')}</span>
+              <div className='flex justify-between'>
+                <span className='text-slate-600'>Última tentativa:</span>
+                <span className='text-slate-700'>
+                  {new Date(lastFailureAt).toLocaleDateString('pt-BR')}
+                </span>
               </div>
             )}
             {nextRetryAt && (
-              <div className="flex justify-between">
-                <span className="text-slate-600">Próxima tentativa:</span>
-                <span className="font-semibold text-amber-700">
+              <div className='flex justify-between'>
+                <span className='text-slate-600'>Próxima tentativa:</span>
+                <span className='font-semibold text-amber-700'>
                   {new Date(nextRetryAt).toLocaleDateString('pt-BR')} às{' '}
                   {new Date(nextRetryAt).toLocaleTimeString('pt-BR', {
                     hour: '2-digit',
@@ -117,41 +123,42 @@ export function SubscriptionFailureAlert({
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="rounded-md bg-red-100 p-3 border-l-4 border-red-500"
+              className='rounded-md border-red-500 border-l-4 bg-red-100 p-3'
             >
-              <p className="text-xs font-semibold text-red-800">
+              <p className='font-semibold text-red-800 text-xs'>
                 ⚠️ Após múltiplas falhas, sua assinatura pode ser cancelada automaticamente.
               </p>
             </motion.div>
           )}
 
           {/* Action buttons */}
-          <div className="flex gap-2 pt-2">
+          <div className='flex gap-2 pt-2'>
             <Button
-              size="sm"
+              size='sm'
               onClick={handleRetry}
               disabled={isRetryLoading || isRetrying}
               variant={severity === 'DESTRUCTIVE' ? 'default' : 'secondary'}
             >
               {isRetryLoading || isRetrying ? (
                 <>
-                  <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                  <Loader2 className='mr-1 h-3 w-3 animate-spin' />
                   Tentando...
                 </>
               ) : (
                 'Tentar Novamente'
               )}
             </Button>
-            <Button size="sm" variant="outline" onClick={handleContactSupport}>
-              <Phone className="h-3 w-3 mr-1" />
+            <Button size='sm' variant='outline' onClick={handleContactSupport}>
+              <Phone className='mr-1 h-3 w-3' />
               Suporte
             </Button>
           </div>
 
           {/* Next auto-cancel warning */}
           {failureCount >= 2 && failureCount < 3 && (
-            <p className="text-xs text-slate-600">
-              ⚠️ Após 3 tentativas falhadas em 30 dias, sua assinatura será cancelada automaticamente.
+            <p className='text-slate-600 text-xs'>
+              ⚠️ Após 3 tentativas falhadas em 30 dias, sua assinatura será cancelada
+              automaticamente.
             </p>
           )}
         </AlertDescription>

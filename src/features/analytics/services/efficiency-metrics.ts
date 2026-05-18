@@ -1,7 +1,12 @@
 import { Prisma } from '@generated/prisma/client'
 import { prisma } from '@/lib/db/prisma'
 
-export async function getEfficiencyMetrics(organizationId: string, startDate: Date, endDate: Date, projectId?: string) {
+export async function getEfficiencyMetrics(
+  organizationId: string,
+  startDate: Date,
+  endDate: Date,
+  projectId?: string
+) {
   const ticketEfficiencies = await prisma.$queryRaw`
     SELECT
       t.id,

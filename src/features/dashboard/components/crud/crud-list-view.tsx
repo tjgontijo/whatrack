@@ -3,7 +3,7 @@
 import React from 'react'
 import { TableVirtuoso } from 'react-virtuoso'
 import { cn } from '@/lib/utils/utils'
-import { ColumnDef, RowActions } from './types'
+import type { ColumnDef, RowActions } from './types'
 
 interface CrudListViewProps<T> {
   data: T[]
@@ -30,14 +30,14 @@ export function CrudListView<T>({
       endReached={onEndReached}
       overscan={10}
       components={{
-        Table: ({ style, ...props }) => <table className="w-full" style={style} {...props} />,
+        Table: ({ style, ...props }) => <table className='w-full' style={style} {...props} />,
         TableHead: React.forwardRef(({ style, ...props }, ref) => (
           <thead ref={ref} style={style} {...props} />
         )),
         TableRow: ({ style, item: _item, ...props }) => (
           <tr
             className={cn(
-              'border-border/40 hover:bg-muted/20 group border-b transition-colors last:border-0',
+              'group border-border/40 border-b transition-colors last:border-0 hover:bg-muted/20',
               onRowClick && 'cursor-pointer'
             )}
             style={style}
@@ -50,18 +50,18 @@ export function CrudListView<T>({
         ScrollSeekPlaceholder: ({ height }) => (
           <tr style={{ height }}>
             <td colSpan={columns.length + (rowActions ? 1 : 0)}>
-              <div className="bg-muted/20 h-full animate-pulse" />
+              <div className='h-full animate-pulse bg-muted/20' />
             </td>
           </tr>
         ),
       }}
       fixedHeaderContent={() => (
-        <tr className="border-border border-b">
+        <tr className='border-border border-b'>
           {columns.map((column) => (
             <th
               key={column.key}
               className={cn(
-                'text-muted-foreground bg-background px-4 py-2.5 text-left text-xs font-medium',
+                'bg-background px-4 py-2.5 text-left font-medium text-muted-foreground text-xs',
                 column.headerClassName
               )}
               style={column.width ? { width: column.width } : undefined}
@@ -69,7 +69,7 @@ export function CrudListView<T>({
               {column.label}
             </th>
           ))}
-          {rowActions && <th className="bg-background w-24" />}
+          {rowActions && <th className='w-24 bg-background' />}
         </tr>
       )}
       itemContent={(index, item) => (
@@ -84,8 +84,8 @@ export function CrudListView<T>({
             </td>
           ))}
           {rowActions && (
-            <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-              <div className="flex items-center justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+            <td className='px-4 py-3' onClick={(e) => e.stopPropagation()}>
+              <div className='flex items-center justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100'>
                 {rowActions.customActions?.(item)}
               </div>
             </td>

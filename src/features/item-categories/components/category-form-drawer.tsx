@@ -1,20 +1,17 @@
 'use client'
 
-import { useEffect } from 'react'
-import { Controller, useForm } from 'react-hook-form'
-import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Tag } from 'lucide-react'
+import { Controller, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
-
+import { z } from 'zod'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import { Button } from '@/components/ui/button'
+import { CrudEditDrawer } from '@/features/dashboard/components/crud'
 import { useOrganization } from '@/features/organizations/hooks/use-organization'
 import { apiFetch } from '@/lib/api-client'
-import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
-import { CrudEditDrawer } from '@/features/dashboard/components/crud'
 
 const categorySchema = z.object({
   name: z.string().trim().min(1, 'Nome obrigatório'),
@@ -62,13 +59,12 @@ export function CategoryFormDrawer({
 
   // Removido useEffect para sincronização via key prop no formulário
 
-
   const closeDrawer = () => onOpenChange(false)
 
   const submit = async (values: FormValues) => {
     try {
       await apiFetch(
-        isEditMode ? `/api/v1/item-categories/${category!.id}` : '/api/v1/item-categories',
+        isEditMode ? `/api/v1/item-categories/${category?.id}` : '/api/v1/item-categories',
         {
           method: isEditMode ? 'PUT' : 'POST',
           headers: {
@@ -83,10 +79,6 @@ export function CategoryFormDrawer({
         }
       )
 
-
-
-
-
       toast.success(isEditMode ? 'Categoria atualizada' : 'Categoria criada')
       closeDrawer()
       onSuccess?.()
@@ -100,33 +92,35 @@ export function CategoryFormDrawer({
       open={open}
       onOpenChange={onOpenChange}
       title={isEditMode ? 'Editar categoria' : 'Nova categoria'}
-      subtitle="Gerencie as categorias usadas no cadastro de itens."
+      subtitle='Gerencie as categorias usadas no cadastro de itens.'
       icon={Tag}
       showFooter={false}
-      desktopDirection="right"
-      mobileDirection="bottom"
-      maxWidth="max-w-[640px]"
+      desktopDirection='right'
+      mobileDirection='bottom'
+      maxWidth='max-w-[640px]'
     >
       <form
         key={category?.id ?? (open ? 'new' : 'closed')}
-        className="space-y-5"
+        className='space-y-5'
         onSubmit={handleSubmit(submit)}
       >
-        <div className="space-y-2">
-          <Label htmlFor="category-name">Nome *</Label>
-          <Input id="category-name" placeholder="Ex: Serviços premium" {...register('name')} />
-          {errors.name ? <p className="text-destructive text-sm">{errors.name.message}</p> : null}
+        <div className='space-y-2'>
+          <Label htmlFor='category-name'>Nome *</Label>
+          <Input id='category-name' placeholder='Ex: Serviços premium' {...register('name')} />
+          {errors.name ? <p className='text-destructive text-sm'>{errors.name.message}</p> : null}
         </div>
 
         {isEditMode && (
-          <div className="flex items-center justify-between rounded-lg border p-3">
+          <div className='flex items-center justify-between rounded-lg border p-3'>
             <div>
-              <p className="text-sm font-medium">Categoria ativa</p>
-              <p className="text-muted-foreground text-xs">Desative para ocultar do cadastro de itens.</p>
+              <p className='font-medium text-sm'>Categoria ativa</p>
+              <p className='text-muted-foreground text-xs'>
+                Desative para ocultar do cadastro de itens.
+              </p>
             </div>
             <Controller
               control={control}
-              name="active"
+              name='active'
               render={({ field }) => (
                 <Switch checked={field.value} onCheckedChange={field.onChange} />
               )}
@@ -134,11 +128,11 @@ export function CategoryFormDrawer({
           </div>
         )}
 
-        <div className="flex justify-end gap-2 pt-2">
-          <Button type="button" variant="outline" onClick={closeDrawer} disabled={isSubmitting}>
+        <div className='flex justify-end gap-2 pt-2'>
+          <Button type='button' variant='outline' onClick={closeDrawer} disabled={isSubmitting}>
             Cancelar
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
+          <Button type='submit' disabled={isSubmitting}>
             {isSubmitting ? 'Salvando...' : isEditMode ? 'Salvar alterações' : 'Criar categoria'}
           </Button>
         </div>

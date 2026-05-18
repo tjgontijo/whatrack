@@ -1,9 +1,12 @@
 import 'server-only'
 
-import { ensureProjectBelongsToOrganization, resolveProjectScope } from '@/server/project/project-scope'
+import { findSaleForUpdateRepository, updateSaleRepository } from '@/features/sales/repositories'
 
 import { updateSaleSchema } from '@/features/sales/schemas/sale.schemas'
-import { findSaleForUpdateRepository, updateSaleRepository } from '@/features/sales/repositories'
+import {
+  ensureProjectBelongsToOrganization,
+  resolveProjectScope,
+} from '@/server/project/project-scope'
 
 export async function updateSaleService(input: {
   organizationId: string
@@ -15,7 +18,10 @@ export async function updateSaleService(input: {
   const parsed = updateSaleSchema.parse(input.payload)
   const projectId =
     typeof parsed.projectId !== 'undefined'
-      ? await resolveProjectScope({ organizationId: input.organizationId, projectId: parsed.projectId })
+      ? await resolveProjectScope({
+          organizationId: input.organizationId,
+          projectId: parsed.projectId,
+        })
       : input.projectId
 
   const existing = await findSaleForUpdateRepository({

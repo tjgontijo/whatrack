@@ -1,14 +1,17 @@
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
-import { useOrganizationCompletion } from '@/features/organizations/hooks/use-organization-completion'
 import { META_ADS_CONNECT_PATH } from '@/features/meta-ads/lib/client'
+import { useOrganizationCompletion } from '@/features/organizations/hooks/use-organization-completion'
 
 export function useMetaAdsOnboarding(organizationId: string | undefined, onSuccess?: () => void) {
   const [isPending, setIsPending] = useState(false)
   const popupRef = useRef<Window | null>(null)
   const onFocusRef = useRef<(() => void) | null>(null)
-  const { isLoading: isCompletionLoading, isModuleBlocked, integrationBlockMessage } =
-    useOrganizationCompletion()
+  const {
+    isLoading: isCompletionLoading,
+    isModuleBlocked,
+    integrationBlockMessage,
+  } = useOrganizationCompletion()
 
   const clearState = useCallback(() => {
     if (onFocusRef.current) {

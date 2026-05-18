@@ -1,5 +1,5 @@
-import { prisma } from '@/lib/db/prisma'
 import { lookupCache } from '@/lib/db/lookup-cache'
+import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/utils/logger'
 
 /**
@@ -109,7 +109,10 @@ export async function historyHandler(payload: any): Promise<void> {
       const username = thread.context?.username
 
       if (!waId) {
-        logger.warn({ context: JSON.stringify(thread).substring(0, 200) }, '[HistoryHandler] Thread missing wa_id, skipping:')
+        logger.warn(
+          { context: JSON.stringify(thread).substring(0, 200) },
+          '[HistoryHandler] Thread missing wa_id, skipping:'
+        )
         continue
       }
 
@@ -182,7 +185,7 @@ export async function historyHandler(payload: any): Promise<void> {
 
           // Extract message content
           let messageBody = ''
-          let messageType = msg.type || 'text'
+          const messageType = msg.type || 'text'
 
           if (msg.text?.body) {
             messageBody = msg.text.body

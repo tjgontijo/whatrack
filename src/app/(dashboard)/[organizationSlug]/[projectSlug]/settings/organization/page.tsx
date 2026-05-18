@@ -1,16 +1,14 @@
+import { getOrganizationCompany } from '@/features/company/services/company.service'
 import { HeaderPageShell, RefreshButton } from '@/features/dashboard/components/layout'
+import { getOrganizationMe } from '@/features/organizations/services/organization.service'
 import { OrganizationFiscalDataSection } from '@/features/settings/components/organization-fiscal-data-section'
 import { requireWorkspacePageAccess } from '@/server/auth/require-workspace-page-access'
-import { getOrganizationCompany } from '@/features/company/services/company.service'
-import { getOrganizationMe } from '@/features/organizations/services/organization.service'
 
 type OrganizationSettingsPageProps = {
   params: Promise<{ organizationSlug: string }>
 }
 
-export default async function OrganizationSettingsPage({
-  params,
-}: OrganizationSettingsPageProps) {
+export default async function OrganizationSettingsPage({ params }: OrganizationSettingsPageProps) {
   const { organizationSlug } = await params
   const access = await requireWorkspacePageAccess({
     permissions: 'manage:organization',
@@ -31,46 +29,45 @@ export default async function OrganizationSettingsPage({
     organizationResult.organizationType === 'pessoa_juridica'
       ? await getOrganizationCompany(access.organizationId)
       : null
-  const company =
-    companyRaw
-      ? {
-          cnpj: companyRaw.cnpj,
-          razaoSocial: companyRaw.razaoSocial,
-          nomeFantasia: companyRaw.nomeFantasia,
-          cnaeCode: companyRaw.cnaeCode,
-          cnaeDescription: companyRaw.cnaeDescription,
-          municipio: companyRaw.municipio,
-          uf: companyRaw.uf,
-          tipo: companyRaw.tipo,
-          porte: companyRaw.porte,
-          naturezaJuridica: companyRaw.naturezaJuridica,
-          capitalSocial: companyRaw.capitalSocial ? companyRaw.capitalSocial.toString() : null,
-          situacao: companyRaw.situacao,
-          dataAbertura: companyRaw.dataAbertura?.toISOString() ?? null,
-          dataSituacao: companyRaw.dataSituacao?.toISOString() ?? null,
-          simplesOptante: companyRaw.simplesOptante,
-          simeiOptante: companyRaw.simeiOptante,
-          logradouro: companyRaw.logradouro,
-          numero: companyRaw.numero,
-          complemento: companyRaw.complemento,
-          bairro: companyRaw.bairro,
-          cep: companyRaw.cep,
-          email: companyRaw.email,
-          telefone: companyRaw.telefone,
-          qsa: Array.isArray(companyRaw.qsa)
-            ? (companyRaw.qsa as Array<{ nome: string; qual: string }>)
-            : [],
-          atividadesSecundarias: Array.isArray(companyRaw.atividadesSecundarias)
-            ? (companyRaw.atividadesSecundarias as Array<{ code: string; text: string }>)
-            : [],
-          authorizedAt: companyRaw.authorizedAt?.toISOString() ?? null,
-          fetchedAt: companyRaw.fetchedAt?.toISOString() ?? null,
-        }
-      : null
+  const company = companyRaw
+    ? {
+        cnpj: companyRaw.cnpj,
+        razaoSocial: companyRaw.razaoSocial,
+        nomeFantasia: companyRaw.nomeFantasia,
+        cnaeCode: companyRaw.cnaeCode,
+        cnaeDescription: companyRaw.cnaeDescription,
+        municipio: companyRaw.municipio,
+        uf: companyRaw.uf,
+        tipo: companyRaw.tipo,
+        porte: companyRaw.porte,
+        naturezaJuridica: companyRaw.naturezaJuridica,
+        capitalSocial: companyRaw.capitalSocial ? companyRaw.capitalSocial.toString() : null,
+        situacao: companyRaw.situacao,
+        dataAbertura: companyRaw.dataAbertura?.toISOString() ?? null,
+        dataSituacao: companyRaw.dataSituacao?.toISOString() ?? null,
+        simplesOptante: companyRaw.simplesOptante,
+        simeiOptante: companyRaw.simeiOptante,
+        logradouro: companyRaw.logradouro,
+        numero: companyRaw.numero,
+        complemento: companyRaw.complemento,
+        bairro: companyRaw.bairro,
+        cep: companyRaw.cep,
+        email: companyRaw.email,
+        telefone: companyRaw.telefone,
+        qsa: Array.isArray(companyRaw.qsa)
+          ? (companyRaw.qsa as Array<{ nome: string; qual: string }>)
+          : [],
+        atividadesSecundarias: Array.isArray(companyRaw.atividadesSecundarias)
+          ? (companyRaw.atividadesSecundarias as Array<{ code: string; text: string }>)
+          : [],
+        authorizedAt: companyRaw.authorizedAt?.toISOString() ?? null,
+        fetchedAt: companyRaw.fetchedAt?.toISOString() ?? null,
+      }
+    : null
 
   return (
     <HeaderPageShell
-      title="Organização"
+      title='Organização'
       refreshAction={<RefreshButton queryKey={['organization', access.organizationId, 'fiscal']} />}
     >
       <OrganizationFiscalDataSection

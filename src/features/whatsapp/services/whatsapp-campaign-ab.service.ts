@@ -1,10 +1,10 @@
-import { prisma } from '@/lib/db/prisma'
-import { logger } from '@/lib/utils/logger'
-import { ok, fail } from '@/lib/shared/result'
-import type { Result } from '@/lib/shared/result'
-import { WhatsAppCampaignEventType } from '@/features/whatsapp/lib/types/campaign-events'
 import type { AbTestCreateInput } from '@/features/whatsapp/lib/schemas/whatsapp-ab-schemas'
+import { WhatsAppCampaignEventType } from '@/features/whatsapp/lib/types/campaign-events'
 import { runCampaignDispatch } from '@/features/whatsapp/services/whatsapp-campaign-execution.service'
+import { prisma } from '@/lib/db/prisma'
+import type { Result } from '@/lib/shared/result'
+import { fail, ok } from '@/lib/shared/result'
+import { logger } from '@/lib/utils/logger'
 
 export interface AbTestVariant {
   id: string
@@ -32,8 +32,7 @@ export async function createAbTestVariants(
     if (!campaign) return fail('Campanha não encontrada')
     if (!campaign.isAbTest) return fail('Campanha não é do tipo A/B')
 
-    const baseConfigId =
-      campaign.dispatchGroups[0]?.configId
+    const baseConfigId = campaign.dispatchGroups[0]?.configId
 
     if (!baseConfigId) return fail('Nenhuma instância configurada na campanha')
 
@@ -172,13 +171,21 @@ export async function splitAudienceForAbTest(
     }
 
     logger.info(
-      { campaignId, recipientCount: recipients.length, splitSummary, duration: Date.now() - startTime },
+      {
+        campaignId,
+        recipientCount: recipients.length,
+        splitSummary,
+        duration: Date.now() - startTime,
+      },
       '[AbTest] Audience split completed'
     )
 
     return ok({ splitSummary })
   } catch (err) {
-    logger.error({ err, campaignId, duration: Date.now() - startTime }, '[AbTest] Audience split failed')
+    logger.error(
+      { err, campaignId, duration: Date.now() - startTime },
+      '[AbTest] Audience split failed'
+    )
     return fail('Falha ao dividir audiência')
   }
 }
@@ -223,7 +230,16 @@ export async function selectWinner(
         campaignId,
         type: WhatsAppCampaignEventType.AB_WINNER_SELECTED,
         userId,
-        metadata: { variantId, label: variant.label, templateName: (await prisma.whatsAppCampaignDispatchGroup.findUnique({ where: { id: variant.dispatchGroupId }, select: { templateName: true } }))?.templateName },
+        metadata: {
+          variantId,
+          label: variant.label,
+          templateName: (
+            await prisma.whatsAppCampaignDispatchGroup.findUnique({
+              where: { id: variant.dispatchGroupId },
+              select: { templateName: true },
+            })
+          )?.templateName,
+        },
       },
     })
 
@@ -279,25 +295,42 @@ export async function autoSelectWinner(
       include: { variants: true },
     })
 
-    if (!campaign || !campaign.isAbTest) return fail('Campanha inválida ou não é A/B')
+    if (!campaign?.isAbTest) return fail('Campanha inválida ou não é A/B')
 
     const config = campaign.abTestConfig as any
     if (config?.winnerVariantId) return ok({ selected: false }) // already selected
 
-    const criterion: 'RESPONSE_RATE' | 'READ_RATE' | 'MANUAL' = config?.winnerCriteria ?? 'RESPONSE_RATE'
+    const criterion: 'RESPONSE_RATE' | 'READ_RATE' | 'MANUAL' =
+      config?.winnerCriteria ?? 'RESPONSE_RATE'
 
     if (criterion === 'MANUAL') return ok({ selected: false })
 
     // Collect metrics per variant
     const variantMetrics = await Promise.all(
       campaign.variants.map(async (variant) => {
-      const [total, sentCount, respondedCount, readCount] = await Promise.all([
+        const [total, sentCount, respondedCount, readCount] = await Promise.all([
           prisma.whatsAppCampaignRecipient.count({ where: { variantId: variant.id } }),
-          prisma.whatsAppCampaignRecipient.count({ where: { variantId: variant.id, status: { in: ['SENT', 'DELIVERED', 'READ', 'RESPONDED'] } } }),
-          prisma.whatsAppCampaignRecipient.count({ where: { variantId: variant.id, status: 'RESPONDED' } }),
-          prisma.whatsAppCampaignRecipient.count({ where: { variantId: variant.id, status: { in: ['READ', 'RESPONDED'] } } }),
+          prisma.whatsAppCampaignRecipient.count({
+            where: {
+              variantId: variant.id,
+              status: { in: ['SENT', 'DELIVERED', 'READ', 'RESPONDED'] },
+            },
+          }),
+          prisma.whatsAppCampaignRecipient.count({
+            where: { variantId: variant.id, status: 'RESPONDED' },
+          }),
+          prisma.whatsAppCampaignRecipient.count({
+            where: { variantId: variant.id, status: { in: ['READ', 'RESPONDED'] } },
+          }),
         ])
-        return { variantId: variant.id, label: variant.label, sentCount, respondedCount, readCount, total }
+        return {
+          variantId: variant.id,
+          label: variant.label,
+          sentCount,
+          respondedCount,
+          readCount,
+          total,
+        }
       })
     )
 
@@ -319,12 +352,20 @@ export async function autoSelectWinner(
     const sorted = [...variantMetrics].sort((a, b) => {
       const rateA =
         criterion === 'RESPONSE_RATE'
-          ? a.sentCount > 0 ? a.respondedCount / a.sentCount : 0
-          : a.sentCount > 0 ? a.readCount / a.sentCount : 0
+          ? a.sentCount > 0
+            ? a.respondedCount / a.sentCount
+            : 0
+          : a.sentCount > 0
+            ? a.readCount / a.sentCount
+            : 0
       const rateB =
         criterion === 'RESPONSE_RATE'
-          ? b.sentCount > 0 ? b.respondedCount / b.sentCount : 0
-          : b.sentCount > 0 ? b.readCount / b.sentCount : 0
+          ? b.sentCount > 0
+            ? b.respondedCount / b.sentCount
+            : 0
+          : b.sentCount > 0
+            ? b.readCount / b.sentCount
+            : 0
       // Tiebreak by label (A > B > C)
       if (rateB === rateA) return a.label.localeCompare(b.label)
       return rateB - rateA

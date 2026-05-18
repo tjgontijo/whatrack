@@ -1,19 +1,16 @@
 'use client'
 
-import React from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { apiFetch } from '@/lib/api-client'
-import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Tag as TagIcon, MoreHorizontal } from 'lucide-react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { MoreHorizontal, Tag as TagIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { toast } from 'sonner'
+import { Card, CardContent } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
+import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
+import { apiFetch } from '@/lib/api-client'
 
 export function LeadTagsTab() {
   const { organizationId, projectId } = useRequiredProjectRouteContext()
-  const queryClient = useQueryClient()
+  const _queryClient = useQueryClient()
 
   const { data: tags, isLoading } = useQuery<any[]>({
     queryKey: ['lead-tags', organizationId, projectId],
@@ -23,9 +20,9 @@ export function LeadTagsTab() {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
         {[1, 2, 3].map((i) => (
-          <Skeleton key={i} className="h-24 w-full" />
+          <Skeleton key={i} className='h-24 w-full' />
         ))}
       </div>
     )
@@ -33,28 +30,31 @@ export function LeadTagsTab() {
 
   if (!tags?.length) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 border rounded-lg border-dashed">
-        <TagIcon className="h-12 w-12 text-muted-foreground/50 mb-4" />
-        <h3 className="text-lg font-medium">Nenhuma tag criada</h3>
-        <p className="text-sm text-muted-foreground">Crie tags para organizar seus leads no CRM.</p>
+      <div className='flex flex-col items-center justify-center rounded-lg border border-dashed py-12'>
+        <TagIcon className='mb-4 h-12 w-12 text-muted-foreground/50' />
+        <h3 className='font-medium text-lg'>Nenhuma tag criada</h3>
+        <p className='text-muted-foreground text-sm'>Crie tags para organizar seus leads no CRM.</p>
       </div>
     )
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-4">
+    <div className='grid grid-cols-1 gap-4 md:grid-cols-3 xl:grid-cols-4'>
       {tags.map((tag) => (
-        <Card key={tag.id} className="overflow-hidden hover:border-sidebar-accent transition-colors">
-          <CardContent className="p-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div 
-                className="h-3 w-3 rounded-full" 
-                style={{ backgroundColor: tag.color || '#94a3b8' }} 
+        <Card
+          key={tag.id}
+          className='overflow-hidden transition-colors hover:border-sidebar-accent'
+        >
+          <CardContent className='flex items-center justify-between p-4'>
+            <div className='flex items-center gap-3'>
+              <div
+                className='h-3 w-3 rounded-full'
+                style={{ backgroundColor: tag.color || '#94a3b8' }}
               />
-              <span className="font-medium text-sm">{tag.name}</span>
+              <span className='font-medium text-sm'>{tag.name}</span>
             </div>
-            <Button variant="ghost" size="icon-sm" className="h-8 w-8">
-              <MoreHorizontal className="h-4 w-4" />
+            <Button variant='ghost' size='icon-sm' className='h-8 w-8'>
+              <MoreHorizontal className='h-4 w-4' />
             </Button>
           </CardContent>
         </Card>

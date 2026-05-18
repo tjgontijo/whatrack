@@ -1,9 +1,9 @@
+import { WebhookProcessor } from '@/features/whatsapp/services/webhook-processor'
 import { prisma } from '@/lib/db/prisma'
 import { getRedis } from '@/lib/db/redis'
-import { WebhookProcessor } from '@/features/whatsapp/services/webhook-processor'
+import { logger } from '@/lib/utils/logger'
 import { resendProvider } from '@/services/mail/resend'
 import { generateWebhookFailureAlertEmail } from '@/services/mail/templates/WebhookFailureAlertEmail'
-import { logger } from '@/lib/utils/logger'
 
 const MAX_RETRIES = 3
 const ALERT_THROTTLE_SECONDS = 3600 // 1 alert per webhook per hour
@@ -67,7 +67,10 @@ async function sendWebhookFailureAlert(log: {
 
     logger.info(`[WebhookRetryJob] Alert sent to ${membership.user.email} for webhook ${log.id}`)
   } catch (alertError) {
-    logger.error({ err: alertError }, `[WebhookRetryJob] Failed to send alert for webhook ${log.id}`)
+    logger.error(
+      { err: alertError },
+      `[WebhookRetryJob] Failed to send alert for webhook ${log.id}`
+    )
   }
 }
 
@@ -87,7 +90,7 @@ async function sendWebhookFailureAlert(log: {
  * Backoff: Exponential (5min, 10min, 15min)
  */
 
-export async function webhookRetryJob(job: any): Promise<void> {
+export async function webhookRetryJob(_job: any): Promise<void> {
   logger.info('[WebhookRetryJob] Starting webhook retry processing')
 
   try {

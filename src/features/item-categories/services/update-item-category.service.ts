@@ -1,19 +1,21 @@
 import 'server-only'
 
 import { Prisma } from '@generated/prisma/client'
-
-import { ensureProjectBelongsToOrganization, resolveProjectScope } from '@/server/project/project-scope'
-
-import { updateItemCategorySchema } from '@/features/item-categories/schemas/item-category.schemas'
 import {
   findItemCategorySummaryRepository,
   updateItemCategoryRepository,
 } from '@/features/item-categories/repositories'
+
+import { updateItemCategorySchema } from '@/features/item-categories/schemas/item-category.schemas'
 import type {
   CategoryConflictError,
   CategoryNotFoundError,
   CategorySummary,
 } from '@/features/item-categories/types'
+import {
+  ensureProjectBelongsToOrganization,
+  resolveProjectScope,
+} from '@/server/project/project-scope'
 
 export async function updateItemCategoryService(input: {
   organizationId: string

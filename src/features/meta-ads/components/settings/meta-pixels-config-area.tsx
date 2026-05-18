@@ -1,16 +1,16 @@
 'use client'
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Database, Pencil, Plus, RefreshCw, Trash2 } from 'lucide-react'
 import { useState } from 'react'
-import { Plus, Trash2, Database, Pencil, RefreshCw } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Switch } from '@/components/ui/switch'
-import { CrudEditDrawer } from '@/features/dashboard/components/crud/crud-edit-drawer'
 import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
+import { Textarea } from '@/components/ui/textarea'
+import { CrudEditDrawer } from '@/features/dashboard/components/crud/crud-edit-drawer'
 import { metaAdsClient } from '@/features/meta-ads/lib/client'
 import type { MetaPixelConfig } from '@/features/meta-ads/types/meta-ads'
 
@@ -87,7 +87,13 @@ export function MetaPixelsConfigArea({ organizationId, initialPixels }: MetaPixe
   }
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: MetaPixelFormData | { isActive: boolean } }) => {
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string
+      data: MetaPixelFormData | { isActive: boolean }
+    }) => {
       return metaAdsClient.updatePixel(id, data, organizationId!)
     },
     onSuccess: () => {
@@ -116,10 +122,10 @@ export function MetaPixelsConfigArea({ organizationId, initialPixels }: MetaPixe
   if (!organizationId) return null
 
   return (
-    <section className="w-full space-y-4">
-      <div className="flex justify-end">
-        <Button size="sm" className="gap-2" onClick={handleOpenCreate}>
-          <Plus className="h-4 w-4" />
+    <section className='w-full space-y-4'>
+      <div className='flex justify-end'>
+        <Button size='sm' className='gap-2' onClick={handleOpenCreate}>
+          <Plus className='h-4 w-4' />
           Adicionar Dataset
         </Button>
       </div>
@@ -131,85 +137,85 @@ export function MetaPixelsConfigArea({ organizationId, initialPixels }: MetaPixe
         icon={Database}
         onSave={handleSave}
         isSaving={createMutation.isPending || updateMutation.isPending}
-        saveLabel="Salvar Dataset"
-        desktopDirection="right"
-        maxWidth="max-w-2xl"
+        saveLabel='Salvar Dataset'
+        desktopDirection='right'
+        maxWidth='max-w-2xl'
       >
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="meta_dataset_name">Nome de Identificação</Label>
+        <div className='space-y-4'>
+          <div className='space-y-2'>
+            <Label htmlFor='meta_dataset_name'>Nome de Identificação</Label>
             <Input
-              id="meta_dataset_name"
-              name="meta_dataset_name"
-              placeholder="Ex: Pixel Principal"
+              id='meta_dataset_name'
+              name='meta_dataset_name'
+              placeholder='Ex: Pixel Principal'
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="meta_pixel_id_val">ID do Dataset (Meta Pixel)</Label>
+          <div className='space-y-2'>
+            <Label htmlFor='meta_pixel_id_val'>ID do Dataset (Meta Pixel)</Label>
             <Input
-              id="meta_pixel_id_val"
-              name="meta_pixel_id_val"
-              placeholder="Ex: 123456789012345"
+              id='meta_pixel_id_val'
+              name='meta_pixel_id_val'
+              placeholder='Ex: 123456789012345'
               value={formData.pixelId}
               onChange={(e) => setFormData({ ...formData, pixelId: e.target.value })}
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="meta_capi_token_area">Token de Acesso</Label>
+          <div className='space-y-2'>
+            <Label htmlFor='meta_capi_token_area'>Token de Acesso</Label>
             <Textarea
-              id="meta_capi_token_area"
-              name="meta_capi_token_area"
-              placeholder="Cole o token de acesso gerado no Meta Ads..."
+              id='meta_capi_token_area'
+              name='meta_capi_token_area'
+              placeholder='Cole o token de acesso gerado no Meta Ads...'
               value={formData.capiToken}
               onChange={(e) => setFormData({ ...formData, capiToken: e.target.value })}
-              className="min-h-[120px] break-all font-mono text-xs"
+              className='min-h-[120px] break-all font-mono text-xs'
             />
           </div>
         </div>
       </CrudEditDrawer>
 
       <Card>
-        <CardContent className="p-0">
-          <div className="relative overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-muted/50 border-b text-xs uppercase">
+        <CardContent className='p-0'>
+          <div className='relative overflow-x-auto'>
+            <table className='w-full text-left text-sm'>
+              <thead className='border-b bg-muted/50 text-xs uppercase'>
                 <tr>
-                  <th className="w-64 px-6 py-4 font-semibold">Nome / ID do Pixel</th>
-                  <th className="px-6 py-4 font-semibold">Token de Acesso</th>
-                  <th className="w-24 px-6 py-4 text-center font-semibold">Ativo?</th>
-                  <th className="w-16 px-6 py-4 text-right font-semibold">Ações</th>
+                  <th className='w-64 px-6 py-4 font-semibold'>Nome / ID do Pixel</th>
+                  <th className='px-6 py-4 font-semibold'>Token de Acesso</th>
+                  <th className='w-24 px-6 py-4 text-center font-semibold'>Ativo?</th>
+                  <th className='w-16 px-6 py-4 text-right font-semibold'>Ações</th>
                 </tr>
               </thead>
-              <tbody className="divide-y">
+              <tbody className='divide-y'>
                 {isLoading && pixelItems.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-6 py-8 text-center">
-                      <RefreshCw className="text-muted-foreground/20 mx-auto h-6 w-6 animate-spin" />
+                    <td colSpan={4} className='px-6 py-8 text-center'>
+                      <RefreshCw className='mx-auto h-6 w-6 animate-spin text-muted-foreground/20' />
                     </td>
                   </tr>
                 ) : pixelItems.length > 0 ? (
                   pixelItems.map((pixel) => (
-                    <tr key={pixel.id} className="hover:bg-muted/20 transition-colors">
-                      <td className="space-y-2 px-6 py-4">
-                        <div className="text-foreground mb-1 text-sm font-medium">{pixel.name}</div>
-                        <div className="text-muted-foreground bg-muted/50 inline-block rounded p-1 font-mono text-xs">
+                    <tr key={pixel.id} className='transition-colors hover:bg-muted/20'>
+                      <td className='space-y-2 px-6 py-4'>
+                        <div className='mb-1 font-medium text-foreground text-sm'>{pixel.name}</div>
+                        <div className='inline-block rounded bg-muted/50 p-1 font-mono text-muted-foreground text-xs'>
                           ID: {pixel.pixelId.startsWith('temp_') ? 'Pendente' : pixel.pixelId}
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className='px-6 py-4'>
                         <div
-                          className="text-muted-foreground bg-muted/30 max-w-[250px] truncate rounded px-2 py-1 font-mono text-[10px]"
+                          className='max-w-[250px] truncate rounded bg-muted/30 px-2 py-1 font-mono text-[10px] text-muted-foreground'
                           title={pixel.capiToken}
                         >
                           {pixel.capiToken ? `${pixel.capiToken.substring(0, 30)}...` : 'Sem token'}
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-center">
-                        <div className="flex items-center justify-center gap-3">
+                      <td className='px-6 py-4 text-center'>
+                        <div className='flex items-center justify-center gap-3'>
                           <span
-                            className={`text-[10px] font-medium ${pixel.isActive ? 'text-emerald-600' : 'text-muted-foreground'}`}
+                            className={`font-medium text-[10px] ${pixel.isActive ? 'text-emerald-600' : 'text-muted-foreground'}`}
                           >
                             {pixel.isActive ? 'ON' : 'OFF'}
                           </span>
@@ -222,27 +228,27 @@ export function MetaPixelsConfigArea({ organizationId, initialPixels }: MetaPixe
                           />
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-1">
+                      <td className='px-6 py-4 text-right'>
+                        <div className='flex items-center justify-end gap-1'>
                           <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-muted-foreground hover:text-primary h-8 w-8"
+                            variant='ghost'
+                            size='icon'
+                            className='h-8 w-8 text-muted-foreground hover:text-primary'
                             onClick={() => handleOpenEdit(pixel)}
                           >
-                            <Pencil className="h-4 w-4" />
+                            <Pencil className='h-4 w-4' />
                           </Button>
                           <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-muted-foreground hover:text-destructive h-8 w-8"
+                            variant='ghost'
+                            size='icon'
+                            className='h-8 w-8 text-muted-foreground hover:text-destructive'
                             onClick={() => {
                               if (confirm('Deseja deletar este Pixel?')) {
                                 deleteMutation.mutate(pixel.id)
                               }
                             }}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className='h-4 w-4' />
                           </Button>
                         </div>
                       </td>
@@ -250,7 +256,7 @@ export function MetaPixelsConfigArea({ organizationId, initialPixels }: MetaPixe
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={4} className="text-muted-foreground px-6 py-12 text-center italic">
+                    <td colSpan={4} className='px-6 py-12 text-center text-muted-foreground italic'>
                       Nenhum Dataset/Pixel conectado.
                     </td>
                   </tr>

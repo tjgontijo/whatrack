@@ -10,18 +10,18 @@ export function TableSkeleton({ rows = 5, columns = 4, className }: TableSkeleto
   return (
     <div className={cn('space-y-3', className)}>
       {/* Header */}
-      <div className="flex gap-4 border-b border-gray-200 pb-3 dark:border-gray-800">
+      <div className='flex gap-4 border-gray-200 border-b pb-3 dark:border-gray-800'>
         {Array.from({ length: columns }).map((_, i) => (
-          <div
-            key={i}
-            className="h-4 flex-1 animate-pulse rounded bg-gray-200 dark:bg-gray-800"
-          />
+          <div key={i} className='h-4 flex-1 animate-pulse rounded bg-gray-200 dark:bg-gray-800' />
         ))}
       </div>
 
       {/* Rows */}
       {Array.from({ length: rows }).map((_, rowIndex) => (
-        <div key={rowIndex} className="flex gap-4 border-b border-gray-100 py-3 dark:border-gray-900">
+        <div
+          key={rowIndex}
+          className='flex gap-4 border-gray-100 border-b py-3 dark:border-gray-900'
+        >
           {Array.from({ length: columns }).map((_, colIndex) => (
             <div
               key={colIndex}

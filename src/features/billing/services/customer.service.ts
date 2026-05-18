@@ -56,7 +56,7 @@ export class BillingCustomerService {
   }
 
   static async ensureCustomer(input: { organizationId: string; userId: string; cpfCnpj?: string }) {
-    const context = await this.resolveOrganizationCustomerContext(input)
+    const context = await BillingCustomerService.resolveOrganizationCustomerContext(input)
 
     if (context.asaasCustomerId) {
       return context

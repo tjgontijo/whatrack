@@ -1,12 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { apiError } from '@/lib/utils/api-response'
 import { revalidateTag } from 'next/cache'
-
-import { updateSaleSchema } from '@/features/sales'
-import { deleteSale, updateSale } from '@/features/sales'
-import { resolveProjectScope } from '@/server/project/project-scope'
-import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import { type NextRequest, NextResponse } from 'next/server'
+import { deleteSale, updateSale, updateSaleSchema } from '@/features/sales'
+import { apiError } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import { resolveProjectScope } from '@/server/project/project-scope'
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ saleId: string }> }) {
   const access = await validateFullAccess(req)

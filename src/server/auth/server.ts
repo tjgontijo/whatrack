@@ -1,7 +1,7 @@
 import { cookies, headers as nextHeaders } from 'next/headers'
 import { auth } from '@/lib/auth/auth'
-import { prisma } from '@/lib/db/prisma'
 import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
+import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/utils/logger'
 
 /**
@@ -108,11 +108,16 @@ export async function getOrSyncUser(request?: Request) {
   const session = await getServerSession(request)
 
   if (!session?.user) {
-    logger.warn({ context: {
-      hasSession: !!session,
-      hasUser: !!session?.user,
-      sessionId: session?.session?.id,
-    } }, '[getOrSyncUser] No session or user found')
+    logger.warn(
+      {
+        context: {
+          hasSession: !!session,
+          hasUser: !!session?.user,
+          sessionId: session?.session?.id,
+        },
+      },
+      '[getOrSyncUser] No session or user found'
+    )
   }
 
   return session?.user ?? null

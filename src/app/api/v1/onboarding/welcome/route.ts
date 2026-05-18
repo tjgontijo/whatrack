@@ -1,11 +1,10 @@
 import { cookies } from 'next/headers'
-
-import { apiError, apiSuccess } from '@/lib/utils/api-response'
-import { ORGANIZATION_COOKIE, PROJECT_COOKIE } from '@/lib/constants/http-headers'
-import { getOrSyncUser } from '@/server/auth/server'
-import { logger } from '@/lib/utils/logger'
 import { welcomeOnboardingSchema } from '@/features/onboarding/schemas/welcome-onboarding.schemas'
 import { completeWelcomeOnboarding } from '@/features/onboarding/services/welcome-onboarding.service'
+import { ORGANIZATION_COOKIE, PROJECT_COOKIE } from '@/lib/constants/http-headers'
+import { apiError, apiSuccess } from '@/lib/utils/api-response'
+import { logger } from '@/lib/utils/logger'
+import { getOrSyncUser } from '@/server/auth/server'
 
 export async function POST(request: Request) {
   try {
@@ -15,9 +14,7 @@ export async function POST(request: Request) {
       return apiError('Unauthorized', 401)
     }
 
-    const parsed = welcomeOnboardingSchema.safeParse(
-      await request.json().catch(() => null),
-    )
+    const parsed = welcomeOnboardingSchema.safeParse(await request.json().catch(() => null))
 
     if (!parsed.success) {
       return apiError('Dados inválidos', 400, undefined, {

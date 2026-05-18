@@ -1,6 +1,4 @@
-import type { Prisma, BillingCycle } from '@generated/prisma/client'
-
-import { prisma } from '@/lib/db/prisma'
+import type { Prisma } from '@generated/prisma/client'
 import type {
   BillingPlanDetail,
   BillingPlanHistoryQuery,
@@ -9,7 +7,8 @@ import type {
   BillingPlanListQuery,
   BillingPlanListResponse,
 } from '@/features/billing/schemas/billing-plan-schemas'
-import { buildBillingPlanPresentation, parseBillingPlanMetadata } from './billing-plan-catalog.service'
+import { prisma } from '@/lib/db/prisma'
+import { parseBillingPlanMetadata } from './billing-plan-catalog.service'
 
 function buildBillingPlanWhere(query: BillingPlanListQuery): Prisma.BillingPlanWhereInput {
   const search = query.query?.trim()
@@ -17,17 +16,26 @@ function buildBillingPlanWhere(query: BillingPlanListQuery): Prisma.BillingPlanW
   return {
     ...(search
       ? {
-          OR: [{ name: { contains: search, mode: 'insensitive' } }, { code: { contains: search, mode: 'insensitive' } }],
+          OR: [
+            { name: { contains: search, mode: 'insensitive' } },
+            { code: { contains: search, mode: 'insensitive' } },
+          ],
         }
       : {}),
-    ...(query.status === 'active' ? { isActive: true } : query.status === 'inactive' ? { isActive: false } : {}),
+    ...(query.status === 'active'
+      ? { isActive: true }
+      : query.status === 'inactive'
+        ? { isActive: false }
+        : {}),
   }
 }
 
 function mapBillingPlan(plan: any): BillingPlanListItem {
   const metadata = parseBillingPlanMetadata(plan.metadata)
   const presentation = {
-    subtitle: metadata.subtitle ?? `Até ${plan.includedProjects.toLocaleString('pt-BR')} projetos incluídos`,
+    subtitle:
+      metadata.subtitle ??
+      `Até ${plan.includedProjects.toLocaleString('pt-BR')} projetos incluídos`,
     cta: metadata.cta ?? 'Teste grátis por 14 dias',
     trialDays: typeof metadata.trialDays === 'number' ? metadata.trialDays : 14,
     features:
@@ -110,7 +118,9 @@ const planSelect = {
   },
 } as const
 
-export async function listBillingPlans(query: BillingPlanListQuery): Promise<BillingPlanListResponse> {
+export async function listBillingPlans(
+  query: BillingPlanListQuery
+): Promise<BillingPlanListResponse> {
   const where = buildBillingPlanWhere(query)
   const skip = (query.page - 1) * query.pageSize
 
@@ -145,7 +155,7 @@ export async function getBillingPlanDetail(planId: string): Promise<BillingPlanD
 
 export async function listBillingPlanHistory(
   planId: string,
-  query: BillingPlanHistoryQuery,
+  query: BillingPlanHistoryQuery
 ): Promise<BillingPlanHistoryResponse> {
   const skip = (query.page - 1) * query.pageSize
 

@@ -6,7 +6,6 @@ import { useOrganization } from '@/features/organizations/hooks/use-organization
 import { useProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
 import { apiFetch } from '@/lib/api-client'
 
-
 interface ApiPage<T> {
   items: T[]
   total: number
@@ -95,4 +94,3 @@ export function useCrudInfiniteQuery<T>({
     refetch,
   }
 }
-

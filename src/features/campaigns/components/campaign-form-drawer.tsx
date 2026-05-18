@@ -1,28 +1,27 @@
 'use client'
 
-import React from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Loader2, Megaphone, UploadCloud } from 'lucide-react'
+import React from 'react'
 import { toast } from 'sonner'
-
-import { CrudEditDrawer } from '@/features/dashboard/components/crud'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
-import { apiFetch } from '@/lib/api-client'
+import { CrudEditDrawer } from '@/features/dashboard/components/crud'
+import { useProject } from '@/features/projects/hooks/use-project'
+import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
 import {
-  parseCampaignCsv,
   buildCampaignCsvPreview,
-  validateCampaignCsvModel,
   type CampaignCsvParseResult,
+  parseCampaignCsv,
+  validateCampaignCsvModel,
 } from '@/features/whatsapp/lib/campaign-csv'
 import { whatsappApi } from '@/features/whatsapp/lib/client'
-import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
-import { useProject } from '@/features/projects/hooks/use-project'
 import type { WhatsAppTemplate } from '@/features/whatsapp/types/whatsapp'
+import { apiFetch } from '@/lib/api-client'
 import { CampaignWizardStepBasic } from './campaign-wizard-step-basic'
-import { CampaignWizardStepRecipients } from './campaign-wizard-step-recipients'
 import { CampaignWizardStepDispatch } from './campaign-wizard-step-dispatch'
+import { CampaignWizardStepRecipients } from './campaign-wizard-step-recipients'
 
 type WizardStep = 1 | 2 | 3
 
@@ -71,7 +70,9 @@ export function CampaignFormDrawer({ open, onOpenChange, onSuccess }: CampaignFo
   const [step, setStep] = React.useState<WizardStep>(1)
   const [name, setName] = React.useState('')
   const [selectedInstanceId, setSelectedInstanceId] = React.useState('')
-  const [templateCategory, setTemplateCategory] = React.useState<WhatsAppTemplate['category'] | ''>('')
+  const [templateCategory, setTemplateCategory] = React.useState<WhatsAppTemplate['category'] | ''>(
+    ''
+  )
   const [selectedTemplateName, setSelectedTemplateName] = React.useState('')
   const [parsedCsv, setParsedCsv] = React.useState<CampaignCsvParseResult | null>(null)
   const [fileError, setFileError] = React.useState<string | null>(null)
@@ -107,7 +108,10 @@ export function CampaignFormDrawer({ open, onOpenChange, onSuccess }: CampaignFo
     queryFn: async () => {
       const url = new URL('/api/v1/whatsapp/instances', window.location.origin)
       url.searchParams.set('projectId', activeProjectId)
-      const data = await apiFetch(url.toString(), { orgId: organizationId, projectId: activeProjectId })
+      const data = await apiFetch(url.toString(), {
+        orgId: organizationId,
+        projectId: activeProjectId,
+      })
       return ((data as { items?: WhatsAppInstanceItem[] }).items || []) as WhatsAppInstanceItem[]
     },
     enabled: open && !!organizationId && !!activeProjectId,
@@ -121,36 +125,35 @@ export function CampaignFormDrawer({ open, onOpenChange, onSuccess }: CampaignFo
 
   const approvedTemplates = React.useMemo(
     () => templates.filter((template) => template.status === 'APPROVED'),
-    [templates],
+    [templates]
   )
 
   const availableCategories = React.useMemo(
     () => Array.from(new Set(approvedTemplates.map((template) => template.category))),
-    [approvedTemplates],
+    [approvedTemplates]
   )
 
   const filteredTemplates = React.useMemo(
     () =>
       approvedTemplates.filter(
-        (template) =>
-          !templateCategory || template.category === templateCategory,
+        (template) => !templateCategory || template.category === templateCategory
       ),
-    [approvedTemplates, templateCategory],
+    [approvedTemplates, templateCategory]
   )
 
   const selectedTemplate = React.useMemo(
     () => filteredTemplates.find((template) => template.name === selectedTemplateName),
-    [filteredTemplates, selectedTemplateName],
+    [filteredTemplates, selectedTemplateName]
   )
 
   const templateVariableNames = React.useMemo(
     () => extractTemplateVariables(selectedTemplate),
-    [selectedTemplate],
+    [selectedTemplate]
   )
 
   React.useEffect(() => {
     setSelectedTemplateName('')
-  }, [templateCategory, selectedInstanceId])
+  }, [])
 
   React.useEffect(() => {
     setVariableColumns((current) => {
@@ -170,7 +173,11 @@ export function CampaignFormDrawer({ open, onOpenChange, onSuccess }: CampaignFo
     const allVariablesMapped = templateVariableNames.every((name) => Boolean(variableColumns[name]))
     if (!allVariablesMapped) return null
 
-    return buildCampaignCsvPreview(parsedCsv.rows, { phoneColumn, variableColumns }, templateVariableNames)
+    return buildCampaignCsvPreview(
+      parsedCsv.rows,
+      { phoneColumn, variableColumns },
+      templateVariableNames
+    )
   }, [parsedCsv, phoneColumn, variableColumns, templateVariableNames])
 
   const createMutation = useMutation({
@@ -261,10 +268,10 @@ export function CampaignFormDrawer({ open, onOpenChange, onSuccess }: CampaignFo
       setFileError(null)
       setPhoneColumn(validated.phoneColumn)
       setVariableColumns(validated.variableColumns)
-      
+
       if (validated.missingVariables.length > 0) {
         toast.info(
-          `Detectamos que ${validated.missingVariables.length} variável(is) não foram encontradas automaticamente. Por favor, faça o mapeamento manual.`,
+          `Detectamos que ${validated.missingVariables.length} variável(is) não foram encontradas automaticamente. Por favor, faça o mapeamento manual.`
         )
       }
     } catch (error) {
@@ -306,29 +313,29 @@ export function CampaignFormDrawer({ open, onOpenChange, onSuccess }: CampaignFo
     <CrudEditDrawer
       open={open}
       onOpenChange={handleOpenChange}
-      title="Nova campanha"
-      subtitle="Crie a campanha em 3 passos: configuração, destinatários e disparo."
+      title='Nova campanha'
+      subtitle='Crie a campanha em 3 passos: configuração, destinatários e disparo.'
       icon={Megaphone}
       showFooter={false}
-      desktopDirection="right"
-      mobileDirection="bottom"
-      maxWidth="max-w-[960px]"
-      desktopPanelWidthClassName="data-[side=right]:!w-[min(96vw,1040px)] data-[side=right]:sm:!max-w-none"
+      desktopDirection='right'
+      mobileDirection='bottom'
+      maxWidth='max-w-[960px]'
+      desktopPanelWidthClassName='data-[side=right]:!w-[min(96vw,1040px)] data-[side=right]:sm:!max-w-none'
     >
-      <div className="space-y-6">
-        <div className="space-y-3">
-          <div className="flex items-center justify-between gap-3">
+      <div className='space-y-6'>
+        <div className='space-y-3'>
+          <div className='flex items-center justify-between gap-3'>
             <div>
-              <p className="text-muted-foreground text-xs font-medium uppercase tracking-widest">
+              <p className='font-medium text-muted-foreground text-xs uppercase tracking-widest'>
                 Passo {step} de 3
               </p>
-              <p className="font-semibold">{STEP_LABELS[step]}</p>
+              <p className='font-semibold'>{STEP_LABELS[step]}</p>
             </div>
-            <div className="text-muted-foreground flex gap-2 text-xs">
+            <div className='flex gap-2 text-muted-foreground text-xs'>
               {([1, 2, 3] as WizardStep[]).map((current) => (
                 <span
                   key={current}
-                  className={current === step ? 'text-foreground font-semibold' : ''}
+                  className={current === step ? 'font-semibold text-foreground' : ''}
                 >
                   {STEP_LABELS[current]}
                 </span>
@@ -394,34 +401,41 @@ export function CampaignFormDrawer({ open, onOpenChange, onSuccess }: CampaignFo
         )}
 
         {!hasActiveProject && (
-          <Alert variant="destructive">
-            <UploadCloud className="h-4 w-4" />
+          <Alert variant='destructive'>
+            <UploadCloud className='h-4 w-4' />
             <AlertTitle>Projeto ativo necessário</AlertTitle>
             <AlertDescription>
-              O wizard usa o projeto selecionado na sidebar para listar instâncias e criar a campanha.
+              O wizard usa o projeto selecionado na sidebar para listar instâncias e criar a
+              campanha.
             </AlertDescription>
           </Alert>
         )}
 
-        <div className="flex justify-between gap-3 border-t pt-4">
-          <Button type="button" variant="outline" onClick={() => (step === 1 ? onOpenChange(false) : setStep((step - 1) as WizardStep))}>
+        <div className='flex justify-between gap-3 border-t pt-4'>
+          <Button
+            type='button'
+            variant='outline'
+            onClick={() => (step === 1 ? onOpenChange(false) : setStep((step - 1) as WizardStep))}
+          >
             {step === 1 ? 'Cancelar' : 'Voltar'}
           </Button>
 
-          <div className="flex gap-3">
+          <div className='flex gap-3'>
             {step < 3 ? (
               <Button
-                type="button"
+                type='button'
                 onClick={() => setStep((step + 1) as WizardStep)}
-                disabled={(step === 1 && !canAdvanceFromStep1) || (step === 2 && !canAdvanceFromStep2)}
+                disabled={
+                  (step === 1 && !canAdvanceFromStep1) || (step === 2 && !canAdvanceFromStep2)
+                }
               >
                 Próximo
               </Button>
             ) : (
-              <Button type="button" onClick={() => createMutation.mutate()} disabled={!canSubmit}>
+              <Button type='button' onClick={() => createMutation.mutate()} disabled={!canSubmit}>
                 {createMutation.isPending ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className='mr-2 h-4 w-4 animate-spin' />
                     Criando...
                   </>
                 ) : (

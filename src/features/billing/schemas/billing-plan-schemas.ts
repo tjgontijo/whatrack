@@ -3,11 +3,7 @@ import { z } from 'zod'
 export const billingPlanSyncStatuses = ['pending', 'synced', 'error'] as const
 export const billingPlanSupportLevels = ['email', 'priority', 'dedicated'] as const
 export const billingPlanKinds = ['base', 'addon'] as const
-export const billingPlanAddonTypes = [
-  'project',
-  'whatsapp_number',
-  'meta_ad_account',
-] as const
+export const billingPlanAddonTypes = ['project', 'whatsapp_number', 'meta_ad_account'] as const
 
 export const billingPlanMetadataSchema = z.object({
   slug: z.string().optional(),
@@ -81,11 +77,9 @@ export const billingPlanCreateSchema = billingPlanBaseSchema
     isActive: z.boolean().default(true),
   })
 
-export const billingPlanUpdateSchema = billingPlanBaseSchema
-  .partial()
-  .extend({
-    isActive: z.boolean().optional(),
-  })
+export const billingPlanUpdateSchema = billingPlanBaseSchema.partial().extend({
+  isActive: z.boolean().optional(),
+})
 
 export const billingPlanArchiveSchema = z.object({
   archived: z.literal(true).default(true),
@@ -210,7 +204,7 @@ export const publicBillingPlanSchema = z.object({
       currency: z.string(),
       maxInstallments: z.number().int().min(1),
       installmentRate: z.number().nullable(),
-    }),
+    })
   ),
 })
 

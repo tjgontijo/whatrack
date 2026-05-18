@@ -1,8 +1,7 @@
-import { NextResponse } from 'next/server'
-import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import type { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
-import type { NextRequest } from 'next/server'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 export async function GET(request: NextRequest) {
   const auth = await validateFullAccess(request)
@@ -28,18 +27,20 @@ export async function GET(request: NextRequest) {
     })
 
     return apiSuccess({
-      subscription: subscription ? {
-        id: subscription.id,
-        status: subscription.status,
-        isActive: subscription.isActive,
-        failureReason: subscription.failureReason,
-        failureCount: subscription.failureCount,
-        lastFailureAt: subscription.lastFailureAt,
-        lastFailureMessage: subscription.lastFailureMessage,
-        nextRetryAt: subscription.nextRetryAt,
-        expiresAt: subscription.expiresAt,
-        paymentMethod: subscription.paymentMethod,
-      } : null,
+      subscription: subscription
+        ? {
+            id: subscription.id,
+            status: subscription.status,
+            isActive: subscription.isActive,
+            failureReason: subscription.failureReason,
+            failureCount: subscription.failureCount,
+            lastFailureAt: subscription.lastFailureAt,
+            lastFailureMessage: subscription.lastFailureMessage,
+            nextRetryAt: subscription.nextRetryAt,
+            expiresAt: subscription.expiresAt,
+            paymentMethod: subscription.paymentMethod,
+          }
+        : null,
     })
   } catch (error) {
     return apiError('Failed to fetch subscription status', 500, error)

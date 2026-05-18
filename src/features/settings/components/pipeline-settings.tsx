@@ -1,11 +1,10 @@
 'use client'
 
 import { Kanban } from 'lucide-react'
-
+import { PageContent, PageHeader, PageShell } from '@/features/dashboard/components/layout'
+import { PipelineStagesManager } from '@/features/dashboard/components/pipeline/pipeline-stages-manager'
 import { useOrganization } from '@/features/organizations/hooks/use-organization'
 import { useProject } from '@/features/projects/hooks/use-project'
-import { PageShell, PageHeader, PageContent } from '@/features/dashboard/components/layout'
-import { PipelineStagesManager } from '@/features/dashboard/components/pipeline/pipeline-stages-manager'
 
 export function PipelineSettings() {
   const { data: org } = useOrganization()
@@ -14,11 +13,15 @@ export function PipelineSettings() {
   const projectId = project?.id
 
   return (
-    <PageShell maxWidth="3xl">
-      <PageHeader title="Pipeline" description="Gerencie as fases do seu funil de tickets" icon={Kanban} />
+    <PageShell maxWidth='3xl'>
+      <PageHeader
+        title='Pipeline'
+        description='Gerencie as fases do seu funil de tickets'
+        icon={Kanban}
+      />
 
       <PageContent>
-        <div className="mx-auto max-w-xl">
+        <div className='mx-auto max-w-xl'>
           <PipelineStagesManager organizationId={organizationId} projectId={projectId} />
         </div>
       </PageContent>

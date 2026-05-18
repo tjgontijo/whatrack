@@ -1,7 +1,7 @@
-import { auditService } from '@/services/audit/audit.service'
 import { metaAccessTokenService } from '@/features/meta-ads/services/access-token.service'
 import { metaAdAccountService } from '@/features/meta-ads/services/ad-account.service'
 import { consumeMetaOAuthState } from '@/features/meta-ads/services/meta-oauth-state.service'
+import { auditService } from '@/services/audit/audit.service'
 
 interface BuildAuthorizeUrlInput {
   clientId: string

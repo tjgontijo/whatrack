@@ -3,8 +3,8 @@
 import { useQuery } from '@tanstack/react-query'
 
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
-import { apiFetch } from '@/lib/api-client'
 import type { ProjectListResponse } from '@/features/projects'
+import { apiFetch } from '@/lib/api-client'
 
 const UNASSIGNED_PROJECT_VALUE = '__unassigned__'
 
@@ -54,7 +54,7 @@ export function ProjectSelector({
       disabled={disabled || !organizationId}
     >
       <SelectTrigger className={className}>
-        <span className="truncate text-sm">{triggerLabel}</span>
+        <span className='truncate text-sm'>{triggerLabel}</span>
       </SelectTrigger>
       <SelectContent>
         <SelectItem value={UNASSIGNED_PROJECT_VALUE}>{placeholder}</SelectItem>

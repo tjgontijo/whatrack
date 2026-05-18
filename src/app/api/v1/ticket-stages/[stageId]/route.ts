@@ -1,11 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server'
-
+import { type NextRequest, NextResponse } from 'next/server'
+import { updateTicketStageSchema } from '@/features/ticket-stages/schemas/ticket-stage.schemas'
+import {
+  deleteTicketStage,
+  updateTicketStage,
+} from '@/features/ticket-stages/services/ticket-stage.service'
 import { apiError } from '@/lib/utils/api-response'
+import { logger } from '@/lib/utils/logger'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { resolveProjectScope } from '@/server/project/project-scope'
-import { updateTicketStageSchema } from '@/features/ticket-stages/schemas/ticket-stage.schemas'
-import { deleteTicketStage, updateTicketStage } from '@/features/ticket-stages/services/ticket-stage.service'
-import { logger } from '@/lib/utils/logger'
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ stageId: string }> }) {
   const access = await validatePermissionAccess(req, 'manage:tickets')
@@ -23,10 +25,11 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ stag
     const { stageId } = await params
     const result = await updateTicketStage({
       organizationId: access.organizationId,
-      projectId: await resolveProjectScope({
-        organizationId: access.organizationId,
-        projectId: parsed.data.projectId,
-      }) ?? undefined,
+      projectId:
+        (await resolveProjectScope({
+          organizationId: access.organizationId,
+          projectId: parsed.data.projectId,
+        })) ?? undefined,
       stageId,
       name: parsed.data.name,
       color: parsed.data.color,

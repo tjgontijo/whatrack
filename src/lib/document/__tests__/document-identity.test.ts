@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import {
-  validateDocumentByType,
-  validateIdentityDocument,
-} from '@/lib/document/document-identity'
+import { validateDocumentByType, validateIdentityDocument } from '@/lib/document/document-identity'
 
 describe('document identity validation', () => {
   it('validates CPF for pessoa_fisica', () => {

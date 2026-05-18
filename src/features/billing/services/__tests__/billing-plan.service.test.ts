@@ -75,7 +75,7 @@ describe('billing-plan.service', () => {
         features: ['3 clientes ativos incluídos'],
         additionals: ['Projeto adicional por R$ 97/mês'],
       },
-      'user-1',
+      'user-1'
     )
 
     expect(prismaMock.billingPlan.create).toHaveBeenCalled()
@@ -113,7 +113,7 @@ describe('billing-plan.service', () => {
       {
         monthlyPrice: 597,
       },
-      'user-1',
+      'user-1'
     )
 
     expect(prismaMock.billingPlan.update).toHaveBeenCalledWith(
@@ -124,7 +124,7 @@ describe('billing-plan.service', () => {
           syncError: null,
           syncedAt: null,
         }),
-      }),
+      })
     )
   })
 

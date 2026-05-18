@@ -1,8 +1,8 @@
-import { prisma } from '@/lib/db/prisma'
 import { verifyWebhookSignature } from '@/features/whatsapp/lib/webhook-signature'
 import { whatsappWebhookVerifySchema } from '@/features/whatsapp/schemas/whatsapp-schemas'
 import { WebhookProcessor } from '@/features/whatsapp/services/webhook-processor'
 import { WhatsAppChatService } from '@/features/whatsapp/services/whatsapp-chat.service'
+import { prisma } from '@/lib/db/prisma'
 
 interface VerifyWebhookQueryInput {
   'hub.mode': string | null
@@ -41,7 +41,10 @@ function detectWebhookEventType(payload: WhatsAppWebhookPayload): string | null 
   return changes?.field || null
 }
 
-export async function processWhatsAppWebhookPayload(rawBody: string, signatureHeader: string | null) {
+export async function processWhatsAppWebhookPayload(
+  rawBody: string,
+  signatureHeader: string | null
+) {
   let webhookLogId: string | null = null
 
   try {

@@ -1,14 +1,14 @@
 'use client'
 
-import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
 
 import { MetaAdsCampaignsClient } from '@/app/(dashboard)/[organizationSlug]/[projectSlug]/meta-ads/campaigns/client'
-import { MetaROIContent } from '@/features/meta-ads/components/dashboard/meta-roi-content'
 import { HeaderPageShell, HeaderTabs } from '@/features/dashboard/components/layout'
-import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
+import { MetaROIContent } from '@/features/meta-ads/components/dashboard/meta-roi-content'
 import { metaAdsClient } from '@/features/meta-ads/lib/client'
 import type { MetaRoiResponse } from '@/features/meta-ads/types/meta-ads'
+import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
 
 const TABS = [
   { key: 'overview', label: 'Visão Geral' },
@@ -19,7 +19,12 @@ export function MetaAdsPageContent() {
   const [activeTab, setActiveTab] = useState('overview')
   const { organizationId } = useRequiredProjectRouteContext()
 
-  const { data: roiData, isLoading, refetch, isRefetching } = useQuery<MetaRoiResponse>({
+  const {
+    data: roiData,
+    isLoading,
+    refetch,
+    isRefetching,
+  } = useQuery<MetaRoiResponse>({
     queryKey: ['meta-ads', 'insights', { organizationId }],
     queryFn: () => metaAdsClient.getInsights(organizationId!),
     enabled: !!organizationId,
@@ -27,7 +32,7 @@ export function MetaAdsPageContent() {
 
   return (
     <HeaderPageShell
-      title="Meta Ads"
+      title='Meta Ads'
       selector={<HeaderTabs tabs={TABS} activeTab={activeTab} onTabChange={setActiveTab} />}
       onRefresh={activeTab === 'overview' ? () => void refetch() : undefined}
       isRefreshing={isRefetching || isLoading}

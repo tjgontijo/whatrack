@@ -1,17 +1,9 @@
 import { revalidateTag } from 'next/cache'
-
+import { projectDeleteQuerySchema, projectUpdateSchema } from '@/features/projects'
+import { deleteProject, getProjectById, updateProject } from '@/features/projects/server'
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
-import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import {
-  projectDeleteQuerySchema,
-  projectUpdateSchema,
-} from '@/features/projects'
-import {
-  deleteProject,
-  getProjectById,
-  updateProject,
-} from '@/features/projects/server'
 import { logger } from '@/lib/utils/logger'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 type RouteContext = {
   params: Promise<{
@@ -112,7 +104,7 @@ export async function DELETE(request: Request, context: RouteContext) {
           ? {
               counts: result.counts,
             }
-          : undefined,
+          : undefined
       )
     }
 

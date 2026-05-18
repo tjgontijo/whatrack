@@ -1,5 +1,5 @@
-import { handleWhatsAppOnboardingCallback } from '@/features/whatsapp/services/whatsapp-onboarding.service'
 import { WHATSAPP_ONBOARDING_RESULT_STORAGE_KEY } from '@/features/whatsapp/lib/onboarding'
+import { handleWhatsAppOnboardingCallback } from '@/features/whatsapp/services/whatsapp-onboarding.service'
 
 function escapeHtml(value: string): string {
   return value
@@ -69,28 +69,31 @@ export async function GET(request: Request) {
       error,
     })
 
-    const result = await handleWhatsAppOnboardingCallback({
-      code,
-      state,
-      error,
-      errorDescription,
-    }, url.origin)
+    const result = await handleWhatsAppOnboardingCallback(
+      {
+        code,
+        state,
+        error,
+        errorDescription,
+      },
+      url.origin
+    )
 
     console.log('[OnboardingCallback] Result:', result)
 
     if (!result.success) {
       return new Response(RESPONSE_HTML('error', result.message), {
-        headers: { 'Content-Type': 'text/html' }
+        headers: { 'Content-Type': 'text/html' },
       })
     }
 
     return new Response(RESPONSE_HTML('success'), {
-      headers: { 'Content-Type': 'text/html' }
+      headers: { 'Content-Type': 'text/html' },
     })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Internal server error'
     return new Response(RESPONSE_HTML('error', message), {
-      headers: { 'Content-Type': 'text/html' }
+      headers: { 'Content-Type': 'text/html' },
     })
   }
 }

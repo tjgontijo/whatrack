@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { WHATSAPP_MASK_MAX_LENGTH, applyWhatsAppMask, normalizeWhatsApp } from '../phone-mask'
+import { applyWhatsAppMask, normalizeWhatsApp, WHATSAPP_MASK_MAX_LENGTH } from '../phone-mask'
 
 describe('phone mask helpers', () => {
   it('formats brazilian mobile numbers with the ninth digit', () => {

@@ -1,6 +1,6 @@
-import { Suspense } from 'react'
 import { BarChart3 } from 'lucide-react'
-import { PageShell, PageHeader, PageContent } from '@/features/dashboard/components/layout'
+import { Suspense } from 'react'
+import { PageContent, PageHeader, PageShell } from '@/features/dashboard/components/layout'
 import { LoadingPage } from '@/features/dashboard/components/states'
 import AnalyticsDashboard from './components/analytics-dashboard'
 
@@ -13,13 +13,13 @@ export default function AnalyticsPage() {
   return (
     <PageShell>
       <PageHeader
-        title="Analytics"
-        description="Visão geral do desempenho da sua equipe no WhatsApp."
+        title='Analytics'
+        description='Visão geral do desempenho da sua equipe no WhatsApp.'
         icon={BarChart3}
       />
 
       <PageContent>
-        <Suspense fallback={<LoadingPage message="Carregando analytics..." />}>
+        <Suspense fallback={<LoadingPage message='Carregando analytics...' />}>
           <AnalyticsDashboard />
         </Suspense>
       </PageContent>

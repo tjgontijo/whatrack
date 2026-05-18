@@ -1,10 +1,4 @@
-const PUBLIC_PAGE_PREFIXES = [
-  '/',
-  '/billing/success',
-  '/privacy',
-  '/terms',
-  '/solucoes',
-] as const
+const PUBLIC_PAGE_PREFIXES = ['/', '/billing/success', '/privacy', '/terms', '/solucoes'] as const
 
 const AUTH_PAGE_PREFIXES = [
   '/sign-in',
@@ -26,7 +20,9 @@ const PUBLIC_API_EXACT_PATHS = new Set([
 const PUBLIC_API_PREFIXES = ['/api/v1/auth/', '/api/v1/cron/'] as const
 
 export function isPublicPagePath(pathname: string): boolean {
-  return PUBLIC_PAGE_PREFIXES.some((route) => pathname === route || pathname.startsWith(`${route}/`))
+  return PUBLIC_PAGE_PREFIXES.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`)
+  )
 }
 
 export function isAuthPagePath(pathname: string): boolean {

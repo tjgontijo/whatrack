@@ -1,12 +1,11 @@
 'use client'
 
-import * as React from 'react'
-import type { ComponentType } from 'react'
 import type { ComputedDatum } from '@nivo/pie'
 import dynamic from 'next/dynamic'
-
-import { cn } from '@/lib/utils/utils'
+import type { ComponentType } from 'react'
+import * as React from 'react'
 import { formatCurrencyBRL } from '@/lib/mask/formatters'
+import { cn } from '@/lib/utils/utils'
 
 type PieComponentProps = {
   data: DashboardPieDatum[]
@@ -61,7 +60,7 @@ export function DashboardPieChart({
     return (
       <div
         className={cn(
-          'border-border/50 bg-muted/10 text-muted-foreground flex w-full items-center justify-center rounded-2xl border border-dashed p-6 text-sm',
+          'flex w-full items-center justify-center rounded-2xl border border-border/50 border-dashed bg-muted/10 p-6 text-muted-foreground text-sm',
           className
         )}
         style={{ minHeight: `${Math.max(height, 240)}px` }}
@@ -73,10 +72,10 @@ export function DashboardPieChart({
 
   return (
     <div
-      className={cn('border-border/50 bg-card w-full rounded-2xl border p-4 shadow-sm', className)}
+      className={cn('w-full rounded-2xl border border-border/50 bg-card p-4 shadow-sm', className)}
       style={{ height }}
     >
-      <div className="h-full w-full [&_svg]:!bg-transparent">
+      <div className='[&_svg]:!bg-transparent h-full w-full'>
         <ResponsivePie
           data={chartData}
           margin={margin}
@@ -85,7 +84,7 @@ export function DashboardPieChart({
           cornerRadius={cornerRadius}
           activeOuterRadiusOffset={activeOuterRadiusOffset}
           arcLinkLabelsSkipAngle={10}
-          arcLinkLabelsTextColor="hsl(var(--foreground))"
+          arcLinkLabelsTextColor='hsl(var(--foreground))'
           arcLinkLabelsThickness={2}
           arcLinkLabelsColor={{ from: 'color' }}
           arcLabelsSkipAngle={10}
@@ -107,10 +106,10 @@ export function DashboardPieChart({
             },
           }}
           tooltip={({ datum }: { datum: ComputedDatum<DashboardPieDatum> }) => (
-            <div className="border-border/60 bg-popover rounded-xl border px-3 py-2 text-xs shadow-lg">
-              <p className="text-popover-foreground font-semibold">{datum.label}</p>
-              <p className="text-popover-foreground/80">{formatCurrencyBRL(datum.value)}</p>
-              <p className="text-muted-foreground">
+            <div className='rounded-xl border border-border/60 bg-popover px-3 py-2 text-xs shadow-lg'>
+              <p className='font-semibold text-popover-foreground'>{datum.label}</p>
+              <p className='text-popover-foreground/80'>{formatCurrencyBRL(datum.value)}</p>
+              <p className='text-muted-foreground'>
                 {totalValue > 0 ? ((datum.value / totalValue) * 100).toFixed(1) : '0.0'}%
               </p>
             </div>

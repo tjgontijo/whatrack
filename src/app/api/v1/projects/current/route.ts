@@ -1,12 +1,9 @@
 import { cookies } from 'next/headers'
-
-import { apiError, apiSuccess } from '@/lib/utils/api-response'
+import { projectCurrentUpdateSchema } from '@/features/projects'
 import { PROJECT_COOKIE } from '@/lib/constants/http-headers'
-import { logger } from '@/lib/utils/logger'
 import { prisma } from '@/lib/db/prisma'
-import {
-  projectCurrentUpdateSchema,
-} from '@/features/projects'
+import { apiError, apiSuccess } from '@/lib/utils/api-response'
+import { logger } from '@/lib/utils/logger'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { getCurrentProjectId } from '@/server/project/get-current-project-id'
 
@@ -50,9 +47,7 @@ export async function PATCH(request: Request) {
       return apiError(access.error ?? 'Acesso negado', 403)
     }
 
-    const parsed = projectCurrentUpdateSchema.safeParse(
-      await request.json().catch(() => null),
-    )
+    const parsed = projectCurrentUpdateSchema.safeParse(await request.json().catch(() => null))
 
     if (!parsed.success) {
       return apiError('Invalid payload', 400, undefined, {

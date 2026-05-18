@@ -1,17 +1,23 @@
-import { prisma } from '@/lib/db/prisma'
-import type { AccountSummary } from '@/features/account/types/account-summary'
-import { getActiveSubscription, SubscriptionNotFoundError } from '@/features/billing/services/billing-subscription.service'
+import type {
+  AccountOrganizationSummary,
+  AccountProfileSummary,
+  AccountSummary,
+} from '@/features/account/types/account-summary'
+import type { SubscriptionResponse } from '@/features/billing/schemas/billing-schemas'
+import {
+  getActiveSubscription,
+  SubscriptionNotFoundError,
+} from '@/features/billing/services/billing-subscription.service'
 import { getMeAccount } from '@/features/me/services/me-account.service'
 import { getOrganizationMe } from '@/features/organizations/services/organization.service'
-import type { SubscriptionResponse } from '@/features/billing/schemas/billing-schemas'
-import type { AccountOrganizationSummary, AccountProfileSummary } from '@/features/account/types/account-summary'
+import { prisma } from '@/lib/db/prisma'
 
 function toIsoString(value: Date | string) {
   return value instanceof Date ? value.toISOString() : new Date(value).toISOString()
 }
 
 function serializeSubscription(
-  subscription: Awaited<ReturnType<typeof getActiveSubscription>>,
+  subscription: Awaited<ReturnType<typeof getActiveSubscription>>
 ): SubscriptionResponse {
   return {
     id: subscription.id,
@@ -29,7 +35,7 @@ function serializeSubscription(
     isActive: subscription.isActive,
     purchaseDate: subscription.purchaseDate?.toISOString() ?? null,
     expiresAt: subscription.expiresAt?.toISOString() ?? null,
-    failureReason: subscription.failureReason as SubscriptionResponse['failureReason'] ?? null,
+    failureReason: (subscription.failureReason as SubscriptionResponse['failureReason']) ?? null,
     failureCount: subscription.failureCount,
     lastFailureAt: subscription.lastFailureAt?.toISOString() ?? null,
     lastFailureMessage: subscription.lastFailureMessage ?? null,
@@ -55,7 +61,7 @@ function serializeSubscription(
 }
 
 function serializeAccount(
-  account: Awaited<ReturnType<typeof getMeAccount>>,
+  account: Awaited<ReturnType<typeof getMeAccount>>
 ): AccountProfileSummary | null {
   if (!account) return null
 
@@ -69,7 +75,7 @@ function serializeAccount(
 }
 
 function serializeOrganization(
-  organization: Awaited<ReturnType<typeof getOrganizationMe>>,
+  organization: Awaited<ReturnType<typeof getOrganizationMe>>
 ): AccountOrganizationSummary | null {
   if (!organization || 'error' in organization) return null
 

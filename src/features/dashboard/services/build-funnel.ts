@@ -1,6 +1,6 @@
-import { prisma } from '@/lib/db/prisma'
 import type { Prisma } from '@generated/prisma/client'
 import type { DateRange } from '@/lib/date/date-range'
+import { prisma } from '@/lib/db/prisma'
 
 export type FunnelSummary = {
   leads: number
@@ -25,7 +25,7 @@ export async function buildFunnel(
 async function buildLeadsCount(
   organizationId: string,
   dateRange?: DateRange,
-  projectId?: string | null,
+  projectId?: string | null
 ) {
   const where: Prisma.LeadWhereInput = {
     organizationId,

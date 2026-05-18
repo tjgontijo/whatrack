@@ -1,25 +1,25 @@
-import { prisma } from '@/lib/db/prisma';
-import { logger } from '@/lib/utils/logger';
-import { getOptOutSet } from '@/features/whatsapp/lib/services/whatsapp-opt-out.service';
+import type { Prisma } from '@generated/prisma'
+import { queryLeadsByFilters } from '@/features/whatsapp/lib/queries/lead-segment-query'
+import { getOptOutSet } from '@/features/whatsapp/lib/services/whatsapp-opt-out.service'
+import { WhatsAppCampaignEventType } from '@/features/whatsapp/lib/types/campaign-events'
 import type {
   WhatsAppCampaignCreateInput,
   WhatsAppCampaignUpdateInput,
-} from '@/features/whatsapp/schemas/whatsapp-campaign-schemas';
-import { Prisma } from '@generated/prisma';
-import { queryLeadsByFilters } from '@/features/whatsapp/lib/queries/lead-segment-query';
-import { WhatsAppCampaignEventType } from '@/features/whatsapp/lib/types/campaign-events';
+} from '@/features/whatsapp/schemas/whatsapp-campaign-schemas'
+import { prisma } from '@/lib/db/prisma'
+import { logger } from '@/lib/utils/logger'
 
 type CreateCampaignResult =
   | { success: true; data: { id: string } }
-  | { success: false; error: string; status: number };
+  | { success: false; error: string; status: number }
 
 type UpdateCampaignResult =
   | { success: true; data: unknown }
-  | { success: false; error: string; status: number };
+  | { success: false; error: string; status: number }
 
-type DispatchCampaignResult = { success: true } | { success: false; error: string; status: number };
+type DispatchCampaignResult = { success: true } | { success: false; error: string; status: number }
 
-type CancelCampaignResult = { success: true } | { success: false; error: string; status: number };
+type CancelCampaignResult = { success: true } | { success: false; error: string; status: number }
 
 export async function createCampaign(
   organizationId: string,
@@ -29,23 +29,23 @@ export async function createCampaign(
   const project = await prisma.project.findFirst({
     where: { id: input.projectId, organizationId },
     select: { id: true },
-  });
+  })
   if (!project) {
-    return { success: false, error: 'Projeto não encontrado', status: 404 };
+    return { success: false, error: 'Projeto não encontrado', status: 404 }
   }
 
   if (input.dispatchGroups && input.dispatchGroups.length > 0) {
-    const configIds = input.dispatchGroups.map((g) => g.configId);
+    const configIds = input.dispatchGroups.map((g) => g.configId)
     const configs = await prisma.whatsAppConfig.findMany({
       where: { id: { in: configIds }, organizationId, projectId: input.projectId },
       select: { id: true },
-    });
+    })
     if (configs.length !== configIds.length) {
-      return { success: false, error: 'Uma ou mais instâncias não foram encontradas', status: 400 };
+      return { success: false, error: 'Uma ou mais instâncias não foram encontradas', status: 400 }
     }
   }
 
-  const scheduledAt = input.scheduledAt ? new Date(input.scheduledAt) : null;
+  const scheduledAt = input.scheduledAt ? new Date(input.scheduledAt) : null
 
   const data: Prisma.WhatsAppCampaignUncheckedCreateInput = {
     organizationId,
@@ -71,13 +71,13 @@ export async function createCampaign(
           })),
         }
       : undefined,
-  };
+  }
 
-  const campaign = await prisma.whatsAppCampaign.create({ data });
+  const campaign = await prisma.whatsAppCampaign.create({ data })
 
   // If source is provided, snapshot and pre-calculate recipients
   if (input.audienceSourceType && input.audienceSourceId) {
-    await refreshCampaignRecipients(organizationId, campaign.id);
+    await refreshCampaignRecipients(organizationId, campaign.id)
   }
 
   await prisma.whatsAppCampaignEvent.create({
@@ -86,14 +86,14 @@ export async function createCampaign(
       type: WhatsAppCampaignEventType.CREATED,
       metadata: { userId },
     },
-  });
+  })
 
   logger.info(
     { campaignId: campaign.id, organizationId, projectId: input.projectId, userId },
     '[WhatsAppCampaign] Campaign created'
-  );
+  )
 
-  return { success: true, data: { id: campaign.id } };
+  return { success: true, data: { id: campaign.id } }
 }
 
 export async function refreshCampaignRecipients(organizationId: string, campaignId: string) {
@@ -102,43 +102,43 @@ export async function refreshCampaignRecipients(organizationId: string, campaign
     include: {
       dispatchGroups: { orderBy: { order: 'asc' } },
     },
-  });
+  })
 
-  if (!campaign || !campaign.audienceSourceType || !campaign.audienceSourceId) return;
+  if (!campaign?.audienceSourceType || !campaign.audienceSourceId) return
 
-  const dispatchGroupIds = campaign.dispatchGroups.map((dg) => dg.id);
-  if (dispatchGroupIds.length === 0) return;
+  const dispatchGroupIds = campaign.dispatchGroups.map((dg) => dg.id)
+  if (dispatchGroupIds.length === 0) return
 
-  let leads: Array<{ phone: string; id: string | null; data?: any }> = [];
+  let leads: Array<{ phone: string; id: string | null; data?: any }> = []
 
   if (campaign.audienceSourceType === 'LIST') {
     const listMembers = await prisma.whatsAppContactListMember.findMany({
       where: { listId: campaign.audienceSourceId },
-    });
-    leads = listMembers.map((m) => ({ phone: m.phone, id: null, data: m.data }));
+    })
+    leads = listMembers.map((m) => ({ phone: m.phone, id: null, data: m.data }))
   } else if (campaign.audienceSourceType === 'SEGMENT') {
     const segment = await prisma.whatsAppAudienceSegment.findUnique({
       where: { id: campaign.audienceSourceId },
-    });
+    })
     if (segment) {
-      const result = await queryLeadsByFilters(organizationId, segment.filters as any);
-      leads = result.map((l) => ({ phone: l.phone || '', id: l.id }));
+      const result = await queryLeadsByFilters(organizationId, segment.filters as any)
+      leads = result.map((l) => ({ phone: l.phone || '', id: l.id }))
     }
   }
 
-  if (leads.length === 0) return;
+  if (leads.length === 0) return
 
   // Clear existing recipients
-  await prisma.whatsAppCampaignRecipient.deleteMany({ where: { campaignId } });
+  await prisma.whatsAppCampaignRecipient.deleteMany({ where: { campaignId } })
 
   // Load opted-out contacts to exclude them
-  const optOutSet = await getOptOutSet(organizationId);
+  const optOutSet = await getOptOutSet(organizationId)
 
-  let excludedByOptOut = 0;
+  let excludedByOptOut = 0
   const recipients = leads.map((lead, idx) => {
-    const isOptedOut = optOutSet.has(lead.phone);
+    const isOptedOut = optOutSet.has(lead.phone)
     if (isOptedOut) {
-      excludedByOptOut++;
+      excludedByOptOut++
     }
 
     return {
@@ -150,20 +150,20 @@ export async function refreshCampaignRecipients(organizationId: string, campaign
       variables: lead.data ? { body: lead.data } : undefined,
       status: isOptedOut ? 'EXCLUDED' : 'PENDING',
       exclusionReason: isOptedOut ? 'OPT_OUT' : null,
-    };
-  });
+    }
+  })
 
   // Chunk createMany for safety (Prisma limit is 32767 parameters on some DBs)
-  const chunkSize = 1000;
+  const chunkSize = 1000
   for (let i = 0; i < recipients.length; i += chunkSize) {
-    const chunk = recipients.slice(i, i + chunkSize);
-    await prisma.whatsAppCampaignRecipient.createMany({ data: chunk });
+    const chunk = recipients.slice(i, i + chunkSize)
+    await prisma.whatsAppCampaignRecipient.createMany({ data: chunk })
   }
 
   logger.info(
     { campaignId, total: leads.length, excluded: excludedByOptOut },
     '[Snapshot] Opt-out exclusions applied'
-  );
+  )
 
   await prisma.whatsAppCampaignEvent.create({
     data: {
@@ -171,7 +171,7 @@ export async function refreshCampaignRecipients(organizationId: string, campaign
       type: WhatsAppCampaignEventType.RECIPIENTS_GENERATED,
       metadata: { count: leads.length, excludedByOptOut },
     },
-  });
+  })
 }
 
 export async function updateCampaign(
@@ -182,14 +182,14 @@ export async function updateCampaign(
   const campaign = await prisma.whatsAppCampaign.findFirst({
     where: { id: campaignId, organizationId },
     select: { id: true, status: true },
-  });
+  })
 
   if (!campaign) {
-    return { success: false, error: 'Campanha não encontrada', status: 404 };
+    return { success: false, error: 'Campanha não encontrada', status: 404 }
   }
 
   if (campaign.status !== 'DRAFT' && campaign.status !== 'SCHEDULED') {
-    return { success: false, error: 'Campanha não pode ser editada no estado atual', status: 400 };
+    return { success: false, error: 'Campanha não pode ser editada no estado atual', status: 400 }
   }
 
   const data: Prisma.WhatsAppCampaignUpdateInput = {
@@ -200,18 +200,22 @@ export async function updateCampaign(
     ...(input.scheduledAt !== undefined
       ? { scheduledAt: input.scheduledAt ? new Date(input.scheduledAt) : null }
       : {}),
-    ...(input.shouldCreateLeads !== undefined ? { shouldCreateLeads: input.shouldCreateLeads } : {}),
-    ...(input.audienceSourceType !== undefined ? { audienceSourceType: input.audienceSourceType } : {}),
+    ...(input.shouldCreateLeads !== undefined
+      ? { shouldCreateLeads: input.shouldCreateLeads }
+      : {}),
+    ...(input.audienceSourceType !== undefined
+      ? { audienceSourceType: input.audienceSourceType }
+      : {}),
     ...(input.audienceSourceId !== undefined ? { audienceSourceId: input.audienceSourceId } : {}),
-  };
+  }
 
   const updated = await prisma.whatsAppCampaign.update({
     where: { id: campaignId },
     data,
-  });
+  })
 
   if (input.dispatchGroups !== undefined) {
-    await prisma.whatsAppCampaignDispatchGroup.deleteMany({ where: { campaignId } });
+    await prisma.whatsAppCampaignDispatchGroup.deleteMany({ where: { campaignId } })
     if (input.dispatchGroups.length > 0) {
       await prisma.whatsAppCampaignDispatchGroup.createMany({
         data: input.dispatchGroups.map((g, idx) => ({
@@ -222,18 +226,18 @@ export async function updateCampaign(
           variables: (g.variables as Prisma.InputJsonValue) ?? null,
           order: g.order ?? idx,
         })),
-      });
+      })
     }
   }
 
   // If audience changed, refresh it
   if (input.audienceSourceId || input.audienceSourceType || input.dispatchGroups) {
-    await refreshCampaignRecipients(organizationId, campaignId);
+    await refreshCampaignRecipients(organizationId, campaignId)
   }
 
-  logger.info({ campaignId, organizationId }, '[WhatsAppCampaign] Campaign updated');
+  logger.info({ campaignId, organizationId }, '[WhatsAppCampaign] Campaign updated')
 
-  return { success: true, data: updated };
+  return { success: true, data: updated }
 }
 
 export async function dispatchCampaign(
@@ -246,10 +250,10 @@ export async function dispatchCampaign(
   const campaign = await prisma.whatsAppCampaign.findFirst({
     where: { id: campaignId, organizationId },
     select: { id: true, status: true },
-  });
+  })
 
   if (!campaign) {
-    return { success: false, error: 'Campanha não encontrada', status: 404 };
+    return { success: false, error: 'Campanha não encontrada', status: 404 }
   }
 
   if (immediate) {
@@ -259,10 +263,10 @@ export async function dispatchCampaign(
         status: 'PROCESSING',
         startedAt: new Date(),
       },
-    });
+    })
   } else {
     if (!scheduledAt) {
-      return { success: false, error: 'Data de agendamento obrigatória', status: 400 };
+      return { success: false, error: 'Data de agendamento obrigatória', status: 400 }
     }
     await prisma.whatsAppCampaign.update({
       where: { id: campaignId },
@@ -270,7 +274,7 @@ export async function dispatchCampaign(
         status: 'SCHEDULED',
         scheduledAt,
       },
-    });
+    })
   }
 
   await prisma.whatsAppCampaignEvent.create({
@@ -279,11 +283,11 @@ export async function dispatchCampaign(
       type: immediate ? WhatsAppCampaignEventType.DISPATCHED : WhatsAppCampaignEventType.SCHEDULED,
       metadata: { userId, immediate, scheduledAt },
     },
-  });
+  })
 
-  logger.info({ campaignId, userId, immediate }, '[WhatsAppCampaign] Dispatched');
+  logger.info({ campaignId, userId, immediate }, '[WhatsAppCampaign] Dispatched')
 
-  return { success: true };
+  return { success: true }
 }
 
 export async function cancelCampaign(
@@ -295,14 +299,14 @@ export async function cancelCampaign(
   const campaign = await prisma.whatsAppCampaign.findFirst({
     where: { id: campaignId, organizationId },
     select: { id: true, status: true },
-  });
+  })
 
   if (!campaign) {
-    return { success: false, error: 'Campanha não encontrada', status: 404 };
+    return { success: false, error: 'Campanha não encontrada', status: 404 }
   }
 
   if (['COMPLETED', 'CANCELLED'].includes(campaign.status)) {
-    return { success: false, error: 'Campanha já finalizada', status: 400 };
+    return { success: false, error: 'Campanha já finalizada', status: 400 }
   }
 
   await prisma.whatsAppCampaign.update({
@@ -312,12 +316,12 @@ export async function cancelCampaign(
       cancelledAt: new Date(),
       cancelledById: userId,
     },
-  });
+  })
 
   await prisma.whatsAppCampaignDispatchGroup.updateMany({
     where: { campaignId, status: { in: ['PENDING', 'PROCESSING'] } },
     data: { status: 'CANCELLED' },
-  });
+  })
 
   await prisma.whatsAppCampaignEvent.create({
     data: {
@@ -325,11 +329,11 @@ export async function cancelCampaign(
       type: WhatsAppCampaignEventType.CANCELLED,
       metadata: { userId, comment },
     },
-  });
+  })
 
-  logger.info({ campaignId, userId }, '[WhatsAppCampaign] Cancelled');
+  logger.info({ campaignId, userId }, '[WhatsAppCampaign] Cancelled')
 
-  return { success: true };
+  return { success: true }
 }
 
 export async function getCampaign(organizationId: string, campaignId: string) {
@@ -345,8 +349,8 @@ export async function getCampaign(organizationId: string, campaignId: string) {
       },
       _count: { select: { whatsAppCampaignRecipients: true } },
     },
-  });
+  })
 
-  if (!campaign) return null;
-  return campaign;
+  if (!campaign) return null
+  return campaign
 }

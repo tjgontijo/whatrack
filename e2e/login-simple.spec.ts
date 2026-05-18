@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 import {
   generateTestCpf,
   generateTestEmail,
@@ -34,16 +34,15 @@ test.describe('Simple Login Test', () => {
     const [signInResponse] = await Promise.all([
       page.waitForResponse(
         (response) =>
-          response.url().includes('/api/v1/auth') &&
-          response.request().method() === 'POST',
-        { timeout: 30000 },
+          response.url().includes('/api/v1/auth') && response.request().method() === 'POST',
+        { timeout: 30000 }
       ),
       page.locator('button[type="submit"]').click(),
     ])
 
     expect(
       signInResponse.ok(),
-      `Sign-in request failed with status ${signInResponse.status()}`,
+      `Sign-in request failed with status ${signInResponse.status()}`
     ).toBeTruthy()
 
     await page.waitForURL((url) => !url.pathname.includes('/sign-in'), {

@@ -1,8 +1,8 @@
 import 'server-only'
 
-import { headers, cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
+import { ORGANIZATION_COOKIE, ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 import { prisma } from '@/lib/db/prisma'
-import { ORGANIZATION_HEADER, ORGANIZATION_COOKIE } from '@/lib/constants/http-headers'
 import { logger } from '@/lib/utils/logger'
 
 /**

@@ -1,15 +1,12 @@
 'use client'
 
-import * as React from 'react'
-import { useState, useDeferredValue, useMemo } from 'react'
-import { Search, Filter, Ban, Info, MessageSquare } from 'lucide-react'
-
-import { useCrudInfiniteQuery } from '@/hooks/ui/use-crud-infinite-query'
-import { CrudListView } from '@/features/dashboard/components/crud/crud-list-view'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Ban, Filter, Info, MessageSquare, Search } from 'lucide-react'
+import { useDeferredValue, useMemo, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardHeader, CardTitle } from '@/components/ui/card'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -17,20 +14,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
-import { type ColumnDef } from '@/features/dashboard/components/crud/types'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { CrudListView } from '@/features/dashboard/components/crud/crud-list-view'
+import type { ColumnDef } from '@/features/dashboard/components/crud/types'
+import { useCrudInfiniteQuery } from '@/hooks/ui/use-crud-infinite-query'
 import { formatWhatsAppWithFlag } from '@/lib/mask/phone-mask'
 
 type CampaignRecipient = {
@@ -60,11 +47,15 @@ const STATUS_MAP: Record<string, { label: string; color: string }> = {
 }
 
 function P(dateStr: string | null) {
-  if (!dateStr) return <span className="text-muted-foreground/30">—</span>
+  if (!dateStr) return <span className='text-muted-foreground/30'>—</span>
   return (
-    <div className="flex flex-col">
-       <span className="text-foreground font-medium">{new Date(dateStr).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</span>
-       <span className="text-[10px] text-muted-foreground leading-none">{new Date(dateStr).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+    <div className='flex flex-col'>
+      <span className='font-medium text-foreground'>
+        {new Date(dateStr).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+      </span>
+      <span className='text-[10px] text-muted-foreground leading-none'>
+        {new Date(dateStr).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+      </span>
     </div>
   )
 }
@@ -82,9 +73,8 @@ function parseFailureReason(reason: string | null) {
 export function CampaignRecipientsTable({ campaignId }: { campaignId: string }) {
   const [searchInput, setSearchInput] = useState('')
   const [statusFilter, setStatusFilter] = useState('ALL')
-  const [selectedFailureRecipient, setSelectedFailureRecipient] = useState<CampaignRecipient | null>(
-    null
-  )
+  const [selectedFailureRecipient, setSelectedFailureRecipient] =
+    useState<CampaignRecipient | null>(null)
 
   const deferredSearch = useDeferredValue(searchInput)
 
@@ -110,7 +100,7 @@ export function CampaignRecipientsTable({ campaignId }: { campaignId: string }) 
       label: '#',
       width: '50px',
       render: (_, index) => (
-        <span className="text-[10px] font-mono text-muted-foreground/50 tabular-nums">
+        <span className='font-mono text-[10px] text-muted-foreground/50 tabular-nums'>
           {index + 1}
         </span>
       ),
@@ -119,12 +109,14 @@ export function CampaignRecipientsTable({ campaignId }: { campaignId: string }) 
       key: 'phone',
       label: 'Destinatário',
       render: (r) => (
-        <div className="flex items-center gap-3">
-          <div className="flex flex-col gap-0.5">
-            <span className="font-mono text-sm font-semibold text-foreground">{formatWhatsAppWithFlag(r.phone)}</span>
+        <div className='flex items-center gap-3'>
+          <div className='flex flex-col gap-0.5'>
+            <span className='font-mono font-semibold text-foreground text-sm'>
+              {formatWhatsAppWithFlag(r.phone)}
+            </span>
             <Badge
-              variant="outline"
-              className={`text-[9px] uppercase font-bold tracking-wider px-1.5 py-0 w-fit ${
+              variant='outline'
+              className={`w-fit px-1.5 py-0 font-bold text-[9px] uppercase tracking-wider ${
                 STATUS_MAP[r.status]?.color || 'bg-secondary'
               }`}
             >
@@ -153,27 +145,34 @@ export function CampaignRecipientsTable({ campaignId }: { campaignId: string }) 
       key: 'responded',
       label: 'Ação',
       render: (r) => (
-        <div className="flex flex-col items-start gap-1">
-           {r.respondedAt ? (
-             <TooltipProvider>
-               <Tooltip>
-                 <TooltipTrigger asChild>
-                   <div className="flex flex-col cursor-help">
-                     <span className="text-emerald-600 font-bold text-xs flex items-center gap-1">
-                       Respondeu <MessageSquare className="h-3 w-3" />
-                     </span>
-                     <span className="text-[10px] text-muted-foreground">{new Date(r.respondedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
-                   </div>
-                 </TooltipTrigger>
-                 <TooltipContent className="max-w-[300px] p-3 text-sm">
-                   <p className="font-semibold mb-1 text-[10px] uppercase text-muted-foreground tracking-wider">Primeira Interação:</p>
-                   <p className="italic">"{r.lastResponse || 'Sem conteúdo disponível'}"</p>
-                 </TooltipContent>
-               </Tooltip>
-             </TooltipProvider>
-           ) : (
-             <span className="text-muted-foreground/30">—</span>
-           )}
+        <div className='flex flex-col items-start gap-1'>
+          {r.respondedAt ? (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className='flex cursor-help flex-col'>
+                    <span className='flex items-center gap-1 font-bold text-emerald-600 text-xs'>
+                      Respondeu <MessageSquare className='h-3 w-3' />
+                    </span>
+                    <span className='text-[10px] text-muted-foreground'>
+                      {new Date(r.respondedAt).toLocaleTimeString('pt-BR', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent className='max-w-[300px] p-3 text-sm'>
+                  <p className='mb-1 font-semibold text-[10px] text-muted-foreground uppercase tracking-wider'>
+                    Primeira Interação:
+                  </p>
+                  <p className='italic'>"{r.lastResponse || 'Sem conteúdo disponível'}"</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ) : (
+            <span className='text-muted-foreground/30'>—</span>
+          )}
         </div>
       ),
     },
@@ -183,9 +182,9 @@ export function CampaignRecipientsTable({ campaignId }: { campaignId: string }) 
       render: (r) => {
         if (r.status === 'EXCLUDED') {
           return (
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <Ban className="h-3.5 w-3.5" />
-              <span className="text-[11px] max-w-[150px] truncate" title={r.exclusionReason || ''}>
+            <div className='flex items-center gap-1.5 text-muted-foreground'>
+              <Ban className='h-3.5 w-3.5' />
+              <span className='max-w-[150px] truncate text-[11px]' title={r.exclusionReason || ''}>
                 {r.exclusionReason || 'Excluído'}
               </span>
             </div>
@@ -194,16 +193,16 @@ export function CampaignRecipientsTable({ campaignId }: { campaignId: string }) 
         if (r.failureReason || r.status === 'FAILED') {
           return (
             <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
+              variant='ghost'
+              size='sm'
+              className='h-8 w-8 p-0 text-red-500 hover:bg-red-50 hover:text-red-600'
               onClick={() => setSelectedFailureRecipient(r)}
             >
-              <Info className="h-4 w-4" />
+              <Info className='h-4 w-4' />
             </Button>
           )
         }
-        return <span className="text-muted-foreground/50 text-xs">—</span>
+        return <span className='text-muted-foreground/50 text-xs'>—</span>
       },
     },
   ]
@@ -214,33 +213,35 @@ export function CampaignRecipientsTable({ campaignId }: { campaignId: string }) 
 
   return (
     <>
-      <Card className="shadow-sm border-border/50 rounded-2xl overflow-hidden flex flex-col h-[600px]">
-        <CardHeader className="border-b bg-card/50 pb-4">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <Card className='flex h-[600px] flex-col overflow-hidden rounded-2xl border-border/50 shadow-sm'>
+        <CardHeader className='border-b bg-card/50 pb-4'>
+          <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
             <div>
-              <CardTitle className="text-lg">Audiência da Campanha</CardTitle>
+              <CardTitle className='text-lg'>Audiência da Campanha</CardTitle>
             </div>
-            <div className="flex items-center gap-2">
+            <div className='flex items-center gap-2'>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[150px] h-9 text-xs">
-                  <Filter className="w-3.5 h-3.5 mr-2" />
-                  <SelectValue placeholder="Filtrar Status" />
+                <SelectTrigger className='h-9 w-[150px] text-xs'>
+                  <Filter className='mr-2 h-3.5 w-3.5' />
+                  <SelectValue placeholder='Filtrar Status' />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL" className="text-xs">Todos os Status</SelectItem>
+                  <SelectItem value='ALL' className='text-xs'>
+                    Todos os Status
+                  </SelectItem>
                   {Object.entries(STATUS_MAP).map(([val, { label }]) => (
-                    <SelectItem key={val} value={val} className="text-xs">
+                    <SelectItem key={val} value={val} className='text-xs'>
                       {label}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <div className='relative'>
+                <Search className='absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground' />
                 <Input
-                  type="text"
-                  placeholder="Pesquisar número..."
-                  className="pl-9 h-9 w-[200px] text-xs"
+                  type='text'
+                  placeholder='Pesquisar número...'
+                  className='h-9 w-[200px] pl-9 text-xs'
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                 />
@@ -248,14 +249,18 @@ export function CampaignRecipientsTable({ campaignId }: { campaignId: string }) 
             </div>
           </div>
         </CardHeader>
-        <div className="flex-1 overflow-hidden relative">
+        <div className='relative flex-1 overflow-hidden'>
           {isLoading && data.length === 0 ? (
-            <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm z-10">
-              <span className="text-sm font-medium text-muted-foreground animate-pulse">Carregando dados da audiência...</span>
+            <div className='absolute inset-0 z-10 flex items-center justify-center bg-background/50 backdrop-blur-sm'>
+              <span className='animate-pulse font-medium text-muted-foreground text-sm'>
+                Carregando dados da audiência...
+              </span>
             </div>
           ) : data.length === 0 ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-               <p className="text-sm font-medium text-muted-foreground">Nenhum destinatário encontrado.</p>
+            <div className='absolute inset-0 flex flex-col items-center justify-center'>
+              <p className='font-medium text-muted-foreground text-sm'>
+                Nenhum destinatário encontrado.
+              </p>
             </div>
           ) : (
             <CrudListView
@@ -273,27 +278,33 @@ export function CampaignRecipientsTable({ campaignId }: { campaignId: string }) 
           if (!open) setSelectedFailureRecipient(null)
         }}
       >
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className='sm:max-w-md'>
           <DialogHeader>
             <DialogTitle>Mapeamento de Falha</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 pt-4">
-            <div className="rounded-xl border border-red-100 bg-red-50/50 p-4">
-              <p className="text-red-800 text-[10px] font-bold uppercase tracking-wider mb-2">
+          <div className='space-y-4 pt-4'>
+            <div className='rounded-xl border border-red-100 bg-red-50/50 p-4'>
+              <p className='mb-2 font-bold text-[10px] text-red-800 uppercase tracking-wider'>
                 Motivo da Meta
               </p>
-              <p className="text-red-900 text-sm leading-relaxed">{selectedFailure.message || 'Falha não especificada.'}</p>
+              <p className='text-red-900 text-sm leading-relaxed'>
+                {selectedFailure.message || 'Falha não especificada.'}
+              </p>
             </div>
             {selectedFailure.code && (
-              <div className="rounded-xl border p-4 bg-muted/30 flex justify-between items-center">
-                <span className="text-muted-foreground text-[10px] font-bold uppercase">Código</span>
-                <span className="font-mono text-sm">{selectedFailure.code}</span>
+              <div className='flex items-center justify-between rounded-xl border bg-muted/30 p-4'>
+                <span className='font-bold text-[10px] text-muted-foreground uppercase'>
+                  Código
+                </span>
+                <span className='font-mono text-sm'>{selectedFailure.code}</span>
               </div>
             )}
             {selectedFailureRecipient?.metaWamid && (
-              <div className="rounded-xl border p-4 bg-muted/30">
-                <p className="text-muted-foreground text-[10px] font-bold uppercase mb-1">WAMID</p>
-                <p className="font-mono text-[10px] break-all opacity-60">{selectedFailureRecipient.metaWamid}</p>
+              <div className='rounded-xl border bg-muted/30 p-4'>
+                <p className='mb-1 font-bold text-[10px] text-muted-foreground uppercase'>WAMID</p>
+                <p className='break-all font-mono text-[10px] opacity-60'>
+                  {selectedFailureRecipient.metaWamid}
+                </p>
               </div>
             )}
           </div>

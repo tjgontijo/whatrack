@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/db/prisma'
-import { logger } from '@/lib/utils/logger'
-import { ok, fail } from '@/lib/shared/result'
 import type { Result } from '@/lib/shared/result'
+import { fail, ok } from '@/lib/shared/result'
+import { logger } from '@/lib/utils/logger'
 
 export interface VariantMetric {
   variantId: string
@@ -43,7 +43,10 @@ export async function getAbTestMetrics(
         const [total, sent, delivered, read, responded, failed] = await Promise.all([
           prisma.whatsAppCampaignRecipient.count({ where: { variantId: variant.id } }),
           prisma.whatsAppCampaignRecipient.count({
-            where: { variantId: variant.id, status: { in: ['SENT', 'DELIVERED', 'READ', 'RESPONDED'] } },
+            where: {
+              variantId: variant.id,
+              status: { in: ['SENT', 'DELIVERED', 'READ', 'RESPONDED'] },
+            },
           }),
           prisma.whatsAppCampaignRecipient.count({
             where: { variantId: variant.id, status: { in: ['DELIVERED', 'READ', 'RESPONDED'] } },

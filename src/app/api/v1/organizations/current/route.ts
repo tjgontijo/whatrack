@@ -5,11 +5,10 @@
  */
 
 import { NextResponse } from 'next/server'
-
-import { apiError } from '@/lib/utils/api-response'
-import { getOrSyncUser } from '@/server/auth/server'
 import { getOrCreateCurrentOrganization } from '@/features/organizations/services/organization-management.service'
+import { apiError } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
+import { getOrSyncUser } from '@/server/auth/server'
 
 export async function GET(request: Request) {
   try {

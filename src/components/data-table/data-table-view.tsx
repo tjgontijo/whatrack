@@ -1,7 +1,7 @@
 'use client'
 
+import { flexRender, type Header, type Row } from '@tanstack/react-table'
 import * as React from 'react'
-import { flexRender, Header, Row } from '@tanstack/react-table'
 import { cn } from '@/lib/utils/utils'
 
 interface DataTableViewProps<TData> {
@@ -22,13 +22,13 @@ export const DataTableView = React.forwardRef<HTMLDivElement, DataTableViewProps
   ({ headers, rows, className }, ref) => {
     return (
       <div ref={ref} className={cn('rounded-md border', className)}>
-        <table className="w-full text-sm">
+        <table className='w-full text-sm'>
           <thead>
-            <tr className="bg-muted/50 hover:bg-muted/50 border-b">
+            <tr className='border-b bg-muted/50 hover:bg-muted/50'>
               {headers.map((header) => (
                 <th
                   key={header.id}
-                  className="text-muted-foreground px-4 py-3 text-left text-xs font-medium uppercase tracking-wider"
+                  className='px-4 py-3 text-left font-medium text-muted-foreground text-xs uppercase tracking-wider'
                 >
                   {header.isPlaceholder
                     ? null
@@ -42,10 +42,10 @@ export const DataTableView = React.forwardRef<HTMLDivElement, DataTableViewProps
               rows.map((row) => (
                 <tr
                   key={row.id}
-                  className="hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors"
+                  className='border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted'
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="px-4 py-3">
+                    <td key={cell.id} className='px-4 py-3'>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </td>
                   ))}
@@ -53,8 +53,8 @@ export const DataTableView = React.forwardRef<HTMLDivElement, DataTableViewProps
               ))
             ) : (
               <tr>
-                <td colSpan={headers.length} className="px-4 py-8 text-center">
-                  <div className="text-muted-foreground">Nenhum resultado</div>
+                <td colSpan={headers.length} className='px-4 py-8 text-center'>
+                  <div className='text-muted-foreground'>Nenhum resultado</div>
                 </td>
               </tr>
             )}

@@ -1,34 +1,46 @@
 import { z } from 'zod'
 
-export const metaAdsAuditSchema = z.object({
-  accountId: z.string().trim().min(1, 'Account ID required'),
-}).strict()
+export const metaAdsAuditSchema = z
+  .object({
+    accountId: z.string().trim().min(1, 'Account ID required'),
+  })
+  .strict()
 
 export type MetaAdsAuditInput = z.infer<typeof metaAdsAuditSchema>
 
-export const campaignsQuerySchema = z.object({
-  accountId: z.string().optional(),
-  days: z.coerce.number().int().min(1).max(365).default(30),
-}).strict()
+export const campaignsQuerySchema = z
+  .object({
+    accountId: z.string().optional(),
+    days: z.coerce.number().int().min(1).max(365).default(30),
+  })
+  .strict()
 
-export const insightsQuerySchema = z.object({
-  days: z.coerce.number().int().min(1).max(365).default(30),
-}).strict()
+export const insightsQuerySchema = z
+  .object({
+    days: z.coerce.number().int().min(1).max(365).default(30),
+  })
+  .strict()
 
-export const metaAdAccountsQuerySchema = z.object({
-  sync: z
-    .enum(['true', 'false'])
-    .optional()
-    .transform((value) => value === 'true'),
-}).strict()
+export const metaAdAccountsQuerySchema = z
+  .object({
+    sync: z
+      .enum(['true', 'false'])
+      .optional()
+      .transform((value) => value === 'true'),
+  })
+  .strict()
 
-export const metaConnectionDeleteQuerySchema = z.object({
-  id: z.string().min(1),
-}).strict()
+export const metaConnectionDeleteQuerySchema = z
+  .object({
+    id: z.string().min(1),
+  })
+  .strict()
 
-export const metaRouteParamsSchema = z.object({
-  id: z.string().min(1),
-}).strict()
+export const metaRouteParamsSchema = z
+  .object({
+    id: z.string().min(1),
+  })
+  .strict()
 
 export const metaAdAccountToggleBodySchema = z
   .object({
@@ -36,18 +48,17 @@ export const metaAdAccountToggleBodySchema = z
     projectId: z.string().trim().min(1).optional(),
   })
   .strict()
-  .refine(
-    (value) => typeof value.isActive === 'boolean' || typeof value.projectId === 'string',
-    {
-      message: 'At least one field must be provided',
-    }
-  )
+  .refine((value) => typeof value.isActive === 'boolean' || typeof value.projectId === 'string', {
+    message: 'At least one field must be provided',
+  })
 
-export const metaPixelCreateBodySchema = z.object({
-  name: z.string().trim().min(1),
-  pixelId: z.string().trim().min(1),
-  capiToken: z.string().trim().min(1),
-}).strict()
+export const metaPixelCreateBodySchema = z
+  .object({
+    name: z.string().trim().min(1),
+    pixelId: z.string().trim().min(1),
+    capiToken: z.string().trim().min(1),
+  })
+  .strict()
 
 export const metaPixelUpdateBodySchema = z
   .object({
@@ -68,12 +79,14 @@ export const metaPixelUpdateBodySchema = z
     }
   )
 
-export const metaCopilotAnalyzeRequestSchema = z.object({
-  campaignId: z.string().min(1),
-  accountId: z.string().min(1),
-  campaignName: z.string().min(1),
-  days: z.coerce.number().int().min(1).max(365).default(7),
-}).strict()
+export const metaCopilotAnalyzeRequestSchema = z
+  .object({
+    campaignId: z.string().min(1),
+    accountId: z.string().min(1),
+    campaignName: z.string().min(1),
+    days: z.coerce.number().int().min(1).max(365).default(7),
+  })
+  .strict()
 
 export const analysisMapZodSchema = z.object({
   status: z

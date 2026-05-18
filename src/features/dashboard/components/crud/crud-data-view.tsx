@@ -1,9 +1,9 @@
 'use client'
 
-import React from 'react'
 import { Package } from 'lucide-react'
+import type React from 'react'
 import { EmptyState } from '@/features/dashboard/components/states/empty-state'
-import { ViewType } from './types'
+import type { ViewType } from './types'
 
 interface CrudDataViewProps<T> {
   data: T[]
@@ -25,14 +25,7 @@ export function CrudEmptyState({
   description = 'Tente buscar por termos diferentes ou verifique os filtros.',
   action,
 }: CrudEmptyStateProps) {
-  return (
-    <EmptyState
-      icon={Package}
-      title={title}
-      description={description}
-      action={action}
-    />
-  )
+  return <EmptyState icon={Package} title={title} description={description} action={action} />
 }
 
 export function CrudDataView<T>({
@@ -48,7 +41,7 @@ export function CrudDataView<T>({
   }
 
   return (
-    <div className="animate-in fade-in h-full duration-300">
+    <div className='fade-in h-full animate-in duration-300'>
       {view === 'kanban' ? kanbanView : view === 'list' ? tableView : cardView}
     </div>
   )

@@ -30,10 +30,7 @@ export interface CampaignCsvModelValidationResult {
 }
 
 function normalizeColumnName(value: string): string {
-  return value
-    .trim()
-    .replace(/[{}]/g, '')
-    .replace(/\s+/g, '_')
+  return value.trim().replace(/[{}]/g, '').replace(/\s+/g, '_')
 }
 
 function isScientificNotation(value: string): boolean {
@@ -183,21 +180,25 @@ function buildTemplateModelColumns(templateVariableNames: string[]): string[] {
   return [
     'telefone',
     ...Array.from(
-      new Set(templateVariableNames.map((variableName) => normalizeColumnName(variableName)).filter(Boolean)),
+      new Set(
+        templateVariableNames
+          .map((variableName) => normalizeColumnName(variableName))
+          .filter(Boolean)
+      )
     ),
   ]
 }
 
 export function guessCampaignCsvMapping(
   columns: string[],
-  templateVariableNames: string[],
+  templateVariableNames: string[]
 ): CampaignCsvMapping {
   const normalizedColumns = columns.map((c) => c.toLowerCase().trim())
-  
+
   // Try to find phone column
   const phoneCandidates = ['telefone', 'phone', 'celular', 'whatsapp', 'contato', 'tel', 'mobile']
   let phoneColumn = columns[0] || ''
-  
+
   for (const candidate of phoneCandidates) {
     const index = normalizedColumns.findIndex((c) => c.includes(candidate))
     if (index !== -1) {
@@ -210,7 +211,11 @@ export function guessCampaignCsvMapping(
   const variableColumns: Record<string, string> = {}
   for (const varName of templateVariableNames) {
     const normalizedVar = varName.toLowerCase().trim()
-    const index = normalizedColumns.findIndex((c) => c === normalizedVar || c.replace(/[^a-z0-9]/g, '_') === normalizedVar.replace(/[^a-z0-9]/g, '_'))
+    const index = normalizedColumns.findIndex(
+      (c) =>
+        c === normalizedVar ||
+        c.replace(/[^a-z0-9]/g, '_') === normalizedVar.replace(/[^a-z0-9]/g, '_')
+    )
     if (index !== -1) {
       variableColumns[varName] = columns[index]
     }
@@ -221,10 +226,10 @@ export function guessCampaignCsvMapping(
 
 export function validateCampaignCsvModel(
   parsed: CampaignCsvParseResult,
-  templateVariableNames: string[],
+  templateVariableNames: string[]
 ): CampaignCsvModelValidationResult {
   const mapping = guessCampaignCsvMapping(parsed.columns, templateVariableNames)
-  
+
   const missingVariables = templateVariableNames.filter((name) => !mapping.variableColumns[name])
 
   return {
@@ -237,7 +242,7 @@ export function validateCampaignCsvModel(
 export function buildCampaignCsvPreview(
   rows: Array<Record<string, string>>,
   mapping: CampaignCsvMapping,
-  templateVariableNames: string[],
+  templateVariableNames: string[]
 ): CampaignCsvPreviewResult {
   const seenPhones = new Set<string>()
   const mappedRecipients: CampaignMappedRecipient[] = []

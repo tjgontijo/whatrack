@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/db/prisma'
-import { metaAccessTokenService } from './access-token.service'
 import { logger } from '@/lib/utils/logger'
-import { MetaApiError, getMetaApiErrorMessage, metaApiRequest } from './meta-api'
+import { metaAccessTokenService } from './access-token.service'
+import { getMetaApiErrorMessage, MetaApiError, metaApiRequest } from './meta-api'
 
 function resolveEnrichmentErrorMessage(error: unknown): string {
   return getMetaApiErrorMessage(error)
@@ -33,7 +33,7 @@ export class MetaAdEnrichmentService {
       },
     })
 
-    if (!tracking || !tracking.metaAdId) return
+    if (!tracking?.metaAdId) return
     if (tracking.metaEnrichmentStatus === 'SUCCESS') return
 
     if (

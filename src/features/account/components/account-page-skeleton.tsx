@@ -10,15 +10,15 @@ function AccountCardSkeleton({
 }) {
   return (
     <Card>
-      <CardHeader className="space-y-3">
-        <Skeleton className="h-5 w-40" />
-        <Skeleton className="h-4 w-72 max-w-full" />
+      <CardHeader className='space-y-3'>
+        <Skeleton className='h-5 w-40' />
+        <Skeleton className='h-4 w-72 max-w-full' />
       </CardHeader>
-      <CardContent className="grid gap-4">
+      <CardContent className='grid gap-4'>
         {Array.from({ length: fields }).map((_, index) => (
-          <div key={index} className="grid gap-2">
-            <Skeleton className="h-4 w-28" />
-            <Skeleton className="h-10 w-full" />
+          <div key={index} className='grid gap-2'>
+            <Skeleton className='h-4 w-28' />
+            <Skeleton className='h-10 w-full' />
           </div>
         ))}
         <div>
@@ -31,11 +31,11 @@ function AccountCardSkeleton({
 
 export function AccountPageSkeleton() {
   return (
-    <div className="space-y-6" data-testid="account-page-skeleton">
+    <div className='space-y-6' data-testid='account-page-skeleton'>
       <AccountCardSkeleton />
       <AccountCardSkeleton />
-      <AccountCardSkeleton fields={4} footerWidth="w-40" />
-      <AccountCardSkeleton fields={2} footerWidth="w-36" />
+      <AccountCardSkeleton fields={4} footerWidth='w-40' />
+      <AccountCardSkeleton fields={2} footerWidth='w-36' />
     </div>
   )
 }

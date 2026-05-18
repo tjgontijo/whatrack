@@ -32,17 +32,19 @@ export function SettingsSection({
         className
       )}
     >
-      <div className="px-6 py-5">
-        <h2 className={cn('text-base font-semibold', danger ? 'text-destructive' : 'text-foreground')}>
+      <div className='px-6 py-5'>
+        <h2
+          className={cn('font-semibold text-base', danger ? 'text-destructive' : 'text-foreground')}
+        >
           {title}
         </h2>
-        {description ? <p className="text-muted-foreground mt-1 text-sm">{description}</p> : null}
+        {description ? <p className='mt-1 text-muted-foreground text-sm'>{description}</p> : null}
       </div>
 
-      <div className="border-border space-y-4 border-t px-6 py-5">{children}</div>
+      <div className='space-y-4 border-border border-t px-6 py-5'>{children}</div>
 
       {onSave ? (
-        <div className="border-border bg-muted/20 flex justify-end rounded-b-xl border-t px-6 py-4">
+        <div className='flex justify-end rounded-b-xl border-border border-t bg-muted/20 px-6 py-4'>
           <Button onClick={onSave} disabled={isSaving} variant={danger ? 'destructive' : 'default'}>
             {isSaving ? 'Salvando...' : saveLabel}
           </Button>

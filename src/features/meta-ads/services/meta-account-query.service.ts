@@ -1,5 +1,5 @@
-import { prisma } from '@/lib/db/prisma'
 import { metaAdAccountService } from '@/features/meta-ads/services/ad-account.service'
+import { prisma } from '@/lib/db/prisma'
 
 interface ListMetaAdAccountsParams {
   organizationId: string

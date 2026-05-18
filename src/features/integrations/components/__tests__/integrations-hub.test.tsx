@@ -34,7 +34,7 @@ describe('IntegrationsHub', () => {
   })
 
   it('renders the requested initial tab content', () => {
-    render(<IntegrationsHub organizationId="org-1" initialTab="meta-ads" />)
+    render(<IntegrationsHub organizationId='org-1' initialTab='meta-ads' />)
 
     expect(screen.getByText('meta-ads:org-1')).toBeInTheDocument()
     expect(screen.queryByText('whatsapp:org-1')).not.toBeInTheDocument()
@@ -45,7 +45,7 @@ describe('IntegrationsHub', () => {
 
     searchParamsMock.mockReturnValue(new URLSearchParams('tab=whatsapp&project=alpha'))
 
-    render(<IntegrationsHub organizationId="org-1" initialTab="whatsapp" />)
+    render(<IntegrationsHub organizationId='org-1' initialTab='whatsapp' />)
 
     await user.click(screen.getByRole('tab', { name: 'Meta Ads' }))
 

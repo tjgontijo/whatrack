@@ -1,20 +1,19 @@
 'use client'
 
-import { useState } from 'react'
+import { Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { toast } from 'sonner'
 import {
   AlertDialog,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { toast } from 'sonner'
-import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils/utils'
 import { useOrganization } from '@/features/organizations/hooks/use-organization'
 import { apiFetch } from '@/lib/api-client'
-
+import { cn } from '@/lib/utils/utils'
 
 interface BillingCancelDialogProps {
   open: boolean
@@ -35,18 +34,12 @@ const CANCEL_OPTIONS = [
   },
 ]
 
-export function BillingCancelDialog({
-  open,
-  onOpenChange,
-  planName,
-}: BillingCancelDialogProps) {
+export function BillingCancelDialog({ open, onOpenChange, planName }: BillingCancelDialogProps) {
   const router = useRouter()
   const { data: org } = useOrganization()
   const orgId = org?.id
   const [isLoading, setIsLoading] = useState(false)
-  const [cancelOption, setCancelOption] = useState<'period-end' | 'immediate'>(
-    'period-end',
-  )
+  const [cancelOption, setCancelOption] = useState<'period-end' | 'immediate'>('period-end')
 
   async function handleCancel() {
     setIsLoading(true)
@@ -71,9 +64,7 @@ export function BillingCancelDialog({
       onOpenChange(false)
       router.refresh()
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : 'Erro ao cancelar assinatura',
-      )
+      toast.error(error instanceof Error ? error.message : 'Erro ao cancelar assinatura')
     } finally {
       setIsLoading(false)
     }
@@ -81,53 +72,47 @@ export function BillingCancelDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="border-border bg-card">
-        <AlertDialogTitle className="text-foreground">
-          Cancelar assinatura
-        </AlertDialogTitle>
+      <AlertDialogContent className='border-border bg-card'>
+        <AlertDialogTitle className='text-foreground'>Cancelar assinatura</AlertDialogTitle>
 
-        <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            O cancelamento reflete o estado real da assinatura na Stripe. Ao encerrar, você perderá acesso ao plano{' '}
-            <span className="font-medium text-foreground">{planName}</span>.
-            Eventos registrados neste ciclo não serão reembolsados.
+        <div className='space-y-4'>
+          <p className='text-muted-foreground text-sm'>
+            O cancelamento reflete o estado real da assinatura na Stripe. Ao encerrar, você perderá
+            acesso ao plano <span className='font-medium text-foreground'>{planName}</span>. Eventos
+            registrados neste ciclo não serão reembolsados.
           </p>
 
           {/* Opções de cancelamento */}
-          <div className="space-y-2">
+          <div className='space-y-2'>
             {CANCEL_OPTIONS.map((option) => {
               const selected = cancelOption === option.value
               return (
                 <button
                   key={option.value}
-                  type="button"
+                  type='button'
                   onClick={() => setCancelOption(option.value)}
                   className={cn(
                     'w-full rounded-lg border px-4 py-3 text-left transition-colors',
                     selected
                       ? 'border-primary/30 bg-primary/5 ring-1 ring-primary/20'
-                      : 'border-border bg-muted/30 hover:bg-muted/60',
+                      : 'border-border bg-muted/30 hover:bg-muted/60'
                   )}
                 >
-                  <div className="flex items-start gap-3">
+                  <div className='flex items-start gap-3'>
                     {/* Radio visual */}
                     <div
                       className={cn(
                         'mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 transition-colors',
-                        selected
-                          ? 'border-primary bg-primary'
-                          : 'border-border bg-transparent',
+                        selected ? 'border-primary bg-primary' : 'border-border bg-transparent'
                       )}
                     >
                       {selected && (
-                        <div className="h-1.5 w-1.5 rounded-full bg-primary-foreground" />
+                        <div className='h-1.5 w-1.5 rounded-full bg-primary-foreground' />
                       )}
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-foreground">
-                        {option.label}
-                      </div>
-                      <div className="mt-0.5 text-xs text-muted-foreground">
+                      <div className='font-medium text-foreground text-sm'>{option.label}</div>
+                      <div className='mt-0.5 text-muted-foreground text-xs'>
                         {option.description}
                       </div>
                     </div>
@@ -138,20 +123,18 @@ export function BillingCancelDialog({
           </div>
         </div>
 
-        <div className="mt-2 flex gap-3">
-          <AlertDialogCancel className="flex-1">
-            Manter assinatura
-          </AlertDialogCancel>
+        <div className='mt-2 flex gap-3'>
+          <AlertDialogCancel className='flex-1'>Manter assinatura</AlertDialogCancel>
 
           <Button
             onClick={handleCancel}
             disabled={isLoading}
-            variant="destructive"
-            className="flex-1"
+            variant='destructive'
+            className='flex-1'
           >
             {isLoading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
                 Cancelando...
               </>
             ) : (

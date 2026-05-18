@@ -1,6 +1,6 @@
 import { z } from 'zod'
-import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { handleWhatsAppOnboardingCallback } from '@/features/whatsapp/services/whatsapp-onboarding.service'
+import { apiError, apiSuccess } from '@/lib/utils/api-response'
 
 const ExchangeSchema = z.object({
   code: z.string().min(1, 'code is required'),

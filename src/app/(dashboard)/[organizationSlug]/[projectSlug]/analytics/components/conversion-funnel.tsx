@@ -1,10 +1,9 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
 import { ResponsiveFunnel } from '@nivo/funnel'
-import { apiFetch } from '@/lib/api-client'
+import { useQuery } from '@tanstack/react-query'
 import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
-
+import { apiFetch } from '@/lib/api-client'
 
 export default function ConversionFunnel({
   startDate,
@@ -27,11 +26,10 @@ export default function ConversionFunnel({
     enabled: !!organizationId,
   })
 
-
-  if (isLoading) return <div className="bg-card h-full w-full animate-pulse rounded-xl border" />
+  if (isLoading) return <div className='h-full w-full animate-pulse rounded-xl border bg-card' />
   if (error || !data)
     return (
-      <div className="bg-card text-muted-foreground flex h-full w-full items-center justify-center rounded-xl border p-4 text-sm">
+      <div className='flex h-full w-full items-center justify-center rounded-xl border bg-card p-4 text-muted-foreground text-sm'>
         Funil não disponível
       </div>
     )
@@ -43,13 +41,13 @@ export default function ConversionFunnel({
   }))
 
   return (
-    <div className="bg-card flex h-full w-full flex-col overflow-hidden rounded-xl border p-4 shadow-sm">
-      <h3 className="text-foreground mb-4 text-base font-semibold">Funil de Vendas</h3>
-      <div className="bg-background/50 min-h-0 flex-1 rounded-md">
+    <div className='flex h-full w-full flex-col overflow-hidden rounded-xl border bg-card p-4 shadow-sm'>
+      <h3 className='mb-4 font-semibold text-base text-foreground'>Funil de Vendas</h3>
+      <div className='min-h-0 flex-1 rounded-md bg-background/50'>
         <ResponsiveFunnel
           data={funnelData}
           margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-          valueFormat=">-.0f"
+          valueFormat='>-.0f'
           colors={{ scheme: 'nivo' }}
           borderWidth={20}
           labelColor={{
@@ -62,7 +60,7 @@ export default function ConversionFunnel({
           afterSeparatorOffset={20}
           currentPartSizeExtension={10}
           currentBorderWidth={40}
-          motionConfig="wobbly"
+          motionConfig='wobbly'
         />
       </div>
     </div>

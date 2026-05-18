@@ -1,9 +1,8 @@
-import { NextRequest } from 'next/server'
-
-import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
-import { organizationJson } from '@/server/http/organization-json'
+import type { NextRequest } from 'next/server'
 import { updateOrganizationMemberRoleSchema } from '@/features/organizations/schemas/organization-member-schemas'
 import { updateOrganizationMemberRole } from '@/features/organizations/services/organization-members.service'
+import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
+import { organizationJson } from '@/server/http/organization-json'
 
 export async function PATCH(
   request: NextRequest,
@@ -17,7 +16,10 @@ export async function PATCH(
   const body = await request.json().catch(() => null)
   const parsed = updateOrganizationMemberRoleSchema.safeParse(body)
   if (!parsed.success) {
-    return organizationJson({ error: 'Dados inválidos', details: parsed.error.flatten() }, { status: 400 })
+    return organizationJson(
+      { error: 'Dados inválidos', details: parsed.error.flatten() },
+      { status: 400 }
+    )
   }
 
   const { memberId } = await params

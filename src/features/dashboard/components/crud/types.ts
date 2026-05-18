@@ -1,4 +1,4 @@
-import React from 'react'
+import type React from 'react'
 
 // View types
 export type ViewType = 'list' | 'cards' | 'kanban'

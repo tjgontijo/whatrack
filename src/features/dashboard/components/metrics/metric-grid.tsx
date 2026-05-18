@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { cn } from '@/lib/utils/utils'
 
 interface MetricGridProps {
@@ -7,11 +7,7 @@ interface MetricGridProps {
   className?: string
 }
 
-export function MetricGrid({
-  children,
-  columns = 4,
-  className,
-}: MetricGridProps) {
+export function MetricGrid({ children, columns = 4, className }: MetricGridProps) {
   return (
     <div
       className={cn(

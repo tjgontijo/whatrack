@@ -1,8 +1,7 @@
 import { notFound } from 'next/navigation'
-
+import { getAccountSummary } from '@/features/account'
 import { HeaderPageShell } from '@/features/dashboard/components/layout'
 import { ProfileSettingsContent } from '@/features/settings/components/profile-settings-content'
-import { getAccountSummary } from '@/features/account'
 import { requireWorkspacePageAccess } from '@/server/auth/require-workspace-page-access'
 
 type ProfilePageProps = {
@@ -22,7 +21,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   }
 
   return (
-    <HeaderPageShell title="Perfil">
+    <HeaderPageShell title='Perfil'>
       <ProfileSettingsContent account={summary.account} />
     </HeaderPageShell>
   )

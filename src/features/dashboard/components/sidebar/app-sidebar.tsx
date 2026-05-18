@@ -1,7 +1,5 @@
 'use client'
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
 import {
   Bot,
   Building2,
@@ -19,9 +17,10 @@ import {
   UserCircle,
   Users,
 } from 'lucide-react'
-
-import type { Permission } from '@/lib/auth/rbac/roles'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { MetaIcon, WhatsAppIcon } from '@/components/shared/icons'
+import type { Permission } from '@/lib/auth/rbac/roles'
 import { cn } from '@/lib/utils/utils'
 
 const ICON_MAP = {
@@ -100,8 +99,18 @@ export function AppSidebar({
     {
       label: 'Visão Geral',
       items: [
-        { title: 'Dashboard', href: basePath, icon: 'LayoutDashboard', permission: 'view:dashboard' },
-        { title: 'Inbox', href: `${basePath}/whatsapp/inbox`, icon: 'MessageSquare', permission: 'view:whatsapp' },
+        {
+          title: 'Dashboard',
+          href: basePath,
+          icon: 'LayoutDashboard',
+          permission: 'view:dashboard',
+        },
+        {
+          title: 'Inbox',
+          href: `${basePath}/whatsapp/inbox`,
+          icon: 'MessageSquare',
+          permission: 'view:whatsapp',
+        },
       ],
     },
     {
@@ -126,8 +135,18 @@ export function AppSidebar({
       label: 'CRM',
       items: [
         { title: 'Leads', href: `${basePath}/leads`, icon: 'Users', permission: 'view:leads' },
-        { title: 'Pipeline', href: `${basePath}/tickets`, icon: 'Kanban', permission: 'view:tickets' },
-        { title: 'Vendas', href: `${basePath}/sales`, icon: 'ShoppingBag', permission: 'view:sales' },
+        {
+          title: 'Pipeline',
+          href: `${basePath}/tickets`,
+          icon: 'Kanban',
+          permission: 'view:tickets',
+        },
+        {
+          title: 'Vendas',
+          href: `${basePath}/sales`,
+          icon: 'ShoppingBag',
+          permission: 'view:sales',
+        },
       ],
     },
     {
@@ -199,7 +218,13 @@ export function AppSidebar({
           permission: 'view:audit',
         },
         ...(isOwnerUser
-          ? [{ title: 'Assinatura', href: `${basePath}/settings/subscription`, icon: 'ShoppingBag' } satisfies NavItem]
+          ? [
+              {
+                title: 'Assinatura',
+                href: `${basePath}/settings/subscription`,
+                icon: 'ShoppingBag',
+              } satisfies NavItem,
+            ]
           : []),
       ],
     },
@@ -207,7 +232,13 @@ export function AppSidebar({
       label: 'Admin',
       items: [
         ...(isAdminUser
-          ? [{ title: 'Planos e Cobrança', href: `${basePath}/settings/billing`, icon: 'CreditCard' } satisfies NavItem]
+          ? [
+              {
+                title: 'Planos e Cobrança',
+                href: `${basePath}/settings/billing`,
+                icon: 'CreditCard',
+              } satisfies NavItem,
+            ]
           : []),
       ],
     },
@@ -232,8 +263,8 @@ export function AppSidebar({
           collapsed ? 'justify-center px-0' : 'px-2'
         )}
       >
-        <Icon className="h-[18px] w-[18px] shrink-0" />
-        {!collapsed && <span className="truncate">{item.title}</span>}
+        <Icon className='h-[18px] w-[18px] shrink-0' />
+        {!collapsed && <span className='truncate'>{item.title}</span>}
       </Link>
     )
   }
@@ -241,14 +272,14 @@ export function AppSidebar({
   return (
     <aside
       className={cn(
-        'bg-sidebar flex flex-col overflow-hidden transition-[width] duration-200 ease-linear shrink-0',
+        'flex shrink-0 flex-col overflow-hidden bg-sidebar transition-[width] duration-200 ease-linear',
         collapsed ? 'w-12' : 'w-56'
       )}
     >
       {/* Nav */}
-      <div className="scrollbar-hide flex-1 overflow-y-auto overflow-x-hidden py-2">
+      <div className='scrollbar-hide flex-1 overflow-y-auto overflow-x-hidden py-2'>
         {isSettingsMode ? (
-          <div className="flex flex-col gap-2 px-2">
+          <div className='flex flex-col gap-2 px-2'>
             {settingsGroups.map((group) => {
               const visible = getVisibleItems(group.items)
               if (visible.length === 0) return null
@@ -256,32 +287,28 @@ export function AppSidebar({
               return (
                 <div key={group.label}>
                   {!collapsed && (
-                    <p className="mb-1 px-2 text-[11px] font-medium tracking-wide text-sidebar-foreground/40">
+                    <p className='mb-1 px-2 font-medium text-[11px] text-sidebar-foreground/40 tracking-wide'>
                       {group.label}
                     </p>
                   )}
-                  <div className="flex flex-col gap-0.5">
-                    {visible.map(renderItem)}
-                  </div>
+                  <div className='flex flex-col gap-0.5'>{visible.map(renderItem)}</div>
                 </div>
               )
             })}
           </div>
         ) : (
-          <div className="flex flex-col gap-0 px-2">
+          <div className='flex flex-col gap-0 px-2'>
             {appGroups.map((group) => {
               const visible = getVisibleItems(group.items)
               if (visible.length === 0) return null
               return (
-                <div key={group.label} className="mb-1">
+                <div key={group.label} className='mb-1'>
                   {!collapsed && (
-                    <p className="mb-0.5 px-2 pt-2 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40">
+                    <p className='mb-0.5 px-2 pt-2 font-semibold text-[10px] text-sidebar-foreground/40 uppercase tracking-wider'>
                       {group.label}
                     </p>
                   )}
-                  <div className="flex flex-col gap-0.5">
-                    {visible.map(renderItem)}
-                  </div>
+                  <div className='flex flex-col gap-0.5'>{visible.map(renderItem)}</div>
                 </div>
               )
             })}
@@ -290,7 +317,7 @@ export function AppSidebar({
       </div>
 
       {/* Footer: collapse toggle */}
-      <div className="shrink-0 px-2 pb-3">
+      <div className='shrink-0 px-2 pb-3'>
         <button
           onClick={onToggle}
           title={collapsed ? 'Expandir menu' : 'Recolher menu'}
@@ -301,10 +328,10 @@ export function AppSidebar({
           )}
         >
           {collapsed ? (
-            <PanelLeftOpen className="h-[18px] w-[18px] shrink-0" />
+            <PanelLeftOpen className='h-[18px] w-[18px] shrink-0' />
           ) : (
             <>
-              <PanelLeftClose className="h-[18px] w-[18px] shrink-0" />
+              <PanelLeftClose className='h-[18px] w-[18px] shrink-0' />
               <span>Recolher</span>
             </>
           )}

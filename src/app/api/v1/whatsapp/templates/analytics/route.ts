@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
+import { WhatsAppTemplateAnalyticsService } from '@/features/whatsapp/services/whatsapp-template-analytics.service'
 import { apiError } from '@/lib/utils/api-response'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { WhatsAppTemplateAnalyticsService } from '@/features/whatsapp/services/whatsapp-template-analytics.service'
 
 export const dynamic = 'force-dynamic'
 

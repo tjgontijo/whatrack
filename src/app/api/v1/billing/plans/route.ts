@@ -1,11 +1,10 @@
-import { NextRequest } from 'next/server'
-
-import { apiError, apiSuccess } from '@/lib/utils/api-response'
+import type { NextRequest } from 'next/server'
 import {
   billingPlanPublicQuerySchema,
   publicBillingPlanListResponseSchema,
 } from '@/features/billing/schemas/billing-plan-schemas'
 import { listPublicBillingPlans } from '@/features/billing/services/billing-plan-catalog.service'
+import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
 
 export const dynamic = 'force-dynamic'
@@ -13,7 +12,7 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   try {
     const parsed = billingPlanPublicQuerySchema.safeParse(
-      Object.fromEntries(new URL(request.url).searchParams),
+      Object.fromEntries(new URL(request.url).searchParams)
     )
 
     if (!parsed.success) {

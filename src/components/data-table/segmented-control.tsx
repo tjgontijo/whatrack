@@ -13,7 +13,7 @@ interface SegmentedControlProps<T = string> {
   /** Valor selecionado */
   value: T
   /** Callback de mudança de valor */
-  onChange: (value: T) => void | any
+  onChange: (value: T) => undefined | any
   /** Opções disponíveis */
   options: SegmentedOption<T>[]
   /** Classe customizada */
@@ -51,9 +51,9 @@ export const SegmentedControl = React.forwardRef<HTMLDivElement, SegmentedContro
     return (
       <div
         ref={ref}
-        role="group"
+        role='group'
         aria-label={ariaLabel}
-        className={cn('bg-muted inline-flex items-center gap-1 rounded-lg p-1', className)}
+        className={cn('inline-flex items-center gap-1 rounded-lg bg-muted p-1', className)}
         {...props}
       >
         {options.map((option) => (
@@ -62,7 +62,7 @@ export const SegmentedControl = React.forwardRef<HTMLDivElement, SegmentedContro
             onClick={() => onChange(option.value)}
             aria-pressed={value === option.value}
             className={cn(
-              'inline-flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-all',
+              'inline-flex items-center justify-center gap-2 rounded-md px-3 py-2 font-medium text-sm transition-all',
               'cursor-pointer',
               value === option.value
                 ? 'bg-background text-foreground shadow-sm'
@@ -71,7 +71,7 @@ export const SegmentedControl = React.forwardRef<HTMLDivElement, SegmentedContro
             title={option.label}
           >
             {option.icon && (
-              <span className="flex items-center justify-center" aria-hidden="true">
+              <span className='flex items-center justify-center' aria-hidden='true'>
                 {option.icon}
               </span>
             )}

@@ -30,7 +30,9 @@ export async function acceptOrganizationInvitation(invitationId: string): Promis
 }
 
 export function fetchInvitationPreview(invitationId: string): Promise<InvitationPreview> {
-  return apiFetch(`/api/v1/invitations/${encodeURIComponent(invitationId)}/public`) as Promise<InvitationPreview>
+  return apiFetch(
+    `/api/v1/invitations/${encodeURIComponent(invitationId)}/public`
+  ) as Promise<InvitationPreview>
 }
 
 export function buildInvitationQuery(invitationId: string | null, next?: string | null): string {

@@ -1,49 +1,52 @@
-import { apiError, apiSuccess } from '@/lib/utils/api-response';
-import { validateFullAccess } from '@/server/auth/validate-organization-access';
-import { getContactListById, updateContactList, deleteContactList } from '@/features/whatsapp/lib/services/whatsapp-contact-list.service';
-import { whatsappContactListSchema } from '@/features/whatsapp/lib/schemas/audience';
+import {
+  deleteContactList,
+  getContactListById,
+  updateContactList,
+} from '@/features/whatsapp/lib/services/whatsapp-contact-list.service'
+import { apiError, apiSuccess } from '@/lib/utils/api-response'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const { hasAccess, organizationId } = await validateFullAccess(request);
-  if (!hasAccess || !organizationId) return apiError('Unauthorized', 401);
+  const { id } = await params
+  const { hasAccess, organizationId } = await validateFullAccess(request)
+  if (!hasAccess || !organizationId) return apiError('Unauthorized', 401)
 
-  const { searchParams } = new URL(request.url);
-  const projectId = searchParams.get('projectId') || undefined;
+  const { searchParams } = new URL(request.url)
+  const projectId = searchParams.get('projectId') || undefined
 
-  const result = await getContactListById(organizationId, id, projectId);
-  if ('error' in result) return apiError(result.error, result.status);
+  const result = await getContactListById(organizationId, id, projectId)
+  if ('error' in result) return apiError(result.error, result.status)
 
-  return apiSuccess(result);
+  return apiSuccess(result)
 }
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const { hasAccess, organizationId } = await validateFullAccess(request);
-  if (!hasAccess || !organizationId) return apiError('Unauthorized', 401);
+  const { id } = await params
+  const { hasAccess, organizationId } = await validateFullAccess(request)
+  if (!hasAccess || !organizationId) return apiError('Unauthorized', 401)
 
-  const { searchParams } = new URL(request.url);
-  const projectId = searchParams.get('projectId') || undefined;
+  const { searchParams } = new URL(request.url)
+  const projectId = searchParams.get('projectId') || undefined
 
-  const body = await request.json();
-  const result = await updateContactList(organizationId, id, { ...body, projectId });
-  if ('error' in result) return apiError(result.error, result.status);
+  const body = await request.json()
+  const result = await updateContactList(organizationId, id, { ...body, projectId })
+  if ('error' in result) return apiError(result.error, result.status)
 
-  return apiSuccess(result);
+  return apiSuccess(result)
 }
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const { hasAccess, organizationId } = await validateFullAccess(request);
-  if (!hasAccess || !organizationId) return apiError('Unauthorized', 401);
+  const { id } = await params
+  const { hasAccess, organizationId } = await validateFullAccess(request)
+  if (!hasAccess || !organizationId) return apiError('Unauthorized', 401)
 
-  const { searchParams } = new URL(request.url);
-  const projectId = searchParams.get('projectId') || undefined;
+  const { searchParams } = new URL(request.url)
+  const projectId = searchParams.get('projectId') || undefined
 
-  const result = await deleteContactList(organizationId, id, projectId);
-  if ('error' in result) return apiError(result.error, result.status);
+  const result = await deleteContactList(organizationId, id, projectId)
+  if ('error' in result) return apiError(result.error, result.status)
 
-  return apiSuccess({ success: true });
+  return apiSuccess({ success: true })
 }

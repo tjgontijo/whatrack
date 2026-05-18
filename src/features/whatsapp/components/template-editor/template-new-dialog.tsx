@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -8,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -16,7 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Label } from '@/components/ui/label'
 
 interface TemplateNewDialogProps {
   open: boolean
@@ -26,7 +26,13 @@ interface TemplateNewDialogProps {
 
 const CATEGORY_SUBTYPES: Record<string, string[]> = {
   Marketing: ['Padrão', 'Catálogo', 'Flows', 'Detalhes do pedido', 'Solicitação de ligação'],
-  Utilidade: ['Padrão', 'Flows', 'Status do pedido', 'Detalhes do pedido', 'Solicitação de ligação'],
+  Utilidade: [
+    'Padrão',
+    'Flows',
+    'Status do pedido',
+    'Detalhes do pedido',
+    'Solicitação de ligação',
+  ],
   Autenticação: ['Código de acesso único'],
 }
 
@@ -61,25 +67,26 @@ export function TemplateNewDialog({ open, onOpenChange, onContinue }: TemplateNe
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className='sm:max-w-[500px]'>
         <DialogHeader>
           <DialogTitle>Novo Template</DialogTitle>
           <DialogDescription>
-            Configure o tipo e idioma do seu template. Você poderá editar o conteúdo no próximo passo.
+            Configure o tipo e idioma do seu template. Você poderá editar o conteúdo no próximo
+            passo.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
+        <div className='space-y-6 py-4'>
           {/* Category Selection */}
-          <div className="space-y-3">
-            <Label className="text-base font-semibold">Categoria</Label>
-            <div className="grid grid-cols-3 gap-2">
+          <div className='space-y-3'>
+            <Label className='font-semibold text-base'>Categoria</Label>
+            <div className='grid grid-cols-3 gap-2'>
               {['Marketing', 'Utilidade', 'Autenticação'].map((cat) => (
                 <Button
                   key={cat}
                   variant={category === cat ? 'default' : 'outline'}
                   onClick={() => handleCategoryChange(cat)}
-                  className="text-sm"
+                  className='text-sm'
                 >
                   {cat}
                 </Button>
@@ -88,13 +95,13 @@ export function TemplateNewDialog({ open, onOpenChange, onContinue }: TemplateNe
           </div>
 
           {/* Subtype Selection */}
-          <div className="space-y-3">
-            <Label htmlFor="subtype" className="text-base font-semibold">
+          <div className='space-y-3'>
+            <Label htmlFor='subtype' className='font-semibold text-base'>
               Sub-tipo
             </Label>
             <Select value={subtype} onValueChange={setSubtype}>
-              <SelectTrigger id="subtype">
-                <SelectValue placeholder="Selecionar sub-tipo..." />
+              <SelectTrigger id='subtype'>
+                <SelectValue placeholder='Selecionar sub-tipo...' />
               </SelectTrigger>
               <SelectContent>
                 {subtypes.map((subtype) => (
@@ -107,13 +114,13 @@ export function TemplateNewDialog({ open, onOpenChange, onContinue }: TemplateNe
           </div>
 
           {/* Language Selection */}
-          <div className="space-y-3">
-            <Label htmlFor="language" className="text-base font-semibold">
+          <div className='space-y-3'>
+            <Label htmlFor='language' className='font-semibold text-base'>
               Idioma
             </Label>
             <Select value={language} onValueChange={setLanguage}>
-              <SelectTrigger id="language">
-                <SelectValue placeholder="Selecionar idioma..." />
+              <SelectTrigger id='language'>
+                <SelectValue placeholder='Selecionar idioma...' />
               </SelectTrigger>
               <SelectContent>
                 {LANGUAGES.map((lang) => (
@@ -126,8 +133,8 @@ export function TemplateNewDialog({ open, onOpenChange, onContinue }: TemplateNe
           </div>
         </div>
 
-        <div className="flex gap-3 justify-end pt-4">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+        <div className='flex justify-end gap-3 pt-4'>
+          <Button variant='outline' onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
           <Button onClick={handleContinue} disabled={!category || !subtype}>

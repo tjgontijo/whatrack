@@ -1,11 +1,16 @@
 import { NextResponse } from 'next/server'
-
-import { apiError } from '@/lib/utils/api-response'
-import { validateFullAccess, validatePermissionAccess } from '@/server/auth/validate-organization-access'
-import { resolveProjectScope } from '@/server/project/project-scope'
 import { createTicketStageSchema } from '@/features/ticket-stages/schemas/ticket-stage.schemas'
-import { createTicketStage, listTicketStages } from '@/features/ticket-stages/services/ticket-stage.service'
+import {
+  createTicketStage,
+  listTicketStages,
+} from '@/features/ticket-stages/services/ticket-stage.service'
+import { apiError } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
+import {
+  validateFullAccess,
+  validatePermissionAccess,
+} from '@/server/auth/validate-organization-access'
+import { resolveProjectScope } from '@/server/project/project-scope'
 
 export async function GET(req: Request) {
   const access = await validateFullAccess(req)
@@ -42,10 +47,11 @@ export async function POST(req: Request) {
 
     const result = await createTicketStage({
       organizationId: access.organizationId,
-      projectId: await resolveProjectScope({
-        organizationId: access.organizationId,
-        projectId: parsed.data.projectId,
-      }) ?? undefined,
+      projectId:
+        (await resolveProjectScope({
+          organizationId: access.organizationId,
+          projectId: parsed.data.projectId,
+        })) ?? undefined,
       name: parsed.data.name,
       color: parsed.data.color,
       order: parsed.data.order,

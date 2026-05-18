@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 import {
   buildSignInRedirectPath,
   isAuthPagePath,
@@ -27,7 +27,7 @@ function hasSessionCookie(request: NextRequest) {
   )
 }
 
-import { randomUUID } from 'crypto'
+import { randomUUID } from 'node:crypto'
 import { requestContextStorage } from '@/lib/utils/request-context'
 
 export function proxy(request: NextRequest) {

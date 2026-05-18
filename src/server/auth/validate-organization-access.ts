@@ -2,15 +2,15 @@ import { cookies } from 'next/headers'
 
 import { auth } from '@/lib/auth/auth'
 import { getPermissionCandidates, isAdmin, isOwner, type Permission } from '@/lib/auth/rbac/roles'
-import { prisma } from '@/lib/db/prisma'
 import { ORGANIZATION_COOKIE, ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
+import { prisma } from '@/lib/db/prisma'
+import { logger } from '@/lib/utils/logger'
 import {
   INTEGRATION_IDENTITY_REQUIRED_MESSAGE,
   isOrganizationIdentityComplete,
   requiresIdentityForIntegrationPath,
 } from '@/server/organization/is-identity-complete'
 import { listEffectivePermissionsForUser } from '@/server/organization/organization-rbac.service'
-import { logger } from '@/lib/utils/logger'
 
 async function buildAuthHeaders(request?: Request): Promise<Headers> {
   if (request) {
@@ -103,7 +103,7 @@ export function extractOrganizationId(request: Request): string | null {
     const url = new URL(request.url)
     const fromParams = url.searchParams.get('organizationId') || url.searchParams.get('orgId')
     if (fromParams) return fromParams
-  } catch { }
+  } catch {}
 
   // 3. Check Cookie (last resort)
   try {
@@ -112,7 +112,7 @@ export function extractOrganizationId(request: Request): string | null {
       const match = cookieHeader.match(new RegExp(`${ORGANIZATION_COOKIE}=([^;]+)`))
       if (match) return match[1]
     }
-  } catch { }
+  } catch {}
 
   return null
 }

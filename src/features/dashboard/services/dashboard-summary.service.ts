@@ -1,23 +1,23 @@
-import { prisma } from '@/lib/db/prisma'
-import { dashboardSummaryResponseSchema } from '@/features/dashboard/schemas/dashboard-summary'
 import type { DashboardSummaryQueryInput } from '@/features/dashboard/schemas/dashboard-schemas'
+import { dashboardSummaryResponseSchema } from '@/features/dashboard/schemas/dashboard-summary'
 import {
   buildSalesWhere,
   resolveFiltersDateRange,
   type SummaryFilters,
 } from '@/features/dashboard/services/build-filters'
 import { buildFinancialSummary } from '@/features/dashboard/services/build-financial-summary'
-import { buildSalesByService } from '@/features/dashboard/services/build-sales-by-service'
 import { buildFunnel } from '@/features/dashboard/services/build-funnel'
-import { buildOriginsSummary } from '@/features/dashboard/services/build-origins'
-import { buildPaidCampaignsSummary } from '@/features/dashboard/services/build-paid-campaigns'
 import { buildItemFilters } from '@/features/dashboard/services/build-item-filters'
 import { buildItemsCost } from '@/features/dashboard/services/build-items-cost'
+import { buildOriginsSummary } from '@/features/dashboard/services/build-origins'
+import { buildPaidCampaignsSummary } from '@/features/dashboard/services/build-paid-campaigns'
+import { buildSalesByService } from '@/features/dashboard/services/build-sales-by-service'
+import { prisma } from '@/lib/db/prisma'
 
 export async function getDashboardSummary(
   organizationId: string,
   query: DashboardSummaryQueryInput,
-  projectId?: string | null,
+  projectId?: string | null
 ) {
   const filters: SummaryFilters = {
     period: query.period,

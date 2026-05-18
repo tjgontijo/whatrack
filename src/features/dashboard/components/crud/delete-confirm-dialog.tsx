@@ -1,6 +1,7 @@
 'use client'
 
-import React from 'react'
+import { AlertTriangle, Loader2, Trash2 } from 'lucide-react'
+import type React from 'react'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -8,12 +9,10 @@ import {
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
-  AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
-import { Trash2, AlertTriangle, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils/utils'
 
 interface DeleteConfirmDialogProps {
@@ -48,36 +47,36 @@ export function DeleteConfirmDialog({
       {trigger !== null && (
         <AlertDialogTrigger asChild>
           {trigger || (
-            <Button variant={variant} size="sm" className="gap-2">
-              <Trash2 className="h-4 w-4" />
+            <Button variant={variant} size='sm' className='gap-2'>
+              <Trash2 className='h-4 w-4' />
               {buttonText}
             </Button>
           )}
         </AlertDialogTrigger>
       )}
-      <AlertDialogContent className="!max-w-[600px] overflow-hidden border-none p-0 shadow-2xl">
-        <div className="bg-destructive/10 border-destructive/10 flex items-center gap-4 border-b p-6">
-          <div className="bg-destructive/20 flex h-12 w-12 shrink-0 items-center justify-center rounded-full">
-            <AlertTriangle className="text-destructive h-6 w-6" />
+      <AlertDialogContent className='!max-w-[600px] overflow-hidden border-none p-0 shadow-2xl'>
+        <div className='flex items-center gap-4 border-destructive/10 border-b bg-destructive/10 p-6'>
+          <div className='flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-destructive/20'>
+            <AlertTriangle className='h-6 w-6 text-destructive' />
           </div>
           <div>
-            <AlertDialogTitle className="text-destructive text-xl font-bold">
+            <AlertDialogTitle className='font-bold text-destructive text-xl'>
               {title}
             </AlertDialogTitle>
-            <p className="text-destructive/60 mt-0.5 text-xs font-bold uppercase tracking-widest">
+            <p className='mt-0.5 font-bold text-destructive/60 text-xs uppercase tracking-widest'>
               Confirmação Crítica
             </p>
           </div>
         </div>
 
-        <div className="p-6">
-          <AlertDialogDescription className="text-muted-foreground text-sm leading-relaxed">
+        <div className='p-6'>
+          <AlertDialogDescription className='text-muted-foreground text-sm leading-relaxed'>
             {description}
           </AlertDialogDescription>
         </div>
 
-        <AlertDialogFooter className="bg-muted/30 flex-col gap-3 p-6 sm:flex-row">
-          <AlertDialogCancel className="border-muted-foreground/20 hover:bg-muted h-11 w-full rounded-xl font-bold transition-all sm:w-auto">
+        <AlertDialogFooter className='flex-col gap-3 bg-muted/30 p-6 sm:flex-row'>
+          <AlertDialogCancel className='h-11 w-full rounded-xl border-muted-foreground/20 font-bold transition-all hover:bg-muted sm:w-auto'>
             {cancelText}
           </AlertDialogCancel>
           <AlertDialogAction
@@ -89,13 +88,13 @@ export function DeleteConfirmDialog({
             className={cn(
               'h-11 w-full rounded-xl font-bold shadow-lg transition-all sm:w-auto',
               variant === 'destructive'
-                ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-destructive/20'
-                : 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-primary/20'
+                ? 'bg-destructive text-destructive-foreground shadow-destructive/20 hover:bg-destructive/90'
+                : 'bg-primary text-primary-foreground shadow-primary/20 hover:bg-primary/90'
             )}
           >
             {isLoading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
                 Processando...
               </>
             ) : (

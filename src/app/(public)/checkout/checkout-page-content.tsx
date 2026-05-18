@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
 import { Check } from 'lucide-react'
-import { toast } from 'sonner'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useMemo, useState } from 'react'
+import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -43,7 +43,7 @@ export function CheckoutPageContent({
 
   const basePlans = useMemo(
     () => plans.filter((p) => p.kind === 'base' && !p.contactSalesOnly),
-    [plans],
+    [plans]
   )
 
   const defaultPlan = useMemo(() => {
@@ -108,7 +108,7 @@ export function CheckoutPageContent({
       }
 
       router.push(
-        `/billing/success?next=/${orgSlug}/default&planName=${selectedPlan.code ?? selectedPlan.slug}`,
+        `/billing/success?next=/${orgSlug}/default&planName=${selectedPlan.code ?? selectedPlan.slug}`
       )
     } catch {
       toast.error('Falha na comunicação com o servidor. Tente novamente.')
@@ -124,52 +124,55 @@ export function CheckoutPageContent({
     setExpiryYear(digits.slice(2, 4))
   }
 
-  const expiryDisplay = expiryMonth || expiryYear ? `${expiryMonth}/${expiryYear}`.replace(/\/$/, '') : ''
+  const expiryDisplay =
+    expiryMonth || expiryYear ? `${expiryMonth}/${expiryYear}`.replace(/\/$/, '') : ''
 
   return (
-    <div className="flex min-h-screen flex-col bg-zinc-950 text-white">
+    <div className='flex min-h-screen flex-col bg-zinc-950 text-white'>
       {/* Header */}
-      <header className="border-b border-zinc-800 px-6 py-4">
-        <div className="mx-auto flex max-w-5xl items-center justify-between">
-          <Link href="/" className="inline-flex items-center">
-            <div className="relative h-8 w-32">
+      <header className='border-zinc-800 border-b px-6 py-4'>
+        <div className='mx-auto flex max-w-5xl items-center justify-between'>
+          <Link href='/' className='inline-flex items-center'>
+            <div className='relative h-8 w-32'>
               <Image
-                src="/images/logo/logo_transparent_dark_horizontal.png"
-                alt="WhaTrack"
+                src='/images/logo/logo_transparent_dark_horizontal.png'
+                alt='WhaTrack'
                 fill
-                className="object-contain"
+                className='object-contain'
               />
             </div>
           </Link>
-          <div className="flex items-center gap-2 text-sm text-zinc-400">
-            <div className="h-2 w-2 rounded-full bg-emerald-500" />
-            {isTrialCheckout ? '14 dias grátis · Cancele quando quiser' : 'Checkout seguro com Asaas'}
+          <div className='flex items-center gap-2 text-sm text-zinc-400'>
+            <div className='h-2 w-2 rounded-full bg-emerald-500' />
+            {isTrialCheckout
+              ? '14 dias grátis · Cancele quando quiser'
+              : 'Checkout seguro com Asaas'}
           </div>
         </div>
       </header>
 
       {/* Content */}
-      <div className="mx-auto w-full max-w-5xl flex-1 px-6 py-12">
-        <div className="mb-10 text-center">
-          <h1 className="text-3xl font-bold tracking-tight">Ative seu plano</h1>
-          <p className="mt-2 text-zinc-400">
+      <div className='mx-auto w-full max-w-5xl flex-1 px-6 py-12'>
+        <div className='mb-10 text-center'>
+          <h1 className='font-bold text-3xl tracking-tight'>Ative seu plano</h1>
+          <p className='mt-2 text-zinc-400'>
             {isTrialCheckout
               ? 'Seus primeiros 14 dias são grátis. Cobramos somente ao término do período.'
               : 'Selecione o plano e conclua a assinatura com cartão de crédito.'}
           </p>
         </div>
 
-        <div className="grid gap-10 lg:grid-cols-2">
+        <div className='grid gap-10 lg:grid-cols-2'>
           {/* Plan selector */}
-          <div className="space-y-4">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-400">
+          <div className='space-y-4'>
+            <h2 className='font-semibold text-sm text-zinc-400 uppercase tracking-wider'>
               Escolha seu plano
             </h2>
-            <div className="space-y-3">
+            <div className='space-y-3'>
               {basePlans.map((plan) => (
                 <button
                   key={plan.id}
-                  type="button"
+                  type='button'
                   onClick={() => setSelectedPlan(plan)}
                   className={`w-full rounded-2xl border p-4 text-left transition-all ${
                     selectedPlan?.id === plan.id
@@ -177,36 +180,36 @@ export function CheckoutPageContent({
                       : 'border-zinc-800 bg-zinc-900/50 hover:border-zinc-700'
                   }`}
                 >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold">{plan.name}</span>
+                  <div className='flex items-start justify-between gap-4'>
+                    <div className='flex-1'>
+                      <div className='flex items-center gap-2'>
+                        <span className='font-semibold'>{plan.name}</span>
                         {plan.isHighlighted && (
-                          <span className="rounded-full bg-emerald-500 px-2 py-0.5 text-xs font-bold text-white">
+                          <span className='rounded-full bg-emerald-500 px-2 py-0.5 font-bold text-white text-xs'>
                             Mais escolhido
                           </span>
                         )}
                       </div>
                       {plan.subtitle && (
-                        <p className="mt-0.5 text-sm text-zinc-400">{plan.subtitle}</p>
+                        <p className='mt-0.5 text-sm text-zinc-400'>{plan.subtitle}</p>
                       )}
                     </div>
-                    <div className="shrink-0 text-right">
-                      <span className="text-2xl font-bold">
+                    <div className='shrink-0 text-right'>
+                      <span className='font-bold text-2xl'>
                         R${' '}
                         {plan.monthlyPrice.toLocaleString('pt-BR', {
                           minimumFractionDigits: 0,
                           maximumFractionDigits: 0,
                         })}
                       </span>
-                      <span className="text-sm text-zinc-400">/mês</span>
+                      <span className='text-sm text-zinc-400'>/mês</span>
                     </div>
                   </div>
                   {selectedPlan?.id === plan.id && plan.features.length > 0 && (
-                    <ul className="mt-4 space-y-2 border-t border-zinc-800 pt-4">
+                    <ul className='mt-4 space-y-2 border-zinc-800 border-t pt-4'>
                       {plan.features.map((f) => (
-                        <li key={f} className="flex items-start gap-2 text-sm text-zinc-300">
-                          <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
+                        <li key={f} className='flex items-start gap-2 text-sm text-zinc-300'>
+                          <Check className='mt-0.5 h-4 w-4 shrink-0 text-emerald-400' />
                           {f}
                         </li>
                       ))}
@@ -219,77 +222,75 @@ export function CheckoutPageContent({
 
           {/* Card form */}
           <div>
-            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-400">
+            <h2 className='mb-4 font-semibold text-sm text-zinc-400 uppercase tracking-wider'>
               Dados do cartão de crédito
             </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 space-y-4">
+            <form onSubmit={handleSubmit} className='space-y-4'>
+              <div className='space-y-4 rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6'>
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-zinc-300">
+                  <label className='mb-1.5 block font-medium text-sm text-zinc-300'>
                     Nome impresso no cartão
                   </label>
                   <Input
-                    placeholder="NOME SOBRENOME"
+                    placeholder='NOME SOBRENOME'
                     value={holderName}
                     onChange={(e) => setHolderName(e.target.value.toUpperCase())}
                     disabled={isSubmitting}
-                    autoComplete="cc-name"
-                    className="h-11 border-zinc-700 bg-zinc-900 text-white placeholder:text-zinc-600 focus-visible:border-emerald-500 focus-visible:ring-emerald-500/20"
+                    autoComplete='cc-name'
+                    className='h-11 border-zinc-700 bg-zinc-900 text-white placeholder:text-zinc-600 focus-visible:border-emerald-500 focus-visible:ring-emerald-500/20'
                   />
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-zinc-300">
+                  <label className='mb-1.5 block font-medium text-sm text-zinc-300'>
                     Número do cartão
                   </label>
                   <Input
-                    placeholder="0000 0000 0000 0000"
+                    placeholder='0000 0000 0000 0000'
                     value={cardNumber}
                     onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
                     disabled={isSubmitting}
-                    inputMode="numeric"
-                    autoComplete="cc-number"
-                    className="h-11 border-zinc-700 bg-zinc-900 text-white placeholder:text-zinc-600 focus-visible:border-emerald-500 focus-visible:ring-emerald-500/20"
+                    inputMode='numeric'
+                    autoComplete='cc-number'
+                    className='h-11 border-zinc-700 bg-zinc-900 text-white placeholder:text-zinc-600 focus-visible:border-emerald-500 focus-visible:ring-emerald-500/20'
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className='grid grid-cols-2 gap-4'>
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-zinc-300">
+                    <label className='mb-1.5 block font-medium text-sm text-zinc-300'>
                       Validade
                     </label>
                     <Input
-                      placeholder="MM/AA"
+                      placeholder='MM/AA'
                       value={expiryDisplay}
                       onChange={(e) => handleExpiryChange(e.target.value)}
                       disabled={isSubmitting}
-                      inputMode="numeric"
-                      autoComplete="cc-exp"
+                      inputMode='numeric'
+                      autoComplete='cc-exp'
                       maxLength={5}
-                      className="h-11 border-zinc-700 bg-zinc-900 text-white placeholder:text-zinc-600 focus-visible:border-emerald-500 focus-visible:ring-emerald-500/20"
+                      className='h-11 border-zinc-700 bg-zinc-900 text-white placeholder:text-zinc-600 focus-visible:border-emerald-500 focus-visible:ring-emerald-500/20'
                     />
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-zinc-300">
-                      CCV
-                    </label>
+                    <label className='mb-1.5 block font-medium text-sm text-zinc-300'>CCV</label>
                     <Input
-                      placeholder="000"
+                      placeholder='000'
                       value={ccv}
                       onChange={(e) => setCcv(e.target.value.replace(/\D/g, '').slice(0, 4))}
                       disabled={isSubmitting}
-                      inputMode="numeric"
-                      autoComplete="cc-csc"
-                      className="h-11 border-zinc-700 bg-zinc-900 text-white placeholder:text-zinc-600 focus-visible:border-emerald-500 focus-visible:ring-emerald-500/20"
+                      inputMode='numeric'
+                      autoComplete='cc-csc'
+                      className='h-11 border-zinc-700 bg-zinc-900 text-white placeholder:text-zinc-600 focus-visible:border-emerald-500 focus-visible:ring-emerald-500/20'
                     />
                   </div>
                 </div>
               </div>
 
               <Button
-                type="submit"
+                type='submit'
                 disabled={isSubmitting || !selectedPlan}
-                className="h-12 w-full rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 font-semibold text-white shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/40 disabled:opacity-70"
+                className='h-12 w-full rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 font-semibold text-white shadow-emerald-500/25 shadow-lg hover:shadow-emerald-500/40 hover:shadow-xl disabled:opacity-70'
               >
                 {isSubmitting
                   ? 'Processando...'
@@ -298,7 +299,7 @@ export function CheckoutPageContent({
                     : `Assinar plano ${selectedPlan?.name ?? ''}`}
               </Button>
 
-              <p className="text-center text-xs text-zinc-500">
+              <p className='text-center text-xs text-zinc-500'>
                 {isTrialCheckout
                   ? 'Cobrança somente após os 14 dias de teste grátis · Cancele antes sem custo'
                   : 'Pagamento processado com checkout transparente via Asaas'}

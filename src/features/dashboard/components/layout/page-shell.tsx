@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { cn } from '@/lib/utils/utils'
 
 interface PageShellProps {
@@ -25,7 +25,7 @@ export function PageShell({ children, className, maxWidth }: PageShellProps) {
 
   return (
     <div className={cn('flex h-full flex-col', className)}>
-      <div className={cn('flex flex-1 flex-col px-6 py-6 lg:px-8 3xl:px-12', containerClass)}>
+      <div className={cn('flex flex-1 flex-col 3xl:px-12 px-6 py-6 lg:px-8', containerClass)}>
         {children}
       </div>
     </div>

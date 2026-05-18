@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
 test.describe('Debug - Sign Up Form Validation', () => {
   test('should load sign-up page and validate form fields exist', async ({ page }) => {

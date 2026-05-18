@@ -1,17 +1,15 @@
-import { Prisma } from '@generated/prisma/client'
-
-import { prisma } from '@/lib/db/prisma'
-import { auditService } from '@/services/audit/audit.service'
 import type {
   BillingPlanCreateInput,
   BillingPlanUpdateInput,
 } from '@/features/billing/schemas/billing-plan-schemas'
+import { prisma } from '@/lib/db/prisma'
+import { auditService } from '@/services/audit/audit.service'
 import { getBillingPlanDetail } from './billing-plan-query.service'
 
 export class BillingPlanMutationError extends Error {
   constructor(
     message: string,
-    public readonly status: number,
+    public readonly status: number
   ) {
     super(message)
     this.name = 'BillingPlanMutationError'
@@ -88,7 +86,7 @@ export async function createBillingPlan(input: BillingPlanCreateInput, userId: s
 export async function updateBillingPlan(
   planId: string,
   input: BillingPlanUpdateInput,
-  userId: string,
+  userId: string
 ) {
   const existing = await prisma.billingPlan.findUnique({
     where: { id: planId },
@@ -145,11 +143,9 @@ export async function updateBillingPlan(
       ...(input.displayOrder !== undefined ? { displayOrder: input.displayOrder } : {}),
       ...(input.isActive !== undefined ? { isActive: input.isActive } : {}),
       ...(input.isHighlighted !== undefined ? { isHighlighted: input.isHighlighted } : {}),
-      ...(input.contactSalesOnly !== undefined
-        ? { contactSalesOnly: input.contactSalesOnly }
-        : {}),
+      ...(input.contactSalesOnly !== undefined ? { contactSalesOnly: input.contactSalesOnly } : {}),
       ...(Object.keys(input).some((key) =>
-        ['subtitle', 'cta', 'trialDays', 'features', 'additionals'].includes(key),
+        ['subtitle', 'cta', 'trialDays', 'features', 'additionals'].includes(key)
       )
         ? {
             metadata: buildPlanMetadata({

@@ -1,24 +1,21 @@
 import { notFound, redirect } from 'next/navigation'
-
-import { HeaderPageShell, RefreshButton } from '@/features/dashboard/components/layout'
 import { BillingPlanList } from '@/features/billing/components/billing-plan-list'
-import { isAdmin } from '@/lib/auth/rbac/roles'
 import { billingPlanListQuerySchema } from '@/features/billing/schemas/billing-plan-schemas'
 import { listBillingPlans } from '@/features/billing/services/billing-plan-query.service'
+import { HeaderPageShell, RefreshButton } from '@/features/dashboard/components/layout'
+import { isAdmin } from '@/lib/auth/rbac/roles'
 import { getServerSession } from '@/server/auth/server-session'
 
 type BillingSettingsPageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>
 }
 
-function normalizeSearchParams(
-  searchParams: Record<string, string | string[] | undefined>,
-) {
+function normalizeSearchParams(searchParams: Record<string, string | string[] | undefined>) {
   return Object.fromEntries(
     Object.entries(searchParams).map(([key, value]) => [
       key,
       Array.isArray(value) ? value[0] : value,
-    ]),
+    ])
   )
 }
 
@@ -27,9 +24,7 @@ export const metadata = {
   description: 'Gerencie o catálogo interno de planos e a sincronização com a Stripe.',
 }
 
-export default async function BillingSettingsPage({
-  searchParams,
-}: BillingSettingsPageProps) {
+export default async function BillingSettingsPage({ searchParams }: BillingSettingsPageProps) {
   const session = await getServerSession()
 
   if (!session?.user) {
@@ -46,7 +41,7 @@ export default async function BillingSettingsPage({
 
   return (
     <HeaderPageShell
-      title="Planos e Cobrança"
+      title='Planos e Cobrança'
       refreshAction={<RefreshButton queryKey={['billing-plans']} />}
     >
       <BillingPlanList data={data} filters={filters} />

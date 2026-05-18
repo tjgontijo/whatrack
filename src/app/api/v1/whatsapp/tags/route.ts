@@ -1,33 +1,36 @@
-import { apiError, apiSuccess } from '@/lib/utils/api-response';
-import { validateFullAccess } from '@/server/auth/validate-organization-access';
-import { listLeadTags, createLeadTag } from '@/features/whatsapp/lib/services/whatsapp-lead-tag.service';
-import { leadTagSchema } from '@/features/whatsapp/lib/schemas/audience';
+import { leadTagSchema } from '@/features/whatsapp/lib/schemas/audience'
+import {
+  createLeadTag,
+  listLeadTags,
+} from '@/features/whatsapp/lib/services/whatsapp-lead-tag.service'
+import { apiError, apiSuccess } from '@/lib/utils/api-response'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: Request) {
-  const { hasAccess, organizationId } = await validateFullAccess(request);
-  if (!hasAccess || !organizationId) return apiError('Unauthorized', 401);
+  const { hasAccess, organizationId } = await validateFullAccess(request)
+  if (!hasAccess || !organizationId) return apiError('Unauthorized', 401)
 
-  const { searchParams } = new URL(request.url);
-  const projectId = searchParams.get('projectId') || undefined;
+  const { searchParams } = new URL(request.url)
+  const projectId = searchParams.get('projectId') || undefined
 
-  const tags = await listLeadTags(organizationId, projectId);
-  return apiSuccess(tags);
+  const tags = await listLeadTags(organizationId, projectId)
+  return apiSuccess(tags)
 }
 
 export async function POST(request: Request) {
-  const { hasAccess, organizationId } = await validateFullAccess(request);
-  if (!hasAccess || !organizationId) return apiError('Unauthorized', 401);
+  const { hasAccess, organizationId } = await validateFullAccess(request)
+  if (!hasAccess || !organizationId) return apiError('Unauthorized', 401)
 
-  const { searchParams } = new URL(request.url);
-  const body = await request.json();
-  const parsed = leadTagSchema.safeParse({ ...body, organizationId });
+  const { searchParams } = new URL(request.url)
+  const body = await request.json()
+  const parsed = leadTagSchema.safeParse({ ...body, organizationId })
   if (!parsed.success) {
-    return apiError('Parâmetros inválidos', 400, { details: parsed.error.flatten() });
+    return apiError('Parâmetros inválidos', 400, { details: parsed.error.flatten() })
   }
 
-  const projectId = searchParams.get('projectId') || undefined;
-  const tag = await createLeadTag(organizationId, { ...parsed.data, projectId });
-  return apiSuccess(tag, 201);
+  const projectId = searchParams.get('projectId') || undefined
+  const tag = await createLeadTag(organizationId, { ...parsed.data, projectId })
+  return apiSuccess(tag, 201)
 }

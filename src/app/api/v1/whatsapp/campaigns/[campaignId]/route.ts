@@ -1,10 +1,8 @@
-import { NextResponse } from 'next/server'
-
+import { whatsappCampaignUpdateSchema } from '@/features/whatsapp/schemas/whatsapp-campaign-schemas'
+import { updateCampaign } from '@/features/whatsapp/services/whatsapp-campaign.service'
+import { getCampaignDetail } from '@/features/whatsapp/services/whatsapp-campaign-query.service'
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { updateCampaign, getCampaign } from '@/features/whatsapp/services/whatsapp-campaign.service'
-import { getCampaignDetail } from '@/features/whatsapp/services/whatsapp-campaign-query.service'
-import { whatsappCampaignUpdateSchema } from '@/features/whatsapp/schemas/whatsapp-campaign-schemas'
 
 export const dynamic = 'force-dynamic'
 

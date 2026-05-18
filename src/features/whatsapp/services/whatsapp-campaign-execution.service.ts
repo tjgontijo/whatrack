@@ -1,8 +1,8 @@
-import { prisma } from '@/lib/db/prisma'
-import { MetaCloudService } from '@/features/whatsapp/services/meta-cloud.service'
 import { resolveAccessToken } from '@/features/whatsapp/lib/token-crypto'
-import { logger } from '@/lib/utils/logger'
+import { MetaCloudService } from '@/features/whatsapp/services/meta-cloud.service'
 import { WhatsAppChatService } from '@/features/whatsapp/services/whatsapp-chat.service'
+import { prisma } from '@/lib/db/prisma'
+import { logger } from '@/lib/utils/logger'
 
 const BATCH_SIZE = 10 // 10 mensagens por segundo
 const BATCH_DELAY_MS = 1000 // 1 segundo entre lotes
@@ -35,7 +35,6 @@ export async function runCampaignDispatch(campaignId: string, organizationId: st
   await checkAndCompleteCampaign(campaignId)
   logger.info({ campaignId }, '[Campaign] runCampaignDispatch finished')
 }
-
 
 interface DispatchGroupResult {
   groupId: string
@@ -188,7 +187,7 @@ export async function processDispatchGroup(
 
       if (result.status === 'rejected') {
         const errorMsg = result.reason instanceof Error ? result.reason.message : 'Unknown error'
-        
+
         // Verifica se é erro de Rate Limit (#130429)
         if (errorMsg.includes('130429') || errorMsg.toLowerCase().includes('rate limit')) {
           rateLimitHit = true

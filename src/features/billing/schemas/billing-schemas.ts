@@ -93,7 +93,10 @@ export const subscriptionResponseSchema = z.object({
   isActive: z.boolean(),
   purchaseDate: z.string().datetime().nullable().optional(),
   expiresAt: z.string().datetime().nullable().optional(),
-  failureReason: z.enum(['EXPIRED', 'DENIED', 'CANCELED_BY_USER', 'FAILED_DEBIT', 'OTHER']).nullable().optional(),
+  failureReason: z
+    .enum(['EXPIRED', 'DENIED', 'CANCELED_BY_USER', 'FAILED_DEBIT', 'OTHER'])
+    .nullable()
+    .optional(),
   failureCount: z.number().int().min(0),
   lastFailureAt: z.string().datetime().nullable().optional(),
   lastFailureMessage: z.string().nullable().optional(),

@@ -4,7 +4,7 @@
  */
 
 import { prisma } from '@/lib/db/prisma'
-import { UserRoleType, getHighestRole } from './roles'
+import { getHighestRole, type UserRoleType } from './roles'
 
 /**
  * Sincroniza a role de um usuário

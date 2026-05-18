@@ -20,7 +20,7 @@ describe('AccountProfileCard', () => {
         }}
         isPending={false}
         onSubmit={onSubmit}
-      />,
+      />
     )
 
     expect(screen.getByLabelText('Nome')).toHaveValue('Thiago Alves')

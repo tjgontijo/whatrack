@@ -1,8 +1,7 @@
-import { prisma } from '@/lib/db/prisma'
-import { TokenEncryption } from '@/lib/utils/encryption'
-import { whatsappCache } from '@/features/whatsapp/services/cache.service'
 import { CACHE_KEYS, CACHE_TTL } from '@/lib/db/cache-keys'
+import { prisma } from '@/lib/db/prisma'
 import { getRedis } from '@/lib/db/redis'
+import { TokenEncryption } from '@/lib/utils/encryption'
 import { logger } from '@/lib/utils/logger'
 
 type WhatsAppHealthStatus = 'unknown' | 'healthy' | 'warning' | 'error'
@@ -29,7 +28,7 @@ interface HealthStatus {
   apiResponse?: string
 }
 
-export async function whatsappHealthCheckJob(job: any): Promise<void> {
+export async function whatsappHealthCheckJob(_job: any): Promise<void> {
   logger.info('[HealthCheckJob] Starting WhatsApp token health check')
 
   try {
@@ -79,7 +78,7 @@ export async function whatsappHealthCheckJob(job: any): Promise<void> {
             where: { connectionId: connection.id },
           })
 
-          if (!config || !config.accessToken) {
+          if (!config?.accessToken) {
             logger.warn(`[HealthCheckJob] No token found for ${connection.wabaId}`)
             health = {
               status: 'error' as WhatsAppHealthStatus,
@@ -100,7 +99,7 @@ export async function whatsappHealthCheckJob(job: any): Promise<void> {
               const responseTime = Date.now() - startTime
 
               if (response.ok) {
-                const data = await response.json()
+                const _data = await response.json()
                 logger.info(`[HealthCheckJob] Token valid for ${connection.wabaId}`)
                 health = {
                   status: 'healthy' as WhatsAppHealthStatus,
@@ -136,7 +135,10 @@ export async function whatsappHealthCheckJob(job: any): Promise<void> {
                 }
               }
             } catch (err) {
-              logger.error({ err }, `[HealthCheckJob] Error validating token for ${connection.wabaId}`)
+              logger.error(
+                { err },
+                `[HealthCheckJob] Error validating token for ${connection.wabaId}`
+              )
               health = {
                 status: 'error' as WhatsAppHealthStatus,
                 tokenValid: false,
@@ -179,7 +181,10 @@ export async function whatsappHealthCheckJob(job: any): Promise<void> {
           }
         }
       } catch (error) {
-        logger.error({ err: error }, `[HealthCheckJob] Error processing connection ${connection.wabaId}`)
+        logger.error(
+          { err: error },
+          `[HealthCheckJob] Error processing connection ${connection.wabaId}`
+        )
         errorCount++
       }
     }

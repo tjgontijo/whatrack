@@ -6,10 +6,7 @@ type CatalogRoutePageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>
 }
 
-export default async function CatalogRoutePage({
-  params,
-  searchParams,
-}: CatalogRoutePageProps) {
+export default async function CatalogRoutePage({ params, searchParams }: CatalogRoutePageProps) {
   const { organizationSlug } = await params
   await requireWorkspacePageAccess({ permissions: 'manage:items', organizationSlug })
 

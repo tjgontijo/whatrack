@@ -1,10 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
-
+import { type NextRequest, NextResponse } from 'next/server'
+import { LeadConflictError } from '@/features/leads'
+import { deleteLeadService, getLeadByIdService, updateLeadService } from '@/features/leads/server'
 import { apiError } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { deleteLeadService, getLeadByIdService, updateLeadService } from '@/features/leads/server'
-import { LeadConflictError } from '@/features/leads'
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ leadId: string }> }) {
   const access = await validateFullAccess(req)

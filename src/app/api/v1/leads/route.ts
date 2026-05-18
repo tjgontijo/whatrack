@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server'
-
+import { LeadConflictError } from '@/features/leads'
+import { createLeadService, listLeadsService } from '@/features/leads/server'
 import { apiError } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { createLeadService, listLeadsService } from '@/features/leads/server'
-import { LeadConflictError } from '@/features/leads'
 
 export async function POST(req: Request) {
   const access = await validateFullAccess(req)

@@ -68,11 +68,7 @@ export const LANDING_CONTENT: Record<LandingVariant, LandingContent> = {
         'Sem o dado de compra, o algoritmo continua otimizando para quem inicia conversa, não para quem fecha negócio. O WhaTrack devolve esse dado para o Meta e transforma cada venda em aprendizado real para a campanha.',
       ctaPrimary: 'Testar grátis por 14 dias',
       ctaSecondary: 'Ver como funciona',
-      highlights: [
-        'API Oficial do WhatsApp',
-        'Rastreamento por anúncio',
-        'Setup em 5 minutos',
-      ],
+      highlights: ['API Oficial do WhatsApp', 'Rastreamento por anúncio', 'Setup em 5 minutos'],
     },
     problem: {
       badge: 'O PROBLEMA',
@@ -106,8 +102,7 @@ export const LANDING_CONTENT: Record<LandingVariant, LandingContent> = {
             'Sem saber de onde veio cada lead, o time atende na ordem de chegada. Quem estava pronto para comprar esfria na fila enquanto outros consomem o tempo.',
         },
       ],
-      closingText:
-        'Enquanto isso, o CAC real é um mistério e o ROAS verdadeiro, uma incógnita.',
+      closingText: 'Enquanto isso, o CAC real é um mistério e o ROAS verdadeiro, uma incógnita.',
     },
     solution: {
       badge: 'A SOLUÇÃO',

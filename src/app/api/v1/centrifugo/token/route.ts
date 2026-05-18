@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createHmac } from 'crypto'
+import { createHmac } from 'node:crypto'
+import { type NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/utils/api-response'
-import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { rateLimitMiddleware } from '@/lib/utils/rate-limit.middleware'
 import { logger } from '@/lib/utils/logger'
+import { rateLimitMiddleware } from '@/lib/utils/rate-limit.middleware'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 /**
  * GET /api/v1/centrifugo/token

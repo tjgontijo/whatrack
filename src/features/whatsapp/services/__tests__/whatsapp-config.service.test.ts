@@ -13,7 +13,10 @@ vi.mock('@/features/whatsapp/lib/token-crypto', () => ({
   resolveAccessToken: vi.fn(() => 'resolved-token'),
 }))
 
-import { listWhatsAppInstances, listWhatsAppPhoneNumbers } from '@/features/whatsapp/services/whatsapp-config.service'
+import {
+  listWhatsAppInstances,
+  listWhatsAppPhoneNumbers,
+} from '@/features/whatsapp/services/whatsapp-config.service'
 
 describe('whatsapp-config.service', () => {
   beforeEach(() => {

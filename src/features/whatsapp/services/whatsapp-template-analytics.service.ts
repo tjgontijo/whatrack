@@ -52,9 +52,7 @@ export class WhatsAppTemplateAnalyticsService {
    */
   static async trackAction(contextWamid: string, type: 'reply' | 'click'): Promise<void> {
     try {
-      const data = type === 'click'
-        ? { clickedAt: new Date() }
-        : { repliedAt: new Date() }
+      const data = type === 'click' ? { clickedAt: new Date() } : { repliedAt: new Date() }
       await prisma.whatsAppTemplateLog.updateMany({
         where: { wamid: contextWamid },
         data,

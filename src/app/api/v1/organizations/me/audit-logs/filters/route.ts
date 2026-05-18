@@ -1,8 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-
+import { type NextRequest, NextResponse } from 'next/server'
+import { listOrganizationAuditResourceTypes } from '@/features/organizations/services/organization-audit.service'
 import { apiError } from '@/lib/utils/api-response'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
-import { listOrganizationAuditResourceTypes } from '@/features/organizations/services/organization-audit.service'
 
 export async function GET(request: NextRequest) {
   const access = await validatePermissionAccess(request, 'view:audit')

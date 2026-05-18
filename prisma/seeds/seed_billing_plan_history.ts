@@ -1,4 +1,4 @@
-import { Prisma, PrismaClient } from '@generated/prisma/client'
+import type { PrismaClient } from '@generated/prisma/client'
 
 export async function seedBillingPlanHistory(prisma: PrismaClient) {
   console.log('📜 Seeding billing plan history for existing subscriptions...')
@@ -65,11 +65,11 @@ export async function seedBillingPlanHistory(prisma: PrismaClient) {
 
     createdCount++
     console.log(
-      `  ✅ Histórico criado para ${subscription.organization.name} (${plan.name}, ${projectCount} projetos)`,
+      `  ✅ Histórico criado para ${subscription.organization.name} (${plan.name}, ${projectCount} projetos)`
     )
   }
 
   console.log(
-    `✅ Billing plan history seeded successfully! (${createdCount} subscriptions updated)`,
+    `✅ Billing plan history seeded successfully! (${createdCount} subscriptions updated)`
   )
 }

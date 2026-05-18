@@ -1,10 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
-
-import { apiError } from '@/lib/utils/api-response'
+import { type NextRequest, NextResponse } from 'next/server'
 import { whatsappChatMessagesQuerySchema } from '@/features/whatsapp/schemas/whatsapp-schemas'
-import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { listWhatsAppChatMessages } from '@/features/whatsapp/services/whatsapp-chat-query.service'
+import { apiError } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,7 +21,9 @@ export async function GET(request: NextRequest, props: { params: Promise<{ leadI
     )
 
     if (!parsedQuery.success) {
-      return apiError('Parâmetros inválidos', 400, undefined, { details: parsedQuery.error.flatten() })
+      return apiError('Parâmetros inválidos', 400, undefined, {
+        details: parsedQuery.error.flatten(),
+      })
     }
 
     const result = await listWhatsAppChatMessages({

@@ -16,12 +16,12 @@ export function PipelineConfigSheet({
 }: PipelineConfigSheetProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-md">
-        <SheetHeader className="border-border border-b pb-4">
+      <SheetContent side='right' className='w-full overflow-y-auto sm:max-w-md'>
+        <SheetHeader className='border-border border-b pb-4'>
           <SheetTitle>Configurar Pipeline</SheetTitle>
         </SheetHeader>
 
-        <div className="mt-4">
+        <div className='mt-4'>
           <PipelineStagesManager organizationId={organizationId} />
         </div>
       </SheetContent>

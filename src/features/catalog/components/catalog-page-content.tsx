@@ -1,9 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import { HeaderPageShell, HeaderTabs, type HeaderTab } from '@/features/dashboard/components/layout'
-import { CategoriesTable } from '@/features/item-categories/components/categories-table'
-import { ItemsTable } from '@/features/items/components/items-table'
+import { useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -12,6 +9,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { HeaderPageShell, type HeaderTab, HeaderTabs } from '@/features/dashboard/components/layout'
+import { CategoriesTable } from '@/features/item-categories/components/categories-table'
+import { ItemsTable } from '@/features/items/components/items-table'
 
 type CatalogPageContentProps = {
   selectedTab: 'items' | 'categories'
@@ -41,24 +41,27 @@ export function CatalogPageContent({ selectedTab }: CatalogPageContentProps) {
   const [itemsRefresh, setItemsRefresh] = useState<(() => void) | null>(null)
   const [categoriesRefresh, setCategoriesRefresh] = useState<(() => void) | null>(null)
 
-  const tabs = useMemo<HeaderTab[]>(() => [
-    { key: 'items', label: 'Itens' },
-    { key: 'categories', label: 'Categorias' },
-  ], [])
+  const tabs = useMemo<HeaderTab[]>(
+    () => [
+      { key: 'items', label: 'Itens' },
+      { key: 'categories', label: 'Categorias' },
+    ],
+    []
+  )
 
   const filters = useMemo(() => {
     if (activeTab === 'items') {
       return (
-        <div className="space-y-3">
-          <div className="space-y-1.5">
-            <p className="text-muted-foreground text-xs font-medium">Status</p>
+        <div className='space-y-3'>
+          <div className='space-y-1.5'>
+            <p className='font-medium text-muted-foreground text-xs'>Status</p>
             <Select value={itemsStatus} onValueChange={setItemsStatus}>
-              <SelectTrigger className="border-border h-8 w-full text-xs">
+              <SelectTrigger className='h-8 w-full border-border text-xs'>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {STATUS_OPTIONS_ITEMS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value} className="text-xs">
+                  <SelectItem key={opt.value} value={opt.value} className='text-xs'>
                     {opt.label}
                   </SelectItem>
                 ))}
@@ -71,15 +74,15 @@ export function CatalogPageContent({ selectedTab }: CatalogPageContentProps) {
 
     if (activeTab === 'categories') {
       return (
-        <div className="space-y-1.5">
-          <p className="text-muted-foreground text-xs font-medium">Status</p>
+        <div className='space-y-1.5'>
+          <p className='font-medium text-muted-foreground text-xs'>Status</p>
           <Select value={categoriesStatus} onValueChange={setCategoriesStatus}>
-            <SelectTrigger className="border-border h-8 w-full text-xs">
+            <SelectTrigger className='h-8 w-full border-border text-xs'>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               {STATUS_OPTIONS_CATEGORIES.map((option) => (
-                <SelectItem key={option.value} value={option.value} className="text-xs">
+                <SelectItem key={option.value} value={option.value} className='text-xs'>
                   {option.label}
                 </SelectItem>
               ))}
@@ -94,7 +97,7 @@ export function CatalogPageContent({ selectedTab }: CatalogPageContentProps) {
 
   return (
     <HeaderPageShell
-      title="Catálogo"
+      title='Catálogo'
       selector={
         <HeaderTabs
           tabs={tabs}
@@ -107,14 +110,14 @@ export function CatalogPageContent({ selectedTab }: CatalogPageContentProps) {
       searchPlaceholder={activeTab === 'items' ? 'Buscar itens...' : 'Buscar categorias...'}
       primaryAction={
         <Button
-          type="button"
-          size="sm"
-          className="h-7 gap-1.5 text-xs"
+          type='button'
+          size='sm'
+          className='h-7 gap-1.5 text-xs'
           onClick={() => {
             if (activeTab === 'items') {
-              setTriggerItemForm(v => v + 1)
+              setTriggerItemForm((v) => v + 1)
             } else {
-              setTriggerCategoryForm(v => v + 1)
+              setTriggerCategoryForm((v) => v + 1)
             }
           }}
         >

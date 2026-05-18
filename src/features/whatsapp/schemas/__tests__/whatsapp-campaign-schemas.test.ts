@@ -1,10 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
   whatsappCampaignCreateSchema,
-  whatsappCampaignUpdateSchema,
-  whatsappCampaignListQuerySchema,
   whatsappCampaignDispatchSchema,
-  whatsappCampaignCancelSchema,
+  whatsappCampaignListQuerySchema,
 } from '@/features/whatsapp/schemas/whatsapp-campaign-schemas'
 
 describe('whatsapp-campaign-schemas', () => {

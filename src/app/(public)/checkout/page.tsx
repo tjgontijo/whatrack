@@ -1,10 +1,9 @@
-import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
-
-import { getServerSession } from '@/server/auth/server-session'
+import { redirect } from 'next/navigation'
+import { listPublicBillingPlans } from '@/features/billing/services/billing-plan-catalog.service'
 import { ORGANIZATION_COOKIE, PROJECT_COOKIE } from '@/lib/constants/http-headers'
 import { prisma } from '@/lib/db/prisma'
-import { listPublicBillingPlans } from '@/features/billing/services/billing-plan-catalog.service'
+import { getServerSession } from '@/server/auth/server-session'
 import { CheckoutPageContent } from './checkout-page-content'
 
 export const dynamic = 'force-dynamic'

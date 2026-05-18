@@ -1,8 +1,8 @@
-import { NextRequest } from 'next/server'
-import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import type { NextRequest } from 'next/server'
 import { CheckoutStatusTokenService } from '@/features/billing/services/checkout-status-token.service'
 import { PixAutomaticService } from '@/features/billing/services/pix-automatic.service'
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 export async function GET(
   request: NextRequest,
@@ -27,7 +27,10 @@ export async function GET(
 
   // Try token-based access for guests
   const tokenParam = request.nextUrl.searchParams.get('token')
-  if (!tokenParam || !CheckoutStatusTokenService.verifyAuthorizationToken(tokenParam, authorizationId)) {
+  if (
+    !tokenParam ||
+    !CheckoutStatusTokenService.verifyAuthorizationToken(tokenParam, authorizationId)
+  ) {
     return apiError('Unauthorized', 403)
   }
 

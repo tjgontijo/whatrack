@@ -1,8 +1,4 @@
-export const BILLING_PLAN_TYPES = [
-  'starter_monthly',
-  'pro_monthly',
-  'business_monthly',
-] as const
+export const BILLING_PLAN_TYPES = ['starter_monthly', 'pro_monthly', 'business_monthly'] as const
 
 export type PlanType = (typeof BILLING_PLAN_TYPES)[number]
 

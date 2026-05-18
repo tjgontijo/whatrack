@@ -1,5 +1,4 @@
 import { prisma } from '@/lib/db/prisma'
-import { auditService } from '@/services/audit/audit.service'
 import {
   getOrganizationRoleByKey,
   listEffectivePermissions,
@@ -10,6 +9,7 @@ import {
   assertCanDelegatePermissions,
   getDelegatablePermissionCatalog,
 } from '@/server/organization/permission-delegation-policy'
+import { auditService } from '@/services/audit/audit.service'
 
 type ServiceError = {
   error: string
@@ -24,7 +24,9 @@ function isAdminOrOwner(role: string) {
 export async function listOrganizationMembers(input: {
   organizationId: string
   role: string
-}): Promise<{ data: Awaited<ReturnType<typeof listOrganizationMembersWithOverrides>> } | ServiceError> {
+}): Promise<
+  { data: Awaited<ReturnType<typeof listOrganizationMembersWithOverrides>> } | ServiceError
+> {
   if (!isAdminOrOwner(input.role)) {
     return {
       error: 'Apenas owner/admin podem visualizar a lista de membros.',
@@ -139,7 +141,10 @@ export async function updateOrganizationMemberRole(input: {
     return { error: 'Membro não encontrado', status: 404 }
   }
 
-  if (input.actorRole !== 'owner' && (targetMember.role === 'owner' || selectedRole.key === 'owner')) {
+  if (
+    input.actorRole !== 'owner' &&
+    (targetMember.role === 'owner' || selectedRole.key === 'owner')
+  ) {
     return { error: 'Somente owner pode alterar papel para/de owner.', status: 403 }
   }
 

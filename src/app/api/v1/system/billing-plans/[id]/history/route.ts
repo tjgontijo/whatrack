@@ -1,12 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server'
-
-import { requireAdmin } from '@/lib/auth/guards'
-import { apiError, apiSuccess } from '@/lib/utils/api-response'
+import { type NextRequest, NextResponse } from 'next/server'
 import {
   billingPlanHistoryQuerySchema,
   billingPlanHistoryResponseSchema,
 } from '@/features/billing/schemas/billing-plan-schemas'
 import { listBillingPlanHistory } from '@/features/billing/services/billing-plan-query.service'
+import { requireAdmin } from '@/lib/auth/guards'
+import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
 
 type RouteContext = {
@@ -21,7 +20,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     if (user instanceof NextResponse) return user
 
     const parsed = billingPlanHistoryQuerySchema.safeParse(
-      Object.fromEntries(new URL(request.url).searchParams),
+      Object.fromEntries(new URL(request.url).searchParams)
     )
 
     if (!parsed.success) {

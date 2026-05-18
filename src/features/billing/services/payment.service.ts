@@ -1,8 +1,12 @@
 import { prisma } from '@/lib/db/prisma'
-import { BillingCatalogService, type BillingCatalogOffer, type BillingCatalogPlanCode } from './catalog.service'
-import { BillingCustomerService } from './customer.service'
 import { AsaasClient } from './asaas-client'
 import { BillingAuditService } from './audit.service'
+import {
+  type BillingCatalogOffer,
+  type BillingCatalogPlanCode,
+  BillingCatalogService,
+} from './catalog.service'
+import { BillingCustomerService } from './customer.service'
 import { billingLog } from './logger'
 
 type CreditCardInput = {
@@ -163,7 +167,9 @@ async function upsertInvoice(input: {
       invoiceUrl: input.payment.invoiceUrl ?? null,
       pixQrCodePayload: input.pixQrCode?.payload ?? null,
       pixQrCodeImage: input.pixQrCode?.encodedImage ?? null,
-      pixExpirationDate: input.pixQrCode?.expirationDate ? new Date(input.pixQrCode.expirationDate) : null,
+      pixExpirationDate: input.pixQrCode?.expirationDate
+        ? new Date(input.pixQrCode.expirationDate)
+        : null,
     },
     create: {
       organizationId: input.organizationId,
@@ -185,7 +191,9 @@ async function upsertInvoice(input: {
       invoiceUrl: input.payment.invoiceUrl ?? null,
       pixQrCodePayload: input.pixQrCode?.payload ?? null,
       pixQrCodeImage: input.pixQrCode?.encodedImage ?? null,
-      pixExpirationDate: input.pixQrCode?.expirationDate ? new Date(input.pixQrCode.expirationDate) : null,
+      pixExpirationDate: input.pixQrCode?.expirationDate
+        ? new Date(input.pixQrCode.expirationDate)
+        : null,
     },
   })
 }
@@ -202,7 +210,7 @@ function buildTrialEndDate(baseDate = new Date()) {
   return trialEnds
 }
 
-function buildNextDueDateWithTrial(baseDate = new Date()) {
+function _buildNextDueDateWithTrial(baseDate = new Date()) {
   const nextDueDate = new Date(baseDate)
   nextDueDate.setDate(nextDueDate.getDate() + 14) // Start billing after trial
   return nextDueDate.toISOString().split('T')[0]
@@ -264,7 +272,7 @@ export class BillingPaymentService {
       })
 
       const paymentList = await AsaasClient.get<{ data: AsaasPayment[] }>(
-        `/subscriptions/${asaasSubscription.id}/payments`,
+        `/subscriptions/${asaasSubscription.id}/payments`
       )
       const firstPayment = paymentList.data[0]
 
@@ -480,7 +488,7 @@ export class BillingPaymentService {
       },
     })
 
-    const now = new Date()
+    const _now = new Date()
     const subscription = await upsertSubscription({
       organizationId: input.organizationId,
       offer,
@@ -531,7 +539,9 @@ export class BillingPaymentService {
     })
 
     if (!invoice) {
-      billingLog('warn', 'Webhook payment could not be matched to an invoice', { paymentId: payment.id })
+      billingLog('warn', 'Webhook payment could not be matched to an invoice', {
+        paymentId: payment.id,
+      })
       return
     }
 

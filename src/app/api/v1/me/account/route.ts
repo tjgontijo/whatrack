@@ -1,9 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
-
-import { auth } from '@/lib/auth/auth'
-import { apiError } from '@/lib/utils/api-response'
+import { type NextRequest, NextResponse } from 'next/server'
 import { updateMeAccountSchema } from '@/features/me/schemas/me-account.schemas'
 import { getMeAccount, updateMeAccount } from '@/features/me/services/me-account.service'
+import { auth } from '@/lib/auth/auth'
+import { apiError } from '@/lib/utils/api-response'
 
 export async function GET(request: NextRequest) {
   const session = await auth.api.getSession({ headers: request.headers })

@@ -1,12 +1,10 @@
-import { NextResponse } from 'next/server'
-import { apiError } from '@/lib/utils/api-response'
 import { revalidateTag } from 'next/cache'
-
-import { createSaleSchema, salesQuerySchema } from '@/features/sales'
-import { createSale, listSales } from '@/features/sales'
-import { resolveProjectScope } from '@/server/project/project-scope'
-import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import { NextResponse } from 'next/server'
+import { createSale, createSaleSchema, listSales, salesQuerySchema } from '@/features/sales'
+import { apiError } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import { resolveProjectScope } from '@/server/project/project-scope'
 
 export async function POST(req: Request) {
   const access = await validateFullAccess(req)

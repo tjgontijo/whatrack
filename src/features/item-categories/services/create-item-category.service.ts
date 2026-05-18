@@ -1,11 +1,14 @@
 import 'server-only'
 
-import { ensureProjectBelongsToOrganization, resolveProjectScope } from '@/server/project/project-scope'
+import { createItemCategoryRepository } from '@/features/item-categories/repositories'
 
 import { createItemCategorySchema } from '@/features/item-categories/schemas/item-category.schemas'
-import { createItemCategoryRepository } from '@/features/item-categories/repositories'
 import { toItemCategoryListItem } from '@/features/item-categories/services/shared'
 import type { ItemCategoryListItem } from '@/features/item-categories/types'
+import {
+  ensureProjectBelongsToOrganization,
+  resolveProjectScope,
+} from '@/server/project/project-scope'
 
 export async function createItemCategoryService(input: {
   organizationId: string

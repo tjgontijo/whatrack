@@ -1,11 +1,10 @@
 import type { Prisma } from '@generated/prisma/client'
-
-import { prisma } from '@/lib/db/prisma'
 import {
-  billingPlanMetadataSchema,
   type BillingPlanMetadata,
+  billingPlanMetadataSchema,
   type PublicBillingPlan,
 } from '@/features/billing/schemas/billing-plan-schemas'
+import { prisma } from '@/lib/db/prisma'
 
 type BillingPlanRecord = {
   id: string
@@ -42,7 +41,7 @@ type BillingPlanRecord = {
 export class BillingPlanCatalogError extends Error {
   constructor(
     message: string,
-    public readonly status: number,
+    public readonly status: number
   ) {
     super(message)
     this.name = 'BillingPlanCatalogError'
@@ -61,13 +60,11 @@ function isMissingBillingPlanTableError(error: unknown) {
 function toArray(value: unknown): string[] {
   if (!Array.isArray(value)) return []
 
-  return value
-    .map((item) => (typeof item === 'string' ? item.trim() : ''))
-    .filter(Boolean)
+  return value.map((item) => (typeof item === 'string' ? item.trim() : '')).filter(Boolean)
 }
 
 export function parseBillingPlanMetadata(
-  metadata: Prisma.JsonValue | null | undefined,
+  metadata: Prisma.JsonValue | null | undefined
 ): BillingPlanMetadata {
   const parsed = billingPlanMetadataSchema.safeParse(metadata ?? {})
 
@@ -146,7 +143,7 @@ export function mapBillingPlanToPublic(plan: BillingPlanRecord): PublicBillingPl
     offers: plan.offers
       .filter(
         (offer: BillingPlanRecord['offers'][number]) =>
-          offer.isActive && (!offer.validUntil || offer.validUntil > new Date()),
+          offer.isActive && (!offer.validUntil || offer.validUntil > new Date())
       )
       .map((offer: BillingPlanRecord['offers'][number]) => ({
         id: offer.id,
@@ -233,7 +230,6 @@ export async function getBillingPlanBySlug(slug: string) {
   })
 }
 
-
 export async function getDefaultTrialBillingPlan() {
   const plan = await prisma.billingPlan.findFirst({
     where: {
@@ -254,7 +250,7 @@ export async function getDefaultTrialBillingPlan() {
 export async function requireCheckoutReadyBillingPlan(slug: string) {
   const plan = await getBillingPlanBySlug(slug)
 
-  if (!plan || !plan.isActive) {
+  if (!plan?.isActive) {
     throw new BillingPlanCatalogError('Plano não encontrado', 404)
   }
 

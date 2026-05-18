@@ -1,4 +1,4 @@
-import { execSync } from 'child_process'
+import { execSync } from 'node:child_process'
 import dotenv from 'dotenv'
 
 const E2E_PRISMA_SCHEMA = 'prisma/schema.prisma'

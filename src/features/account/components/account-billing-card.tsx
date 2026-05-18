@@ -4,9 +4,9 @@ import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import type { SubscriptionResponse } from '@/features/billing/schemas/billing-schemas'
 import { useRequiredProjectPath } from '@/features/projects/hooks/use-project-route-context'
 import { getBillingStatusLabel } from '@/lib/billing/subscription-status'
-import type { SubscriptionResponse } from '@/features/billing/schemas/billing-schemas'
 
 type AccountBillingCardProps = {
   subscription: SubscriptionResponse | null
@@ -21,9 +21,7 @@ function formatPlanLabel(planName: string | null | undefined, planType: string) 
     .join(' ')
 }
 
-export function AccountBillingCard({
-  subscription,
-}: AccountBillingCardProps) {
+export function AccountBillingCard({ subscription }: AccountBillingCardProps) {
   const subscriptionPath = useRequiredProjectPath('/settings/subscription')
 
   if (!subscription) {
@@ -32,22 +30,23 @@ export function AccountBillingCard({
         <CardHeader>
           <CardTitle>Plano e cobrança</CardTitle>
           <CardDescription>
-            Sua conta ainda não tem um plano ativo. Abra a assinatura para contratar ou alterar o plano.
+            Sua conta ainda não tem um plano ativo. Abra a assinatura para contratar ou alterar o
+            plano.
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4">
-          <div className="rounded-lg border border-border bg-muted/30 p-4">
-            <p className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
+        <CardContent className='grid gap-4'>
+          <div className='rounded-lg border border-border bg-muted/30 p-4'>
+            <p className='font-medium text-muted-foreground text-xs uppercase tracking-wide'>
               Plano atual
             </p>
-            <p className="mt-1 text-lg font-semibold text-foreground">Nenhum plano ativo</p>
+            <p className='mt-1 font-semibold text-foreground text-lg'>Nenhum plano ativo</p>
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className='flex flex-wrap gap-2'>
             <Button asChild>
               <Link href={subscriptionPath}>Abrir assinatura</Link>
             </Button>
-            <Button asChild variant="outline">
+            <Button asChild variant='outline'>
               <Link href={subscriptionPath}>Ver planos</Link>
             </Button>
           </div>
@@ -60,26 +59,27 @@ export function AccountBillingCard({
 
   return (
     <Card>
-        <CardHeader>
-          <CardTitle>Plano e cobrança</CardTitle>
-          <CardDescription>
-          Acompanhe o plano ativo da organização e abra a assinatura para gerenciar o plano contratado.
+      <CardHeader>
+        <CardTitle>Plano e cobrança</CardTitle>
+        <CardDescription>
+          Acompanhe o plano ativo da organização e abra a assinatura para gerenciar o plano
+          contratado.
         </CardDescription>
       </CardHeader>
-      <CardContent className="grid gap-4">
-        <div className="grid gap-3 md:grid-cols-3">
-          <div className="rounded-lg border border-border bg-muted/30 p-4">
-            <p className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
+      <CardContent className='grid gap-4'>
+        <div className='grid gap-3 md:grid-cols-3'>
+          <div className='rounded-lg border border-border bg-muted/30 p-4'>
+            <p className='font-medium text-muted-foreground text-xs uppercase tracking-wide'>
               Plano atual
             </p>
-            <p className="mt-1 text-lg font-semibold text-foreground">{planName}</p>
+            <p className='mt-1 font-semibold text-foreground text-lg'>{planName}</p>
           </div>
 
-          <div className="rounded-lg border border-border bg-muted/30 p-4">
-            <p className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
+          <div className='rounded-lg border border-border bg-muted/30 p-4'>
+            <p className='font-medium text-muted-foreground text-xs uppercase tracking-wide'>
               Método
             </p>
-            <p className="mt-1 text-lg font-semibold text-foreground">
+            <p className='mt-1 font-semibold text-foreground text-lg'>
               {subscription.paymentMethod === 'CREDIT_CARD'
                 ? 'Cartão de crédito'
                 : subscription.paymentMethod === 'PIX_AUTOMATIC'
@@ -90,11 +90,11 @@ export function AccountBillingCard({
             </p>
           </div>
 
-          <div className="rounded-lg border border-border bg-muted/30 p-4">
-            <p className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
+          <div className='rounded-lg border border-border bg-muted/30 p-4'>
+            <p className='font-medium text-muted-foreground text-xs uppercase tracking-wide'>
               Renovação
             </p>
-            <p className="mt-1 text-lg font-semibold text-foreground">
+            <p className='mt-1 font-semibold text-foreground text-lg'>
               {subscription.expiresAt
                 ? new Date(subscription.expiresAt).toLocaleDateString('pt-BR')
                 : 'Aguardando'}
@@ -102,11 +102,11 @@ export function AccountBillingCard({
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className='flex flex-wrap gap-2'>
           <Button asChild>
             <Link href={subscriptionPath}>Abrir assinatura</Link>
           </Button>
-          <Button asChild variant="outline">
+          <Button asChild variant='outline'>
             <Link href={subscriptionPath}>Ver planos e limites</Link>
           </Button>
         </div>

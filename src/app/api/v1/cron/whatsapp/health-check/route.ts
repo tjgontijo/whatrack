@@ -1,9 +1,8 @@
-import { NextRequest } from 'next/server'
-
-import { apiError, apiSuccess } from '@/lib/utils/api-response'
+import type { NextRequest } from 'next/server'
 import { cronTriggerBodySchema } from '@/features/cron/schemas/cron.schemas'
-import { authorizeCronRequest } from '@/server/cron/cron-auth'
 import { runWhatsAppHealthCheckCronJob } from '@/features/cron/services/whatsapp-health-check-cron.service'
+import { apiError, apiSuccess } from '@/lib/utils/api-response'
+import { authorizeCronRequest } from '@/server/cron/cron-auth'
 
 export const maxDuration = 300
 const ENDPOINT = '/api/v1/cron/whatsapp/health-check'

@@ -5,11 +5,11 @@
  * Requires organization access
  */
 
-import { NextRequest } from 'next/server'
-import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import type { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
-import { logger } from '@/lib/utils/logger'
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
+import { logger } from '@/lib/utils/logger'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 export async function GET(request: NextRequest) {
   const auth = await validateFullAccess(request)

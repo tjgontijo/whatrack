@@ -1,6 +1,6 @@
 type BillingFailureReason = 'EXPIRED' | 'DENIED' | 'CANCELED_BY_USER' | 'FAILED_DEBIT' | 'OTHER'
 
-const FAILURE_REASON_VALUES = {
+const _FAILURE_REASON_VALUES = {
   EXPIRED: 'EXPIRED',
   DENIED: 'DENIED',
   CANCELED_BY_USER: 'CANCELED_BY_USER',
@@ -10,7 +10,7 @@ const FAILURE_REASON_VALUES = {
 
 export function mapPixAutomaticFailureReason(
   eventName: string,
-  errorMessage?: string | null,
+  errorMessage?: string | null
 ): BillingFailureReason {
   if (
     eventName === 'PIX_AUTOMATIC_AUTHORIZATION_DENIED' ||
@@ -68,7 +68,7 @@ export function getPixFailureMessage(reason: BillingFailureReason): string {
     OTHER: 'Ocorreu um erro ao processar sua autorização. Entre em contato com o suporte.',
   }
 
-  return messages[reason] || messages['OTHER']
+  return messages[reason] || messages.OTHER
 }
 
 export function calculateNextRetryDate(failureCount: number): Date {
@@ -87,7 +87,7 @@ export function calculateNextRetryDate(failureCount: number): Date {
 
 export function shouldAutoCancel(
   failureCount: number,
-  lastFailureAt: Date | null | undefined,
+  lastFailureAt: Date | null | undefined
 ): boolean {
   if (failureCount < 3) {
     return false

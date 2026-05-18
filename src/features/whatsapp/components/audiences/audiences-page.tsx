@@ -1,11 +1,11 @@
 'use client'
 
+import { Filter, Plus, Tags, Users } from 'lucide-react'
 import React from 'react'
-import { HeaderPageShell, HeaderTabs } from '@/features/dashboard/components/layout'
-import { Plus, Users, Filter, Tags } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { ContactListsTab } from './contact-lists-tab'
+import { HeaderPageShell, HeaderTabs } from '@/features/dashboard/components/layout'
 import { AudienceSegmentsTab } from './audience-segments-tab'
+import { ContactListsTab } from './contact-lists-tab'
 import { LeadTagsTab } from './lead-tags-tab'
 
 const TABS = [
@@ -19,28 +19,28 @@ export function AudiencesPage() {
 
   return (
     <HeaderPageShell
-      title="Audiências"
+      title='Audiências'
       selector={<HeaderTabs tabs={TABS} activeTab={activeTab} onTabChange={setActiveTab} />}
       primaryAction={
         activeTab === 'lists' ? (
-          <Button size="sm" className="gap-2">
-            <Plus className="h-4 w-4" />
+          <Button size='sm' className='gap-2'>
+            <Plus className='h-4 w-4' />
             Nova lista
           </Button>
         ) : activeTab === 'segments' ? (
-          <Button size="sm" className="gap-2">
-            <Plus className="h-4 w-4" />
+          <Button size='sm' className='gap-2'>
+            <Plus className='h-4 w-4' />
             Novo segmento
           </Button>
         ) : (
-          <Button size="sm" className="gap-2">
-            <Plus className="h-4 w-4" />
+          <Button size='sm' className='gap-2'>
+            <Plus className='h-4 w-4' />
             Nova tag
           </Button>
         )
       }
     >
-      <div className="mt-6">
+      <div className='mt-6'>
         {activeTab === 'lists' && <ContactListsTab />}
         {activeTab === 'segments' && <AudienceSegmentsTab />}
         {activeTab === 'tags' && <LeadTagsTab />}

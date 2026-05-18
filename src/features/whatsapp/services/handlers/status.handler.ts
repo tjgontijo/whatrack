@@ -1,8 +1,8 @@
-import { prisma } from '@/lib/db/prisma'
-import { publishToCentrifugo } from '@/lib/centrifugo/server'
-import { logger } from '@/lib/utils/logger'
 import { updateRecipientStatusFromWebhook } from '@/features/whatsapp/services/whatsapp-campaign-attribution.service'
 import { WhatsAppTemplateAnalyticsService } from '@/features/whatsapp/services/whatsapp-template-analytics.service'
+import { publishToCentrifugo } from '@/lib/centrifugo/server'
+import { prisma } from '@/lib/db/prisma'
+import { logger } from '@/lib/utils/logger'
 
 /**
  * Status Handler
@@ -126,7 +126,6 @@ export async function statusHandler(payload: any): Promise<void> {
       })
 
       logger.info(`[StatusHandler] ✓ Published status update for ${wamid}`)
-
     } catch (error) {
       logger.error({ err: error }, '[StatusHandler] Error processing status')
       // Continue with next status

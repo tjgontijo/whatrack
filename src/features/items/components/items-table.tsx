@@ -1,18 +1,10 @@
 'use client'
 
-import * as React from 'react'
-import { useState, useDeferredValue, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-
-import { CrudEmptyState } from '@/features/dashboard/components/crud/crud-data-view'
-import { CrudListView } from '@/features/dashboard/components/crud/crud-list-view'
-import { HeaderPageShell } from '@/features/dashboard/components/layout'
-import { useCrudInfiniteQuery } from '@/hooks/ui/use-crud-infinite-query'
-import {
-  type ColumnDef,
-  type RowActions,
-} from '@/features/dashboard/components/crud/types'
-
+import * as React from 'react'
+import { useDeferredValue, useMemo, useState } from 'react'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
@@ -20,13 +12,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-
-import { ItemFormDrawer } from './item-form-drawer'
-import { apiFetch } from '@/lib/api-client'
+import { CrudEmptyState } from '@/features/dashboard/components/crud/crud-data-view'
+import { CrudListView } from '@/features/dashboard/components/crud/crud-list-view'
+import type { ColumnDef, RowActions } from '@/features/dashboard/components/crud/types'
+import { HeaderPageShell } from '@/features/dashboard/components/layout'
 import { useOrganization } from '@/features/organizations/hooks/use-organization'
-
+import { useCrudInfiniteQuery } from '@/hooks/ui/use-crud-infinite-query'
+import { apiFetch } from '@/lib/api-client'
+import { ItemFormDrawer } from './item-form-drawer'
 
 type Item = {
   id: string
@@ -51,13 +44,13 @@ const columns: ColumnDef<Item>[] = [
   {
     key: 'name',
     label: 'Nome',
-    render: (item) => <span className="font-medium">{item.name}</span>,
+    render: (item) => <span className='font-medium'>{item.name}</span>,
   },
   {
     key: 'category',
     label: 'Categoria',
     width: 180,
-    render: (item) => item.category?.name ?? <span className="text-muted-foreground">—</span>,
+    render: (item) => item.category?.name ?? <span className='text-muted-foreground'>—</span>,
   },
   {
     key: 'active',
@@ -110,28 +103,31 @@ export function ItemsTable({
     }
   }, [triggerOpenForm, hideHeader])
 
-  const searchInput = hideHeader ? externalSearchInput ?? localSearchInput : localSearchInput
-  const onSearchChange = hideHeader ? externalOnSearchChange ?? setLocalSearchInput : setLocalSearchInput
-  const status = hideHeader ? externalStatus ?? localStatus : localStatus
-  const onStatusChange = hideHeader ? externalOnStatusChange ?? setLocalStatus : setLocalStatus
-  const categoryFilter = hideHeader ? externalCategoryFilter ?? localCategoryFilter : localCategoryFilter
-  const onCategoryFilterChange = hideHeader ? externalOnCategoryFilterChange ?? setLocalCategoryFilter : setLocalCategoryFilter
+  const searchInput = hideHeader ? (externalSearchInput ?? localSearchInput) : localSearchInput
+  const onSearchChange = hideHeader
+    ? (externalOnSearchChange ?? setLocalSearchInput)
+    : setLocalSearchInput
+  const status = hideHeader ? (externalStatus ?? localStatus) : localStatus
+  const onStatusChange = hideHeader ? (externalOnStatusChange ?? setLocalStatus) : setLocalStatus
+  const categoryFilter = hideHeader
+    ? (externalCategoryFilter ?? localCategoryFilter)
+    : localCategoryFilter
+  const onCategoryFilterChange = hideHeader
+    ? (externalOnCategoryFilterChange ?? setLocalCategoryFilter)
+    : setLocalCategoryFilter
 
   const deferredSearch = useDeferredValue(searchInput)
 
-  const filters = useMemo(
-    () => {
-      const search = deferredSearch.trim()
-      const hasSearch = search.length >= 2
+  const filters = useMemo(() => {
+    const search = deferredSearch.trim()
+    const hasSearch = search.length >= 2
 
-      return {
-        ...(hasSearch ? { search } : {}),
-        ...(status !== 'all' ? { status } : {}),
-        ...(categoryFilter !== 'all' ? { categoryId: categoryFilter } : {}),
-      }
-    },
-    [deferredSearch, status, categoryFilter]
-  )
+    return {
+      ...(hasSearch ? { search } : {}),
+      ...(status !== 'all' ? { status } : {}),
+      ...(categoryFilter !== 'all' ? { categoryId: categoryFilter } : {}),
+    }
+  }, [deferredSearch, status, categoryFilter])
 
   const { data, total, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, refetch } =
     useCrudInfiniteQuery<Item>({
@@ -171,15 +167,15 @@ export function ItemsTable({
 
   const filtersNode = (
     <>
-      <div className="space-y-1.5">
-        <p className="text-muted-foreground text-xs font-medium">Status</p>
+      <div className='space-y-1.5'>
+        <p className='font-medium text-muted-foreground text-xs'>Status</p>
         <Select value={status} onValueChange={onStatusChange}>
-          <SelectTrigger className="border-border h-8 w-full text-xs">
+          <SelectTrigger className='h-8 w-full border-border text-xs'>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             {STATUS_OPTIONS.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value} className="text-xs">
+              <SelectItem key={opt.value} value={opt.value} className='text-xs'>
                 {opt.label}
               </SelectItem>
             ))}
@@ -188,18 +184,18 @@ export function ItemsTable({
       </div>
 
       {categories.length > 0 && (
-        <div className="space-y-1.5">
-          <p className="text-muted-foreground text-xs font-medium">Categoria</p>
+        <div className='space-y-1.5'>
+          <p className='font-medium text-muted-foreground text-xs'>Categoria</p>
           <Select value={categoryFilter} onValueChange={onCategoryFilterChange}>
-            <SelectTrigger className="border-border h-8 w-full text-xs">
-              <SelectValue placeholder="Todas as categorias" />
+            <SelectTrigger className='h-8 w-full border-border text-xs'>
+              <SelectValue placeholder='Todas as categorias' />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all" className="text-xs">
+              <SelectItem value='all' className='text-xs'>
                 Todas as categorias
               </SelectItem>
               {categories.map((c) => (
-                <SelectItem key={c.id} value={c.id} className="text-xs">
+                <SelectItem key={c.id} value={c.id} className='text-xs'>
                   {c.name}
                 </SelectItem>
               ))}
@@ -241,12 +237,12 @@ export function ItemsTable({
 
   return (
     <HeaderPageShell
-      title="Itens"
+      title='Itens'
       primaryAction={
         <Button
-          type="button"
-          size="sm"
-          className="h-7 gap-1.5 text-xs"
+          type='button'
+          size='sm'
+          className='h-7 gap-1.5 text-xs'
           onClick={() => onOpenNewForm?.() ?? setIsItemFormDrawerOpen(true)}
         >
           Novo
@@ -254,7 +250,7 @@ export function ItemsTable({
       }
       searchValue={searchInput}
       onSearchChange={onSearchChange}
-      searchPlaceholder="Buscar itens..."
+      searchPlaceholder='Buscar itens...'
       onRefresh={() => void refetch()}
       isFetchingMore={isFetchingNextPage}
       filters={filtersNode}

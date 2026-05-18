@@ -1,5 +1,6 @@
 'use client'
 
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import * as React from 'react'
 import { Button } from '@/components/ui/button'
 import {
@@ -9,7 +10,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils/utils'
 
 interface DataTablePaginationProps {
@@ -58,10 +58,10 @@ export const DataTablePagination = React.forwardRef<HTMLDivElement, DataTablePag
         )}
       >
         {/* Page size selector - Desktop only */}
-        <div className="hidden items-center gap-2 md:flex">
-          <span className="text-muted-foreground text-xs">Itens por página</span>
+        <div className='hidden items-center gap-2 md:flex'>
+          <span className='text-muted-foreground text-xs'>Itens por página</span>
           <Select value={String(pageSize)} onValueChange={(v) => onPageSizeChange(Number(v))}>
-            <SelectTrigger className="h-8 w-[70px]">
+            <SelectTrigger className='h-8 w-[70px]'>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -75,35 +75,35 @@ export const DataTablePagination = React.forwardRef<HTMLDivElement, DataTablePag
         </div>
 
         {/* Page info */}
-        <div className="text-muted-foreground text-xs">
-          Página <span className="font-semibold">{page}</span> de{' '}
-          <span className="font-semibold">{Math.max(1, pageCount)}</span>
+        <div className='text-muted-foreground text-xs'>
+          Página <span className='font-semibold'>{page}</span> de{' '}
+          <span className='font-semibold'>{Math.max(1, pageCount)}</span>
           {total > 0 && (
             <>
               {' • '}
-              <span className="font-semibold">{total}</span> item{total !== 1 ? 's' : ''}
+              <span className='font-semibold'>{total}</span> item{total !== 1 ? 's' : ''}
             </>
           )}
         </div>
 
         {/* Navigation */}
-        <div className="flex items-center gap-2">
+        <div className='flex items-center gap-2'>
           <Button
-            variant="outline"
-            size="sm"
+            variant='outline'
+            size='sm'
             onClick={() => onPageChange(page - 1)}
             disabled={!canPreviousPage}
-            className="gap-1"
+            className='gap-1'
           >
-            <ChevronLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">Anterior</span>
+            <ChevronLeft className='h-4 w-4' />
+            <span className='hidden sm:inline'>Anterior</span>
           </Button>
 
           {/* Page size selector - Mobile */}
-          <div className="flex items-center gap-1 md:hidden">
-            <span className="text-muted-foreground text-xs">por pág:</span>
+          <div className='flex items-center gap-1 md:hidden'>
+            <span className='text-muted-foreground text-xs'>por pág:</span>
             <Select value={String(pageSize)} onValueChange={(v) => onPageSizeChange(Number(v))}>
-              <SelectTrigger className="h-8 w-[60px]">
+              <SelectTrigger className='h-8 w-[60px]'>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -117,14 +117,14 @@ export const DataTablePagination = React.forwardRef<HTMLDivElement, DataTablePag
           </div>
 
           <Button
-            variant="outline"
-            size="sm"
+            variant='outline'
+            size='sm'
             onClick={() => onPageChange(page + 1)}
             disabled={!canNextPage}
-            className="gap-1"
+            className='gap-1'
           >
-            <span className="hidden sm:inline">Próxima</span>
-            <ChevronRight className="h-4 w-4" />
+            <span className='hidden sm:inline'>Próxima</span>
+            <ChevronRight className='h-4 w-4' />
           </Button>
         </div>
       </div>

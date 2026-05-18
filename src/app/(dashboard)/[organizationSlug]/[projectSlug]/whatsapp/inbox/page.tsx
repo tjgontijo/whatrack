@@ -1,21 +1,19 @@
 'use client'
 
-import * as React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { MessageSquareOff, RefreshCw } from 'lucide-react'
+import * as React from 'react'
 
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils/utils'
-
-import { apiFetch } from '@/lib/api-client'
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
 import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
-import { useRealtime } from '@/features/whatsapp/hooks/use-realtime'
-
 import { ChatList } from '@/features/whatsapp/components/inbox/chat-list'
 import { ChatWindow } from '@/features/whatsapp/components/inbox/chat-window'
 import { TicketPanel } from '@/features/whatsapp/components/inbox/ticket-panel'
-import { ChatItem, ChatListResponse } from '@/features/whatsapp/components/inbox/types'
-import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable'
+import type { ChatItem, ChatListResponse } from '@/features/whatsapp/components/inbox/types'
+import { useRealtime } from '@/features/whatsapp/hooks/use-realtime'
+import { apiFetch } from '@/lib/api-client'
+import { cn } from '@/lib/utils/utils'
 
 export default function WhatsAppInboxPage() {
   const { organizationId, projectId } = useRequiredProjectRouteContext()
@@ -45,72 +43,79 @@ export default function WhatsAppInboxPage() {
     },
   })
   return (
-    <div className="bg-background -mx-4 -my-2 flex flex-col overflow-hidden" style={{ height: 'calc(100vh - 65px)' }}>
-      <div className="border-border flex h-12 shrink-0 items-center justify-between border-b px-4">
-        <h1 className="text-sm font-semibold">Inbox</h1>
+    <div
+      className='-mx-4 -my-2 flex flex-col overflow-hidden bg-background'
+      style={{ height: 'calc(100vh - 65px)' }}
+    >
+      <div className='flex h-12 shrink-0 items-center justify-between border-border border-b px-4'>
+        <h1 className='font-semibold text-sm'>Inbox</h1>
         <Button
-          variant="ghost"
-          size="icon"
-          className="text-muted-foreground hover:text-foreground h-7 w-7"
+          variant='ghost'
+          size='icon'
+          className='h-7 w-7 text-muted-foreground hover:text-foreground'
           onClick={() => void refetch()}
           disabled={isRefetching || isLoading}
         >
           <RefreshCw className={cn('h-3.5 w-3.5', (isRefetching || isLoading) && 'animate-spin')} />
         </Button>
       </div>
-      <div className="border-border/40 flex flex-1 overflow-hidden border-t">
-      <ResizablePanelGroup direction="horizontal">
-        {/* Left Panel: Conversations */}
-        <ResizablePanel defaultSize={25} minSize={15} maxSize={40}>
-          <ChatList
-            chats={data?.items || []}
-            selectedChatId={selectedChat?.id}
-            onSelectChat={setSelectedChat}
-            selectedInstanceId={selectedInstanceId}
-            onInstanceChange={setSelectedInstanceId}
-            isLoading={isLoading}
-            onSearch={setSearchQuery}
-          />
-        </ResizablePanel>
-
-        <ResizableHandle withHandle />
-
-        {/* Middle Panel: Messages */}
-        <ResizablePanel defaultSize={50} minSize={30}>
-          {selectedChat ? (
-            <ChatWindow chat={selectedChat} organizationId={organizationId} projectId={projectId} />
-          ) : (
-            <div className="bg-muted/5 flex h-full flex-col items-center justify-center p-8 text-center">
-              <div className="bg-primary/5 border-primary/10 mb-4 rounded-3xl border p-6">
-                <MessageSquareOff className="text-primary/40 h-12 w-12" />
-              </div>
-              <h3 className="mb-2 text-lg font-bold">Nenhuma conversa selecionada</h3>
-              <p className="text-muted-foreground max-w-xs text-sm">
-                Selecione um contato na lista à esquerda para visualizar o histórico de mensagens e
-                monitorar a conversa.
-              </p>
-            </div>
-          )}
-        </ResizablePanel>
-
-        <ResizableHandle withHandle />
-
-        {/* Right Panel: Ticket Details */}
-        <ResizablePanel defaultSize={25} minSize={20} maxSize={40} collapsible>
-          {selectedChat ? (
-            <TicketPanel
-              conversationId={selectedChat.id}
-              organizationId={organizationId}
-              projectId={projectId}
-              chat={selectedChat}
+      <div className='flex flex-1 overflow-hidden border-border/40 border-t'>
+        <ResizablePanelGroup direction='horizontal'>
+          {/* Left Panel: Conversations */}
+          <ResizablePanel defaultSize={25} minSize={15} maxSize={40}>
+            <ChatList
+              chats={data?.items || []}
+              selectedChatId={selectedChat?.id}
+              onSelectChat={setSelectedChat}
+              selectedInstanceId={selectedInstanceId}
+              onInstanceChange={setSelectedInstanceId}
+              isLoading={isLoading}
+              onSearch={setSearchQuery}
             />
-          ) : (
-            <div className="text-muted-foreground flex h-full flex-col items-center justify-center p-4 text-center text-sm">
-              Selecione uma conversa para ver os detalhes do ticket
-            </div>
-          )}
-        </ResizablePanel>
-      </ResizablePanelGroup>
+          </ResizablePanel>
+
+          <ResizableHandle withHandle />
+
+          {/* Middle Panel: Messages */}
+          <ResizablePanel defaultSize={50} minSize={30}>
+            {selectedChat ? (
+              <ChatWindow
+                chat={selectedChat}
+                organizationId={organizationId}
+                projectId={projectId}
+              />
+            ) : (
+              <div className='flex h-full flex-col items-center justify-center bg-muted/5 p-8 text-center'>
+                <div className='mb-4 rounded-3xl border border-primary/10 bg-primary/5 p-6'>
+                  <MessageSquareOff className='h-12 w-12 text-primary/40' />
+                </div>
+                <h3 className='mb-2 font-bold text-lg'>Nenhuma conversa selecionada</h3>
+                <p className='max-w-xs text-muted-foreground text-sm'>
+                  Selecione um contato na lista à esquerda para visualizar o histórico de mensagens
+                  e monitorar a conversa.
+                </p>
+              </div>
+            )}
+          </ResizablePanel>
+
+          <ResizableHandle withHandle />
+
+          {/* Right Panel: Ticket Details */}
+          <ResizablePanel defaultSize={25} minSize={20} maxSize={40} collapsible>
+            {selectedChat ? (
+              <TicketPanel
+                conversationId={selectedChat.id}
+                organizationId={organizationId}
+                projectId={projectId}
+                chat={selectedChat}
+              />
+            ) : (
+              <div className='flex h-full flex-col items-center justify-center p-4 text-center text-muted-foreground text-sm'>
+                Selecione uma conversa para ver os detalhes do ticket
+              </div>
+            )}
+          </ResizablePanel>
+        </ResizablePanelGroup>
       </div>
     </div>
   )

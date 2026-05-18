@@ -3,10 +3,10 @@ import { describe, expect, it } from 'vitest'
 import {
   BILLING_PLAN_TYPES,
   BILLING_SUBSCRIPTION_STATUSES,
-  SELF_SERVE_PLAN_TYPES,
   isPlanType,
   isSelfServePlanType,
   isSubscriptionStatus,
+  SELF_SERVE_PLAN_TYPES,
 } from '@/features/billing/types/billing'
 
 describe('billing type contract', () => {

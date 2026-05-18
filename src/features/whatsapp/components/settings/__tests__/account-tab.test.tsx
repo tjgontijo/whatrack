@@ -9,13 +9,7 @@ describe('AccountTab', () => {
     const user = userEvent.setup()
     const onConnectClick = vi.fn()
 
-    render(
-      <AccountTab
-        instance={null}
-        canStartOnboarding
-        onConnectClick={onConnectClick}
-      />,
-    )
+    render(<AccountTab instance={null} canStartOnboarding onConnectClick={onConnectClick} />)
 
     await user.click(screen.getByRole('button', { name: 'Conectar WhatsApp' }))
 

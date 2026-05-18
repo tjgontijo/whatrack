@@ -5,7 +5,6 @@ import { useOrganization } from '@/features/organizations/hooks/use-organization
 import { useProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
 import { apiFetch } from '@/lib/api-client'
 
-
 interface VolumeDataPoint {
   date: string
   leads: number
@@ -64,9 +63,11 @@ interface AgentsAnalyticsResponse {
 
 export type Period = '7d' | '30d' | '90d'
 
-
-
-async function fetchDashboardAnalytics(period: Period, orgId: string, projectId?: string): Promise<DashboardAnalyticsResponse> {
+async function fetchDashboardAnalytics(
+  period: Period,
+  orgId: string,
+  projectId?: string
+): Promise<DashboardAnalyticsResponse> {
   const data = await apiFetch(`/api/v1/dashboard/analytics?period=${period}`, {
     orgId,
     projectId,
@@ -74,14 +75,17 @@ async function fetchDashboardAnalytics(period: Period, orgId: string, projectId?
   return data as DashboardAnalyticsResponse
 }
 
-async function fetchAgentsAnalytics(period: Period, orgId: string, projectId?: string): Promise<AgentsAnalyticsResponse> {
+async function fetchAgentsAnalytics(
+  period: Period,
+  orgId: string,
+  projectId?: string
+): Promise<AgentsAnalyticsResponse> {
   const data = await apiFetch(`/api/v1/dashboard/analytics/agents?period=${period}`, {
     orgId,
     projectId,
   })
   return data as AgentsAnalyticsResponse
 }
-
 
 export function useDashboardAnalytics(period: Period = '7d') {
   const { data: org } = useOrganization()
@@ -114,11 +118,11 @@ export function useAgentsAnalytics(period: Period = '7d') {
 }
 
 export type {
-  DashboardAnalyticsResponse,
+  AgentMetrics,
   AgentsAnalyticsResponse,
+  DashboardAnalyticsResponse,
   DashboardCards,
   DashboardCharts,
-  VolumeDataPoint,
   StatusData,
-  AgentMetrics,
+  VolumeDataPoint,
 }

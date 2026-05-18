@@ -80,7 +80,7 @@ export class BillingCatalogService {
   }
 
   static async getPlan(code: BillingCatalogPlanCode) {
-    const plans = await this.listPlans()
+    const plans = await BillingCatalogService.listPlans()
     const plan = plans.find((item) => item.code === code)
 
     if (!plan) {

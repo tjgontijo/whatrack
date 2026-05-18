@@ -1,9 +1,9 @@
-import { apiError, apiSuccess } from '@/lib/utils/api-response'
-import { logger } from '@/lib/utils/logger'
 import { z } from 'zod'
-import { prisma } from '@/lib/db/prisma'
-import { encryption } from '@/lib/utils/encryption'
 import { createWhatsAppConfigFromOnboarding } from '@/features/whatsapp/services/whatsapp-onboarding.service'
+import { prisma } from '@/lib/db/prisma'
+import { apiError, apiSuccess } from '@/lib/utils/api-response'
+import { encryption } from '@/lib/utils/encryption'
+import { logger } from '@/lib/utils/logger'
 
 const PhoneNumberSchema = z.object({
   state: z.string().min(1, 'state is required'),

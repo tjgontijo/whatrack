@@ -3,8 +3,8 @@
 import { useState } from 'react'
 
 import { HeaderPageShell, HeaderTabs, RefreshButton } from '@/features/dashboard/components/layout'
-import { TeamAccessContent } from './team-access-content'
 import type { OrganizationRole } from './team-access-content'
+import { TeamAccessContent } from './team-access-content'
 
 const TEAM_TABS = [
   { key: 'membros', label: 'Membros' },
@@ -46,9 +46,11 @@ export function TeamSettingsShell({
 
   return (
     <HeaderPageShell
-      title="Equipe"
+      title='Equipe'
       selector={<HeaderTabs tabs={TEAM_TABS} activeTab={activeTab} onTabChange={setActiveTab} />}
-      refreshAction={<RefreshButton queryKey={['organizations', 'me', 'members', organizationId]} />}
+      refreshAction={
+        <RefreshButton queryKey={['organizations', 'me', 'members', organizationId]} />
+      }
     >
       <TeamAccessContent
         initialMembers={initialMembers}

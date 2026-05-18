@@ -1,7 +1,7 @@
 import 'server-only'
 
-import { isDateRangePreset, resolveDateRange } from '@/lib/date/date-range'
 import type { CreateSaleInput } from '@/features/sales/schemas/sale.schemas'
+import { isDateRangePreset, resolveDateRange } from '@/lib/date/date-range'
 
 export function calculateSaleTotal(payload: CreateSaleInput): number {
   if (!payload.items || payload.items.length === 0) {

@@ -14,12 +14,7 @@ type HeaderTabsProps = {
   className?: string
 }
 
-export function HeaderTabs({
-  tabs,
-  activeTab,
-  onTabChange,
-  className,
-}: HeaderTabsProps) {
+export function HeaderTabs({ tabs, activeTab, onTabChange, className }: HeaderTabsProps) {
   if (tabs.length === 0) return null
 
   return (
@@ -27,10 +22,10 @@ export function HeaderTabs({
       {tabs.map((tab) => (
         <button
           key={tab.key}
-          type="button"
+          type='button'
           onClick={() => onTabChange(tab.key)}
           className={cn(
-            'rounded-md px-2.5 py-1 text-xs font-medium transition-all',
+            'rounded-md px-2.5 py-1 font-medium text-xs transition-all',
             activeTab === tab.key
               ? 'bg-background text-foreground shadow-sm'
               : 'text-muted-foreground hover:text-foreground'

@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getRateLimiter } from '@/lib/utils/rate-limit'
-import { prisma } from '@/lib/db/prisma'
+import { type NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth/auth'
 import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
+import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/utils/logger'
+import { getRateLimiter } from '@/lib/utils/rate-limit'
 
 /**
  * Rate Limit Configuration per endpoint
@@ -151,7 +151,8 @@ export async function getOrganizationId(request: NextRequest): Promise<string | 
       headers: request.headers,
     })
 
-    const activeOrgId = (session?.session as { activeOrganizationId?: string })?.activeOrganizationId
+    const activeOrgId = (session?.session as { activeOrganizationId?: string })
+      ?.activeOrganizationId
     if (activeOrgId) return activeOrgId
   } catch (error) {
     // If auth fails here, just continue (maybe it's a public endpoint or auth will be checked later)
@@ -235,9 +236,9 @@ export async function rateLimitMiddleware(
 
     logger.warn(
       `[RateLimit] ${exceeded.name.toUpperCase()} limit hit on ${request.method} ${endpoint} - ` +
-      `IP: ${clientIp}, Org: ${orgId || 'N/A'}, ` +
-      `Current: ${current}, Limit: ${limit}, ` +
-      `Reset: ${resetAt.toISOString()}, RetryAfter: ${retryAfter}s`
+        `IP: ${clientIp}, Org: ${orgId || 'N/A'}, ` +
+        `Current: ${current}, Limit: ${limit}, ` +
+        `Reset: ${resetAt.toISOString()}, RetryAfter: ${retryAfter}s`
     )
 
     // Return 429 Too Many Requests

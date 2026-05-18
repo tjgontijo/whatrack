@@ -1,5 +1,5 @@
-import { Page } from '@playwright/test'
 import { faker } from '@faker-js/faker'
+import type { Page } from '@playwright/test'
 
 export interface SignUpData {
   name: string
@@ -65,8 +65,7 @@ export async function signUp(page: Page, data: SignUpData) {
     await docTypeButton.click()
 
     const resolvedDocumentNumber =
-      data.documentNumber ??
-      (resolvedDocumentType === 'CPF' ? generateTestCpf() : '11222333000181')
+      data.documentNumber ?? (resolvedDocumentType === 'CPF' ? generateTestCpf() : '11222333000181')
     await page.fill('input[name="documentNumber"]', resolvedDocumentNumber)
   }
 

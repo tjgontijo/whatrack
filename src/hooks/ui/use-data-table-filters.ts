@@ -1,8 +1,8 @@
 'use client'
 
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useCallback, useMemo } from 'react'
-import { ZodSchema } from 'zod'
+import type { ZodSchema } from 'zod'
 
 interface UseDataTableFiltersOptions<T extends Record<string, any>> {
   schema: ZodSchema
@@ -57,7 +57,7 @@ export function useDataTableFilters<T extends Record<string, any>>(
           parsed[key] = paramValue === 'true'
         } else if (typeof defaultValue === 'number') {
           const num = parseInt(paramValue, 10)
-          parsed[key] = isNaN(num) ? defaultValue : num
+          parsed[key] = Number.isNaN(num) ? defaultValue : num
         } else {
           parsed[key] = paramValue
         }

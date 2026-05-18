@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
-import { apiError } from '@/lib/utils/api-response'
 import { MetaCloudService } from '@/features/whatsapp/services/meta-cloud.service'
-import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import { apiError } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,7 +15,7 @@ export async function GET(request: Request) {
 
     const config = await MetaCloudService.getConfig(access.organizationId)
 
-    if (!config || !config.wabaId) {
+    if (!config?.wabaId) {
       return apiError('WhatsApp not configured for this organization', 404)
     }
 
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     const body = await request.json()
     const config = await MetaCloudService.getConfig(access.organizationId)
 
-    if (!config || !config.wabaId) {
+    if (!config?.wabaId) {
       return apiError('WhatsApp not configured for this organization', 404)
     }
 
@@ -80,7 +80,7 @@ export async function PUT(request: Request) {
 
     const config = await MetaCloudService.getConfig(access.organizationId)
 
-    if (!config || !config.wabaId) {
+    if (!config?.wabaId) {
       return apiError('WhatsApp not configured for this organization', 404)
     }
 
@@ -114,7 +114,7 @@ export async function DELETE(request: Request) {
 
     const config = await MetaCloudService.getConfig(access.organizationId)
 
-    if (!config || !config.wabaId) {
+    if (!config?.wabaId) {
       return apiError('WhatsApp not configured for this organization', 404)
     }
 

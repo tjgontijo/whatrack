@@ -1,7 +1,7 @@
-import { prisma } from '@/lib/db/prisma'
-import { logger } from '@/lib/utils/logger'
-import { encryption } from '@/lib/utils/encryption'
 import { MetaCloudService } from '@/features/whatsapp/services/meta-cloud.service'
+import { prisma } from '@/lib/db/prisma'
+import { encryption } from '@/lib/utils/encryption'
+import { logger } from '@/lib/utils/logger'
 
 interface CreateOnboardingSessionResult {
   onboardingUrl: string
@@ -49,7 +49,10 @@ export async function createWhatsAppOnboardingSession(
   onboardingUrl.searchParams.set('client_id', metaAppId)
   onboardingUrl.searchParams.set('redirect_uri', `${appUrl}/api/v1/whatsapp/onboarding/callback`)
   onboardingUrl.searchParams.set('state', trackingCode)
-  onboardingUrl.searchParams.set('scope', 'whatsapp_business_messaging,whatsapp_business_management,business_management')
+  onboardingUrl.searchParams.set(
+    'scope',
+    'whatsapp_business_messaging,whatsapp_business_management,business_management'
+  )
   onboardingUrl.searchParams.set('response_type', 'code')
   onboardingUrl.searchParams.set('config_id', metaConfigId)
 
@@ -202,7 +205,12 @@ export async function handleWhatsAppOnboardingCallback(
   let accessToken = ''
   try {
     // null = JS SDK flow (omit redirect_uri), undefined/string = server-side redirect flow
-    const redirectUri = baseUrl === null ? null : baseUrl ? `${baseUrl}/api/v1/whatsapp/onboarding/callback` : undefined
+    const redirectUri =
+      baseUrl === null
+        ? null
+        : baseUrl
+          ? `${baseUrl}/api/v1/whatsapp/onboarding/callback`
+          : undefined
     const tokenData = await MetaCloudService.exchangeCodeForToken(input.code, redirectUri)
     accessToken = tokenData.access_token
   } catch (error) {
@@ -259,13 +267,15 @@ export async function handleWhatsAppOnboardingCallback(
       }
 
       // Clean up pending placeholders
-      await prisma.whatsAppConfig.deleteMany({
-        where: {
-          organizationId: onboarding.organizationId,
-          wabaId: waba.wabaId,
-          phoneId: buildPendingPhoneId(waba.wabaId),
-        },
-      }).catch(() => {})
+      await prisma.whatsAppConfig
+        .deleteMany({
+          where: {
+            organizationId: onboarding.organizationId,
+            wabaId: waba.wabaId,
+            phoneId: buildPendingPhoneId(waba.wabaId),
+          },
+        })
+        .catch(() => {})
     } catch {
       // continue with other WABAs
     }
@@ -281,15 +291,21 @@ export async function handleWhatsAppOnboardingCallback(
       status: 'completed',
       completedAt: new Date(),
       // Set wabaId/businessId only if not already set by postMessage or PARTNER_ADDED webhook
-      ...(!onboarding.wabaId && wabas[0] ? {
-        wabaId: wabas[0].wabaId,
-        ownerBusinessId: wabas[0].businessId,
-      } : {}),
+      ...(!onboarding.wabaId && wabas[0]
+        ? {
+            wabaId: wabas[0].wabaId,
+            ownerBusinessId: wabas[0].businessId,
+          }
+        : {}),
     },
   })
 
   logger.info(
-    { phoneNumberId: updatedOnboarding.phoneNumberId, wabaId: updatedOnboarding.wabaId, hasToken: true },
+    {
+      phoneNumberId: updatedOnboarding.phoneNumberId,
+      wabaId: updatedOnboarding.wabaId,
+      hasToken: true,
+    },
     '[Onboarding] Token stored — checking Meet in the Middle condition'
   )
 
@@ -302,18 +318,20 @@ export async function handleWhatsAppOnboardingCallback(
 
     const created = await createWhatsAppConfigFromOnboarding(updatedOnboarding, accessToken)
 
-    await prisma.whatsAppAuditLog.create({
-      data: {
-        organizationId: onboarding.organizationId,
-        action: 'ONBOARDING_COMPLETED',
-        description: `WhatsApp connected: phone ${updatedOnboarding.phoneNumberId}`,
-        trackingCode: input.state,
-        metadata: {
-          phoneNumberId: updatedOnboarding.phoneNumberId,
-          wabaId: updatedOnboarding.wabaId,
+    await prisma.whatsAppAuditLog
+      .create({
+        data: {
+          organizationId: onboarding.organizationId,
+          action: 'ONBOARDING_COMPLETED',
+          description: `WhatsApp connected: phone ${updatedOnboarding.phoneNumberId}`,
+          trackingCode: input.state,
+          metadata: {
+            phoneNumberId: updatedOnboarding.phoneNumberId,
+            wabaId: updatedOnboarding.wabaId,
+          },
         },
-      },
-    }).catch(() => {})
+      })
+      .catch(() => {})
 
     return { success: true, totalPhones: created ? 1 : 0 }
   }

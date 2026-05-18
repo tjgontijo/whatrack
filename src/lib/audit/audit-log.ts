@@ -1,4 +1,4 @@
-import { auditService, AuditLogInput } from '@/services/audit/audit.service'
+import { type AuditLogInput, auditService } from '@/services/audit/audit.service'
 
 export type AuditLogParams = AuditLogInput
 

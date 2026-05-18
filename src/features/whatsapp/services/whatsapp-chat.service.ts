@@ -1,6 +1,6 @@
-import { prisma } from '@/lib/db/prisma'
 import { getDefaultTicketStage } from '@/features/tickets/services/ensure-ticket-stages'
 import { lookupCache } from '@/lib/db/lookup-cache'
+import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/utils/logger'
 
 const WINDOW_MS = 24 * 60 * 60 * 1000
@@ -47,8 +47,10 @@ export class WhatsAppChatService {
       // Track template action (reply or button click) if message references a sent template
       const contextWamid = (messageData as any).context?.id as string | undefined
       if (contextWamid) {
-        const { WhatsAppTemplateAnalyticsService } = await import('./whatsapp-template-analytics.service')
-        const actionType = (type === 'button' || type === 'interactive') ? 'click' : 'reply'
+        const { WhatsAppTemplateAnalyticsService } = await import(
+          './whatsapp-template-analytics.service'
+        )
+        const actionType = type === 'button' || type === 'interactive' ? 'click' : 'reply'
         void WhatsAppTemplateAnalyticsService.trackAction(contextWamid, actionType)
       }
 
@@ -92,7 +94,7 @@ export class WhatsAppChatService {
           ...(instance.projectId ? { projectId: instance.projectId } : {}),
           phone: from,
           pushName: contactProfile?.name || undefined,
-          lastMessageAt: new Date(parseInt(timestamp) * 1000),
+          lastMessageAt: new Date(parseInt(timestamp, 10) * 1000),
         },
         create: {
           organizationId,
@@ -101,7 +103,7 @@ export class WhatsAppChatService {
           waId: from,
           pushName: contactProfile?.name,
           sourceId,
-          lastMessageAt: new Date(parseInt(timestamp) * 1000),
+          lastMessageAt: new Date(parseInt(timestamp, 10) * 1000),
         },
       })
 
@@ -114,7 +116,8 @@ export class WhatsAppChatService {
         },
         update: { ...(instance.projectId ? { projectId: instance.projectId } : {}) },
         create: {
-          organizationId, projectId: instance.projectId,
+          organizationId,
+          projectId: instance.projectId,
           leadId: lead.id,
           instanceId,
         },
@@ -127,7 +130,7 @@ export class WhatsAppChatService {
 
       const defaultStage = await getDefaultTicketStage(prisma, organizationId)
 
-      const messageTimestamp = new Date(parseInt(timestamp) * 1000)
+      const messageTimestamp = new Date(parseInt(timestamp, 10) * 1000)
       if (!ticket) {
         ticket = await prisma.ticket.create({
           data: {
@@ -174,7 +177,7 @@ export class WhatsAppChatService {
         case 'audio':
         case 'voice':
           body = 'Audio Message'
-          mediaUrl = `meta_id:${messageData.audio?.id || messageData['voice']?.id}`
+          mediaUrl = `meta_id:${messageData.audio?.id || messageData.voice?.id}`
           break
         case 'document':
           body = messageData.document?.caption || messageData.document?.filename || 'Document'
@@ -190,7 +193,7 @@ export class WhatsAppChatService {
         case 'button':
           body = messageData.button?.text || 'Button Response'
           break
-        case 'interactive':
+        case 'interactive': {
           const interactive = messageData.interactive
           if (interactive?.type === 'button_reply') {
             body = interactive.button_reply?.title || 'Button Reply'
@@ -200,10 +203,10 @@ export class WhatsAppChatService {
             body = 'Interactive Message'
           }
           break
+        }
         case 'reaction':
           body = `Reacted ${messageData.reaction?.emoji} to message ${messageData.reaction?.message_id}`
           break
-        case 'unknown':
         default:
           body = `Unsupported message type: ${type}`
       }
@@ -288,7 +291,7 @@ export class WhatsAppChatService {
         update: {
           ...(instance.projectId ? { projectId: instance.projectId } : {}),
           phone: customerPhone,
-          lastMessageAt: new Date(parseInt(timestamp) * 1000),
+          lastMessageAt: new Date(parseInt(timestamp, 10) * 1000),
         },
         create: {
           organizationId: instance.organizationId,
@@ -296,7 +299,7 @@ export class WhatsAppChatService {
           phone: customerPhone,
           waId: customerPhone,
           sourceId,
-          lastMessageAt: new Date(parseInt(timestamp) * 1000),
+          lastMessageAt: new Date(parseInt(timestamp, 10) * 1000),
         },
       })
 
@@ -358,7 +361,7 @@ export class WhatsAppChatService {
           type,
           body: body || '',
           status: 'active',
-          timestamp: new Date(parseInt(timestamp) * 1000),
+          timestamp: new Date(parseInt(timestamp, 10) * 1000),
         },
       })
 
@@ -367,10 +370,10 @@ export class WhatsAppChatService {
         data: { messagesCount: { increment: 1 } },
       })
 
-          await prisma.ticket.update({
-            where: { id: ticket.id },
-            data: { messagesCount: { increment: 1 } },
-          })
+      await prisma.ticket.update({
+        where: { id: ticket.id },
+        data: { messagesCount: { increment: 1 } },
+      })
 
       return created
     } catch (error) {
@@ -382,7 +385,7 @@ export class WhatsAppChatService {
   /**
    * Process message status update (sent, delivered, read)
    */
-  static async processStatusUpdate(instanceId: string, statusData: any) {
+  static async processStatusUpdate(_instanceId: string, statusData: any) {
     try {
       const { id: wamid, status, timestamp, recipient_id } = statusData
 
@@ -417,7 +420,9 @@ export class WhatsAppChatService {
 
       // Update template analytics (non-blocking)
       if (status === 'delivered' || status === 'read') {
-        const { WhatsAppTemplateAnalyticsService } = await import('./whatsapp-template-analytics.service')
+        const { WhatsAppTemplateAnalyticsService } = await import(
+          './whatsapp-template-analytics.service'
+        )
         void WhatsAppTemplateAnalyticsService.updateStatus(wamid, status)
       }
     } catch (error) {
@@ -440,7 +445,17 @@ export class WhatsAppChatService {
     variables?: any
     shouldCreateLeads?: boolean
   }) {
-    const { instanceId, organizationId, projectId, phone, campaignId, campaignName, wamid, body, shouldCreateLeads = true } = params
+    const {
+      instanceId,
+      organizationId,
+      projectId,
+      phone,
+      campaignId,
+      campaignName,
+      wamid,
+      body,
+      shouldCreateLeads = true,
+    } = params
     try {
       // Get lookup IDs before operations
       const sourceId = await lookupCache.getLeadSourceId('direct_creation')
@@ -492,7 +507,8 @@ export class WhatsAppChatService {
         },
         update: { ...(projectId ? { projectId } : {}) },
         create: {
-          organizationId, projectId: projectId ?? undefined,
+          organizationId,
+          projectId: projectId ?? undefined,
           leadId: lead.id,
           instanceId,
         },

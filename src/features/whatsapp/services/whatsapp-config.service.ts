@@ -1,10 +1,10 @@
-import { prisma } from '@/lib/db/prisma'
-import { resolveAccessToken } from '@/features/whatsapp/lib/token-crypto'
-import { MetaCloudService } from '@/features/whatsapp/services/meta-cloud.service'
 import {
   assertWhatsAppAllowedForProject,
   syncOrganizationSubscriptionItems,
 } from '@/features/billing/services/billing-subscription.service'
+import { resolveAccessToken } from '@/features/whatsapp/lib/token-crypto'
+import { MetaCloudService } from '@/features/whatsapp/services/meta-cloud.service'
+import { prisma } from '@/lib/db/prisma'
 
 const PENDING_PHONE_ID_PREFIX = 'pending_'
 
@@ -83,7 +83,10 @@ export async function disconnectWhatsAppConfig(params: DisconnectWhatsAppConfigP
         // Deregister this specific phone number from Cloud API
         if (config.phoneId) {
           try {
-            await MetaCloudService.deregisterPhone({ phoneId: config.phoneId, accessToken: plainToken })
+            await MetaCloudService.deregisterPhone({
+              phoneId: config.phoneId,
+              accessToken: plainToken,
+            })
           } catch {
             // non-blocking
           }
@@ -160,7 +163,10 @@ export async function listWhatsAppPhoneNumbers(organizationId: string) {
   const configs = await MetaCloudService.getAllConfigs(organizationId)
   const configByPhoneId = new Map(
     configs
-      .filter((config) => config.phoneId && !isPendingPhoneId(config.phoneId) && config.status !== 'disconnected')
+      .filter(
+        (config) =>
+          config.phoneId && !isPendingPhoneId(config.phoneId) && config.status !== 'disconnected'
+      )
       .map((config) => [
         config.phoneId!,
         {
@@ -168,11 +174,14 @@ export async function listWhatsAppPhoneNumbers(organizationId: string) {
           projectId: config.projectId,
           projectName: config.project?.name ?? null,
         },
-      ]),
+      ])
   )
   const pendingConfigByWabaId = new Map(
     configs
-      .filter((config) => config.wabaId && isPendingPhoneId(config.phoneId) && config.status !== 'disconnected')
+      .filter(
+        (config) =>
+          config.wabaId && isPendingPhoneId(config.phoneId) && config.status !== 'disconnected'
+      )
       .map((config) => [
         config.wabaId!,
         {
@@ -184,7 +193,7 @@ export async function listWhatsAppPhoneNumbers(organizationId: string) {
           verifiedName: config.verifiedName,
           displayPhone: config.displayPhone,
         },
-      ]),
+      ])
   )
 
   if (configs.length === 0) {
@@ -197,7 +206,14 @@ export async function listWhatsAppPhoneNumbers(organizationId: string) {
     }
   }
 
-  const wabaIds = Array.from(new Set(configs.filter((c) => c.status !== 'disconnected').map((config) => config.wabaId).filter(Boolean))) as string[]
+  const wabaIds = Array.from(
+    new Set(
+      configs
+        .filter((c) => c.status !== 'disconnected')
+        .map((config) => config.wabaId)
+        .filter(Boolean)
+    )
+  ) as string[]
   const allPhoneNumbers: Array<Record<string, unknown>> = []
 
   for (const wabaId of wabaIds) {
@@ -218,21 +234,24 @@ export async function listWhatsAppPhoneNumbers(organizationId: string) {
       }
 
       allPhoneNumbers.push(
-        ...numbers.map((phone: Record<string, unknown>) => ({ ...phone, wabaId })),
+        ...numbers.map((phone: Record<string, unknown>) => ({ ...phone, wabaId }))
       )
     } catch {
       // ignore WABA-specific failures
     }
   }
 
-  const uniqueById = allPhoneNumbers.reduce<Record<string, Record<string, unknown>>>((acc, phone) => {
-    const id = typeof phone.id === 'string' ? phone.id : ''
-    if (id) {
-      acc[id] = phone
-    }
+  const uniqueById = allPhoneNumbers.reduce<Record<string, Record<string, unknown>>>(
+    (acc, phone) => {
+      const id = typeof phone.id === 'string' ? phone.id : ''
+      if (id) {
+        acc[id] = phone
+      }
 
-    return acc
-  }, {})
+      return acc
+    },
+    {}
+  )
   const assignedPendingConfigIds = new Set<string>()
 
   return {
@@ -315,7 +334,10 @@ export async function checkWhatsAppTokenHealth(organizationId: string) {
   const configs = await MetaCloudService.getAllConfigs(organizationId)
 
   if (configs.length === 0) {
-    return { error: 'No WhatsApp configs found for this organization' as const, status: 404 as const }
+    return {
+      error: 'No WhatsApp configs found for this organization' as const,
+      status: 404 as const,
+    }
   }
 
   const results: Array<Record<string, unknown>> = []

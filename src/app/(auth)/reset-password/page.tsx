@@ -1,17 +1,15 @@
 'use client'
 
-import { useRouter, useSearchParams } from 'next/navigation'
-import { z } from 'zod'
-import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { toast } from 'sonner'
 import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
-
-import { FormProvider as Form, Controller } from 'react-hook-form'
-import { Field, FieldLabel, FieldError } from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
+import { Controller, FormProvider as Form, useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+import { z } from 'zod'
 import { Button } from '@/components/ui/button'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
 
 const resetPasswordSchema = z
   .object({
@@ -78,27 +76,27 @@ function ResetPasswordForm() {
 
   if (!token) {
     return (
-      <div className="bg-background flex min-h-screen items-center justify-center px-4 py-12">
-        <div className="w-full max-w-md space-y-8">
-          <div className="text-center">
-            <h1 className="text-2xl font-semibold tracking-tight">Link inválido</h1>
-            <p className="text-muted-foreground mt-2 text-sm">
+      <div className='flex min-h-screen items-center justify-center bg-background px-4 py-12'>
+        <div className='w-full max-w-md space-y-8'>
+          <div className='text-center'>
+            <h1 className='font-semibold text-2xl tracking-tight'>Link inválido</h1>
+            <p className='mt-2 text-muted-foreground text-sm'>
               O link de recuperação está ausente ou expirado
             </p>
           </div>
 
-          <div className="space-y-4">
-            <p className="text-muted-foreground text-center text-sm">
+          <div className='space-y-4'>
+            <p className='text-center text-muted-foreground text-sm'>
               O link de recuperação de senha é inválido ou expirou. Por favor, solicite um novo link
               de recuperação.
             </p>
 
-            <Link href="/forgot-password" className="block w-full">
-              <Button className="w-full">Solicitar novo link</Button>
+            <Link href='/forgot-password' className='block w-full'>
+              <Button className='w-full'>Solicitar novo link</Button>
             </Link>
 
-            <Link href="/sign-in" className="block w-full">
-              <Button variant="ghost" className="w-full">
+            <Link href='/sign-in' className='block w-full'>
+              <Button variant='ghost' className='w-full'>
                 Voltar para login
               </Button>
             </Link>
@@ -109,26 +107,26 @@ function ResetPasswordForm() {
   }
 
   return (
-    <div className="bg-background flex min-h-screen items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md space-y-8">
-        <div className="text-center">
-          <h1 className="text-2xl font-semibold tracking-tight">Redefinir senha</h1>
-          <p className="text-muted-foreground mt-2 text-sm">Digite sua nova senha abaixo</p>
+    <div className='flex min-h-screen items-center justify-center bg-background px-4 py-12'>
+      <div className='w-full max-w-md space-y-8'>
+        <div className='text-center'>
+          <h1 className='font-semibold text-2xl tracking-tight'>Redefinir senha</h1>
+          <p className='mt-2 text-muted-foreground text-sm'>Digite sua nova senha abaixo</p>
         </div>
 
         <Form {...form}>
-          <form className="space-y-6" onSubmit={form.handleSubmit(handleSubmit)}>
+          <form className='space-y-6' onSubmit={form.handleSubmit(handleSubmit)}>
             <Controller
               control={form.control}
-              name="password"
+              name='password'
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel htmlFor={field.name}>Nova senha</FieldLabel>
                   <Input
                     id={field.name}
-                    type="password"
-                    autoComplete="new-password"
-                    placeholder="Mínimo 8 caracteres"
+                    type='password'
+                    autoComplete='new-password'
+                    placeholder='Mínimo 8 caracteres'
                     disabled={isSubmitting}
                     {...field}
                   />
@@ -139,15 +137,15 @@ function ResetPasswordForm() {
 
             <Controller
               control={form.control}
-              name="confirmPassword"
+              name='confirmPassword'
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel htmlFor={field.name}>Confirmar senha</FieldLabel>
                   <Input
                     id={field.name}
-                    type="password"
-                    autoComplete="new-password"
-                    placeholder="Digite novamente"
+                    type='password'
+                    autoComplete='new-password'
+                    placeholder='Digite novamente'
                     disabled={isSubmitting}
                     {...field}
                   />
@@ -156,15 +154,15 @@ function ResetPasswordForm() {
               )}
             />
 
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
+            <Button type='submit' className='w-full' disabled={isSubmitting}>
               {isSubmitting ? 'Redefinindo…' : 'Redefinir senha'}
             </Button>
           </form>
         </Form>
 
-        <div className="text-muted-foreground text-center text-sm">
+        <div className='text-center text-muted-foreground text-sm'>
           Lembrou sua senha?{' '}
-          <Link href="/sign-in" className="text-primary font-medium hover:underline">
+          <Link href='/sign-in' className='font-medium text-primary hover:underline'>
             Voltar para login
           </Link>
         </div>

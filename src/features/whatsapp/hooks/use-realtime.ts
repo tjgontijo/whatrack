@@ -1,12 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { createCentrifugoClient, subscribeTo } from '@/lib/centrifugo/client'
+import { useEffect, useState } from 'react'
 import { apiFetch } from '@/lib/api-client'
+import { createCentrifugoClient, subscribeTo } from '@/lib/centrifugo/client'
 
-
-function normalizeCentrifugoIssue(payload: unknown) {
+function _normalizeCentrifugoIssue(payload: unknown) {
   if (!payload || typeof payload !== 'object') {
     return null
   }
@@ -34,8 +33,6 @@ export function useRealtime(organizationId: string | undefined) {
   const queryClient = useQueryClient()
   const [client, setClient] = useState<any>(null)
   const [connected, setConnected] = useState(false)
-
-
 
   // Fetch Centrifugo connection token
   const { data: tokenData } = useQuery({

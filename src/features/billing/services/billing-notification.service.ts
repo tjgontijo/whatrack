@@ -1,8 +1,8 @@
-import { Prisma } from '@generated/prisma/client'
+import type { Prisma } from '@generated/prisma/client'
 import { prisma } from '@/lib/db/prisma'
-import { resendProvider } from '@/services/mail/resend'
-import { renderBillingAutoUpgradeEmail } from '@/services/mail/email-renderer'
 import { logger } from '@/lib/utils/logger'
+import { renderBillingAutoUpgradeEmail } from '@/services/mail/email-renderer'
+import { resendProvider } from '@/services/mail/resend'
 
 export class BillingNotificationService {
   async sendAutoUpgradeNotification(input: {
@@ -14,7 +14,14 @@ export class BillingNotificationService {
     nextChargeAmount: Prisma.Decimal
   }): Promise<boolean> {
     try {
-      const { organizationId, oldPlanName, newPlanName, upgradeDate, nextChargeDate, nextChargeAmount } = input
+      const {
+        organizationId,
+        oldPlanName,
+        newPlanName,
+        upgradeDate,
+        nextChargeDate,
+        nextChargeAmount,
+      } = input
 
       const organization = await prisma.organization.findUnique({
         where: { id: organizationId },
@@ -34,7 +41,7 @@ export class BillingNotificationService {
         },
       })
 
-      if (!organization || !organization.members.length) {
+      if (!organization?.members.length) {
         logger.warn({ organizationId }, 'Organization or owner not found for billing notification')
         return false
       }
@@ -63,14 +70,23 @@ export class BillingNotificationService {
       })
 
       if (response.success) {
-        logger.info({ organizationId, messageId: response.messageId }, 'Auto-upgrade notification sent')
+        logger.info(
+          { organizationId, messageId: response.messageId },
+          'Auto-upgrade notification sent'
+        )
         return true
       } else {
-        logger.error({ organizationId, error: response.error }, 'Failed to send auto-upgrade notification')
+        logger.error(
+          { organizationId, error: response.error },
+          'Failed to send auto-upgrade notification'
+        )
         return false
       }
     } catch (error) {
-      logger.error({ error, organizationId: input.organizationId }, 'Error sending auto-upgrade notification')
+      logger.error(
+        { error, organizationId: input.organizationId },
+        'Error sending auto-upgrade notification'
+      )
       return false
     }
   }

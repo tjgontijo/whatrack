@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto'
+import { randomUUID } from 'node:crypto'
 
 import { getRedis } from '@/lib/db/redis'
 
@@ -20,16 +20,14 @@ export async function createMetaOAuthState(payload: MetaOAuthStatePayload): Prom
     projectId: payload.projectId,
   }
 
-  await redis.setex(
-    `oauth_state:${stateToken}`,
-    OAUTH_STATE_TTL_SECONDS,
-    JSON.stringify(stateData)
-  )
+  await redis.setex(`oauth_state:${stateToken}`, OAUTH_STATE_TTL_SECONDS, JSON.stringify(stateData))
 
   return stateToken
 }
 
-export async function consumeMetaOAuthState(stateToken: string): Promise<MetaOAuthStatePayload | null> {
+export async function consumeMetaOAuthState(
+  stateToken: string
+): Promise<MetaOAuthStatePayload | null> {
   const redis = getRedis()
   const stateKey = `oauth_state:${stateToken}`
   const stateRaw = await redis.get(stateKey)

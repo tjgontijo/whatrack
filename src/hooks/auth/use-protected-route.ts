@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 import { useSession } from '@/lib/auth/auth-client'
 
 /**
@@ -29,7 +29,7 @@ export function useProtectedRoute() {
 /**
  * Hook para validar se o usuário é membro de uma organização
  */
-export function useOrganizationAccess(organizationId: string) {
+export function useOrganizationAccess(_organizationId: string) {
   const router = useRouter()
   const { data: session, isPending } = useSession()
 
@@ -43,7 +43,7 @@ export function useOrganizationAccess(organizationId: string) {
 
     // TODO: Validar se o usuário é membro da organização
     // Isso será feito através de uma chamada à API
-  }, [session, isPending, organizationId, router])
+  }, [session, isPending, router])
 
   return {
     isLoading: isPending,

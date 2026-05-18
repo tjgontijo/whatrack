@@ -1,11 +1,10 @@
-import { NextRequest } from 'next/server'
-
-import { apiError, apiSuccess } from '@/lib/utils/api-response'
+import type { NextRequest } from 'next/server'
 import { cronTriggerBodySchema } from '@/features/cron/schemas/cron.schemas'
-import { authorizeCronRequest } from '@/server/cron/cron-auth'
 import { prisma } from '@/lib/db/prisma'
-import { enqueueCampaignDispatch } from '@/server/queues/campaign.queue'
+import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
+import { authorizeCronRequest } from '@/server/cron/cron-auth'
+import { enqueueCampaignDispatch } from '@/server/queues/campaign.queue'
 
 const ENDPOINT = '/api/v1/cron/whatsapp/campaign-dispatch'
 

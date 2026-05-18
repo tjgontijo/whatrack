@@ -11,7 +11,7 @@ import {
 test('normalizeAsaasBaseUrl trims and removes trailing slash', () => {
   assert.equal(
     normalizeAsaasBaseUrl(' https://api-sandbox.asaas.com/v3/ '),
-    'https://api-sandbox.asaas.com/v3',
+    'https://api-sandbox.asaas.com/v3'
   )
 })
 

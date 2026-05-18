@@ -1,17 +1,16 @@
+import { Prisma } from '@generated/prisma/client'
 import { cookies } from 'next/headers'
 import { z } from 'zod'
-
-import { apiError, apiSuccess } from '@/lib/utils/api-response'
-import { ORGANIZATION_COOKIE, PROJECT_COOKIE } from '@/lib/constants/http-headers'
-import { getOrSyncUser } from '@/server/auth/server'
-import { logger } from '@/lib/utils/logger'
-import { prisma } from '@/lib/db/prisma'
-import { normalizeSlug } from '@/lib/utils/slug'
-import { fetchCnpjData, ReceitaWsError } from '@/features/company/services/receitaws'
 import { getDefaultTrialBillingPlan } from '@/features/billing/services/billing-plan-catalog.service'
 import { startOrganizationTrial } from '@/features/billing/services/billing-subscription.service'
+import { fetchCnpjData, ReceitaWsError } from '@/features/company/services/receitaws'
+import { ORGANIZATION_COOKIE, PROJECT_COOKIE } from '@/lib/constants/http-headers'
+import { prisma } from '@/lib/db/prisma'
+import { apiError, apiSuccess } from '@/lib/utils/api-response'
+import { logger } from '@/lib/utils/logger'
+import { normalizeSlug } from '@/lib/utils/slug'
+import { getOrSyncUser } from '@/server/auth/server'
 import { ensureSystemRolesForOrganization } from '@/server/organization/organization-rbac.service'
-import { Prisma } from '@generated/prisma/client'
 
 const setupSchema = z.object({
   documentType: z.enum(['CPF', 'CNPJ']),
@@ -31,7 +30,7 @@ function buildOrgSlug(name: string) {
 
 async function resolveAvailableOrgSlug(
   tx: Prisma.TransactionClient,
-  baseName: string,
+  baseName: string
 ): Promise<string> {
   const baseSlug = buildOrgSlug(baseName)
 
@@ -69,7 +68,10 @@ export async function POST(request: Request) {
         orgName = companyData.razaoSocial || companyData.nomeFantasia || documentNumber
       } catch (err) {
         if (err instanceof ReceitaWsError) {
-          logger.warn({ err, documentNumber }, '[onboarding/setup] ReceitaWS lookup failed, using fallback')
+          logger.warn(
+            { err, documentNumber },
+            '[onboarding/setup] ReceitaWS lookup failed, using fallback'
+          )
         }
         orgName = documentNumber
       }
@@ -117,8 +119,17 @@ export async function POST(request: Request) {
       if (documentType === 'CPF') {
         await tx.organizationProfile.upsert({
           where: { organizationId },
-          update: { cpf: documentNumber, onboardingStatus: 'completed', onboardingCompletedAt: completedAt },
-          create: { organizationId, cpf: documentNumber, onboardingStatus: 'completed', onboardingCompletedAt: completedAt },
+          update: {
+            cpf: documentNumber,
+            onboardingStatus: 'completed',
+            onboardingCompletedAt: completedAt,
+          },
+          create: {
+            organizationId,
+            cpf: documentNumber,
+            onboardingStatus: 'completed',
+            onboardingCompletedAt: completedAt,
+          },
         })
       } else {
         // PJ — persist company data (from ReceitaWS if available)
@@ -139,7 +150,10 @@ export async function POST(request: Request) {
             tipo: companyData?.tipo ?? null,
             porte: companyData?.porte ?? null,
             naturezaJuridica: companyData?.naturezaJuridica ?? null,
-            capitalSocial: companyData?.capitalSocial != null ? new Prisma.Decimal(companyData.capitalSocial) : null,
+            capitalSocial:
+              companyData?.capitalSocial != null
+                ? new Prisma.Decimal(companyData.capitalSocial)
+                : null,
             situacao: companyData?.situacao ?? null,
             authorizedByUserId: user.id,
           },
@@ -155,7 +169,10 @@ export async function POST(request: Request) {
             tipo: companyData?.tipo ?? null,
             porte: companyData?.porte ?? null,
             naturezaJuridica: companyData?.naturezaJuridica ?? null,
-            capitalSocial: companyData?.capitalSocial != null ? new Prisma.Decimal(companyData.capitalSocial) : null,
+            capitalSocial:
+              companyData?.capitalSocial != null
+                ? new Prisma.Decimal(companyData.capitalSocial)
+                : null,
             situacao: companyData?.situacao ?? null,
             authorizedByUserId: user.id,
           },
@@ -163,7 +180,12 @@ export async function POST(request: Request) {
         await tx.organizationProfile.upsert({
           where: { organizationId },
           update: { cpf: null, onboardingStatus: 'completed', onboardingCompletedAt: completedAt },
-          create: { organizationId, cpf: null, onboardingStatus: 'completed', onboardingCompletedAt: completedAt },
+          create: {
+            organizationId,
+            cpf: null,
+            onboardingStatus: 'completed',
+            onboardingCompletedAt: completedAt,
+          },
         })
       }
 

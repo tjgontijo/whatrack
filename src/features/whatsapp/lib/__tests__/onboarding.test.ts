@@ -22,7 +22,9 @@ describe('whatsapp onboarding helpers', () => {
     expect(parsed.origin).toBe('https://www.facebook.com')
     expect(parsed.pathname).toBe('/dialog/oauth')
     expect(parsed.searchParams.getAll('state')).toEqual(['track-123'])
-    expect(parsed.searchParams.get('extras')).toContain('"featureType":"whatsapp_business_app_onboarding"')
+    expect(parsed.searchParams.get('extras')).toContain(
+      '"featureType":"whatsapp_business_app_onboarding"'
+    )
     expect(parsed.searchParams.get('extras')).toContain('"trackingCode":"track-123"')
   })
 })

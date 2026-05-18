@@ -1,12 +1,11 @@
-import { NextRequest } from 'next/server'
-
-import { apiError, apiSuccess } from '@/lib/utils/api-response'
+import type { NextRequest } from 'next/server'
 import {
   metaAdAccountToggleBodySchema,
   metaRouteParamsSchema,
 } from '@/features/meta-ads/schemas/meta-ads-schemas'
-import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { toggleMetaAdAccount } from '@/features/meta-ads/services/meta-account-query.service'
+import { apiError, apiSuccess } from '@/lib/utils/api-response'
+import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const access = await validatePermissionAccess(req, 'manage:integrations')

@@ -1,11 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server'
-
-import { apiError } from '@/lib/utils/api-response'
-import { rateLimitMiddleware } from '@/lib/utils/rate-limit.middleware'
+import { type NextRequest, NextResponse } from 'next/server'
 import {
   processWhatsAppWebhookPayload,
   verifyWhatsAppWebhookQuery,
 } from '@/features/whatsapp/services/whatsapp-webhook.service'
+import { apiError } from '@/lib/utils/api-response'
+import { rateLimitMiddleware } from '@/lib/utils/rate-limit.middleware'
 
 export const dynamic = 'force-dynamic'
 

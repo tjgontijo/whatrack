@@ -10,19 +10,9 @@ const LABELS: Record<string, string> = {
   error: 'Erro de sync',
 }
 
-export function BillingPlanSyncBadge({
-  syncStatus,
-}: BillingPlanSyncBadgeProps) {
+export function BillingPlanSyncBadge({ syncStatus }: BillingPlanSyncBadgeProps) {
   const variant =
-    syncStatus === 'synced'
-      ? 'default'
-      : syncStatus === 'error'
-        ? 'destructive'
-        : 'outline'
+    syncStatus === 'synced' ? 'default' : syncStatus === 'error' ? 'destructive' : 'outline'
 
-  return (
-    <Badge variant={variant}>
-      {LABELS[syncStatus] ?? syncStatus}
-    </Badge>
-  )
+  return <Badge variant={variant}>{LABELS[syncStatus] ?? syncStatus}</Badge>
 }

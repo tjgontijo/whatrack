@@ -1,10 +1,10 @@
 import { performance } from 'node:perf_hooks'
 
 import { prisma } from '@/lib/db/prisma'
+import { logger } from '@/lib/utils/logger'
 import { resendProvider } from '@/services/mail/resend'
 import { getEmailTemplate } from './get-email'
-import { AuthDeliveryPayload, AuthDeliveryResult } from './types'
-import { logger } from '@/lib/utils/logger'
+import type { AuthDeliveryPayload, AuthDeliveryResult } from './types'
 
 interface AuthDeliveryTimingLog {
   event: 'auth_delivery_timings'
@@ -39,7 +39,10 @@ class AuthDeliveryService {
     let deliveredChannel: AuthDeliveryResult['channel'] | 'pending' = 'pending'
     let errorMessage: string | undefined
 
-    logger.info({ context: { email: maskedEmail, type, timestamp: new Date().toISOString() } }, '[auth_delivery] start')
+    logger.info(
+      { context: { email: maskedEmail, type, timestamp: new Date().toISOString() } },
+      '[auth_delivery] start'
+    )
 
     try {
       const user = await prisma.user.findUnique({
@@ -54,7 +57,10 @@ class AuthDeliveryService {
       if (!user) {
         outcome = 'failure'
         errorMessage = 'user_not_found'
-        logger.error({ err: { email: maskedEmail } }, '[AuthDeliveryService] Usuário não encontrado')
+        logger.error(
+          { err: { email: maskedEmail } },
+          '[AuthDeliveryService] Usuário não encontrado'
+        )
         return {
           success: false,
           channel: 'none',

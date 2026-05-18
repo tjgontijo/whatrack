@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server'
-
-import { apiError } from '@/lib/utils/api-response'
 import { dashboardSummaryQuerySchema } from '@/features/dashboard/schemas/dashboard-schemas'
+import { getDashboardSummary } from '@/features/dashboard/server'
+import { apiError } from '@/lib/utils/api-response'
+import { logger } from '@/lib/utils/logger'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { resolveProjectScope } from '@/server/project/project-scope'
-import { getDashboardSummary } from '@/features/dashboard/server'
-import { logger } from '@/lib/utils/logger'
 
 export async function GET(request: Request) {
   const access = await validateFullAccess(request)
@@ -28,7 +27,7 @@ export async function GET(request: Request) {
       await resolveProjectScope({
         organizationId: access.organizationId,
         projectId: parsed.data.projectId,
-      }),
+      })
     )
     return NextResponse.json(payload)
   } catch (error) {

@@ -1,21 +1,19 @@
 'use client'
 
-import { useState, useCallback } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Loader2, Search, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { AlertCircle, CheckCircle2, Loader2, Search } from 'lucide-react'
+import { useCallback, useState } from 'react'
 import { toast } from 'sonner'
-
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { formatCnpj, isValidCnpjFormat, stripCnpj } from '@/lib/mask/cnpj'
-import { apiFetch } from '@/lib/api-client'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
+import { apiFetch } from '@/lib/api-client'
+import { formatCnpj, isValidCnpjFormat, stripCnpj } from '@/lib/mask/cnpj'
 import { SettingsGroup } from './settings-group'
 import { SettingsRow } from './settings-row'
-
 
 type CompanyState = 'empty' | 'loading' | 'preview' | 'saved' | 'error'
 
@@ -37,8 +35,6 @@ interface CompanyData {
   porte?: string
   qsa?: QsaMember[]
 }
-
-
 
 async function fetchCompanyData(orgId: string): Promise<CompanyData | null> {
   try {
@@ -80,52 +76,55 @@ async function saveCompanyData(
 function CompanyDataRows({ data }: { data: CompanyData }) {
   return (
     <>
-      <SettingsRow label="CNPJ" description="Registro principal vinculado ao workspace.">
-        <p className="font-medium">{formatCnpj(data.cnpj)}</p>
+      <SettingsRow label='CNPJ' description='Registro principal vinculado ao workspace.'>
+        <p className='font-medium'>{formatCnpj(data.cnpj)}</p>
       </SettingsRow>
 
-      <SettingsRow label="Tipo / Situação" description="Classificação fiscal retornada na consulta.">
-        <p className="font-medium">{data.tipo || '-'}</p>
+      <SettingsRow
+        label='Tipo / Situação'
+        description='Classificação fiscal retornada na consulta.'
+      >
+        <p className='font-medium'>{data.tipo || '-'}</p>
       </SettingsRow>
 
-      <SettingsRow label="Razão social" description="Nome jurídico oficial da empresa.">
-        <p className="font-medium">{data.razaoSocial}</p>
+      <SettingsRow label='Razão social' description='Nome jurídico oficial da empresa.'>
+        <p className='font-medium'>{data.razaoSocial}</p>
       </SettingsRow>
 
       {data.nomeFantasia ? (
-        <SettingsRow label="Nome fantasia" description="Nome comercial usado publicamente.">
-          <p className="font-medium">{data.nomeFantasia}</p>
+        <SettingsRow label='Nome fantasia' description='Nome comercial usado publicamente.'>
+          <p className='font-medium'>{data.nomeFantasia}</p>
         </SettingsRow>
       ) : null}
 
-      <SettingsRow label="Localização" description="Cidade e estado do cadastro principal.">
-        <p className="font-medium">
+      <SettingsRow label='Localização' description='Cidade e estado do cadastro principal.'>
+        <p className='font-medium'>
           {data.municipio} / {data.uf}
         </p>
       </SettingsRow>
 
-      <SettingsRow label="Porte" description="Porte da empresa conforme a base consultada.">
-        <p className="font-medium">{data.porte || '-'}</p>
+      <SettingsRow label='Porte' description='Porte da empresa conforme a base consultada.'>
+        <p className='font-medium'>{data.porte || '-'}</p>
       </SettingsRow>
 
-      <SettingsRow label="Atividade principal" description="CNAE principal retornado na consulta.">
-        <p className="text-sm">
-          <span className="font-medium">{data.cnaeCode}</span>
+      <SettingsRow label='Atividade principal' description='CNAE principal retornado na consulta.'>
+        <p className='text-sm'>
+          <span className='font-medium'>{data.cnaeCode}</span>
           {' - '}
           {data.cnaeDescription}
         </p>
       </SettingsRow>
 
       {data.qsa && data.qsa.length > 0 ? (
-        <SettingsRow label="Quadro societário" description="Sócios e qualificações cadastradas.">
-          <div className="space-y-2">
+        <SettingsRow label='Quadro societário' description='Sócios e qualificações cadastradas.'>
+          <div className='space-y-2'>
             {data.qsa.map((socio, index) => (
               <div
                 key={index}
-                className="flex items-center justify-between border-b pb-2 text-sm last:border-0 last:pb-0"
+                className='flex items-center justify-between border-b pb-2 text-sm last:border-0 last:pb-0'
               >
-                <span className="font-medium">{socio.nome}</span>
-                <span className="text-muted-foreground text-xs">{socio.qual}</span>
+                <span className='font-medium'>{socio.nome}</span>
+                <span className='text-muted-foreground text-xs'>{socio.qual}</span>
               </div>
             ))}
           </div>
@@ -134,7 +133,6 @@ function CompanyDataRows({ data }: { data: CompanyData }) {
     </>
   )
 }
-
 
 type CompanyDataSectionProps = {
   initialData?: CompanyData | null
@@ -224,21 +222,20 @@ export function CompanyDataSection({ initialData }: CompanyDataSectionProps = {}
   // Limpa preview quando há dados salvos
   // Removido useEffect: o cleanup do preview já é feito no onSuccess da mutation de save
 
-
   const isValidCnpj = isValidCnpjFormat(cnpjInput)
   const isSearching = lookupMutation.isPending
   const isSaving = saveMutation.isPending
 
   return (
     <SettingsGroup
-      label="Dados fiscais"
-      description="Vincule os dados oficiais da empresa via Receita Federal para emissão de notas fiscais e adequação à LGPD."
+      label='Dados fiscais'
+      description='Vincule os dados oficiais da empresa via Receita Federal para emissão de notas fiscais e adequação à LGPD.'
       footer={
         state === 'preview' && previewData ? (
-          <div className="flex justify-end gap-2">
+          <div className='flex justify-end gap-2'>
             <Button
-              type="button"
-              variant="outline"
+              type='button'
+              variant='outline'
               onClick={() => {
                 setPreviewData(null)
                 setCnpjInput('')
@@ -247,8 +244,8 @@ export function CompanyDataSection({ initialData }: CompanyDataSectionProps = {}
             >
               Cancelar
             </Button>
-            <Button type="button" onClick={handleSave} disabled={!authorized || isSaving}>
-              {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            <Button type='button' onClick={handleSave} disabled={!authorized || isSaving}>
+              {isSaving ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : null}
               Salvar dados
             </Button>
           </div>
@@ -256,17 +253,17 @@ export function CompanyDataSection({ initialData }: CompanyDataSectionProps = {}
       }
     >
       {state === 'loading' && (
-        <div className="flex items-center justify-center py-8">
-          <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
+        <div className='flex items-center justify-center py-8'>
+          <Loader2 className='h-6 w-6 animate-spin text-muted-foreground' />
         </div>
       )}
 
       {state === 'saved' && savedData && (
         <>
-          <div className="py-4">
-            <Alert className="border-green-200 bg-green-50">
-              <CheckCircle2 className="h-4 w-4 text-green-600" />
-              <AlertDescription className="text-green-700">
+          <div className='py-4'>
+            <Alert className='border-green-200 bg-green-50'>
+              <CheckCircle2 className='h-4 w-4 text-green-600' />
+              <AlertDescription className='text-green-700'>
                 Dados da empresa vinculados com sucesso
               </AlertDescription>
             </Alert>
@@ -278,33 +275,33 @@ export function CompanyDataSection({ initialData }: CompanyDataSectionProps = {}
       {(state === 'empty' || state === 'error') && (
         <>
           {errorMessage ? (
-            <div className="py-4">
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
+            <div className='py-4'>
+              <Alert variant='destructive'>
+                <AlertCircle className='h-4 w-4' />
                 <AlertDescription>{errorMessage}</AlertDescription>
               </Alert>
             </div>
           ) : null}
 
           <SettingsRow
-            label="CNPJ"
-            description="Busque os dados oficiais da empresa antes de vincular ao workspace."
+            label='CNPJ'
+            description='Busque os dados oficiais da empresa antes de vincular ao workspace.'
           >
-            <div className="flex flex-col gap-2 md:flex-row">
+            <div className='flex flex-col gap-2 md:flex-row'>
               <Input
-                placeholder="Digite o CNPJ"
+                placeholder='Digite o CNPJ'
                 value={cnpjInput}
                 onChange={handleCnpjChange}
-                className="md:max-w-sm"
+                className='md:max-w-sm'
                 maxLength={18}
               />
-              <Button type="button" onClick={handleLookup} disabled={!isValidCnpj || isSearching}>
+              <Button type='button' onClick={handleLookup} disabled={!isValidCnpj || isSearching}>
                 {isSearching ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className='h-4 w-4 animate-spin' />
                 ) : (
-                  <Search className="h-4 w-4" />
+                  <Search className='h-4 w-4' />
                 )}
-                <span className="ml-2">Buscar</span>
+                <span className='ml-2'>Buscar</span>
               </Button>
             </div>
           </SettingsRow>
@@ -315,22 +312,22 @@ export function CompanyDataSection({ initialData }: CompanyDataSectionProps = {}
         <>
           <CompanyDataRows data={previewData} />
           <SettingsRow
-            label="Autorização"
-            description="Confirme que você está autorizado a vincular estes dados à organização."
+            label='Autorização'
+            description='Confirme que você está autorizado a vincular estes dados à organização.'
           >
-            <div className="bg-muted/10 flex items-start space-x-3 rounded-lg border p-4">
+            <div className='flex items-start space-x-3 rounded-lg border bg-muted/10 p-4'>
               <Checkbox
-                id="authorized"
+                id='authorized'
                 checked={authorized}
                 onCheckedChange={(checked) => setAuthorized(checked === true)}
               />
-              <div className="mt-[-2px] space-y-1">
-                <Label htmlFor="authorized" className="cursor-pointer font-medium">
+              <div className='mt-[-2px] space-y-1'>
+                <Label htmlFor='authorized' className='cursor-pointer font-medium'>
                   Autorizo a consulta de dados
                 </Label>
-                <p className="text-muted-foreground text-sm">
-                  Declaro que estou autorizado a consultar e vincular os dados desta empresa à
-                  minha organização, conforme a Lei Geral de Proteção de Dados (LGPD).
+                <p className='text-muted-foreground text-sm'>
+                  Declaro que estou autorizado a consultar e vincular os dados desta empresa à minha
+                  organização, conforme a Lei Geral de Proteção de Dados (LGPD).
                 </p>
               </div>
             </div>

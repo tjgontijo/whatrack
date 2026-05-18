@@ -30,12 +30,12 @@ vi.mock('@/lib/db/prisma', () => ({ prisma: prismaMock }))
 vi.mock('@/lib/utils/logger', () => ({ logger: { info: vi.fn(), error: vi.fn() } }))
 
 import {
-  createCampaign,
-  updateCampaign,
-  submitForApproval,
   approveCampaign,
-  dispatchCampaign,
   cancelCampaign,
+  createCampaign,
+  dispatchCampaign,
+  submitForApproval,
+  updateCampaign,
 } from '@/features/whatsapp/services/whatsapp-campaign.service'
 
 describe('whatsapp-campaign.service', () => {

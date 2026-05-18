@@ -1,24 +1,24 @@
 'use client'
 
-import React, { useState } from 'react'
 import {
+  closestCorners,
   DndContext,
+  type DragEndEvent,
+  type DragOverEvent,
   DragOverlay,
+  type DragStartEvent,
   PointerSensor,
   useSensor,
   useSensors,
-  type DragStartEvent,
-  type DragEndEvent,
-  type DragOverEvent,
-  closestCorners,
 } from '@dnd-kit/core'
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Plus, GripVertical } from 'lucide-react'
-import { cn } from '@/lib/utils/utils'
-import { KanbanColumn } from './types'
-import { Button } from '@/components/ui/button'
+import { GripVertical, Plus } from 'lucide-react'
+import React, { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils/utils'
+import type { KanbanColumn } from './types'
 
 interface CrudKanbanViewProps<T> {
   columns: KanbanColumn[]
@@ -51,16 +51,16 @@ function SortableCard<T>({ item, getItemId, renderCard }: SortableCardProps<T>) 
         transition,
         opacity: isDragging ? 0.4 : 1,
       }}
-      className="group/card relative"
+      className='group/card relative'
     >
       <div
         {...attributes}
         {...listeners}
-        className="absolute left-1 top-1/2 z-10 -translate-y-1/2 cursor-grab opacity-0 transition-opacity active:cursor-grabbing group-hover/card:opacity-100"
+        className='absolute top-1/2 left-1 z-10 -translate-y-1/2 cursor-grab opacity-0 transition-opacity active:cursor-grabbing group-hover/card:opacity-100'
       >
-        <GripVertical className="text-muted-foreground h-4 w-4" />
+        <GripVertical className='h-4 w-4 text-muted-foreground' />
       </div>
-      <div className="pl-5">{renderCard(item, isDragging)}</div>
+      <div className='pl-5'>{renderCard(item, isDragging)}</div>
     </div>
   )
 }
@@ -86,28 +86,28 @@ function KanbanColumnComponent<T>({
   const isOver = activeId !== null
 
   return (
-    <div className="bg-muted/20 dark:bg-muted/10 border-border/40 flex h-full w-[320px] shrink-0 flex-col rounded-2xl border p-2 shadow-sm">
+    <div className='flex h-full w-[320px] shrink-0 flex-col rounded-2xl border border-border/40 bg-muted/20 p-2 shadow-sm dark:bg-muted/10'>
       {/* Column Header */}
-      <div className="mb-3 flex shrink-0 items-center justify-between bg-transparent px-3 py-3">
-        <div className="flex items-center gap-2">
+      <div className='mb-3 flex shrink-0 items-center justify-between bg-transparent px-3 py-3'>
+        <div className='flex items-center gap-2'>
           <span
-            className="h-2.5 w-2.5 shrink-0 rounded-full"
+            className='h-2.5 w-2.5 shrink-0 rounded-full'
             style={{ backgroundColor: column.color }}
           />
-          <span className="text-foreground truncate text-sm font-semibold">{column.name}</span>
-          <Badge variant="secondary" className="min-w-[20px] px-1.5 py-0 text-center text-[10px]">
+          <span className='truncate font-semibold text-foreground text-sm'>{column.name}</span>
+          <Badge variant='secondary' className='min-w-[20px] px-1.5 py-0 text-center text-[10px]'>
             {items.length}
           </Badge>
         </div>
         {onAddItem && (
           <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6 shrink-0"
+            variant='ghost'
+            size='icon'
+            className='h-6 w-6 shrink-0'
             onClick={() => onAddItem(column.id)}
             title={`Adicionar a ${column.name}`}
           >
-            <Plus className="h-3.5 w-3.5" />
+            <Plus className='h-3.5 w-3.5' />
           </Button>
         )}
       </div>
@@ -120,7 +120,7 @@ function KanbanColumnComponent<T>({
             isOver &&
               activeId &&
               !itemIds.includes(activeId) &&
-              'bg-primary/5 ring-primary/20 ring-1 ring-inset'
+              'bg-primary/5 ring-1 ring-primary/20 ring-inset'
           )}
         >
           {items.map((item) => (
@@ -133,8 +133,8 @@ function KanbanColumnComponent<T>({
           ))}
 
           {items.length === 0 && (
-            <div className="flex min-h-[60px] flex-1 items-center justify-center">
-              <p className="text-muted-foreground/50 text-center text-xs">Vazio</p>
+            <div className='flex min-h-[60px] flex-1 items-center justify-center'>
+              <p className='text-center text-muted-foreground/50 text-xs'>Vazio</p>
             </div>
           )}
         </div>
@@ -240,7 +240,7 @@ export function CrudKanbanView<T>({
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="scrollbar-thin flex h-full gap-3 overflow-x-auto px-6 py-4 pb-6">
+      <div className='scrollbar-thin flex h-full gap-3 overflow-x-auto px-6 py-4 pb-6'>
         {sortedColumns.map((column) => (
           <KanbanColumnComponent
             key={column.id}
@@ -256,7 +256,7 @@ export function CrudKanbanView<T>({
 
       <DragOverlay dropAnimation={{ duration: 200, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }}>
         {activeItem ? (
-          <div className="ring-primary rotate-2 scale-105 cursor-grabbing rounded-xl opacity-90 shadow-2xl ring-2 ring-offset-1 transition-transform">
+          <div className='rotate-2 scale-105 cursor-grabbing rounded-xl opacity-90 shadow-2xl ring-2 ring-primary ring-offset-1 transition-transform'>
             {renderCard(activeItem, true)}
           </div>
         ) : null}

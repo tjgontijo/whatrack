@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const redisMock = vi.hoisted(() => ({
   setex: vi.fn(),
@@ -10,7 +10,10 @@ vi.mock('@/lib/db/redis', () => ({
   getRedis: () => redisMock,
 }))
 
-import { createMetaOAuthState, consumeMetaOAuthState } from '@/features/meta-ads/services/meta-oauth-state.service'
+import {
+  consumeMetaOAuthState,
+  createMetaOAuthState,
+} from '@/features/meta-ads/services/meta-oauth-state.service'
 
 describe('meta-oauth-state.service', () => {
   beforeEach(() => {

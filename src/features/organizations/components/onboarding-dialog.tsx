@@ -1,11 +1,16 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AlertCircle, ArrowLeft, Building2, CheckCircle2, Loader2, UserRound } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import { toast } from 'sonner'
-
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import type { CompanyLookupData } from '@/features/organizations/schemas/organization-onboarding'
+import type { UpdateOrganizationInput } from '@/features/organizations/schemas/organization-schemas'
 import { apiFetch } from '@/lib/api-client'
 import { authClient } from '@/lib/auth/auth-client'
 import { validateDocumentByType } from '@/lib/document/document-identity'
@@ -16,12 +21,6 @@ import {
   validateWhatsApp,
   WHATSAPP_MASK_MAX_LENGTH,
 } from '@/lib/mask/phone-mask'
-import type { CompanyLookupData } from '@/features/organizations/schemas/organization-onboarding'
-import type { UpdateOrganizationInput } from '@/features/organizations/schemas/organization-schemas'
-import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 
 type Step = 'type-select' | 'individual' | 'company' | 'phone'
 type EntityType = 'individual' | 'company'
@@ -105,7 +104,7 @@ function renderProgressDots(step: Step, isEditMode: boolean) {
     : [true, step !== 'type-select', step === 'phone']
 
   return (
-    <div className="flex gap-1.5">
+    <div className='flex gap-1.5'>
       {activeDots.map((active, index) => (
         <div
           key={index}
@@ -373,68 +372,68 @@ export function OnboardingDialog({
         }
       }}
     >
-      <DialogTitle className="sr-only">
+      <DialogTitle className='sr-only'>
         {isEditMode ? 'Editar dados fiscais' : 'Cadastro de Organização'}
       </DialogTitle>
-      <DialogDescription className="sr-only">
+      <DialogDescription className='sr-only'>
         {isEditMode
           ? 'Atualize o cadastro fiscal da sua conta.'
           : 'Complete o cadastro da sua organização com os dados fiscais.'}
       </DialogDescription>
       <DialogContent
-        className="w-full max-w-lg gap-0 overflow-hidden p-0"
+        className='w-full max-w-lg gap-0 overflow-hidden p-0'
         onInteractOutside={isEditMode ? undefined : (event) => event.preventDefault()}
         onEscapeKeyDown={isEditMode ? undefined : (event) => event.preventDefault()}
         showCloseButton={isEditMode}
       >
-        <div className="flex items-center justify-between border-b px-6 py-4">
-          <div className="text-muted-foreground text-xs font-medium">
+        <div className='flex items-center justify-between border-b px-6 py-4'>
+          <div className='font-medium text-muted-foreground text-xs'>
             Passo {stepIndex} de {totalSteps}
           </div>
           {renderProgressDots(step, isEditMode)}
         </div>
 
         {step === 'type-select' && (
-          <div className="space-y-6 p-6">
+          <div className='space-y-6 p-6'>
             <div>
-              <h2 className="text-foreground text-xl font-bold">
+              <h2 className='font-bold text-foreground text-xl'>
                 {isEditMode ? 'Como deseja atualizar a conta?' : 'Como você opera?'}
               </h2>
-              <p className="text-muted-foreground mt-1 text-sm">
+              <p className='mt-1 text-muted-foreground text-sm'>
                 {isEditMode
                   ? 'Escolha o tipo cadastral que deve ficar vinculado à conta.'
                   : 'Isso define o tipo do seu cadastro fiscal.'}
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className='grid grid-cols-2 gap-3'>
               <button
-                type="button"
+                type='button'
                 onClick={() => handleSelectType('individual')}
-                className="border-border hover:border-primary hover:bg-primary/5 flex flex-col items-center gap-3 rounded-xl border-2 p-5 text-center transition-all focus-visible:outline-none focus-visible:ring-2"
+                className='flex flex-col items-center gap-3 rounded-xl border-2 border-border p-5 text-center transition-all hover:border-primary hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2'
               >
-                <div className="bg-muted flex h-12 w-12 items-center justify-center rounded-full">
-                  <UserRound className="text-foreground h-6 w-6" />
+                <div className='flex h-12 w-12 items-center justify-center rounded-full bg-muted'>
+                  <UserRound className='h-6 w-6 text-foreground' />
                 </div>
                 <div>
-                  <p className="text-foreground text-sm font-semibold">Pessoa Física</p>
-                  <p className="text-muted-foreground mt-0.5 text-xs">
+                  <p className='font-semibold text-foreground text-sm'>Pessoa Física</p>
+                  <p className='mt-0.5 text-muted-foreground text-xs'>
                     Autônomo ou profissional liberal
                   </p>
                 </div>
               </button>
 
               <button
-                type="button"
+                type='button'
                 onClick={() => handleSelectType('company')}
-                className="border-border hover:border-primary hover:bg-primary/5 flex flex-col items-center gap-3 rounded-xl border-2 p-5 text-center transition-all focus-visible:outline-none focus-visible:ring-2"
+                className='flex flex-col items-center gap-3 rounded-xl border-2 border-border p-5 text-center transition-all hover:border-primary hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2'
               >
-                <div className="bg-muted flex h-12 w-12 items-center justify-center rounded-full">
-                  <Building2 className="text-foreground h-6 w-6" />
+                <div className='flex h-12 w-12 items-center justify-center rounded-full bg-muted'>
+                  <Building2 className='h-6 w-6 text-foreground' />
                 </div>
                 <div>
-                  <p className="text-foreground text-sm font-semibold">Empresa</p>
-                  <p className="text-muted-foreground mt-0.5 text-xs">
+                  <p className='font-semibold text-foreground text-sm'>Empresa</p>
+                  <p className='mt-0.5 text-muted-foreground text-xs'>
                     CNPJ ativo na Receita Federal
                   </p>
                 </div>
@@ -444,35 +443,35 @@ export function OnboardingDialog({
         )}
 
         {step === 'individual' && (
-          <div className="space-y-6 p-6">
+          <div className='space-y-6 p-6'>
             <div>
-              <h2 className="text-foreground text-xl font-bold">Seus dados</h2>
-              <p className="text-muted-foreground mt-1 text-sm">
+              <h2 className='font-bold text-foreground text-xl'>Seus dados</h2>
+              <p className='mt-1 text-muted-foreground text-sm'>
                 {isEditMode
                   ? 'Atualize o nome fiscal da conta e confirme o CPF.'
                   : 'Confirme seu nome e informe seu CPF.'}
               </p>
             </div>
 
-            <div className="space-y-4">
-              <div className="grid gap-1.5">
-                <Label htmlFor="full-name">Nome completo</Label>
+            <div className='space-y-4'>
+              <div className='grid gap-1.5'>
+                <Label htmlFor='full-name'>Nome completo</Label>
                 <Input
-                  id="full-name"
+                  id='full-name'
                   value={fullName}
                   onChange={(event) => setFullName(event.target.value)}
-                  placeholder="Seu nome completo"
+                  placeholder='Seu nome completo'
                   disabled={isSubmitting}
                 />
                 {fullName.trim().length > 0 && fullName.trim().length < 3 && (
-                  <p className="text-destructive text-xs">Nome deve ter pelo menos 3 caracteres.</p>
+                  <p className='text-destructive text-xs'>Nome deve ter pelo menos 3 caracteres.</p>
                 )}
               </div>
 
-              <div className="grid gap-1.5">
-                <Label htmlFor="cpf">CPF</Label>
+              <div className='grid gap-1.5'>
+                <Label htmlFor='cpf'>CPF</Label>
                 <Input
-                  id="cpf"
+                  id='cpf'
                   value={cpf}
                   onChange={(event) => setCpf(applyCpfCnpjMask(event.target.value, 'cpf'))}
                   onKeyDown={(event) => {
@@ -487,29 +486,29 @@ export function OnboardingDialog({
                       handleMoveToPhoneStep('individual')
                     }
                   }}
-                  placeholder="000.000.000-00"
+                  placeholder='000.000.000-00'
                   maxLength={14}
                   disabled={isSubmitting}
                 />
                 {cpfDigits.length === 11 && !validateDocumentByType('cpf', cpfDigits) && (
-                  <p className="text-destructive text-xs">CPF inválido.</p>
+                  <p className='text-destructive text-xs'>CPF inválido.</p>
                 )}
               </div>
             </div>
 
-            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between">
+            <div className='flex flex-col-reverse gap-2 sm:flex-row sm:justify-between'>
               <Button
-                type="button"
-                variant="ghost"
+                type='button'
+                variant='ghost'
                 onClick={handleBack}
                 disabled={isSubmitting}
-                className="gap-1.5"
+                className='gap-1.5'
               >
-                <ArrowLeft className="h-4 w-4" />
+                <ArrowLeft className='h-4 w-4' />
                 Voltar
               </Button>
               <Button
-                type="button"
+                type='button'
                 onClick={() => {
                   if (isEditMode) {
                     handleSubmit('individual')
@@ -519,9 +518,9 @@ export function OnboardingDialog({
                   handleMoveToPhoneStep('individual')
                 }}
                 disabled={!canSubmitPf || isSubmitting}
-                className="gap-1.5"
+                className='gap-1.5'
               >
-                {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+                {isSubmitting && <Loader2 className='h-4 w-4 animate-spin' />}
                 {isEditMode ? 'Salvar dados fiscais' : 'Próximo'}
               </Button>
             </div>
@@ -529,22 +528,22 @@ export function OnboardingDialog({
         )}
 
         {step === 'company' && (
-          <div className="space-y-6 p-6">
+          <div className='space-y-6 p-6'>
             <div>
-              <h2 className="text-foreground text-xl font-bold">Dados da empresa</h2>
-              <p className="text-muted-foreground mt-1 text-sm">
+              <h2 className='font-bold text-foreground text-xl'>Dados da empresa</h2>
+              <p className='mt-1 text-muted-foreground text-sm'>
                 {isEditMode
                   ? 'Informe o CNPJ para atualizar os dados automaticamente.'
                   : 'Informe o CNPJ para buscar os dados automaticamente.'}
               </p>
             </div>
 
-            <div className="space-y-4">
-              <div className="grid gap-1.5">
-                <Label htmlFor="cnpj">CNPJ</Label>
-                <div className="relative">
+            <div className='space-y-4'>
+              <div className='grid gap-1.5'>
+                <Label htmlFor='cnpj'>CNPJ</Label>
+                <div className='relative'>
                   <Input
-                    id="cnpj"
+                    id='cnpj'
                     value={cnpj}
                     onChange={(event) => handleCnpjChange(event.target.value)}
                     onKeyDown={(event) => {
@@ -559,7 +558,7 @@ export function OnboardingDialog({
                         handleMoveToPhoneStep('company')
                       }
                     }}
-                    placeholder="00.000.000/0000-00"
+                    placeholder='00.000.000/0000-00'
                     maxLength={18}
                     disabled={isSubmitting}
                     className={
@@ -571,17 +570,17 @@ export function OnboardingDialog({
                     }
                   />
                   {cnpjQuery.isFetching && (
-                    <Loader2 className="text-muted-foreground absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin" />
+                    <Loader2 className='absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground' />
                   )}
                   {!cnpjQuery.isFetching && resolvedCompanyLookupData && (
-                    <CheckCircle2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-green-500" />
+                    <CheckCircle2 className='absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-green-500' />
                   )}
                   {cnpjQuery.isError && (
-                    <AlertCircle className="text-destructive absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+                    <AlertCircle className='absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-destructive' />
                   )}
                 </div>
                 {cnpjQuery.isError && (
-                  <p className="text-destructive text-xs">
+                  <p className='text-destructive text-xs'>
                     {cnpjQuery.error instanceof Error
                       ? cnpjQuery.error.message
                       : 'CNPJ não encontrado na Receita Federal.'}
@@ -590,16 +589,16 @@ export function OnboardingDialog({
               </div>
 
               {resolvedCompanyLookupData && (
-                <div className="bg-muted/50 rounded-lg border p-4 text-sm">
-                  <p className="text-foreground font-semibold">
+                <div className='rounded-lg border bg-muted/50 p-4 text-sm'>
+                  <p className='font-semibold text-foreground'>
                     {resolvedCompanyLookupData.razaoSocial}
                   </p>
                   {resolvedCompanyLookupData.nomeFantasia && (
-                    <p className="text-muted-foreground text-xs">
+                    <p className='text-muted-foreground text-xs'>
                       {resolvedCompanyLookupData.nomeFantasia}
                     </p>
                   )}
-                  <div className="text-muted-foreground mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs">
+                  <div className='mt-2 flex flex-wrap gap-x-3 gap-y-1 text-muted-foreground text-xs'>
                     {resolvedCompanyLookupData.municipio && resolvedCompanyLookupData.uf && (
                       <span>
                         {resolvedCompanyLookupData.municipio}/{resolvedCompanyLookupData.uf}
@@ -613,19 +612,19 @@ export function OnboardingDialog({
               )}
             </div>
 
-            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between">
+            <div className='flex flex-col-reverse gap-2 sm:flex-row sm:justify-between'>
               <Button
-                type="button"
-                variant="ghost"
+                type='button'
+                variant='ghost'
                 onClick={handleBack}
                 disabled={isSubmitting}
-                className="gap-1.5"
+                className='gap-1.5'
               >
-                <ArrowLeft className="h-4 w-4" />
+                <ArrowLeft className='h-4 w-4' />
                 Voltar
               </Button>
               <Button
-                type="button"
+                type='button'
                 onClick={() => {
                   if (isEditMode) {
                     handleSubmit('company')
@@ -635,9 +634,9 @@ export function OnboardingDialog({
                   handleMoveToPhoneStep('company')
                 }}
                 disabled={!canSubmitPj || isSubmitting}
-                className="gap-1.5"
+                className='gap-1.5'
               >
-                {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+                {isSubmitting && <Loader2 className='h-4 w-4 animate-spin' />}
                 {isEditMode ? 'Salvar dados fiscais' : 'Próximo'}
               </Button>
             </div>
@@ -645,19 +644,19 @@ export function OnboardingDialog({
         )}
 
         {step === 'phone' && entityTypeForPhone && !isEditMode && (
-          <div className="space-y-6 p-6">
+          <div className='space-y-6 p-6'>
             <div>
-              <h2 className="text-foreground text-xl font-bold">Telefone pessoal</h2>
-              <p className="text-muted-foreground mt-1 text-sm">
+              <h2 className='font-bold text-foreground text-xl'>Telefone pessoal</h2>
+              <p className='mt-1 text-muted-foreground text-sm'>
                 Informe seu telefone. Este será usado para comunicações da sua conta.
               </p>
             </div>
 
-            <div className="space-y-4">
-              <div className="grid gap-1.5">
-                <Label htmlFor="phone">Telefone</Label>
+            <div className='space-y-4'>
+              <div className='grid gap-1.5'>
+                <Label htmlFor='phone'>Telefone</Label>
                 <Input
-                  id="phone"
+                  id='phone'
                   value={phone}
                   onChange={(event) => setPhone(applyWhatsAppMask(event.target.value))}
                   onKeyDown={(event) => {
@@ -666,36 +665,36 @@ export function OnboardingDialog({
                       handleSubmit(entityTypeForPhone)
                     }
                   }}
-                  placeholder="(11) 98888-8888"
+                  placeholder='(11) 98888-8888'
                   maxLength={WHATSAPP_MASK_MAX_LENGTH}
                   disabled={isSubmitting}
                 />
                 {phoneDigits.length > 0 && !validateWhatsApp(phoneDigits) && (
-                  <p className="text-destructive text-xs">
+                  <p className='text-destructive text-xs'>
                     Telefone deve ter 10 ou 11 dígitos (DDD + número).
                   </p>
                 )}
               </div>
             </div>
 
-            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between">
+            <div className='flex flex-col-reverse gap-2 sm:flex-row sm:justify-between'>
               <Button
-                type="button"
-                variant="ghost"
+                type='button'
+                variant='ghost'
                 onClick={handleBack}
                 disabled={isSubmitting}
-                className="gap-1.5"
+                className='gap-1.5'
               >
-                <ArrowLeft className="h-4 w-4" />
+                <ArrowLeft className='h-4 w-4' />
                 Voltar
               </Button>
               <Button
-                type="button"
+                type='button'
                 onClick={() => handleSubmit(entityTypeForPhone)}
                 disabled={!canSubmitPhone || isSubmitting}
-                className="gap-1.5"
+                className='gap-1.5'
               >
-                {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+                {isSubmitting && <Loader2 className='h-4 w-4 animate-spin' />}
                 Criar minha conta
               </Button>
             </div>

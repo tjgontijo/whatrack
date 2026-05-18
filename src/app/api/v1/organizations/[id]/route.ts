@@ -5,12 +5,11 @@
  */
 
 import { NextResponse } from 'next/server'
-
-import { apiError } from '@/lib/utils/api-response'
-import { getOrSyncUser } from '@/server/auth/server'
 import { updateOrganizationByIdSchema } from '@/features/organizations/schemas/organization-schemas'
 import { updateOrganizationById } from '@/features/organizations/services/organization-management.service'
+import { apiError } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
+import { getOrSyncUser } from '@/server/auth/server'
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {

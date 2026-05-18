@@ -1,7 +1,7 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
 import { ResponsiveBar } from '@nivo/bar'
+import { useQuery } from '@tanstack/react-query'
 
 export default function SlaOverview({
   startDate,
@@ -19,10 +19,10 @@ export default function SlaOverview({
     },
   })
 
-  if (isLoading) return <div className="bg-card h-full w-full animate-pulse rounded-xl border" />
+  if (isLoading) return <div className='h-full w-full animate-pulse rounded-xl border bg-card' />
   if (error || !data)
     return (
-      <div className="bg-card text-muted-foreground flex h-full w-full items-center justify-center rounded-xl border p-4 text-sm">
+      <div className='flex h-full w-full items-center justify-center rounded-xl border bg-card p-4 text-muted-foreground text-sm'>
         Visão de SLA não disponível
       </div>
     )
@@ -33,13 +33,13 @@ export default function SlaOverview({
   }))
 
   return (
-    <div className="bg-card flex h-full w-full flex-col overflow-hidden rounded-xl border p-4 shadow-sm">
-      <h3 className="text-foreground mb-4 text-base font-semibold">Tempo da 1ª Resposta (SLA)</h3>
-      <div className="bg-background/50 min-h-0 flex-1 rounded-md">
+    <div className='flex h-full w-full flex-col overflow-hidden rounded-xl border bg-card p-4 shadow-sm'>
+      <h3 className='mb-4 font-semibold text-base text-foreground'>Tempo da 1ª Resposta (SLA)</h3>
+      <div className='min-h-0 flex-1 rounded-md bg-background/50'>
         <ResponsiveBar
           data={barData}
           keys={['Tíquetes']}
-          indexBy="bucket"
+          indexBy='bucket'
           margin={{ top: 10, right: 10, bottom: 40, left: 50 }}
           padding={0.3}
           valueScale={{ type: 'linear' }}
@@ -77,7 +77,7 @@ export default function SlaOverview({
             from: 'color',
             modifiers: [['darker', 1.6]],
           }}
-          role="application"
+          role='application'
         />
       </div>
     </div>

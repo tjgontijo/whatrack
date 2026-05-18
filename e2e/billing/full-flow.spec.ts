@@ -1,16 +1,11 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
-import {
-  completePaidAcquisitionJourney,
-  getSubscriptionViaApi,
-} from '../shared/acquisition'
+import { completePaidAcquisitionJourney, getSubscriptionViaApi } from '../shared/acquisition'
 
 test.describe('Full User Journey', () => {
   test.setTimeout(180000)
 
-  test('should complete paid onboarding and access dashboard billing area', async ({
-    page,
-  }) => {
+  test('should complete paid onboarding and access dashboard billing area', async ({ page }) => {
     const { workspaceBasePath } = await completePaidAcquisitionJourney(page)
 
     await page.goto(`${workspaceBasePath}/billing`)

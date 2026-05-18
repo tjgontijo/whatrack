@@ -1,8 +1,8 @@
 'use client'
 
+import { Loader2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
-import { authClient } from '@/lib/auth/auth-client'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Loader2 } from 'lucide-react'
+import { authClient } from '@/lib/auth/auth-client'
 import { ORGANIZATION_COOKIE } from '@/lib/constants/http-headers'
 
 /**
@@ -76,22 +76,22 @@ export function OrganizationSelectorGate() {
   }
 
   return (
-    <div className="border-border bg-muted/30 rounded-lg border border-dashed p-4">
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+    <div className='rounded-lg border border-border border-dashed bg-muted/30 p-4'>
+      <div className='flex flex-col gap-3 md:flex-row md:items-center md:justify-between'>
         <div>
-          <p className="text-sm font-medium">Selecione uma organização para continuar</p>
-          <p className="text-muted-foreground text-xs">
+          <p className='font-medium text-sm'>Selecione uma organização para continuar</p>
+          <p className='text-muted-foreground text-xs'>
             É necessário definir a organização ativa para carregar os dados do dashboard.
           </p>
         </div>
-        <div className="flex flex-col gap-2 md:flex-row md:items-center">
+        <div className='flex flex-col gap-2 md:flex-row md:items-center'>
           <Select
             value={selectedId ?? undefined}
             onValueChange={(val) => setSelectedId(val)}
             disabled={isSetting}
           >
-            <SelectTrigger className="w-[220px]">
-              <SelectValue placeholder="Escolha a organização" />
+            <SelectTrigger className='w-[220px]'>
+              <SelectValue placeholder='Escolha a organização' />
             </SelectTrigger>
             <SelectContent>
               {orgs.map((org) => (
@@ -104,7 +104,7 @@ export function OrganizationSelectorGate() {
           <Button onClick={handleSelect} disabled={isSetting}>
             {isSetting ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
                 Aplicando...
               </>
             ) : (

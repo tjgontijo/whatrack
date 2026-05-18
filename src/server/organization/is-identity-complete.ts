@@ -1,11 +1,8 @@
 import 'server-only'
 
-import { prisma } from '@/lib/db/prisma'
 import { INTEGRATION_IDENTITY_REQUIRED_MESSAGE } from '@/lib/constants/http-headers'
-import {
-  normalizeDocumentNumber,
-  validateDocumentByType,
-} from '@/lib/document/document-identity'
+import { prisma } from '@/lib/db/prisma'
+import { normalizeDocumentNumber, validateDocumentByType } from '@/lib/document/document-identity'
 
 export { INTEGRATION_IDENTITY_REQUIRED_MESSAGE }
 

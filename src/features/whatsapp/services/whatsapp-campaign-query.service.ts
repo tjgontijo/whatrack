@@ -1,80 +1,80 @@
-import { prisma } from '@/lib/db/prisma';
-import type { WhatsAppCampaignListQuery } from '@/features/whatsapp/schemas/whatsapp-campaign-schemas';
+import type { WhatsAppCampaignListQuery } from '@/features/whatsapp/schemas/whatsapp-campaign-schemas'
+import { prisma } from '@/lib/db/prisma'
 
 export interface CampaignListItem {
-  id: string;
-  name: string;
-  type: string;
-  status: string;
-  scheduledAt: string | null;
-  startedAt: string | null;
-  completedAt: string | null;
-  templateName: string | null;
-  projectId: string;
-  projectName: string | null;
-  createdAt: string;
-  createdByName: string | null;
-  totalRecipients: number;
-  totalDispatchGroups: number;
-  audienceSourceType: string | null;
-  audienceSourceId: string | null;
-  isAbTest: boolean;
-  abTestConfig: any | null;
+  id: string
+  name: string
+  type: string
+  status: string
+  scheduledAt: string | null
+  startedAt: string | null
+  completedAt: string | null
+  templateName: string | null
+  projectId: string
+  projectName: string | null
+  createdAt: string
+  createdByName: string | null
+  totalRecipients: number
+  totalDispatchGroups: number
+  audienceSourceType: string | null
+  audienceSourceId: string | null
+  isAbTest: boolean
+  abTestConfig: any | null
   stats: {
-    sent: number;
-    delivered: number;
-    read: number;
-  };
+    sent: number
+    delivered: number
+    read: number
+  }
 }
 
 export interface CampaignDetail extends CampaignListItem {
   dispatchGroups: Array<{
-    id: string;
-    templateName: string;
-    templateLang: string;
-    status: string;
-    totalCount: number;
-    processedCount: number;
-    successCount: number;
-    failCount: number;
-    configDisplayPhone: string | null;
-    configVerifiedName: string | null;
-  }>;
-  approvedByName?: string | null;
-  approvedAt?: string | null;
+    id: string
+    templateName: string
+    templateLang: string
+    status: string
+    totalCount: number
+    processedCount: number
+    successCount: number
+    failCount: number
+    configDisplayPhone: string | null
+    configVerifiedName: string | null
+  }>
+  approvedByName?: string | null
+  approvedAt?: string | null
   events: Array<{
-    id: string;
-    type: string;
-    metadata: any;
-    createdAt: string;
-  }>;
+    id: string
+    type: string
+    metadata: any
+    createdAt: string
+  }>
 }
 
 export interface RecipientListItem {
-  id: string;
-  phone: string;
-  status: string;
-  sentAt: string | null;
-  deliveredAt: string | null;
-  readAt: string | null;
-  failedAt: string | null;
-  failureReason: string | null;
-  respondedAt: string | null;
-  exclusionReason: string | null;
-  metaWamid: string | null;
-  leadId: string | null;
-  dispatchGroupTemplateName: string | null;
-  dispatchGroupStatus: string | null;
-  lastResponse?: string | null;
+  id: string
+  phone: string
+  status: string
+  sentAt: string | null
+  deliveredAt: string | null
+  readAt: string | null
+  failedAt: string | null
+  failureReason: string | null
+  respondedAt: string | null
+  exclusionReason: string | null
+  metaWamid: string | null
+  leadId: string | null
+  dispatchGroupTemplateName: string | null
+  dispatchGroupStatus: string | null
+  lastResponse?: string | null
 }
 
 export interface CampaignCounters {
-  total: number;
-  draft: number;
-  scheduled: number;
-  processing: number;
-  completed: number;
-  cancelled: number;
+  total: number
+  draft: number
+  scheduled: number
+  processing: number
+  completed: number
+  cancelled: number
 }
 
 export async function listCampaigns(organizationId: string, query: WhatsAppCampaignListQuery) {
@@ -83,7 +83,7 @@ export async function listCampaigns(organizationId: string, query: WhatsAppCampa
     ...(query.projectId ? { projectId: query.projectId } : {}),
     ...(query.status ? { status: query.status } : {}),
     ...(query.type ? { type: query.type } : {}),
-  };
+  }
 
   const [campaigns, total] = await Promise.all([
     prisma.whatsAppCampaign.findMany({
@@ -117,31 +117,31 @@ export async function listCampaigns(organizationId: string, query: WhatsAppCampa
       take: query.pageSize,
     }),
     prisma.whatsAppCampaign.count({ where }),
-  ]);
+  ])
 
   // Fetch stats for all campaigns in parallel
-  const statsMap = new Map<string, { sent: number; delivered: number; read: number }>();
+  const statsMap = new Map<string, { sent: number; delivered: number; read: number }>()
   const statsPromises = campaigns.map(async (c) => {
     const statusCounts = await prisma.whatsAppCampaignRecipient.groupBy({
       by: ['status'],
       where: { campaignId: c.id },
       _count: { _all: true },
-    });
+    })
 
     const counts = Object.fromEntries(
       statusCounts.map((row) => [row.status, row._count._all])
-    ) as Record<string, number>;
+    ) as Record<string, number>
 
-    const get = (s: string) => counts[s] ?? 0;
-    const responded = get('RESPONDED');
-    const read = get('READ') + responded;
-    const delivered = get('DELIVERED') + read;
-    const sent = get('SENT') + delivered;
+    const get = (s: string) => counts[s] ?? 0
+    const responded = get('RESPONDED')
+    const read = get('READ') + responded
+    const delivered = get('DELIVERED') + read
+    const sent = get('SENT') + delivered
 
-    statsMap.set(c.id, { sent, delivered, read });
-  });
+    statsMap.set(c.id, { sent, delivered, read })
+  })
 
-  await Promise.all(statsPromises);
+  await Promise.all(statsPromises)
 
   const items: CampaignListItem[] = campaigns.map((c) => ({
     id: c.id,
@@ -163,7 +163,7 @@ export async function listCampaigns(organizationId: string, query: WhatsAppCampa
     isAbTest: c.isAbTest,
     abTestConfig: c.abTestConfig,
     stats: statsMap.get(c.id) || { sent: 0, delivered: 0, read: 0 },
-  }));
+  }))
 
   return {
     items,
@@ -171,7 +171,7 @@ export async function listCampaigns(organizationId: string, query: WhatsAppCampa
     page: query.page,
     pageSize: query.pageSize,
     totalPages: Math.ceil(total / query.pageSize),
-  };
+  }
 }
 
 export async function getCampaignCounters(
@@ -181,7 +181,7 @@ export async function getCampaignCounters(
   const where = {
     organizationId,
     ...(projectId ? { projectId } : {}),
-  };
+  }
 
   const [total, draft, scheduled, processing, completed, cancelled] = await Promise.all([
     prisma.whatsAppCampaign.count({ where }),
@@ -190,9 +190,9 @@ export async function getCampaignCounters(
     prisma.whatsAppCampaign.count({ where: { ...where, status: 'PROCESSING' } }),
     prisma.whatsAppCampaign.count({ where: { ...where, status: 'COMPLETED' } }),
     prisma.whatsAppCampaign.count({ where: { ...where, status: 'CANCELLED' } }),
-  ]);
+  ])
 
-  return { total, draft, scheduled, processing, completed, cancelled };
+  return { total, draft, scheduled, processing, completed, cancelled }
 }
 
 export async function getCampaignDetail(
@@ -221,26 +221,26 @@ export async function getCampaignDetail(
         },
       },
     },
-  });
+  })
 
-  if (!campaign) return null;
+  if (!campaign) return null
 
   // Fetch stats for campaign
   const statusCounts = await prisma.whatsAppCampaignRecipient.groupBy({
     by: ['status'],
     where: { campaignId: campaign.id },
     _count: { _all: true },
-  });
+  })
 
   const counts = Object.fromEntries(
     statusCounts.map((row) => [row.status, row._count._all])
-  ) as Record<string, number>;
+  ) as Record<string, number>
 
-  const get = (s: string) => counts[s] ?? 0;
-  const responded = get('RESPONDED');
-  const read = get('READ') + responded;
-  const delivered = get('DELIVERED') + read;
-  const sent = get('SENT') + delivered;
+  const get = (s: string) => counts[s] ?? 0
+  const responded = get('RESPONDED')
+  const read = get('READ') + responded
+  const delivered = get('DELIVERED') + read
+  const sent = get('SENT') + delivered
 
   return {
     id: campaign.id,
@@ -280,7 +280,7 @@ export async function getCampaignDetail(
       metadata: e.metadata,
       createdAt: e.createdAt.toISOString(),
     })),
-  };
+  }
 }
 
 export async function listRecipients(
@@ -294,15 +294,15 @@ export async function listRecipients(
   const campaign = await prisma.whatsAppCampaign.findFirst({
     where: { id: campaignId, organizationId },
     select: { id: true },
-  });
+  })
 
-  if (!campaign) return null;
+  if (!campaign) return null
 
   const where = {
     campaignId,
     ...(status ? { status } : {}),
     ...(phone ? { phone: { contains: phone, mode: 'insensitive' as const } } : {}),
-  };
+  }
 
   const [recipients, total] = await Promise.all([
     prisma.whatsAppCampaignRecipient.findMany({
@@ -321,7 +321,7 @@ export async function listRecipients(
       take: pageSize,
     }),
     prisma.whatsAppCampaignRecipient.count({ where }),
-  ]);
+  ])
 
   const items: RecipientListItem[] = recipients.map((r: any) => ({
     id: r.id,
@@ -338,10 +338,10 @@ export async function listRecipients(
     leadId: r.leadId,
     dispatchGroupTemplateName: r.dispatchGroup?.templateName || null,
     dispatchGroupStatus: r.dispatchGroup?.status || null,
-    lastResponse: r.messages?.[0] 
-      ? (r.messages[0].body || extractInteractionText(r.messages[0])) 
+    lastResponse: r.messages?.[0]
+      ? r.messages[0].body || extractInteractionText(r.messages[0])
       : null,
-  }));
+  }))
 
   return {
     items,
@@ -349,27 +349,27 @@ export async function listRecipients(
     page,
     pageSize,
     totalPages: Math.ceil(total / pageSize),
-  };
+  }
 }
 
 function extractInteractionText(msg: any): string {
-  const type = msg.type;
-  const raw = msg.rawMeta as any;
-  
+  const type = msg.type
+  const raw = msg.rawMeta as any
+
   if (type === 'button') {
-    return raw?.button?.text || 'Botão clicado';
+    return raw?.button?.text || 'Botão clicado'
   }
-  
+
   if (type === 'interactive') {
-    const interactive = raw?.interactive;
+    const interactive = raw?.interactive
     if (interactive?.type === 'button_reply') {
-      return interactive.button_reply?.title || 'Resposta de botão';
+      return interactive.button_reply?.title || 'Resposta de botão'
     }
     if (interactive?.type === 'list_reply') {
-      return interactive.list_reply?.title || 'Opção selecionada';
+      return interactive.list_reply?.title || 'Opção selecionada'
     }
-    return 'Mensagem interativa';
+    return 'Mensagem interativa'
   }
-  
-  return `[Mensagem do tipo ${type}]`;
+
+  return `[Mensagem do tipo ${type}]`
 }

@@ -1,10 +1,13 @@
 import 'server-only'
 
-import { ensureProjectBelongsToOrganization, resolveProjectScope } from '@/server/project/project-scope'
+import { createSaleRepository } from '@/features/sales/repositories'
 
 import { createSaleSchema } from '@/features/sales/schemas/sale.schemas'
-import { createSaleRepository } from '@/features/sales/repositories'
 import { calculateSaleTotal } from '@/features/sales/services/shared'
+import {
+  ensureProjectBelongsToOrganization,
+  resolveProjectScope,
+} from '@/server/project/project-scope'
 
 export async function createSaleService(input: {
   organizationId: string

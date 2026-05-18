@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { type Permission } from '@/lib/auth/rbac/roles'
+import type { Permission } from '@/lib/auth/rbac/roles'
 import { resolveEffectivePermissions } from '@/server/organization/organization-rbac.service'
 
 describe('organization-rbac resolveEffectivePermissions', () => {

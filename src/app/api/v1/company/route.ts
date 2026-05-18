@@ -1,13 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server'
-
-import { apiError } from '@/lib/utils/api-response'
+import { type NextRequest, NextResponse } from 'next/server'
 import { saveCompanySchema } from '@/features/company/schemas/company.schemas'
-import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import {
   getOrganizationCompany,
   saveOrganizationCompany,
 } from '@/features/company/services/company.service'
+import { apiError } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 export async function GET(request: NextRequest) {
   const access = await validateFullAccess(request)

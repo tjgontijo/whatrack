@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import type { NextRequest } from 'next/server'
 import { CheckoutStatusTokenService } from '@/features/billing/services/checkout-status-token.service'
 import { prisma } from '@/lib/db/prisma'
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 export async function GET(
   request: NextRequest,

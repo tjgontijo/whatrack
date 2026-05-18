@@ -32,18 +32,9 @@ export interface StatusBadgeProps
   children: React.ReactNode
 }
 
-export function StatusBadge({
-  className,
-  variant,
-  size,
-  children,
-  ...props
-}: StatusBadgeProps) {
+export function StatusBadge({ className, variant, size, children, ...props }: StatusBadgeProps) {
   return (
-    <span
-      className={cn(statusBadgeVariants({ variant, size }), className)}
-      {...props}
-    >
+    <span className={cn(statusBadgeVariants({ variant, size }), className)} {...props}>
       {children}
     </span>
   )

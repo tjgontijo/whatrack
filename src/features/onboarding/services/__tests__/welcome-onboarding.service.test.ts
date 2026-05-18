@@ -54,8 +54,8 @@ describe('completeWelcomeOnboarding', () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
-    prismaMock.$transaction.mockImplementation(async (callback: (tx: typeof prismaMock) => Promise<unknown>) =>
-      callback(prismaMock)
+    prismaMock.$transaction.mockImplementation(
+      async (callback: (tx: typeof prismaMock) => Promise<unknown>) => callback(prismaMock)
     )
     getDefaultTrialBillingPlanMock.mockResolvedValue({ slug: 'trial-plan' })
     startOrganizationTrialMock.mockResolvedValue({

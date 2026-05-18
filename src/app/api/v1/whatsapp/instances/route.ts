@@ -1,14 +1,13 @@
-import { NextRequest } from 'next/server'
-
-import { apiError, apiSuccess } from '@/lib/utils/api-response'
+import type { NextRequest } from 'next/server'
 import { whatsappInstanceProjectUpdateSchema } from '@/features/whatsapp/schemas/whatsapp-schemas'
-import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { resolveProjectScope } from '@/server/project/project-scope'
 import {
   assignWhatsAppConfigProject,
   listWhatsAppInstances,
 } from '@/features/whatsapp/services/whatsapp-config.service'
+import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import { resolveProjectScope } from '@/server/project/project-scope'
 
 export const dynamic = 'force-dynamic'
 
@@ -47,7 +46,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const parsedBody = whatsappInstanceProjectUpdateSchema.safeParse(
-      await request.json().catch(() => null),
+      await request.json().catch(() => null)
     )
     if (!parsedBody.success) {
       return apiError('Body inválido', 400, undefined, {

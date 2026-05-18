@@ -19,9 +19,9 @@ export function SettingsRow({
 }: SettingsRowProps) {
   return (
     <div className={cn('grid gap-4 py-4 md:grid-cols-[220px_minmax(0,1fr)]', className)}>
-      <div className="space-y-1">
-        <p className="text-sm font-medium">{label}</p>
-        {description ? <p className="text-muted-foreground text-sm">{description}</p> : null}
+      <div className='space-y-1'>
+        <p className='font-medium text-sm'>{label}</p>
+        {description ? <p className='text-muted-foreground text-sm'>{description}</p> : null}
       </div>
 
       <div className={cn('min-w-0', contentClassName)}>{children}</div>

@@ -1,11 +1,11 @@
-import { prisma } from '@/lib/db/prisma'
-import { lookupCache } from '@/lib/db/lookup-cache'
-import { getDefaultTicketStage } from '@/features/tickets/services/ensure-ticket-stages'
-import { publishToCentrifugo } from '@/lib/centrifugo/server'
 import { metaAdEnrichmentService } from '@/features/meta-ads/services/ad-enrichment.service'
-import { logger } from '@/lib/utils/logger'
+import { getDefaultTicketStage } from '@/features/tickets/services/ensure-ticket-stages'
 import { attributeInboundMessageToCampaign } from '@/features/whatsapp/services/whatsapp-campaign-attribution.service'
 import { WhatsAppTemplateAnalyticsService } from '@/features/whatsapp/services/whatsapp-template-analytics.service'
+import { publishToCentrifugo } from '@/lib/centrifugo/server'
+import { lookupCache } from '@/lib/db/lookup-cache'
+import { prisma } from '@/lib/db/prisma'
+import { logger } from '@/lib/utils/logger'
 
 const WINDOW_MS = 24 * 60 * 60 * 1000
 const DEFAULT_EXPIRATION_DAYS = 30
@@ -155,7 +155,9 @@ export async function messageHandler(
       // ----------------------------------------------------------------------
       await prisma.$transaction(async (tx) => {
         // Get lookup IDs upfront (outside tx for performance)
-        const sourceId = await lookupCache.getLeadSourceId(isEcho ? 'outbound_message' : 'live_message')
+        const sourceId = await lookupCache.getLeadSourceId(
+          isEcho ? 'outbound_message' : 'live_message'
+        )
 
         // 1. Find/Create Lead (upsert by waId to avoid race conditions on concurrent messages)
         const existingLead = await tx.lead.findFirst({
@@ -270,7 +272,7 @@ export async function messageHandler(
           }
         }
 
-        const isNewTicket = !ticket
+        const _isNewTicket = !ticket
         const windowExpiresAt = wasHistoryLead
           ? null
           : new Date(messageTimestamp.getTime() + WINDOW_MS)

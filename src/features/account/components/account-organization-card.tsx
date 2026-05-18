@@ -2,8 +2,8 @@
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { applyCpfCnpjMask } from '@/lib/mask/cpf-cnpj'
 import type { AccountOrganizationSummary } from '@/features/account/types/account-summary'
+import { applyCpfCnpjMask } from '@/lib/mask/cpf-cnpj'
 export type AccountOrganization = AccountOrganizationSummary
 
 type AccountOrganizationCardProps = {
@@ -18,21 +18,11 @@ function getOrganizationTypeLabel(value: AccountOrganization['organizationType']
   return 'Não definido'
 }
 
-function Field({
-  label,
-  value,
-}: {
-  label: string
-  value: string | null
-}) {
+function Field({ label, value }: { label: string; value: string | null }) {
   return (
-    <div className="rounded-lg border border-border bg-muted/30 p-4">
-      <p className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
-        {label}
-      </p>
-      <p className="mt-1 text-sm font-medium text-foreground">
-        {value?.trim() || 'Não informado'}
-      </p>
+    <div className='rounded-lg border border-border bg-muted/30 p-4'>
+      <p className='font-medium text-muted-foreground text-xs uppercase tracking-wide'>{label}</p>
+      <p className='mt-1 font-medium text-foreground text-sm'>{value?.trim() || 'Não informado'}</p>
     </div>
   )
 }
@@ -51,37 +41,37 @@ export function AccountOrganizationCard({
 
   return (
     <Card>
-      <CardHeader className="gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-1">
+      <CardHeader className='gap-4 sm:flex-row sm:items-start sm:justify-between'>
+        <div className='space-y-1'>
           <CardTitle>Dados fiscais</CardTitle>
           <CardDescription>
             Consulte o cadastro fiscal atual da conta. Para alterar PF/PJ ou documento, use o mesmo
             fluxo de onboarding.
           </CardDescription>
         </div>
-        <div className="flex shrink-0 flex-col items-start gap-2 sm:items-end">
+        <div className='flex shrink-0 flex-col items-start gap-2 sm:items-end'>
           <Button onClick={onEdit} disabled={!canManageOrganizationSettings}>
             Editar dados fiscais
           </Button>
           {!canManageOrganizationSettings && (
-            <p className="text-muted-foreground text-xs">
+            <p className='text-muted-foreground text-xs'>
               Somente owner pode alterar os detalhes estruturais da conta.
             </p>
           )}
         </div>
       </CardHeader>
-      <CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        <Field label="Nome da conta" value={organization.name} />
-        <Field label="Tipo cadastral atual" value={currentOrganizationTypeLabel} />
+      <CardContent className='grid gap-4 md:grid-cols-2 xl:grid-cols-3'>
+        <Field label='Nome da conta' value={organization.name} />
+        <Field label='Tipo cadastral atual' value={currentOrganizationTypeLabel} />
         <Field label={currentDocumentLabel} value={currentDocumentValue} />
 
         {organization.organizationType === 'pessoa_juridica' ? (
           <>
-            <Field label="Razão social" value={organization.legalName} />
-            <Field label="Nome fantasia" value={organization.tradeName} />
-            <Field label="Situação" value={organization.taxStatus} />
+            <Field label='Razão social' value={organization.legalName} />
+            <Field label='Nome fantasia' value={organization.tradeName} />
+            <Field label='Situação' value={organization.taxStatus} />
             <Field
-              label="Município / UF"
+              label='Município / UF'
               value={
                 organization.city || organization.state
                   ? [organization.city, organization.state].filter(Boolean).join(' / ')

@@ -1,6 +1,6 @@
 'use client'
 
-import { ReceiptText, CheckCheck } from 'lucide-react'
+import { CheckCheck, ReceiptText } from 'lucide-react'
 
 import { formatCurrencyBRL, formatDateTime } from '@/lib/mask/formatters'
 
@@ -33,33 +33,33 @@ export type SalesListProps = {
 export function SalesList({ sales }: SalesListProps) {
   if (!sales.length) {
     return (
-      <div className="text-muted-foreground rounded-md border border-dashed p-4 text-sm">
+      <div className='rounded-md border border-dashed p-4 text-muted-foreground text-sm'>
         Nenhuma venda registrada para este lead.
       </div>
     )
   }
 
   return (
-    <div className="space-y-3">
+    <div className='space-y-3'>
       {sales.map((sale) => {
         const showFallback = sale.services.length === 0
         const fallbackDescription = showFallback ? formatRawDescription(sale.rawDescription) : ''
         const servicesTotal = sale.services.reduce((acc, service) => acc + (service.price ?? 0), 0)
 
         return (
-          <div key={sale.id} className="bg-muted/20 rounded-md border p-4 text-sm">
-            <header className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-              <div className="space-y-1">
-                <p className="text-foreground text-base font-semibold">
+          <div key={sale.id} className='rounded-md border bg-muted/20 p-4 text-sm'>
+            <header className='flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between'>
+              <div className='space-y-1'>
+                <p className='font-semibold text-base text-foreground'>
                   {formatCurrencyBRL(sale.amount)}
                 </p>
-                <p className="text-muted-foreground flex flex-wrap items-center gap-1 text-xs">
+                <p className='flex flex-wrap items-center gap-1 text-muted-foreground text-xs'>
                   <span>Registrada em {formatDateTime(sale.createdAt)}</span>
                   {sale.updatedAt !== sale.createdAt && (
                     <>
-                      <span className="text-muted-foreground/60">|</span>
+                      <span className='text-muted-foreground/60'>|</span>
                       <span>
-                        <span className="text-foreground font-medium">Atualizada em:</span>{' '}
+                        <span className='font-medium text-foreground'>Atualizada em:</span>{' '}
                         {formatDateTime(sale.updatedAt)}
                       </span>
                     </>
@@ -67,24 +67,24 @@ export function SalesList({ sales }: SalesListProps) {
                 </p>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2 text-xs">
+              <div className='flex flex-wrap items-center gap-2 text-xs'>
                 {sale.fbtraceId && (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/50 bg-emerald-100 px-3 py-1 font-medium text-emerald-700">
-                    Conversion API (Meta) <CheckCheck className="h-4 w-4" />
+                  <span className='inline-flex items-center gap-1 rounded-full border border-emerald-500/50 bg-emerald-100 px-3 py-1 font-medium text-emerald-700'>
+                    Conversion API (Meta) <CheckCheck className='h-4 w-4' />
                   </span>
                 )}
               </div>
             </header>
 
             {sale.ticket && (
-              <div className="mt-3 flex flex-wrap gap-2 text-xs">
+              <div className='mt-3 flex flex-wrap gap-2 text-xs'>
                 {renderTag('Estágio', sale.ticket.stage?.name || 'Sem Estágio')}
                 {renderTag('Origem', sale.ticket.utmSource)}
                 {renderTag('Meio', sale.ticket.utmMedium)}
                 {renderTag('Campanha', sale.ticket.utmCampaign)}
-                <span className="border-muted-foreground/30 bg-muted/10 inline-flex items-center gap-1 rounded-full border px-2 py-1">
-                  <span className="text-muted-foreground text-[10px] uppercase">Criado</span>
-                  <span className="text-foreground text-xs font-medium">
+                <span className='inline-flex items-center gap-1 rounded-full border border-muted-foreground/30 bg-muted/10 px-2 py-1'>
+                  <span className='text-[10px] text-muted-foreground uppercase'>Criado</span>
+                  <span className='font-medium text-foreground text-xs'>
                     {formatDateTime(sale.ticket.createdAt)}
                   </span>
                 </span>
@@ -101,45 +101,45 @@ export function SalesList({ sales }: SalesListProps) {
           </dl> */}
 
             {sale.services.length > 0 && (
-              <section className="mt-4 space-y-3">
-                <div className="text-muted-foreground flex items-center gap-2 text-xs font-semibold uppercase tracking-wide">
-                  <ReceiptText className="h-4 w-4" aria-hidden="true" /> Serviços
+              <section className='mt-4 space-y-3'>
+                <div className='flex items-center gap-2 font-semibold text-muted-foreground text-xs uppercase tracking-wide'>
+                  <ReceiptText className='h-4 w-4' aria-hidden='true' /> Serviços
                 </div>
 
-                <div className="bg-background/80 overflow-hidden rounded-md border">
-                  <div className="bg-muted/60 text-muted-foreground hidden px-3 py-2 text-[11px] font-medium uppercase tracking-wide sm:grid sm:grid-cols-[minmax(0,2fr)_minmax(0,100px)]">
+                <div className='overflow-hidden rounded-md border bg-background/80'>
+                  <div className='hidden bg-muted/60 px-3 py-2 font-medium text-[11px] text-muted-foreground uppercase tracking-wide sm:grid sm:grid-cols-[minmax(0,2fr)_minmax(0,100px)]'>
                     <span>Serviço</span>
-                    <span className="text-right">Valor</span>
+                    <span className='text-right'>Valor</span>
                   </div>
 
-                  <ul className="divide-border divide-y text-xs">
+                  <ul className='divide-y divide-border text-xs'>
                     {sale.services.map((service, index) => (
                       <li
                         key={`${service.name ?? 'servico'}-${index}`}
-                        className="grid gap-1 px-3 py-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,100px)] sm:items-center"
+                        className='grid gap-1 px-3 py-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,100px)] sm:items-center'
                       >
-                        <div className="space-y-1">
-                          <span className="text-foreground text-sm font-medium">
+                        <div className='space-y-1'>
+                          <span className='font-medium text-foreground text-sm'>
                             {service.name ?? 'Serviço sem nome'}
                           </span>
                           {service.quantity !== null && (
-                            <span className="text-muted-foreground text-[11px] uppercase tracking-wide">
+                            <span className='text-[11px] text-muted-foreground uppercase tracking-wide'>
                               Quantidade:{' '}
-                              <span className="text-foreground font-semibold">
+                              <span className='font-semibold text-foreground'>
                                 {service.quantity}
                               </span>
                             </span>
                           )}
                         </div>
-                        <span className="text-foreground text-sm font-semibold sm:text-right">
+                        <span className='font-semibold text-foreground text-sm sm:text-right'>
                           {service.price !== null ? formatCurrencyBRL(service.price) : '—'}
                         </span>
                       </li>
                     ))}
 
-                    <li className="bg-muted/40 text-foreground grid gap-1 px-3 py-3 text-sm font-semibold sm:grid-cols-[minmax(0,2fr)_minmax(0,100px)] sm:items-center">
-                      <span className="text-muted-foreground uppercase tracking-wide">Total</span>
-                      <span className="sm:text-right">{formatCurrencyBRL(servicesTotal)}</span>
+                    <li className='grid gap-1 bg-muted/40 px-3 py-3 font-semibold text-foreground text-sm sm:grid-cols-[minmax(0,2fr)_minmax(0,100px)] sm:items-center'>
+                      <span className='text-muted-foreground uppercase tracking-wide'>Total</span>
+                      <span className='sm:text-right'>{formatCurrencyBRL(servicesTotal)}</span>
                     </li>
                   </ul>
                 </div>
@@ -147,11 +147,11 @@ export function SalesList({ sales }: SalesListProps) {
             )}
 
             {showFallback && fallbackDescription && (
-              <details className="group mt-4">
-                <summary className="text-foreground cursor-pointer text-xs font-medium underline">
+              <details className='group mt-4'>
+                <summary className='cursor-pointer font-medium text-foreground text-xs underline'>
                   Ver descrição completa
                 </summary>
-                <pre className="bg-background/60 text-muted-foreground mt-2 max-h-48 overflow-auto rounded p-2 text-[11px]">
+                <pre className='mt-2 max-h-48 overflow-auto rounded bg-background/60 p-2 text-[11px] text-muted-foreground'>
                   {fallbackDescription}
                 </pre>
               </details>
@@ -166,9 +166,9 @@ export function SalesList({ sales }: SalesListProps) {
 function renderTag(label: string, value: string | null | undefined) {
   if (!value) return null
   return (
-    <span className="border-muted-foreground/30 bg-muted/10 inline-flex items-center gap-1 rounded-full border px-2 py-1">
-      <span className="text-muted-foreground text-[10px] uppercase">{label}</span>
-      <span className="text-foreground text-xs font-medium">{value}</span>
+    <span className='inline-flex items-center gap-1 rounded-full border border-muted-foreground/30 bg-muted/10 px-2 py-1'>
+      <span className='text-[10px] text-muted-foreground uppercase'>{label}</span>
+      <span className='font-medium text-foreground text-xs'>{value}</span>
     </span>
   )
 }
@@ -190,7 +190,7 @@ function formatRawDescription(value: unknown): string {
   if (Array.isArray(value)) {
     const lines = value
       .map((item) => formatRawDescriptionItem(item))
-      .filter((line): line is string => Boolean(line && line.trim()))
+      .filter((line): line is string => Boolean(line?.trim()))
 
     return lines.join('\n') || ''
   }
@@ -202,7 +202,7 @@ function formatRawDescription(value: unknown): string {
         if (!formatted) return null
         return `${key}: ${formatted}`
       })
-      .filter((line): line is string => Boolean(line && line.trim()))
+      .filter((line): line is string => Boolean(line?.trim()))
 
     return entries.join('\n') || ''
   }
@@ -254,7 +254,7 @@ function formatRawDescriptionItem(value: unknown): string | null {
         if (!normalized) return null
         return `${key}: ${normalized}`
       })
-      .filter((line): line is string => Boolean(line && line.trim()))
+      .filter((line): line is string => Boolean(line?.trim()))
 
     return formatted.length ? `• ${formatted.join(' | ')}` : null
   }

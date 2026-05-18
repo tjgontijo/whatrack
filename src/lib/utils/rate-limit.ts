@@ -1,5 +1,5 @@
-import { getRedis } from '../db/redis'
 import { logger } from '@/lib/utils/logger'
+import { getRedis } from '../db/redis'
 
 /**
  * Rate Limiting Service
@@ -85,7 +85,10 @@ class RateLimiter {
       }
     } catch (error) {
       // If Redis fails, deny request (fail-secure: better to block than to allow unlimited requests)
-      logger.error({ err: error }, `[RateLimit] ${strategy}/${identifier} - Redis error, denying request`)
+      logger.error(
+        { err: error },
+        `[RateLimit] ${strategy}/${identifier} - Redis error, denying request`
+      )
       return {
         allowed: false,
         current: 0,

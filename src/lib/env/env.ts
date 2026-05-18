@@ -9,9 +9,7 @@ import { logger } from '@/lib/utils/logger'
  */
 const envSchema = z.object({
   // Runtime
-  NODE_ENV: z
-    .enum(['development', 'test', 'production'])
-    .default('development'),
+  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
 
   // 1. App & Infrastructure
   APP_NAME: z.string().default('WhaTrack'),
@@ -23,9 +21,7 @@ const envSchema = z.object({
 
   // 2. Authentication (better-auth)
   BETTER_AUTH_URL: z.string().url('BETTER_AUTH_URL must be a valid URL'),
-  BETTER_AUTH_SECRET: z
-    .string()
-    .min(32, 'BETTER_AUTH_SECRET must be at least 32 characters'),
+  BETTER_AUTH_SECRET: z.string().min(32, 'BETTER_AUTH_SECRET must be at least 32 characters'),
 
   // 3. Database & Cache
   DATABASE_URL: z.string().url('DATABASE_URL must be a valid PostgreSQL connection string'),
@@ -59,7 +55,9 @@ const envSchema = z.object({
   // 6. Real-time Communication (Centrifugo)
   CENTRIFUGO_URL: z.string().url('CENTRIFUGO_URL must be a valid URL'),
   CENTRIFUGO_API_KEY: z.string().min(1, 'CENTRIFUGO_API_KEY is required'),
-  CENTRIFUGO_TOKEN_HMAC_SECRET_KEY: z.string().min(1, 'CENTRIFUGO_TOKEN_HMAC_SECRET_KEY is required'),
+  CENTRIFUGO_TOKEN_HMAC_SECRET_KEY: z
+    .string()
+    .min(1, 'CENTRIFUGO_TOKEN_HMAC_SECRET_KEY is required'),
   CENTRIFUGO_ADMIN_PASSWORD: z.string().min(1).optional(),
   CENTRIFUGO_ADMIN_SECRET: z.string().min(1).optional(),
   NEXT_PUBLIC_CENTRIFUGO_URL: z.string().url(),
@@ -84,14 +82,10 @@ const envSchema = z.object({
   ENCRYPTION_KEYS: z.string().min(1, 'ENCRYPTION_KEYS is required'),
   ENCRYPTION_CURRENT_VERSION: z.string().default('v1'),
 
-  CRON_SECRET: z
-    .string()
-    .min(32, 'CRON_SECRET must be at least 32 characters'),
+  CRON_SECRET: z.string().min(32, 'CRON_SECRET must be at least 32 characters'),
 
   // Logging
-  LOG_LEVEL: z
-    .enum(['trace', 'debug', 'info', 'warn', 'error'])
-    .default('info'),
+  LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error']).default('info'),
 })
 
 export type Env = z.infer<typeof envSchema>

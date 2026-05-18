@@ -1,9 +1,9 @@
-import { prisma } from '@/lib/db/prisma'
-import { metaAccessTokenService } from './access-token.service'
 import {
   assertMetaAdAccountAllowedForProject,
   syncOrganizationSubscriptionItems,
 } from '@/features/billing/services/billing-subscription.service'
+import { prisma } from '@/lib/db/prisma'
+import { metaAccessTokenService } from './access-token.service'
 import { metaApiRequest } from './meta-api'
 
 interface MetaAdAccountResponse {

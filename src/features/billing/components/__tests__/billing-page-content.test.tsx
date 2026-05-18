@@ -78,7 +78,7 @@ describe('BillingPageContent', () => {
 
     expect(screen.getByText('Nenhuma assinatura encontrada.')).toBeInTheDocument()
     expect(
-      screen.getByText('Tente buscar por termos diferentes ou verifique os filtros.'),
+      screen.getByText('Tente buscar por termos diferentes ou verifique os filtros.')
     ).toBeInTheDocument()
     expect(screen.getByText('plan-selector')).toBeInTheDocument()
   })

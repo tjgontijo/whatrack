@@ -38,7 +38,9 @@ export class BillingPlanDetectionService {
     return projectCount > currentPlan.includedProjects
   }
 
-  async findSmallestPlanThatFits(projectCount: number): Promise<{ id: string; code: string } | null> {
+  async findSmallestPlanThatFits(
+    projectCount: number
+  ): Promise<{ id: string; code: string } | null> {
     const plan = await prisma.billingPlan.findFirst({
       where: {
         isActive: true,

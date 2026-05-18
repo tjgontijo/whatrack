@@ -1,13 +1,13 @@
 import 'server-only'
 
-import { ensureProjectBelongsToOrganization, resolveProjectScope } from '@/server/project/project-scope'
+import { findItemSummaryRepository, updateItemRepository } from '@/features/items/repositories'
 
 import { updateItemSchema } from '@/features/items/schemas/item.schemas'
-import {
-  findItemSummaryRepository,
-  updateItemRepository,
-} from '@/features/items/repositories'
 import type { ItemSummary, NotFoundError } from '@/features/items/types'
+import {
+  ensureProjectBelongsToOrganization,
+  resolveProjectScope,
+} from '@/server/project/project-scope'
 
 export async function updateItemService(input: {
   organizationId: string

@@ -1,17 +1,12 @@
 'use client'
 
-import { type ReactNode, useMemo, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import { Building2, Loader2, UserRound, X } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { type ReactNode, useMemo, useState } from 'react'
 import { toast } from 'sonner'
-
-import { authClient } from '@/lib/auth/auth-client'
-import { useIsMobile } from '@/hooks/ui/use-mobile'
-import { applyCpfCnpjMask, stripCpfCnpj } from '@/lib/mask/cpf-cnpj'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import {
   Drawer,
   DrawerClose,
@@ -21,6 +16,15 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from '@/components/ui/drawer'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   Sheet,
   SheetClose,
@@ -29,14 +33,9 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { useIsMobile } from '@/hooks/ui/use-mobile'
+import { authClient } from '@/lib/auth/auth-client'
+import { applyCpfCnpjMask, stripCpfCnpj } from '@/lib/mask/cpf-cnpj'
 
 type EntityType = 'individual' | 'company'
 type DocumentType = 'cpf' | 'cnpj'
@@ -157,7 +156,9 @@ export function OrganizationIdentityDrawer({
     }
 
     if (!canSubmit) {
-      toast.error(entityType === 'company' ? 'Consulte o CNPJ antes de salvar.' : 'Informe um CPF válido.')
+      toast.error(
+        entityType === 'company' ? 'Consulte o CNPJ antes de salvar.' : 'Informe um CPF válido.'
+      )
       return
     }
 
@@ -195,9 +196,11 @@ export function OrganizationIdentityDrawer({
           }),
         })
 
-        const body = (await response.json().catch(() => null)) as
-          | { id?: string; error?: string; organizationId?: string }
-          | null
+        const body = (await response.json().catch(() => null)) as {
+          id?: string
+          error?: string
+          organizationId?: string
+        } | null
 
         if (!response.ok) {
           if (response.status === 409 && body?.organizationId) {
@@ -226,7 +229,9 @@ export function OrganizationIdentityDrawer({
       router.refresh()
       resetForm()
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Erro ao salvar os dados da organização.')
+      toast.error(
+        error instanceof Error ? error.message : 'Erro ao salvar os dados da organização.'
+      )
     } finally {
       setIsSubmitting(false)
     }
@@ -234,9 +239,9 @@ export function OrganizationIdentityDrawer({
 
   const formContent = (
     <>
-      <div className="space-y-4 overflow-y-auto px-6 py-5">
-        <div className="grid gap-2">
-          <Label htmlFor="organization-entity-type">Tipo</Label>
+      <div className='space-y-4 overflow-y-auto px-6 py-5'>
+        <div className='grid gap-2'>
+          <Label htmlFor='organization-entity-type'>Tipo</Label>
           <Select
             value={entityType}
             onValueChange={(value: EntityType) => {
@@ -245,51 +250,53 @@ export function OrganizationIdentityDrawer({
               setCompanyLookupData(null)
             }}
           >
-            <SelectTrigger id="organization-entity-type">
+            <SelectTrigger id='organization-entity-type'>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="individual">Pessoa Física</SelectItem>
-              <SelectItem value="company">Pessoa Jurídica</SelectItem>
+              <SelectItem value='individual'>Pessoa Física</SelectItem>
+              <SelectItem value='company'>Pessoa Jurídica</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
-        <div className="grid gap-2">
-          <Label htmlFor="organization-document">{documentType === 'cnpj' ? 'CNPJ' : 'CPF'}</Label>
+        <div className='grid gap-2'>
+          <Label htmlFor='organization-document'>{documentType === 'cnpj' ? 'CNPJ' : 'CPF'}</Label>
           <Input
-            id="organization-document"
+            id='organization-document'
             value={documentNumber}
             maxLength={documentType === 'cnpj' ? 18 : 14}
             placeholder={documentType === 'cnpj' ? '00.000.000/0000-00' : '000.000.000-00'}
-            onChange={(event) => setDocumentNumber(applyCpfCnpjMask(event.target.value, documentType))}
+            onChange={(event) =>
+              setDocumentNumber(applyCpfCnpjMask(event.target.value, documentType))
+            }
           />
         </div>
 
         {entityType === 'company' ? (
-          <div className="space-y-3">
+          <div className='space-y-3'>
             <Button
-              type="button"
-              variant="outline"
+              type='button'
+              variant='outline'
               onClick={() => void handleLookupCompany()}
               disabled={isLookingUpCompany || !isCompanyLookupReady}
-              className="w-full"
+              className='w-full'
             >
               {isLookingUpCompany ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className='mr-2 h-4 w-4 animate-spin' />
                   Consultando Receita...
                 </>
               ) : (
                 <>
-                  <Building2 className="mr-2 h-4 w-4" />
+                  <Building2 className='mr-2 h-4 w-4' />
                   Consultar CNPJ na Receita
                 </>
               )}
             </Button>
 
-            <Alert className="border-muted">
-              <Building2 className="h-4 w-4" />
+            <Alert className='border-muted'>
+              <Building2 className='h-4 w-4' />
               <AlertDescription>
                 {companyLookupData
                   ? `Empresa identificada: ${profileName}`
@@ -298,21 +305,26 @@ export function OrganizationIdentityDrawer({
             </Alert>
           </div>
         ) : (
-          <Alert className="border-muted">
-            <UserRound className="h-4 w-4" />
+          <Alert className='border-muted'>
+            <UserRound className='h-4 w-4' />
             <AlertDescription>
-              O nome do titular será usado a partir do usuário cadastrado: <strong>{profileName}</strong>.
+              O nome do titular será usado a partir do usuário cadastrado:{' '}
+              <strong>{profileName}</strong>.
             </AlertDescription>
           </Alert>
         )}
       </div>
 
-      <div className="border-t px-6 pb-6 pt-4">
-        <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-          <Button type="button" onClick={() => void handleSubmit()} disabled={!canSubmit || isSubmitting}>
+      <div className='border-t px-6 pt-4 pb-6'>
+        <div className='flex flex-col gap-2 sm:flex-row sm:justify-end'>
+          <Button
+            type='button'
+            onClick={() => void handleSubmit()}
+            disabled={!canSubmit || isSubmitting}
+          >
             {isSubmitting ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
                 Salvando...
               </>
             ) : hasOrganization ? (
@@ -323,13 +335,13 @@ export function OrganizationIdentityDrawer({
           </Button>
           {isMobile ? (
             <DrawerClose asChild>
-              <Button type="button" variant="outline" disabled={isSubmitting}>
+              <Button type='button' variant='outline' disabled={isSubmitting}>
                 Cancelar
               </Button>
             </DrawerClose>
           ) : (
             <SheetClose asChild>
-              <Button type="button" variant="outline" disabled={isSubmitting}>
+              <Button type='button' variant='outline' disabled={isSubmitting}>
                 Cancelar
               </Button>
             </SheetClose>
@@ -350,24 +362,24 @@ export function OrganizationIdentityDrawer({
       >
         <SheetTrigger asChild>{trigger}</SheetTrigger>
         <SheetContent
-          side="right"
+          side='right'
           showCloseButton={false}
-          className="h-[100dvh] border-none p-0 data-[side=right]:!w-[min(94vw,760px)] data-[side=right]:sm:!max-w-none"
+          className='data-[side=right]:!w-[min(94vw,760px)] data-[side=right]:sm:!max-w-none h-[100dvh] border-none p-0'
         >
-          <div className="ml-auto flex h-full w-full max-w-[720px] flex-col overflow-hidden">
-            <div className="shrink-0 border-b px-6 pb-4 pt-6 text-left">
-              <div className="flex w-full items-start justify-between">
-                <div className="min-w-0">
-                  <SheetTitle className="truncate text-2xl font-bold leading-tight tracking-tight">
+          <div className='ml-auto flex h-full w-full max-w-[720px] flex-col overflow-hidden'>
+            <div className='shrink-0 border-b px-6 pt-6 pb-4 text-left'>
+              <div className='flex w-full items-start justify-between'>
+                <div className='min-w-0'>
+                  <SheetTitle className='truncate font-bold text-2xl leading-tight tracking-tight'>
                     Completar dados da organização
                   </SheetTitle>
-                  <SheetDescription className="text-muted-foreground mt-1 text-left text-sm">
+                  <SheetDescription className='mt-1 text-left text-muted-foreground text-sm'>
                     Informe o tipo e o documento fiscal da organização.
                   </SheetDescription>
                 </div>
                 <SheetClose asChild>
-                  <Button variant="ghost" size="icon" className="rounded-full">
-                    <X className="h-5 w-5" />
+                  <Button variant='ghost' size='icon' className='rounded-full'>
+                    <X className='h-5 w-5' />
                   </Button>
                 </SheetClose>
               </div>
@@ -388,25 +400,25 @@ export function OrganizationIdentityDrawer({
         if (!nextOpen) resetForm()
       }}
       shouldScaleBackground={false}
-      direction="bottom"
+      direction='bottom'
     >
       <DrawerTrigger asChild>{trigger}</DrawerTrigger>
 
-      <DrawerContent className="bg-background h-[100dvh] max-h-none rounded-none border-none data-[vaul-drawer-direction=bottom]:mt-0 data-[vaul-drawer-direction=bottom]:max-h-none">
-        <div className="mx-auto flex h-full w-full max-w-[720px] flex-col overflow-hidden">
-          <DrawerHeader className="shrink-0 border-b px-6 pb-4 pt-6 text-left">
-            <div className="flex w-full items-start justify-between">
-              <div className="min-w-0">
-                <DrawerTitle className="truncate text-2xl font-bold leading-tight tracking-tight">
+      <DrawerContent className='h-[100dvh] max-h-none rounded-none border-none bg-background data-[vaul-drawer-direction=bottom]:mt-0 data-[vaul-drawer-direction=bottom]:max-h-none'>
+        <div className='mx-auto flex h-full w-full max-w-[720px] flex-col overflow-hidden'>
+          <DrawerHeader className='shrink-0 border-b px-6 pt-6 pb-4 text-left'>
+            <div className='flex w-full items-start justify-between'>
+              <div className='min-w-0'>
+                <DrawerTitle className='truncate font-bold text-2xl leading-tight tracking-tight'>
                   Completar dados da organização
                 </DrawerTitle>
-                <DrawerDescription className="text-muted-foreground mt-1 text-left text-sm">
+                <DrawerDescription className='mt-1 text-left text-muted-foreground text-sm'>
                   Informe o tipo e o documento fiscal da organização.
                 </DrawerDescription>
               </div>
               <DrawerClose asChild>
-                <Button variant="ghost" size="icon" className="rounded-full">
-                  <X className="h-5 w-5" />
+                <Button variant='ghost' size='icon' className='rounded-full'>
+                  <X className='h-5 w-5' />
                 </Button>
               </DrawerClose>
             </div>

@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
-import { apiError } from '@/lib/utils/api-response'
 import { MetaCloudService } from '@/features/whatsapp/services/meta-cloud.service'
-import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import { apiError } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 export const dynamic = 'force-dynamic'
 

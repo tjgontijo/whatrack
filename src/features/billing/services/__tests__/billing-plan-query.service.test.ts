@@ -104,7 +104,7 @@ describe('billing-plan-query.service', () => {
           syncStatus: 'pending',
           kind: 'base',
         }),
-      }),
+      })
     )
   })
 })

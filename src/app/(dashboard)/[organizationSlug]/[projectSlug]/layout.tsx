@@ -1,17 +1,17 @@
-import type { ReactNode } from 'react'
 import { notFound, redirect } from 'next/navigation'
+import type { ReactNode } from 'react'
 
 import { Toaster } from '@/components/ui/sonner'
-import { DashboardTopbar } from '@/features/dashboard/components/layout/topbar'
 import { DashboardShell } from '@/features/dashboard/components/layout/dashboard-shell'
+import { DashboardTopbar } from '@/features/dashboard/components/layout/topbar'
 import { ProjectClientContextSync } from '@/features/dashboard/components/project/project-client-context-sync'
 import { ProjectRouteProvider } from '@/features/projects/contexts/project-route.context'
-import { prisma } from '@/lib/db/prisma'
-import { resolveProjectContext } from '@/server/project/resolve-project-context'
-import { getServerSession } from '@/server/auth/server-session'
-import { listEffectivePermissionsForUser } from '@/server/organization/organization-rbac.service'
-import { isOrganizationIdentityComplete } from '@/server/organization/is-identity-complete'
 import type { Permission } from '@/lib/auth/rbac/roles'
+import { prisma } from '@/lib/db/prisma'
+import { getServerSession } from '@/server/auth/server-session'
+import { isOrganizationIdentityComplete } from '@/server/organization/is-identity-complete'
+import { listEffectivePermissionsForUser } from '@/server/organization/organization-rbac.service'
+import { resolveProjectContext } from '@/server/project/resolve-project-context'
 
 export const dynamic = 'force-dynamic'
 
@@ -65,7 +65,7 @@ export default async function ProjectScopedLayout({ children, params }: ProjectS
   return (
     <ProjectRouteProvider value={context}>
       <ProjectClientContextSync projectId={projectId} />
-      <div className="bg-sidebar flex h-screen flex-col overflow-hidden">
+      <div className='flex h-screen flex-col overflow-hidden bg-sidebar'>
         <DashboardTopbar
           session={session}
           organizationName={organizationName}
@@ -93,7 +93,7 @@ export default async function ProjectScopedLayout({ children, params }: ProjectS
         </DashboardShell>
       </div>
 
-      <Toaster richColors position="bottom-center" />
+      <Toaster richColors position='bottom-center' />
     </ProjectRouteProvider>
   )
 }

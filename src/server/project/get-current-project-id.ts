@@ -1,9 +1,9 @@
 import { cookies, headers } from 'next/headers'
 
 import { PROJECT_COOKIE, PROJECT_HEADER } from '@/lib/constants/http-headers'
-import { getServerSession } from '@/server/auth/server'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/utils/logger'
+import { getServerSession } from '@/server/auth/server'
 
 export async function getCurrentProjectId(organizationId: string): Promise<string | null> {
   try {

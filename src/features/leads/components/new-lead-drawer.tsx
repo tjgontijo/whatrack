@@ -1,11 +1,11 @@
 'use client'
 
-import { useForm, Controller } from 'react-hook-form'
-import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
 import { Loader2, Users } from 'lucide-react'
+import { Controller, useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+import { z } from 'zod'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -17,8 +17,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { applyWhatsAppMask, normalizeWhatsApp, validateWhatsApp } from '@/lib/mask/phone-mask'
 import { CrudEditDrawer } from '@/features/dashboard/components/crud'
+import { applyWhatsAppMask, normalizeWhatsApp, validateWhatsApp } from '@/lib/mask/phone-mask'
 
 const ORIGIN_OPTIONS = [
   { label: 'Instagram', value: 'Instagram' },
@@ -73,11 +73,7 @@ export type NewLeadDrawerProps = {
 import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
 import { apiFetch } from '@/lib/api-client'
 
-export function NewLeadDrawer({
-  onSuccess,
-  open,
-  onOpenChange,
-}: NewLeadDrawerProps) {
+export function NewLeadDrawer({ onSuccess, open, onOpenChange }: NewLeadDrawerProps) {
   const setOpen = onOpenChange
   const { organizationId, projectId } = useRequiredProjectRouteContext()
   const queryClient = useQueryClient()
@@ -138,54 +134,55 @@ export function NewLeadDrawer({
     }
   }
 
-
   return (
     <CrudEditDrawer
       open={open}
       onOpenChange={handleOpenChange}
-      title="Adicionar novo lead"
-      subtitle="Preencha as informações para registrar um novo lead no funil comercial."
+      title='Adicionar novo lead'
+      subtitle='Preencha as informações para registrar um novo lead no funil comercial.'
       icon={Users}
       showFooter={false}
-      desktopDirection="right"
-      mobileDirection="bottom"
-      maxWidth="max-w-[720px]"
+      desktopDirection='right'
+      mobileDirection='bottom'
+      maxWidth='max-w-[720px]'
     >
-      <form className="space-y-5" onSubmit={handleSubmit(submit)}>
-        <div className="space-y-2">
-          <Label htmlFor="lead-name">Nome *</Label>
-          <Input id="lead-name" placeholder="Nome completo" {...register('name')} />
-          {errors.name ? <p className="text-destructive text-sm">{errors.name.message}</p> : null}
+      <form className='space-y-5' onSubmit={handleSubmit(submit)}>
+        <div className='space-y-2'>
+          <Label htmlFor='lead-name'>Nome *</Label>
+          <Input id='lead-name' placeholder='Nome completo' {...register('name')} />
+          {errors.name ? <p className='text-destructive text-sm'>{errors.name.message}</p> : null}
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="lead-whatsapp">WhatsApp</Label>
+        <div className='space-y-2'>
+          <Label htmlFor='lead-whatsapp'>WhatsApp</Label>
           <Controller
             control={control}
-            name="whatsapp"
+            name='whatsapp'
             render={({ field }) => (
               <Input
-                id="lead-whatsapp"
-                inputMode="tel"
-                placeholder="Somente números"
+                id='lead-whatsapp'
+                inputMode='tel'
+                placeholder='Somente números'
                 value={field.value ?? ''}
                 onChange={(event) => field.onChange(applyWhatsAppMask(event.target.value))}
               />
             )}
           />
-          {errors.whatsapp ? <p className="text-destructive text-sm">{errors.whatsapp.message}</p> : null}
+          {errors.whatsapp ? (
+            <p className='text-destructive text-sm'>{errors.whatsapp.message}</p>
+          ) : null}
         </div>
 
-        <div className="grid gap-5 md:grid-cols-2">
-          <div className="space-y-2">
+        <div className='grid gap-5 md:grid-cols-2'>
+          <div className='space-y-2'>
             <Label>Origem *</Label>
             <Controller
               control={control}
-              name="origin"
+              name='origin'
               render={({ field }) => (
                 <Select onValueChange={field.onChange} value={field.value ?? ''}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione" />
+                    <SelectValue placeholder='Selecione' />
                   </SelectTrigger>
                   <SelectContent>
                     {ORIGIN_OPTIONS.map((option) => (
@@ -197,18 +194,20 @@ export function NewLeadDrawer({
                 </Select>
               )}
             />
-            {errors.origin ? <p className="text-destructive text-sm">{errors.origin.message}</p> : null}
+            {errors.origin ? (
+              <p className='text-destructive text-sm'>{errors.origin.message}</p>
+            ) : null}
           </div>
 
-          <div className="space-y-2">
+          <div className='space-y-2'>
             <Label>Meio *</Label>
             <Controller
               control={control}
-              name="medium"
+              name='medium'
               render={({ field }) => (
                 <Select onValueChange={field.onChange} value={field.value ?? ''}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione" />
+                    <SelectValue placeholder='Selecione' />
                   </SelectTrigger>
                   <SelectContent>
                     {MEDIUM_OPTIONS.map((option) => (
@@ -220,18 +219,25 @@ export function NewLeadDrawer({
                 </Select>
               )}
             />
-            {errors.medium ? <p className="text-destructive text-sm">{errors.medium.message}</p> : null}
+            {errors.medium ? (
+              <p className='text-destructive text-sm'>{errors.medium.message}</p>
+            ) : null}
           </div>
         </div>
 
-        <div className="flex justify-end gap-2 pt-2">
-          <Button type="button" variant="outline" onClick={() => handleOpenChange(false)} disabled={isSubmitting}>
+        <div className='flex justify-end gap-2 pt-2'>
+          <Button
+            type='button'
+            variant='outline'
+            onClick={() => handleOpenChange(false)}
+            disabled={isSubmitting}
+          >
             Cancelar
           </Button>
-          <Button type="submit" className="gap-2" disabled={isSubmitting}>
+          <Button type='submit' className='gap-2' disabled={isSubmitting}>
             {isSubmitting ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className='h-4 w-4 animate-spin' />
                 Salvando
               </>
             ) : (

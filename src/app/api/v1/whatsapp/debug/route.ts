@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
-import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { apiError } from '@/lib/utils/api-response'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 export const dynamic = 'force-dynamic'
 

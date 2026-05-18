@@ -1,8 +1,8 @@
 import { TeamSettingsShell } from '@/features/account/components/team-settings-shell'
-import { requireWorkspacePageAccess } from '@/server/auth/require-workspace-page-access'
-import { listOrganizationMembers } from '@/features/organizations/services/organization-members.service'
 import { listOrganizationPendingInvitations } from '@/features/organizations/services/organization-invitations.service'
+import { listOrganizationMembers } from '@/features/organizations/services/organization-members.service'
 import { listOrganizationRolesWithCatalog } from '@/features/organizations/services/organization-roles.service'
+import { requireWorkspacePageAccess } from '@/server/auth/require-workspace-page-access'
 
 type TeamPageProps = {
   params: Promise<{ organizationSlug: string }>
@@ -17,8 +17,14 @@ export default async function TeamPage({ params }: TeamPageProps) {
 
   const [membersResult, invitationsResult, rolesResult] = await Promise.all([
     listOrganizationMembers({ organizationId: access.organizationId, role: access.role }),
-    listOrganizationPendingInvitations({ organizationId: access.organizationId, actorRole: access.role }),
-    listOrganizationRolesWithCatalog({ organizationId: access.organizationId, globalRole: access.globalRole }),
+    listOrganizationPendingInvitations({
+      organizationId: access.organizationId,
+      actorRole: access.role,
+    }),
+    listOrganizationRolesWithCatalog({
+      organizationId: access.organizationId,
+      globalRole: access.globalRole,
+    }),
   ])
 
   const initialMembers = 'data' in membersResult ? membersResult.data : []

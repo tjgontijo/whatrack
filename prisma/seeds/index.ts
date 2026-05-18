@@ -1,12 +1,12 @@
 import 'dotenv/config'
 import { PrismaClient } from '@generated/prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
-import { seedLookupTables } from './seed_lookup_tables'
-import { seedTicketStages } from './seed_ticket_stages'
-import { seedBillingPlans } from './seed_billing_plans'
 import { seedBillingOffers } from './seed_billing_offers'
 import { seedBillingPlanHistory } from './seed_billing_plan_history'
+import { seedBillingPlans } from './seed_billing_plans'
+import { seedLookupTables } from './seed_lookup_tables'
 import { seedSystemOrg } from './seed_system_org'
+import { seedTicketStages } from './seed_ticket_stages'
 
 interface PgTableRow {
   tablename: string

@@ -1,15 +1,12 @@
 import 'server-only'
 
-import { resolveProjectScope } from '@/server/project/project-scope'
+import { listLeadsRepository } from '@/features/leads/repositories'
 
 import { leadsQuerySchema, leadsResponseSchema } from '@/features/leads/schemas/lead.schemas'
-import { listLeadsRepository } from '@/features/leads/repositories'
 import { resolveOptionalDateRange } from '@/features/leads/services/shared'
+import { resolveProjectScope } from '@/server/project/project-scope'
 
-export async function listLeadsService(input: {
-  organizationId: string
-  filters: unknown
-}) {
+export async function listLeadsService(input: { organizationId: string; filters: unknown }) {
   const parsed = leadsQuerySchema.parse(input.filters)
   const q = parsed.q.trim()
   const projectId = await resolveProjectScope({

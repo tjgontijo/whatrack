@@ -1,10 +1,9 @@
 import { FolderKanban } from 'lucide-react'
 import { notFound, redirect } from 'next/navigation'
-
-import { ProjectDetailView } from '@/features/projects/components/project-detail'
 import { PageContent } from '@/features/dashboard/components/layout/page-content'
 import { PageHeader } from '@/features/dashboard/components/layout/page-header'
 import { PageShell } from '@/features/dashboard/components/layout/page-shell'
+import { ProjectDetailView } from '@/features/projects/components/project-detail'
 import { getProjectById } from '@/features/projects/server'
 import { getServerSession } from '@/server/auth/server-session'
 import { getCurrentOrganizationId } from '@/server/organization/get-current-organization-id'
@@ -38,10 +37,10 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
   }
 
   return (
-    <PageShell maxWidth="7xl">
+    <PageShell maxWidth='7xl'>
       <PageHeader
-        title="Projeto"
-        description="Acompanhe canais e dados operacionais isolados por cliente."
+        title='Projeto'
+        description='Acompanhe canais e dados operacionais isolados por cliente.'
         icon={FolderKanban}
       />
       <PageContent>

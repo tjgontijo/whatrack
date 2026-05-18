@@ -1,7 +1,7 @@
 import 'dotenv/config'
 import { Worker } from 'bullmq'
-import { getRedis } from './lib/db/redis'
 import { runCampaignDispatch } from './features/whatsapp/services/whatsapp-campaign-execution.service'
+import { getRedis } from './lib/db/redis'
 import { logger } from './lib/utils/logger'
 import type { CampaignDispatchJobData } from './server/queues/campaign.queue'
 
@@ -16,7 +16,7 @@ const worker = new Worker<CampaignDispatchJobData>(
   {
     connection: getRedis(),
     concurrency: 5,
-  },
+  }
 )
 
 worker.on('failed', (job, err) => {

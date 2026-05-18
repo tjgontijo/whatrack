@@ -1,13 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Check, ChevronsUpDown, LayoutDashboard, Plus, Settings } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { Check, ChevronsUpDown, LayoutDashboard, Plus, Settings } from 'lucide-react'
-
-import { OrganizationStatusBadge } from '@/features/organizations/components/organization-status-badge'
-import { UserDropdownMenu } from '@/features/dashboard/components/sidebar/user-dropdown-menu'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Command,
@@ -19,6 +16,8 @@ import {
 } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Separator } from '@/components/ui/separator'
+import { UserDropdownMenu } from '@/features/dashboard/components/sidebar/user-dropdown-menu'
+import { OrganizationStatusBadge } from '@/features/organizations/components/organization-status-badge'
 import { cn } from '@/lib/utils/utils'
 
 const LAST_APP_PATH_STORAGE_KEY = 'dashboard:last-app-path'
@@ -77,9 +76,7 @@ export function DashboardTopbar({
   const handleAppModeNavigation = () => {
     const storedPath = window.sessionStorage.getItem(LAST_APP_PATH_STORAGE_KEY)
     const targetPath =
-      storedPath &&
-      storedPath.startsWith(basePath) &&
-      !storedPath.startsWith(`${basePath}/settings`)
+      storedPath?.startsWith(basePath) && !storedPath.startsWith(`${basePath}/settings`)
         ? storedPath
         : basePath
     router.push(targetPath)
@@ -93,19 +90,19 @@ export function DashboardTopbar({
   }
 
   return (
-    <header className="bg-sidebar 3xl:px-6 flex h-14 w-full shrink-0 items-center gap-3 px-4 md:px-5">
+    <header className='flex h-14 w-full shrink-0 items-center gap-3 bg-sidebar 3xl:px-6 px-4 md:px-5'>
       {/* Org logo (standalone link) */}
-      <Link href={basePath} className="shrink-0">
+      <Link href={basePath} className='shrink-0'>
         {organizationLogo ? (
           <Image
             src={organizationLogo}
             alt={organizationName}
             width={32}
             height={32}
-            className="border-border size-8 rounded-lg border object-cover"
+            className='size-8 rounded-lg border border-border object-cover'
           />
         ) : (
-          <div className="bg-primary text-primary-foreground flex size-8 shrink-0 items-center justify-center rounded-lg text-sm font-semibold">
+          <div className='flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary font-semibold text-primary-foreground text-sm'>
             {organizationInitial}
           </div>
         )}
@@ -115,22 +112,24 @@ export function DashboardTopbar({
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <button
-            type="button"
+            type='button'
             className={cn(
               'flex min-w-0 items-center gap-1.5 rounded-md px-2 py-1 text-sm transition-colors',
               'hover:bg-sidebar-accent',
-              open && 'bg-sidebar-accent',
+              open && 'bg-sidebar-accent'
             )}
           >
-            <span className="text-muted-foreground/70 truncate font-medium">{organizationName}</span>
-            <span className="text-muted-foreground/40">/</span>
-            <span className="truncate font-medium">{projectName}</span>
-            <ChevronsUpDown className="text-muted-foreground h-3.5 w-3.5 shrink-0" />
+            <span className='truncate font-medium text-muted-foreground/70'>
+              {organizationName}
+            </span>
+            <span className='text-muted-foreground/40'>/</span>
+            <span className='truncate font-medium'>{projectName}</span>
+            <ChevronsUpDown className='h-3.5 w-3.5 shrink-0 text-muted-foreground' />
           </button>
         </PopoverTrigger>
-        <PopoverContent className="w-56 p-0" align="start">
+        <PopoverContent className='w-56 p-0' align='start'>
           <Command>
-            <CommandInput placeholder="Buscar projeto..." className="h-9" />
+            <CommandInput placeholder='Buscar projeto...' className='h-9' />
             <CommandList>
               <CommandEmpty>Nenhum projeto encontrado.</CommandEmpty>
               <CommandGroup>
@@ -143,24 +142,24 @@ export function DashboardTopbar({
                     <Check
                       className={cn(
                         'mr-2 h-3.5 w-3.5',
-                        project.slug === projectSlug ? 'opacity-100' : 'opacity-0',
+                        project.slug === projectSlug ? 'opacity-100' : 'opacity-0'
                       )}
                     />
-                    <span className="truncate">{project.name}</span>
+                    <span className='truncate'>{project.name}</span>
                   </CommandItem>
                 ))}
               </CommandGroup>
             </CommandList>
-            <div className="border-border border-t p-1">
+            <div className='border-border border-t p-1'>
               <button
-                type="button"
-                className="text-muted-foreground hover:bg-accent hover:text-foreground flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-xs transition-colors"
+                type='button'
+                className='flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-muted-foreground text-xs transition-colors hover:bg-accent hover:text-foreground'
                 onClick={() => {
                   setOpen(false)
                   router.push(`/${organizationSlug}/${projectSlug}/projects`)
                 }}
               >
-                <Plus className="h-3.5 w-3.5" />
+                <Plus className='h-3.5 w-3.5' />
                 Novo projeto
               </button>
             </div>
@@ -169,7 +168,7 @@ export function DashboardTopbar({
       </Popover>
 
       {hasOrganization !== undefined && identityComplete !== undefined ? (
-        <div className="hidden md:flex">
+        <div className='hidden md:flex'>
           <OrganizationStatusBadge
             hasOrganization={hasOrganization}
             identityComplete={identityComplete}
@@ -177,40 +176,40 @@ export function DashboardTopbar({
         </div>
       ) : null}
 
-      <div className="flex-1" />
+      <div className='flex-1' />
 
-      <nav className="flex items-center gap-1" aria-label="Modo de navegação">
+      <nav className='flex items-center gap-1' aria-label='Modo de navegação'>
         <Button
-          type="button"
+          type='button'
           variant={isSettingsMode ? 'ghost' : 'secondary'}
-          size="sm"
-          className="h-8 gap-1.5"
+          size='sm'
+          className='h-8 gap-1.5'
           onClick={handleAppModeNavigation}
           aria-pressed={!isSettingsMode}
         >
-          <LayoutDashboard className="h-4 w-4" />
-          <span className="hidden sm:inline">Dashboard</span>
+          <LayoutDashboard className='h-4 w-4' />
+          <span className='hidden sm:inline'>Dashboard</span>
         </Button>
 
         <Button
-          type="button"
+          type='button'
           variant={isSettingsMode ? 'secondary' : 'ghost'}
-          size="icon-sm"
+          size='icon-sm'
           onClick={() => router.push(`${basePath}/settings/profile`)}
-          aria-label="Abrir configurações"
+          aria-label='Abrir configurações'
           aria-pressed={isSettingsMode}
         >
-          <Settings className="h-4 w-4" />
+          <Settings className='h-4 w-4' />
         </Button>
       </nav>
 
-      <Separator orientation="vertical" className="hidden h-4 md:block" />
+      <Separator orientation='vertical' className='hidden h-4 md:block' />
 
       <UserDropdownMenu
         userName={userName}
         userEmail={userEmail}
         userImage={userImage}
-        variant="topbar"
+        variant='topbar'
       />
     </header>
   )

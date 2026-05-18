@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { cn } from '@/lib/utils/utils'
 
 interface PageContentProps {
@@ -7,9 +7,5 @@ interface PageContentProps {
 }
 
 export function PageContent({ children, className }: PageContentProps) {
-  return (
-    <div className={cn('flex-1', className)}>
-      {children}
-    </div>
-  )
+  return <div className={cn('flex-1', className)}>{children}</div>
 }

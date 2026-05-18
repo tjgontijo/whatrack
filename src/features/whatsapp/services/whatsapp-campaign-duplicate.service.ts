@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/db/prisma'
-import { logger } from '@/lib/utils/logger'
-import { ok, fail } from '@/lib/shared/result'
 import type { Result } from '@/lib/shared/result'
+import { fail, ok } from '@/lib/shared/result'
+import { logger } from '@/lib/utils/logger'
 
 export async function duplicateCampaign(
   campaignId: string,

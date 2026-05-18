@@ -1,9 +1,9 @@
 'use client'
 
-import * as React from 'react'
+import { ChevronsUpDown, LogOut, Monitor, Moon, Settings, Sun } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { ChevronsUpDown, LogOut, Settings, Sun, Moon, Monitor } from 'lucide-react'
 import { useTheme } from 'next-themes'
+import * as React from 'react'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -13,12 +13,12 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-  DropdownMenuSub,
-  DropdownMenuSubTrigger,
-  DropdownMenuSubContent,
   DropdownMenuPortal,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { SidebarMenuButton } from '@/components/ui/sidebar'
 import { useRequiredProjectPath } from '@/features/projects/hooks/use-project-route-context'
@@ -79,19 +79,19 @@ export function UserDropdownMenu({
 
   const userSummary = (
     <>
-      <Avatar className="h-8 w-8 rounded-lg">
+      <Avatar className='h-8 w-8 rounded-lg'>
         {userImage && !avatarError && (
           <AvatarImage src={userImage} alt={userName} onError={() => setAvatarError(true)} />
         )}
-        <AvatarFallback className="bg-primary/10 text-primary rounded-lg">
+        <AvatarFallback className='rounded-lg bg-primary/10 text-primary'>
           {initials}
         </AvatarFallback>
       </Avatar>
-      <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
-        <span className="truncate font-semibold">{userName || 'Usuário'}</span>
-        <span className="text-muted-foreground truncate text-xs">{userEmail}</span>
+      <div className='grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden'>
+        <span className='truncate font-semibold'>{userName || 'Usuário'}</span>
+        <span className='truncate text-muted-foreground text-xs'>{userEmail}</span>
       </div>
-      <ChevronsUpDown className="ml-auto size-4 group-data-[collapsible=icon]:hidden" />
+      <ChevronsUpDown className='ml-auto size-4 group-data-[collapsible=icon]:hidden' />
     </>
   )
 
@@ -99,17 +99,17 @@ export function UserDropdownMenu({
     if (variant === 'topbar') {
       return (
         <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          className="rounded-full"
-          aria-label="Abrir menu do usuário"
+          type='button'
+          variant='ghost'
+          size='icon-sm'
+          className='rounded-full'
+          aria-label='Abrir menu do usuário'
         >
-          <Avatar className="h-8 w-8">
+          <Avatar className='h-8 w-8'>
             {userImage && !avatarError && (
               <AvatarImage src={userImage} alt={userName} onError={() => setAvatarError(true)} />
             )}
-            <AvatarFallback className="bg-primary/10 text-primary text-xs">
+            <AvatarFallback className='bg-primary/10 text-primary text-xs'>
               {initials}
             </AvatarFallback>
           </Avatar>
@@ -119,8 +119,8 @@ export function UserDropdownMenu({
 
     return (
       <SidebarMenuButton
-        size="lg"
-        className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+        size='lg'
+        className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
       >
         {userSummary}
       </SidebarMenuButton>
@@ -132,15 +132,15 @@ export function UserDropdownMenu({
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            className="rounded-full"
-            aria-label="Abrir menu do usuário"
+            type='button'
+            variant='ghost'
+            size='icon-sm'
+            className='rounded-full'
+            aria-label='Abrir menu do usuário'
           >
-            <Avatar className="h-8 w-8">
+            <Avatar className='h-8 w-8'>
               {userImage && !avatarError && <AvatarImage src={userImage} alt={userName} />}
-              <AvatarFallback className="bg-primary/10 text-primary text-xs">
+              <AvatarFallback className='bg-primary/10 text-primary text-xs'>
                 {initials}
               </AvatarFallback>
             </Avatar>
@@ -148,22 +148,22 @@ export function UserDropdownMenu({
         </DropdownMenuTrigger>
 
         <DropdownMenuContent
-          className="min-w-56 rounded-lg"
-          side="bottom"
-          align="end"
+          className='min-w-56 rounded-lg'
+          side='bottom'
+          align='end'
           sideOffset={8}
         >
-          <DropdownMenuLabel className="p-0 font-normal">
-            <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-              <Avatar className="h-8 w-8 rounded-lg">
+          <DropdownMenuLabel className='p-0 font-normal'>
+            <div className='flex items-center gap-2 px-1 py-1.5 text-left text-sm'>
+              <Avatar className='h-8 w-8 rounded-lg'>
                 {userImage && !avatarError && <AvatarImage src={userImage} alt={userName} />}
-                <AvatarFallback className="bg-primary/10 text-primary rounded-lg">
+                <AvatarFallback className='rounded-lg bg-primary/10 text-primary'>
                   {initials}
                 </AvatarFallback>
               </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">{userName || 'Usuário'}</span>
-                <span className="text-muted-foreground truncate text-xs">{userEmail}</span>
+              <div className='grid flex-1 text-left text-sm leading-tight'>
+                <span className='truncate font-semibold'>{userName || 'Usuário'}</span>
+                <span className='truncate text-muted-foreground text-xs'>{userEmail}</span>
               </div>
             </div>
           </DropdownMenuLabel>
@@ -172,7 +172,7 @@ export function UserDropdownMenu({
 
           <DropdownMenuGroup>
             <DropdownMenuItem onSelect={() => handleNavigate(settingsPath)}>
-              <Settings className="mr-2 h-4 w-4" />
+              <Settings className='mr-2 h-4 w-4' />
               Configurações
             </DropdownMenuItem>
           </DropdownMenuGroup>
@@ -182,22 +182,22 @@ export function UserDropdownMenu({
           <DropdownMenuGroup>
             <DropdownMenuSub>
               <DropdownMenuSubTrigger>
-                <Sun className="mr-2 h-4 w-4 dark:hidden" />
-                <Moon className="mr-2 hidden h-4 w-4 dark:block" />
+                <Sun className='mr-2 h-4 w-4 dark:hidden' />
+                <Moon className='mr-2 hidden h-4 w-4 dark:block' />
                 <span>Tema</span>
               </DropdownMenuSubTrigger>
               <DropdownMenuPortal>
                 <DropdownMenuSubContent>
                   <DropdownMenuItem onClick={() => setTheme('light')}>
-                    <Sun className="mr-2 h-4 w-4" />
+                    <Sun className='mr-2 h-4 w-4' />
                     <span>Claro</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setTheme('dark')}>
-                    <Moon className="mr-2 h-4 w-4" />
+                    <Moon className='mr-2 h-4 w-4' />
                     <span>Escuro</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setTheme('system')}>
-                    <Monitor className="mr-2 h-4 w-4" />
+                    <Monitor className='mr-2 h-4 w-4' />
                     <span>Sistema</span>
                   </DropdownMenuItem>
                 </DropdownMenuSubContent>
@@ -209,9 +209,9 @@ export function UserDropdownMenu({
 
           <DropdownMenuItem
             onSelect={handleSignOut}
-            className="text-destructive focus:text-destructive"
+            className='text-destructive focus:text-destructive'
           >
-            <LogOut className="mr-2 h-4 w-4" />
+            <LogOut className='mr-2 h-4 w-4' />
             Sair
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -223,30 +223,30 @@ export function UserDropdownMenu({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <SidebarMenuButton
-          size="lg"
-          className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+          size='lg'
+          className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
         >
           {userSummary}
         </SidebarMenuButton>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent
-        className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-        side="bottom"
-        align="end"
+        className='w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg'
+        side='bottom'
+        align='end'
         sideOffset={4}
       >
-        <DropdownMenuLabel className="p-0 font-normal">
-          <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-            <Avatar className="h-8 w-8 rounded-lg">
+        <DropdownMenuLabel className='p-0 font-normal'>
+          <div className='flex items-center gap-2 px-1 py-1.5 text-left text-sm'>
+            <Avatar className='h-8 w-8 rounded-lg'>
               {userImage && !avatarError && <AvatarImage src={userImage} alt={userName} />}
-              <AvatarFallback className="bg-primary/10 text-primary rounded-lg">
+              <AvatarFallback className='rounded-lg bg-primary/10 text-primary'>
                 {initials}
               </AvatarFallback>
             </Avatar>
-            <div className="grid flex-1 text-left text-sm leading-tight">
-              <span className="truncate font-semibold">{userName || 'Usuário'}</span>
-              <span className="text-muted-foreground truncate text-xs">{userEmail}</span>
+            <div className='grid flex-1 text-left text-sm leading-tight'>
+              <span className='truncate font-semibold'>{userName || 'Usuário'}</span>
+              <span className='truncate text-muted-foreground text-xs'>{userEmail}</span>
             </div>
           </div>
         </DropdownMenuLabel>
@@ -255,7 +255,7 @@ export function UserDropdownMenu({
 
         <DropdownMenuGroup>
           <DropdownMenuItem onSelect={() => handleNavigate(settingsPath)}>
-            <Settings className="mr-2 h-4 w-4" />
+            <Settings className='mr-2 h-4 w-4' />
             Configurações
           </DropdownMenuItem>
         </DropdownMenuGroup>
@@ -265,22 +265,22 @@ export function UserDropdownMenu({
         <DropdownMenuGroup>
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>
-              <Sun className="mr-2 h-4 w-4 dark:hidden" />
-              <Moon className="mr-2 hidden h-4 w-4 dark:block" />
+              <Sun className='mr-2 h-4 w-4 dark:hidden' />
+              <Moon className='mr-2 hidden h-4 w-4 dark:block' />
               <span>Tema</span>
             </DropdownMenuSubTrigger>
             <DropdownMenuPortal>
               <DropdownMenuSubContent>
                 <DropdownMenuItem onClick={() => setTheme('light')}>
-                  <Sun className="mr-2 h-4 w-4" />
+                  <Sun className='mr-2 h-4 w-4' />
                   <span>Claro</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setTheme('dark')}>
-                  <Moon className="mr-2 h-4 w-4" />
+                  <Moon className='mr-2 h-4 w-4' />
                   <span>Escuro</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setTheme('system')}>
-                  <Monitor className="mr-2 h-4 w-4" />
+                  <Monitor className='mr-2 h-4 w-4' />
                   <span>Sistema</span>
                 </DropdownMenuItem>
               </DropdownMenuSubContent>
@@ -292,9 +292,9 @@ export function UserDropdownMenu({
 
         <DropdownMenuItem
           onSelect={handleSignOut}
-          className="text-destructive focus:text-destructive"
+          className='text-destructive focus:text-destructive'
         >
-          <LogOut className="mr-2 h-4 w-4" />
+          <LogOut className='mr-2 h-4 w-4' />
           Sair
         </DropdownMenuItem>
       </DropdownMenuContent>

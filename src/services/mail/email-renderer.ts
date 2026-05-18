@@ -1,5 +1,5 @@
-import React from 'react'
 import { render } from '@react-email/render'
+import React from 'react'
 import { BillingAutoUpgradeEmail } from './templates/BillingAutoUpgradeEmail'
 
 export async function renderBillingAutoUpgradeEmail(props: {

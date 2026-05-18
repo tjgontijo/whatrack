@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
-
-import { OrganizationRbacError } from './organization-rbac.service'
 import { logger } from '@/lib/utils/logger'
+import { OrganizationRbacError } from './organization-rbac.service'
 
 export function toRbacErrorResponse(error: unknown, fallbackMessage: string) {
   if (error instanceof OrganizationRbacError) {

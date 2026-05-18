@@ -1,7 +1,7 @@
 'use client'
 
-import { Badge } from '@/components/ui/badge'
 import { parsePhoneNumberFromString } from 'libphonenumber-js'
+import { Badge } from '@/components/ui/badge'
 
 export function translateMessageType(type: string) {
   const types: Record<string, string> = {
@@ -27,7 +27,7 @@ export function formatPhoneNumber(number: string) {
     const phoneNumber = parsePhoneNumberFromString(cleanNumber)
     if (phoneNumber) return phoneNumber.formatInternational()
     return number
-  } catch (e) {
+  } catch (_e) {
     return number
   }
 }
@@ -66,14 +66,14 @@ export function formatPayloadHumanly(log: any) {
     const status = value?.statuses?.[0]
     if (status) {
       return (
-        <div className="flex flex-col gap-0.5 py-1">
-          <div className="flex items-center gap-1">
-            <span className="text-muted-foreground w-20 shrink-0 text-left text-[10px] font-bold">
+        <div className='flex flex-col gap-0.5 py-1'>
+          <div className='flex items-center gap-1'>
+            <span className='w-20 shrink-0 text-left font-bold text-[10px] text-muted-foreground'>
               Status:
             </span>
             <Badge
-              variant="outline"
-              className={`h-3.5 px-1 text-[9px] font-black uppercase ${
+              variant='outline'
+              className={`h-3.5 px-1 font-black text-[9px] uppercase ${
                 status.status === 'read'
                   ? 'border-blue-200 bg-blue-50 text-blue-600'
                   : status.status === 'delivered'
@@ -88,11 +88,11 @@ export function formatPayloadHumanly(log: any) {
               {translateStatus(status.status)}
             </Badge>
           </div>
-          <div className="flex items-center gap-1">
-            <span className="text-muted-foreground w-20 shrink-0 text-left text-[10px] font-bold">
+          <div className='flex items-center gap-1'>
+            <span className='w-20 shrink-0 text-left font-bold text-[10px] text-muted-foreground'>
               Para:
             </span>
-            <span className="text-foreground text-xs font-medium">
+            <span className='font-medium text-foreground text-xs'>
               {formatPhoneNumber(status.recipient_id)}
             </span>
           </div>
@@ -106,33 +106,33 @@ export function formatPayloadHumanly(log: any) {
       const name = contact?.profile?.name
       const from = message.from
       return (
-        <div className="flex flex-col gap-0.5 py-1">
-          <div className="flex items-center gap-1">
-            <span className="text-muted-foreground w-20 shrink-0 text-left text-[10px] font-bold">
+        <div className='flex flex-col gap-0.5 py-1'>
+          <div className='flex items-center gap-1'>
+            <span className='w-20 shrink-0 text-left font-bold text-[10px] text-muted-foreground'>
               Nome:
             </span>
-            <span className="text-foreground truncate text-xs font-semibold">{name || 'N/A'}</span>
+            <span className='truncate font-semibold text-foreground text-xs'>{name || 'N/A'}</span>
           </div>
-          <div className="flex items-center gap-1">
-            <span className="text-muted-foreground w-20 shrink-0 text-left text-[10px] font-bold">
+          <div className='flex items-center gap-1'>
+            <span className='w-20 shrink-0 text-left font-bold text-[10px] text-muted-foreground'>
               De:
             </span>
-            <span className="text-foreground text-xs font-medium">{formatPhoneNumber(from)}</span>
+            <span className='font-medium text-foreground text-xs'>{formatPhoneNumber(from)}</span>
           </div>
-          <div className="flex items-center gap-1">
-            <span className="text-muted-foreground w-20 shrink-0 text-left text-[10px] font-bold">
+          <div className='flex items-center gap-1'>
+            <span className='w-20 shrink-0 text-left font-bold text-[10px] text-muted-foreground'>
               Tipo:
             </span>
-            <span className="text-primary text-xs font-medium">
+            <span className='font-medium text-primary text-xs'>
               {translateMessageType(message.type)}
             </span>
           </div>
           {message.text?.body && (
-            <div className="flex max-w-md items-start gap-1">
-              <span className="text-muted-foreground mt-0.5 w-20 shrink-0 text-left text-[10px] font-bold">
+            <div className='flex max-w-md items-start gap-1'>
+              <span className='mt-0.5 w-20 shrink-0 text-left font-bold text-[10px] text-muted-foreground'>
                 Mensagem:
               </span>
-              <span className="text-foreground/80 line-clamp-2 text-xs">{message.text.body}</span>
+              <span className='line-clamp-2 text-foreground/80 text-xs'>{message.text.body}</span>
             </div>
           )}
         </div>
@@ -142,40 +142,40 @@ export function formatPayloadHumanly(log: any) {
     const echo = value?.message_echoes?.[0]
     if (echo) {
       return (
-        <div className="flex flex-col gap-0.5 py-1">
-          <div className="flex items-center gap-1">
-            <span className="text-muted-foreground w-20 shrink-0 text-left text-[10px] font-bold">
+        <div className='flex flex-col gap-0.5 py-1'>
+          <div className='flex items-center gap-1'>
+            <span className='w-20 shrink-0 text-left font-bold text-[10px] text-muted-foreground'>
               Direção:
             </span>
             <Badge
-              variant="outline"
-              className="h-3.5 border-blue-200 bg-blue-50 px-1 text-[9px] font-black uppercase text-blue-600"
+              variant='outline'
+              className='h-3.5 border-blue-200 bg-blue-50 px-1 font-black text-[9px] text-blue-600 uppercase'
             >
               Enviado
             </Badge>
           </div>
-          <div className="flex items-center gap-1">
-            <span className="text-muted-foreground w-20 shrink-0 text-left text-[10px] font-bold">
+          <div className='flex items-center gap-1'>
+            <span className='w-20 shrink-0 text-left font-bold text-[10px] text-muted-foreground'>
               Para:
             </span>
-            <span className="text-foreground text-xs font-medium">
+            <span className='font-medium text-foreground text-xs'>
               {formatPhoneNumber(echo.to)}
             </span>
           </div>
-          <div className="flex items-center gap-1">
-            <span className="text-muted-foreground w-20 shrink-0 text-left text-[10px] font-bold">
+          <div className='flex items-center gap-1'>
+            <span className='w-20 shrink-0 text-left font-bold text-[10px] text-muted-foreground'>
               Tipo:
             </span>
-            <span className="text-primary text-xs font-medium">
+            <span className='font-medium text-primary text-xs'>
               {translateMessageType(echo.type)}
             </span>
           </div>
           {echo.text?.body && (
-            <div className="flex max-w-md items-start gap-1">
-              <span className="text-muted-foreground mt-0.5 w-20 shrink-0 text-left text-[10px] font-bold">
+            <div className='flex max-w-md items-start gap-1'>
+              <span className='mt-0.5 w-20 shrink-0 text-left font-bold text-[10px] text-muted-foreground'>
                 Mensagem:
               </span>
-              <span className="text-foreground/80 line-clamp-2 text-xs">{echo.text.body}</span>
+              <span className='line-clamp-2 text-foreground/80 text-xs'>{echo.text.body}</span>
             </div>
           )}
         </div>
@@ -189,14 +189,14 @@ export function formatPayloadHumanly(log: any) {
         eventName
       )
       return (
-        <div className="flex flex-col gap-0.5 py-1">
-          <div className="flex items-center gap-1">
-            <span className="text-muted-foreground w-20 shrink-0 text-left text-[10px] font-bold">
+        <div className='flex flex-col gap-0.5 py-1'>
+          <div className='flex items-center gap-1'>
+            <span className='w-20 shrink-0 text-left font-bold text-[10px] text-muted-foreground'>
               Evento:
             </span>
             <Badge
-              variant="outline"
-              className={`h-3.5 px-1 text-[9px] font-black uppercase ${
+              variant='outline'
+              className={`h-3.5 px-1 font-black text-[9px] uppercase ${
                 isPositive
                   ? 'border-green-200 bg-green-50 text-green-600'
                   : 'border-amber-200 bg-amber-50 text-amber-600'
@@ -206,19 +206,19 @@ export function formatPayloadHumanly(log: any) {
             </Badge>
           </div>
           {wabaInfo?.waba_id && (
-            <div className="flex items-center gap-1">
-              <span className="text-muted-foreground w-20 shrink-0 text-left text-[10px] font-bold">
+            <div className='flex items-center gap-1'>
+              <span className='w-20 shrink-0 text-left font-bold text-[10px] text-muted-foreground'>
                 WABA ID:
               </span>
-              <span className="text-foreground font-mono text-xs">{wabaInfo.waba_id}</span>
+              <span className='font-mono text-foreground text-xs'>{wabaInfo.waba_id}</span>
             </div>
           )}
           {value?.phone_number && (
-            <div className="flex items-center gap-1">
-              <span className="text-muted-foreground w-20 shrink-0 text-left text-[10px] font-bold">
+            <div className='flex items-center gap-1'>
+              <span className='w-20 shrink-0 text-left font-bold text-[10px] text-muted-foreground'>
                 Número:
               </span>
-              <span className="text-foreground text-xs font-medium">
+              <span className='font-medium text-foreground text-xs'>
                 {formatPhoneNumber(value.phone_number)}
               </span>
             </div>
@@ -233,22 +233,22 @@ export function formatPayloadHumanly(log: any) {
     ) {
       const value = payload.entry?.[0]?.changes?.[0]?.value
       return (
-        <div className="flex flex-col gap-0.5 py-1">
-          <div className="flex items-center gap-1">
-            <span className="text-muted-foreground w-20 shrink-0 text-left text-[10px] font-bold">
+        <div className='flex flex-col gap-0.5 py-1'>
+          <div className='flex items-center gap-1'>
+            <span className='w-20 shrink-0 text-left font-bold text-[10px] text-muted-foreground'>
               Template:
             </span>
-            <span className="text-xs font-bold">
+            <span className='font-bold text-xs'>
               {value?.message_template_name || value?.message_template_id}
             </span>
           </div>
-          <div className="flex items-center gap-1">
-            <span className="text-muted-foreground w-20 shrink-0 text-left text-[10px] font-bold">
+          <div className='flex items-center gap-1'>
+            <span className='w-20 shrink-0 text-left font-bold text-[10px] text-muted-foreground'>
               Status:
             </span>
             <Badge
-              variant="outline"
-              className="text-primary border-primary/20 bg-primary/5 h-3.5 px-1 text-[9px] font-black uppercase"
+              variant='outline'
+              className='h-3.5 border-primary/20 bg-primary/5 px-1 font-black text-[9px] text-primary uppercase'
             >
               {value?.event}
             </Badge>
@@ -260,14 +260,14 @@ export function formatPayloadHumanly(log: any) {
     if (field === 'phone_number_quality_update') {
       const value = payload.entry?.[0]?.changes?.[0]?.value
       return (
-        <div className="flex flex-col gap-0.5 py-1">
-          <div className="flex items-center gap-1">
-            <span className="text-muted-foreground w-20 shrink-0 text-left text-[10px] font-bold">
+        <div className='flex flex-col gap-0.5 py-1'>
+          <div className='flex items-center gap-1'>
+            <span className='w-20 shrink-0 text-left font-bold text-[10px] text-muted-foreground'>
               Qualidade:
             </span>
             <Badge
-              variant="outline"
-              className={`h-3.5 px-1 text-[9px] font-black uppercase ${
+              variant='outline'
+              className={`h-3.5 px-1 font-black text-[9px] uppercase ${
                 value?.current_limit === 'TIER_1K'
                   ? 'border-amber-200 bg-amber-50 text-amber-600'
                   : value?.current_limit === 'TIER_10K'
@@ -280,11 +280,11 @@ export function formatPayloadHumanly(log: any) {
               {value?.current_limit || 'N/A'}
             </Badge>
           </div>
-          <div className="flex items-center gap-1">
-            <span className="text-muted-foreground w-20 shrink-0 text-left text-[10px] font-bold">
+          <div className='flex items-center gap-1'>
+            <span className='w-20 shrink-0 text-left font-bold text-[10px] text-muted-foreground'>
               Número:
             </span>
-            <span className="text-foreground text-xs font-medium">
+            <span className='font-medium text-foreground text-xs'>
               {formatPhoneNumber(value?.display_phone_number)}
             </span>
           </div>
@@ -294,11 +294,11 @@ export function formatPayloadHumanly(log: any) {
 
     const displayField = field || eventType || 'desconhecido'
     return (
-      <span className="text-muted-foreground text-xs italic">
-        Evento <code className="bg-muted rounded px-1">{displayField}</code> recebido
+      <span className='text-muted-foreground text-xs italic'>
+        Evento <code className='rounded bg-muted px-1'>{displayField}</code> recebido
       </span>
     )
-  } catch (e) {
-    return <span className="text-destructive text-xs">Erro na formatação dos dados</span>
+  } catch (_e) {
+    return <span className='text-destructive text-xs'>Erro na formatação dos dados</span>
   }
 }

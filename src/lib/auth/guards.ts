@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { auth } from './auth'
-import { isAdmin, isOwner, hasPermission, Permission, RoleName } from './rbac/roles'
+import { hasPermission, isAdmin, isOwner, type Permission, type RoleName } from './rbac/roles'
 
 export interface AuthenticatedUser {
   id: string
@@ -18,7 +18,7 @@ export async function requireAuth(request: NextRequest): Promise<AuthenticatedUs
     headers: request.headers,
   })
 
-  if (!session || !session.user) {
+  if (!session?.user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

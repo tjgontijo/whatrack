@@ -1,6 +1,5 @@
 'use client'
 
-import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import type { WhatsAppTemplate } from '@/features/whatsapp/types/whatsapp'
 
@@ -11,8 +10,8 @@ interface TemplatePreviewCardProps {
 export function TemplatePreviewCard({ template }: TemplatePreviewCardProps) {
   if (!template) {
     return (
-      <Card className="bg-muted/30">
-        <CardContent className="pt-6 text-center text-muted-foreground">
+      <Card className='bg-muted/30'>
+        <CardContent className='pt-6 text-center text-muted-foreground'>
           Selecione um template para visualizar
         </CardContent>
       </Card>
@@ -27,32 +26,32 @@ export function TemplatePreviewCard({ template }: TemplatePreviewCardProps) {
 
   return (
     <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-sm">{template.name}</CardTitle>
-        <p className="text-xs text-muted-foreground">
+      <CardHeader className='pb-3'>
+        <CardTitle className='text-sm'>{template.name}</CardTitle>
+        <p className='text-muted-foreground text-xs'>
           {template.language || 'pt-BR'} • {template.category || 'Marketing'}
         </p>
       </CardHeader>
       <CardContent>
-        <div className="rounded-lg bg-white border p-4 space-y-3 max-w-sm">
+        <div className='max-w-sm space-y-3 rounded-lg border bg-white p-4'>
           {/* Header */}
           {headerComponent && (
-            <div className="space-y-1">
+            <div className='space-y-1'>
               {headerComponent.format === 'TEXT' && (
-                <p className="text-sm font-semibold">{headerComponent.text || '—'}</p>
+                <p className='font-semibold text-sm'>{headerComponent.text || '—'}</p>
               )}
               {headerComponent.format === 'IMAGE' && (
-                <div className="bg-gray-200 rounded h-40 flex items-center justify-center text-xs text-muted-foreground">
+                <div className='flex h-40 items-center justify-center rounded bg-gray-200 text-muted-foreground text-xs'>
                   Imagem
                 </div>
               )}
               {headerComponent.format === 'VIDEO' && (
-                <div className="bg-gray-200 rounded h-40 flex items-center justify-center text-xs text-muted-foreground">
+                <div className='flex h-40 items-center justify-center rounded bg-gray-200 text-muted-foreground text-xs'>
                   Vídeo
                 </div>
               )}
               {headerComponent.format === 'DOCUMENT' && (
-                <div className="bg-gray-200 rounded h-16 flex items-center justify-center text-xs text-muted-foreground">
+                <div className='flex h-16 items-center justify-center rounded bg-gray-200 text-muted-foreground text-xs'>
                   Documento
                 </div>
               )}
@@ -61,23 +60,22 @@ export function TemplatePreviewCard({ template }: TemplatePreviewCardProps) {
 
           {/* Body */}
           {bodyComponent && (
-            <div className="text-sm text-gray-800 whitespace-pre-wrap">
-              {(bodyComponent.text || '')
-                .replace(/\{\{\s*\d+\s*\}\}/g, (match) => {
-                  const varNum = match.match(/\d+/)?.[0] || match
-                  return `[variável ${varNum}]`
-                })}
+            <div className='whitespace-pre-wrap text-gray-800 text-sm'>
+              {(bodyComponent.text || '').replace(/\{\{\s*\d+\s*\}\}/g, (match) => {
+                const varNum = match.match(/\d+/)?.[0] || match
+                return `[variável ${varNum}]`
+              })}
             </div>
           )}
 
           {/* Buttons */}
           {buttons.length > 0 && (
-            <div className="flex flex-col gap-2 pt-2">
+            <div className='flex flex-col gap-2 pt-2'>
               {buttons.map((btn, idx) => (
                 <button
                   key={idx}
                   disabled
-                  className="py-2 px-3 border border-primary rounded text-sm text-primary bg-white hover:bg-primary/5 transition-colors text-center"
+                  className='rounded border border-primary bg-white px-3 py-2 text-center text-primary text-sm transition-colors hover:bg-primary/5'
                 >
                   {btn.text || `Botão ${idx + 1}`}
                 </button>
@@ -87,7 +85,7 @@ export function TemplatePreviewCard({ template }: TemplatePreviewCardProps) {
 
           {/* Footer */}
           {footerComponent && (
-            <p className="text-xs text-gray-500 pt-2">{footerComponent.text || '—'}</p>
+            <p className='pt-2 text-gray-500 text-xs'>{footerComponent.text || '—'}</p>
           )}
         </div>
       </CardContent>

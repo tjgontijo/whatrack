@@ -1,7 +1,7 @@
 import { HeaderPageShell, RefreshButton } from '@/features/dashboard/components/layout'
+import { listOrganizationAuditResourceTypes } from '@/features/organizations/services/organization-audit.service'
 import { AuditLogsTable } from '@/features/settings/components/audit-logs-table'
 import { requireWorkspacePageAccess } from '@/server/auth/require-workspace-page-access'
-import { listOrganizationAuditResourceTypes } from '@/features/organizations/services/organization-audit.service'
 
 type AuditPageProps = {
   params: Promise<{ organizationSlug: string }>
@@ -15,12 +15,12 @@ export default async function AuditPage({ params }: AuditPageProps) {
   })
 
   const { resourceTypes: initialResourceTypes } = await listOrganizationAuditResourceTypes(
-    access.organizationId,
+    access.organizationId
   )
 
   return (
     <HeaderPageShell
-      title="Auditoria"
+      title='Auditoria'
       refreshAction={<RefreshButton queryKey={['audit-logs', access.organizationId]} />}
     >
       <AuditLogsTable initialResourceTypes={initialResourceTypes} />

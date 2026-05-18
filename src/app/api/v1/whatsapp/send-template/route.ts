@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server'
-
-import { apiError } from '@/lib/utils/api-response'
+import { whatsappSendTemplateSchema } from '@/features/whatsapp/schemas/whatsapp-schemas'
 import { MetaCloudService } from '@/features/whatsapp/services/meta-cloud.service'
 import { WhatsAppTemplateAnalyticsService } from '@/features/whatsapp/services/whatsapp-template-analytics.service'
-import { whatsappSendTemplateSchema } from '@/features/whatsapp/schemas/whatsapp-schemas'
-import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import { apiError } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,7 +22,7 @@ export async function POST(request: Request) {
 
     const config = await MetaCloudService.getConfig(access.organizationId)
 
-    if (!config || !config.phoneId) {
+    if (!config?.phoneId) {
       return apiError('WhatsApp not configured for this organization', 404)
     }
 
@@ -39,7 +38,11 @@ export async function POST(request: Request) {
     // Log for template analytics (non-blocking)
     const wamid = result?.messages?.[0]?.id
     if (wamid) {
-      void WhatsAppTemplateAnalyticsService.logSend(wamid, parsed.data.templateName, access.organizationId)
+      void WhatsAppTemplateAnalyticsService.logSend(
+        wamid,
+        parsed.data.templateName,
+        access.organizationId
+      )
     }
 
     return NextResponse.json({ success: true, result })

@@ -1,10 +1,9 @@
-import { NextRequest } from 'next/server'
-
-import { apiError, apiSuccess } from '@/lib/utils/api-response'
+import type { NextRequest } from 'next/server'
 import { metaPixelCreateBodySchema } from '@/features/meta-ads/schemas/meta-ads-schemas'
+import { createMetaPixel, listMetaPixels } from '@/features/meta-ads/services/meta-pixel.service'
+import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 import { resolveProjectScope } from '@/server/project/project-scope'
-import { createMetaPixel, listMetaPixels } from '@/features/meta-ads/services/meta-pixel.service'
 
 export async function GET(req: NextRequest) {
   const access = await validatePermissionAccess(req, 'view:integrations')

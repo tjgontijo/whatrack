@@ -1,8 +1,7 @@
 import 'server-only'
 
-import { resolveProjectScope } from '@/server/project/project-scope'
-
 import { deleteSaleRepository, findSaleForDeleteRepository } from '@/features/sales/repositories'
+import { resolveProjectScope } from '@/server/project/project-scope'
 
 export async function deleteSaleService(input: {
   organizationId: string

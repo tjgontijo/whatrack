@@ -201,7 +201,9 @@ async function syncCampaignStatus(campaignId: string): Promise<void> {
 
   if (groups.length === 0) return
 
-  const hasPending = groups.some((group) => group.status === 'PENDING' || group.status === 'PROCESSING')
+  const hasPending = groups.some(
+    (group) => group.status === 'PENDING' || group.status === 'PROCESSING'
+  )
   const allFailed = groups.every((group) => group.status === 'FAILED')
 
   if (allFailed) {

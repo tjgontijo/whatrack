@@ -28,7 +28,7 @@ export function getCampaignQueue(): Queue<CampaignDispatchJobData> {
 export async function enqueueCampaignDispatch(
   campaignId: string,
   organizationId: string,
-  delayMs?: number,
+  delayMs?: number
 ) {
   const queue = getCampaignQueue()
   return queue.add(
@@ -37,6 +37,6 @@ export async function enqueueCampaignDispatch(
     {
       delay: delayMs,
       jobId: `campaign-${campaignId}`,
-    },
+    }
   )
 }

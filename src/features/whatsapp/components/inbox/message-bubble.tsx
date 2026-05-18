@@ -1,10 +1,9 @@
 'use client'
 
-import * as React from 'react'
 import { Check, CheckCheck } from 'lucide-react'
 
 import { cn } from '@/lib/utils/utils'
-import { Message } from './types'
+import type { Message } from './types'
 
 interface MessageBubbleProps {
   message: Message
@@ -19,12 +18,12 @@ export function MessageBubble({ message }: MessageBubbleProps) {
         className={cn(
           'group relative max-w-[75%] rounded-2xl px-4 py-2.5 text-sm shadow-sm transition-all',
           isOutbound
-            ? 'bg-primary text-primary-foreground ml-12 rounded-tr-none'
-            : 'bg-card border-border/60 mr-12 rounded-tl-none border'
+            ? 'ml-12 rounded-tr-none bg-primary text-primary-foreground'
+            : 'mr-12 rounded-tl-none border border-border/60 bg-card'
         )}
       >
         {/* Content */}
-        <div className="whitespace-pre-wrap break-words leading-relaxed">{message.body}</div>
+        <div className='whitespace-pre-wrap break-words leading-relaxed'>{message.body}</div>
 
         {/* Footer (Time + Status) */}
         <div
@@ -41,13 +40,13 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           </span>
 
           {isOutbound && (
-            <div className="flex items-center">
+            <div className='flex items-center'>
               {message.status === 'read' ? (
-                <CheckCheck className="h-3 w-3 text-emerald-300" />
+                <CheckCheck className='h-3 w-3 text-emerald-300' />
               ) : message.status === 'delivered' ? (
-                <CheckCheck className="h-3 w-3" />
+                <CheckCheck className='h-3 w-3' />
               ) : (
-                <Check className="h-3 w-3" />
+                <Check className='h-3 w-3' />
               )}
             </div>
           )}
@@ -58,8 +57,8 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           className={cn(
             'absolute top-0 h-2 w-2',
             isOutbound
-              ? 'border-l-primary right-[-8px] border-b-[8px] border-l-[8px] border-b-transparent'
-              : 'border-r-card left-[-8px] border-b-[8px] border-r-[8px] border-b-transparent'
+              ? 'right-[-8px] border-b-[8px] border-b-transparent border-l-[8px] border-l-primary'
+              : 'left-[-8px] border-r-[8px] border-r-card border-b-[8px] border-b-transparent'
           )}
         />
       </div>

@@ -1,26 +1,23 @@
 import { expect, type Page } from '@playwright/test'
-
-import {
-  generateTestEmail,
-  generateTestCpf,
-  generateTestName,
-  generateTestPassword,
-} from './signup'
 import {
   ASAAS_TEST_CARDS,
   completeCheckout,
   fillCardDetails,
   waitForPaymentSuccess,
 } from './billing'
+import {
+  generateTestCpf,
+  generateTestEmail,
+  generateTestName,
+  generateTestPassword,
+} from './signup'
 
 function extractWorkspaceBasePath(currentUrl: string) {
   const url = new URL(currentUrl)
   const parts = url.pathname.split('/').filter(Boolean)
 
   if (parts.length < 2) {
-    throw new Error(
-      `Could not infer workspace path from URL: ${currentUrl}`,
-    )
+    throw new Error(`Could not infer workspace path from URL: ${currentUrl}`)
   }
 
   return `/${parts[0]}/${parts[1]}`
@@ -37,14 +34,11 @@ async function goToSignUpFromPricing(page: Page) {
 
   await expect(ctaButton).toBeVisible({ timeout: 30000 })
 
-  await Promise.all([
-    page.waitForURL(/\/sign-up(\?|$)/, { timeout: 45000 }),
-    ctaButton.click(),
-  ])
+  await Promise.all([page.waitForURL(/\/sign-up(\?|$)/, { timeout: 45000 }), ctaButton.click()])
 
   await expect(
     page.getByTestId('sign-up-page'),
-    `Expected sign-up page after pricing CTA. Current URL: ${page.url()}`,
+    `Expected sign-up page after pricing CTA. Current URL: ${page.url()}`
   ).toBeVisible({ timeout: 15000 })
   await expect(page).toHaveURL(/intent=checkout/, { timeout: 15000 })
 }
@@ -90,8 +84,9 @@ export type AcquisitionCleanupResult = {
 
 function getAsaasRuntimeConfig() {
   const apiKey = (process.env.ASAAS_API_KEY || '').trim()
-  const baseUrl =
-    (process.env.ASAAS_BASE_URL || 'https://api-sandbox.asaas.com/v3').trim().replace(/\/+$/, '')
+  const baseUrl = (process.env.ASAAS_BASE_URL || 'https://api-sandbox.asaas.com/v3')
+    .trim()
+    .replace(/\/+$/, '')
 
   return { apiKey, baseUrl }
 }
@@ -136,7 +131,7 @@ async function deleteInAsaas(path: string): Promise<AsaasDeleteResult> {
 }
 
 export async function completePaidAcquisitionJourney(
-  page: Page,
+  page: Page
 ): Promise<CompletePaidJourneyResult> {
   const name = generateTestName()
   const email = generateTestEmail()
@@ -156,15 +151,14 @@ export async function completePaidAcquisitionJourney(
   const [authResponse, onboardingResponse] = await Promise.all([
     page.waitForResponse(
       (response) =>
-        response.url().includes('/api/v1/auth') &&
-        response.request().method() === 'POST',
-      { timeout: 60000 },
+        response.url().includes('/api/v1/auth') && response.request().method() === 'POST',
+      { timeout: 60000 }
     ),
     page.waitForResponse(
       (response) =>
         response.url().includes('/api/v1/onboarding/setup') &&
         response.request().method() === 'POST',
-      { timeout: 60000 },
+      { timeout: 60000 }
     ),
     page.locator('button[type="submit"]').click(),
   ])
@@ -176,17 +170,15 @@ export async function completePaidAcquisitionJourney(
 
   expect(
     authResponse.ok(),
-    `Auth API failed with status ${authResponse.status()}: ${authBody}`,
+    `Auth API failed with status ${authResponse.status()}: ${authBody}`
   ).toBeTruthy()
   expect(
     onboardingResponse.ok(),
-    `Onboarding setup failed with status ${onboardingResponse.status()}: ${onboardingBody}`,
+    `Onboarding setup failed with status ${onboardingResponse.status()}: ${onboardingBody}`
   ).toBeTruthy()
 
   await page.waitForURL(/\/checkout(\?|$)/, { timeout: 90000 })
-  await expect(
-    page.getByRole('heading', { name: /Ative seu plano/i }),
-  ).toBeVisible()
+  await expect(page.getByRole('heading', { name: /Ative seu plano/i })).toBeVisible()
 
   await fillCardDetails(page, {
     number: ASAAS_TEST_CARDS.APPROVED,
@@ -200,7 +192,7 @@ export async function completePaidAcquisitionJourney(
       (response) =>
         response.url().includes('/api/v1/billing/checkout') &&
         response.request().method() === 'POST',
-      { timeout: 90000 },
+      { timeout: 90000 }
     ),
     completeCheckout(page),
   ])
@@ -210,7 +202,7 @@ export async function completePaidAcquisitionJourney(
     .catch(() => '<failed-to-read-checkout-response>')
   expect(
     checkoutResponse.ok(),
-    `Checkout API failed with status ${checkoutResponse.status()}: ${checkoutBody}`,
+    `Checkout API failed with status ${checkoutResponse.status()}: ${checkoutBody}`
   ).toBeTruthy()
   await waitForPaymentSuccess(page, 90000)
 
@@ -231,7 +223,7 @@ export async function completePaidAcquisitionJourney(
 }
 
 export async function cleanupAcquisitionAsaasResources(
-  page: Page,
+  page: Page
 ): Promise<AcquisitionCleanupResult> {
   const subscriptionSnapshot = await getSubscriptionViaApi(page)
   const subscription = (subscriptionSnapshot.body ?? null) as BillingSubscriptionApiBody | null
@@ -280,10 +272,7 @@ export async function cleanupAcquisitionAsaasResources(
   }
 }
 
-export async function createProjectViaApi(
-  page: Page,
-  input: { name: string; slug: string },
-) {
+export async function createProjectViaApi(page: Page, input: { name: string; slug: string }) {
   const response = await page.request.post('/api/v1/projects', {
     data: input,
   })

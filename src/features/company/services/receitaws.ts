@@ -95,8 +95,8 @@ function parseDate(dateStr: string | undefined): Date | undefined {
   const [day, month, year] = dateStr.split('/')
   if (!day || !month || !year) return undefined
 
-  const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
-  return isNaN(date.getTime()) ? undefined : date
+  const date = new Date(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10))
+  return Number.isNaN(date.getTime()) ? undefined : date
 }
 
 /**
@@ -106,7 +106,7 @@ function parseNumber(value: string | undefined): number | undefined {
   if (!value) return undefined
 
   const num = parseFloat(value.replace(',', '.'))
-  return isNaN(num) ? undefined : num
+  return Number.isNaN(num) ? undefined : num
 }
 
 /**

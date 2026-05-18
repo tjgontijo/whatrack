@@ -1,4 +1,3 @@
-import { apiFetch } from '@/lib/api-client'
 import type {
   MetaAdAccountToggleBodyInput,
   MetaPixelCreateBodyInput,
@@ -10,6 +9,7 @@ import type {
   MetaPixelConfig,
   MetaRoiResponse,
 } from '@/features/meta-ads/types/meta-ads'
+import { apiFetch } from '@/lib/api-client'
 
 export const META_ADS_CONNECT_PATH = '/api/v1/meta-ads/connect'
 

@@ -64,8 +64,8 @@ describe('organization-management.service', () => {
 
   it('persists the individual full name during onboarding creation', async () => {
     prismaMock.member.findFirst.mockResolvedValueOnce(null)
-    prismaMock.$transaction.mockImplementationOnce(async (callback: (tx: typeof prismaMock) => Promise<unknown>) =>
-      callback(prismaMock)
+    prismaMock.$transaction.mockImplementationOnce(
+      async (callback: (tx: typeof prismaMock) => Promise<unknown>) => callback(prismaMock)
     )
     prismaMock.organization.create.mockResolvedValueOnce({
       id: 'org-1',

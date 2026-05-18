@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server'
-
-import { apiError } from '@/lib/utils/api-response'
-import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
-import { resolveProjectScope } from '@/server/project/project-scope'
 import { reorderTicketStageSchema } from '@/features/ticket-stages/schemas/ticket-stage.schemas'
 import { reorderTicketStages } from '@/features/ticket-stages/services/ticket-stage.service'
+import { apiError } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
+import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
+import { resolveProjectScope } from '@/server/project/project-scope'
 
 export async function PUT(req: Request) {
   const access = await validatePermissionAccess(req, 'manage:tickets')
@@ -22,10 +21,11 @@ export async function PUT(req: Request) {
 
     const result = await reorderTicketStages({
       organizationId: access.organizationId,
-      projectId: await resolveProjectScope({
-        organizationId: access.organizationId,
-        projectId: parsed.data.projectId,
-      }) ?? undefined,
+      projectId:
+        (await resolveProjectScope({
+          organizationId: access.organizationId,
+          projectId: parsed.data.projectId,
+        })) ?? undefined,
       orderedIds: parsed.data.orderedIds,
     })
 

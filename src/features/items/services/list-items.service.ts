@@ -1,11 +1,11 @@
 import 'server-only'
 
-import { resolveProjectScope } from '@/server/project/project-scope'
+import { listItemsRepository } from '@/features/items/repositories'
 
 import { itemListQuerySchema } from '@/features/items/schemas/item.schemas'
-import { listItemsRepository } from '@/features/items/repositories'
 import { normalizePage, normalizePageSize, toItemListItem } from '@/features/items/services/shared'
 import type { ItemListResponse } from '@/features/items/types'
+import { resolveProjectScope } from '@/server/project/project-scope'
 
 export async function listItemsService(input: {
   organizationId: string

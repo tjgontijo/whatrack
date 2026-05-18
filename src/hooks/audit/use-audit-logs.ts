@@ -1,11 +1,10 @@
 'use client'
 
+import type { OrgAuditLog } from '@generated/prisma/client'
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
-import type { OrgAuditLog } from '@generated/prisma/client'
 import { useOrganization } from '@/features/organizations/hooks/use-organization'
 import { apiFetch } from '@/lib/api-client'
-
 
 export const AUDIT_LOG_PERIOD_PRESETS = [
   'today',
@@ -55,8 +54,6 @@ export interface AuditLogFiltersResponse {
   resourceTypes: string[]
 }
 
-
-
 async function fetchAuditLogsPage(
   page: number,
   params: Omit<AuditLogsInfiniteParams, 'enabled'>,
@@ -90,7 +87,6 @@ async function fetchAuditLogFilters(orgId: string): Promise<AuditLogFiltersRespo
 
   return data as AuditLogFiltersResponse
 }
-
 
 export function useAuditLogsInfinite(params: AuditLogsInfiniteParams) {
   const { data: org } = useOrganization()

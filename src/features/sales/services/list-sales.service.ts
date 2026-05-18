@@ -1,10 +1,10 @@
 import 'server-only'
 
-import { resolveProjectScope } from '@/server/project/project-scope'
+import { listSalesRepository } from '@/features/sales/repositories'
 
 import { salesQuerySchema, salesResponseSchema } from '@/features/sales/schemas/sale.schemas'
-import { listSalesRepository } from '@/features/sales/repositories'
 import { resolveSalesDateFilter } from '@/features/sales/services/shared'
+import { resolveProjectScope } from '@/server/project/project-scope'
 
 export async function listSalesService(input: {
   organizationId: string

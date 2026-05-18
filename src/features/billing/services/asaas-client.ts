@@ -51,11 +51,11 @@ export class AsaasClient {
   }
 
   static async get<T>(endpoint: string, options: RequestInit = {}) {
-    return this.request<T>(endpoint, { ...options, method: 'GET' })
+    return AsaasClient.request<T>(endpoint, { ...options, method: 'GET' })
   }
 
   static async post<T>(endpoint: string, body: unknown, options: RequestInit = {}) {
-    return this.request<T>(endpoint, {
+    return AsaasClient.request<T>(endpoint, {
       ...options,
       method: 'POST',
       body: JSON.stringify(body),
@@ -63,7 +63,7 @@ export class AsaasClient {
   }
 
   static async postForm<T>(endpoint: string, body: FormData, options: RequestInit = {}) {
-    return this.request<T>(endpoint, {
+    return AsaasClient.request<T>(endpoint, {
       ...options,
       method: 'POST',
       body,
@@ -71,7 +71,7 @@ export class AsaasClient {
   }
 
   static async put<T>(endpoint: string, body: unknown, options: RequestInit = {}) {
-    return this.request<T>(endpoint, {
+    return AsaasClient.request<T>(endpoint, {
       ...options,
       method: 'PUT',
       body: JSON.stringify(body),

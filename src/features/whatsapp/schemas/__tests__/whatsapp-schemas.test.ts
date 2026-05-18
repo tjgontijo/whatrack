@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import {
-  whatsappInstanceProjectUpdateSchema,
-} from '@/features/whatsapp/schemas/whatsapp-schemas'
+import { whatsappInstanceProjectUpdateSchema } from '@/features/whatsapp/schemas/whatsapp-schemas'
 
 describe('whatsapp-schemas', () => {
   it('accepts instance project update with explicit null', () => {

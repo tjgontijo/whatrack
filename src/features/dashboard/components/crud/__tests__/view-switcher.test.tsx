@@ -19,7 +19,7 @@ describe('ViewSwitcher', () => {
     const setView = vi.fn()
     useIsMobileMock.mockReturnValue(true)
 
-    render(<ViewSwitcher view="list" setView={setView} enabledViews={['list', 'cards']} />)
+    render(<ViewSwitcher view='list' setView={setView} enabledViews={['list', 'cards']} />)
 
     await waitFor(() => {
       expect(setView).toHaveBeenCalledWith('cards')
@@ -29,7 +29,9 @@ describe('ViewSwitcher', () => {
   it('hides itself on mobile when only one visible option remains', () => {
     useIsMobileMock.mockReturnValue(true)
 
-    render(<ViewSwitcher view="cards" setView={vi.fn()} enabledViews={['list', 'cards', 'kanban']} />)
+    render(
+      <ViewSwitcher view='cards' setView={vi.fn()} enabledViews={['list', 'cards', 'kanban']} />
+    )
 
     expect(screen.queryByRole('button', { name: 'Lista' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Cards' })).not.toBeInTheDocument()
@@ -41,7 +43,7 @@ describe('ViewSwitcher', () => {
     const setView = vi.fn()
     useIsMobileMock.mockReturnValue(false)
 
-    render(<ViewSwitcher view="list" setView={setView} enabledViews={['list', 'cards']} />)
+    render(<ViewSwitcher view='list' setView={setView} enabledViews={['list', 'cards']} />)
 
     await user.click(screen.getByRole('button', { name: 'Cards' }))
 

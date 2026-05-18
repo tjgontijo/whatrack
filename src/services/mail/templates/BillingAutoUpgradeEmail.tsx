@@ -1,4 +1,4 @@
-import React from 'react'
+import type React from 'react'
 
 interface BillingAutoUpgradeEmailProps {
   organizationName: string
@@ -45,22 +45,32 @@ export const BillingAutoUpgradeEmail: React.FC<BillingAutoUpgradeEmailProps> = (
           <p style={{ margin: '0 0 4px 0', color: '#666', fontSize: '12px', fontWeight: 'bold' }}>
             ORGANIZAÇÃO
           </p>
-          <p style={{ margin: '0', color: '#000', fontSize: '16px', fontWeight: '600' }}>{organizationName}</p>
+          <p style={{ margin: '0', color: '#000', fontSize: '16px', fontWeight: '600' }}>
+            {organizationName}
+          </p>
         </div>
 
         <div style={{ borderTop: '1px solid #e5e5e5', paddingTop: '16px', marginBottom: '16px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <div>
-              <p style={{ margin: '0 0 4px 0', color: '#666', fontSize: '12px', fontWeight: 'bold' }}>
+              <p
+                style={{ margin: '0 0 4px 0', color: '#666', fontSize: '12px', fontWeight: 'bold' }}
+              >
                 PLANO ANTERIOR
               </p>
-              <p style={{ margin: '0', color: '#000', fontSize: '16px', fontWeight: '600' }}>{oldPlanName}</p>
+              <p style={{ margin: '0', color: '#000', fontSize: '16px', fontWeight: '600' }}>
+                {oldPlanName}
+              </p>
             </div>
             <div>
-              <p style={{ margin: '0 0 4px 0', color: '#666', fontSize: '12px', fontWeight: 'bold' }}>
+              <p
+                style={{ margin: '0 0 4px 0', color: '#666', fontSize: '12px', fontWeight: 'bold' }}
+              >
                 NOVO PLANO
               </p>
-              <p style={{ margin: '0', color: '#000', fontSize: '16px', fontWeight: '600' }}>{newPlanName}</p>
+              <p style={{ margin: '0', color: '#000', fontSize: '16px', fontWeight: '600' }}>
+                {newPlanName}
+              </p>
             </div>
           </div>
         </div>
@@ -68,22 +78,37 @@ export const BillingAutoUpgradeEmail: React.FC<BillingAutoUpgradeEmailProps> = (
         <div style={{ borderTop: '1px solid #e5e5e5', paddingTop: '16px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <div>
-              <p style={{ margin: '0 0 4px 0', color: '#666', fontSize: '12px', fontWeight: 'bold' }}>
+              <p
+                style={{ margin: '0 0 4px 0', color: '#666', fontSize: '12px', fontWeight: 'bold' }}
+              >
                 DATA DE MUDANÇA
               </p>
-              <p style={{ margin: '0', color: '#000', fontSize: '16px', fontWeight: '600' }}>{upgradeDate}</p>
+              <p style={{ margin: '0', color: '#000', fontSize: '16px', fontWeight: '600' }}>
+                {upgradeDate}
+              </p>
             </div>
             <div>
-              <p style={{ margin: '0 0 4px 0', color: '#666', fontSize: '12px', fontWeight: 'bold' }}>
+              <p
+                style={{ margin: '0 0 4px 0', color: '#666', fontSize: '12px', fontWeight: 'bold' }}
+              >
                 PRÓXIMA COBRANÇA
               </p>
-              <p style={{ margin: '0', color: '#000', fontSize: '16px', fontWeight: '600' }}>{nextChargeDate}</p>
+              <p style={{ margin: '0', color: '#000', fontSize: '16px', fontWeight: '600' }}>
+                {nextChargeDate}
+              </p>
             </div>
           </div>
         </div>
       </div>
 
-      <div style={{ backgroundColor: '#f0f9ff', borderRadius: '8px', padding: '16px', marginBottom: '24px' }}>
+      <div
+        style={{
+          backgroundColor: '#f0f9ff',
+          borderRadius: '8px',
+          padding: '16px',
+          marginBottom: '24px',
+        }}
+      >
         <p style={{ margin: '0', color: '#0369a1', fontSize: '14px', fontWeight: '600' }}>
           Valor da próxima cobrança: <strong>{nextChargeAmount}</strong>
         </p>
@@ -133,8 +158,12 @@ export const BillingAutoUpgradeEmail: React.FC<BillingAutoUpgradeEmailProps> = (
           textAlign: 'center',
         }}
       >
-        <p style={{ margin: '0 0 8px 0' }}>© {new Date().getFullYear()} {appName}. Todos os direitos reservados.</p>
-        <p style={{ margin: '0' }}>Você recebeu este email porque é administrador desta organização.</p>
+        <p style={{ margin: '0 0 8px 0' }}>
+          © {new Date().getFullYear()} {appName}. Todos os direitos reservados.
+        </p>
+        <p style={{ margin: '0' }}>
+          Você recebeu este email porque é administrador desta organização.
+        </p>
       </div>
     </div>
   )

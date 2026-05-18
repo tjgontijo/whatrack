@@ -9,9 +9,9 @@ import { HeaderTabs } from '@/features/dashboard/components/layout/header-tabs'
 describe('HeaderPageShell', () => {
   it('renders only the title when no optional controls are provided', () => {
     render(
-      <HeaderPageShell title="Perfil">
+      <HeaderPageShell title='Perfil'>
         <div>content</div>
-      </HeaderPageShell>,
+      </HeaderPageShell>
     )
 
     expect(screen.getByText('Perfil')).toBeInTheDocument()
@@ -27,20 +27,20 @@ describe('HeaderPageShell', () => {
 
     render(
       <HeaderPageShell
-        title="Equipe"
+        title='Equipe'
         selector={
           <HeaderTabs
             tabs={[
               { key: 'members', label: 'Membros' },
               { key: 'roles', label: 'Papéis' },
             ]}
-            activeTab="members"
+            activeTab='members'
             onTabChange={onTabChange}
           />
         }
       >
         <div>content</div>
-      </HeaderPageShell>,
+      </HeaderPageShell>
     )
 
     expect(screen.getByRole('button', { name: 'Membros' })).toBeInTheDocument()
@@ -53,13 +53,13 @@ describe('HeaderPageShell', () => {
   it('shows search and refresh with a separator when the search has trailing controls', () => {
     render(
       <HeaderPageShell
-        title="Meta Ads"
-        searchValue="roi"
+        title='Meta Ads'
+        searchValue='roi'
         onSearchChange={() => {}}
         onRefresh={() => {}}
       >
         <div>content</div>
-      </HeaderPageShell>,
+      </HeaderPageShell>
     )
 
     expect(screen.getByDisplayValue('roi')).toBeInTheDocument()
@@ -70,16 +70,16 @@ describe('HeaderPageShell', () => {
   it('renders the full control strip and separator in the canonical order', () => {
     render(
       <HeaderPageShell
-        title="Leads"
-        searchValue=""
+        title='Leads'
+        searchValue=''
         onSearchChange={() => {}}
         actions={<span>42 itens</span>}
-        primaryAction={<Button type="button">Novo lead</Button>}
+        primaryAction={<Button type='button'>Novo lead</Button>}
         filters={<div>Filtros avançados</div>}
         onRefresh={() => {}}
       >
         <div>content</div>
-      </HeaderPageShell>,
+      </HeaderPageShell>
     )
 
     expect(screen.getByPlaceholderText('Buscar...')).toBeInTheDocument()

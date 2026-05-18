@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test'
+import type { Page } from '@playwright/test'
 
 type LoginCredentials = {
   email?: string
@@ -11,7 +11,7 @@ function resolveCredentials(input?: LoginCredentials) {
 
   if (!email || !password) {
     throw new Error(
-      'Missing login credentials. Set E2E_LOGIN_EMAIL and E2E_LOGIN_PASSWORD or pass explicit credentials.',
+      'Missing login credentials. Set E2E_LOGIN_EMAIL and E2E_LOGIN_PASSWORD or pass explicit credentials.'
     )
   }
 

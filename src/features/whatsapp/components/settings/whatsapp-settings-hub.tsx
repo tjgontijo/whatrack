@@ -1,27 +1,26 @@
 'use client'
 
-import { useCallback, useMemo, useState } from 'react'
 import { useIsFetching, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Loader2, Plus, Send } from 'lucide-react'
+import { useCallback, useMemo, useState } from 'react'
 import { toast } from 'sonner'
-
-import { HeaderPageShell, HeaderTabs, type HeaderTab } from '@/features/dashboard/components/layout'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { authClient } from '@/lib/auth/auth-client'
-import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
+import { HeaderPageShell, type HeaderTab, HeaderTabs } from '@/features/dashboard/components/layout'
 import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
+import { TemplateEditorForm } from '@/features/whatsapp/components/template-editor/template-editor-form'
 import { useWhatsAppOnboarding } from '@/features/whatsapp/hooks/use-whatsapp-onboarding'
 import { whatsappApi } from '@/features/whatsapp/lib/client'
-import { TemplateEditorForm } from '@/features/whatsapp/components/template-editor/template-editor-form'
+import type { WhatsAppTemplate } from '@/features/whatsapp/types/whatsapp'
+import { authClient } from '@/lib/auth/auth-client'
+import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
+import { SendTestSheet } from '../send-test-sheet'
 import { AccountTab } from './account-tab'
+import { DebugTab } from './debug-tab'
+import type { WhatsAppInstance } from './instance-card-detail'
 import { TemplatesView } from './templates-view'
 import { WebhooksView } from './webhooks-view'
-import { DebugTab } from './debug-tab'
-import { SendTestSheet } from '../send-test-sheet'
-import type { WhatsAppTemplate } from '@/features/whatsapp/types/whatsapp'
-import type { WhatsAppInstance } from './instance-card-detail'
 
 type Tab = 'conta' | 'templates' | 'webhook' | 'debug'
 type DatePreset = 'all' | 'today' | '7d' | '30d'
@@ -89,12 +88,16 @@ export function WhatsAppSettingsHub({ organizationId }: WhatsAppSettingsHubProps
 
   // Refreshing state
   const isRefreshingConta = useIsFetching({ queryKey: ['whatsapp', 'instances', projectId] }) > 0
-  const isRefreshingTemplates = useIsFetching({ queryKey: ['whatsapp', 'templates', resolvedOrgId] }) > 0
-  const isRefreshingLogs = useIsFetching({ queryKey: ['whatsapp', 'webhook', 'logs', resolvedOrgId] }) > 0
+  const isRefreshingTemplates =
+    useIsFetching({ queryKey: ['whatsapp', 'templates', resolvedOrgId] }) > 0
+  const isRefreshingLogs =
+    useIsFetching({ queryKey: ['whatsapp', 'webhook', 'logs', resolvedOrgId] }) > 0
   const isRefreshing =
-    activeTab === 'conta' ? isRefreshingConta :
-    activeTab === 'templates' ? isRefreshingTemplates :
-    isRefreshingLogs
+    activeTab === 'conta'
+      ? isRefreshingConta
+      : activeTab === 'templates'
+        ? isRefreshingTemplates
+        : isRefreshingLogs
 
   const handleRefetch = useCallback(() => {
     if (!resolvedOrgId) return
@@ -103,7 +106,9 @@ export function WhatsAppSettingsHub({ organizationId }: WhatsAppSettingsHubProps
     } else if (activeTab === 'templates') {
       void queryClient.invalidateQueries({ queryKey: ['whatsapp', 'templates', resolvedOrgId] })
     } else {
-      void queryClient.invalidateQueries({ queryKey: ['whatsapp', 'webhook', 'logs', resolvedOrgId] })
+      void queryClient.invalidateQueries({
+        queryKey: ['whatsapp', 'webhook', 'logs', resolvedOrgId],
+      })
     }
   }, [queryClient, resolvedOrgId, projectId, activeTab])
 
@@ -119,10 +124,12 @@ export function WhatsAppSettingsHub({ organizationId }: WhatsAppSettingsHubProps
     () => [
       { key: 'conta', label: 'Conta' },
       { key: 'templates', label: 'Templates' },
-      ...(canViewWebhooks ? [
-        { key: 'webhook', label: 'Webhook' } satisfies HeaderTab,
-        { key: 'debug', label: 'Debug' } satisfies HeaderTab,
-      ] : []),
+      ...(canViewWebhooks
+        ? [
+            { key: 'webhook', label: 'Webhook' } satisfies HeaderTab,
+            { key: 'debug', label: 'Debug' } satisfies HeaderTab,
+          ]
+        : []),
     ],
     [canViewWebhooks]
   )
@@ -173,13 +180,8 @@ export function WhatsAppSettingsHub({ organizationId }: WhatsAppSettingsHubProps
     if (activeTab === 'conta') {
       if (instancesLoading) {
         return (
-          <Button
-            type="button"
-            size="sm"
-            className="h-7 gap-1.5 text-xs"
-            disabled
-          >
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          <Button type='button' size='sm' className='h-7 gap-1.5 text-xs' disabled>
+            <Loader2 className='h-3.5 w-3.5 animate-spin' />
             Carregando instância...
           </Button>
         )
@@ -188,12 +190,12 @@ export function WhatsAppSettingsHub({ organizationId }: WhatsAppSettingsHubProps
       if (instance) {
         return (
           <Button
-            type="button"
-            size="sm"
-            className="h-7 gap-1.5 text-xs"
+            type='button'
+            size='sm'
+            className='h-7 gap-1.5 text-xs'
             onClick={() => handleSendTestFromAccount(instance)}
           >
-            <Send className="h-3.5 w-3.5" />
+            <Send className='h-3.5 w-3.5' />
             Enviar Teste
           </Button>
         )
@@ -201,16 +203,16 @@ export function WhatsAppSettingsHub({ organizationId }: WhatsAppSettingsHubProps
 
       return (
         <Button
-          type="button"
-          size="sm"
-          className="h-7 gap-1.5 text-xs"
+          type='button'
+          size='sm'
+          className='h-7 gap-1.5 text-xs'
           onClick={startOnboarding}
           disabled={!sdkReady || isConnectingWhatsApp}
         >
           {isConnectingWhatsApp ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            <Loader2 className='h-3.5 w-3.5 animate-spin' />
           ) : (
-            <Plus className="h-3.5 w-3.5" />
+            <Plus className='h-3.5 w-3.5' />
           )}
           Nova Instância
         </Button>
@@ -219,13 +221,8 @@ export function WhatsAppSettingsHub({ organizationId }: WhatsAppSettingsHubProps
 
     if (activeTab === 'templates') {
       return (
-        <Button
-          type="button"
-          size="sm"
-          className="h-7 gap-1.5 text-xs"
-          onClick={handleNewTemplate}
-        >
-          <Plus className="h-3.5 w-3.5" />
+        <Button type='button' size='sm' className='h-7 gap-1.5 text-xs' onClick={handleNewTemplate}>
+          <Plus className='h-3.5 w-3.5' />
           Novo Template
         </Button>
       )
@@ -246,19 +243,19 @@ export function WhatsAppSettingsHub({ organizationId }: WhatsAppSettingsHubProps
   const filters = useMemo(() => {
     if (activeTab === 'templates') {
       return (
-        <div className="space-y-5">
-          <div className="space-y-2">
-            <Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+        <div className='space-y-5'>
+          <div className='space-y-2'>
+            <Label className='font-semibold text-muted-foreground text-xs uppercase tracking-widest'>
               Categoria
             </Label>
-            <div className="flex flex-wrap gap-1.5">
+            <div className='flex flex-wrap gap-1.5'>
               {['Todos', 'Marketing', 'Utilidade', 'Autenticação'].map((cat) => (
                 <Button
                   key={cat}
-                  type="button"
+                  type='button'
                   variant={categoryFilter === cat ? 'default' : 'outline'}
-                  size="sm"
-                  className="h-7 text-xs"
+                  size='sm'
+                  className='h-7 text-xs'
                   onClick={() => setCategoryFilter(cat)}
                 >
                   {cat}
@@ -266,18 +263,18 @@ export function WhatsAppSettingsHub({ organizationId }: WhatsAppSettingsHubProps
               ))}
             </div>
           </div>
-          <div className="space-y-2">
-            <Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+          <div className='space-y-2'>
+            <Label className='font-semibold text-muted-foreground text-xs uppercase tracking-widest'>
               Status
             </Label>
-            <div className="flex flex-wrap gap-1.5">
+            <div className='flex flex-wrap gap-1.5'>
               {['Todos', 'Aprovados', 'Em análise', 'Reprovados'].map((s) => (
                 <Button
                   key={s}
-                  type="button"
+                  type='button'
                   variant={statusFilter === s ? 'default' : 'outline'}
-                  size="sm"
-                  className="h-7 text-xs"
+                  size='sm'
+                  className='h-7 text-xs'
                   onClick={() => setStatusFilter(s)}
                 >
                   {s}
@@ -291,30 +288,30 @@ export function WhatsAppSettingsHub({ organizationId }: WhatsAppSettingsHubProps
 
     if (activeTab === 'webhook') {
       return (
-        <div className="space-y-5">
-          <div className="space-y-2">
-            <Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+        <div className='space-y-5'>
+          <div className='space-y-2'>
+            <Label className='font-semibold text-muted-foreground text-xs uppercase tracking-widest'>
               Tipo de Evento
             </Label>
             <Input
-              placeholder="Ex: messages, statuses..."
+              placeholder='Ex: messages, statuses...'
               value={eventTypeFilter}
               onChange={(e) => setEventTypeFilter(e.target.value)}
-              className="h-8 text-xs"
+              className='h-8 text-xs'
             />
           </div>
-          <div className="space-y-2">
-            <Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+          <div className='space-y-2'>
+            <Label className='font-semibold text-muted-foreground text-xs uppercase tracking-widest'>
               Período
             </Label>
-            <div className="flex flex-wrap gap-1.5">
+            <div className='flex flex-wrap gap-1.5'>
               {DATE_PRESETS.map((preset) => (
                 <Button
                   key={preset.value}
-                  type="button"
+                  type='button'
                   variant={datePreset === preset.value ? 'default' : 'outline'}
-                  size="sm"
-                  className="h-7 text-xs"
+                  size='sm'
+                  className='h-7 text-xs'
                   onClick={() => setDatePreset(preset.value)}
                 >
                   {preset.label}
@@ -340,56 +337,54 @@ export function WhatsAppSettingsHub({ organizationId }: WhatsAppSettingsHubProps
           }}
         />
       ) : (
-      <HeaderPageShell
-        title="WhatsApp"
-        selector={
-          <HeaderTabs
-            tabs={tabs}
-            activeTab={activeTab}
-            onTabChange={(tab) => setActiveTab(tab as Tab)}
-          />
-        }
-        searchValue={activeTab === 'templates' ? searchValue : undefined}
-        onSearchChange={activeTab === 'templates' ? setSearchValue : undefined}
-        searchPlaceholder="Buscar template..."
-        onRefresh={handleRefetch}
-        isRefreshing={isRefreshing}
-        filters={filters}
-        primaryAction={primaryAction}
-      >
-        {activeTab === 'conta' && (
-          <AccountTab
-            instance={instance}
-            isLoading={instancesLoading}
-            isConnecting={isConnectingWhatsApp}
-            canStartOnboarding={sdkReady}
-            onConnectClick={startOnboarding}
-            onSendTestClick={handleSendTestFromAccount}
-            onDisconnectClick={() => handleDisconnectAsync()}
-          />
-        )}
+        <HeaderPageShell
+          title='WhatsApp'
+          selector={
+            <HeaderTabs
+              tabs={tabs}
+              activeTab={activeTab}
+              onTabChange={(tab) => setActiveTab(tab as Tab)}
+            />
+          }
+          searchValue={activeTab === 'templates' ? searchValue : undefined}
+          onSearchChange={activeTab === 'templates' ? setSearchValue : undefined}
+          searchPlaceholder='Buscar template...'
+          onRefresh={handleRefetch}
+          isRefreshing={isRefreshing}
+          filters={filters}
+          primaryAction={primaryAction}
+        >
+          {activeTab === 'conta' && (
+            <AccountTab
+              instance={instance}
+              isLoading={instancesLoading}
+              isConnecting={isConnectingWhatsApp}
+              canStartOnboarding={sdkReady}
+              onConnectClick={startOnboarding}
+              onSendTestClick={handleSendTestFromAccount}
+              onDisconnectClick={() => handleDisconnectAsync()}
+            />
+          )}
 
-        {activeTab === 'templates' && (
-          <TemplatesView
-            templates={templates}
-            isLoading={templatesLoading}
-            searchValue={searchValue}
-            categoryFilter={categoryFilter}
-            statusFilter={statusFilter}
-            organizationId={resolvedOrgId}
-            onEditClick={handleEditTemplate}
-            onSendTestClick={handleSendTestFromTemplate}
-          />
-        )}
+          {activeTab === 'templates' && (
+            <TemplatesView
+              templates={templates}
+              isLoading={templatesLoading}
+              searchValue={searchValue}
+              categoryFilter={categoryFilter}
+              statusFilter={statusFilter}
+              organizationId={resolvedOrgId}
+              onEditClick={handleEditTemplate}
+              onSendTestClick={handleSendTestFromTemplate}
+            />
+          )}
 
-        {activeTab === 'webhook' && canViewWebhooks && (
-          <WebhooksView eventTypeFilter={eventTypeFilter} datePreset={datePreset} />
-        )}
+          {activeTab === 'webhook' && canViewWebhooks && (
+            <WebhooksView eventTypeFilter={eventTypeFilter} datePreset={datePreset} />
+          )}
 
-        {activeTab === 'debug' && canViewWebhooks && (
-          <DebugTab />
-        )}
-      </HeaderPageShell>
+          {activeTab === 'debug' && canViewWebhooks && <DebugTab />}
+        </HeaderPageShell>
       )}
 
       {/* Send test sheet */}
@@ -402,7 +397,6 @@ export function WhatsAppSettingsHub({ organizationId }: WhatsAppSettingsHubProps
           initialTemplate={sendTestTemplate}
         />
       )}
-
     </>
   )
 }

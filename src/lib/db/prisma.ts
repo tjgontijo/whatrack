@@ -1,5 +1,5 @@
-import { PrismaClient } from '@/lib/db/client'
 import { PrismaPg } from '@prisma/adapter-pg'
+import { PrismaClient } from '@/lib/db/client'
 import { auditService } from '@/services/audit/audit.service'
 
 const adapter = new PrismaPg({
@@ -7,12 +7,7 @@ const adapter = new PrismaPg({
 })
 
 // Selective Audit Models
-const AUDIT_MODELS = new Set([
-  'Organization',
-  'Member',
-  'MetaConnection',
-  'WhatsAppConnection',
-])
+const AUDIT_MODELS = new Set(['Organization', 'Member', 'MetaConnection', 'WhatsAppConnection'])
 
 const prismaClientSingleton = () => {
   const baseClient = new PrismaClient({
@@ -38,7 +33,7 @@ const prismaClientSingleton = () => {
               before = await (baseClient as any)[model!].findUnique({
                 where: (args as any).where,
               })
-            } catch (err) {
+            } catch (_err) {
               // Ignore if fetch fails
             }
           }
@@ -47,7 +42,11 @@ const prismaClientSingleton = () => {
 
           // Fire-and-forget audit log
           void auditService.log({
-            organizationId: (result as any)?.organizationId || (result as any)?.id || before?.organizationId || undefined,
+            organizationId:
+              (result as any)?.organizationId ||
+              (result as any)?.id ||
+              before?.organizationId ||
+              undefined,
             action: `${model?.toLowerCase()}.${operation}`,
             resourceType: model!,
             resourceId: (result as any)?.id || (args as any).where?.id || undefined,
@@ -69,11 +68,9 @@ const globalForPrisma = global as unknown as {
 // We cast the extended client back to PrismaClient so that callers retain full
 // `include` type inference. The audit middleware still runs at runtime because
 // the underlying object is still the extended client.
-export const prisma = (
-  globalForPrisma.prisma ?? prismaClientSingleton()
-) as unknown as PrismaClient
+export const prisma = (globalForPrisma.prisma ?? prismaClientSingleton()) as unknown as PrismaClient
 
 if (process.env.NODE_ENV !== 'production') {
   // Store the extended instance in global to avoid re-initialising
-  ; (globalForPrisma as any).prisma = prisma
+  ;(globalForPrisma as any).prisma = prisma
 }

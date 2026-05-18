@@ -1,7 +1,7 @@
 'use client'
 
+import { type ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table'
 import { useMemo } from 'react'
-import { ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table'
 
 interface UseDataTableOptions<TData> {
   data: TData[]

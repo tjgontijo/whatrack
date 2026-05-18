@@ -1,6 +1,6 @@
 import 'server-only'
-import { prisma } from '@/lib/db/prisma'
 import type { ItemCategoryWithCount } from '@/features/item-categories/types'
+import { prisma } from '@/lib/db/prisma'
 
 export async function getItemCategoryByIdRepository(input: {
   organizationId: string

@@ -39,7 +39,7 @@ vi.mock('@/features/billing/services/billing-plan-catalog.service', () => ({
   BillingPlanCatalogError: class BillingPlanCatalogError extends Error {
     constructor(
       message: string,
-      public readonly status: number,
+      public readonly status: number
     ) {
       super(message)
     }
@@ -138,7 +138,7 @@ describe('billing-checkout.service', () => {
     expect(providerMock.createCheckoutSession).toHaveBeenCalledWith(
       expect.objectContaining({
         skipTrial: true,
-      }),
+      })
     )
   })
 })

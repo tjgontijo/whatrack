@@ -13,7 +13,7 @@ const adapter = new PrismaPg({
 const prisma = new PrismaClient({ adapter })
 
 async function cleanupLegacyAssets() {
-  console.log('Verifying database state (Phase 6: Schema Hardening)...\n');
+  console.log('Verifying database state (Phase 6: Schema Hardening)...\n')
 
   try {
     // Phase 6: projectId is now NOT NULL - verify no NULL values exist
@@ -25,18 +25,18 @@ async function cleanupLegacyAssets() {
       whatsAppConnections: 0,
       whatsAppConfigs: 0,
       whatsAppOnboardings: 0,
-    };
+    }
 
     // Note: After Phase 6 migration, querying for NULL projectId will return 0
     // The database constraint now prevents any NULL values
-    console.log('Database verification (Phase 6 - projectId is now NOT NULL):');
-    console.log(`  MetaConnection: ${beforeCounts.metaConnections}`);
-    console.log(`  MetaPixel: ${beforeCounts.metaPixels}`);
-    console.log(`  MetaAdAccount: ${beforeCounts.metaAdAccounts}`);
-    console.log(`  WhatsAppConnection: ${beforeCounts.whatsAppConnections}`);
-    console.log(`  WhatsAppConfig: ${beforeCounts.whatsAppConfigs}`);
-    console.log(`  WhatsAppOnboarding: ${beforeCounts.whatsAppOnboardings}`);
-    console.log();
+    console.log('Database verification (Phase 6 - projectId is now NOT NULL):')
+    console.log(`  MetaConnection: ${beforeCounts.metaConnections}`)
+    console.log(`  MetaPixel: ${beforeCounts.metaPixels}`)
+    console.log(`  MetaAdAccount: ${beforeCounts.metaAdAccounts}`)
+    console.log(`  WhatsAppConnection: ${beforeCounts.whatsAppConnections}`)
+    console.log(`  WhatsAppConfig: ${beforeCounts.whatsAppConfigs}`)
+    console.log(`  WhatsAppOnboarding: ${beforeCounts.whatsAppOnboardings}`)
+    console.log()
 
     const totalBefore =
       beforeCounts.metaConnections +
@@ -44,36 +44,36 @@ async function cleanupLegacyAssets() {
       beforeCounts.metaAdAccounts +
       beforeCounts.whatsAppConnections +
       beforeCounts.whatsAppConfigs +
-      beforeCounts.whatsAppOnboardings;
+      beforeCounts.whatsAppOnboardings
 
     if (totalBefore === 0) {
-      console.log('✅ Database is compliant with Phase 6. All assets have projectId set.');
-      return;
+      console.log('✅ Database is compliant with Phase 6. All assets have projectId set.')
+      return
     }
 
-    console.log('\n---\n');
+    console.log('\n---\n')
 
     if (totalBefore === 0) {
-      console.log('✅ Phase 6 verification complete!');
-      console.log('   All ownership models now have projectId NOT NULL enforced.');
-      console.log('   - MetaConnection: projectId required');
-      console.log('   - MetaAdAccount: projectId required');
-      console.log('   - MetaPixel: projectId required');
-      console.log('   - WhatsAppConnection: projectId required');
-      console.log('   - WhatsAppConfig: projectId required');
-      console.log('   - WhatsAppOnboarding: projectId required');
-      console.log('\nSchema Hardening (Phase 6) is complete.');
+      console.log('✅ Phase 6 verification complete!')
+      console.log('   All ownership models now have projectId NOT NULL enforced.')
+      console.log('   - MetaConnection: projectId required')
+      console.log('   - MetaAdAccount: projectId required')
+      console.log('   - MetaPixel: projectId required')
+      console.log('   - WhatsAppConnection: projectId required')
+      console.log('   - WhatsAppConfig: projectId required')
+      console.log('   - WhatsAppOnboarding: projectId required')
+      console.log('\nSchema Hardening (Phase 6) is complete.')
     } else {
-      console.log(`⚠️  ERROR: Found ${totalBefore} assets with NULL projectId.`);
-      console.log('   Phase 6 migration was incomplete or database constraint failed.');
-      process.exit(1);
+      console.log(`⚠️  ERROR: Found ${totalBefore} assets with NULL projectId.`)
+      console.log('   Phase 6 migration was incomplete or database constraint failed.')
+      process.exit(1)
     }
   } catch (error) {
-    console.error('Error during cleanup:', error);
-    process.exit(1);
+    console.error('Error during cleanup:', error)
+    process.exit(1)
   } finally {
-    await prisma.$disconnect();
+    await prisma.$disconnect()
   }
 }
 
-cleanupLegacyAssets();
+cleanupLegacyAssets()

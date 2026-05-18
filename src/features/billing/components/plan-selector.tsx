@@ -1,8 +1,8 @@
 'use client'
 
-import { useMemo, useState } from 'react'
-import { Check, CreditCard, Loader2, QrCode } from 'lucide-react'
+import { Check, CreditCard, Loader2 } from 'lucide-react'
 import { motion } from 'motion/react'
+import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
@@ -15,12 +15,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import type { PublicBillingPlan } from '@/features/billing/schemas/billing-plan-schemas'
+import { CheckoutStatusTokenService } from '@/features/billing/services/checkout-status-token.service'
+import { useOrganization } from '@/features/organizations/hooks/use-organization'
 import { apiFetch } from '@/lib/api-client'
 import { cn } from '@/lib/utils/utils'
-import { useOrganization } from '@/features/organizations/hooks/use-organization'
-import type { PublicBillingPlan } from '@/features/billing/schemas/billing-plan-schemas'
 import { CheckoutPixQrcode } from './checkout-pix-qrcode'
-import { CheckoutStatusTokenService } from '@/features/billing/services/checkout-status-token.service'
 
 type CheckoutState = 'idle' | 'loading'
 type PaymentMethod = 'CREDIT_CARD' | 'PIX' | 'PIX_AUTOMATIC'
@@ -57,21 +57,18 @@ function getDefaultPaymentMethod(plan: PublicBillingPlan): PaymentMethod {
   return methods.includes('CREDIT_CARD') ? 'CREDIT_CARD' : methods[0]
 }
 
-export function PlanSelector({
-  plans,
-  showHeader = true,
-}: PlanSelectorProps) {
+export function PlanSelector({ plans, showHeader = true }: PlanSelectorProps) {
   const { data: org } = useOrganization()
   const basePlans = plans.filter((plan) => plan.kind === 'base')
   const [selectedPlanCode, setSelectedPlanCode] = useState<string>(
-    basePlans[0]?.code ?? 'starter_monthly',
+    basePlans[0]?.code ?? 'starter_monthly'
   )
   const selectedPlan = useMemo(
     () => basePlans.find((plan) => (plan.code ?? plan.slug) === selectedPlanCode) ?? basePlans[0],
-    [basePlans, selectedPlanCode],
+    [basePlans, selectedPlanCode]
   )
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
-    selectedPlan ? getDefaultPaymentMethod(selectedPlan) : 'CREDIT_CARD',
+    selectedPlan ? getDefaultPaymentMethod(selectedPlan) : 'CREDIT_CARD'
   )
   const [installments, setInstallments] = useState('1')
   const [cpfCnpj, setCpfCnpj] = useState('')
@@ -139,7 +136,7 @@ export function PlanSelector({
           ? 'Checkout enviado'
           : paymentMethod === 'PIX_AUTOMATIC'
             ? 'Autorize o PIX Automático para concluir'
-            : 'PIX gerado com sucesso',
+            : 'PIX gerado com sucesso'
       )
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Erro ao processar checkout')
@@ -149,17 +146,18 @@ export function PlanSelector({
   }
 
   return (
-    <div className="space-y-6">
+    <div className='space-y-6'>
       {showHeader ? (
         <div>
-          <h2 className="text-lg font-semibold text-foreground">Contratar plano</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Cartão de crédito é o fluxo principal. PIX automático fica disponível no mensal e PIX comum no anual.
+          <h2 className='font-semibold text-foreground text-lg'>Contratar plano</h2>
+          <p className='mt-1 text-muted-foreground text-sm'>
+            Cartão de crédito é o fluxo principal. PIX automático fica disponível no mensal e PIX
+            comum no anual.
           </p>
         </div>
       ) : null}
 
-      <div className="grid gap-3 md:grid-cols-2">
+      <div className='grid gap-3 md:grid-cols-2'>
         {basePlans.map((plan, index) => {
           const planCode = plan.code ?? plan.slug
           const isSelected = planCode === selectedPlanCode
@@ -167,7 +165,7 @@ export function PlanSelector({
           return (
             <motion.button
               key={plan.id}
-              type="button"
+              type='button'
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2, delay: index * 0.05 }}
@@ -179,24 +177,24 @@ export function PlanSelector({
               }}
               className={cn(
                 'rounded-lg border p-5 text-left transition-colors',
-                isSelected ? 'border-primary bg-primary/5' : 'border-border bg-card',
+                isSelected ? 'border-primary bg-primary/5' : 'border-border bg-card'
               )}
             >
-              <div className="flex items-start justify-between gap-3">
+              <div className='flex items-start justify-between gap-3'>
                 <div>
-                  <h3 className="text-base font-semibold text-foreground">{plan.name}</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">{plan.subtitle}</p>
+                  <h3 className='font-semibold text-base text-foreground'>{plan.name}</h3>
+                  <p className='mt-1 text-muted-foreground text-sm'>{plan.subtitle}</p>
                 </div>
                 {isSelected ? (
-                  <span className="rounded-full bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
+                  <span className='rounded-full bg-primary/10 px-2 py-1 font-medium text-primary text-xs'>
                     Selecionado
                   </span>
                 ) : null}
               </div>
 
-              <div className="mt-4 flex items-baseline gap-1">
-                <span className="text-sm text-muted-foreground">R$</span>
-                <span className="text-3xl font-semibold text-foreground">
+              <div className='mt-4 flex items-baseline gap-1'>
+                <span className='text-muted-foreground text-sm'>R$</span>
+                <span className='font-semibold text-3xl text-foreground'>
                   {selectedPlan.code === planCode && selectedOffer
                     ? selectedOffer.amount.toLocaleString('pt-BR', {
                         minimumFractionDigits: 0,
@@ -207,15 +205,16 @@ export function PlanSelector({
                         maximumFractionDigits: 0,
                       })}
                 </span>
-                <span className="text-sm text-muted-foreground">
-                  /mês
-                </span>
+                <span className='text-muted-foreground text-sm'>/mês</span>
               </div>
 
-              <ul className="mt-4 space-y-2">
+              <ul className='mt-4 space-y-2'>
                 {plan.features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-2 text-sm text-muted-foreground">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                  <li
+                    key={feature}
+                    className='flex items-start gap-2 text-muted-foreground text-sm'
+                  >
+                    <Check className='mt-0.5 h-4 w-4 shrink-0 text-primary' />
                     <span>{feature}</span>
                   </li>
                 ))}
@@ -225,10 +224,10 @@ export function PlanSelector({
         })}
       </div>
 
-      <div className="grid gap-4 rounded-lg border border-border bg-card p-5 md:grid-cols-2">
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="billing-method">Forma de pagamento</Label>
+      <div className='grid gap-4 rounded-lg border border-border bg-card p-5 md:grid-cols-2'>
+        <div className='space-y-4'>
+          <div className='space-y-2'>
+            <Label htmlFor='billing-method'>Forma de pagamento</Label>
             <Select
               value={paymentMethod}
               onValueChange={(value) => {
@@ -237,88 +236,90 @@ export function PlanSelector({
                 setResult(null)
               }}
             >
-              <SelectTrigger id="billing-method">
+              <SelectTrigger id='billing-method'>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {availableMethods.includes('CREDIT_CARD') ? (
-                  <SelectItem value="CREDIT_CARD">Cartão de crédito</SelectItem>
+                  <SelectItem value='CREDIT_CARD'>Cartão de crédito</SelectItem>
                 ) : null}
                 {availableMethods.includes('PIX_AUTOMATIC') ? (
-                  <SelectItem value="PIX_AUTOMATIC">PIX Automático</SelectItem>
+                  <SelectItem value='PIX_AUTOMATIC'>PIX Automático</SelectItem>
                 ) : null}
-                {availableMethods.includes('PIX') ? <SelectItem value="PIX">PIX anual</SelectItem> : null}
+                {availableMethods.includes('PIX') ? (
+                  <SelectItem value='PIX'>PIX anual</SelectItem>
+                ) : null}
               </SelectContent>
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="cpf-cnpj">CPF ou CNPJ</Label>
+          <div className='space-y-2'>
+            <Label htmlFor='cpf-cnpj'>CPF ou CNPJ</Label>
             <Input
-              id="cpf-cnpj"
+              id='cpf-cnpj'
               value={cpfCnpj}
               onChange={(event) => setCpfCnpj(event.target.value)}
-              placeholder="Somente números"
+              placeholder='Somente números'
             />
           </div>
 
           {isCreditCard ? (
             <>
-              <div className="space-y-2">
-                <Label htmlFor="holder-name">Nome no cartão</Label>
+              <div className='space-y-2'>
+                <Label htmlFor='holder-name'>Nome no cartão</Label>
                 <Input
-                  id="holder-name"
+                  id='holder-name'
                   value={holderName}
                   onChange={(event) => setHolderName(event.target.value)}
-                  placeholder="Nome como está no cartão"
+                  placeholder='Nome como está no cartão'
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="card-number">Número do cartão</Label>
+              <div className='space-y-2'>
+                <Label htmlFor='card-number'>Número do cartão</Label>
                 <Input
-                  id="card-number"
+                  id='card-number'
                   value={cardNumber}
                   onChange={(event) => setCardNumber(event.target.value)}
-                  placeholder="0000 0000 0000 0000"
+                  placeholder='0000 0000 0000 0000'
                 />
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-3">
-                <div className="space-y-2">
-                  <Label htmlFor="expiry-month">Mês</Label>
+              <div className='grid gap-3 sm:grid-cols-3'>
+                <div className='space-y-2'>
+                  <Label htmlFor='expiry-month'>Mês</Label>
                   <Input
-                    id="expiry-month"
+                    id='expiry-month'
                     value={expiryMonth}
                     onChange={(event) => setExpiryMonth(event.target.value)}
-                    placeholder="MM"
+                    placeholder='MM'
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="expiry-year">Ano</Label>
+                <div className='space-y-2'>
+                  <Label htmlFor='expiry-year'>Ano</Label>
                   <Input
-                    id="expiry-year"
+                    id='expiry-year'
                     value={expiryYear}
                     onChange={(event) => setExpiryYear(event.target.value)}
-                    placeholder="AAAA"
+                    placeholder='AAAA'
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="card-ccv">CCV</Label>
+                <div className='space-y-2'>
+                  <Label htmlFor='card-ccv'>CCV</Label>
                   <Input
-                    id="card-ccv"
+                    id='card-ccv'
                     value={ccv}
                     onChange={(event) => setCcv(event.target.value)}
-                    placeholder="123"
+                    placeholder='123'
                   />
                 </div>
               </div>
 
               {maxInstallments > 1 ? (
-                <div className="space-y-2">
-                  <Label htmlFor="installments">Parcelas</Label>
+                <div className='space-y-2'>
+                  <Label htmlFor='installments'>Parcelas</Label>
                   <Select value={installments} onValueChange={setInstallments}>
-                    <SelectTrigger id="installments">
+                    <SelectTrigger id='installments'>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -335,11 +336,11 @@ export function PlanSelector({
           ) : null}
         </div>
 
-        <div className="flex flex-col justify-between rounded-lg border border-border bg-muted/30 p-4">
-          <div className="space-y-3">
+        <div className='flex flex-col justify-between rounded-lg border border-border bg-muted/30 p-4'>
+          <div className='space-y-3'>
             <div>
-              <p className="text-sm font-medium text-foreground">{selectedPlan.name}</p>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <p className='font-medium text-foreground text-sm'>{selectedPlan.name}</p>
+              <p className='mt-1 text-muted-foreground text-sm'>
                 {paymentMethod === 'CREDIT_CARD'
                   ? 'Cobrança principal do MVP com checkout transparente.'
                   : paymentMethod === 'PIX_AUTOMATIC'
@@ -348,9 +349,9 @@ export function PlanSelector({
               </p>
             </div>
 
-            <div className="rounded-lg border border-border bg-card p-4">
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">Valor</p>
-              <p className="mt-1 text-2xl font-semibold text-foreground">
+            <div className='rounded-lg border border-border bg-card p-4'>
+              <p className='text-muted-foreground text-xs uppercase tracking-wide'>Valor</p>
+              <p className='mt-1 font-semibold text-2xl text-foreground'>
                 {selectedOffer
                   ? new Intl.NumberFormat('pt-BR', {
                       style: 'currency',
@@ -367,7 +368,7 @@ export function PlanSelector({
                 expirationDate={result.pix.expirationDate ?? null}
                 invoiceId={result.invoiceId}
                 statusToken={CheckoutStatusTokenService.createInvoiceToken(result.invoiceId)}
-                type="pix"
+                type='pix'
               />
             ) : null}
 
@@ -378,22 +379,22 @@ export function PlanSelector({
                 expirationDate={result.pixAutomatic.expirationDate ?? null}
                 invoiceId={result.pixAutomatic.authorizationId}
                 statusToken={CheckoutStatusTokenService.createAuthorizationToken(
-                  result.pixAutomatic.authorizationId,
+                  result.pixAutomatic.authorizationId
                 )}
-                type="pix_automatic"
+                type='pix_automatic'
               />
             ) : null}
           </div>
 
-          <Button onClick={handleSubmit} disabled={state === 'loading'} className="mt-4 w-full">
+          <Button onClick={handleSubmit} disabled={state === 'loading'} className='mt-4 w-full'>
             {state === 'loading' ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
                 Processando
               </>
             ) : (
               <>
-                <CreditCard className="mr-2 h-4 w-4" />
+                <CreditCard className='mr-2 h-4 w-4' />
                 Continuar
               </>
             )}

@@ -1,4 +1,3 @@
-import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/utils/logger'
 
 interface MetaAdsAccountData {
@@ -33,9 +32,7 @@ interface MetaAdsAccountData {
 /**
  * Format Meta Ads account data into context object for audit
  */
-export function formatMetaAdsContext(
-  accountData: MetaAdsAccountData
-): Record<string, unknown> {
+export function formatMetaAdsContext(accountData: MetaAdsAccountData): Record<string, unknown> {
   const context: Record<string, unknown> = {
     account_id: accountData.accountId,
     account_name: accountData.accountName,
@@ -116,9 +113,7 @@ export async function fetchMetaAdsAccountData(
     // TODO: Fetch from Meta Ads API via existing connection
     // This is a placeholder structure
 
-    logger.info(
-      `[Meta Ads] Fetching account data for ${accountId} in org ${organizationId}`
-    )
+    logger.info(`[Meta Ads] Fetching account data for ${accountId} in org ${organizationId}`)
 
     // Placeholder: would fetch from Meta API
     const accountData: MetaAdsAccountData = {
@@ -158,10 +153,7 @@ export async function fetchMetaAdsAccountData(
 
     return accountData
   } catch (error) {
-    logger.error(
-      { err: error },
-      `[Meta Ads] Failed to fetch account data for ${accountId}`
-    )
+    logger.error({ err: error }, `[Meta Ads] Failed to fetch account data for ${accountId}`)
     throw error
   }
 }

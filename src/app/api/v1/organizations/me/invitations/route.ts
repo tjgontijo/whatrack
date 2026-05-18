@@ -1,12 +1,11 @@
-import { NextRequest } from 'next/server'
-
-import { organizationJson } from '@/server/http/organization-json'
-import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
+import type { NextRequest } from 'next/server'
 import { createOrganizationInvitationSchema } from '@/features/organizations/schemas/organization-invitation-schemas'
 import {
   createOrganizationInvitation,
   listOrganizationPendingInvitations,
 } from '@/features/organizations/services/organization-invitations.service'
+import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
+import { organizationJson } from '@/server/http/organization-json'
 
 export async function POST(req: NextRequest) {
   const access = await validatePermissionAccess(req, 'manage:members')
@@ -17,7 +16,10 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null)
   const parsed = createOrganizationInvitationSchema.safeParse(body)
   if (!parsed.success) {
-    return organizationJson({ error: 'Dados inválidos', details: parsed.error.flatten() }, { status: 400 })
+    return organizationJson(
+      { error: 'Dados inválidos', details: parsed.error.flatten() },
+      { status: 400 }
+    )
   }
 
   const result = await createOrganizationInvitation({

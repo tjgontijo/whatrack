@@ -1,12 +1,11 @@
 import { Prisma } from '@generated/prisma/client'
-
-import { prisma } from '@/lib/db/prisma'
-import { lookupCache } from '@/lib/db/lookup-cache'
-import { ensureProjectBelongsToOrganization } from '@/server/project/project-scope'
 import { metaCapiService } from '@/features/meta-ads/services/capi.service'
 import { syncCompletedSaleForTicket } from '@/features/sales'
-import { getDefaultTicketStage } from './ensure-ticket-stages'
+import { lookupCache } from '@/lib/db/lookup-cache'
+import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/utils/logger'
+import { ensureProjectBelongsToOrganization } from '@/server/project/project-scope'
+import { getDefaultTicketStage } from './ensure-ticket-stages'
 
 export interface TicketListParams {
   organizationId: string
@@ -497,7 +496,9 @@ export async function createTicket(params: CreateTicketParams) {
     data: {
       organizationId,
       projectId:
-        typeof params.projectId !== 'undefined' ? params.projectId : conversation.instance.projectId,
+        typeof params.projectId !== 'undefined'
+          ? params.projectId
+          : conversation.instance.projectId,
       leadId: conversation.leadId,
       conversationId,
       stageId: targetStageId,
@@ -607,7 +608,13 @@ export async function updateTicketAndTrackCapi(params: UpdateTicketParams) {
 export async function closeTicket(params: CloseTicketParams) {
   const existing = await prisma.ticket.findFirst({
     where: { id: params.ticketId, organizationId: params.organizationId },
-    select: { id: true, status: { select: { name: true } }, createdAt: true, leadId: true, projectId: true },
+    select: {
+      id: true,
+      status: { select: { name: true } },
+      createdAt: true,
+      leadId: true,
+      projectId: true,
+    },
   })
 
   if (!existing) {
@@ -629,7 +636,11 @@ export async function closeTicket(params: CloseTicketParams) {
     const now = new Date()
     const resolutionTimeSec = Math.floor((now.getTime() - existing.createdAt.getTime()) / 1000)
 
-    if (newStatusName === 'closed_won' && typeof params.dealValue === 'number' && params.dealValue > 0) {
+    if (
+      newStatusName === 'closed_won' &&
+      typeof params.dealValue === 'number' &&
+      params.dealValue > 0
+    ) {
       await syncCompletedSaleForTicket(tx, {
         organizationId: params.organizationId,
         ticketId: params.ticketId,
@@ -651,7 +662,11 @@ export async function closeTicket(params: CloseTicketParams) {
       select: ticketCloseSelect,
     })
 
-    if (newStatusName === 'closed_won' && typeof params.dealValue === 'number' && params.dealValue > 0) {
+    if (
+      newStatusName === 'closed_won' &&
+      typeof params.dealValue === 'number' &&
+      params.dealValue > 0
+    ) {
       await tx.lead.update({
         where: { id: existing.leadId },
         data: {

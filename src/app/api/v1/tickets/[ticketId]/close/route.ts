@@ -1,11 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { apiError } from '@/lib/utils/api-response'
 import { revalidateTag } from 'next/cache'
-
-import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
+import { type NextRequest, NextResponse } from 'next/server'
 import { closeTicketSchema } from '@/features/tickets/schemas/ticket.schemas'
 import { closeTicket } from '@/features/tickets/services/ticket.service'
+import { apiError } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
+import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
 
 // POST /api/v1/tickets/:id/close - Close ticket (won/lost)
 export async function POST(

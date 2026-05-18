@@ -1,13 +1,12 @@
 import { Prisma } from '@generated/prisma/client'
-
-import { normalizeDocumentNumber } from '@/lib/document/document-identity'
-import { prisma } from '@/lib/db/prisma'
-import { normalizeSlug } from '@/lib/utils/slug'
 import { getDefaultTrialBillingPlan } from '@/features/billing/services/billing-plan-catalog.service'
 import { startOrganizationTrial } from '@/features/billing/services/billing-subscription.service'
-import { ensureSystemRolesForOrganization } from '@/server/organization/organization-rbac.service'
 import type { WelcomeOnboardingInput } from '@/features/onboarding/schemas/welcome-onboarding.schemas'
 import type { CompanyLookupData } from '@/features/organizations/schemas/organization-onboarding'
+import { prisma } from '@/lib/db/prisma'
+import { normalizeDocumentNumber } from '@/lib/document/document-identity'
+import { normalizeSlug } from '@/lib/utils/slug'
+import { ensureSystemRolesForOrganization } from '@/server/organization/organization-rbac.service'
 
 type WelcomeUser = {
   id: string
@@ -141,29 +140,27 @@ async function persistOrganizationFiscalIdentity(input: {
 
   await input.tx.organizationCompany.upsert({
     where: { organizationId: input.organizationId },
-    update:
-      companyPersistenceData ?? {
-        cnpj: normalizedDocument,
-        razaoSocial: input.organizationName,
-        nomeFantasia: input.organizationName,
-      },
-    create:
-      companyPersistenceData
-        ? {
-            organizationId: input.organizationId,
-            ...companyPersistenceData,
-          }
-        : {
-            organizationId: input.organizationId,
-            cnpj: normalizedDocument,
-            razaoSocial: input.organizationName,
-            nomeFantasia: input.organizationName,
-            cnaeCode: '',
-            cnaeDescription: '',
-            municipio: '',
-            uf: '',
-            authorizedByUserId: input.userId,
-          },
+    update: companyPersistenceData ?? {
+      cnpj: normalizedDocument,
+      razaoSocial: input.organizationName,
+      nomeFantasia: input.organizationName,
+    },
+    create: companyPersistenceData
+      ? {
+          organizationId: input.organizationId,
+          ...companyPersistenceData,
+        }
+      : {
+          organizationId: input.organizationId,
+          cnpj: normalizedDocument,
+          razaoSocial: input.organizationName,
+          nomeFantasia: input.organizationName,
+          cnaeCode: '',
+          cnaeDescription: '',
+          municipio: '',
+          uf: '',
+          authorizedByUserId: input.userId,
+        },
   })
 
   await input.tx.organizationProfile.upsert({
@@ -248,10 +245,7 @@ export async function completeWelcomeOnboarding(input: {
     const existingProject = await tx.project.findFirst({
       where: {
         organizationId,
-        OR: [
-          { name: initialProjectName },
-          { slug: projectSlug },
-        ],
+        OR: [{ name: initialProjectName }, { slug: projectSlug }],
       },
       select: {
         id: true,

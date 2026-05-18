@@ -1,7 +1,11 @@
-import { NextRequest } from 'next/server'
-import { apiSuccess, apiError } from '@/lib/utils/api-response'
+import type { NextRequest } from 'next/server'
+import {
+  AddOptOutSchema,
+  addOptOut,
+  listOptOuts,
+} from '@/features/whatsapp/lib/services/whatsapp-opt-out.service'
+import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
-import { addOptOut, listOptOuts, AddOptOutSchema } from '@/features/whatsapp/lib/services/whatsapp-opt-out.service'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,8 +16,11 @@ export async function GET(request: NextRequest) {
   }
 
   const url = new URL(request.url)
-  const page = Math.max(1, parseInt(url.searchParams.get('page') ?? '1'))
-  const pageSize = Math.max(1, Math.min(100, parseInt(url.searchParams.get('pageSize') ?? '20')))
+  const page = Math.max(1, parseInt(url.searchParams.get('page') ?? '1', 10))
+  const pageSize = Math.max(
+    1,
+    Math.min(100, parseInt(url.searchParams.get('pageSize') ?? '20', 10))
+  )
   const phone = url.searchParams.get('phone') ?? undefined
 
   const result = await listOptOuts(access.organizationId, page, pageSize, phone)

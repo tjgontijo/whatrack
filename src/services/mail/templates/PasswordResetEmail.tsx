@@ -51,7 +51,9 @@ export function PasswordResetEmail({
             <Text style={muted}>
               Este link expira em <strong>{expiresIn} minutos</strong>.
             </Text>
-            <Text style={muted}>Se você não solicitou a redefinição, pode ignorar este e-mail.</Text>
+            <Text style={muted}>
+              Se você não solicitou a redefinição, pode ignorar este e-mail.
+            </Text>
             <Hr style={hr} />
             <Text style={small}>Ou copie e cole o link no navegador:</Text>
             <Link href={resetLink} style={link}>

@@ -1,13 +1,10 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
-
-import { getPermissionLabel, getPlatformPermissions } from '@/lib/auth/rbac/roles'
-import { useAuthorization } from '@/hooks/auth/use-authorization'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -20,7 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Tabs, TabsContent } from '@/components/ui/tabs'
 import {
   Table,
   TableBody,
@@ -29,8 +25,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Tabs, TabsContent } from '@/components/ui/tabs'
 import { useOrganization } from '@/features/organizations/hooks/use-organization'
-
+import { useAuthorization } from '@/hooks/auth/use-authorization'
+import { getPermissionLabel, getPlatformPermissions } from '@/lib/auth/rbac/roles'
 
 type Account = {
   id: string
@@ -86,7 +84,6 @@ import { apiFetch } from '@/lib/api-client'
 async function fetchJson<T>(url: string, init?: RequestInit & { orgId?: string }): Promise<T> {
   return apiFetch(url, init)
 }
-
 
 function roleBadgeVariant(role: string): 'default' | 'secondary' | 'outline' {
   if (role === 'owner') return 'default'
@@ -157,9 +154,10 @@ export function TeamAccessContent({
 
   const { data: organization } = useQuery({
     queryKey: ['organizations', 'me', organizationId],
-    queryFn: () => fetchJson<Account>('/api/v1/organizations/me', {
-      orgId: organizationId,
-    }),
+    queryFn: () =>
+      fetchJson<Account>('/api/v1/organizations/me', {
+        orgId: organizationId,
+      }),
 
     enabled: !!organizationId,
   })
@@ -171,9 +169,10 @@ export function TeamAccessContent({
 
   const membersQuery = useQuery({
     queryKey: ['organizations', 'me', 'members', organizationId],
-    queryFn: () => fetchJson<{ data: TeamMember[] }>('/api/v1/organizations/me/members', {
-      orgId: organizationId,
-    }),
+    queryFn: () =>
+      fetchJson<{ data: TeamMember[] }>('/api/v1/organizations/me/members', {
+        orgId: organizationId,
+      }),
     initialData: initialMembers ? { data: initialMembers } : undefined,
     staleTime: 30_000,
     enabled: (canManageTeamOps || canManageMemberPermissions) && !!organizationId,
@@ -181,9 +180,10 @@ export function TeamAccessContent({
 
   const invitationsQuery = useQuery({
     queryKey: ['organizations', 'me', 'invitations', organizationId],
-    queryFn: () => fetchJson<{ data: TeamInvitation[] }>('/api/v1/organizations/me/invitations', {
-      orgId: organizationId,
-    }),
+    queryFn: () =>
+      fetchJson<{ data: TeamInvitation[] }>('/api/v1/organizations/me/invitations', {
+        orgId: organizationId,
+      }),
     initialData: initialInvitations ? { data: initialInvitations } : undefined,
     staleTime: 30_000,
     enabled: canManageTeamOps && !!organizationId,
@@ -191,13 +191,13 @@ export function TeamAccessContent({
 
   const rolesQuery = useQuery({
     queryKey: ['organizations', 'me', 'roles', organizationId],
-    queryFn: () => fetchJson<RolesResponse>('/api/v1/organizations/me/roles', {
-      orgId: organizationId,
-    }),
-    initialData:
-      initialRoles
-        ? { data: initialRoles, permissionCatalog: initialPermissionCatalog ?? [] }
-        : undefined,
+    queryFn: () =>
+      fetchJson<RolesResponse>('/api/v1/organizations/me/roles', {
+        orgId: organizationId,
+      }),
+    initialData: initialRoles
+      ? { data: initialRoles, permissionCatalog: initialPermissionCatalog ?? [] }
+      : undefined,
     staleTime: 60_000,
     enabled: (canManageTeamOps || canManageRoles) && !!organizationId,
   })
@@ -230,12 +230,12 @@ export function TeamAccessContent({
   // Removido useEffect: A seleção automática agora é tratada via fallbacks no render
   const effectiveMemberId = selectedMemberId || members[0]?.id || ''
 
-
   // Removido useEffect: Drafts são inicializados no render ou via key prop
   const mData = memberPermissionsQuery.data
-  const overrideAllow = overrideAllowDraft.length > 0 ? overrideAllowDraft : (mData?.allowOverrides || [])
-  const overrideDeny = overrideDenyDraft.length > 0 ? overrideDenyDraft : (mData?.denyOverrides || [])
-
+  const _overrideAllow =
+    overrideAllowDraft.length > 0 ? overrideAllowDraft : mData?.allowOverrides || []
+  const _overrideDeny =
+    overrideDenyDraft.length > 0 ? overrideDenyDraft : mData?.denyOverrides || []
 
   const assignableRoles = useMemo(() => {
     if (!roles.length) {
@@ -254,8 +254,9 @@ export function TeamAccessContent({
   }, [authorization.isAdmin, authorization.isOwner, roles])
 
   // Removido useEffect: Invite role padrão tratado no render
-  const effectiveInviteRole = assignableRoles.includes(inviteRole) ? inviteRole : (assignableRoles[0] || 'user')
-
+  const effectiveInviteRole = assignableRoles.includes(inviteRole)
+    ? inviteRole
+    : assignableRoles[0] || 'user'
 
   const selectedMember = members.find((member) => member.id === selectedMemberId) || null
   const inviteRoleOptions = assignableRoles.length > 0 ? assignableRoles : ['user']
@@ -380,7 +381,6 @@ export function TeamAccessContent({
           permissions: rolePermissionsDraft,
         }),
       })
-
     },
     onSuccess: () => {
       toast.success(editingRoleId ? 'Papel atualizado com sucesso' : 'Papel criado com sucesso')
@@ -435,7 +435,6 @@ export function TeamAccessContent({
           deny: overrideDenyDraft,
         }),
       })
-
     },
     onSuccess: () => {
       toast.success('Overrides atualizados com sucesso')
@@ -453,13 +452,8 @@ export function TeamAccessContent({
   })
 
   return (
-    <Tabs
-      value={activeTab ?? 'membros'}
-      onValueChange={onTabChange}
-      className="space-y-6"
-    >
-
-      <TabsContent value="membros" className="space-y-6">
+    <Tabs value={activeTab ?? 'membros'} onValueChange={onTabChange} className='space-y-6'>
+      <TabsContent value='membros' className='space-y-6'>
         <Card>
           <CardHeader>
             <CardTitle>Membros</CardTitle>
@@ -472,13 +466,13 @@ export function TeamAccessContent({
                   <TableHead>Nome</TableHead>
                   <TableHead>E-mail</TableHead>
                   <TableHead>Papel</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
+                  <TableHead className='text-right'>Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {members.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-muted-foreground text-center">
+                    <TableCell colSpan={4} className='text-center text-muted-foreground'>
                       Nenhum membro encontrado.
                     </TableCell>
                   </TableRow>
@@ -510,7 +504,7 @@ export function TeamAccessContent({
                               updateMemberRoleMutation.mutate({ memberId: member.id, role: value })
                             }
                           >
-                            <SelectTrigger className="w-44">
+                            <SelectTrigger className='w-44'>
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -527,10 +521,10 @@ export function TeamAccessContent({
                           </Badge>
                         )}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className='text-right'>
                         <Button
-                          variant="outline"
-                          size="sm"
+                          variant='outline'
+                          size='sm'
                           disabled={!canRemove || removeMemberMutation.isPending}
                           onClick={() => removeMemberMutation.mutate(member.id)}
                         >
@@ -550,11 +544,11 @@ export function TeamAccessContent({
             <CardTitle>Convites</CardTitle>
             <CardDescription>Envie convites para novos membros.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-3 md:grid-cols-[1fr_220px_auto]">
+          <CardContent className='space-y-4'>
+            <div className='grid gap-3 md:grid-cols-[1fr_220px_auto]'>
               <Input
-                type="email"
-                placeholder="email@dominio.com"
+                type='email'
+                placeholder='email@dominio.com'
                 value={inviteEmail}
                 disabled={!canManageTeamOps}
                 onChange={(event) => setInviteEmail(event.target.value)}
@@ -586,37 +580,41 @@ export function TeamAccessContent({
             </div>
 
             {canManageTeamOps ? (
-              <div className="space-y-2">
+              <div className='space-y-2'>
                 {invitations.length === 0 && (
-                  <p className="text-muted-foreground text-sm">Nenhum convite pendente.</p>
+                  <p className='text-muted-foreground text-sm'>Nenhum convite pendente.</p>
                 )}
 
                 {invitations.map((invitation) => (
                   <div
                     key={invitation.id}
-                    className="flex flex-col justify-between gap-3 rounded-md border p-3 md:flex-row md:items-center"
+                    className='flex flex-col justify-between gap-3 rounded-md border p-3 md:flex-row md:items-center'
                   >
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium">{invitation.email}</p>
-                      <p className="text-muted-foreground text-xs">
+                    <div className='min-w-0'>
+                      <p className='truncate font-medium text-sm'>{invitation.email}</p>
+                      <p className='text-muted-foreground text-xs'>
                         Papel: {roleLabel(invitation.role || 'user', roles)} · expira em{' '}
                         {format(new Date(invitation.expiresAt), 'dd/MM/yyyy', { locale: ptBR })}
                       </p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className='flex items-center gap-2'>
                       <Button
-                        variant="outline"
-                        size="sm"
+                        variant='outline'
+                        size='sm'
                         onClick={() => resendInvitationMutation.mutate(invitation.id)}
-                        disabled={resendInvitationMutation.isPending || deleteInvitationMutation.isPending}
+                        disabled={
+                          resendInvitationMutation.isPending || deleteInvitationMutation.isPending
+                        }
                       >
                         Reenviar
                       </Button>
                       <Button
-                        variant="outline"
-                        size="sm"
+                        variant='outline'
+                        size='sm'
                         onClick={() => deleteInvitationMutation.mutate(invitation.id)}
-                        disabled={deleteInvitationMutation.isPending || resendInvitationMutation.isPending}
+                        disabled={
+                          deleteInvitationMutation.isPending || resendInvitationMutation.isPending
+                        }
                       >
                         Cancelar
                       </Button>
@@ -625,7 +623,7 @@ export function TeamAccessContent({
                 ))}
               </div>
             ) : (
-              <p className="text-muted-foreground text-sm">
+              <p className='text-muted-foreground text-sm'>
                 Apenas owner/admin podem gerenciar convites.
               </p>
             )}
@@ -633,7 +631,7 @@ export function TeamAccessContent({
         </Card>
       </TabsContent>
 
-      <TabsContent value="papeis" className="space-y-6">
+      <TabsContent value='papeis' className='space-y-6'>
         <Card>
           <CardHeader>
             <CardTitle>Papéis</CardTitle>
@@ -641,51 +639,51 @@ export function TeamAccessContent({
               Owner define papéis customizados e matriz de permissões base.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-5">
+          <CardContent className='space-y-5'>
             {!canManageRoles && (
-              <p className="text-muted-foreground text-sm">
+              <p className='text-muted-foreground text-sm'>
                 Apenas owner pode criar, editar ou remover papéis.
               </p>
             )}
 
             {canManageRoles && (
               <>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="grid gap-2">
-                    <label className="text-sm font-medium">Nome do papel</label>
+                <div className='grid gap-4 md:grid-cols-2'>
+                  <div className='grid gap-2'>
+                    <label className='font-medium text-sm'>Nome do papel</label>
                     <Input
                       value={roleNameDraft}
                       onChange={(event) => setRoleNameDraft(event.target.value)}
-                      placeholder="Ex.: Operador Comercial"
+                      placeholder='Ex.: Operador Comercial'
                     />
                   </div>
-                  <div className="grid gap-2">
-                    <label className="text-sm font-medium">Chave do papel</label>
+                  <div className='grid gap-2'>
+                    <label className='font-medium text-sm'>Chave do papel</label>
                     <Input
                       value={roleKeyDraft}
                       disabled={Boolean(editingRoleId)}
                       onChange={(event) => setRoleKeyDraft(event.target.value)}
-                      placeholder="operador_comercial"
+                      placeholder='operador_comercial'
                     />
                   </div>
                 </div>
 
-                <div className="grid gap-2">
-                  <label className="text-sm font-medium">Descrição</label>
+                <div className='grid gap-2'>
+                  <label className='font-medium text-sm'>Descrição</label>
                   <Input
                     value={roleDescriptionDraft}
                     onChange={(event) => setRoleDescriptionDraft(event.target.value)}
-                    placeholder="Uso interno para área de atendimento"
+                    placeholder='Uso interno para área de atendimento'
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">Permissões do papel</p>
-                  <div className="grid gap-2 md:grid-cols-2">
+                <div className='space-y-2'>
+                  <p className='font-medium text-sm'>Permissões do papel</p>
+                  <div className='grid gap-2 md:grid-cols-2'>
                     {roleCatalog.map((permission) => (
                       <label
                         key={permission}
-                        className="flex items-center gap-2 rounded border px-3 py-2 text-sm"
+                        className='flex items-center gap-2 rounded border px-3 py-2 text-sm'
                       >
                         <Checkbox
                           checked={rolePermissionsDraft.includes(permission)}
@@ -707,13 +705,16 @@ export function TeamAccessContent({
                   </div>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
-                  <Button onClick={() => saveRoleMutation.mutate()} disabled={saveRoleMutation.isPending}>
+                <div className='flex flex-wrap gap-2'>
+                  <Button
+                    onClick={() => saveRoleMutation.mutate()}
+                    disabled={saveRoleMutation.isPending}
+                  >
                     {editingRoleId ? 'Salvar alterações' : 'Criar papel'}
                   </Button>
                   {editingRoleId && (
                     <Button
-                      variant="outline"
+                      variant='outline'
                       onClick={() => {
                         setEditingRoleId(null)
                         setRoleNameDraft('')
@@ -735,13 +736,13 @@ export function TeamAccessContent({
                   <TableHead>Papel</TableHead>
                   <TableHead>Chave</TableHead>
                   <TableHead>Permissões</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
+                  <TableHead className='text-right'>Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {roles.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-muted-foreground text-center">
+                    <TableCell colSpan={4} className='text-center text-muted-foreground'>
                       Nenhum papel encontrado.
                     </TableCell>
                   </TableRow>
@@ -750,18 +751,18 @@ export function TeamAccessContent({
                 {roles.map((role) => (
                   <TableRow key={role.id}>
                     <TableCell>
-                      <div className="flex items-center gap-2">
+                      <div className='flex items-center gap-2'>
                         <span>{role.name}</span>
-                        {role.isSystem && <Badge variant="outline">Sistema</Badge>}
+                        {role.isSystem && <Badge variant='outline'>Sistema</Badge>}
                       </div>
                     </TableCell>
                     <TableCell>{role.key}</TableCell>
                     <TableCell>{role.permissions.length}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
+                    <TableCell className='text-right'>
+                      <div className='flex justify-end gap-2'>
                         <Button
-                          variant="outline"
-                          size="sm"
+                          variant='outline'
+                          size='sm'
                           disabled={!canManageRoles || role.isSystem}
                           onClick={() => {
                             setEditingRoleId(role.id)
@@ -774,9 +775,11 @@ export function TeamAccessContent({
                           Editar
                         </Button>
                         <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={!canManageRoles || role.isSystem || deleteRoleMutation.isPending}
+                          variant='outline'
+                          size='sm'
+                          disabled={
+                            !canManageRoles || role.isSystem || deleteRoleMutation.isPending
+                          }
                           onClick={() => deleteRoleMutation.mutate(role.id)}
                         >
                           Remover
@@ -791,7 +794,7 @@ export function TeamAccessContent({
         </Card>
       </TabsContent>
 
-      <TabsContent value="permissoes" key={effectiveMemberId} className="space-y-6">
+      <TabsContent value='permissoes' key={effectiveMemberId} className='space-y-6'>
         <Card>
           <CardHeader>
             <CardTitle>Permissões por membro</CardTitle>
@@ -799,20 +802,20 @@ export function TeamAccessContent({
               Owner define overrides por membro. `deny` sempre vence conflito.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className='space-y-4'>
             {!canManageMemberPermissions && (
-              <p className="text-muted-foreground text-sm">
+              <p className='text-muted-foreground text-sm'>
                 Apenas owner pode alterar permissões por membro.
               </p>
             )}
 
             {canManageMemberPermissions && (
               <>
-                <div className="grid gap-2 md:w-[360px]">
-                  <label className="text-sm font-medium">Membro</label>
+                <div className='grid gap-2 md:w-[360px]'>
+                  <label className='font-medium text-sm'>Membro</label>
                   <Select value={selectedMemberId} onValueChange={setSelectedMemberId}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecione o membro" />
+                      <SelectValue placeholder='Selecione o membro' />
                     </SelectTrigger>
                     <SelectContent>
                       {members.map((member) => (
@@ -825,13 +828,16 @@ export function TeamAccessContent({
                 </div>
 
                 {selectedMember && (
-                  <div className="rounded-md border p-3 text-sm">
+                  <div className='rounded-md border p-3 text-sm'>
                     <p>
                       <strong>Membro:</strong> {selectedMember.name || selectedMember.email}
                     </p>
                     <p>
                       <strong>Papel base:</strong>{' '}
-                      {roleLabel(memberPermissionsQuery.data?.roleKey || selectedMember.role, roles)}
+                      {roleLabel(
+                        memberPermissionsQuery.data?.roleKey || selectedMember.role,
+                        roles
+                      )}
                     </p>
                   </div>
                 )}
@@ -849,7 +855,7 @@ export function TeamAccessContent({
                   <TableBody>
                     {!memberPermissionsQuery.data?.permissions?.length && (
                       <TableRow>
-                        <TableCell colSpan={5} className="text-muted-foreground text-center">
+                        <TableCell colSpan={5} className='text-center text-muted-foreground'>
                           Selecione um membro para visualizar permissões.
                         </TableCell>
                       </TableRow>
@@ -858,9 +864,9 @@ export function TeamAccessContent({
                     {memberPermissionsQuery.data?.permissions.map((permission) => (
                       <TableRow key={permission.key}>
                         <TableCell>
-                          <div className="flex flex-col gap-1">
-                            <span className="text-sm">{getPermissionLabel(permission.key)}</span>
-                            <span className="text-muted-foreground font-mono text-[11px]">
+                          <div className='flex flex-col gap-1'>
+                            <span className='text-sm'>{getPermissionLabel(permission.key)}</span>
+                            <span className='font-mono text-[11px] text-muted-foreground'>
                               {permission.key}
                             </span>
                           </div>
@@ -917,7 +923,10 @@ export function TeamAccessContent({
                 <div>
                   <Button
                     onClick={() => saveMemberOverridesMutation.mutate()}
-                    disabled={saveMemberOverridesMutation.isPending || !memberPermissionsQuery.data?.memberId}
+                    disabled={
+                      saveMemberOverridesMutation.isPending ||
+                      !memberPermissionsQuery.data?.memberId
+                    }
                   >
                     {saveMemberOverridesMutation.isPending ? 'Salvando...' : 'Salvar overrides'}
                   </Button>

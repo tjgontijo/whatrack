@@ -1,13 +1,12 @@
 'use client'
 
-import { CheckCircle2, AlertCircle, Clock3 } from 'lucide-react'
+import { AlertCircle, CheckCircle2, Clock3 } from 'lucide-react'
 import { motion } from 'motion/react'
-
+import { Button } from '@/components/ui/button'
 import { useBillingSubscription } from '@/features/billing/hooks/use-billing-subscription'
 import { useOrganization } from '@/features/organizations/hooks/use-organization'
-import { formatDate } from '@/lib/date/format-date'
 import { getBillingStatusLabel } from '@/lib/billing/subscription-status'
-import { Button } from '@/components/ui/button'
+import { formatDate } from '@/lib/date/format-date'
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat('pt-BR', {
@@ -19,11 +18,11 @@ function formatCurrency(value: number) {
 function getStatusIcon(status: string) {
   switch (status) {
     case 'ACTIVE':
-      return <CheckCircle2 className="h-4 w-4" />
+      return <CheckCircle2 className='h-4 w-4' />
     case 'PENDING':
-      return <Clock3 className="h-4 w-4" />
+      return <Clock3 className='h-4 w-4' />
     default:
-      return <AlertCircle className="h-4 w-4" />
+      return <AlertCircle className='h-4 w-4' />
   }
 }
 
@@ -47,8 +46,11 @@ export function BillingPlanInvoice() {
 
   const planName = subscription.planName || subscription.planType || 'Sem Plano'
   const statusLabel = getBillingStatusLabel(subscription.status)
-  const statusStyle = statusStyles[subscription.status as keyof typeof statusStyles] || statusStyles.INACTIVE
-  const nextCycleDate = subscription.expiresAt ? formatDate(new Date(subscription.expiresAt), 'dd/MM/yyyy') : 'Aguardando'
+  const statusStyle =
+    statusStyles[subscription.status as keyof typeof statusStyles] || statusStyles.INACTIVE
+  const nextCycleDate = subscription.expiresAt
+    ? formatDate(new Date(subscription.expiresAt), 'dd/MM/yyyy')
+    : 'Aguardando'
 
   // TODO: Buscar features do plano via catálogo ou endpoint expandido
   const features: string[] = []
@@ -57,14 +59,18 @@ export function BillingPlanInvoice() {
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="space-y-6 rounded-lg border border-border bg-card p-6"
+      className='space-y-6 rounded-lg border border-border bg-card p-6'
     >
       {/* Header */}
-      <div className="flex items-center justify-between gap-4">
+      <div className='flex items-center justify-between gap-4'>
         <div>
-          <h3 className="text-lg font-semibold text-foreground uppercase tracking-wide">{planName}</h3>
+          <h3 className='font-semibold text-foreground text-lg uppercase tracking-wide'>
+            {planName}
+          </h3>
         </div>
-        <div className={`flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-medium ${statusStyle}`}>
+        <div
+          className={`flex items-center gap-2 rounded-full border px-3 py-1 font-medium text-sm ${statusStyle}`}
+        >
           {getStatusIcon(subscription.status)}
           <span>{statusLabel}</span>
         </div>
@@ -72,12 +78,14 @@ export function BillingPlanInvoice() {
 
       {/* Features */}
       {features.length > 0 && (
-        <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Recursos inclusos:</p>
-          <ul className="space-y-1">
+        <div className='space-y-2'>
+          <p className='font-semibold text-muted-foreground text-xs uppercase tracking-wide'>
+            Recursos inclusos:
+          </p>
+          <ul className='space-y-1'>
             {features.map((feature, idx) => (
-              <li key={idx} className="flex items-center gap-2 text-sm text-foreground">
-                <span className="text-xs">•</span>
+              <li key={idx} className='flex items-center gap-2 text-foreground text-sm'>
+                <span className='text-xs'>•</span>
                 <span>{feature}</span>
               </li>
             ))}
@@ -86,8 +94,8 @@ export function BillingPlanInvoice() {
       )}
 
       {/* Pricing & Next Cycle */}
-      <div className="border-t pt-4">
-        <div className="flex items-center justify-between gap-2 text-sm text-muted-foreground">
+      <div className='border-t pt-4'>
+        <div className='flex items-center justify-between gap-2 text-muted-foreground text-sm'>
           <span>Próximo ciclo: {nextCycleDate}</span>
           {subscription.lastInvoice && (
             <>
@@ -99,8 +107,8 @@ export function BillingPlanInvoice() {
       </div>
 
       {/* Actions */}
-      <div className="flex gap-2 pt-2">
-        <Button variant="outline" size="sm" disabled className="text-xs">
+      <div className='flex gap-2 pt-2'>
+        <Button variant='outline' size='sm' disabled className='text-xs'>
           Ver histórico
         </Button>
       </div>

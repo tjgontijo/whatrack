@@ -12,7 +12,7 @@ export type ItemFilters = {
 
 export async function buildItemFilters(
   organizationId: string,
-  projectId?: string | null,
+  projectId?: string | null
 ): Promise<ItemFilters> {
   const categories = await prisma.itemCategory.findMany({
     where: {

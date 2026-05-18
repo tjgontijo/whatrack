@@ -1,26 +1,12 @@
 'use client'
 
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Calendar, DollarSign, MessageSquare, SlidersHorizontal } from 'lucide-react'
 import React, { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { User, Calendar, MessageSquare, DollarSign, TrendingUp, SlidersHorizontal } from 'lucide-react'
 import { toast } from 'sonner'
-
-import { CrudDataView, CrudEmptyState } from '@/features/dashboard/components/crud/crud-data-view'
-import { CrudListView } from '@/features/dashboard/components/crud/crud-list-view'
-import { CrudCardView } from '@/features/dashboard/components/crud/crud-card-view'
-import { CrudKanbanView } from '@/features/dashboard/components/crud/crud-kanban-view'
-import { ViewSwitcher } from '@/features/dashboard/components/crud/view-switcher'
-import { HeaderPageShell } from '@/features/dashboard/components/layout'
-import { PipelineConfigSheet } from '@/features/dashboard/components/pipeline/pipeline-config-sheet'
-import { useCrudInfiniteQuery } from '@/hooks/ui/use-crud-infinite-query'
-import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
-import {
-  type ColumnDef,
-  type CardConfig,
-  type KanbanColumn,
-  type ViewType,
-} from '@/features/dashboard/components/crud/types'
-
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
@@ -28,11 +14,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-
+import { CrudCardView } from '@/features/dashboard/components/crud/crud-card-view'
+import { CrudDataView, CrudEmptyState } from '@/features/dashboard/components/crud/crud-data-view'
+import { CrudKanbanView } from '@/features/dashboard/components/crud/crud-kanban-view'
+import { CrudListView } from '@/features/dashboard/components/crud/crud-list-view'
+import type {
+  CardConfig,
+  ColumnDef,
+  KanbanColumn,
+  ViewType,
+} from '@/features/dashboard/components/crud/types'
+import { ViewSwitcher } from '@/features/dashboard/components/crud/view-switcher'
+import { HeaderPageShell } from '@/features/dashboard/components/layout'
+import { PipelineConfigSheet } from '@/features/dashboard/components/pipeline/pipeline-config-sheet'
+import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
+import { useCrudInfiniteQuery } from '@/hooks/ui/use-crud-infinite-query'
 import { formatCurrencyBRL } from '@/lib/mask/formatters'
-import { Button } from '@/components/ui/button'
 
 type TicketItem = {
   id: string
@@ -96,13 +93,13 @@ const columns: ColumnDef<TicketItem>[] = [
     key: 'lead',
     label: 'Lead',
     render: (ticket) => (
-      <div className="flex items-center gap-2.5">
-        <Avatar className="border-border/50 h-7 w-7 shrink-0 border">
-          <AvatarFallback className="bg-primary/5 text-primary text-[9px] font-semibold">
+      <div className='flex items-center gap-2.5'>
+        <Avatar className='h-7 w-7 shrink-0 border border-border/50'>
+          <AvatarFallback className='bg-primary/5 font-semibold text-[9px] text-primary'>
             {getInitials(getLeadName(ticket))}
           </AvatarFallback>
         </Avatar>
-        <span className="truncate text-[13px] font-medium">{getLeadName(ticket)}</span>
+        <span className='truncate font-medium text-[13px]'>{getLeadName(ticket)}</span>
       </div>
     ),
   },
@@ -111,12 +108,12 @@ const columns: ColumnDef<TicketItem>[] = [
     label: 'Fase',
     width: 160,
     render: (ticket) => (
-      <div className="flex items-center gap-1.5">
+      <div className='flex items-center gap-1.5'>
         <span
-          className="h-2 w-2 shrink-0 rounded-full"
+          className='h-2 w-2 shrink-0 rounded-full'
           style={{ backgroundColor: ticket.stage.color }}
         />
-        <span className="text-sm">{ticket.stage.name}</span>
+        <span className='text-sm'>{ticket.stage.name}</span>
       </div>
     ),
   },
@@ -129,7 +126,7 @@ const columns: ColumnDef<TicketItem>[] = [
       return s ? (
         <Badge variant={s.variant}>{s.label}</Badge>
       ) : (
-        <span className="text-muted-foreground">—</span>
+        <span className='text-muted-foreground'>—</span>
       )
     },
   },
@@ -138,11 +135,11 @@ const columns: ColumnDef<TicketItem>[] = [
     label: 'Valor',
     width: 120,
     render: (ticket) => (
-      <span className="font-semibold text-emerald-600">
+      <span className='font-semibold text-emerald-600'>
         {ticket.dealValue ? (
           formatCurrencyBRL(ticket.dealValue)
         ) : (
-          <span className="text-muted-foreground">—</span>
+          <span className='text-muted-foreground'>—</span>
         )}
       </span>
     ),
@@ -153,9 +150,9 @@ const columns: ColumnDef<TicketItem>[] = [
     width: 140,
     render: (ticket) =>
       ticket.assignee ? (
-        <span className="text-muted-foreground text-sm">{ticket.assignee.name}</span>
+        <span className='text-muted-foreground text-sm'>{ticket.assignee.name}</span>
       ) : (
-        <span className="text-muted-foreground">—</span>
+        <span className='text-muted-foreground'>—</span>
       ),
   },
   {
@@ -165,49 +162,49 @@ const columns: ColumnDef<TicketItem>[] = [
     headerClassName: 'text-right',
     className: 'text-right',
     render: (ticket) => (
-      <span className="text-muted-foreground text-xs">{daysSince(ticket.createdAt)}d</span>
+      <span className='text-muted-foreground text-xs'>{daysSince(ticket.createdAt)}d</span>
     ),
   },
 ]
 
 const cardConfig: CardConfig<TicketItem> = {
   icon: (ticket) => (
-    <Avatar className="border-border h-9 w-9 border">
-      <AvatarFallback className="bg-primary/5 text-primary text-xs font-bold">
+    <Avatar className='h-9 w-9 border border-border'>
+      <AvatarFallback className='bg-primary/5 font-bold text-primary text-xs'>
         {getInitials(getLeadName(ticket))}
       </AvatarFallback>
     </Avatar>
   ),
   title: getLeadName,
   subtitle: (ticket) => (
-    <div className="mt-0.5 flex items-center gap-1.5">
+    <div className='mt-0.5 flex items-center gap-1.5'>
       <span
-        className="h-2 w-2 shrink-0 rounded-full"
+        className='h-2 w-2 shrink-0 rounded-full'
         style={{ backgroundColor: ticket.stage.color }}
       />
-      <span className="text-muted-foreground text-xs">{ticket.stage.name}</span>
+      <span className='text-muted-foreground text-xs'>{ticket.stage.name}</span>
     </div>
   ),
   badge: (ticket) => {
     const s = STATUS_BADGE[ticket.status]
     return s ? (
-      <Badge variant={s.variant} className="text-[10px]">
+      <Badge variant={s.variant} className='text-[10px]'>
         {s.label}
       </Badge>
     ) : null
   },
   footer: (ticket) => (
-    <div className="flex w-full items-center justify-between">
-      <span className="text-muted-foreground flex items-center gap-1 text-xs">
-        <MessageSquare className="h-3 w-3" />
+    <div className='flex w-full items-center justify-between'>
+      <span className='flex items-center gap-1 text-muted-foreground text-xs'>
+        <MessageSquare className='h-3 w-3' />
         {ticket.messagesCount}
       </span>
       {ticket.dealValue ? (
-        <span className="text-xs font-semibold text-emerald-600">
+        <span className='font-semibold text-emerald-600 text-xs'>
           {formatCurrencyBRL(ticket.dealValue)}
         </span>
       ) : (
-        <span className="text-muted-foreground text-xs">{daysSince(ticket.createdAt)}d atrás</span>
+        <span className='text-muted-foreground text-xs'>{daysSince(ticket.createdAt)}d atrás</span>
       )}
     </div>
   ),
@@ -215,37 +212,37 @@ const cardConfig: CardConfig<TicketItem> = {
 
 function TicketKanbanCard({ ticket }: { ticket: TicketItem }) {
   return (
-    <div className="border-border bg-card rounded-xl border p-3 shadow-sm transition-shadow hover:shadow-md">
-      <div className="mb-2 flex items-start gap-2">
-        <Avatar className="border-border/50 mt-0.5 h-7 w-7 shrink-0 border">
-          <AvatarFallback className="bg-primary/5 text-primary text-[9px] font-semibold">
+    <div className='rounded-xl border border-border bg-card p-3 shadow-sm transition-shadow hover:shadow-md'>
+      <div className='mb-2 flex items-start gap-2'>
+        <Avatar className='mt-0.5 h-7 w-7 shrink-0 border border-border/50'>
+          <AvatarFallback className='bg-primary/5 font-semibold text-[9px] text-primary'>
             {getInitials(getLeadName(ticket))}
           </AvatarFallback>
         </Avatar>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold leading-tight">{getLeadName(ticket)}</p>
+        <div className='min-w-0 flex-1'>
+          <p className='truncate font-semibold text-sm leading-tight'>{getLeadName(ticket)}</p>
           {ticket.lead.phone && (
-            <p className="text-muted-foreground truncate font-mono text-[11px]">
+            <p className='truncate font-mono text-[11px] text-muted-foreground'>
               {ticket.lead.phone}
             </p>
           )}
         </div>
       </div>
 
-      <div className="text-muted-foreground mt-2 flex items-center justify-between text-[11px]">
-        <span className="flex items-center gap-1">
-          <Calendar className="h-3 w-3" />
+      <div className='mt-2 flex items-center justify-between text-[11px] text-muted-foreground'>
+        <span className='flex items-center gap-1'>
+          <Calendar className='h-3 w-3' />
           {daysSince(ticket.createdAt)}d
         </span>
         {ticket.dealValue && (
-          <span className="flex items-center gap-1 font-semibold text-emerald-600">
-            <DollarSign className="h-3 w-3" />
+          <span className='flex items-center gap-1 font-semibold text-emerald-600'>
+            <DollarSign className='h-3 w-3' />
             {formatCurrencyBRL(ticket.dealValue)}
           </span>
         )}
         {ticket.assignee && (
-          <Avatar className="h-4 w-4">
-            <AvatarFallback className="bg-muted text-[8px]">
+          <Avatar className='h-4 w-4'>
+            <AvatarFallback className='bg-muted text-[8px]'>
               {getInitials(ticket.assignee.name)}
             </AvatarFallback>
           </Avatar>
@@ -330,12 +327,12 @@ export default function TicketsPage() {
   const filtersNode = (
     <>
       <Select value={statusFilter} onValueChange={setStatusFilter}>
-        <SelectTrigger className="border-border h-7 w-36 text-xs">
+        <SelectTrigger className='h-7 w-36 border-border text-xs'>
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
           {STATUS_OPTIONS.map((opt) => (
-            <SelectItem key={opt.value} value={opt.value} className="text-xs">
+            <SelectItem key={opt.value} value={opt.value} className='text-xs'>
               {opt.label}
             </SelectItem>
           ))}
@@ -343,12 +340,12 @@ export default function TicketsPage() {
       </Select>
 
       <Select value={dateRange} onValueChange={setDateRange}>
-        <SelectTrigger className="border-border h-7 w-36 text-xs">
+        <SelectTrigger className='h-7 w-36 border-border text-xs'>
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
           {DATE_OPTIONS.map((opt) => (
-            <SelectItem key={opt.value} value={opt.value} className="text-xs">
+            <SelectItem key={opt.value} value={opt.value} className='text-xs'>
               {opt.label}
             </SelectItem>
           ))}
@@ -360,26 +357,26 @@ export default function TicketsPage() {
   return (
     <>
       <HeaderPageShell
-        title="Pipeline"
+        title='Pipeline'
         selector={
           <ViewSwitcher view={view} setView={setView} enabledViews={['kanban', 'list', 'cards']} />
         }
         searchValue={searchInput}
         onSearchChange={setSearchInput}
-        searchPlaceholder="Buscar por nome, telefone..."
+        searchPlaceholder='Buscar por nome, telefone...'
         onRefresh={() => void refetch()}
         isFetchingMore={isFetchingNextPage}
         filters={filtersNode}
         isLoading={isLoading}
         actions={
           <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="h-7 gap-1.5 text-xs"
+            type='button'
+            variant='outline'
+            size='sm'
+            className='h-7 gap-1.5 text-xs'
             onClick={() => setPipelineSheetOpen(true)}
           >
-            <SlidersHorizontal className="h-3.5 w-3.5" />
+            <SlidersHorizontal className='h-3.5 w-3.5' />
             Configurar pipeline
           </Button>
         }

@@ -25,17 +25,17 @@ export class CheckoutStatusTokenService {
         type,
         resourceId,
         exp: Date.now() + CHECKOUT_STATUS_TOKEN_TTL_MS,
-      } satisfies CheckoutStatusPayload),
+      } satisfies CheckoutStatusPayload)
     ).toString('base64url')
     return `${payload}.${sign(payload)}`
   }
 
   static createInvoiceToken(invoiceId: string) {
-    return this.create('invoice', invoiceId)
+    return CheckoutStatusTokenService.create('invoice', invoiceId)
   }
 
   static createAuthorizationToken(authorizationId: string) {
-    return this.create('authorization', authorizationId)
+    return CheckoutStatusTokenService.create('authorization', authorizationId)
   }
 
   static verify(token: string): CheckoutStatusPayload | null {
@@ -51,7 +51,7 @@ export class CheckoutStatusTokenService {
       }
 
       const decoded = JSON.parse(
-        Buffer.from(payload, 'base64url').toString('utf8'),
+        Buffer.from(payload, 'base64url').toString('utf8')
       ) as CheckoutStatusPayload
       if (decoded.exp <= Date.now()) return null
 
@@ -62,12 +62,12 @@ export class CheckoutStatusTokenService {
   }
 
   static verifyInvoiceToken(token: string, invoiceId: string): boolean {
-    const decoded = this.verify(token)
+    const decoded = CheckoutStatusTokenService.verify(token)
     return decoded?.type === 'invoice' && decoded?.resourceId === invoiceId
   }
 
   static verifyAuthorizationToken(token: string, authorizationId: string): boolean {
-    const decoded = this.verify(token)
+    const decoded = CheckoutStatusTokenService.verify(token)
     return decoded?.type === 'authorization' && decoded?.resourceId === authorizationId
   }
 }

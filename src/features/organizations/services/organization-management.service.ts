@@ -1,15 +1,14 @@
 import { Prisma } from '@generated/prisma/client'
 import { nanoid } from 'nanoid'
-
-import { prisma } from '@/lib/db/prisma'
-import { normalizeSlug } from '@/lib/utils/slug'
-import { auditService } from '@/services/audit/audit.service'
 import { calculateMetrics } from '@/features/onboarding/services/metrics/metrics-calculator'
 import {
   normalizeOnboardingDocument,
   type OrganizationOnboardingInput,
 } from '@/features/organizations/schemas/organization-onboarding'
 import type { UpdateOrganizationByIdInput } from '@/features/organizations/schemas/organization-schemas'
+import { prisma } from '@/lib/db/prisma'
+import { normalizeSlug } from '@/lib/utils/slug'
+import { auditService } from '@/services/audit/audit.service'
 
 const onboardingStatuses = [
   { name: 'pending', description: 'Onboarding iniciado e aguardando conclusão.' },
@@ -91,11 +90,14 @@ function resolveOrganizationName(input: {
 export async function createOrganizationFromOnboarding(input: {
   user: { id: string; name?: string | null; email: string }
   data: OrganizationOnboardingInput
-}): Promise<{ id: string; name: string; slug: string; entityType: 'individual' | 'company' } | {
-  error: string
-  status: 400 | 409
-  organizationId?: string
-}> {
+}): Promise<
+  | { id: string; name: string; slug: string; entityType: 'individual' | 'company' }
+  | {
+      error: string
+      status: 400 | 409
+      organizationId?: string
+    }
+> {
   const existingMembership = await prisma.member.findFirst({
     where: { userId: input.user.id },
     select: { id: true, organizationId: true },
@@ -193,7 +195,9 @@ export async function createOrganizationFromOnboarding(input: {
           porte: company.porte || null,
           naturezaJuridica: company.naturezaJuridica || null,
           capitalSocial:
-            typeof company.capitalSocial === 'number' ? new Prisma.Decimal(company.capitalSocial) : null,
+            typeof company.capitalSocial === 'number'
+              ? new Prisma.Decimal(company.capitalSocial)
+              : null,
           situacao: company.situacao || null,
           dataAbertura: parseOptionalDate(company.dataAbertura),
           dataSituacao: parseOptionalDate(company.dataSituacao),
@@ -255,7 +259,9 @@ export async function getOrCreateCurrentOrganization(input: {
 
   if (!member) {
     const fallbackName =
-      input.user.name?.trim() || (input.user.email?.split('@')[0] ?? '').trim() || 'Minha organizacao'
+      input.user.name?.trim() ||
+      (input.user.email?.split('@')[0] ?? '').trim() ||
+      'Minha organizacao'
     const slug = await resolveAvailableOrganizationSlug({ name: fallbackName })
 
     const organization = await prisma.$transaction(async (tx) => {

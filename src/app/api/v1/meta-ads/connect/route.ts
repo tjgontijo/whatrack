@@ -1,11 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server'
-
-import { apiError } from '@/lib/utils/api-response'
-import { validateFullAccess } from '@/server/auth/validate-organization-access'
+import { type NextRequest, NextResponse } from 'next/server'
 import { buildMetaAdsAuthorizeUrl } from '@/features/meta-ads/services/meta-oauth.service'
 import { createMetaOAuthState } from '@/features/meta-ads/services/meta-oauth-state.service'
-import { logger } from '@/lib/utils/logger'
 import { prisma } from '@/lib/db/prisma'
+import { apiError } from '@/lib/utils/api-response'
+import { logger } from '@/lib/utils/logger'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 export async function GET(req: NextRequest) {
   const access = await validateFullAccess(req)
@@ -16,8 +15,7 @@ export async function GET(req: NextRequest) {
 
   const clientId = process.env.META_ADS_APP_ID
   const origin = req.nextUrl.origin
-  const redirectUri =
-    process.env.META_OAUTH_REDIRECT_URI || `${origin}/api/v1/meta-ads/callback`
+  const redirectUri = process.env.META_OAUTH_REDIRECT_URI || `${origin}/api/v1/meta-ads/callback`
 
   if (!clientId) {
     logger.error('[MetaAdsConnect] META_ADS_APP_ID not configured')

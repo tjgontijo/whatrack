@@ -154,7 +154,7 @@ export async function listWhatsAppChatMessages(params: ListChatMessagesParams) {
       },
     })
 
-    if (!lead || !lead.conversations[0]) {
+    if (!lead?.conversations[0]) {
       return { error: 'Conversa não encontrada' as const, status: 404 as const }
     }
 

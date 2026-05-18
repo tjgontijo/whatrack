@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db/prisma'
-import { metaAccessTokenService } from './access-token.service'
 import { logger } from '@/lib/utils/logger'
+import { metaAccessTokenService } from './access-token.service'
 import { MetaApiError, metaApiRequest } from './meta-api'
 
 export class MetaCampaignsService {
@@ -25,7 +25,7 @@ export class MetaCampaignsService {
 
     if (connections.length === 0) return []
 
-    let allCampaigns: any[] = []
+    const allCampaigns: any[] = []
 
     for (const conn of connections) {
       const token = await metaAccessTokenService.getDecryptedToken(conn.id)
@@ -143,12 +143,15 @@ export class MetaCampaignsService {
             })
           }
         } catch (error: unknown) {
-          const errorMessage = error instanceof MetaApiError
-            ? JSON.stringify(error.data)
-            : error instanceof Error
-              ? error.message
-              : String(error)
-          logger.error(`[Campaigns Service] Error fetching for account ${acc.adAccountId}: ${errorMessage}`)
+          const errorMessage =
+            error instanceof MetaApiError
+              ? JSON.stringify(error.data)
+              : error instanceof Error
+                ? error.message
+                : String(error)
+          logger.error(
+            `[Campaigns Service] Error fetching for account ${acc.adAccountId}: ${errorMessage}`
+          )
         }
       }
     }

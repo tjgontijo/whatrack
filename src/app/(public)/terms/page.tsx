@@ -1,6 +1,6 @@
 import Link from 'next/link'
-import { LandingHeader } from '@/components/landing/LandingHeader'
 import { LandingFooter } from '@/components/landing/LandingFooter'
+import { LandingHeader } from '@/components/landing/LandingHeader'
 
 const sections = [
   {
@@ -109,37 +109,37 @@ const sections = [
 
 export default function TermsPage() {
   return (
-    <div className="bg-background text-foreground flex min-h-screen flex-col">
+    <div className='flex min-h-screen flex-col bg-background text-foreground'>
       <LandingHeader />
 
-      <main className="relative overflow-hidden">
-        <div className="bg-primary/10 absolute -left-40 top-24 h-72 w-72 rounded-full blur-3xl" />
-        <div className="bg-chart-5/10 absolute -right-36 bottom-24 h-72 w-72 rounded-full blur-3xl" />
+      <main className='relative overflow-hidden'>
+        <div className='absolute top-24 -left-40 h-72 w-72 rounded-full bg-primary/10 blur-3xl' />
+        <div className='absolute -right-36 bottom-24 h-72 w-72 rounded-full bg-chart-5/10 blur-3xl' />
 
-        <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-12 px-6 py-16 sm:px-8 lg:px-0">
-          <div className="space-y-4">
-            <p className="bg-muted text-foreground inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold">
+        <div className='relative mx-auto flex w-full max-w-5xl flex-col gap-12 px-6 py-16 sm:px-8 lg:px-0'>
+          <div className='space-y-4'>
+            <p className='inline-flex items-center gap-2 rounded-full bg-muted px-4 py-2 font-semibold text-foreground text-sm'>
               📄 Termos de Uso
             </p>
-            <h1 className="text-4xl font-bold leading-tight sm:text-5xl">
+            <h1 className='font-bold text-4xl leading-tight sm:text-5xl'>
               Regras de uso do WhatRack
             </h1>
-            <p className="text-muted-foreground text-lg sm:text-xl">
+            <p className='text-lg text-muted-foreground sm:text-xl'>
               Condições legais para uso do produto, integrações, campanhas e créditos.
             </p>
           </div>
 
-          <div className="grid gap-6">
+          <div className='grid gap-6'>
             {sections.map((section) => (
               <div
                 key={section.title}
-                className="border-border/60 bg-card/60 rounded-2xl border p-6 shadow-sm backdrop-blur"
+                className='rounded-2xl border border-border/60 bg-card/60 p-6 shadow-sm backdrop-blur'
               >
-                <h2 className="text-xl font-semibold">{section.title}</h2>
-                <ul className="text-muted-foreground mt-4 space-y-2">
+                <h2 className='font-semibold text-xl'>{section.title}</h2>
+                <ul className='mt-4 space-y-2 text-muted-foreground'>
                   {section.items.map((item) => (
-                    <li key={item} className="flex gap-3">
-                      <span className="bg-primary mt-1 h-2 w-2 rounded-full" aria-hidden />
+                    <li key={item} className='flex gap-3'>
+                      <span className='mt-1 h-2 w-2 rounded-full bg-primary' aria-hidden />
                       <span>{item}</span>
                     </li>
                   ))}
@@ -148,16 +148,16 @@ export default function TermsPage() {
             ))}
           </div>
 
-          <div className="border-border bg-muted/30 text-muted-foreground flex flex-wrap items-center gap-3 rounded-2xl border p-4 text-sm">
+          <div className='flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-muted/30 p-4 text-muted-foreground text-sm'>
             <span>Precisa falar com o jurídico?</span>
             <Link
-              href="mailto:legal@whatrack.com"
-              className="text-primary font-semibold hover:underline"
+              href='mailto:legal@whatrack.com'
+              className='font-semibold text-primary hover:underline'
             >
               legal@whatrack.com
             </Link>
             <span>ou</span>
-            <Link href="/" className="text-primary font-semibold hover:underline">
+            <Link href='/' className='font-semibold text-primary hover:underline'>
               voltar para a página inicial
             </Link>
           </div>

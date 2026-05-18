@@ -1,6 +1,6 @@
-import ptBR from './locales/pt-BR.json'
 import enUS from './locales/en-US.json'
 import esES from './locales/es-ES.json'
+import ptBR from './locales/pt-BR.json'
 
 type Messages = Record<string, string>
 

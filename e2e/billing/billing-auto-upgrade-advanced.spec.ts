@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
 import {
   completePaidAcquisitionJourney,
@@ -10,9 +10,7 @@ import {
 test.describe('Billing - Project Growth Advanced', () => {
   test.setTimeout(180000)
 
-  test('should keep subscription consistent while creating multiple projects', async ({
-    page,
-  }) => {
+  test('should keep subscription consistent while creating multiple projects', async ({ page }) => {
     await completePaidAcquisitionJourney(page)
 
     const subscriptionBefore = await getSubscriptionViaApi(page)
@@ -31,7 +29,7 @@ test.describe('Billing - Project Growth Advanced', () => {
 
       expect(
         result.response.status(),
-        `Project creation failed for ${slug}: ${JSON.stringify(result.body)}`,
+        `Project creation failed for ${slug}: ${JSON.stringify(result.body)}`
       ).toBe(201)
 
       createdSlugs.push(slug)
@@ -40,9 +38,7 @@ test.describe('Billing - Project Growth Advanced', () => {
     const projects = await listProjectsViaApi(page)
     expect(projects.response.ok()).toBeTruthy()
 
-    const listedSlugs = (projects.body?.items ?? []).map(
-      (item: { slug?: string }) => item.slug,
-    )
+    const listedSlugs = (projects.body?.items ?? []).map((item: { slug?: string }) => item.slug)
     for (const createdSlug of createdSlugs) {
       expect(listedSlugs).toContain(createdSlug)
     }

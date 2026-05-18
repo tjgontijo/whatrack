@@ -41,7 +41,7 @@ describe('executeLockedCronJob', () => {
 
     expect(result).toEqual({ status: 'already-running' })
     expect(loggerMock.warn).toHaveBeenCalledWith(
-      '[MetaTokenRefreshCron] Job already running, skipping',
+      '[MetaTokenRefreshCron] Job already running, skipping'
     )
   })
 
@@ -72,7 +72,7 @@ describe('executeLockedCronJob', () => {
         jobType: 'whatsapp-health-check',
         loggerLabel: 'WhatsAppHealthCheckCron',
         run: vi.fn().mockRejectedValueOnce(new Error('boom')),
-      }),
+      })
     ).rejects.toThrow('boom')
 
     expect(releaseLockMock).toHaveBeenCalledWith('whatsapp-health-check', 'job-2')

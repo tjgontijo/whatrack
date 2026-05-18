@@ -26,7 +26,7 @@ describe('AccountOrganizationCard', () => {
         }}
         canManageOrganizationSettings
         onEdit={onEdit}
-      />,
+      />
     )
 
     expect(screen.getByText('Dados fiscais')).toBeInTheDocument()

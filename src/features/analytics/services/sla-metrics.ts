@@ -1,7 +1,12 @@
 import { Prisma } from '@generated/prisma/client'
 import { prisma } from '@/lib/db/prisma'
 
-export async function getSlaMetrics(organizationId: string, startDate: Date, endDate: Date, projectId?: string) {
+export async function getSlaMetrics(
+  organizationId: string,
+  startDate: Date,
+  endDate: Date,
+  projectId?: string
+) {
   const distribution = await prisma.$queryRaw`
     SELECT
       bucket,

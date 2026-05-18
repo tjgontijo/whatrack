@@ -1,6 +1,6 @@
 import 'server-only'
 
-import { Prisma } from '@generated/prisma/client'
+import type { Prisma } from '@generated/prisma/client'
 import { prisma } from '@/lib/db/prisma'
 
 export async function listLeadsRepository(input: {
@@ -33,7 +33,8 @@ export async function listLeadsRepository(input: {
     organizationId: input.organizationId,
     ...(input.projectId ? { projectId: input.projectId } : {}),
   }
-  const where: Prisma.LeadWhereInput = filters.length > 0 ? { AND: [baseWhere, ...filters] } : baseWhere
+  const where: Prisma.LeadWhereInput =
+    filters.length > 0 ? { AND: [baseWhere, ...filters] } : baseWhere
 
   const [items, total] = await Promise.all([
     prisma.lead.findMany({

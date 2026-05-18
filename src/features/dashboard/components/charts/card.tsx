@@ -1,7 +1,6 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { useEffect, useState } from 'react'
 
 import { cn } from '@/lib/utils/utils'
 
@@ -50,26 +49,26 @@ export function DashboardMetricCard({
       <article
         className={cn(
           cardWidthClass,
-          'border-border/50 bg-card flex h-full flex-col justify-between rounded-3xl border p-6 shadow-[0px_18px_35px_-25px_rgba(15,23,42,0.25)] backdrop-blur-sm',
+          'flex h-full flex-col justify-between rounded-3xl border border-border/50 bg-card p-6 shadow-[0px_18px_35px_-25px_rgba(15,23,42,0.25)] backdrop-blur-sm',
           'transition hover:-translate-y-0.5 hover:shadow-[0px_24px_45px_-28px_rgba(15,23,42,0.35)]',
           className
         )}
       >
-        <header className="flex items-start justify-between gap-3">
+        <header className='flex items-start justify-between gap-3'>
           <div>
-            <p className="text-muted-foreground text-sm font-medium">{title}</p>
+            <p className='font-medium text-muted-foreground text-sm'>{title}</p>
             <div
-              className="text-foreground mt-3 min-h-[32px] text-2xl font-semibold tracking-tight"
+              className='mt-3 min-h-[32px] font-semibold text-2xl text-foreground tracking-tight'
               suppressHydrationWarning
             >
-              {isLoading ? <span className="text-muted-foreground/30">—</span> : value}
+              {isLoading ? <span className='text-muted-foreground/30'>—</span> : value}
             </div>
           </div>
-          {icon ? <div className="text-muted-foreground">{icon}</div> : null}
+          {icon ? <div className='text-muted-foreground'>{icon}</div> : null}
         </header>
 
         {trend && !isLoading ? (
-          <footer className="mt-6 text-xs font-medium text-emerald-600">{trend}</footer>
+          <footer className='mt-6 font-medium text-emerald-600 text-xs'>{trend}</footer>
         ) : null}
       </article>
     </div>
@@ -79,7 +78,7 @@ export function DashboardMetricCard({
 export function DashboardMetricGrid({ children }: { children: ReactNode }) {
   return (
     <div
-      className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4"
+      className='grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4'
       style={{ gridAutoRows: 'minmax(150px, auto)' }}
     >
       {children}

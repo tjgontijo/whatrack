@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test'
+import type { Page } from '@playwright/test'
 
 export const ASAAS_TEST_CARDS = {
   // Valid test cards
@@ -30,10 +30,15 @@ export async function fillCardDetails(page: Page, options: CardFillOptions) {
 
   for (const frame of frames) {
     try {
-      const numberInput = frame.locator('input[name="cardNumber"], input[name="number"], input[placeholder*="Card"]').first()
+      const numberInput = frame
+        .locator('input[name="cardNumber"], input[name="number"], input[placeholder*="Card"]')
+        .first()
       if (await numberInput.isVisible({ timeout: 500 })) {
         await numberInput.fill(number)
-        await frame.locator('input[name="expiry"], input[placeholder*="MM/YY"]').first().fill(expiry)
+        await frame
+          .locator('input[name="expiry"], input[placeholder*="MM/YY"]')
+          .first()
+          .fill(expiry)
         await frame.locator('input[name="cvc"], input[placeholder*="CVC"]').first().fill(cvc)
         return
       }
@@ -73,7 +78,7 @@ export async function fillBillingInfo(page: Page, overrides?: Record<string, str
 
 export async function completeCheckout(page: Page) {
   await page.click(
-    'button:has-text("Assinar plano"), button:has-text("Ativar plano"), button:has-text("Complete Purchase"), button:has-text("Pay Now"), button:has-text("Process Payment")',
+    'button:has-text("Assinar plano"), button:has-text("Ativar plano"), button:has-text("Complete Purchase"), button:has-text("Pay Now"), button:has-text("Process Payment")'
   )
 }
 
@@ -86,7 +91,9 @@ export async function waitForPaymentError(page: Page, timeout = 10000) {
 }
 
 export async function create3DSecureVerification(page: Page) {
-  const secureFrame = page.frameLocator('iframe[title*="3D"], iframe[title*="Secure"], iframe[src*="3ds"]').first()
+  const secureFrame = page
+    .frameLocator('iframe[title*="3D"], iframe[title*="Secure"], iframe[src*="3ds"]')
+    .first()
   return secureFrame
 }
 

@@ -1,9 +1,9 @@
-import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { projectSlugCheckSchema } from '@/features/projects'
-import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { prisma } from '@/lib/db/prisma'
+import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
 import { isValidSlug } from '@/lib/utils/slug'
+import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
 export async function GET(request: Request) {
   try {

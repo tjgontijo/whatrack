@@ -83,13 +83,13 @@ export const MagicLinkEmail = ({
               <Text style={supportTitle}>Precisa de ajuda?</Text>
               <Text style={supportText}>
                 📞 WhatsApp:{' '}
-                <Link href="https://wa.me/551148635262" style={linkStyle}>
+                <Link href='https://wa.me/551148635262' style={linkStyle}>
                   +55 11 4863-5262
                 </Link>
               </Text>
               <Text style={supportText}>
                 ✉️ E-mail:{' '}
-                <Link href="mailto:contato@whatrack.com" style={linkStyle}>
+                <Link href='mailto:contato@whatrack.com' style={linkStyle}>
                   contato@whatrack.com
                 </Link>
               </Text>
@@ -99,7 +99,9 @@ export const MagicLinkEmail = ({
             <Hr style={hr} />
 
             {/* Footer */}
-            <Text style={footer}>© {new Date().getFullYear()} {appName}. Todos os direitos reservados.</Text>
+            <Text style={footer}>
+              © {new Date().getFullYear()} {appName}. Todos os direitos reservados.
+            </Text>
             <Text style={footerSmall}>Este é um email automático. Por favor, não responda.</Text>
           </Section>
         </Container>

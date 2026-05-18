@@ -1,5 +1,5 @@
-import { webhookRetryJob } from '@/features/whatsapp/jobs/webhook-retry.job'
 import { executeLockedCronJob } from '@/features/cron/services/cron-execution.service'
+import { webhookRetryJob } from '@/features/whatsapp/jobs/webhook-retry.job'
 
 export async function runWebhookRetryCronJob() {
   return executeLockedCronJob({

@@ -35,7 +35,7 @@ describe('AccountBillingCard', () => {
           failureCount: 0,
           lastInvoice: null,
         }}
-      />,
+      />
     )
 
     expect(screen.getByText('Plano atual')).toBeInTheDocument()
@@ -43,7 +43,7 @@ describe('AccountBillingCard', () => {
     expect(screen.getByText('Cartão de crédito')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Abrir assinatura' })).toHaveAttribute(
       'href',
-      '/acme/projeto-a/settings/subscription',
+      '/acme/projeto-a/settings/subscription'
     )
   })
 
@@ -53,9 +53,11 @@ describe('AccountBillingCard', () => {
     expect(screen.getByText('Nenhum plano ativo')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Abrir assinatura' })).toHaveAttribute(
       'href',
-      '/acme/projeto-a/settings/subscription',
+      '/acme/projeto-a/settings/subscription'
     )
-    expect(screen.queryByText('Escolha um plano para seguir com a configuração.')).not.toBeInTheDocument()
+    expect(
+      screen.queryByText('Escolha um plano para seguir com a configuração.')
+    ).not.toBeInTheDocument()
   })
 
   it('shows PIX Automático as the payment method when applicable', () => {
@@ -79,7 +81,7 @@ describe('AccountBillingCard', () => {
           failureCount: 0,
           lastInvoice: null,
         }}
-      />,
+      />
     )
 
     expect(screen.getByText('PIX Automático')).toBeInTheDocument()

@@ -1,5 +1,5 @@
-export { listItemCategoriesService } from '@/features/item-categories/services/list-item-categories.service'
 export { createItemCategoryService } from '@/features/item-categories/services/create-item-category.service'
-export { getItemCategoryByIdService } from '@/features/item-categories/services/get-item-category-by-id.service'
-export { updateItemCategoryService } from '@/features/item-categories/services/update-item-category.service'
 export { deleteItemCategoryService } from '@/features/item-categories/services/delete-item-category.service'
+export { getItemCategoryByIdService } from '@/features/item-categories/services/get-item-category-by-id.service'
+export { listItemCategoriesService } from '@/features/item-categories/services/list-item-categories.service'
+export { updateItemCategoryService } from '@/features/item-categories/services/update-item-category.service'

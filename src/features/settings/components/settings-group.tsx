@@ -26,18 +26,18 @@ export function SettingsGroup({
 }: SettingsGroupProps) {
   return (
     <section className={cn('rounded-xl border bg-card', className)}>
-      <div className="px-6 py-5">
-        <h2 className="text-base font-semibold">{label}</h2>
-        {description ? <p className="text-muted-foreground mt-1 text-sm">{description}</p> : null}
+      <div className='px-6 py-5'>
+        <h2 className='font-semibold text-base'>{label}</h2>
+        {description ? <p className='mt-1 text-muted-foreground text-sm'>{description}</p> : null}
       </div>
 
-      <div className="border-border divide-border border-t divide-y px-6">{children}</div>
+      <div className='divide-y divide-border border-border border-t px-6'>{children}</div>
 
       {footer ? (
-        <div className="border-border bg-muted/20 rounded-b-xl border-t px-6 py-4">{footer}</div>
+        <div className='rounded-b-xl border-border border-t bg-muted/20 px-6 py-4'>{footer}</div>
       ) : onSave ? (
-        <div className="border-border bg-muted/20 flex justify-end rounded-b-xl border-t px-6 py-4">
-          <Button type="button" onClick={onSave} disabled={isSaving}>
+        <div className='flex justify-end rounded-b-xl border-border border-t bg-muted/20 px-6 py-4'>
+          <Button type='button' onClick={onSave} disabled={isSaving}>
             {isSaving ? 'Salvando...' : saveLabel}
           </Button>
         </div>

@@ -1,11 +1,15 @@
 import 'server-only'
 
-import { resolveProjectScope } from '@/server/project/project-scope'
+import { listItemCategoriesRepository } from '@/features/item-categories/repositories'
 
 import { itemCategoryListQuerySchema } from '@/features/item-categories/schemas/item-category.schemas'
-import { listItemCategoriesRepository } from '@/features/item-categories/repositories'
-import { normalizePage, normalizePageSize, toItemCategoryListItem } from '@/features/item-categories/services/shared'
+import {
+  normalizePage,
+  normalizePageSize,
+  toItemCategoryListItem,
+} from '@/features/item-categories/services/shared'
 import type { ItemCategoryListResponse } from '@/features/item-categories/types'
+import { resolveProjectScope } from '@/server/project/project-scope'
 
 export async function listItemCategoriesService(input: {
   organizationId: string

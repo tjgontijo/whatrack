@@ -1,16 +1,15 @@
 'use client'
 
-import { useMemo } from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
-
-import { cn } from '@/lib/utils/utils'
+import { useMemo } from 'react'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
+import { cn } from '@/lib/utils/utils'
 
 function FieldSet({ className, ...props }: React.ComponentProps<'fieldset'>) {
   return (
     <fieldset
-      data-slot="field-set"
+      data-slot='field-set'
       className={cn(
         'flex flex-col gap-6 has-[>[data-slot=checkbox-group]]:gap-3 has-[>[data-slot=radio-group]]:gap-3',
         className
@@ -27,7 +26,7 @@ function FieldLegend({
 }: React.ComponentProps<'legend'> & { variant?: 'legend' | 'label' }) {
   return (
     <legend
-      data-slot="field-legend"
+      data-slot='field-legend'
       data-variant={variant}
       className={cn(
         'mb-3 font-medium data-[variant=label]:text-sm data-[variant=legend]:text-base',
@@ -41,7 +40,7 @@ function FieldLegend({
 function FieldGroup({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
-      data-slot="field-group"
+      data-slot='field-group'
       className={cn(
         'group/field-group @container/field-group flex w-full flex-col gap-7 data-[slot=checkbox-group]:gap-3 [&>[data-slot=field-group]]:gap-4',
         className
@@ -73,8 +72,8 @@ function Field({
 }: React.ComponentProps<'div'> & VariantProps<typeof fieldVariants>) {
   return (
     <div
-      role="group"
-      data-slot="field"
+      role='group'
+      data-slot='field'
       data-orientation={orientation}
       className={cn(fieldVariants({ orientation }), className)}
       {...props}
@@ -85,7 +84,7 @@ function Field({
 function FieldContent({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
-      data-slot="field-content"
+      data-slot='field-content'
       className={cn('group/field-content flex flex-1 flex-col gap-1 leading-snug', className)}
       {...props}
     />
@@ -95,9 +94,9 @@ function FieldContent({ className, ...props }: React.ComponentProps<'div'>) {
 function FieldLabel({ className, ...props }: React.ComponentProps<typeof Label>) {
   return (
     <Label
-      data-slot="field-label"
+      data-slot='field-label'
       className={cn(
-        'has-data-checked:bg-primary/5 has-data-checked:border-primary/30 dark:has-data-checked:border-primary/20 dark:has-data-checked:bg-primary/10 group/field-label peer/field-label flex w-fit gap-2 leading-snug has-[>[data-slot=field]]:rounded-xl has-[>[data-slot=field]]:border group-data-[disabled=true]/field:opacity-50 [&>*]:data-[slot=field]:p-4',
+        'group/field-label peer/field-label flex w-fit gap-2 leading-snug has-[>[data-slot=field]]:rounded-xl has-[>[data-slot=field]]:border has-data-checked:border-primary/30 has-data-checked:bg-primary/5 group-data-[disabled=true]/field:opacity-50 dark:has-data-checked:border-primary/20 dark:has-data-checked:bg-primary/10 [&>*]:data-[slot=field]:p-4',
         'has-[>[data-slot=field]]:w-full has-[>[data-slot=field]]:flex-col',
         className
       )}
@@ -109,9 +108,9 @@ function FieldLabel({ className, ...props }: React.ComponentProps<typeof Label>)
 function FieldTitle({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
-      data-slot="field-label"
+      data-slot='field-label'
       className={cn(
-        'flex w-fit items-center gap-2 text-sm font-medium leading-snug group-data-[disabled=true]/field:opacity-50',
+        'flex w-fit items-center gap-2 font-medium text-sm leading-snug group-data-[disabled=true]/field:opacity-50',
         className
       )}
       {...props}
@@ -122,9 +121,9 @@ function FieldTitle({ className, ...props }: React.ComponentProps<'div'>) {
 function FieldDescription({ className, ...props }: React.ComponentProps<'p'>) {
   return (
     <p
-      data-slot="field-description"
+      data-slot='field-description'
       className={cn(
-        'text-muted-foreground text-left text-sm font-normal leading-normal group-has-[[data-orientation=horizontal]]/field:text-balance [[data-variant=legend]+&]:-mt-1.5',
+        'text-left font-normal text-muted-foreground text-sm leading-normal group-has-[[data-orientation=horizontal]]/field:text-balance [[data-variant=legend]+&]:-mt-1.5',
         'nth-last-2:-mt-1 last:mt-0',
         '[&>a:hover]:text-primary [&>a]:underline [&>a]:underline-offset-4',
         className
@@ -143,7 +142,7 @@ function FieldSeparator({
 }) {
   return (
     <div
-      data-slot="field-separator"
+      data-slot='field-separator'
       data-content={!!children}
       className={cn(
         'relative -my-2 h-5 text-sm group-data-[variant=outline]/field-group:-mb-2',
@@ -151,11 +150,11 @@ function FieldSeparator({
       )}
       {...props}
     >
-      <Separator className="absolute inset-0 top-1/2" />
+      <Separator className='absolute inset-0 top-1/2' />
       {children && (
         <span
-          className="text-muted-foreground bg-background relative mx-auto block w-fit px-2"
-          data-slot="field-separator-content"
+          className='relative mx-auto block w-fit bg-background px-2 text-muted-foreground'
+          data-slot='field-separator-content'
         >
           {children}
         </span>
@@ -183,12 +182,12 @@ function FieldError({
 
     const uniqueErrors = [...new Map(errors.map((error) => [error?.message, error])).values()]
 
-    if (uniqueErrors?.length == 1) {
+    if (uniqueErrors?.length === 1) {
       return uniqueErrors[0]?.message
     }
 
     return (
-      <ul className="ml-4 flex list-disc flex-col gap-1">
+      <ul className='ml-4 flex list-disc flex-col gap-1'>
         {uniqueErrors.map((error, index) => error?.message && <li key={index}>{error.message}</li>)}
       </ul>
     )
@@ -200,9 +199,9 @@ function FieldError({
 
   return (
     <div
-      role="alert"
-      data-slot="field-error"
-      className={cn('text-destructive text-sm font-normal', className)}
+      role='alert'
+      data-slot='field-error'
+      className={cn('font-normal text-destructive text-sm', className)}
       {...props}
     >
       {content}
@@ -212,13 +211,13 @@ function FieldError({
 
 export {
   Field,
-  FieldLabel,
+  FieldContent,
   FieldDescription,
   FieldError,
   FieldGroup,
+  FieldLabel,
   FieldLegend,
   FieldSeparator,
   FieldSet,
-  FieldContent,
   FieldTitle,
 }

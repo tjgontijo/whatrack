@@ -1,15 +1,14 @@
 'use client'
 
 import { Check } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { LandingVariant } from './types'
-import { motion } from 'motion/react'
-import { useInView } from 'motion/react'
-import { useRef } from 'react'
-import { useSession } from '@/lib/auth/auth-client'
+import { motion, useInView } from 'motion/react'
 import { useRouter } from 'next/navigation'
-import { appendFunnelIntent } from '@/lib/funnel/funnel-intent'
+import { useRef } from 'react'
+import { Button } from '@/components/ui/button'
 import type { PublicBillingPlan } from '@/features/billing/schemas/billing-plan-schemas'
+import { useSession } from '@/lib/auth/auth-client'
+import { appendFunnelIntent } from '@/lib/funnel/funnel-intent'
+import type { LandingVariant } from './types'
 
 interface LandingPricingProps {
   variant?: LandingVariant
@@ -38,7 +37,7 @@ function CheckoutButton({ plan, variant }: CheckoutButtonProps) {
         segment: variant,
         source: 'pricing',
         campaign: plan.slug,
-      }),
+      })
     )
   }
 
@@ -47,7 +46,7 @@ function CheckoutButton({ plan, variant }: CheckoutButtonProps) {
       onClick={handleCheckout}
       className={`h-12 w-full rounded-xl font-semibold transition-all ${
         plan.isHighlighted
-          ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/40 disabled:opacity-70'
+          ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-emerald-500/25 shadow-lg hover:shadow-emerald-500/40 hover:shadow-xl disabled:opacity-70'
           : 'border border-zinc-700 bg-zinc-800 text-white hover:bg-zinc-700 disabled:opacity-70'
       }`}
     >
@@ -71,8 +70,7 @@ export function LandingPricing({ variant = 'generic', plans }: LandingPricingPro
     },
     agencias: {
       title: 'Preço simples para operar projetos com rastreamento e campanha.',
-      subtitle:
-        'Escolha o plano, crie a conta e siga direto para o checkout com cobrança normal.',
+      subtitle: 'Escolha o plano, crie a conta e siga direto para o checkout com cobrança normal.',
     },
     lancadores: {
       title: 'Planos para rodar e escalar sem complexidade.',
@@ -89,57 +87,52 @@ export function LandingPricing({ variant = 'generic', plans }: LandingPricingPro
   const headline = headlines[variant]
   return (
     <section
-      id="planos"
+      id='planos'
       ref={ref}
-      className="relative overflow-hidden bg-zinc-950 py-32 text-white"
+      className='relative overflow-hidden bg-zinc-950 py-32 text-white'
     >
       {/* Sophisticated gradient background */}
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-0 top-0 h-full w-1/3 bg-gradient-to-br from-emerald-500/10 via-transparent to-transparent" />
-        <div className="absolute right-0 top-1/2 h-full w-1/3 -translate-y-1/2 bg-gradient-to-bl from-amber-500/10 via-transparent to-transparent" />
+      <div className='pointer-events-none absolute inset-0'>
+        <div className='absolute top-0 left-0 h-full w-1/3 bg-gradient-to-br from-emerald-500/10 via-transparent to-transparent' />
+        <div className='absolute top-1/2 right-0 h-full w-1/3 -translate-y-1/2 bg-gradient-to-bl from-amber-500/10 via-transparent to-transparent' />
 
         {/* Grid pattern */}
-        <svg className="h-full w-full opacity-20" xmlns="http://www.w3.org/2000/svg">
+        <svg className='h-full w-full opacity-20' xmlns='http://www.w3.org/2000/svg'>
           <defs>
-            <pattern
-              id="pricing-grid"
-              width="32"
-              height="32"
-              patternUnits="userSpaceOnUse"
-            >
+            <pattern id='pricing-grid' width='32' height='32' patternUnits='userSpaceOnUse'>
               <path
-                d="M 32 0 L 0 0 0 32"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="0.5"
-                className="text-zinc-800"
+                d='M 32 0 L 0 0 0 32'
+                fill='none'
+                stroke='currentColor'
+                strokeWidth='0.5'
+                className='text-zinc-800'
               />
             </pattern>
           </defs>
-          <rect width="100%" height="100%" fill="url(#pricing-grid)" />
+          <rect width='100%' height='100%' fill='url(#pricing-grid)' />
         </svg>
       </div>
 
-      <div className="relative mx-auto max-w-[1400px] px-6 sm:px-8 lg:px-12">
+      <div className='relative mx-auto max-w-[1400px] px-6 sm:px-8 lg:px-12'>
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-12 text-center sm:mb-20"
+          className='mb-12 text-center sm:mb-20'
         >
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-4 py-2 backdrop-blur-sm">
-            <div className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
-            <span className="text-sm font-semibold uppercase tracking-wider text-emerald-400">
+          <div className='mb-6 inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-4 py-2 backdrop-blur-sm'>
+            <div className='h-2 w-2 animate-pulse rounded-full bg-emerald-500' />
+            <span className='font-semibold text-emerald-400 text-sm uppercase tracking-wider'>
               Planos & Preços
             </span>
           </div>
 
-          <h2 className="mx-auto mb-6 max-w-4xl font-geist text-3xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
+          <h2 className='mx-auto mb-6 max-w-4xl font-bold font-geist text-3xl leading-tight tracking-tight sm:text-5xl lg:text-6xl'>
             {headline.title}
           </h2>
 
-          <p className="mx-auto max-w-2xl text-xl leading-relaxed text-zinc-400">
+          <p className='mx-auto max-w-2xl text-xl text-zinc-400 leading-relaxed'>
             {headline.subtitle}
           </p>
         </motion.div>
@@ -148,7 +141,7 @@ export function LandingPricing({ variant = 'generic', plans }: LandingPricingPro
         <div
           className={`grid gap-6 ${
             selfServicePlans.length === 1
-              ? 'max-w-md mx-auto'
+              ? 'mx-auto max-w-md'
               : selfServicePlans.length === 2
                 ? 'lg:grid-cols-2'
                 : 'lg:grid-cols-3'
@@ -173,51 +166,51 @@ export function LandingPricing({ variant = 'generic', plans }: LandingPricingPro
               {/* Glow effect for highlighted plan */}
               {plan.isHighlighted && (
                 <>
-                  <div className="pointer-events-none absolute -top-40 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-emerald-500/20 blur-3xl" />
-                  <div className="absolute -top-px left-1/2 h-px w-1/2 -translate-x-1/2 bg-gradient-to-r from-transparent via-emerald-500 to-transparent" />
+                  <div className='pointer-events-none absolute -top-40 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-emerald-500/20 blur-3xl' />
+                  <div className='absolute -top-px left-1/2 h-px w-1/2 -translate-x-1/2 bg-gradient-to-r from-transparent via-emerald-500 to-transparent' />
                 </>
               )}
 
               {/* Badge for highlighted plan */}
               {plan.isHighlighted && (
-                <div className="absolute right-6 top-6">
-                  <div className="rounded-full bg-emerald-500 px-3 py-1 text-xs font-bold text-white">
+                <div className='absolute top-6 right-6'>
+                  <div className='rounded-full bg-emerald-500 px-3 py-1 font-bold text-white text-xs'>
                     Mais escolhido
                   </div>
                 </div>
               )}
 
-              <div className="relative p-6 sm:p-8">
+              <div className='relative p-6 sm:p-8'>
                 {/* Plan header */}
-                <div className="mb-6">
-                  <h3 className="mb-1 font-geist text-xl font-bold">{plan.name}</h3>
+                <div className='mb-6'>
+                  <h3 className='mb-1 font-bold font-geist text-xl'>{plan.name}</h3>
                   {plan.subtitle && (
-                    <p className="text-sm font-medium text-zinc-400">{plan.subtitle}</p>
+                    <p className='font-medium text-sm text-zinc-400'>{plan.subtitle}</p>
                   )}
                 </div>
 
                 {/* Pricing */}
-                <div className="mb-6">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-base text-zinc-400">R$</span>
-                    <span className="font-geist text-4xl font-bold tracking-tight">
+                <div className='mb-6'>
+                  <div className='flex items-baseline gap-2'>
+                    <span className='text-base text-zinc-400'>R$</span>
+                    <span className='font-bold font-geist text-4xl tracking-tight'>
                       {plan.monthlyPrice.toLocaleString('pt-BR', {
                         minimumFractionDigits: 0,
                         maximumFractionDigits: 0,
                       })}
                     </span>
-                    <span className="text-base text-zinc-400">/mês</span>
+                    <span className='text-base text-zinc-400'>/mês</span>
                   </div>
                 </div>
 
                 {/* CTA Button */}
-                <div className="mb-6">
+                <div className='mb-6'>
                   <CheckoutButton plan={plan} variant={variant} />
                 </div>
 
                 {/* Features */}
-                <div className="space-y-3">
-                  <div className="mb-3 h-px bg-gradient-to-r from-transparent via-zinc-800 to-transparent" />
+                <div className='space-y-3'>
+                  <div className='mb-3 h-px bg-gradient-to-r from-transparent via-zinc-800 to-transparent' />
 
                   {plan.features.map((feature, idx) => (
                     <motion.div
@@ -228,7 +221,7 @@ export function LandingPricing({ variant = 'generic', plans }: LandingPricingPro
                         delay: 0.4 + i * 0.1 + idx * 0.05,
                         duration: 0.5,
                       }}
-                      className="flex items-start gap-3"
+                      className='flex items-start gap-3'
                     >
                       <div
                         className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full ${
@@ -241,17 +234,17 @@ export function LandingPricing({ variant = 'generic', plans }: LandingPricingPro
                           }`}
                         />
                       </div>
-                      <span className="text-sm leading-relaxed text-zinc-300">{feature}</span>
+                      <span className='text-sm text-zinc-300 leading-relaxed'>{feature}</span>
                     </motion.div>
                   ))}
                 </div>
 
                 {/* Adicionais */}
                 {plan.additionals && plan.additionals.length > 0 && (
-                  <div className="mt-4 space-y-2 rounded-lg border border-zinc-800 bg-zinc-900/50 p-3">
+                  <div className='mt-4 space-y-2 rounded-lg border border-zinc-800 bg-zinc-900/50 p-3'>
                     {plan.additionals.map((additional, idx) => (
-                      <p key={idx} className="text-xs text-zinc-400">
-                        <span className="font-medium text-zinc-300">•</span> {additional}
+                      <p key={idx} className='text-xs text-zinc-400'>
+                        <span className='font-medium text-zinc-300'>•</span> {additional}
                       </p>
                     ))}
                   </div>
@@ -267,17 +260,16 @@ export function LandingPricing({ variant = 'generic', plans }: LandingPricingPro
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ delay: 0.6, duration: 0.8 }}
-            className="mt-10 flex flex-col items-center gap-4 rounded-2xl border border-zinc-800/60 bg-zinc-900/30 px-8 py-8 text-center sm:flex-row sm:text-left"
+            className='mt-10 flex flex-col items-center gap-4 rounded-2xl border border-zinc-800/60 bg-zinc-900/30 px-8 py-8 text-center sm:flex-row sm:text-left'
           >
-            <div className="flex-1">
-              <p className="font-geist text-lg font-semibold text-white">
-                {enterprisePlan.name}
-              </p>
-              <p className="mt-1 text-sm leading-relaxed text-zinc-400">
-                {enterprisePlan.description ?? 'Volume alto, múltiplas contas ou necessidades específicas? Fale com a gente e montamos uma proposta sob medida.'}
+            <div className='flex-1'>
+              <p className='font-geist font-semibold text-lg text-white'>{enterprisePlan.name}</p>
+              <p className='mt-1 text-sm text-zinc-400 leading-relaxed'>
+                {enterprisePlan.description ??
+                  'Volume alto, múltiplas contas ou necessidades específicas? Fale com a gente e montamos uma proposta sob medida.'}
               </p>
             </div>
-            <div className="shrink-0">
+            <div className='shrink-0'>
               <CheckoutButton plan={enterprisePlan} variant={variant} />
             </div>
           </motion.div>
@@ -288,9 +280,9 @@ export function LandingPricing({ variant = 'generic', plans }: LandingPricingPro
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.8, duration: 0.8 }}
-          className="mt-16 text-center"
+          className='mt-16 text-center'
         >
-          <p className="text-sm text-zinc-500">
+          <p className='text-sm text-zinc-500'>
             Agências e gestores usam o WhaTrack para mostrar o que realmente vende no WhatsApp
           </p>
         </motion.div>

@@ -1,7 +1,7 @@
 'use client'
 
-import * as React from 'react'
 import { AlertCircle, Search } from 'lucide-react'
+import * as React from 'react'
 import { cn } from '@/lib/utils/utils'
 
 interface DataTableEmptyStateProps {
@@ -30,7 +30,7 @@ export const DataTableEmptyState = React.forwardRef<HTMLDivElement, DataTableEmp
     },
     ref
   ) => {
-    const defaultIcon = icon || <Search className="text-muted-foreground h-12 w-12" />
+    const defaultIcon = icon || <Search className='h-12 w-12 text-muted-foreground' />
 
     return (
       <div
@@ -40,9 +40,9 @@ export const DataTableEmptyState = React.forwardRef<HTMLDivElement, DataTableEmp
           className
         )}
       >
-        <div className="text-muted-foreground mb-4">{defaultIcon}</div>
-        <h3 className="text-foreground mb-2 text-center font-semibold">{title}</h3>
-        <p className="text-muted-foreground mb-6 max-w-sm text-center text-sm">{description}</p>
+        <div className='mb-4 text-muted-foreground'>{defaultIcon}</div>
+        <h3 className='mb-2 text-center font-semibold text-foreground'>{title}</h3>
+        <p className='mb-6 max-w-sm text-center text-muted-foreground text-sm'>{description}</p>
         {action}
       </div>
     )
@@ -75,13 +75,13 @@ export const DataTableErrorState = React.forwardRef<HTMLDivElement, DataTableErr
       <div
         ref={ref}
         className={cn(
-          'border-destructive/30 bg-destructive/5 flex flex-col items-center justify-center rounded-lg border px-4 py-12',
+          'flex flex-col items-center justify-center rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-12',
           className
         )}
       >
-        <AlertCircle className="text-destructive mb-4 h-12 w-12" />
-        <h3 className="text-foreground mb-2 text-center font-semibold">{title}</h3>
-        <p className="text-muted-foreground mb-6 max-w-sm text-center text-sm">{description}</p>
+        <AlertCircle className='mb-4 h-12 w-12 text-destructive' />
+        <h3 className='mb-2 text-center font-semibold text-foreground'>{title}</h3>
+        <p className='mb-6 max-w-sm text-center text-muted-foreground text-sm'>{description}</p>
         {action}
       </div>
     )

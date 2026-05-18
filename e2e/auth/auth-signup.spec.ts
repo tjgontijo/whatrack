@@ -1,7 +1,7 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 import {
-  generateTestEmail,
   generateTestCpf,
+  generateTestEmail,
   generateTestName,
   generateTestPassword,
   signUp,

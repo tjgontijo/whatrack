@@ -1,9 +1,8 @@
 import { redirect } from 'next/navigation'
-
+import { WelcomePageContent } from '@/features/onboarding/components/welcome-page-content'
+import { getWelcomeState } from '@/features/onboarding/services/welcome-query.service'
 import { getServerSession } from '@/server/auth/server-session'
 import { resolveDefaultWorkspacePath } from '@/server/navigation/resolve-default-workspace-path'
-import { getWelcomeState } from '@/features/onboarding/services/welcome-query.service'
-import { WelcomePageContent } from '@/features/onboarding/components/welcome-page-content'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,7 +21,7 @@ export default async function WelcomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className='min-h-screen bg-background'>
       <WelcomePageContent state={state} />
     </div>
   )

@@ -1,6 +1,6 @@
-import { prisma } from '@/lib/db/prisma'
-import { MetaCloudService } from '@/features/whatsapp/services/meta-cloud.service'
 import type { WhatsAppManualSendTemplateInput } from '@/features/whatsapp/schemas/whatsapp-schemas'
+import { MetaCloudService } from '@/features/whatsapp/services/meta-cloud.service'
+import { prisma } from '@/lib/db/prisma'
 
 type ManualSendTemplateResult =
   | {

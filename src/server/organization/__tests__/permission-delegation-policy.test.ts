@@ -34,7 +34,11 @@ describe('permission delegation policy', () => {
 
   it('permite delegacao quando papel global eh owner/admin', () => {
     expect(() =>
-      assertCanDelegatePermissions('owner', ['manage:organization', 'manage:integrations', 'manage:meta'])
+      assertCanDelegatePermissions('owner', [
+        'manage:organization',
+        'manage:integrations',
+        'manage:meta',
+      ])
     ).not.toThrow()
   })
 })

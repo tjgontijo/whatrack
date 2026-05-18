@@ -5,8 +5,8 @@
  * Busca da API do better-auth /organization/get-active-member
  */
 import { useQuery } from '@tanstack/react-query'
-import { isOwner, isAdmin, type RoleName } from '@/lib/auth/rbac/roles'
 import { useOrganization } from '@/features/organizations/hooks/use-organization'
+import { isAdmin, isOwner, type RoleName } from '@/lib/auth/rbac/roles'
 import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 
 interface OrganizationMember {

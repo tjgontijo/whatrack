@@ -1,7 +1,7 @@
 import 'server-only'
 
-import { prisma } from '@/lib/db/prisma'
 import { saleWithItemsSelect } from '@/features/sales/repositories/shared'
+import { prisma } from '@/lib/db/prisma'
 
 export async function createSaleRepository(input: {
   organizationId: string

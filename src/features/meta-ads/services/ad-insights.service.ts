@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db/prisma'
-import { metaAccessTokenService } from './access-token.service'
 import { logger } from '@/lib/utils/logger'
+import { metaAccessTokenService } from './access-token.service'
 import { MetaApiError, metaApiRequest } from './meta-api'
 
 export class MetaAdInsightsService {
@@ -131,11 +131,12 @@ export class MetaAdInsightsService {
             })
           }
         } catch (error: unknown) {
-          const errorMessage = error instanceof MetaApiError
-            ? JSON.stringify(error.data)
-            : error instanceof Error
-              ? error.message
-              : String(error)
+          const errorMessage =
+            error instanceof MetaApiError
+              ? JSON.stringify(error.data)
+              : error instanceof Error
+                ? error.message
+                : String(error)
           logger.error(`[Insights] Error fetching for account ${acc.adAccountId}: ${errorMessage}`)
         }
       }

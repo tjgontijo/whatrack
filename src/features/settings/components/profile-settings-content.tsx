@@ -1,24 +1,23 @@
 'use client'
 
-import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { KeyRound, Pencil } from 'lucide-react'
+import { useState } from 'react'
 import { toast } from 'sonner'
-
-import { authClient } from '@/lib/auth/auth-client'
-import { getAuthErrorMessage } from '@/lib/auth/error-messages'
-import { apiFetch } from '@/lib/api-client'
-import {
-  WHATSAPP_MASK_MAX_LENGTH,
-  applyWhatsAppMask,
-  removeWhatsAppMask,
-} from '@/lib/mask/phone-mask'
-import { cn } from '@/lib/utils/utils'
-import type { UpdateMeAccountInput } from '@/features/me/schemas/me-account.schemas'
-import type { AccountProfileSummary } from '@/features/account/types/account-summary'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import type { AccountProfileSummary } from '@/features/account/types/account-summary'
+import type { UpdateMeAccountInput } from '@/features/me/schemas/me-account.schemas'
+import { apiFetch } from '@/lib/api-client'
+import { authClient } from '@/lib/auth/auth-client'
+import { getAuthErrorMessage } from '@/lib/auth/error-messages'
+import {
+  applyWhatsAppMask,
+  removeWhatsAppMask,
+  WHATSAPP_MASK_MAX_LENGTH,
+} from '@/lib/mask/phone-mask'
+import { cn } from '@/lib/utils/utils'
 
 type ProfileSettingsContentProps = {
   account: AccountProfileSummary
@@ -51,8 +50,8 @@ function InfoRow({
   inputProps?: React.ComponentProps<'input'>
 }) {
   return (
-    <div className="border-border flex items-center gap-4 border-b py-3 last:border-0">
-      <span className="text-muted-foreground w-24 shrink-0 text-xs font-medium uppercase tracking-wide">
+    <div className='flex items-center gap-4 border-border border-b py-3 last:border-0'>
+      <span className='w-24 shrink-0 font-medium text-muted-foreground text-xs uppercase tracking-wide'>
         {label}
       </span>
       {editing ? (
@@ -60,7 +59,7 @@ function InfoRow({
           id={inputId}
           defaultValue={value}
           placeholder={placeholder}
-          className="h-8 max-w-sm text-sm"
+          className='h-8 max-w-sm text-sm'
           {...inputProps}
         />
       ) : (
@@ -105,8 +104,8 @@ export function ProfileSettingsContent({ account }: ProfileSettingsContentProps)
         throw new Error(
           getAuthErrorMessage(
             (error as { code?: string }).code,
-            (error as { message?: string }).message || 'Não foi possível alterar sua senha.',
-          ),
+            (error as { message?: string }).message || 'Não foi possível alterar sua senha.'
+          )
         )
       }
     },
@@ -121,25 +120,24 @@ export function ProfileSettingsContent({ account }: ProfileSettingsContentProps)
   })
 
   return (
-    <div className="flex h-full items-start justify-center">
-      <div className="w-full max-w-lg space-y-8">
-
+    <div className='flex h-full items-start justify-center'>
+      <div className='w-full max-w-lg space-y-8'>
         {/* Avatar + identidade */}
-        <div className="flex items-center gap-4">
-          <div className="bg-primary text-primary-foreground flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-lg font-semibold">
+        <div className='flex items-center gap-4'>
+          <div className='flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary font-semibold text-lg text-primary-foreground'>
             {getInitials(account.name)}
           </div>
-          <div className="min-w-0">
-            <p className="truncate text-base font-semibold">{account.name}</p>
-            <p className="text-muted-foreground truncate text-sm">{account.email}</p>
+          <div className='min-w-0'>
+            <p className='truncate font-semibold text-base'>{account.name}</p>
+            <p className='truncate text-muted-foreground text-sm'>{account.email}</p>
           </div>
           {!editing && (
             <button
-              type="button"
+              type='button'
               onClick={() => setEditing(true)}
-              className="text-muted-foreground hover:text-foreground ml-auto flex items-center gap-1.5 text-xs transition-colors"
+              className='ml-auto flex items-center gap-1.5 text-muted-foreground text-xs transition-colors hover:text-foreground'
             >
-              <Pencil className="h-3.5 w-3.5" />
+              <Pencil className='h-3.5 w-3.5' />
               Editar
             </button>
           )}
@@ -148,25 +146,29 @@ export function ProfileSettingsContent({ account }: ProfileSettingsContentProps)
         {/* Dados */}
         <div>
           <InfoRow
-            label="Nome"
+            label='Nome'
             value={name}
             editing={editing}
-            inputId="settings-profile-name"
+            inputId='settings-profile-name'
             inputProps={{ autoComplete: 'name', onChange: (e) => setName(e.target.value) }}
           />
           <InfoRow
-            label="E-mail"
+            label='E-mail'
             value={email}
             editing={editing}
-            inputId="settings-profile-email"
-            inputProps={{ type: 'email', autoComplete: 'email', onChange: (e) => setEmail(e.target.value) }}
+            inputId='settings-profile-email'
+            inputProps={{
+              type: 'email',
+              autoComplete: 'email',
+              onChange: (e) => setEmail(e.target.value),
+            }}
           />
           <InfoRow
-            label="Telefone"
+            label='Telefone'
             value={phone}
             editing={editing}
-            placeholder="(11) 98888-8888"
-            inputId="settings-profile-phone"
+            placeholder='(11) 98888-8888'
+            inputId='settings-profile-phone'
             inputProps={{
               autoComplete: 'tel',
               inputMode: 'tel',
@@ -178,10 +180,10 @@ export function ProfileSettingsContent({ account }: ProfileSettingsContentProps)
 
         {/* Ações do perfil */}
         {editing && (
-          <div className="flex justify-end gap-2">
+          <div className='flex justify-end gap-2'>
             <Button
-              variant="ghost"
-              size="sm"
+              variant='ghost'
+              size='sm'
               onClick={() => {
                 setEditing(false)
                 setName(account.name)
@@ -192,7 +194,7 @@ export function ProfileSettingsContent({ account }: ProfileSettingsContentProps)
               Cancelar
             </Button>
             <Button
-              size="sm"
+              size='sm'
               onClick={() =>
                 updateProfileMutation.mutate({
                   name,
@@ -210,38 +212,70 @@ export function ProfileSettingsContent({ account }: ProfileSettingsContentProps)
         {/* Senha */}
         {!showPassword ? (
           <button
-            type="button"
+            type='button'
             onClick={() => setShowPassword(true)}
-            className="text-muted-foreground hover:text-foreground flex items-center gap-2 text-sm transition-colors"
+            className='flex items-center gap-2 text-muted-foreground text-sm transition-colors hover:text-foreground'
           >
-            <KeyRound className="h-4 w-4" />
+            <KeyRound className='h-4 w-4' />
             Alterar senha
           </button>
         ) : (
-          <div className="space-y-3">
-            <p className="text-sm font-medium">Alterar senha</p>
+          <div className='space-y-3'>
+            <p className='font-medium text-sm'>Alterar senha</p>
 
-            <div className="grid gap-1.5">
-              <Label htmlFor="settings-current-password">Senha atual</Label>
-              <Input id="settings-current-password" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className="max-w-sm" />
+            <div className='grid gap-1.5'>
+              <Label htmlFor='settings-current-password'>Senha atual</Label>
+              <Input
+                id='settings-current-password'
+                type='password'
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                className='max-w-sm'
+              />
             </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="settings-new-password">Nova senha</Label>
-              <Input id="settings-new-password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="max-w-sm" />
+            <div className='grid gap-1.5'>
+              <Label htmlFor='settings-new-password'>Nova senha</Label>
+              <Input
+                id='settings-new-password'
+                type='password'
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className='max-w-sm'
+              />
             </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="settings-confirm-password">Confirmar</Label>
-              <Input id="settings-confirm-password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="max-w-sm" />
+            <div className='grid gap-1.5'>
+              <Label htmlFor='settings-confirm-password'>Confirmar</Label>
+              <Input
+                id='settings-confirm-password'
+                type='password'
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className='max-w-sm'
+              />
             </div>
 
-            <div className="flex justify-end gap-2 pt-1">
-              <Button variant="ghost" size="sm" onClick={() => { setShowPassword(false); setCurrentPassword(''); setNewPassword(''); setConfirmPassword('') }}>
+            <div className='flex justify-end gap-2 pt-1'>
+              <Button
+                variant='ghost'
+                size='sm'
+                onClick={() => {
+                  setShowPassword(false)
+                  setCurrentPassword('')
+                  setNewPassword('')
+                  setConfirmPassword('')
+                }}
+              >
                 Cancelar
               </Button>
               <Button
-                size="sm"
+                size='sm'
                 onClick={() => updatePasswordMutation.mutate()}
-                disabled={updatePasswordMutation.isPending || !currentPassword || !newPassword || !confirmPassword}
+                disabled={
+                  updatePasswordMutation.isPending ||
+                  !currentPassword ||
+                  !newPassword ||
+                  !confirmPassword
+                }
               >
                 {updatePasswordMutation.isPending ? 'Salvando...' : 'Atualizar senha'}
               </Button>

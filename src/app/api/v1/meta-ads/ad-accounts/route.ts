@@ -1,10 +1,9 @@
-import { NextRequest } from 'next/server'
-
-import { apiError, apiSuccess } from '@/lib/utils/api-response'
+import type { NextRequest } from 'next/server'
 import { metaAdAccountsQuerySchema } from '@/features/meta-ads/schemas/meta-ads-schemas'
+import { listMetaAdAccounts } from '@/features/meta-ads/services/meta-account-query.service'
+import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { resolveProjectScope } from '@/server/project/project-scope'
-import { listMetaAdAccounts } from '@/features/meta-ads/services/meta-account-query.service'
 
 export async function GET(req: NextRequest) {
   const access = await validateFullAccess(req)

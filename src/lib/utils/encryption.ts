@@ -1,4 +1,4 @@
-import crypto from 'crypto'
+import crypto from 'node:crypto'
 
 const algorithm = 'aes-256-gcm'
 
@@ -49,8 +49,8 @@ export class TokenEncryption {
     if (this.keys.size === 0) {
       throw new Error(
         '[Encryption] ENCRYPTION_KEYS is required. ' +
-        'Set it as a JSON map: ENCRYPTION_KEYS=\'{"v1":"<64-char hex>"}\'. ' +
-        "Generate a key with: node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\""
+          'Set it as a JSON map: ENCRYPTION_KEYS=\'{"v1":"<64-char hex>"}\'. ' +
+          "Generate a key with: node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\""
       )
     }
 

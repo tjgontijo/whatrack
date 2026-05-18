@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 
 import { completeMetaAdsOAuthCallback } from '@/features/meta-ads/services/meta-oauth.service'
 

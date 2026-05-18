@@ -1,10 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
-
-import { apiError } from '@/lib/utils/api-response'
+import { type NextRequest, NextResponse } from 'next/server'
 import { lookupCnpjSchema } from '@/features/company/schemas/company.schemas'
 import { fetchCnpjData, ReceitaWsError } from '@/features/company/services/receitaws'
-import { getOrSyncUser } from '@/server/auth/server'
+import { apiError } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
+import { getOrSyncUser } from '@/server/auth/server'
 
 export async function GET(request: NextRequest) {
   const user = await getOrSyncUser(request)
@@ -34,12 +33,7 @@ export async function GET(request: NextRequest) {
         API_ERROR: 502,
       }
 
-      return apiError(
-        error.message,
-        statusMap[error.code] || 500,
-        undefined,
-        { code: error.code }
-      )
+      return apiError(error.message, statusMap[error.code] || 500, undefined, { code: error.code })
     }
 
     return apiError('Erro ao buscar dados do CNPJ', 500, error)

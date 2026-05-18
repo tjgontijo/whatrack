@@ -1,14 +1,15 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
-import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Package2, Plus } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { Controller, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
+import { z } from 'zod'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -16,12 +17,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
-import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
-import { apiFetch } from '@/lib/api-client'
-import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
 import { CrudEditDrawer } from '@/features/dashboard/components/crud'
+import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
+import { apiFetch } from '@/lib/api-client'
 
 type CategoryOption = {
   id: string
@@ -45,12 +44,7 @@ type ItemFormDrawerProps = {
   onOpenChange: (open: boolean) => void
 }
 
-export function ItemFormDrawer({
-  categories,
-  onSuccess,
-  open,
-  onOpenChange,
-}: ItemFormDrawerProps) {
+export function ItemFormDrawer({ categories, onSuccess, open, onOpenChange }: ItemFormDrawerProps) {
   const { organizationId } = useRequiredProjectRouteContext()
 
   const setOpen = onOpenChange
@@ -59,7 +53,6 @@ export function ItemFormDrawer({
   const [newCategoryName, setNewCategoryName] = useState('')
   const [isCreatingCategory, setIsCreatingCategory] = useState(false)
   const [showCreateCategoryInput, setShowCreateCategoryInput] = useState(false)
-
 
   const {
     control,
@@ -88,8 +81,6 @@ export function ItemFormDrawer({
   const closeDrawer = () => {
     setOpen(false)
   }
-
-
 
   const createCategoryInline = async () => {
     const trimmedName = newCategoryName.trim()
@@ -144,35 +135,30 @@ export function ItemFormDrawer({
     }
   }
 
-
   return (
     <CrudEditDrawer
       open={open}
       onOpenChange={(next) => (next ? setOpen(true) : closeDrawer())}
-      title="Novo item"
-      subtitle="Cadastre um item para uso em vendas e acompanhamento."
+      title='Novo item'
+      subtitle='Cadastre um item para uso em vendas e acompanhamento.'
       icon={Package2}
       showFooter={false}
-      desktopDirection="right"
-      mobileDirection="bottom"
-      maxWidth="max-w-[720px]"
+      desktopDirection='right'
+      mobileDirection='bottom'
+      maxWidth='max-w-[720px]'
     >
-      <form
-        key={open ? 'open' : 'closed'}
-        className="space-y-5"
-        onSubmit={handleSubmit(submit)}
-      >
-        <div className="space-y-2">
-          <Label htmlFor="item-name">Nome *</Label>
-          <Input id="item-name" placeholder="Nome do item" {...register('name')} />
-          {errors.name ? <p className="text-destructive text-sm">{errors.name.message}</p> : null}
+      <form key={open ? 'open' : 'closed'} className='space-y-5' onSubmit={handleSubmit(submit)}>
+        <div className='space-y-2'>
+          <Label htmlFor='item-name'>Nome *</Label>
+          <Input id='item-name' placeholder='Nome do item' {...register('name')} />
+          {errors.name ? <p className='text-destructive text-sm'>{errors.name.message}</p> : null}
         </div>
 
-        <div className="space-y-2">
+        <div className='space-y-2'>
           <Label>Categoria</Label>
           <Controller
             control={control}
-            name="categoryId"
+            name='categoryId'
             render={({ field }) => (
               <Select
                 onValueChange={(value) => {
@@ -187,7 +173,7 @@ export function ItemFormDrawer({
                 value={field.value || NO_CATEGORY_VALUE}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma categoria" />
+                  <SelectValue placeholder='Selecione uma categoria' />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={NO_CATEGORY_VALUE}>Sem categoria</SelectItem>
@@ -204,33 +190,33 @@ export function ItemFormDrawer({
         </div>
 
         {showCreateCategoryInput && (
-          <div className="space-y-2">
+          <div className='space-y-2'>
             <Separator />
             <Label>Nova categoria</Label>
-            <div className="flex gap-2">
+            <div className='flex gap-2'>
               <Input
                 value={newCategoryName}
                 onChange={(event) => setNewCategoryName(event.target.value)}
-                placeholder="Digite o nome da categoria"
+                placeholder='Digite o nome da categoria'
               />
               <Button
-                type="button"
-                variant="outline"
+                type='button'
+                variant='outline'
                 onClick={createCategoryInline}
                 disabled={isCreatingCategory}
               >
-                <Plus className="mr-1 h-4 w-4" />
+                <Plus className='mr-1 h-4 w-4' />
                 {isCreatingCategory ? 'Criando...' : 'Criar'}
               </Button>
             </div>
           </div>
         )}
 
-        <div className="flex justify-end gap-2 pt-2">
-          <Button type="button" variant="outline" onClick={closeDrawer} disabled={isSubmitting}>
+        <div className='flex justify-end gap-2 pt-2'>
+          <Button type='button' variant='outline' onClick={closeDrawer} disabled={isSubmitting}>
             Cancelar
           </Button>
-          <Button type="submit" className="cursor-pointer" disabled={isSubmitting}>
+          <Button type='submit' className='cursor-pointer' disabled={isSubmitting}>
             {isSubmitting ? 'Salvando...' : 'Salvar'}
           </Button>
         </div>

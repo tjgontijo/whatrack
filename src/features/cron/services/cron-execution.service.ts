@@ -20,7 +20,7 @@ type LockedCronJobCompleted<T> = {
 export type LockedCronJobResult<T> = LockedCronJobSkipped | LockedCronJobCompleted<T>
 
 export async function executeLockedCronJob<T>(
-  params: ExecuteLockedCronJobParams<T>,
+  params: ExecuteLockedCronJobParams<T>
 ): Promise<LockedCronJobResult<T>> {
   const jobTracker = getJobTracker()
   const jobId = await jobTracker.acquireLock(params.jobType)

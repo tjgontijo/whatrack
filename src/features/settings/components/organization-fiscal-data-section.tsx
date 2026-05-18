@@ -125,11 +125,11 @@ export function OrganizationFiscalDataSection({
 
   return (
     <SettingsGroup
-      label="Dados fiscais"
-      description="Aqui mostramos o cadastro fiscal consolidado da organização, incluindo os dados coletados no welcome."
+      label='Dados fiscais'
+      description='Aqui mostramos o cadastro fiscal consolidado da organização, incluindo os dados coletados no welcome.'
     >
       {!hasFiscalIdentity ? (
-        <div className="py-4">
+        <div className='py-4'>
           <Alert>
             <AlertDescription>
               Nenhum dado fiscal foi encontrado para esta organização.
@@ -138,12 +138,15 @@ export function OrganizationFiscalDataSection({
         </div>
       ) : null}
 
-      <SettingsRow label="Nome da organização" description="Nome operacional usado no workspace.">
-        <p className="font-medium">{formatValue(organization.name)}</p>
+      <SettingsRow label='Nome da organização' description='Nome operacional usado no workspace.'>
+        <p className='font-medium'>{formatValue(organization.name)}</p>
       </SettingsRow>
 
-      <SettingsRow label="Tipo cadastral" description="Tipo fiscal atualmente salvo na organização.">
-        <p className="font-medium">{getOrganizationTypeLabel(organization.organizationType)}</p>
+      <SettingsRow
+        label='Tipo cadastral'
+        description='Tipo fiscal atualmente salvo na organização.'
+      >
+        <p className='font-medium'>{getOrganizationTypeLabel(organization.organizationType)}</p>
       </SettingsRow>
 
       <SettingsRow
@@ -154,9 +157,9 @@ export function OrganizationFiscalDataSection({
               ? 'CPF'
               : 'Documento fiscal'
         }
-        description="Documento fiscal principal vinculado a esta organização."
+        description='Documento fiscal principal vinculado a esta organização.'
       >
-        <p className="font-medium">
+        <p className='font-medium'>
           {formatDocument({
             documentNumber: organization.documentNumber,
             documentType: organization.documentType,
@@ -166,80 +169,102 @@ export function OrganizationFiscalDataSection({
 
       {isCompany ? (
         <>
-          <SettingsRow label="Razão social" description="Nome jurídico oficial da empresa.">
-            <p className="font-medium">{formatValue(company?.razaoSocial ?? organization.legalName)}</p>
+          <SettingsRow label='Razão social' description='Nome jurídico oficial da empresa.'>
+            <p className='font-medium'>
+              {formatValue(company?.razaoSocial ?? organization.legalName)}
+            </p>
           </SettingsRow>
 
-          <SettingsRow label="Nome fantasia" description="Nome comercial usado publicamente.">
-            <p className="font-medium">{formatValue(company?.nomeFantasia ?? organization.tradeName)}</p>
+          <SettingsRow label='Nome fantasia' description='Nome comercial usado publicamente.'>
+            <p className='font-medium'>
+              {formatValue(company?.nomeFantasia ?? organization.tradeName)}
+            </p>
           </SettingsRow>
 
-          <SettingsRow label="Situação" description="Situação fiscal atual da empresa.">
-            <p className="font-medium">{formatValue(company?.situacao ?? organization.taxStatus)}</p>
+          <SettingsRow label='Situação' description='Situação fiscal atual da empresa.'>
+            <p className='font-medium'>
+              {formatValue(company?.situacao ?? organization.taxStatus)}
+            </p>
           </SettingsRow>
 
-          <SettingsRow label="Tipo / Porte" description="Classificação societária e porte atuais.">
-            <p className="font-medium">
+          <SettingsRow label='Tipo / Porte' description='Classificação societária e porte atuais.'>
+            <p className='font-medium'>
               {formatValue([company?.tipo, company?.porte].filter(Boolean).join(' / ') || null)}
             </p>
           </SettingsRow>
 
-          <SettingsRow label="Natureza jurídica" description="Natureza jurídica informada na consulta.">
-            <p className="font-medium">{formatValue(company?.naturezaJuridica)}</p>
+          <SettingsRow
+            label='Natureza jurídica'
+            description='Natureza jurídica informada na consulta.'
+          >
+            <p className='font-medium'>{formatValue(company?.naturezaJuridica)}</p>
           </SettingsRow>
 
-          <SettingsRow label="Capital social" description="Capital social registrado.">
-            <p className="font-medium">{formatCurrency(company?.capitalSocial ?? null)}</p>
+          <SettingsRow label='Capital social' description='Capital social registrado.'>
+            <p className='font-medium'>{formatCurrency(company?.capitalSocial ?? null)}</p>
           </SettingsRow>
 
-          <SettingsRow label="Localização" description="Cidade e UF da base fiscal.">
-            <p className="font-medium">
-              {formatLocation(company?.municipio ?? organization.city, company?.uf ?? organization.state)}
+          <SettingsRow label='Localização' description='Cidade e UF da base fiscal.'>
+            <p className='font-medium'>
+              {formatLocation(
+                company?.municipio ?? organization.city,
+                company?.uf ?? organization.state
+              )}
             </p>
           </SettingsRow>
 
-          <SettingsRow label="Endereço" description="Endereço principal disponível na base fiscal.">
-            <p className="font-medium">{formatAddress(company)}</p>
+          <SettingsRow label='Endereço' description='Endereço principal disponível na base fiscal.'>
+            <p className='font-medium'>{formatAddress(company)}</p>
           </SettingsRow>
 
-          <SettingsRow label="Contato" description="Contato da empresa, quando disponível.">
-            <div className="space-y-1 text-sm">
+          <SettingsRow label='Contato' description='Contato da empresa, quando disponível.'>
+            <div className='space-y-1 text-sm'>
               <p>
-                <span className="font-medium">Email:</span> {formatValue(company?.email)}
+                <span className='font-medium'>Email:</span> {formatValue(company?.email)}
               </p>
               <p>
-                <span className="font-medium">Telefone:</span> {formatValue(company?.telefone)}
+                <span className='font-medium'>Telefone:</span> {formatValue(company?.telefone)}
               </p>
             </div>
           </SettingsRow>
 
-          <SettingsRow label="Datas fiscais" description="Marcos relevantes retornados na consulta.">
-            <div className="space-y-1 text-sm">
+          <SettingsRow
+            label='Datas fiscais'
+            description='Marcos relevantes retornados na consulta.'
+          >
+            <div className='space-y-1 text-sm'>
               <p>
-                <span className="font-medium">Abertura:</span> {formatDate(company?.dataAbertura ?? null)}
+                <span className='font-medium'>Abertura:</span>{' '}
+                {formatDate(company?.dataAbertura ?? null)}
               </p>
               <p>
-                <span className="font-medium">Situação:</span> {formatDate(company?.dataSituacao ?? null)}
-              </p>
-            </div>
-          </SettingsRow>
-
-          <SettingsRow label="Regimes" description="Sinalizações fiscais complementares.">
-            <div className="space-y-1 text-sm">
-              <p>
-                <span className="font-medium">Simples Nacional:</span> {formatRegime(company?.simplesOptante ?? false)}
-              </p>
-              <p>
-                <span className="font-medium">SIMEI:</span> {formatRegime(company?.simeiOptante ?? false)}
+                <span className='font-medium'>Situação:</span>{' '}
+                {formatDate(company?.dataSituacao ?? null)}
               </p>
             </div>
           </SettingsRow>
 
-          <SettingsRow label="Atividade principal" description="CNAE principal disponível no cadastro.">
-            <p className="text-sm">
+          <SettingsRow label='Regimes' description='Sinalizações fiscais complementares.'>
+            <div className='space-y-1 text-sm'>
+              <p>
+                <span className='font-medium'>Simples Nacional:</span>{' '}
+                {formatRegime(company?.simplesOptante ?? false)}
+              </p>
+              <p>
+                <span className='font-medium'>SIMEI:</span>{' '}
+                {formatRegime(company?.simeiOptante ?? false)}
+              </p>
+            </div>
+          </SettingsRow>
+
+          <SettingsRow
+            label='Atividade principal'
+            description='CNAE principal disponível no cadastro.'
+          >
+            <p className='text-sm'>
               {company?.cnaeCode || company?.cnaeDescription ? (
                 <>
-                  <span className="font-medium">{formatValue(company?.cnaeCode)}</span>
+                  <span className='font-medium'>{formatValue(company?.cnaeCode)}</span>
                   {' - '}
                   {formatValue(company?.cnaeDescription)}
                 </>
@@ -249,46 +274,57 @@ export function OrganizationFiscalDataSection({
             </p>
           </SettingsRow>
 
-          <SettingsRow label="Atividades secundárias" description="CNAEs secundários retornados na consulta.">
+          <SettingsRow
+            label='Atividades secundárias'
+            description='CNAEs secundários retornados na consulta.'
+          >
             {company && company.atividadesSecundarias.length > 0 ? (
-              <div className="space-y-2 text-sm">
+              <div className='space-y-2 text-sm'>
                 {company.atividadesSecundarias.map((activity) => (
-                  <div key={`${activity.code}:${activity.text}`} className="rounded-lg border border-border/70 p-3">
-                    <p className="font-medium">{activity.code}</p>
-                    <p className="text-muted-foreground mt-1">{activity.text}</p>
+                  <div
+                    key={`${activity.code}:${activity.text}`}
+                    className='rounded-lg border border-border/70 p-3'
+                  >
+                    <p className='font-medium'>{activity.code}</p>
+                    <p className='mt-1 text-muted-foreground'>{activity.text}</p>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="font-medium">Não informado</p>
+              <p className='font-medium'>Não informado</p>
             )}
           </SettingsRow>
 
-          <SettingsRow label="Quadro societário" description="Sócios e qualificações disponíveis.">
+          <SettingsRow label='Quadro societário' description='Sócios e qualificações disponíveis.'>
             {company && company.qsa.length > 0 ? (
-              <div className="space-y-2 text-sm">
+              <div className='space-y-2 text-sm'>
                 {company.qsa.map((member) => (
                   <div
                     key={`${member.nome}:${member.qual}`}
-                    className="flex items-center justify-between rounded-lg border border-border/70 p-3"
+                    className='flex items-center justify-between rounded-lg border border-border/70 p-3'
                   >
-                    <span className="font-medium">{member.nome}</span>
-                    <span className="text-muted-foreground">{member.qual}</span>
+                    <span className='font-medium'>{member.nome}</span>
+                    <span className='text-muted-foreground'>{member.qual}</span>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="font-medium">Não informado</p>
+              <p className='font-medium'>Não informado</p>
             )}
           </SettingsRow>
 
-          <SettingsRow label="Origem dos dados" description="Quando a organização autorizou e buscou os dados da PJ.">
-            <div className="space-y-1 text-sm">
+          <SettingsRow
+            label='Origem dos dados'
+            description='Quando a organização autorizou e buscou os dados da PJ.'
+          >
+            <div className='space-y-1 text-sm'>
               <p>
-                <span className="font-medium">Autorizado em:</span> {formatDate(company?.authorizedAt ?? null)}
+                <span className='font-medium'>Autorizado em:</span>{' '}
+                {formatDate(company?.authorizedAt ?? null)}
               </p>
               <p>
-                <span className="font-medium">Consultado em:</span> {formatDate(company?.fetchedAt ?? null)}
+                <span className='font-medium'>Consultado em:</span>{' '}
+                {formatDate(company?.fetchedAt ?? null)}
               </p>
             </div>
           </SettingsRow>

@@ -1,19 +1,10 @@
 'use client'
 
-import * as React from 'react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Calendar as CalendarIcon, EyeIcon, Loader2 } from 'lucide-react'
+import * as React from 'react'
 import { TableVirtuoso } from 'react-virtuoso'
-
-import { CrudEmptyState } from '@/features/dashboard/components/crud/crud-data-view'
-import {
-  AUDIT_LOG_PERIOD_PRESETS,
-  type AuditLogPeriodPreset,
-  type AuditLogWithRelations,
-  useAuditLogFilters,
-  useAuditLogsInfinite,
-} from '@/hooks/audit/use-audit-logs'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -33,6 +24,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { CrudEmptyState } from '@/features/dashboard/components/crud/crud-data-view'
+import {
+  AUDIT_LOG_PERIOD_PRESETS,
+  type AuditLogPeriodPreset,
+  type AuditLogWithRelations,
+  useAuditLogFilters,
+  useAuditLogsInfinite,
+} from '@/hooks/audit/use-audit-logs'
 
 const PERIOD_PRESET_LABELS: Record<AuditLogPeriodPreset, string> = {
   today: 'Hoje',
@@ -113,11 +112,11 @@ function extractChangedFields(before: unknown, after: unknown): string[] {
 
 function JsonViewer({ data }: { data: unknown }) {
   if (data === null || data === undefined) {
-    return <span className="text-muted-foreground italic">N/A</span>
+    return <span className='text-muted-foreground italic'>N/A</span>
   }
 
   return (
-    <pre className="bg-muted overflow-x-auto whitespace-pre-wrap rounded-md p-4 text-xs">
+    <pre className='overflow-x-auto whitespace-pre-wrap rounded-md bg-muted p-4 text-xs'>
       {JSON.stringify(data, null, 2)}
     </pre>
   )
@@ -127,37 +126,37 @@ function AuditLogDetails({ log }: { log: AuditLogWithRelations }) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" title="Ver detalhes">
-          <EyeIcon className="h-4 w-4" />
+        <Button variant='ghost' size='icon' title='Ver detalhes'>
+          <EyeIcon className='h-4 w-4' />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-h-[80vh] max-w-3xl overflow-y-auto">
+      <DialogContent className='max-h-[80vh] max-w-3xl overflow-y-auto'>
         <DialogHeader>
           <DialogTitle>Detalhes da ação</DialogTitle>
         </DialogHeader>
 
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-4 md:grid-cols-2">
+        <div className='grid gap-4 py-4'>
+          <div className='grid gap-4 md:grid-cols-2'>
             <div>
-              <p className="text-muted-foreground text-sm font-medium">Data/Hora</p>
-              <p className="font-semibold">
+              <p className='font-medium text-muted-foreground text-sm'>Data/Hora</p>
+              <p className='font-semibold'>
                 {format(new Date(log.createdAt), 'dd/MM/yyyy HH:mm:ss', { locale: ptBR })}
               </p>
             </div>
             <div>
-              <p className="text-muted-foreground text-sm font-medium">Equipe</p>
-              <p className="font-semibold">Equipe ativa</p>
-              <p className="text-muted-foreground text-xs">{log.organizationId || '—'}</p>
+              <p className='font-medium text-muted-foreground text-sm'>Equipe</p>
+              <p className='font-semibold'>Equipe ativa</p>
+              <p className='text-muted-foreground text-xs'>{log.organizationId || '—'}</p>
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className='grid gap-4 md:grid-cols-2'>
             <div>
-              <p className="text-muted-foreground text-sm font-medium">Ação</p>
-              <p className="font-semibold">{log.action}</p>
+              <p className='font-medium text-muted-foreground text-sm'>Ação</p>
+              <p className='font-semibold'>{log.action}</p>
             </div>
             <div>
-              <p className="text-muted-foreground text-sm font-medium">Recurso</p>
+              <p className='font-medium text-muted-foreground text-sm'>Recurso</p>
               <p>
                 {log.resourceType}
                 {log.resourceId ? ` (${log.resourceId})` : ''}
@@ -165,34 +164,34 @@ function AuditLogDetails({ log }: { log: AuditLogWithRelations }) {
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className='grid gap-4 md:grid-cols-2'>
             <div>
-              <p className="text-muted-foreground text-sm font-medium">IP</p>
-              <p className="font-mono text-sm">{log.ip || 'N/A'}</p>
+              <p className='font-medium text-muted-foreground text-sm'>IP</p>
+              <p className='font-mono text-sm'>{log.ip || 'N/A'}</p>
             </div>
             <div>
-              <p className="text-muted-foreground text-sm font-medium">Request ID</p>
-              <p className="font-mono text-sm">{log.requestId || 'N/A'}</p>
+              <p className='font-medium text-muted-foreground text-sm'>Request ID</p>
+              <p className='font-mono text-sm'>{log.requestId || 'N/A'}</p>
             </div>
           </div>
 
           <div>
-            <p className="text-muted-foreground text-sm font-medium">User Agent</p>
-            <p className="text-sm">{log.userAgent || 'N/A'}</p>
+            <p className='font-medium text-muted-foreground text-sm'>User Agent</p>
+            <p className='text-sm'>{log.userAgent || 'N/A'}</p>
           </div>
 
-          <div className="grid gap-2">
-            <p className="text-muted-foreground text-sm font-medium">Metadata</p>
+          <div className='grid gap-2'>
+            <p className='font-medium text-muted-foreground text-sm'>Metadata</p>
             <JsonViewer data={log.metadata} />
           </div>
 
-          <div className="grid gap-2">
-            <p className="text-muted-foreground text-sm font-medium">Estado anterior (before)</p>
+          <div className='grid gap-2'>
+            <p className='font-medium text-muted-foreground text-sm'>Estado anterior (before)</p>
             <JsonViewer data={log.before} />
           </div>
 
-          <div className="grid gap-2">
-            <p className="text-muted-foreground text-sm font-medium">Novo estado (after)</p>
+          <div className='grid gap-2'>
+            <p className='font-medium text-muted-foreground text-sm'>Novo estado (after)</p>
             <JsonViewer data={log.after} />
           </div>
         </div>
@@ -203,18 +202,18 @@ function AuditLogDetails({ log }: { log: AuditLogWithRelations }) {
 
 function UserCell({ log }: { log: AuditLogWithRelations }) {
   if (!log.user) {
-    return <span className="text-muted-foreground text-sm italic">Sistema</span>
+    return <span className='text-muted-foreground text-sm italic'>Sistema</span>
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <Avatar className="h-7 w-7">
+    <div className='flex items-center gap-2'>
+      <Avatar className='h-7 w-7'>
         <AvatarImage src={log.user.image || ''} alt={log.user.name || log.user.email} />
         <AvatarFallback>{(log.user.name || log.user.email).charAt(0)}</AvatarFallback>
       </Avatar>
-      <div className="min-w-0">
-        <p className="truncate text-sm font-medium">{log.user.name || log.user.email}</p>
-        <p className="text-muted-foreground truncate text-xs">{log.user.email}</p>
+      <div className='min-w-0'>
+        <p className='truncate font-medium text-sm'>{log.user.name || log.user.email}</p>
+        <p className='truncate text-muted-foreground text-xs'>{log.user.email}</p>
       </div>
     </div>
   )
@@ -237,11 +236,11 @@ function CustomDatePicker({
     <Popover>
       <PopoverTrigger asChild>
         <Button
-          variant="outline"
-          className="data-[empty=true]:text-muted-foreground w-full justify-start text-left font-normal"
+          variant='outline'
+          className='w-full justify-start text-left font-normal data-[empty=true]:text-muted-foreground'
           data-empty={!selectedDate}
         >
-          <CalendarIcon className="h-4 w-4" />
+          <CalendarIcon className='h-4 w-4' />
           {selectedDate ? (
             format(selectedDate, 'dd/MM/yyyy', { locale: ptBR })
           ) : (
@@ -249,14 +248,14 @@ function CustomDatePicker({
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-auto p-0">
+      <PopoverContent align='start' className='w-auto p-0'>
         <Calendar
-          mode="single"
+          mode='single'
           locale={ptBR}
           selected={selectedDate}
           onSelect={(date) => onChange(date ? formatDateInput(date) : '')}
           disabled={disabled}
-          captionLayout="dropdown"
+          captionLayout='dropdown'
         />
       </PopoverContent>
     </Popover>
@@ -307,16 +306,16 @@ export function AuditLogsTable({ initialResourceTypes }: AuditLogsTableProps = {
   )
 
   return (
-    <div className="space-y-4">
-      <div className="bg-muted/10 rounded-xl border p-4">
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-          <div className="space-y-1">
-            <p className="text-muted-foreground text-[11px] font-semibold uppercase tracking-wide">
+    <div className='space-y-4'>
+      <div className='rounded-xl border bg-muted/10 p-4'>
+        <div className='grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4'>
+          <div className='space-y-1'>
+            <p className='font-semibold text-[11px] text-muted-foreground uppercase tracking-wide'>
               Período
             </p>
             <Select value={periodPreset} onValueChange={handlePeriodChange}>
               <SelectTrigger>
-                <SelectValue placeholder="Selecione" />
+                <SelectValue placeholder='Selecione' />
               </SelectTrigger>
               <SelectContent>
                 {AUDIT_LOG_PERIOD_PRESETS.map((preset) => (
@@ -329,29 +328,29 @@ export function AuditLogsTable({ initialResourceTypes }: AuditLogsTableProps = {
           </div>
 
           {periodPreset === 'custom' && (
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:col-span-1">
-              <div className="space-y-1">
-                <p className="text-muted-foreground text-[11px] font-semibold uppercase tracking-wide">
+            <div className='grid grid-cols-1 gap-2 sm:grid-cols-2 xl:col-span-1'>
+              <div className='space-y-1'>
+                <p className='font-semibold text-[11px] text-muted-foreground uppercase tracking-wide'>
                   Data inicial
                 </p>
                 <CustomDatePicker
                   value={startDate}
                   onChange={setStartDate}
-                  placeholder="Selecionar data"
+                  placeholder='Selecionar data'
                   disabled={(date) => {
                     const end = parseDateInput(endDate)
                     return end ? date > end : false
                   }}
                 />
               </div>
-              <div className="space-y-1">
-                <p className="text-muted-foreground text-[11px] font-semibold uppercase tracking-wide">
+              <div className='space-y-1'>
+                <p className='font-semibold text-[11px] text-muted-foreground uppercase tracking-wide'>
                   Data final
                 </p>
                 <CustomDatePicker
                   value={endDate}
                   onChange={setEndDate}
-                  placeholder="Selecionar data"
+                  placeholder='Selecionar data'
                   disabled={(date) => {
                     const start = parseDateInput(startDate)
                     return start ? date < start : false
@@ -361,16 +360,16 @@ export function AuditLogsTable({ initialResourceTypes }: AuditLogsTableProps = {
             </div>
           )}
 
-          <div className="space-y-1">
-            <p className="text-muted-foreground text-[11px] font-semibold uppercase tracking-wide">
+          <div className='space-y-1'>
+            <p className='font-semibold text-[11px] text-muted-foreground uppercase tracking-wide'>
               Recurso
             </p>
             <Select value={resourceType} onValueChange={setResourceType}>
               <SelectTrigger>
-                <SelectValue placeholder="Todos os recursos" />
+                <SelectValue placeholder='Todos os recursos' />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos os recursos</SelectItem>
+                <SelectItem value='all'>Todos os recursos</SelectItem>
                 {(filtersQuery.data?.resourceTypes ?? []).map((resource) => (
                   <SelectItem key={resource} value={resource}>
                     {resource}
@@ -382,12 +381,12 @@ export function AuditLogsTable({ initialResourceTypes }: AuditLogsTableProps = {
         </div>
 
         {(filtersQuery.isLoading || filtersQuery.isError) && (
-          <div className="mt-3 flex flex-wrap items-center gap-2">
+          <div className='mt-3 flex flex-wrap items-center gap-2'>
             {filtersQuery.isLoading && (
-              <span className="text-muted-foreground text-xs">Carregando filtros...</span>
+              <span className='text-muted-foreground text-xs'>Carregando filtros...</span>
             )}
             {filtersQuery.isError && (
-              <span className="text-destructive text-xs">
+              <span className='text-destructive text-xs'>
                 Não foi possível carregar opções de filtros.
               </span>
             )}
@@ -395,30 +394,30 @@ export function AuditLogsTable({ initialResourceTypes }: AuditLogsTableProps = {
         )}
 
         {isCustomPeriodInvalid && (
-          <p className="text-destructive mt-2 text-xs">
+          <p className='mt-2 text-destructive text-xs'>
             Informe data inicial e final no período customizado.
           </p>
         )}
       </div>
 
       {isLoading ? (
-        <div className="flex h-56 items-center justify-center rounded-xl border">
-          <div className="text-muted-foreground flex items-center gap-2 text-sm">
-            <Loader2 className="h-4 w-4 animate-spin" />
+        <div className='flex h-56 items-center justify-center rounded-xl border'>
+          <div className='flex items-center gap-2 text-muted-foreground text-sm'>
+            <Loader2 className='h-4 w-4 animate-spin' />
             Carregando logs...
           </div>
         </div>
       ) : isError ? (
-        <div className="text-destructive rounded-xl border border-red-500/30 bg-red-500/5 p-4 text-sm">
+        <div className='rounded-xl border border-red-500/30 bg-red-500/5 p-4 text-destructive text-sm'>
           {(error as Error)?.message || 'Erro ao carregar logs de auditoria.'}
         </div>
       ) : logs.length === 0 ? (
         <CrudEmptyState
-          title="Nenhum log encontrado."
-          description="Tente buscar por termos diferentes ou verifique os filtros."
+          title='Nenhum log encontrado.'
+          description='Tente buscar por termos diferentes ou verifique os filtros.'
         />
       ) : (
-        <div className="overflow-hidden rounded-xl border">
+        <div className='overflow-hidden rounded-xl border'>
           <TableVirtuoso
             data={logs}
             style={{ height: 620 }}
@@ -429,7 +428,7 @@ export function AuditLogsTable({ initialResourceTypes }: AuditLogsTableProps = {
                 <table
                   {...props}
                   style={style}
-                  className="w-full min-w-[1220px] border-collapse text-left"
+                  className='w-full min-w-[1220px] border-collapse text-left'
                 />
               ),
               TableHead: React.forwardRef(({ style, ...props }, ref) => (
@@ -442,28 +441,28 @@ export function AuditLogsTable({ initialResourceTypes }: AuditLogsTableProps = {
                 <tr
                   {...props}
                   style={style}
-                  className="border-border/50 hover:bg-muted/30 border-b align-top transition-colors"
+                  className='border-border/50 border-b align-top transition-colors hover:bg-muted/30'
                 />
               ),
             }}
             fixedHeaderContent={() => (
-              <tr className="bg-muted/30 border-b">
-                <th className="text-muted-foreground px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide">
+              <tr className='border-b bg-muted/30'>
+                <th className='px-4 py-2.5 font-semibold text-[11px] text-muted-foreground uppercase tracking-wide'>
                   Data/Hora
                 </th>
-                <th className="text-muted-foreground px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide">
+                <th className='px-4 py-2.5 font-semibold text-[11px] text-muted-foreground uppercase tracking-wide'>
                   Usuário
                 </th>
-                <th className="text-muted-foreground px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide">
+                <th className='px-4 py-2.5 font-semibold text-[11px] text-muted-foreground uppercase tracking-wide'>
                   Ação
                 </th>
-                <th className="text-muted-foreground px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide">
+                <th className='px-4 py-2.5 font-semibold text-[11px] text-muted-foreground uppercase tracking-wide'>
                   Recurso
                 </th>
-                <th className="text-muted-foreground px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide">
+                <th className='px-4 py-2.5 font-semibold text-[11px] text-muted-foreground uppercase tracking-wide'>
                   Campos alterados
                 </th>
-                <th className="w-14 px-4 py-2.5" />
+                <th className='w-14 px-4 py-2.5' />
               </tr>
             )}
             itemContent={(_index, log) => {
@@ -471,42 +470,42 @@ export function AuditLogsTable({ initialResourceTypes }: AuditLogsTableProps = {
 
               return (
                 <>
-                  <td className="whitespace-nowrap px-4 py-3">
+                  <td className='whitespace-nowrap px-4 py-3'>
                     {format(new Date(log.createdAt), 'dd/MM/yyyy HH:mm:ss', { locale: ptBR })}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className='px-4 py-3'>
                     <UserCell log={log} />
                   </td>
-                  <td className="px-4 py-3">
-                    <Badge variant="outline" className="bg-background font-mono">
+                  <td className='px-4 py-3'>
+                    <Badge variant='outline' className='bg-background font-mono'>
                       {log.action}
                     </Badge>
                   </td>
-                  <td className="px-4 py-3">
-                    <p className="text-sm font-medium">{log.resourceType}</p>
-                    <p className="text-muted-foreground max-w-[220px] truncate text-xs">
+                  <td className='px-4 py-3'>
+                    <p className='font-medium text-sm'>{log.resourceType}</p>
+                    <p className='max-w-[220px] truncate text-muted-foreground text-xs'>
                       {log.resourceId || '—'}
                     </p>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className='px-4 py-3'>
                     {changedFields.length > 0 ? (
-                      <div className="flex max-w-[220px] flex-wrap gap-1">
+                      <div className='flex max-w-[220px] flex-wrap gap-1'>
                         {changedFields.slice(0, 3).map((field) => (
-                          <Badge key={field} variant="secondary" className="text-[10px]">
+                          <Badge key={field} variant='secondary' className='text-[10px]'>
                             {field}
                           </Badge>
                         ))}
                         {changedFields.length > 3 && (
-                          <Badge variant="secondary" className="text-[10px]">
+                          <Badge variant='secondary' className='text-[10px]'>
                             +{changedFields.length - 3}
                           </Badge>
                         )}
                       </div>
                     ) : (
-                      <span className="text-muted-foreground text-xs">—</span>
+                      <span className='text-muted-foreground text-xs'>—</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-right">
+                  <td className='px-4 py-3 text-right'>
                     <AuditLogDetails log={log} />
                   </td>
                 </>
@@ -515,8 +514,8 @@ export function AuditLogsTable({ initialResourceTypes }: AuditLogsTableProps = {
           />
 
           {isFetchingNextPage && (
-            <div className="text-muted-foreground flex items-center justify-center gap-2 border-t py-3 text-xs">
-              <Loader2 className="h-4 w-4 animate-spin" />
+            <div className='flex items-center justify-center gap-2 border-t py-3 text-muted-foreground text-xs'>
+              <Loader2 className='h-4 w-4 animate-spin' />
               Carregando mais logs...
             </div>
           )}

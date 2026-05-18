@@ -1,7 +1,12 @@
 import { Prisma } from '@generated/prisma/client'
 import { prisma } from '@/lib/db/prisma'
 
-export async function getHourlyHeatmap(organizationId: string, startDate: Date, endDate: Date, projectId?: string) {
+export async function getHourlyHeatmap(
+  organizationId: string,
+  startDate: Date,
+  endDate: Date,
+  projectId?: string
+) {
   const heatmap = await prisma.$queryRaw`
     SELECT
       EXTRACT(DOW FROM timestamp)::int as day_of_week,

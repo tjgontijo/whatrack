@@ -1,21 +1,18 @@
 'use client'
 
-import React from 'react'
-import { useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
-import { useDeferredValue } from 'react'
-
-import {
-  CrudDataView,
-  CrudListView,
-  type ColumnDef,
-} from '@/features/dashboard/components/crud'
-import { HeaderPageShell, HeaderTabs } from '@/features/dashboard/components/layout'
-import { CrudEmptyState } from '@/features/dashboard/components/crud/crud-data-view'
+import { useRouter } from 'next/navigation'
+import React, { useDeferredValue } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { useRequiredProjectPath, useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
+import { type ColumnDef, CrudDataView, CrudListView } from '@/features/dashboard/components/crud'
+import { CrudEmptyState } from '@/features/dashboard/components/crud/crud-data-view'
+import { HeaderPageShell, HeaderTabs } from '@/features/dashboard/components/layout'
+import {
+  useRequiredProjectPath,
+  useRequiredProjectRouteContext,
+} from '@/features/projects/hooks/use-project-route-context'
 import { apiFetch } from '@/lib/api-client'
 
 const STATUS_LABELS: Record<string, string> = {
@@ -34,7 +31,7 @@ const STATUS_VARIANTS: Record<string, 'secondary' | 'default' | 'destructive' | 
   CANCELLED: 'destructive',
 }
 
-const TYPE_LABELS: Record<string, string> = {
+const _TYPE_LABELS: Record<string, string> = {
   MARKETING: 'Marketing',
   OPERATIONAL: 'Operacional',
 }
@@ -121,15 +118,16 @@ export function CampaignsPage({ initialCreateOpen = false }: CampaignsPageProps 
   const filteredItems = React.useMemo(() => {
     const query = deferredSearch.trim().toLowerCase()
     if (!query) return data?.items || []
-    return (data?.items || []).filter((campaign) =>
-      campaign.name.toLowerCase().includes(query) ||
-      (campaign.templateName || '').toLowerCase().includes(query)
+    return (data?.items || []).filter(
+      (campaign) =>
+        campaign.name.toLowerCase().includes(query) ||
+        (campaign.templateName || '').toLowerCase().includes(query)
     )
   }, [data?.items, deferredSearch])
 
   const openCampaignDetail = React.useCallback(
     (campaignId: string) => router.push(`${campaignsPath}/${campaignId}`),
-    [campaignsPath, router],
+    [campaignsPath, router]
   )
 
   const columns: ColumnDef<CampaignItem>[] = [
@@ -137,21 +135,24 @@ export function CampaignsPage({ initialCreateOpen = false }: CampaignsPageProps 
       key: 'name',
       label: 'Campanha',
       render: (campaign) => (
-        <div className="space-y-0.5">
-          <div className="flex items-center gap-2">
+        <div className='space-y-0.5'>
+          <div className='flex items-center gap-2'>
             <button
-              className="font-medium hover:underline text-left"
+              className='text-left font-medium hover:underline'
               onClick={() => openCampaignDetail(campaign.id)}
             >
               {campaign.name}
             </button>
             {campaign.isAbTest && (
-              <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 bg-purple-50 text-purple-700 border-purple-300 dark:bg-purple-950/30">
+              <Badge
+                variant='outline'
+                className='h-4 border-purple-300 bg-purple-50 px-1 py-0 text-[10px] text-purple-700 dark:bg-purple-950/30'
+              >
                 A/B
               </Badge>
             )}
           </div>
-          <div className="text-muted-foreground text-xs">
+          <div className='text-muted-foreground text-xs'>
             {campaign.templateName ? `Template: ${campaign.templateName}` : 'Sem template'}
           </div>
         </div>
@@ -172,18 +173,18 @@ export function CampaignsPage({ initialCreateOpen = false }: CampaignsPageProps 
       label: 'Engajamento',
       width: 200,
       render: (campaign) => (
-        <div className="flex gap-4 text-xs">
-          <div className="flex flex-col">
-            <span className="text-muted-foreground">Enviados</span>
-            <span className="font-semibold">{campaign.stats.sent}</span>
+        <div className='flex gap-4 text-xs'>
+          <div className='flex flex-col'>
+            <span className='text-muted-foreground'>Enviados</span>
+            <span className='font-semibold'>{campaign.stats.sent}</span>
           </div>
-          <div className="flex flex-col">
-            <span className="text-muted-foreground">Entregues</span>
-            <span className="font-semibold">{campaign.stats.delivered}</span>
+          <div className='flex flex-col'>
+            <span className='text-muted-foreground'>Entregues</span>
+            <span className='font-semibold'>{campaign.stats.delivered}</span>
           </div>
-          <div className="flex flex-col">
-            <span className="text-muted-foreground">Lidos</span>
-            <span className="font-semibold">{campaign.stats.read}</span>
+          <div className='flex flex-col'>
+            <span className='text-muted-foreground'>Lidos</span>
+            <span className='font-semibold'>{campaign.stats.read}</span>
           </div>
         </div>
       ),
@@ -193,9 +194,7 @@ export function CampaignsPage({ initialCreateOpen = false }: CampaignsPageProps 
       label: 'Criada em',
       width: 160,
       render: (campaign) => (
-        <span className="text-muted-foreground text-sm">
-          {formatDate(campaign.createdAt)}
-        </span>
+        <span className='text-muted-foreground text-sm'>{formatDate(campaign.createdAt)}</span>
       ),
     },
   ]
@@ -207,40 +206,33 @@ export function CampaignsPage({ initialCreateOpen = false }: CampaignsPageProps 
   }
 
   return (
-    <>
-      <HeaderPageShell
-        title="Campanhas"
-        selector={
-          <HeaderTabs
-            tabs={tabs}
-            activeTab="campaigns"
-            onTabChange={handleTabChange}
-          />
-        }
-        searchValue={searchInput}
-        onSearchChange={setSearchInput}
-        searchPlaceholder="Buscar campanhas..."
-        onRefresh={() => void refetch()}
-        isRefreshing={isRefetching || isLoading}
-        primaryAction={
-          <Button
-            type="button"
-            size="sm"
-            className="h-7 gap-1.5 text-xs"
-            onClick={() => router.push(`${campaignsPath}/new`)}
-          >
-            <Plus className="h-3.5 w-3.5" />
-            Nova campanha
-          </Button>
-        }
-      >
-        <div className="flex flex-col flex-1">
-          <CrudDataView
+    <HeaderPageShell
+      title='Campanhas'
+      selector={<HeaderTabs tabs={tabs} activeTab='campaigns' onTabChange={handleTabChange} />}
+      searchValue={searchInput}
+      onSearchChange={setSearchInput}
+      searchPlaceholder='Buscar campanhas...'
+      onRefresh={() => void refetch()}
+      isRefreshing={isRefetching || isLoading}
+      primaryAction={
+        <Button
+          type='button'
+          size='sm'
+          className='h-7 gap-1.5 text-xs'
+          onClick={() => router.push(`${campaignsPath}/new`)}
+        >
+          <Plus className='h-3.5 w-3.5' />
+          Nova campanha
+        </Button>
+      }
+    >
+      <div className='flex flex-1 flex-col'>
+        <CrudDataView
           data={filteredItems}
-          view="list"
+          view='list'
           emptyView={
             <CrudEmptyState
-              title="Nenhuma campanha encontrada."
+              title='Nenhuma campanha encontrada.'
               description="Crie uma campanha de WhatsApp clicando em 'Nova campanha'."
             />
           }
@@ -251,11 +243,9 @@ export function CampaignsPage({ initialCreateOpen = false }: CampaignsPageProps 
               onRowClick={(campaign) => openCampaignDetail(campaign.id)}
             />
           }
-            cardView={null}
-          />
-        </div>
-      </HeaderPageShell>
-
-    </>
+          cardView={null}
+        />
+      </div>
+    </HeaderPageShell>
   )
 }

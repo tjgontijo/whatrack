@@ -33,11 +33,9 @@ export function FilterSelect({
 }: FilterSelectProps) {
   return (
     <div className={cn('w-full space-y-2', className)}>
-      <label className="text-label uppercase text-gray-500 dark:text-gray-400">
-        {label}
-      </label>
+      <label className='text-gray-500 text-label uppercase dark:text-gray-400'>{label}</label>
       <Select value={value} onValueChange={onValueChange} disabled={disabled}>
-        <SelectTrigger className="h-10 w-full rounded-lg border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+        <SelectTrigger className='h-10 w-full rounded-lg border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900'>
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>

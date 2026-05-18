@@ -1,29 +1,18 @@
 'use client'
 
-import * as React from 'react'
-import { useState, useDeferredValue, useMemo, useCallback } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { MoreHorizontal, Pencil, Trash2, Power, PowerOff } from 'lucide-react'
+import { MoreHorizontal, Pencil, Power, PowerOff, Trash2 } from 'lucide-react'
+import * as React from 'react'
+import { useDeferredValue, useMemo, useState } from 'react'
 import { toast } from 'sonner'
-
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { CrudEmptyState } from '@/features/dashboard/components/crud/crud-data-view'
-import { CrudListView } from '@/features/dashboard/components/crud/crud-list-view'
-import { DeleteConfirmDialog } from '@/features/dashboard/components/crud/delete-confirm-dialog'
-import { HeaderPageShell } from '@/features/dashboard/components/layout'
-import { useCrudInfiniteQuery } from '@/hooks/ui/use-crud-infinite-query'
-import {
-  type ColumnDef,
-  type RowActions,
-} from '@/features/dashboard/components/crud/types'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Badge } from '@/components/ui/badge'
-import { useOrganization } from '@/features/organizations/hooks/use-organization'
 import {
   Select,
   SelectContent,
@@ -31,9 +20,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { CrudEmptyState } from '@/features/dashboard/components/crud/crud-data-view'
+import { CrudListView } from '@/features/dashboard/components/crud/crud-list-view'
+import { DeleteConfirmDialog } from '@/features/dashboard/components/crud/delete-confirm-dialog'
+import type { ColumnDef, RowActions } from '@/features/dashboard/components/crud/types'
+import { HeaderPageShell } from '@/features/dashboard/components/layout'
+import { useOrganization } from '@/features/organizations/hooks/use-organization'
+import { useCrudInfiniteQuery } from '@/hooks/ui/use-crud-infinite-query'
 
 import { apiFetch } from '@/lib/api-client'
-import { CategoryFormDrawer, type CategoryFormData } from './category-form-drawer'
+import { type CategoryFormData, CategoryFormDrawer } from './category-form-drawer'
 
 type Category = {
   id: string
@@ -54,7 +50,7 @@ const columns: ColumnDef<Category>[] = [
   {
     key: 'name',
     label: 'Categoria',
-    render: (category) => <span className="font-medium">{category.name}</span>,
+    render: (category) => <span className='font-medium'>{category.name}</span>,
   },
   {
     key: 'itemsCount',
@@ -77,7 +73,7 @@ const columns: ColumnDef<Category>[] = [
     label: 'Criada em',
     width: 160,
     render: (category) => (
-      <span className="text-muted-foreground text-xs">
+      <span className='text-muted-foreground text-xs'>
         {new Date(category.createdAt).toLocaleDateString('pt-BR')}
       </span>
     ),
@@ -121,10 +117,14 @@ export function CategoriesTable({
     }
   }, [triggerOpenForm, hideHeader])
 
-  const searchInput = hideHeader ? externalSearchInput ?? localSearchInput : localSearchInput
-  const onSearchChange = hideHeader ? externalOnSearchChange ?? setLocalSearchInput : setLocalSearchInput
-  const statusFilter = hideHeader ? externalStatusFilter ?? localStatusFilter : localStatusFilter
-  const onStatusFilterChange = hideHeader ? externalOnStatusFilterChange ?? setLocalStatusFilter : setLocalStatusFilter
+  const searchInput = hideHeader ? (externalSearchInput ?? localSearchInput) : localSearchInput
+  const onSearchChange = hideHeader
+    ? (externalOnSearchChange ?? setLocalSearchInput)
+    : setLocalSearchInput
+  const statusFilter = hideHeader ? (externalStatusFilter ?? localStatusFilter) : localStatusFilter
+  const onStatusFilterChange = hideHeader
+    ? (externalOnStatusFilterChange ?? setLocalStatusFilter)
+    : setLocalStatusFilter
 
   const deferredSearch = useDeferredValue(searchInput)
 
@@ -157,8 +157,6 @@ export function CategoriesTable({
     void queryClient.invalidateQueries({ queryKey: ['item-categories-crud'] })
     void refetch()
   }, [queryClient, refetch])
-
-
 
   const toggleMutation = useMutation({
     mutationFn: async (category: Category) => {
@@ -197,16 +195,15 @@ export function CategoriesTable({
     },
   })
 
-
   const rowActions: RowActions<Category> = {
     customActions: (category) => (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon-sm" title="Mais ações">
-            <MoreHorizontal className="h-4 w-4" />
+          <Button variant='ghost' size='icon-sm' title='Mais ações'>
+            <MoreHorizontal className='h-4 w-4' />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent align='end'>
           <DropdownMenuItem
             onSelect={() => {
               setEditingCategory({
@@ -217,22 +214,22 @@ export function CategoriesTable({
               setIsFormOpen(true)
             }}
           >
-            <Pencil className="mr-2 h-4 w-4" />
+            <Pencil className='mr-2 h-4 w-4' />
             Editar
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => toggleMutation.mutate(category)}>
             {category.active ? (
-              <PowerOff className="mr-2 h-4 w-4" />
+              <PowerOff className='mr-2 h-4 w-4' />
             ) : (
-              <Power className="mr-2 h-4 w-4" />
+              <Power className='mr-2 h-4 w-4' />
             )}
             {category.active ? 'Desativar' : 'Ativar'}
           </DropdownMenuItem>
           <DropdownMenuItem
-            className="text-destructive focus:text-destructive"
+            className='text-destructive focus:text-destructive'
             onSelect={() => setDeletingCategory(category)}
           >
-            <Trash2 className="mr-2 h-4 w-4" />
+            <Trash2 className='mr-2 h-4 w-4' />
             Excluir
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -241,15 +238,15 @@ export function CategoriesTable({
   }
 
   const filtersNode = (
-    <div className="space-y-1.5">
-      <p className="text-muted-foreground text-xs font-medium">Status</p>
+    <div className='space-y-1.5'>
+      <p className='font-medium text-muted-foreground text-xs'>Status</p>
       <Select value={statusFilter} onValueChange={onStatusFilterChange}>
-        <SelectTrigger className="border-border h-8 w-full text-xs">
+        <SelectTrigger className='h-8 w-full border-border text-xs'>
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
           {STATUS_OPTIONS.map((option) => (
-            <SelectItem key={option.value} value={option.value} className="text-xs">
+            <SelectItem key={option.value} value={option.value} className='text-xs'>
               {option.label}
             </SelectItem>
           ))}
@@ -281,7 +278,7 @@ export function CategoriesTable({
       <DeleteConfirmDialog
         open={Boolean(deletingCategory)}
         onOpenChange={(open) => !open && setDeletingCategory(null)}
-        title="Excluir categoria?"
+        title='Excluir categoria?'
         description={
           deletingCategory
             ? `Deseja excluir a categoria "${deletingCategory.name}"?`
@@ -304,12 +301,12 @@ export function CategoriesTable({
 
   return (
     <HeaderPageShell
-      title="Categorias"
+      title='Categorias'
       primaryAction={
         <Button
-          type="button"
-          size="sm"
-          className="h-7 gap-1.5 text-xs"
+          type='button'
+          size='sm'
+          className='h-7 gap-1.5 text-xs'
           onClick={() => onOpenNewForm?.() ?? (setEditingCategory(null), setIsFormOpen(true))}
         >
           Novo
@@ -317,7 +314,7 @@ export function CategoriesTable({
       }
       searchValue={searchInput}
       onSearchChange={onSearchChange}
-      searchPlaceholder="Buscar categoria..."
+      searchPlaceholder='Buscar categoria...'
       onRefresh={() => void refetch()}
       isFetchingMore={isFetchingNextPage}
       filters={filtersNode}

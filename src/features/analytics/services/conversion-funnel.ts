@@ -1,7 +1,12 @@
 import { Prisma } from '@generated/prisma/client'
 import { prisma } from '@/lib/db/prisma'
 
-export async function getConversionFunnel(organizationId: string, startDate: Date, endDate: Date, projectId?: string) {
+export async function getConversionFunnel(
+  organizationId: string,
+  startDate: Date,
+  endDate: Date,
+  projectId?: string
+) {
   // Query to get tickets by status
   const statusOverview = await prisma.$queryRaw`
     SELECT

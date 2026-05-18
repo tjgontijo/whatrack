@@ -1,15 +1,5 @@
 'use client'
-
-import * as React from 'react'
-import { useState, useDeferredValue, useMemo, useCallback } from 'react'
-
-import { CrudDataView, CrudEmptyState } from '@/features/dashboard/components/crud/crud-data-view'
-import { CrudListView } from '@/features/dashboard/components/crud/crud-list-view'
-import { CrudCardView } from '@/features/dashboard/components/crud/crud-card-view'
-import { ViewSwitcher } from '@/features/dashboard/components/crud/view-switcher'
-import { HeaderPageShell } from '@/features/dashboard/components/layout'
-import { useCrudInfiniteQuery } from '@/hooks/ui/use-crud-infinite-query'
-import { NewLeadDrawer } from '@/features/leads/components/new-lead-drawer'
+import { useDeferredValue, useMemo, useState } from 'react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
@@ -19,12 +9,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  type CardConfig,
-  type ColumnDef,
-  type RowActions,
-  type ViewType,
+import { CrudCardView } from '@/features/dashboard/components/crud/crud-card-view'
+import { CrudDataView, CrudEmptyState } from '@/features/dashboard/components/crud/crud-data-view'
+import { CrudListView } from '@/features/dashboard/components/crud/crud-list-view'
+import type {
+  CardConfig,
+  ColumnDef,
+  RowActions,
+  ViewType,
 } from '@/features/dashboard/components/crud/types'
+import { ViewSwitcher } from '@/features/dashboard/components/crud/view-switcher'
+import { HeaderPageShell } from '@/features/dashboard/components/layout'
+import { NewLeadDrawer } from '@/features/leads/components/new-lead-drawer'
+import { useCrudInfiniteQuery } from '@/hooks/ui/use-crud-infinite-query'
 
 type Lead = {
   id: string
@@ -53,13 +50,13 @@ const columns: ColumnDef<Lead>[] = [
     key: 'name',
     label: 'Lead',
     render: (lead) => (
-      <div className="flex items-center gap-2.5">
-        <Avatar className="border-border/50 h-7 w-7 shrink-0 border">
-          <AvatarFallback className="bg-primary/5 text-primary text-[9px] font-semibold">
+      <div className='flex items-center gap-2.5'>
+        <Avatar className='h-7 w-7 shrink-0 border border-border/50'>
+          <AvatarFallback className='bg-primary/5 font-semibold text-[9px] text-primary'>
             {getLeadName(lead).slice(0, 2).toUpperCase()}
           </AvatarFallback>
         </Avatar>
-        <span className="truncate text-[13px] font-medium">{getLeadName(lead)}</span>
+        <span className='truncate font-medium text-[13px]'>{getLeadName(lead)}</span>
       </div>
     ),
   },
@@ -67,16 +64,16 @@ const columns: ColumnDef<Lead>[] = [
     key: 'phone',
     label: 'Telefone',
     width: 160,
-    render: (lead) => <span className="text-sm">{lead.phone ?? '—'}</span>,
+    render: (lead) => <span className='text-sm'>{lead.phone ?? '—'}</span>,
   },
   {
     key: 'mail',
     label: 'Email',
     render: (lead) =>
       lead.mail ? (
-        <span className="block max-w-[220px] truncate text-sm">{lead.mail}</span>
+        <span className='block max-w-[220px] truncate text-sm'>{lead.mail}</span>
       ) : (
-        <span className="text-muted-foreground">—</span>
+        <span className='text-muted-foreground'>—</span>
       ),
   },
   {
@@ -84,7 +81,7 @@ const columns: ColumnDef<Lead>[] = [
     label: 'Criado em',
     width: 170,
     render: (lead) => (
-      <span className="text-muted-foreground text-xs">
+      <span className='text-muted-foreground text-xs'>
         {new Date(lead.createdAt).toLocaleString('pt-BR')}
       </span>
     ),
@@ -93,8 +90,8 @@ const columns: ColumnDef<Lead>[] = [
 
 const cardConfig: CardConfig<Lead> = {
   icon: (lead) => (
-    <Avatar className="border-border h-9 w-9 border">
-      <AvatarFallback className="bg-primary/5 text-primary text-xs font-bold">
+    <Avatar className='h-9 w-9 border border-border'>
+      <AvatarFallback className='bg-primary/5 font-bold text-primary text-xs'>
         {getLeadName(lead).slice(0, 2).toUpperCase()}
       </AvatarFallback>
     </Avatar>
@@ -102,7 +99,7 @@ const cardConfig: CardConfig<Lead> = {
   title: getLeadName,
   subtitle: (lead) => lead.phone || lead.mail || 'Sem contato',
   footer: (lead) => (
-    <span className="text-muted-foreground text-xs">
+    <span className='text-muted-foreground text-xs'>
       {new Date(lead.createdAt).toLocaleDateString('pt-BR')}
     </span>
   ),
@@ -139,15 +136,15 @@ export default function ClientLeadsTable() {
   }
 
   const filtersNode = (
-    <div className="space-y-1.5">
-      <p className="text-muted-foreground text-xs font-medium">Período</p>
+    <div className='space-y-1.5'>
+      <p className='font-medium text-muted-foreground text-xs'>Período</p>
       <Select value={dateRange} onValueChange={setDateRange}>
-        <SelectTrigger className="border-border h-8 w-full text-xs">
+        <SelectTrigger className='h-8 w-full border-border text-xs'>
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
           {DATE_OPTIONS.map((option) => (
-            <SelectItem key={option.value} value={option.value} className="text-xs">
+            <SelectItem key={option.value} value={option.value} className='text-xs'>
               {option.label}
             </SelectItem>
           ))}
@@ -159,14 +156,14 @@ export default function ClientLeadsTable() {
   return (
     <>
       <HeaderPageShell
-        title="Leads"
+        title='Leads'
         selector={<ViewSwitcher view={view} setView={setView} enabledViews={['list', 'cards']} />}
         onRefresh={() => void refetch()}
         primaryAction={
           <Button
-            type="button"
-            size="sm"
-            className="h-7 gap-1.5 text-xs"
+            type='button'
+            size='sm'
+            className='h-7 gap-1.5 text-xs'
             onClick={() => setIsNewLeadDrawerOpen(true)}
           >
             Novo
@@ -174,7 +171,7 @@ export default function ClientLeadsTable() {
         }
         searchValue={searchInput}
         onSearchChange={setSearchInput}
-        searchPlaceholder="Buscar por nome, telefone..."
+        searchPlaceholder='Buscar por nome, telefone...'
         isFetchingMore={isFetchingNextPage}
         filters={filtersNode}
         isLoading={isLoading}

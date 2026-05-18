@@ -1,9 +1,8 @@
-import { NextRequest } from 'next/server'
-
-import { organizationJson } from '@/server/http/organization-json'
-import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
+import type { NextRequest } from 'next/server'
 import { organizationAuditLogsQuerySchema } from '@/features/organizations/schemas/organization-schemas'
 import { listOrganizationAuditLogs } from '@/features/organizations/services/organization-audit.service'
+import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
+import { organizationJson } from '@/server/http/organization-json'
 
 export async function GET(req: NextRequest) {
   const access = await validatePermissionAccess(req, 'view:audit')
@@ -14,7 +13,10 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const parsed = organizationAuditLogsQuerySchema.safeParse(Object.fromEntries(searchParams))
   if (!parsed.success) {
-    return organizationJson({ error: 'Parâmetros inválidos', details: parsed.error.flatten() }, { status: 400 })
+    return organizationJson(
+      { error: 'Parâmetros inválidos', details: parsed.error.flatten() },
+      { status: 400 }
+    )
   }
 
   const data = await listOrganizationAuditLogs({
