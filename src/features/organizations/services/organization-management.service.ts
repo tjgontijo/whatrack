@@ -1,6 +1,6 @@
 import "server-only"
+import { randomBytes } from 'node:crypto'
 import { Prisma } from '@generated/prisma/client'
-import { nanoid } from 'nanoid'
 import { calculateMetrics } from '@/features/onboarding/services/metrics/metrics-calculator'
 import {
   normalizeOnboardingDocument,
@@ -29,8 +29,15 @@ async function ensureOnboardingStatuses() {
   )
 }
 
+function randomAlphanumeric(length: number): string {
+  return randomBytes(Math.ceil((length * 3) / 4))
+    .toString('base64url')
+    .slice(0, length)
+    .toLowerCase()
+}
+
 function buildOrganizationSlug(name: string): string {
-  return normalizeSlug(name) || `org-${nanoid(10)}`
+  return normalizeSlug(name) || `org-${randomAlphanumeric(10)}`
 }
 
 async function resolveAvailableOrganizationSlug(input: {
@@ -51,7 +58,7 @@ async function resolveAvailableOrganizationSlug(input: {
     }
   }
 
-  return `${baseSlug}-${nanoid(6).toLowerCase()}`
+  return `${baseSlug}-${randomAlphanumeric(6)}`
 }
 
 function parseOptionalDate(value?: string | null): Date | null {
