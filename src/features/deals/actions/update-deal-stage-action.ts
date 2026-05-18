@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/db/prisma'
 import { getServerSession } from '@/server/auth/server-session'
+import { updateDealAndTrackCapi } from '../services/deal.service'
 
 export async function updateDealStageAction(params: {
   dealId: string
@@ -27,10 +28,15 @@ export async function updateDealStageAction(params: {
     throw new Error('Permissão negada')
   }
 
-  await prisma.deal.update({
-    where: { id: params.dealId },
-    data: { stageId: params.stageId },
+  const result = await updateDealAndTrackCapi({
+    organizationId: params.organizationId,
+    dealId: params.dealId,
+    stageId: params.stageId,
   })
+
+  if ('error' in result) {
+    throw new Error(result.error)
+  }
 
   revalidatePath('/whatsapp/inbox')
   
