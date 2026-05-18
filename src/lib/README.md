@@ -14,7 +14,7 @@ Este diretório contém a camada de **Infraestrutura**, **Utilitários agnóstic
 | `audit/` | Serviço base para logs de auditoria do sistema. |
 | `auth/` | Configuração do motor de autenticação (Better-Auth) e políticas de acesso (RBAC). |
 | `centrifugo/` | Clientes de integração para comunicação Real-time (Websockets). |
-| `constants/` | Enums e valores constantes compartilhados (ex: Status de Tickets). |
+| `constants/` | Enums e valores constantes compartilhados (ex: Status de Deals). |
 | `date/` | Helpers para manipulação de datas e fusos horários (baseado em `date-fns`). |
 | `db/` | Conexão com Prisma, Redis e lógicas de Cache de Lookup. |
 | `env/` | Validação e tipagem de variáveis de ambiente usando Zod. |

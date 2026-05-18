@@ -6,7 +6,7 @@ import {
   MessageCircleMore,
   ShoppingCart,
   Target,
-  Deal,
+  Handshake,
 } from 'lucide-react'
 import Link from 'next/link'
 import type { ComponentType } from 'react'
@@ -95,7 +95,7 @@ export function ProjectDetailView({ project }: ProjectDetailProps) {
           title='Deals'
           value={project.counts.dealCount}
           description='Deals e conversas comerciais.'
-          icon={Deal}
+          icon={Handshake}
         />
         <SummaryCard
           title='Vendas'

@@ -129,7 +129,7 @@ export class MetaCapiService {
 
         // Log to MetaConversionEvent table
         await prisma.metaConversionEvent.upsert({
-          where: { dealId_pixelId_eventName: { dealId, pixelId, eventName } }, // NOTE: unique constraint may fail if multiple pixels send same eventName, but it currently overwrites
+          where: { dealId_pixelId_eventName: { dealId, pixelId: pixel.pixelId, eventName } }, // NOTE: unique constraint may fail if multiple pixels send same eventName, but it currently overwrites
           update: {
             status: 'SENT',
             success: true,
@@ -139,6 +139,7 @@ export class MetaCapiService {
           create: {
             organizationId: deal.organizationId,
             dealId,
+            pixelId: pixel.pixelId,
             eventName,
             status: 'SENT',
             success: true,
@@ -166,7 +167,7 @@ export class MetaCapiService {
         )
 
         await prisma.metaConversionEvent.upsert({
-          where: { dealId_pixelId_eventName: { dealId, pixelId, eventName } },
+          where: { dealId_pixelId_eventName: { dealId, pixelId: pixel.pixelId, eventName } },
           update: {
             status: 'FAILED',
             success: false,
@@ -177,10 +178,13 @@ export class MetaCapiService {
           create: {
             organizationId: deal.organizationId,
             dealId,
+            pixelId: pixel.pixelId,
             eventName,
             status: 'FAILED',
             success: false,
             eventId: options.eventId,
+            ctwaclid: deal.tracking.ctwaclid,
+            metaAdId: deal.tracking.metaAdId,
             errorCode: metaError?.error?.code?.toString(),
             errorMessage: errorMsg,
           },

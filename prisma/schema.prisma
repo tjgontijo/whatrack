@@ -333,7 +333,7 @@ model OrganizationProfile {
   cpf                     String?   @unique
   onboardingStatus        String    @default("pending")
   onboardingCompletedAt   DateTime?
-  avgTicket               String?
+  avgDeal                 String?
   attendantsCount         String?
   mainChannel             String?
   leadsPerDay             String?
@@ -346,7 +346,7 @@ model OrganizationProfile {
   estimatedLeadValue      Float?
   leadsPerAttendant       Float?
   revenuePerAttendant     Float?
-  ticketExpirationDays    Int?      @default(30)
+  dealExpirationDays      Int?      @default(30)
 
   createdAt           DateTime         @default(now())
   updatedAt           DateTime         @updatedAt
