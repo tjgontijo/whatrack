@@ -16,8 +16,9 @@ export class MetaCapiService {
    */
   async sendEvent(
     dealId: string,
-    eventName: 'LeadSubmitted' | 'Purchase',
-    options: CapiEventOptions
+    eventName: string,
+    pixelId: string,
+    options: CapiEventOptions & { fireOnce?: boolean }
   ) {
     const deal = await prisma.deal.findUnique({
       where: { id: dealId },
@@ -65,22 +66,35 @@ export class MetaCapiService {
       return
     }
 
-    // 1. Find the active Pixels for the deal's project only
-    const targetPixels = await prisma.metaPixel.findMany({
+    // Check fireOnce if enabled
+    if (options.fireOnce) {
+      const existing = await prisma.metaConversionEvent.findFirst({
+        where: { dealId, pixelId, eventName, status: 'SENT' },
+      })
+      if (existing) {
+        logger.info(`[CAPI] SKIPPED_DUPLICATE deal=${dealId} pixel=${pixelId} event=${eventName}`)
+        return
+      }
+    }
+
+    // 1. Find the specific active Pixel for the deal's project
+    const pixel = await prisma.metaPixel.findFirst({
       where: {
+        id: pixelId,
         organizationId: deal.organizationId,
         projectId: deal.projectId,
         isActive: true,
       },
       select: {
+        id: true,
         pixelId: true,
         capiToken: true,
       },
     })
 
-    if (!targetPixels || targetPixels.length === 0) {
+    if (!pixel) {
       logger.warn(
-        `[CAPI] No Pixels found for project ${deal.projectId} in organization ${deal.organizationId}.`
+        `[CAPI] Pixel ${pixelId} not found or inactive for project ${deal.projectId} in organization ${deal.organizationId}.`
       )
       return
     }
@@ -89,107 +103,107 @@ export class MetaCapiService {
     const phone = deal.conversation.lead.phone
     const hashedPhone = phone ? this.hashData(this.normalizePhone(phone)) : null
 
-    // 3. Send event to each pixel asynchronously
-    for (const pixel of targetPixels) {
-      if (!pixel.capiToken) {
-        logger.warn(`[CAPI] Skipping pixel ${pixel.pixelId}: No CAPI Token configured.`)
-        continue
-      }
+    // 3. Send event to the pixel
+    if (!pixel.capiToken) {
+      logger.warn(`[CAPI] Skipping pixel ${pixel.pixelId}: No CAPI Token configured.`)
+      return
+    }
 
-      const payload = {
-        data: [
-          {
-            event_name: eventName,
-            event_time: Math.floor(Date.now() / 1000),
-            action_source: 'business_messaging',
-            event_id: options.eventId,
-            event_source_url: deal.tracking.landingPage || '',
-            user_data: {
-              external_id: [this.hashData(deal.conversation.lead.id)],
-              ph: hashedPhone ? [hashedPhone] : [],
-              ctwa_clid: deal.tracking.ctwaclid,
-            },
-            custom_data: {
-              value: options.value,
-              currency: options.currency || 'BRL',
-            },
+    const payload = {
+      data: [
+        {
+          event_name: eventName,
+          event_time: Math.floor(Date.now() / 1000),
+          action_source: 'business_messaging',
+          event_id: options.eventId,
+          event_source_url: deal.tracking.landingPage || '',
+          user_data: {
+            external_id: [this.hashData(deal.conversation.lead.id)],
+            ph: hashedPhone ? [hashedPhone] : [],
+            ctwa_clid: deal.tracking.ctwaclid,
           },
-        ],
-        access_token: pixel.capiToken,
-      }
-
-      try {
-        const response = await metaApiRequest<{ events_received?: number }>(
-          `${pixel.pixelId}/events`,
-          {
-            method: 'POST',
-            body: payload,
-          }
-        )
-
-        // Log to MetaConversionEvent table
-        await prisma.metaConversionEvent.upsert({
-          where: { dealId_pixelId_eventName: { dealId, pixelId: pixel.pixelId, eventName } }, // NOTE: unique constraint may fail if multiple pixels send same eventName, but it currently overwrites
-          update: {
-            status: 'SENT',
-            success: true,
-            fbtraceId: response.headers.get('x-fb-trace-id'),
-            sentAt: new Date(),
-          },
-          create: {
-            organizationId: deal.organizationId,
-            dealId,
-            pixelId: pixel.pixelId,
-            eventName,
-            status: 'SENT',
-            success: true,
-            eventId: options.eventId,
-            ctwaclid: deal.tracking.ctwaclid,
-            metaAdId: deal.tracking.metaAdId,
-            fbtraceId: response.headers.get('x-fb-trace-id') ?? undefined,
+          custom_data: {
             value: options.value,
             currency: options.currency || 'BRL',
           },
-        })
+        },
+      ],
+      access_token: pixel.capiToken,
+    }
 
-        logger.info(
-          `[CAPI] Successfully sent ${eventName} to pixel ${pixel.pixelId} for deal ${dealId}`
-        )
-      } catch (error: unknown) {
-        const errorMsg = getMetaApiErrorMessage(error)
-        const metaError =
-          error instanceof MetaApiError
-            ? (error.data as { error?: { code?: number | string } })
-            : undefined
-        logger.error(
-          { err: errorMsg },
-          `[CAPI] Error sending ${eventName} to pixel ${pixel.pixelId}`
-        )
+    try {
+      const response = await metaApiRequest<{ events_received?: number }>(
+        `${pixel.pixelId}/events`,
+        {
+          method: 'POST',
+          body: payload,
+        }
+      )
 
-        await prisma.metaConversionEvent.upsert({
-          where: { dealId_pixelId_eventName: { dealId, pixelId: pixel.pixelId, eventName } },
-          update: {
-            status: 'FAILED',
-            success: false,
-            errorCode: metaError?.error?.code?.toString(),
-            errorMessage: errorMsg,
-            sentAt: new Date(),
-          },
-          create: {
-            organizationId: deal.organizationId,
-            dealId,
-            pixelId: pixel.pixelId,
-            eventName,
-            status: 'FAILED',
-            success: false,
-            eventId: options.eventId,
-            ctwaclid: deal.tracking.ctwaclid,
-            metaAdId: deal.tracking.metaAdId,
-            errorCode: metaError?.error?.code?.toString(),
-            errorMessage: errorMsg,
-          },
-        })
-      }
+      // Log to MetaConversionEvent table
+      await prisma.metaConversionEvent.upsert({
+        where: { dealId_pixelId_eventName: { dealId, pixelId: pixel.id, eventName } },
+        update: {
+          status: 'SENT',
+          success: true,
+          fbtraceId: response.headers.get('x-fb-trace-id'),
+          sentAt: new Date(),
+        },
+        create: {
+          organizationId: deal.organizationId,
+          projectId: deal.projectId,
+          dealId,
+          pixelId: pixel.id,
+          eventName,
+          status: 'SENT',
+          success: true,
+          eventId: options.eventId,
+          ctwaclid: deal.tracking.ctwaclid,
+          metaAdId: deal.tracking.metaAdId,
+          fbtraceId: response.headers.get('x-fb-trace-id') ?? undefined,
+          value: options.value,
+          currency: options.currency || 'BRL',
+        },
+      })
+
+      logger.info(
+        `[CAPI] Successfully sent ${eventName} to pixel ${pixel.pixelId} for deal ${dealId}`
+      )
+    } catch (error: unknown) {
+      const errorMsg = getMetaApiErrorMessage(error)
+      const metaError =
+        error instanceof MetaApiError
+          ? (error.data as { error?: { code?: number | string } })
+          : undefined
+      logger.error(
+        { err: errorMsg },
+        `[CAPI] Error sending ${eventName} to pixel ${pixel.pixelId}`
+      )
+
+      await prisma.metaConversionEvent.upsert({
+        where: { dealId_pixelId_eventName: { dealId, pixelId: pixel.id, eventName } },
+        update: {
+          status: 'FAILED',
+          success: false,
+          errorCode: metaError?.error?.code?.toString(),
+          errorMessage: errorMsg,
+          sentAt: new Date(),
+        },
+        create: {
+          organizationId: deal.organizationId,
+          projectId: deal.projectId,
+          dealId,
+          pixelId: pixel.id,
+          eventName,
+          status: 'FAILED',
+          success: false,
+          eventId: options.eventId,
+          ctwaclid: deal.tracking.ctwaclid,
+          metaAdId: deal.tracking.metaAdId,
+          errorCode: metaError?.error?.code?.toString(),
+          errorMessage: errorMsg,
+        },
+      })
     }
   }
 
