@@ -25,12 +25,12 @@ const leadSources = [
   { name: 'direct_creation', description: 'Lead criado manualmente.' },
 ]
 
-const ticketStatuses = [
-  { name: 'open', description: 'Ticket aberto.' },
-  { name: 'closed', description: 'Ticket fechado.' },
-  { name: 'pending', description: 'Ticket pendente.' },
-  { name: 'closed_won', description: 'Ticket fechado com sucesso.' },
-  { name: 'closed_lost', description: 'Ticket fechado sem sucesso.' },
+const dealStatuses = [
+  { name: 'open', description: 'Deal aberto.' },
+  { name: 'closed', description: 'Deal fechado.' },
+  { name: 'pending', description: 'Deal pendente.' },
+  { name: 'closed_won', description: 'Deal fechado com sucesso.' },
+  { name: 'closed_lost', description: 'Deal fechado sem sucesso.' },
 ]
 
 const messageDirections = [
@@ -151,7 +151,7 @@ export async function seedLookupTables(prisma: PrismaClient) {
   await upsertByName(prisma.onboardingStatus, onboardingStatuses)
   await upsertByName(prisma.saleStatus, saleStatuses)
   await upsertByName(prisma.leadSource, leadSources)
-  await upsertByName(prisma.ticketStatus, ticketStatuses)
+  await upsertByName(prisma.dealStatus, dealStatuses)
   await upsertByName(prisma.messageDirection, messageDirections)
   await upsertByName(prisma.whatsAppOnboardingStatus, whatsappOnboardingStatuses)
   await upsertByName(prisma.whatsAppConnectionStatus, whatsappConnectionStatuses)

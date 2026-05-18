@@ -1,6 +1,6 @@
 export * from './components/audiences/audiences-page'
 export * from './components/inbox/chat-list'
 export * from './components/inbox/chat-window'
-export * from './components/inbox/ticket-panel'
+export * from './components/inbox/deal-panel'
 export * from './components/inbox/types'
 export * from './components/settings/whatsapp-settings-hub'

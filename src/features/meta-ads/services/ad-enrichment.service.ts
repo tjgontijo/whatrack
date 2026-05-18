@@ -10,15 +10,15 @@ function resolveEnrichmentErrorMessage(error: unknown): string {
 
 export class MetaAdEnrichmentService {
   /**
-   * Enrich Ticket Tracking with Ad names and hierarchy
+   * Enrich Deal Tracking with Ad names and hierarchy
    */
-  async enrichTicket(ticketId: string) {
-    const tracking = await prisma.ticketTracking.findUnique({
-      where: { ticketId },
+  async enrichDeal(dealId: string) {
+    const tracking = await prisma.dealTracking.findUnique({
+      where: { dealId },
       select: {
         metaAdId: true,
         metaEnrichmentStatus: true,
-        ticket: {
+        deal: {
           select: {
             id: true,
             organizationId: true,
@@ -38,19 +38,19 @@ export class MetaAdEnrichmentService {
     if (tracking.metaEnrichmentStatus === 'SUCCESS') return
 
     if (
-      !tracking.ticket.projectId ||
-      !tracking.ticket.project ||
-      tracking.ticket.project.organizationId !== tracking.ticket.organizationId
+      !tracking.deal.projectId ||
+      !tracking.deal.project ||
+      tracking.deal.project.organizationId !== tracking.deal.organizationId
     ) {
-      logger.warn(`[Enrichment] Ticket ${ticketId} has invalid or missing project reference.`)
+      logger.warn(`[Enrichment] Deal ${dealId} has invalid or missing project reference.`)
       return
     }
 
-    // Use the first active connection found for the ticket's project
+    // Use the first active connection found for the deal's project
     const connection = await prisma.metaConnection.findFirst({
       where: {
-        organizationId: tracking.ticket.organizationId,
-        projectId: tracking.ticket.projectId,
+        organizationId: tracking.deal.organizationId,
+        projectId: tracking.deal.projectId,
         status: 'ACTIVE',
       },
       select: { id: true },
@@ -58,7 +58,7 @@ export class MetaAdEnrichmentService {
 
     if (!connection) {
       logger.warn(
-        `[Enrichment] No active Meta connection for project ${tracking.ticket.projectId} in organization ${tracking.ticket.organizationId}`
+        `[Enrichment] No active Meta connection for project ${tracking.deal.projectId} in organization ${tracking.deal.organizationId}`
       )
       return
     }
@@ -81,8 +81,8 @@ export class MetaAdEnrichmentService {
 
       const adData = adResponse.data
 
-      await prisma.ticketTracking.update({
-        where: { ticketId },
+      await prisma.dealTracking.update({
+        where: { dealId },
         data: {
           metaAdName: adData.name,
           metaAdSetId: adData.adset?.id,
@@ -96,17 +96,17 @@ export class MetaAdEnrichmentService {
         },
       })
 
-      logger.info(`[Enrichment] Successfully enriched ticket ${ticketId} with Ad "${adData.name}"`)
+      logger.info(`[Enrichment] Successfully enriched deal ${ticketId} with Ad "${adData.name}"`)
     } catch (error: unknown) {
       const message = resolveEnrichmentErrorMessage(error)
 
       logger.error(
         { err: error, context: error instanceof MetaApiError ? error.data : message },
-        `[Enrichment] Error enriching ticket ${ticketId}`
+        `[Enrichment] Error enriching deal ${ticketId}`
       )
 
-      await prisma.ticketTracking.update({
-        where: { ticketId },
+      await prisma.dealTracking.update({
+        where: { dealId },
         data: {
           metaEnrichmentStatus: 'FAILED',
           metaEnrichmentError: message,
@@ -117,10 +117,10 @@ export class MetaAdEnrichmentService {
   }
 
   /**
-   * Bulk enrich pending tickets (useful for cron jobs)
+   * Bulk enrich pending deals (useful for cron jobs)
    */
   async enrichPending() {
-    const pendings = await prisma.ticketTracking.findMany({
+    const pendings = await prisma.dealTracking.findMany({
       where: {
         metaAdId: { not: null },
         metaEnrichmentStatus: 'PENDING',

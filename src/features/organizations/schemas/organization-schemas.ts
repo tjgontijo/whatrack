@@ -47,7 +47,7 @@ export const updateOrganizationByIdSchema = z
     cep: z.string().nullable().optional(),
     email: z.string().nullable().optional(),
     telefone: z.string().nullable().optional(),
-    avgTicket: z.string().nullable().optional(),
+    avgDeal: z.string().nullable().optional(),
     attendantsCount: z.string().nullable().optional(),
     leadsPerDay: z.string().nullable().optional(),
     monthlyRevenue: z.string().nullable().optional(),

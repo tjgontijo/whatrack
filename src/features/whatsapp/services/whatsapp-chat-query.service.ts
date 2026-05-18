@@ -48,7 +48,7 @@ export async function listWhatsAppChats(params: ListWhatsAppChatsParams) {
       conversations: {
         select: {
           id: true,
-          tickets: {
+          deals: {
             where: {
               status: {
                 name: 'open',
@@ -96,7 +96,7 @@ export async function listWhatsAppChats(params: ListWhatsAppChatsParams) {
 
   const chats = leads.map((lead) => {
     const conversation = lead.conversations[0]
-    const currentTicket = conversation?.tickets[0]
+    const currentDeal = conversation?.deals[0]
 
     return {
       id: conversation?.id || lead.id,
@@ -106,12 +106,12 @@ export async function listWhatsAppChats(params: ListWhatsAppChatsParams) {
       lastMessageAt: lead.lastMessageAt,
       lastMessage: lead.messages[0] || null,
       unreadCount: 0,
-      currentTicket: currentTicket
+      currentDeal: currentDeal
         ? {
-            id: currentTicket.id,
-            status: currentTicket.status.name,
-            stage: currentTicket.stage,
-            tracking: currentTicket.tracking,
+            id: currentDeal.id,
+            status: currentDeal.status.name,
+            stage: currentDeal.stage,
+            tracking: currentDeal.tracking,
           }
         : undefined,
     }

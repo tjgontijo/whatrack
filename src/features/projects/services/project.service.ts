@@ -29,7 +29,7 @@ type ProjectSummaryRow = {
     metaConnections: number
     metaPixels: number
     leads: number
-    tickets: number
+    deals: number
     sales: number
     items: number
     itemCategories: number
@@ -71,7 +71,7 @@ function mapProjectCounts(input: ProjectSummaryRow['_count']): ProjectAssociatio
     metaConnectionCount: input.metaConnections,
     metaPixelCount: input.metaPixels,
     leadCount: input.leads,
-    ticketCount: input.tickets,
+    ticketCount: input.deals,
     saleCount: input.sales,
     itemCount: input.items,
     itemCategoryCount: input.itemCategories,
@@ -132,7 +132,7 @@ export async function listProjects(input: {
             metaConnections: true,
             metaPixels: true,
             leads: true,
-            tickets: true,
+            deals: true,
             sales: true,
             items: true,
             itemCategories: true,
@@ -186,7 +186,7 @@ export async function createProject(input: {
           metaConnections: true,
           metaPixels: true,
           leads: true,
-          tickets: true,
+          deals: true,
           sales: true,
           items: true,
           itemCategories: true,
@@ -249,7 +249,7 @@ export async function getProjectById(input: {
           metaConnections: true,
           metaPixels: true,
           leads: true,
-          tickets: true,
+          deals: true,
           sales: true,
           items: true,
           itemCategories: true,
@@ -281,7 +281,7 @@ export async function getProjectById(input: {
     return null
   }
 
-  const projectTickets = await prisma.ticket.findMany({
+  const projectTickets = await prisma.deal.findMany({
     where: {
       organizationId: input.organizationId,
       projectId: input.projectId,
@@ -297,7 +297,7 @@ export async function getProjectById(input: {
           organizationId: input.organizationId,
           success: true,
           ticketId: {
-            in: projectTickets.map((ticket) => ticket.id),
+            in: projectTickets.map((deal) => deal.id),
           },
         },
       })
@@ -359,7 +359,7 @@ export async function updateProject(input: {
           metaConnections: true,
           metaPixels: true,
           leads: true,
-          tickets: true,
+          deals: true,
           sales: true,
           items: true,
           itemCategories: true,
@@ -390,7 +390,7 @@ export async function deleteProject(input: {
           metaConnections: true,
           metaPixels: true,
           leads: true,
-          tickets: true,
+          deals: true,
           sales: true,
           items: true,
           itemCategories: true,
@@ -424,7 +424,7 @@ export async function deleteProject(input: {
       },
       data: { projectId: null },
     }),
-    prisma.ticket.updateMany({
+    prisma.deal.updateMany({
       where: {
         organizationId: input.organizationId,
         projectId: input.projectId,

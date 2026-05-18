@@ -10,7 +10,7 @@ import { logger } from '@/lib/utils/logger'
  * CRITICAL:
  * - Creates/updates Leads with source='history_sync'
  * - Creates Messages with source='history'
- * - ❌ NEVER creates Tickets
+ * - ❌ NEVER creates Deals
  * - Idempotency via wamid
  *
  * Flow:

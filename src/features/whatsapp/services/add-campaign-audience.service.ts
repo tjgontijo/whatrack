@@ -59,7 +59,7 @@ export async function addCampaignAudienceService(
   if (crmFilters?.isActive !== undefined) leadFilters.isActive = crmFilters.isActive
   if (crmFilters?.projectId) leadFilters.projectId = crmFilters.projectId
   if (crmFilters?.stageId) {
-    leadFilters.conversations = { some: { tickets: { some: { stageId: crmFilters.stageId } } } }
+    leadFilters.conversations = { some: { deals: { some: { stageId: crmFilters.stageId } } } }
   }
 
   const leads = await prisma.lead.findMany({

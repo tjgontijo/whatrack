@@ -12,23 +12,23 @@ export interface Message {
   createdAt: string | Date
 }
 
-export interface TicketStage {
+export interface DealStage {
   id: string
   name: string
   color: string
 }
 
-export interface TicketTracking {
+export interface DealTracking {
   sourceType: string
   utmSource?: string | null
   ctwaclid?: string | null
 }
 
-export interface TicketInfo {
+export interface DealInfo {
   id: string
   status: 'open' | 'closed_won' | 'closed_lost'
-  stage: TicketStage
-  tracking?: TicketTracking | null
+  stage: DealStage
+  tracking?: DealTracking | null
 }
 
 export interface ChatItem {
@@ -39,7 +39,7 @@ export interface ChatItem {
   lastMessageAt: string | Date
   lastMessage: Message | null
   unreadCount?: number
-  currentTicket?: TicketInfo
+  currentTicket?: DealInfo
 }
 
 export interface ChatListResponse {

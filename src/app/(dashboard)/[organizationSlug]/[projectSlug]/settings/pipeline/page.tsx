@@ -8,5 +8,5 @@ type PipelinePageProps = {
 
 export default async function PipelinePage({ params }: PipelinePageProps) {
   const { organizationSlug, projectSlug } = await params
-  redirect(`/${organizationSlug}/${projectSlug}/tickets`)
+  redirect(`/${organizationSlug}/${projectSlug}/deals`)
 }

@@ -116,7 +116,7 @@ export function ProjectList() {
           <div className='text-muted-foreground text-sm'>
             <span>{project.counts.leadCount} leads</span>
             <span className='mx-2'>·</span>
-            <span>{project.counts.ticketCount} tickets</span>
+            <span>{project.counts.ticketCount} deals</span>
             <span className='mx-2'>·</span>
             <span>{project.counts.saleCount} vendas</span>
           </div>

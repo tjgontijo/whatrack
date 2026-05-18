@@ -1,13 +1,13 @@
 import { prisma } from './prisma'
 
 /**
- * In-memory cache para lookup tables (LeadSource, TicketStatus, MessageDirection).
+ * In-memory cache para lookup tables (LeadSource, DealStatus, MessageDirection).
  * Evita N queries repetidas no handler.
  * Thread-safe para single-process Node.
  */
 class LookupCache {
   private leadSources: Map<string, string> = new Map()
-  private ticketStatuses: Map<string, string> = new Map()
+  private dealStatuses: Map<string, string> = new Map()
   private messageDirections: Map<string, string> = new Map()
 
   async getLeadSourceId(name: string): Promise<string> {
@@ -20,13 +20,13 @@ class LookupCache {
     return source.id
   }
 
-  async getTicketStatusId(name: string): Promise<string> {
-    if (this.ticketStatuses.has(name)) {
-      return this.ticketStatuses.get(name)!
+  async getDealStatusId(name: string): Promise<string> {
+    if (this.dealStatuses.has(name)) {
+      return this.dealStatuses.get(name)!
     }
-    const status = await prisma.ticketStatus.findUnique({ where: { name } })
-    if (!status) throw new Error(`TicketStatus "${name}" not found in database`)
-    this.ticketStatuses.set(name, status.id)
+    const status = await prisma.dealStatus.findUnique({ where: { name } })
+    if (!status) throw new Error(`DealStatus "${name}" not found in database`)
+    this.dealStatuses.set(name, status.id)
     return status.id
   }
 

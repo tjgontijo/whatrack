@@ -63,7 +63,7 @@ export function buildSalesWhere(filters: SummaryFilters): Prisma.SaleWhereInput 
 
   if (filters.trafficType && filters.trafficType !== 'any') {
     andConditions.push({
-      ticket: {
+      deal: {
         is: {
           tracking: {
             is: {
@@ -78,7 +78,7 @@ export function buildSalesWhere(filters: SummaryFilters): Prisma.SaleWhereInput 
   if (filters.trafficSource && filters.trafficSource !== 'any') {
     if (filters.trafficSource === NO_TRAFFIC_SOURCE_VALUE) {
       andConditions.push({
-        ticket: {
+        deal: {
           is: {
             tracking: {
               is: {
@@ -90,7 +90,7 @@ export function buildSalesWhere(filters: SummaryFilters): Prisma.SaleWhereInput 
       })
     } else {
       andConditions.push({
-        ticket: {
+        deal: {
           is: {
             tracking: {
               is: {

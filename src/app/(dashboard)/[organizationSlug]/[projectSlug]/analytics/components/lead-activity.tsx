@@ -25,7 +25,7 @@ export default function LeadActivity() {
             Leads Aguardando Resposta
           </h3>
           <Badge className='bg-amber-500/10 text-amber-600 hover:bg-amber-500/20'>
-            {data.waitingLeads?.length || 0} Tickets
+            {data.waitingLeads?.length || 0} Deals
           </Badge>
         </div>
         <div className='flex max-h-64 min-h-0 flex-1 flex-col gap-2 overflow-y-auto rounded-md bg-background/50 p-2'>

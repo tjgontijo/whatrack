@@ -129,7 +129,7 @@ function StageItem({
           )}
         </div>
         <p className='mt-0.5 text-[11px] text-muted-foreground'>
-          {stage.ticketsCount} ticket{stage.ticketsCount !== 1 ? 's' : ''}
+          {stage.ticketsCount} deal{stage.ticketsCount !== 1 ? 's' : ''}
         </p>
       </div>
 
@@ -147,7 +147,7 @@ function StageItem({
           title='Excluir fase?'
           description={
             stage.ticketsCount > 0
-              ? `A fase "${stage.name}" tem ${stage.ticketsCount} ticket(s) que serão movidos para a fase padrão antes da exclusão.`
+              ? `A fase "${stage.name}" tem ${stage.ticketsCount} deal(s) que serão movidos para a fase padrão antes da exclusão.`
               : `Tem certeza que deseja excluir a fase "${stage.name}"?`
           }
           trigger={
@@ -232,7 +232,7 @@ function StageDialog({
               <CheckCircle2 className='h-4 w-4 text-primary' />
               <div>
                 <p className='font-medium text-sm'>Fase padrão</p>
-                <p className='text-muted-foreground text-xs'>Novos tickets entram aqui</p>
+                <p className='text-muted-foreground text-xs'>Novos deals entram aqui</p>
               </div>
             </div>
             <Switch
@@ -247,7 +247,7 @@ function StageDialog({
               <div>
                 <p className='font-medium text-sm'>Fase de fechamento</p>
                 <p className='text-muted-foreground text-xs'>
-                  Tickets nesta fase são considerados fechados
+                  Deals nesta fase são considerados fechados
                 </p>
               </div>
             </div>
@@ -302,9 +302,9 @@ export function PipelineStagesManager({
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
 
   const { data, isLoading } = useQuery<{ items: Stage[] }>({
-    queryKey: ['ticket-stages', organizationId, projectId],
+    queryKey: ['deal-stages', organizationId, projectId],
     queryFn: async () => {
-      const data = await apiFetch('/api/v1/ticket-stages', {
+      const data = await apiFetch('/api/v1/deal-stages', {
         orgId: organizationId,
         projectId,
       })
@@ -317,7 +317,7 @@ export function PipelineStagesManager({
 
   const createMutation = useMutation({
     mutationFn: async (body: StageFormData) => {
-      const data = await apiFetch('/api/v1/ticket-stages', {
+      const data = await apiFetch('/api/v1/deal-stages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -330,14 +330,14 @@ export function PipelineStagesManager({
       toast.success('Fase criada com sucesso')
       setDialogOpen(false)
       setLocalOrder(null)
-      queryClient.invalidateQueries({ queryKey: ['ticket-stages'] })
+      queryClient.invalidateQueries({ queryKey: ['deal-stages'] })
     },
     onError: (err: Error) => toast.error(err.message),
   })
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, ...body }: StageFormData & { id: string }) => {
-      const data = await apiFetch(`/api/v1/ticket-stages/${id}`, {
+      const data = await apiFetch(`/api/v1/deal-stages/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -351,14 +351,14 @@ export function PipelineStagesManager({
       setDialogOpen(false)
       setEditingStage(null)
       setLocalOrder(null)
-      queryClient.invalidateQueries({ queryKey: ['ticket-stages'] })
+      queryClient.invalidateQueries({ queryKey: ['deal-stages'] })
     },
     onError: (err: Error) => toast.error(err.message),
   })
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      await apiFetch(`/api/v1/ticket-stages/${id}`, {
+      await apiFetch(`/api/v1/deal-stages/${id}`, {
         method: 'DELETE',
         orgId: organizationId,
         projectId,
@@ -367,14 +367,14 @@ export function PipelineStagesManager({
     onSuccess: () => {
       toast.success('Fase excluída')
       setLocalOrder(null)
-      queryClient.invalidateQueries({ queryKey: ['ticket-stages'] })
+      queryClient.invalidateQueries({ queryKey: ['deal-stages'] })
     },
     onError: (err: Error) => toast.error(err.message),
   })
 
   const reorderMutation = useMutation({
     mutationFn: async (orderedIds: string[]) => {
-      await apiFetch('/api/v1/ticket-stages/reorder', {
+      await apiFetch('/api/v1/deal-stages/reorder', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ orderedIds }),
@@ -383,7 +383,7 @@ export function PipelineStagesManager({
       })
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['ticket-stages'] })
+      queryClient.invalidateQueries({ queryKey: ['deal-stages'] })
     },
     onError: (err: Error) => {
       toast.error(err.message)

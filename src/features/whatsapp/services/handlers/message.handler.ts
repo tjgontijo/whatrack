@@ -1,6 +1,6 @@
 import "server-only"
 import { metaAdEnrichmentService } from '@/features/meta-ads/services/ad-enrichment.service'
-import { getDefaultTicketStage } from '@/features/tickets/services/ensure-ticket-stages'
+import { getDefaultDealStage } from '@/features/deals/services/ensure-deal-stages'
 import { attributeInboundMessageToCampaign } from '@/features/whatsapp/services/whatsapp-campaign-attribution.service'
 import { WhatsAppTemplateAnalyticsService } from '@/features/whatsapp/services/whatsapp-template-analytics.service'
 import { publishToCentrifugo } from '@/lib/centrifugo/server'
@@ -130,7 +130,7 @@ export async function messageHandler(
 
   logger.info(`[MessageHandler] Processing for Organization: ${config.organizationId}`)
 
-  const defaultStage = await getDefaultTicketStage(prisma, config.organizationId)
+  const defaultStage = await getDefaultDealStage(prisma, config.organizationId)
   const expirationDays =
     config.organization.profile?.ticketExpirationDays || DEFAULT_EXPIRATION_DAYS
 
@@ -238,30 +238,30 @@ export async function messageHandler(
           },
         })
 
-        // 3. Ticket Management (Expiry & Last-Touch)
-        const openStatusId = await lookupCache.getTicketStatusId('open')
-        const closedStatusId = await lookupCache.getTicketStatusId('closed')
+        // 3. Deal Management (Expiry & Last-Touch)
+        const openStatusId = await lookupCache.getDealStatusId('open')
+        const closedStatusId = await lookupCache.getDealStatusId('closed')
 
-        let ticket = await tx.ticket.findFirst({
+        let deal = await tx.deal.findFirst({
           where: { conversationId: conversation.id, statusId: openStatusId },
           orderBy: { createdAt: 'desc' },
           select: { id: true, createdAt: true, firstResponseTimeSec: true },
         })
 
         // Check Expiration
-        if (ticket) {
+        if (deal) {
           const daysSinceCreation =
-            (messageTimestamp.getTime() - ticket.createdAt.getTime()) / (1000 * 60 * 60 * 24)
+            (messageTimestamp.getTime() - deal.createdAt.getTime()) / (1000 * 60 * 60 * 24)
 
           // Only expire if it's an INBOUND message that would restart the conversation flow
-          // If it's just an echo, we usually keep the ticket open unless specific rules apply
+          // If it's just an echo, we usually keep the deal open unless specific rules apply
           if (!isEcho && daysSinceCreation > expirationDays) {
             logger.info(
-              `[MessageHandler] Ticket ${ticket.id} expired (${daysSinceCreation.toFixed(1)} days). Closing.`
+              `[MessageHandler] Deal ${deal.id} expired (${daysSinceCreation.toFixed(1)} days). Closing.`
             )
 
-            await tx.ticket.update({
-              where: { id: ticket.id },
+            await tx.deal.update({
+              where: { id: deal.id },
               data: {
                 ...(config.projectId ? { projectId: config.projectId } : {}),
                 statusId: closedStatusId,
@@ -269,17 +269,17 @@ export async function messageHandler(
                 closedAt: messageTimestamp,
               },
             })
-            ticket = null // Force create new ticket
+            deal = null // Force create new deal
           }
         }
 
-        const _isNewTicket = !ticket
+        const _isNewTicket = !deal
         const windowExpiresAt = wasHistoryLead
           ? null
           : new Date(messageTimestamp.getTime() + WINDOW_MS)
 
-        if (!ticket) {
-          ticket = await tx.ticket.create({
+        if (!deal) {
+          deal = await tx.deal.create({
             data: {
               organizationId: config.organizationId,
               projectId: config.projectId,
@@ -298,8 +298,8 @@ export async function messageHandler(
         } else {
           // Renew window
           if (!isEcho) {
-            await tx.ticket.update({
-              where: { id: ticket.id },
+            await tx.deal.update({
+              where: { id: deal.id },
               data: {
                 ...(config.projectId ? { projectId: config.projectId } : {}),
                 windowExpiresAt,
@@ -347,7 +347,7 @@ export async function messageHandler(
             leadId: lead.id,
             instanceId: config.id,
             appConversationId: conversation.id,
-            ticketId: ticket.id,
+            ticketId: deal.id,
             directionId,
             type: messageType,
             body: messageBody || null,
@@ -362,8 +362,8 @@ export async function messageHandler(
         // 5. Update counts and KPIs
         if (!isEcho) {
           // Inbound Message (Client -> Clinic)
-          await tx.ticket.update({
-            where: { id: ticket.id },
+          await tx.deal.update({
+            where: { id: deal.id },
             data: {
               messagesCount: { increment: 1 },
               inboundMessagesCount: { increment: 1 },
@@ -395,15 +395,15 @@ export async function messageHandler(
             lastOutboundAt: messageTimestamp,
           }
 
-          if (ticket.firstResponseTimeSec === null) {
+          if (deal.firstResponseTimeSec === null) {
             const responseTime = Math.floor(
-              (messageTimestamp.getTime() - ticket.createdAt.getTime()) / 1000
+              (messageTimestamp.getTime() - deal.createdAt.getTime()) / 1000
             )
             ticketUpdateData.firstResponseTimeSec = responseTime
           }
 
-          await tx.ticket.update({
-            where: { id: ticket.id },
+          await tx.deal.update({
+            where: { id: deal.id },
             data: ticketUpdateData,
           })
 
@@ -446,14 +446,14 @@ export async function messageHandler(
           const trackingData = extractTrackingFromMessage(message) as any
           if (trackingData) {
             const existingTracking = await tx.ticketTracking.findUnique({
-              where: { ticketId: ticket.id },
+              where: { dealId: deal.id },
             })
 
             if (!existingTracking) {
               // New Tracking
               await tx.ticketTracking.create({
                 data: {
-                  ticketId: ticket.id,
+                  ticketId: deal.id,
                   ...trackingData,
                   // Initialize Enrichment Status if ad is present
                   metaEnrichmentStatus: trackingData.metaAdId ? 'PENDING' : 'PENDING',
@@ -463,11 +463,11 @@ export async function messageHandler(
               // Trigger Enrichment (Queue)
               if (trackingData.metaAdId) {
                 metaAdEnrichmentService
-                  .enrichTicket(ticket.id)
+                  .enrichDeal(deal.id)
                   .catch((err) =>
                     logger.error(
                       { err },
-                      `[Enrichment] Fire-and-forget failed for ticket ${ticket.id}`
+                      `[Enrichment] Fire-and-forget failed for deal ${deal.id}`
                     )
                   )
               }
@@ -480,7 +480,7 @@ export async function messageHandler(
                 // Log History
                 await tx.metaAttributionHistory.create({
                   data: {
-                    ticketId: ticket.id,
+                    ticketId: deal.id,
                     oldAdId: existingTracking.metaAdId,
                     newAdId: trackingData.metaAdId,
                   },
@@ -489,7 +489,7 @@ export async function messageHandler(
 
               // Update fields
               await tx.ticketTracking.update({
-                where: { ticketId: ticket.id },
+                where: { dealId: deal.id },
                 data: {
                   ...trackingData,
                   // Reset enrichment if ad changed
@@ -502,11 +502,11 @@ export async function messageHandler(
 
               if (hasNewAd) {
                 metaAdEnrichmentService
-                  .enrichTicket(ticket.id)
+                  .enrichDeal(deal.id)
                   .catch((err) =>
                     logger.error(
                       { err },
-                      `[Enrichment] Update enrichment failed for ticket ${ticket.id}`
+                      `[Enrichment] Update enrichment failed for deal ${deal.id}`
                     )
                   )
               }

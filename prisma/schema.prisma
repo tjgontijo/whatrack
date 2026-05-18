@@ -32,13 +32,13 @@ model LeadSource {
   @@map("crm_lead_sources")
 }
 
-model TicketStatus {
+model DealStatus {
   id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name        String   @unique
   description String
-  tickets     Ticket[]
+  deals       Deal[]
 
-  @@map("crm_ticket_statuses")
+  @@map("crm_deal_statuses")
 }
 
 model MessageDirection {
@@ -134,7 +134,7 @@ model User {
   invitations        Invitation[]
   members            Member[]
   sessions           Session[]
-  assignedTickets    Ticket[]           @relation("TicketAssignee")
+  assignedDeals      Deal[]             @relation("DealAssignee")
   orgAuditLogs       OrgAuditLog[]
   billingAuditLogs   BillingAuditLog[]
   createdCampaigns   WhatsAppCampaign[] @relation("CampaignCreator")
@@ -196,9 +196,9 @@ model Verification {
 // Auth Domain
 // ============================================
 
-model TicketTracking {
+model DealTracking {
   id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  ticketId    String  @unique @db.Uuid
+  dealId      String  @unique @db.Uuid
   utmSource   String?
   utmMedium   String?
   utmCampaign String?
@@ -232,13 +232,13 @@ model TicketTracking {
   userAgent   String?
   ipAddress   String?
   createdAt   DateTime @default(now())
-  ticket      Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  deal        Deal     @relation(fields: [dealId], references: [id], onDelete: Cascade)
 
   @@index([utmSource])
   @@index([sourceType])
   @@index([ctwaclid])
   @@index([metaAdId])
-  @@map("crm_ticket_tracking")
+  @@map("crm_deal_tracking")
 }
 
 // ============================================
@@ -264,8 +264,8 @@ model Organization {
   items                Item[]
   saleItems            SaleItem[]
   sales                Sale[]
-  ticketStages         TicketStage[]
-  tickets              Ticket[]
+  dealStages           DealStage[]
+  deals                Deal[]
   whatsappAuditLogs    WhatsAppAuditLog[]   @relation("WhatsAppAuditLogs")
   whatsappConfig       WhatsAppConfig[]
   whatsappConnections  WhatsAppConnection[] @relation("WhatsAppConnections")
@@ -308,7 +308,7 @@ model Project {
 
   organization         Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   leads                Lead[]
-  tickets              Ticket[]
+  deals                Deal[]
   sales                Sale[]
   items                Item[]
   itemCategories       ItemCategory[]
@@ -458,7 +458,7 @@ model Lead {
 
   // KPIs
   firstMessageAt DateTime?
-  totalTickets   Int       @default(0)
+  totalDeals     Int       @default(0)
   lifetimeValue  Decimal   @default(0) @db.Decimal(12, 2)
 
   conversations              Conversation[]
@@ -466,7 +466,7 @@ model Lead {
   project                    Project?                    @relation(fields: [projectId], references: [id], onDelete: SetNull)
   source                     LeadSource                  @relation(fields: [sourceId], references: [id])
   messages                   Message[]
-  tickets                    Ticket[]
+  deals                      Deal[]
   whatsAppCampaignRecipients WhatsAppCampaignRecipient[]
   tagAssignments             LeadTagAssignment[]
 
@@ -503,7 +503,7 @@ model Conversation {
   instance     WhatsAppConfig @relation(fields: [instanceId], references: [id], onDelete: Cascade)
   lead         Lead           @relation(fields: [leadId], references: [id], onDelete: Cascade)
   organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  tickets      Ticket[]
+  deals        Deal[]
   messages     Message[]
 
   @@unique([leadId, instanceId])
@@ -512,7 +512,7 @@ model Conversation {
   @@map("crm_conversations")
 }
 
-model Ticket {
+model Deal {
   id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   organizationId  String    @db.Uuid
   projectId       String?   @db.Uuid
@@ -543,13 +543,13 @@ model Ticket {
   source                 String                   @default("incoming_message")
   originatedFrom         String?
   sales                  Sale[]
-  tracking               TicketTracking?
-  assignee               User?                    @relation("TicketAssignee", fields: [assigneeId], references: [id])
+  tracking               DealTracking?
+  assignee               User?                    @relation("DealAssignee", fields: [assigneeId], references: [id])
   conversation           Conversation             @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   organization           Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   project                Project?                 @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  stage                  TicketStage              @relation(fields: [stageId], references: [id])
-  status                 TicketStatus             @relation(fields: [statusId], references: [id])
+  stage                  DealStage                @relation(fields: [stageId], references: [id])
+  status                 DealStatus               @relation(fields: [statusId], references: [id])
   lead                   Lead                     @relation(fields: [leadId], references: [id], onDelete: Cascade)
   messages               Message[]
   metaAttributionHistory MetaAttributionHistory[]
@@ -561,26 +561,27 @@ model Ticket {
   @@index([statusId])
   @@index([leadId])
   @@index([stageId])
-  @@map("crm_tickets")
+  @@map("crm_deals")
 }
 
-model TicketStage {
-  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId String       @db.Uuid
-  projectId      String?      @db.Uuid
+model DealStage {
+  id             String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String                 @db.Uuid
+  projectId      String?                @db.Uuid
   name           String
   color          String
   order          Int
-  isDefault      Boolean      @default(false)
-  isClosed       Boolean      @default(false)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  tickets        Ticket[]
+  isDefault      Boolean                @default(false)
+  isClosed       Boolean                @default(false)
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+  organization   Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  deals          Deal[]
+  metaRules      DealStageMetaRule[]
 
   @@unique([organizationId, projectId, name])
   @@index([organizationId, projectId, order])
-  @@map("crm_ticket_stages")
+  @@map("crm_deal_stages")
 }
 
 model Sale {
@@ -595,20 +596,20 @@ model Sale {
   createdBy       String?
   updatedBy       String?
   statusChangedAt DateTime?
-  ticketId        String?      @db.Uuid
+  dealId          String?      @db.Uuid
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @default(now()) @updatedAt
   items           SaleItem[]
   organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   project         Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
   statusRef       SaleStatus?  @relation(fields: [status], references: [name])
-  ticket          Ticket?      @relation(fields: [ticketId], references: [id])
+  deal            Deal?        @relation(fields: [dealId], references: [id])
 
   @@index([organizationId])
   @@index([projectId])
   @@index([organizationId, projectId])
   @@index([createdAt])
-  @@index([ticketId])
+  @@index([dealId])
   @@map("crm_sales")
 }
 
@@ -1153,7 +1154,7 @@ model Message {
   leadId              String                     @db.Uuid
   instanceId          String                     @db.Uuid
   appConversationId   String?                    @map("app_conversation_id") @db.Uuid
-  ticketId            String?                    @db.Uuid
+  dealId              String?                    @db.Uuid
   campaignRecipientId String?                    @db.Uuid
   directionId         String                     @db.Uuid
   type                String
@@ -1169,14 +1170,14 @@ model Message {
   conversation        Conversation?              @relation(fields: [appConversationId], references: [id])
   instance            WhatsAppConfig             @relation(fields: [instanceId], references: [id], onDelete: Cascade)
   lead                Lead                       @relation(fields: [leadId], references: [id], onDelete: Cascade)
-  ticket              Ticket?                    @relation(fields: [ticketId], references: [id])
+  deal                Deal?                      @relation(fields: [dealId], references: [id])
   direction           MessageDirection           @relation(fields: [directionId], references: [id])
   campaignRecipient   WhatsAppCampaignRecipient? @relation(fields: [campaignRecipientId], references: [id], onDelete: SetNull)
 
   @@index([leadId])
   @@index([instanceId])
   @@index([appConversationId])
-  @@index([ticketId])
+  @@index([dealId])
   @@index([directionId])
   @@index([source])
   @@index([timestamp])
@@ -1239,9 +1240,9 @@ model MetaAdAccount {
 }
 
 model MetaPixel {
-  id             String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId String @db.Uuid
-  projectId      String @db.Uuid
+  id             String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String                 @db.Uuid
+  projectId      String                 @db.Uuid
 
   name      String? // Nome opcional
   pixelId   String // Dataset/Pixel ID para envio CAPI
@@ -1251,8 +1252,9 @@ model MetaPixel {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  project      Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  organization Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  stageRules   DealStageMetaRule[]
 
   @@unique([projectId, pixelId])
   @@unique([organizationId, pixelId])
@@ -1261,14 +1263,37 @@ model MetaPixel {
   @@map("meta_pixels")
 }
 
+model MetaEventType {
+  id    String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name  String @unique // valor enviado para Meta API
+  label String // label na UI
+
+  @@map("meta_event_types")
+}
+
+model DealStageMetaRule {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  stageId   String    @db.Uuid
+  pixelId   String    @db.Uuid
+  eventName String // padrao (ex: "Purchase") ou custom digitado pelo usuario
+  fireOnce  Boolean   @default(true)
+
+  stage DealStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  pixel MetaPixel @relation(fields: [pixelId], references: [id], onDelete: Cascade)
+
+  @@unique([stageId, pixelId, eventName])
+  @@map("crm_deal_stage_meta_rules")
+}
+
 model MetaConversionEvent {
   id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   organizationId String   @db.Uuid
   projectId      String?  @db.Uuid
-  ticketId       String   @db.Uuid
+  dealId         String   @db.Uuid
+  pixelId        String   @db.Uuid
   eventName      String // LeadSubmitted | Purchase
   status         String   @default("PENDING") // PENDING | SENT | FAILED | SKIPPED_NO_CTWA | SKIPPED_DUPLICATE_LEAD
-  eventId        String   @unique // Determinístico: "lead-{ticketId}" ou "purchase-{ticketId}"
+  eventId        String   @unique // Determinístico: "lead-{dealId}" ou "purchase-{dealId}"
   ctwaclid       String?
   metaAdId       String?
   fbtraceId      String?
@@ -1282,7 +1307,7 @@ model MetaConversionEvent {
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   project      Project?     @relation(fields: [projectId], references: [id], onDelete: Restrict)
 
-  @@unique([ticketId, eventName])
+  @@unique([dealId, pixelId, eventName])
   @@index([projectId])
   @@index([organizationId, projectId])
   @@index([organizationId])
@@ -1291,14 +1316,14 @@ model MetaConversionEvent {
 
 model MetaAttributionHistory {
   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  ticketId  String   @db.Uuid
+  dealId    String   @db.Uuid
   oldAdId   String?
   newAdId   String?
   changedAt DateTime @default(now())
 
-  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  deal Deal @relation(fields: [dealId], references: [id], onDelete: Cascade)
 
-  @@index([ticketId])
+  @@index([dealId])
   @@map("meta_attribution_history")
 }
 

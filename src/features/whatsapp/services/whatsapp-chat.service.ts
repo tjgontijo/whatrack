@@ -1,5 +1,5 @@
 import "server-only"
-import { getDefaultTicketStage } from '@/features/tickets/services/ensure-ticket-stages'
+import { getDefaultDealStage } from '@/features/deals/services/ensure-deal-stages'
 import { lookupCache } from '@/lib/db/lookup-cache'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/utils/logger'
@@ -81,7 +81,7 @@ export class WhatsAppChatService {
       const [sourceId, directionId, openStatusId] = await Promise.all([
         lookupCache.getLeadSourceId('live_message'),
         lookupCache.getMessageDirectionId('INBOUND'),
-        lookupCache.getTicketStatusId('open'),
+        lookupCache.getDealStatusId('open'),
       ])
 
       // 1. Find or Create Lead
@@ -126,16 +126,16 @@ export class WhatsAppChatService {
         },
       })
 
-      let ticket = await prisma.ticket.findFirst({
+      let deal = await prisma.deal.findFirst({
         where: { conversationId: conversation.id, statusId: openStatusId },
         orderBy: { createdAt: 'desc' },
       })
 
-      const defaultStage = await getDefaultTicketStage(prisma, organizationId)
+      const defaultStage = await getDefaultDealStage(prisma, organizationId)
 
       const messageTimestamp = new Date(parseInt(timestamp, 10) * 1000)
-      if (!ticket) {
-        ticket = await prisma.ticket.create({
+      if (!deal) {
+        deal = await prisma.deal.create({
           data: {
             organizationId,
             projectId: instance.projectId,
@@ -151,8 +151,8 @@ export class WhatsAppChatService {
           },
         })
       } else {
-        await prisma.ticket.update({
-          where: { id: ticket.id },
+        await prisma.deal.update({
+          where: { id: deal.id },
           data: {
             windowExpiresAt: new Date(messageTimestamp.getTime() + WINDOW_MS),
             windowOpen: true,
@@ -221,7 +221,7 @@ export class WhatsAppChatService {
           leadId: lead.id,
           instanceId,
           appConversationId: conversation.id,
-          ticketId: ticket.id,
+          ticketId: deal.id,
           directionId,
           type,
           body: body || '',
@@ -236,8 +236,8 @@ export class WhatsAppChatService {
         data: { messagesCount: { increment: 1 } },
       })
 
-      await prisma.ticket.update({
-        where: { id: ticket.id },
+      await prisma.deal.update({
+        where: { id: deal.id },
         data: { messagesCount: { increment: 1 } },
       })
 
@@ -282,7 +282,7 @@ export class WhatsAppChatService {
       const [sourceId, directionId, openStatusId] = await Promise.all([
         lookupCache.getLeadSourceId('outbound_message'),
         lookupCache.getMessageDirectionId('OUTBOUND'),
-        lookupCache.getTicketStatusId('open'),
+        lookupCache.getDealStatusId('open'),
       ])
 
       // 1. Find or Create Lead (Recipient)
@@ -326,14 +326,14 @@ export class WhatsAppChatService {
         },
       })
 
-      let ticket = await prisma.ticket.findFirst({
+      let deal = await prisma.deal.findFirst({
         where: { conversationId: conversation.id, statusId: openStatusId },
         orderBy: { createdAt: 'desc' },
       })
 
-      const defaultStage = await getDefaultTicketStage(prisma, instance.organizationId)
-      if (!ticket) {
-        ticket = await prisma.ticket.create({
+      const defaultStage = await getDefaultDealStage(prisma, instance.organizationId)
+      if (!deal) {
+        deal = await prisma.deal.create({
           data: {
             organizationId: instance.organizationId,
             projectId: instance.projectId,
@@ -361,7 +361,7 @@ export class WhatsAppChatService {
           leadId: lead.id,
           instanceId,
           appConversationId: conversation.id,
-          ticketId: ticket.id,
+          ticketId: deal.id,
           directionId,
           type,
           body: body || '',
@@ -375,8 +375,8 @@ export class WhatsAppChatService {
         data: { messagesCount: { increment: 1 } },
       })
 
-      await prisma.ticket.update({
-        where: { id: ticket.id },
+      await prisma.deal.update({
+        where: { id: deal.id },
         data: { messagesCount: { increment: 1 } },
       })
 
@@ -466,7 +466,7 @@ export class WhatsAppChatService {
       const [sourceId, directionId, openStatusId] = await Promise.all([
         lookupCache.getLeadSourceId('direct_creation'),
         lookupCache.getMessageDirectionId('OUTBOUND'),
-        lookupCache.getTicketStatusId('open'),
+        lookupCache.getDealStatusId('open'),
       ])
 
       // 1. Find or Create Lead
@@ -521,16 +521,16 @@ export class WhatsAppChatService {
         },
       })
 
-      // 3. Ensure Ticket
-      let ticket = await prisma.ticket.findFirst({
+      // 3. Ensure Deal
+      let deal = await prisma.deal.findFirst({
         where: { conversationId: conversation.id, statusId: openStatusId },
         orderBy: { createdAt: 'desc' },
       })
 
-      const defaultStage = await getDefaultTicketStage(prisma, organizationId)
+      const defaultStage = await getDefaultDealStage(prisma, organizationId)
 
-      if (!ticket) {
-        ticket = await prisma.ticket.create({
+      if (!deal) {
+        deal = await prisma.deal.create({
           data: {
             organizationId,
             projectId: projectId ?? undefined,
@@ -553,7 +553,7 @@ export class WhatsAppChatService {
           leadId: lead.id,
           instanceId,
           appConversationId: conversation.id,
-          ticketId: ticket.id,
+          ticketId: deal.id,
           campaignRecipientId: undefined,
           directionId,
           type: 'template',
@@ -568,8 +568,8 @@ export class WhatsAppChatService {
         data: { messagesCount: { increment: 1 } },
       })
 
-      await prisma.ticket.update({
-        where: { id: ticket.id },
+      await prisma.deal.update({
+        where: { id: deal.id },
         data: { messagesCount: { increment: 1 } },
       })
 

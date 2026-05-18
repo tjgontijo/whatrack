@@ -72,10 +72,10 @@ export function useRealtime(organizationId: string | undefined) {
         })
       })
 
-      const ticketsSub = subscribeTo(centrifuge, `org:${organizationId}:tickets`, (data) => {
+      const ticketsSub = subscribeTo(centrifuge, `org:${organizationId}:deals`, (data) => {
         if (data.conversationId) {
           queryClient.invalidateQueries({
-            queryKey: ['conversation-ticket', data.conversationId, organizationId],
+            queryKey: ['conversation-deal', data.conversationId, organizationId],
           })
         }
         queryClient.invalidateQueries({

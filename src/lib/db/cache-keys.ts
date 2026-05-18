@@ -18,7 +18,7 @@ export const CACHE_KEYS = {
     webhook: (logId: string) => `whatsapp:webhook:${logId}`,
   },
   ai: {
-    // Key per ticket — presence means "scheduled for analysis, expires at trigger time"
+    // Key per deal — presence means "scheduled for analysis, expires at trigger time"
     // SETEX resets the timer on every new message (debounce effect)
     classifierPending: (ticketId: string) => `ai:classifier:pending:${ticketId}`,
   },

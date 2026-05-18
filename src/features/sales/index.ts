@@ -4,7 +4,7 @@ import {
   createSaleService,
   deleteSaleService,
   listSalesService,
-  syncCompletedSaleForTicketService,
+  syncCompletedSaleForDealService,
   updateSaleService,
 } from '@/features/sales/server'
 
@@ -80,4 +80,4 @@ export async function deleteSale(input: {
   return deleteSaleService(input)
 }
 
-export { syncCompletedSaleForTicketService as syncCompletedSaleForTicket }
+export { syncCompletedSaleForDealService as syncCompletedSaleForDeal }

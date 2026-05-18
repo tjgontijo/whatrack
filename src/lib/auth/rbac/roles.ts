@@ -13,8 +13,8 @@ export type Permission =
   | 'manage:settings'
   | 'view:leads'
   | 'manage:leads'
-  | 'view:tickets'
-  | 'manage:tickets'
+  | 'view:deals'
+  | 'manage:deals'
   | 'view:sales'
   | 'manage:sales'
   | 'view:items'
@@ -53,8 +53,8 @@ const ROLE_DEFINITIONS: RoleDefinition[] = [
       'manage:settings',
       'view:leads',
       'manage:leads',
-      'view:tickets',
-      'manage:tickets',
+      'view:deals',
+      'manage:deals',
       'view:sales',
       'manage:sales',
       'view:items',
@@ -80,8 +80,8 @@ const ROLE_DEFINITIONS: RoleDefinition[] = [
       'manage:members',
       'view:leads',
       'manage:leads',
-      'view:tickets',
-      'manage:tickets',
+      'view:deals',
+      'manage:deals',
       'view:sales',
       'manage:sales',
       'view:items',
@@ -100,7 +100,7 @@ const ROLE_DEFINITIONS: RoleDefinition[] = [
       'view:campaigns',
       'view:integrations',
       'view:leads',
-      'view:tickets',
+      'view:deals',
       'view:sales',
       'view:items',
       'view:meta',
@@ -135,8 +135,8 @@ const PERMISSION_LABELS: Record<Permission, string> = {
   'manage:settings': 'Gerenciar Configurações',
   'view:leads': 'Visualizar Leads',
   'manage:leads': 'Gerenciar Leads',
-  'view:tickets': 'Visualizar Tickets',
-  'manage:tickets': 'Gerenciar Tickets',
+  'view:deals': 'Visualizar Pipeline',
+  'manage:deals': 'Gerenciar Pipeline',
   'view:sales': 'Visualizar Vendas',
   'manage:sales': 'Gerenciar Vendas',
   'view:items': 'Visualizar Itens',

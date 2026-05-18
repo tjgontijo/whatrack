@@ -9,7 +9,7 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/componen
 import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
 import { ChatList } from '@/features/whatsapp/components/inbox/chat-list'
 import { ChatWindow } from '@/features/whatsapp/components/inbox/chat-window'
-import { TicketPanel } from '@/features/whatsapp/components/inbox/ticket-panel'
+import { DealPanel } from '@/features/whatsapp/components/inbox/deal-panel'
 import type { ChatItem, ChatListResponse } from '@/features/whatsapp/components/inbox/types'
 import { useRealtime } from '@/features/whatsapp/hooks/use-realtime'
 import { apiFetch } from '@/lib/http/api-client'
@@ -100,10 +100,10 @@ export default function WhatsAppInboxPage() {
 
           <ResizableHandle withHandle />
 
-          {/* Right Panel: Ticket Details */}
+          {/* Right Panel: Deal Details */}
           <ResizablePanel defaultSize={25} minSize={20} maxSize={40} collapsible>
             {selectedChat ? (
-              <TicketPanel
+              <DealPanel
                 conversationId={selectedChat.id}
                 organizationId={organizationId}
                 projectId={projectId}
@@ -111,7 +111,7 @@ export default function WhatsAppInboxPage() {
               />
             ) : (
               <div className='flex h-full flex-col items-center justify-center p-4 text-center text-muted-foreground text-sm'>
-                Selecione uma conversa para ver os detalhes do ticket
+                Selecione uma conversa para ver os detalhes do deal
               </div>
             )}
           </ResizablePanel>

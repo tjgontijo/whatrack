@@ -1,1 +1,1 @@
-export { getConversationOpenTicket } from '@/features/conversations/services/conversation-ticket.service'
+export { getConversationOpenDeal } from '@/features/conversations/services/conversation-deal.service'

@@ -74,7 +74,7 @@ export class MetaAdInsightsService {
               organizationId,
               status: 'paid', // Only count paid sales
               createdAt: { gte: dateStart },
-              ticket: {
+              deal: {
                 tracking: {
                   metaAccountId: acc.adAccountId,
                 },
@@ -106,7 +106,7 @@ export class MetaAdInsightsService {
                 organizationId,
                 status: 'paid',
                 createdAt: { gte: dateStart },
-                ticket: {
+                deal: {
                   tracking: {
                     metaCampaignId: camp.campaign_id,
                   },

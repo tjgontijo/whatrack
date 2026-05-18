@@ -16,7 +16,7 @@ export async function queryLeadsByFilters(organizationId: string, filters: Audie
         }
       : {}),
 
-    // Filter by Ticket Stage and Time in Stage
+    // Filter by Deal Stage and Time in Stage
     ...(filters.stageId ||
     filters.stageTimeMinDays !== undefined ||
     filters.stageTimeMaxDays !== undefined ||
@@ -25,7 +25,7 @@ export async function queryLeadsByFilters(organizationId: string, filters: Audie
       ? {
           conversations: {
             some: {
-              tickets: {
+              deals: {
                 some: {
                   status: { name: 'open' },
                   ...(filters.stageId ? { stageId: filters.stageId } : {}),
@@ -61,11 +61,11 @@ export async function queryLeadsByFilters(organizationId: string, filters: Audie
     ...(filters.lastMessageGte ? { lastMessageAt: { gte: new Date(filters.lastMessageGte) } } : {}),
   }
 
-  // Note: The reason for the nested query above is because Ticket is related to instance,
+  // Note: The reason for the nested query above is because Deal is related to instance,
   // and Lead has conversation with Instance.
-  // Let's verify relation: Lead -> Conversation -> WhatsConfig -> Ticket?
-  // Wait, Ticket belongs to Lead and Conversation directly in my schema!
-  // Let's check Ticket model.
+  // Let's verify relation: Lead -> Conversation -> WhatsConfig -> Deal?
+  // Wait, Deal belongs to Lead and Conversation directly in my schema!
+  // Let's check Deal model.
   return prisma.lead.findMany({
     where,
     select: {

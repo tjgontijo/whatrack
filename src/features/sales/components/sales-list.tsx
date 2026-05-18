@@ -5,7 +5,7 @@ import { Virtuoso } from 'react-virtuoso'
 
 import { formatCurrencyBRL, formatDateTime } from '@/lib/mask/formatters'
 
-// Inline type definition (previously from @/schemas/lead-tickets)
+// Inline type definition (previously from @/schemas/lead-deals)
 type LeadSale = {
   id: string
   amount: number | null
@@ -18,7 +18,7 @@ type LeadSale = {
     price: number | null
     quantity: number | null
   }>
-  ticket?: {
+  deal?: {
     stage?: { name: string } | null
     utmSource?: string | null
     utmMedium?: string | null
@@ -81,16 +81,16 @@ export function SalesList({ sales }: SalesListProps) {
                 </div>
               </header>
 
-              {sale.ticket && (
+              {sale.deal && (
                 <div className='mt-3 flex flex-wrap gap-2 text-xs'>
-                  {renderTag('Estágio', sale.ticket.stage?.name || 'Sem Estágio')}
-                  {renderTag('Origem', sale.ticket.utmSource)}
-                  {renderTag('Meio', sale.ticket.utmMedium)}
-                  {renderTag('Campanha', sale.ticket.utmCampaign)}
+                  {renderTag('Estágio', sale.deal.stage?.name || 'Sem Estágio')}
+                  {renderTag('Origem', sale.deal.utmSource)}
+                  {renderTag('Meio', sale.deal.utmMedium)}
+                  {renderTag('Campanha', sale.deal.utmCampaign)}
                   <span className='inline-flex items-center gap-1 rounded-full border border-muted-foreground/30 bg-muted/10 px-2 py-1'>
                     <span className='text-[10px] text-muted-foreground uppercase'>Criado</span>
                     <span className='font-medium text-foreground text-xs'>
-                      {formatDateTime(sale.ticket.createdAt)}
+                      {formatDateTime(sale.deal.createdAt)}
                     </span>
                   </span>
                 </div>

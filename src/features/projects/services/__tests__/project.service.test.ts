@@ -21,7 +21,7 @@ const prismaMock = vi.hoisted(() => ({
   lead: {
     updateMany: vi.fn(),
   },
-  ticket: {
+  deal: {
     updateMany: vi.fn(),
   },
   sale: {
@@ -69,7 +69,7 @@ describe('project.service', () => {
           metaConnections: 0,
           metaPixels: 0,
           leads: 12,
-          tickets: 4,
+          deals: 4,
           sales: 3,
           items: 6,
           itemCategories: 2,
@@ -130,7 +130,7 @@ describe('project.service', () => {
         metaConnections: 0,
         metaPixels: 0,
         leads: 0,
-        tickets: 0,
+        deals: 0,
         sales: 0,
         items: 0,
         itemCategories: 0,
@@ -167,7 +167,7 @@ describe('project.service', () => {
         metaConnections: 0,
         metaPixels: 0,
         leads: 0,
-        tickets: 0,
+        deals: 0,
         sales: 0,
         items: 0,
         itemCategories: 0,
@@ -206,7 +206,7 @@ describe('project.service', () => {
         metaConnections: 2,
         metaPixels: 3,
         leads: 2,
-        tickets: 1,
+        deals: 1,
         sales: 1,
         items: 3,
         itemCategories: 1,

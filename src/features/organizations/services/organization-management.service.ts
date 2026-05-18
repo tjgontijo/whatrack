@@ -348,10 +348,10 @@ export async function updateOrganizationById(input: {
   }
 
   let metrics = {}
-  if (body.leadsPerDay && body.avgTicket && body.monthlyRevenue && body.attendantsCount) {
+  if (body.leadsPerDay && body.avgDeal && body.monthlyRevenue && body.attendantsCount) {
     metrics = calculateMetrics({
       leadsPerDay: body.leadsPerDay,
-      avgTicket: body.avgTicket,
+      avgDeal: body.avgDeal,
       monthlyRevenue: body.monthlyRevenue,
       attendantsCount: body.attendantsCount,
       monthlyAdSpend: body.monthlyAdSpend ?? undefined,
@@ -380,7 +380,7 @@ export async function updateOrganizationById(input: {
       where: { id: existingProfile.id },
       data: {
         cpf: body.cpf || null,
-        avgTicket: body.avgTicket || null,
+        avgDeal: body.avgDeal || null,
         attendantsCount: body.attendantsCount || null,
         mainChannel: body.mainAcquisitionChannel || null,
         leadsPerDay: body.leadsPerDay || null,
@@ -396,7 +396,7 @@ export async function updateOrganizationById(input: {
       data: {
         organizationId: input.organizationId,
         cpf: body.cpf || null,
-        avgTicket: body.avgTicket || null,
+        avgDeal: body.avgDeal || null,
         attendantsCount: body.attendantsCount || null,
         mainChannel: body.mainAcquisitionChannel || null,
         leadsPerDay: body.leadsPerDay || null,

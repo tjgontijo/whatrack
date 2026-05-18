@@ -19,7 +19,7 @@ export class MetaCapiService {
     eventName: 'LeadSubmitted' | 'Purchase',
     options: CapiEventOptions
   ) {
-    const ticket = await prisma.ticket.findUnique({
+    const deal = await prisma.deal.findUnique({
       where: { id: ticketId },
       select: {
         id: true,
@@ -51,25 +51,25 @@ export class MetaCapiService {
       },
     })
 
-    if (!ticket?.tracking?.ctwaclid) {
-      logger.info(`[CAPI] Skipping ticket ${ticketId}: No CTWA CLID found.`)
+    if (!deal?.tracking?.ctwaclid) {
+      logger.info(`[CAPI] Skipping deal ${ticketId}: No CTWA CLID found.`)
       return
     }
 
     if (
-      !ticket.projectId ||
-      !ticket.project ||
-      ticket.project.organizationId !== ticket.organizationId
+      !deal.projectId ||
+      !deal.project ||
+      deal.project.organizationId !== deal.organizationId
     ) {
-      logger.warn(`[CAPI] Ticket ${ticketId} has invalid or missing project reference.`)
+      logger.warn(`[CAPI] Deal ${ticketId} has invalid or missing project reference.`)
       return
     }
 
-    // 1. Find the active Pixels for the ticket's project only
+    // 1. Find the active Pixels for the deal's project only
     const targetPixels = await prisma.metaPixel.findMany({
       where: {
-        organizationId: ticket.organizationId,
-        projectId: ticket.projectId,
+        organizationId: deal.organizationId,
+        projectId: deal.projectId,
         isActive: true,
       },
       select: {
@@ -80,13 +80,13 @@ export class MetaCapiService {
 
     if (!targetPixels || targetPixels.length === 0) {
       logger.warn(
-        `[CAPI] No Pixels found for project ${ticket.projectId} in organization ${ticket.organizationId}.`
+        `[CAPI] No Pixels found for project ${deal.projectId} in organization ${deal.organizationId}.`
       )
       return
     }
 
     // 2. Hash User Data
-    const phone = ticket.conversation.lead.phone
+    const phone = deal.conversation.lead.phone
     const hashedPhone = phone ? this.hashData(this.normalizePhone(phone)) : null
 
     // 3. Send event to each pixel asynchronously
@@ -103,11 +103,11 @@ export class MetaCapiService {
             event_time: Math.floor(Date.now() / 1000),
             action_source: 'business_messaging',
             event_id: options.eventId,
-            event_source_url: ticket.tracking.landingPage || '',
+            event_source_url: deal.tracking.landingPage || '',
             user_data: {
-              external_id: [this.hashData(ticket.conversation.lead.id)],
+              external_id: [this.hashData(deal.conversation.lead.id)],
               ph: hashedPhone ? [hashedPhone] : [],
-              ctwa_clid: ticket.tracking.ctwaclid,
+              ctwa_clid: deal.tracking.ctwaclid,
             },
             custom_data: {
               value: options.value,
@@ -129,7 +129,7 @@ export class MetaCapiService {
 
         // Log to MetaConversionEvent table
         await prisma.metaConversionEvent.upsert({
-          where: { ticketId_eventName: { ticketId, eventName } }, // NOTE: unique constraint may fail if multiple pixels send same eventName, but it currently overwrites
+          where: { dealId_pixelId_eventName: { dealId, pixelId, eventName } }, // NOTE: unique constraint may fail if multiple pixels send same eventName, but it currently overwrites
           update: {
             status: 'SENT',
             success: true,
@@ -137,14 +137,14 @@ export class MetaCapiService {
             sentAt: new Date(),
           },
           create: {
-            organizationId: ticket.organizationId,
+            organizationId: deal.organizationId,
             ticketId,
             eventName,
             status: 'SENT',
             success: true,
             eventId: options.eventId,
-            ctwaclid: ticket.tracking.ctwaclid,
-            metaAdId: ticket.tracking.metaAdId,
+            ctwaclid: deal.tracking.ctwaclid,
+            metaAdId: deal.tracking.metaAdId,
             fbtraceId: response.headers.get('x-fb-trace-id') ?? undefined,
             value: options.value,
             currency: options.currency || 'BRL',
@@ -152,7 +152,7 @@ export class MetaCapiService {
         })
 
         logger.info(
-          `[CAPI] Successfully sent ${eventName} to pixel ${pixel.pixelId} for ticket ${ticketId}`
+          `[CAPI] Successfully sent ${eventName} to pixel ${pixel.pixelId} for deal ${dealId}`
         )
       } catch (error: unknown) {
         const errorMsg = getMetaApiErrorMessage(error)
@@ -166,7 +166,7 @@ export class MetaCapiService {
         )
 
         await prisma.metaConversionEvent.upsert({
-          where: { ticketId_eventName: { ticketId, eventName } },
+          where: { dealId_pixelId_eventName: { dealId, pixelId, eventName } },
           update: {
             status: 'FAILED',
             success: false,
@@ -175,7 +175,7 @@ export class MetaCapiService {
             sentAt: new Date(),
           },
           create: {
-            organizationId: ticket.organizationId,
+            organizationId: deal.organizationId,
             ticketId,
             eventName,
             status: 'FAILED',

@@ -22,7 +22,7 @@ export type FinancialSummary = {
     investment: number
     roas: number | null
     cac: number | null
-    ticket: number | null
+    deal: number | null
   }
 }
 
@@ -46,7 +46,7 @@ export function buildFinancialSummary({
   const returnOnInvestment = roi
 
   const cac = salesCount > 0 && investmentValue > 0 ? investmentValue / salesCount : null
-  const ticket = salesCount > 0 ? netRevenue / salesCount : null
+  const deal = salesCount > 0 ? netRevenue / salesCount : null
 
   return {
     netRevenue,
@@ -63,7 +63,7 @@ export function buildFinancialSummary({
       investment: investmentValue,
       roas,
       cac,
-      ticket,
+      deal,
     },
   }
 }

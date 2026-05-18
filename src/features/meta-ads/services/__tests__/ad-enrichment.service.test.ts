@@ -46,15 +46,15 @@ describe('ad-enrichment.service', () => {
     prismaMock.ticketTracking.findUnique.mockResolvedValueOnce({
       metaAdId: null,
       metaEnrichmentStatus: 'PENDING',
-      ticket: {
-        id: 'ticket-1',
+      deal: {
+        id: 'deal-1',
         organizationId: 'org-1',
         projectId: 'proj-1',
         project: { id: 'proj-1', organizationId: 'org-1' },
       },
     })
 
-    await metaAdEnrichmentService.enrichTicket('ticket-1')
+    await metaAdEnrichmentService.enrichTicket('deal-1')
 
     expect(metaAccessTokenServiceMock.getDecryptedToken).not.toHaveBeenCalled()
     expect(prismaMock.ticketTracking.update).not.toHaveBeenCalled()
@@ -64,8 +64,8 @@ describe('ad-enrichment.service', () => {
     prismaMock.ticketTracking.findUnique.mockResolvedValueOnce({
       metaAdId: 'ad-1',
       metaEnrichmentStatus: 'PENDING',
-      ticket: {
-        id: 'ticket-1',
+      deal: {
+        id: 'deal-1',
         organizationId: 'org-1',
         projectId: 'proj-1',
         project: { id: 'proj-1', organizationId: 'org-1' },
@@ -89,10 +89,10 @@ describe('ad-enrichment.service', () => {
       })),
     })
 
-    await metaAdEnrichmentService.enrichTicket('ticket-1')
+    await metaAdEnrichmentService.enrichTicket('deal-1')
 
     expect(prismaMock.ticketTracking.update).toHaveBeenCalledWith({
-      where: { ticketId: 'ticket-1' },
+      where: { ticketId: 'deal-1' },
       data: {
         metaEnrichmentStatus: 'FAILED',
         metaEnrichmentError: 'Meta API failed',

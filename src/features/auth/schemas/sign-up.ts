@@ -158,7 +158,7 @@ export const mainPainPointOptions = [
 export const step3Schema = z.object({
   attendantsCount: z.string().min(1, 'Selecione uma opção'),
   leadsPerDay: z.string().min(1, 'Selecione uma opção'),
-  avgTicket: z.string().min(1, 'Selecione uma opção'),
+  avgDeal: z.string().min(1, 'Selecione uma opção'),
   monthlyRevenue: z.string().min(1, 'Selecione uma opção'),
   mainChannel: z.string().min(1, 'Selecione uma opção'),
   adPlatforms: z.object({
@@ -239,7 +239,7 @@ export const signUpCompleteSchema = z
     // Step 3
     attendantsCount: z.string(),
     leadsPerDay: z.string(),
-    avgTicket: z.string(),
+    avgDeal: z.string(),
     monthlyRevenue: z.string(),
     mainChannel: z.string(),
     adPlatforms: z.object({

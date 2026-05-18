@@ -9,7 +9,7 @@ export async function getConversionFunnel(
   projectId?: string
 ) {
   const [statusOverview, stageOverview] = await Promise.all([
-    // Query to get tickets by status
+    // Query to get deals by status
     prisma.$queryRaw`
     SELECT
       status,
@@ -22,7 +22,7 @@ export async function getConversionFunnel(
     GROUP BY status;
   `,
 
-    // Query to get tickets by stage
+    // Query to get deals by stage
     prisma.$queryRaw`
     SELECT
       ts.id,

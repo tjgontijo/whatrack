@@ -44,7 +44,7 @@ export async function getEfficiencyMetrics(
   `
 
   return {
-    tickets: ticketEfficiencies,
+    deals: ticketEfficiencies,
     aggregated: aggregatedEfficiency,
   }
 }

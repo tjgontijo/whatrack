@@ -8,7 +8,7 @@ import { apiFetch } from '@/lib/http/api-client'
 interface VolumeDataPoint {
   date: string
   leads: number
-  tickets: number
+  deals: number
   sales: number
 }
 

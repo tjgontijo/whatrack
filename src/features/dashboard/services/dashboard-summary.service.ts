@@ -54,9 +54,9 @@ export async function getDashboardSummary(
     ])
 
   const [trafficSourcesRaw, trafficTypesRaw] = await Promise.all([
-    prisma.ticketTracking.findMany({
+    prisma.dealTracking.findMany({
       where: {
-        ticket: {
+        deal: {
           organizationId,
           ...(filters.projectId ? { projectId: filters.projectId } : {}),
         },
@@ -64,9 +64,9 @@ export async function getDashboardSummary(
       distinct: ['utmSource'],
       select: { utmSource: true },
     }),
-    prisma.ticketTracking.findMany({
+    prisma.dealTracking.findMany({
       where: {
-        ticket: {
+        deal: {
           organizationId,
           ...(filters.projectId ? { projectId: filters.projectId } : {}),
         },

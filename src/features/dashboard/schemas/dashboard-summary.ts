@@ -81,7 +81,7 @@ export const dashboardSummaryResponseSchema = z.object({
     investment: z.number(),
     roas: z.number().nullable(),
     cac: z.number().nullable(),
-    ticket: z.number().nullable(),
+    deal: z.number().nullable(),
   }),
 
   funnel: z.object({

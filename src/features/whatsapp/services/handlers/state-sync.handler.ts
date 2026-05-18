@@ -9,7 +9,7 @@ import { logger } from '@/lib/utils/logger'
  *
  * CRITICAL:
  * - Creates/updates Leads with source='state_sync'
- * - ❌ NEVER creates Tickets
+ * - ❌ NEVER creates Deals
  * - Handles contact add/update/delete actions
  *
  * Flow:

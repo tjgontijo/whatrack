@@ -1,7 +1,7 @@
 import "server-only"
 interface BusinessInputs {
   leadsPerDay: string
-  avgTicket: string
+  avgDeal: string
   monthlyRevenue: string
   attendantsCount: string
   monthlyAdSpend?: string
@@ -62,13 +62,13 @@ const AD_SPEND_MAP: Record<string, number> = {
 
 export function calculateMetrics(inputs: BusinessInputs): CalculatedMetrics {
   const leadsPerDay = LEADS_PER_DAY_MAP[inputs.leadsPerDay] || 0
-  const avgTicket = AVG_TICKET_MAP[inputs.avgTicket] || 0
+  const avgDeal = AVG_TICKET_MAP[inputs.avgDeal] || 0
   const monthlyRevenue = MONTHLY_REVENUE_MAP[inputs.monthlyRevenue] || 0
   const attendants = ATTENDANTS_MAP[inputs.attendantsCount] || 1
   const adSpend = inputs.monthlyAdSpend ? AD_SPEND_MAP[inputs.monthlyAdSpend] || 0 : 0
 
   const leadsPerMonth = leadsPerDay * 30
-  const salesPerMonth = avgTicket > 0 ? monthlyRevenue / avgTicket : 0
+  const salesPerMonth = avgDeal > 0 ? monthlyRevenue / avgDeal : 0
 
   // Taxa de conversão = Vendas / Leads
   const conversionRate = leadsPerMonth > 0 ? (salesPerMonth / leadsPerMonth) * 100 : null
@@ -82,8 +82,8 @@ export function calculateMetrics(inputs: BusinessInputs): CalculatedMetrics {
   // ROAS = Faturamento / Investimento
   const roas = adSpend > 0 ? monthlyRevenue / adSpend : null
 
-  // Valor do Lead = Ticket * Conversão
-  const leadValue = conversionRate !== null ? avgTicket * (conversionRate / 100) : null
+  // Valor do Lead = Deal * Conversão
+  const leadValue = conversionRate !== null ? avgDeal * (conversionRate / 100) : null
 
   // Leads por atendente
   const leadsPerAttendant = leadsPerMonth / attendants

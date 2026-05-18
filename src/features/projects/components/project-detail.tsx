@@ -6,7 +6,7 @@ import {
   MessageCircleMore,
   ShoppingCart,
   Target,
-  Ticket,
+  Deal,
 } from 'lucide-react'
 import Link from 'next/link'
 import type { ComponentType } from 'react'
@@ -92,10 +92,10 @@ export function ProjectDetailView({ project }: ProjectDetailProps) {
           icon={FolderKanban}
         />
         <SummaryCard
-          title='Tickets'
+          title='Deals'
           value={project.counts.ticketCount}
-          description='Tickets e conversas comerciais.'
-          icon={Ticket}
+          description='Deals e conversas comerciais.'
+          icon={Deal}
         />
         <SummaryCard
           title='Vendas'

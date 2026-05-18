@@ -137,9 +137,9 @@ export function AppSidebar({
         { title: 'Leads', href: `${basePath}/leads`, icon: 'Users', permission: 'view:leads' },
         {
           title: 'Pipeline',
-          href: `${basePath}/tickets`,
+          href: `${basePath}/deals`,
           icon: 'Kanban',
-          permission: 'view:tickets',
+          permission: 'view:deals',
         },
         {
           title: 'Vendas',

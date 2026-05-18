@@ -1,5 +1,5 @@
 export { createSaleService } from '@/features/sales/services/create-sale.service'
 export { deleteSaleService } from '@/features/sales/services/delete-sale.service'
 export { listSalesService } from '@/features/sales/services/list-sales.service'
-export { syncCompletedSaleForTicketService } from '@/features/sales/services/sync-completed-sale-for-ticket.service'
+export { syncCompletedSaleForDealService } from '@/features/sales/services/sync-completed-sale-for-deal.service'
 export { updateSaleService } from '@/features/sales/services/update-sale.service'
