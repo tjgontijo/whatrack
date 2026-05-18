@@ -817,6 +817,100 @@ export function CaseEmptyState() {
 }
 ```
 
+## Skeleton Screens
+
+Skeleton screens melhoram a experiência percebida em navegações, mostrando layout fiel ao invés de tela em branco ou spinner genérico.
+
+**Arquitetura de skeletons:**
+
+1. **Primitivas compartilhadas** em `src/components/skeletons/`:
+   - `TableSkeleton` — header + N linhas com colunas configuráveis
+   - `MetricsSkeleton` — grid de cards com label + valor grande
+   - `FormSkeleton` — N campos (label + input)
+
+2. **Skeletons específicos** em `features/[domain]/components/skeletons/`:
+   - Nome: `[feature]-skeleton.tsx` ou `[page]-skeleton.tsx`
+   - Cada página/feature tem seu próprio skeleton que espelha exatamente seu layout
+   - Importam primitivas quando aplicável
+
+3. **Loading files** em `app/`:
+   - Um `loading.tsx` por rota dashboard e auth
+   - Importa o skeleton da feature e renderiza
+   - Redirect pages usam skeleton minimal
+
+**Padrão de implementação:**
+
+```txt
+features/leads/
+  components/
+    skeletons/
+      leads-skeleton.tsx
+        ├ imports TableSkeleton
+        ├ imports Skeleton (base)
+        └ compõe com layout exato da página
+
+app/(dashboard)/[org]/[proj]/leads/
+  loading.tsx
+    └ imports LeadsSkeleton
+```
+
+Exemplo para page-specific skeleton:
+
+```tsx
+// features/campaigns/components/skeletons/campaign-detail-skeleton.tsx
+import { Skeleton } from '@/components/ui/skeleton'
+import { MetricsSkeleton } from '@/components/skeletons/metrics-skeleton'
+import { TableSkeleton } from '@/components/skeletons/table-skeleton'
+
+export function CampaignDetailSkeleton() {
+  return (
+    <div className="flex flex-col gap-6 p-6">
+      <div className="flex items-start gap-4">
+        <Skeleton className="h-10 w-10" />
+        <div className="flex-1 space-y-2">
+          <Skeleton className="h-7 w-96" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+      </div>
+
+      <MetricsSkeleton count={4} />
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <div className="rounded-lg border p-6">
+          <Skeleton className="h-80 w-full" />
+        </div>
+        <div className="rounded-lg border p-6">
+          <Skeleton className="h-80 w-full" />
+        </div>
+      </div>
+
+      <TableSkeleton rows={5} columns={4} />
+    </div>
+  )
+}
+```
+
+Exemplo de loading.tsx:
+
+```tsx
+// app/(dashboard)/[org]/[proj]/campaigns/[campaignId]/loading.tsx
+import { CampaignDetailSkeleton } from '@/features/campaigns/components/skeletons/campaign-detail-skeleton'
+
+export default function Loading() {
+  return <CampaignDetailSkeleton />
+}
+```
+
+**Regras:**
+
+1. Cada página única deve ter seu próprio skeleton, não genérico.
+2. Skeleton deve refletir exatamente o layout real da página.
+3. Reutilizar primitivas (`TableSkeleton`, `MetricsSkeleton`, `FormSkeleton`) para evitar duplicação.
+4. Skeletons compartilhados ficam em `components/skeletons/` — domínio-agnóstico.
+5. Skeletons de feature ficam em `features/[domain]/components/skeletons/` — refletem layout específico.
+6. Pages redirect ficam com skeleton minimal (título + descrição).
+7. `loading.tsx` deve ser simples: importa skeleton e renderiza.
+
 ## DTOs e mappers para UI
 
 Evite passar entidades cruas do banco profundamente pela árvore de componentes.
@@ -1110,11 +1204,14 @@ Antes de concluir uma alteração frontend, verifique:
 13. Estado vindo do servidor não está em Zustand.
 14. Filtros compartilháveis usam URL state.
 15. Listagens têm loading, error e empty state.
-16. Components genéricos continuam em `src/components/ui`.
-17. Components específicos continuam dentro da feature.
-18. O `index.ts` não exporta server internals.
-19. Arquivos continuam pequenos.
-20. Lint, typecheck e testes foram executados quando disponíveis.
+16. Cada `loading.tsx` usa skeleton page-specific, não genérico.
+17. Skeletons compartilhados ficam em `components/skeletons/`.
+18. Skeletons de feature ficam em `features/[domain]/components/skeletons/`.
+19. Components genéricos continuam em `src/components/ui`.
+20. Components específicos continuam dentro da feature.
+21. O `index.ts` não exporta server internals.
+22. Arquivos continuam pequenos.
+23. Lint, typecheck e testes foram executados quando disponíveis.
 
 ## Anti-padrões
 
