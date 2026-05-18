@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers'
+import { findProjectInOrg } from '@/features/projects/repositories/find-project-in-org.repository'
 import { projectCurrentUpdateSchema } from '@/features/projects'
 import { PROJECT_COOKIE } from '@/lib/constants/http-headers'
-import { prisma } from '@/lib/db/prisma'
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
@@ -19,16 +19,7 @@ export async function GET(request: Request) {
       return apiSuccess({ projectId: null, project: null })
     }
 
-    const project = await prisma.project.findFirst({
-      where: {
-        id: projectId,
-        organizationId: access.organizationId,
-      },
-      select: {
-        id: true,
-        name: true,
-      },
-    })
+    const project = await findProjectInOrg(projectId, access.organizationId)
 
     return apiSuccess({
       projectId: project?.id ?? null,
@@ -48,53 +39,31 @@ export async function PATCH(request: Request) {
     }
 
     const parsed = projectCurrentUpdateSchema.safeParse(await request.json().catch(() => null))
-
     if (!parsed.success) {
       return apiError('Invalid payload', 400, undefined, {
         details: parsed.error.flatten(),
       })
     }
 
-    if (parsed.data.projectId) {
-      const project = await prisma.project.findFirst({
-        where: {
-          id: parsed.data.projectId,
-          organizationId: access.organizationId,
-        },
-        select: {
-          id: true,
-          name: true,
-        },
-      })
+    const cookieStore = await cookies()
 
+    if (parsed.data.projectId) {
+      const project = await findProjectInOrg(parsed.data.projectId, access.organizationId)
       if (!project) {
         return apiError('Projeto não encontrado', 404)
       }
 
-      // Update cookie for project selection
-      // activeProjectId is managed via PROJECT_COOKIE cookie, not session
-      const cookieStore = await cookies()
       cookieStore.set(PROJECT_COOKIE, project.id, {
         path: '/',
         maxAge: 60 * 60 * 24 * 365,
         sameSite: 'lax',
       })
 
-      return apiSuccess({
-        projectId: project.id,
-        project,
-      })
+      return apiSuccess({ projectId: project.id, project })
     }
 
-    // Clear cookie for project selection
-    // activeProjectId is managed via PROJECT_COOKIE cookie, not session
-    const cookieStore = await cookies()
     cookieStore.delete(PROJECT_COOKIE)
-
-    return apiSuccess({
-      projectId: null,
-      project: null,
-    })
+    return apiSuccess({ projectId: null, project: null })
   } catch (error) {
     logger.error({ err: error }, '[api/projects/current] PATCH error')
     return apiError('Failed to update active project', 500, error)

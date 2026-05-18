@@ -1,5 +1,5 @@
+import { checkProjectSlugAvailability } from '@/features/projects/repositories/check-project-slug.repository'
 import { projectSlugCheckSchema } from '@/features/projects'
-import { prisma } from '@/lib/db/prisma'
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
 import { isValidSlug } from '@/lib/utils/slug'
@@ -29,25 +29,13 @@ export async function GET(request: Request) {
       return apiSuccess({ available: false, slug: validatedSlug })
     }
 
-    const existing = await prisma.project.findFirst({
-      where: {
-        organizationId: access.organizationId,
-        slug: validatedSlug,
-        ...(parsed.data.excludeProjectId
-          ? {
-              id: {
-                not: parsed.data.excludeProjectId,
-              },
-            }
-          : {}),
-      },
-      select: { id: true },
-    })
+    const result = await checkProjectSlugAvailability(
+      access.organizationId,
+      validatedSlug,
+      parsed.data.excludeProjectId
+    )
 
-    return apiSuccess({
-      available: !existing,
-      slug: validatedSlug,
-    })
+    return apiSuccess(result)
   } catch (error) {
     logger.error({ err: error }, '[api/projects/slug] GET error')
     return apiError('Failed to check slug availability', 500, error)
