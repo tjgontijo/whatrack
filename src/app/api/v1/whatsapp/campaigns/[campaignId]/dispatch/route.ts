@@ -1,14 +1,10 @@
-import { after } from 'next/server'
-
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { dispatchCampaign } from '@/features/whatsapp/services/whatsapp-campaign.service'
 import { whatsappCampaignDispatchSchema } from '@/features/whatsapp/schemas/whatsapp-campaign-schemas'
-import { logger } from '@/lib/utils/logger'
-import { runCampaignDispatch } from '@/features/whatsapp/services/whatsapp-campaign-execution.service'
+import { enqueueCampaignDispatch } from '@/server/queues/campaign.queue'
 
 export const dynamic = 'force-dynamic'
-export const maxDuration = 300 // 5 min max na Vercel (plano free permite até 60s, pro até 300s)
 
 export async function POST(
   request: Request,
@@ -32,21 +28,19 @@ export async function POST(
     campaignId,
     access.userId,
     parsed.data.immediate,
-    scheduledAt
+    scheduledAt,
   )
 
   if (!result.success) {
     return apiError(result.error, result.status)
   }
 
-  // Processar em background APÓS retornar a resposta ao usuário
-  if (parsed.data.immediate) {
-    const orgId = access.organizationId
-    after(async () => {
-      logger.info({ campaignId, orgId }, '[Campaign] Starting background dispatch via after()')
-      await runCampaignDispatch(campaignId, orgId)
-    })
-  }
+  const delayMs =
+    !parsed.data.immediate && scheduledAt && scheduledAt.getTime() > Date.now()
+      ? scheduledAt.getTime() - Date.now()
+      : undefined
+
+  await enqueueCampaignDispatch(campaignId, access.organizationId, delayMs)
 
   return apiSuccess({ success: true })
 }
