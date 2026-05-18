@@ -6,8 +6,7 @@
  */
 
 import type { NextRequest } from 'next/server'
-import { BillingAuditService } from '@/features/billing/services/audit.service'
-import { prisma } from '@/lib/db/prisma'
+import { retrySubscriptionService } from '@/features/billing/services/retry-subscription.service'
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
@@ -20,63 +19,15 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const { subscriptionId } = body
-
-    if (!subscriptionId) {
-      return apiError('subscriptionId is required', 400)
-    }
-
-    // Verify subscription belongs to org
-    const subscription = await prisma.billingSubscription.findFirst({
-      where: {
-        id: subscriptionId,
-        organizationId: auth.organizationId,
-      },
-      select: {
-        id: true,
-        status: true,
-        failureReason: true,
-        failureCount: true,
-      },
-    })
-
-    if (!subscription) {
-      return apiError('Subscription not found', 404)
-    }
-
-    if (subscription.status !== 'FAILED') {
-      return apiError('Only failed subscriptions can be retried', 400)
-    }
-
-    // Reset failure tracking for a new retry
-    const updatedSubscription = await prisma.billingSubscription.update({
-      where: { id: subscriptionId },
-      data: {
-        status: 'PENDING',
-        failureReason: null,
-        // Keep failureCount for history but clear retry tracking
-        lastFailureAt: null,
-        nextRetryAt: null,
-        lastRetryAt: new Date(),
-      },
-    })
-
-    await BillingAuditService.log({
-      organizationId: auth.organizationId,
-      userId: auth.userId,
-      action: 'SUBSCRIPTION_RETRY_INITIATED',
-      entity: 'BillingSubscription',
-      entityId: subscriptionId,
-      metadata: { previousFailureReason: subscription.failureReason },
-    })
-
-    return apiSuccess({
-      subscription: {
-        id: updatedSubscription.id,
-        status: updatedSubscription.status,
-      },
-    })
+    const result = await retrySubscriptionService(auth.organizationId, auth.userId, body)
+    return apiSuccess(result)
   } catch (error) {
+    if (error instanceof SyntaxError) {
+      return apiError('Invalid request body', 400)
+    }
+    if (error instanceof Error && 'status' in error) {
+      return apiError(error.message, error.status as number)
+    }
     logger.error({ err: error }, 'Subscription retry error')
     return apiError('Failed to retry subscription', 500, error)
   }

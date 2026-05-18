@@ -1,5 +1,5 @@
 import type { NextRequest } from 'next/server'
-import { prisma } from '@/lib/db/prisma'
+import { findSubscriptionStatus } from '@/features/billing/repositories/find-subscription-status.repository'
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
@@ -10,38 +10,8 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const subscription = await prisma.billingSubscription.findUnique({
-      where: { organizationId: auth.organizationId },
-      select: {
-        id: true,
-        status: true,
-        isActive: true,
-        failureReason: true,
-        failureCount: true,
-        lastFailureAt: true,
-        lastFailureMessage: true,
-        nextRetryAt: true,
-        expiresAt: true,
-        paymentMethod: true,
-      },
-    })
-
-    return apiSuccess({
-      subscription: subscription
-        ? {
-            id: subscription.id,
-            status: subscription.status,
-            isActive: subscription.isActive,
-            failureReason: subscription.failureReason,
-            failureCount: subscription.failureCount,
-            lastFailureAt: subscription.lastFailureAt,
-            lastFailureMessage: subscription.lastFailureMessage,
-            nextRetryAt: subscription.nextRetryAt,
-            expiresAt: subscription.expiresAt,
-            paymentMethod: subscription.paymentMethod,
-          }
-        : null,
-    })
+    const subscription = await findSubscriptionStatus(auth.organizationId)
+    return apiSuccess({ subscription })
   } catch (error) {
     return apiError('Failed to fetch subscription status', 500, error)
   }
