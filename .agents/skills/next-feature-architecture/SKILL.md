@@ -60,11 +60,9 @@ src/
       index.ts
       server.ts
 
-  server/
-    db/
-      db.ts
-
   lib/
+    db/
+      prisma.ts
     utils.ts
 
   config/
@@ -112,9 +110,9 @@ Service
 
 Repository
   "server-only"
-  acessa o banco de dados (db)
+  acessa o banco de dados (prisma)
 
-server/db
+lib/db/prisma.ts
   fornece a conexão com o banco
 ```
 
@@ -157,14 +155,14 @@ Evite:
 ```ts
 "use server";
 
-import { db } from "@/server/db/db";
+import { prisma } from "@/lib/db/prisma";
 
 export async function createCaseAction(input: CreateCaseInput) {
-	return db.insert(patientCase).values(input);
+	return prisma.patientCase.create({ data: input });
 }
 ```
 
-Server Actions não devem importar `db`, ORMs ou repositories diretamente quando houver service.
+Server Actions não devem importar `prisma`, ORMs ou repositories diretamente quando houver service.
 
 ## Autenticação em Actions
 
@@ -230,7 +228,7 @@ Cada service deve:
 
 Services não devem:
 
-1. Importar `db` diretamente.
+1. Importar `prisma` diretamente.
 2. Importar `NextResponse`.
 3. Receber `Request`.
 4. Ter JSX.
@@ -251,7 +249,7 @@ repositories/
 Cada repository deve:
 
 1. Usar `import "server-only"`.
-2. Importar `db`.
+2. Importar `prisma` de `@/lib/db/prisma`.
 3. Executar uma operação clara de banco.
 4. Não conter regra de negócio.
 5. Não validar input de formulário.
@@ -290,7 +288,7 @@ import { createCaseAction } from "@/features/cases/actions";
 
 ## Server boundaries
 
-Qualquer arquivo que acessa banco, secrets ou autenticação deve usar `import "server-only"`. Isso inclui Services, Repositories e arquivos na pasta `server/`.
+Qualquer arquivo que acessa banco, secrets ou autenticação deve usar `import "server-only"`. Isso inclui Services, Repositories e arquivos nas pastas `server/` e `lib/`.
 
 ## Critério de conclusão
 
