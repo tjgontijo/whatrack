@@ -2,21 +2,20 @@ import type { PrismaClient } from '@generated/prisma/client'
 import { DEFAULT_DEAL_STAGES } from '@/lib/constants/deal-stages'
 
 export async function seedDealStages(prisma: PrismaClient) {
-  console.log('Seeding ticket stages...')
+  console.log('Seeding deal stages...')
 
   const organizations = await prisma.organization.findMany({
     orderBy: { createdAt: 'asc' },
   })
 
   if (organizations.length === 0) {
-    console.warn('⚠️ No organizations found. Ticket stages not seeded.')
+    console.warn('⚠️ No organizations found. Deal stages not seeded.')
     return
   }
 
   for (const organization of organizations) {
     for (const stage of DEFAULT_DEAL_STAGES) {
-      // Check if stage exists first
-      const existingStage = await prisma.dealStage.findFirst({
+      const existing = await prisma.dealStage.findFirst({
         where: {
           organizationId: organization.id,
           projectId: null,
@@ -24,10 +23,9 @@ export async function seedDealStages(prisma: PrismaClient) {
         },
       })
 
-      if (existingStage) {
-        // Update existing stage
+      if (existing) {
         await prisma.dealStage.update({
-          where: { id: existingStage.id },
+          where: { id: existing.id },
           data: {
             color: stage.color,
             order: stage.order,
@@ -36,7 +34,6 @@ export async function seedDealStages(prisma: PrismaClient) {
           },
         })
       } else {
-        // Create new stage
         await prisma.dealStage.create({
           data: {
             organizationId: organization.id,
@@ -47,6 +44,6 @@ export async function seedDealStages(prisma: PrismaClient) {
       }
     }
 
-    console.log(`Ticket stages ensured for organization: ${organization.name}`)
+    console.log(`Deal stages ensured for organization: ${organization.name}`)
   }
 }
