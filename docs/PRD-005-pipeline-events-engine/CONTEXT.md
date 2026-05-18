@@ -122,7 +122,7 @@ pixelId  String   @db.Uuid
 | Item | Localizacao | Status |
 |------|-------------|--------|
 | Envio CAPI para Meta | `src/features/meta-ads/services/capi.service.ts` | Funcional |
-| Hook de mudanca de fase | `deal.service.ts:592` `updateTicketAndTrackCapi` | Funcional, usa heuristica de nome |
+| Hook de mudanca de fase | `deal.service.ts:592` `updateDealAndTrackCapi` | Funcional, usa heuristica de nome |
 | Dedup via unique constraint | `MetaConversionEvent @@unique([dealId, eventName])` | Existe, precisa adicionar `pixelId` |
 | BullMQ | `package.json bullmq@^5.76.10` + `src/worker.ts` | Instalado e em uso |
 
