@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { buildMetaAdsAuthorizeUrl } from '@/features/meta-ads/services/meta-oauth.service'
 import { createMetaOAuthState } from '@/features/meta-ads/services/meta-oauth-state.service'
-import { prisma } from '@/lib/db/prisma'
+import { findProjectInOrg } from '@/features/projects/repositories/find-project-in-org.repository'
 import { apiError } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
@@ -22,20 +22,13 @@ export async function GET(req: NextRequest) {
     return apiError('Server configuration error', 500)
   }
 
-  // Extract projectId from query params - REQUIRED
   const projectId = req.nextUrl.searchParams.get('projectId')
-
   if (!projectId) {
     return apiError('projectId is required', 400)
   }
 
-  // Verify project belongs to organization
-  const project = await prisma.project.findUnique({
-    where: { id: projectId },
-    select: { organizationId: true },
-  })
-
-  if (!project || project.organizationId !== access.organizationId) {
+  const project = await findProjectInOrg(projectId, access.organizationId)
+  if (!project) {
     return apiError('Project not found or does not belong to your organization', 404)
   }
 
@@ -45,11 +38,7 @@ export async function GET(req: NextRequest) {
     projectId,
   })
 
-  const authUrl = buildMetaAdsAuthorizeUrl({
-    clientId,
-    redirectUri,
-    stateToken,
-  })
+  const authUrl = buildMetaAdsAuthorizeUrl({ clientId, redirectUri, stateToken })
 
   return NextResponse.redirect(authUrl)
 }
