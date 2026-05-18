@@ -4,7 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { PageContent } from '@/features/dashboard/components/layout/page-content'
 import { PageHeader } from '@/features/dashboard/components/layout/page-header'
 import { PageShell } from '@/features/dashboard/components/layout/page-shell'
-import { TableSkeleton } from '@/features/dashboard/components/states/table-skeleton'
+import { TableSkeleton } from '@/components/skeletons'
 
 export default function Loading() {
   return (

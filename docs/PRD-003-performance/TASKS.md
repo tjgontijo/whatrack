@@ -118,110 +118,194 @@ const handleSignOut = async () => {
 
 ---
 
-### T2: `loading.tsx` para as 31 rotas dashboard (2-3h)
+### T2: Skeleton screens fiel a cada pagina (4-5h)
 
-**Problema:** Navegacao para qualquer rota sem `loading.tsx` mostra tela em branco ate o Server Component completar.
+**Problema:** Abordagem genérica não reflete layout real. Cada página merece skeleton que espelha sua estrutura exata.
 
-**Solucao:** Criar componente generico `DashboardPageSkeleton` e um `loading.tsx` padrao.
+**Solução:** 
+1. Mover primitivas cross-domain para `components/skeletons/`
+2. Criar skeleton fiel em cada feature 
+3. `loading.tsx` de cada rota importa skeleton da feature
 
 ---
 
-#### Passo 1: Criar componente base
+#### Passo 1: Mover primitivas compartilhadas para `components/skeletons/`
 
+Move 3 arquivos existentes:
+```bash
+# De: src/features/dashboard/components/states/
+# Para: src/components/skeletons/
+
+table-skeleton.tsx      # TableSkeleton — header + N linhas + colunas configuráveis
+metrics-skeleton.tsx    # MetricsSkeleton — grid de cards com icon + label + valor grande
+form-skeleton.tsx       # FormSkeleton — N campos (label + input)
+```
+
+Todos importam `@/components/ui/skeleton` (shadcn base).
+
+---
+
+#### Passo 2: Criar skeleton fiel para cada página
+
+Cada feature cria seu próprio skeleton baseado no layout real da página. Exemplos:
+
+**Dashboard home** (`features/dashboard/components/dashboard-skeleton.tsx`):
 ```tsx
-// src/features/dashboard/components/states/dashboard-page-skeleton.tsx
+import { MetricsSkeleton } from '@/components/skeletons/metrics-skeleton'
 import { Skeleton } from '@/components/ui/skeleton'
 
-export function DashboardPageSkeleton() {
+export function DashboardSkeleton() {
   return (
     <div className="flex flex-col gap-6 p-6">
-      {/* Header da pagina */}
-      <div className="flex items-center justify-between">
-        <div className="space-y-2">
-          <Skeleton className="h-7 w-48" />
-          <Skeleton className="h-4 w-72" />
-        </div>
-        <Skeleton className="h-9 w-28" />
-      </div>
-
-      {/* Conteudo — cards */}
-      <div className="grid gap-4 md:grid-cols-3">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="rounded-lg border p-4 space-y-3">
-            <Skeleton className="h-4 w-24" />
-            <Skeleton className="h-8 w-32" />
-          </div>
-        ))}
-      </div>
-
-      {/* Tabela */}
-      <div className="rounded-lg border">
-        <div className="p-4 border-b">
-          <Skeleton className="h-9 w-64" />
-        </div>
-        <div className="divide-y">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="flex items-center gap-4 p-4">
-              <Skeleton className="h-8 w-8 rounded-full" />
-              <Skeleton className="h-4 w-48" />
-              <Skeleton className="ml-auto h-4 w-24" />
-            </div>
-          ))}
-        </div>
+      <div><Skeleton className="h-7 w-48" /></div>
+      <MetricsSkeleton count={5} />
+      <div className="grid md:grid-cols-2 gap-6">
+        <div className="border rounded p-4 h-80"><Skeleton className="w-full h-full" /></div>
+        <div className="border rounded p-4 h-80"><Skeleton className="w-full h-full" /></div>
       </div>
     </div>
   )
 }
 ```
 
-#### Passo 2: Criar `loading.tsx` em cada rota
-
-Arquivo padrao (copiar para todas as 31 rotas):
-
+**Leads table** (`features/leads/components/leads-skeleton.tsx`):
 ```tsx
-// src/app/(dashboard)/[organizationSlug]/[projectSlug]/ROTA/loading.tsx
-import { DashboardPageSkeleton } from '@/features/dashboard/components/states/dashboard-page-skeleton'
+import { TableSkeleton } from '@/components/skeletons/table-skeleton'
+import { Skeleton } from '@/components/ui/skeleton'
 
-export default function Loading() {
-  return <DashboardPageSkeleton />
+export function LeadsSkeleton() {
+  return (
+    <div className="flex flex-col gap-4 p-6">
+      <div className="flex gap-3">
+        <Skeleton className="h-10 flex-1 max-w-sm" />
+        <Skeleton className="h-10 w-40" />
+      </div>
+      <TableSkeleton rows={8} columns={6} />
+    </div>
+  )
 }
 ```
 
-**Lista de arquivos a criar** (31 + 2 auth):
+**Campaign detail** (`features/campaigns/components/campaign-detail-skeleton.tsx`):
+```tsx
+import { MetricsSkeleton } from '@/components/skeletons/metrics-skeleton'
+import { TableSkeleton } from '@/components/skeletons/table-skeleton'
+import { Skeleton } from '@/components/ui/skeleton'
 
+export function CampaignDetailSkeleton() {
+  return (
+    <div className="flex flex-col gap-6 p-6">
+      <div className="flex gap-3">
+        <Skeleton className="h-10 w-10" />
+        <div className="flex-1 space-y-2">
+          <Skeleton className="h-6 w-96" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+      </div>
+      <MetricsSkeleton count={4} />
+      <div className="grid md:grid-cols-2 gap-6">
+        <div className="h-64"><Skeleton className="w-full h-full" /></div>
+        <div className="h-64"><Skeleton className="w-full h-full" /></div>
+      </div>
+      <TableSkeleton rows={5} columns={4} />
+    </div>
+  )
+}
 ```
-src/app/(dashboard)/[organizationSlug]/[projectSlug]/analytics/loading.tsx
-src/app/(dashboard)/[organizationSlug]/[projectSlug]/billing/loading.tsx
-src/app/(dashboard)/[organizationSlug]/[projectSlug]/campaigns/loading.tsx
-src/app/(dashboard)/[organizationSlug]/[projectSlug]/campaigns/[campaignId]/loading.tsx
-src/app/(dashboard)/[organizationSlug]/[projectSlug]/campaigns/new/loading.tsx
-src/app/(dashboard)/[organizationSlug]/[projectSlug]/campaigns/opt-outs/loading.tsx
-src/app/(dashboard)/[organizationSlug]/[projectSlug]/catalog/loading.tsx
-src/app/(dashboard)/[organizationSlug]/[projectSlug]/equipe/loading.tsx
-src/app/(dashboard)/[organizationSlug]/[projectSlug]/item-categories/loading.tsx
-src/app/(dashboard)/[organizationSlug]/[projectSlug]/items/loading.tsx
-src/app/(dashboard)/[organizationSlug]/[projectSlug]/leads/loading.tsx
-src/app/(dashboard)/[organizationSlug]/[projectSlug]/meta-ads/loading.tsx
-src/app/(dashboard)/[organizationSlug]/[projectSlug]/meta-ads/campaigns/loading.tsx
-src/app/(dashboard)/[organizationSlug]/[projectSlug]/minha-conta/loading.tsx
-src/app/(dashboard)/[organizationSlug]/[projectSlug]/sales/loading.tsx
-src/app/(dashboard)/[organizationSlug]/[projectSlug]/settings/profile/loading.tsx
-src/app/(dashboard)/[organizationSlug]/[projectSlug]/settings/organization/loading.tsx
-src/app/(dashboard)/[organizationSlug]/[projectSlug]/settings/audit/loading.tsx
-src/app/(dashboard)/[organizationSlug]/[projectSlug]/settings/audit-logs/loading.tsx
-src/app/(dashboard)/[organizationSlug]/[projectSlug]/settings/integrations/loading.tsx
-src/app/(dashboard)/[organizationSlug]/[projectSlug]/settings/meta-ads/loading.tsx
-src/app/(dashboard)/[organizationSlug]/[projectSlug]/settings/subscription/loading.tsx
-src/app/(dashboard)/[organizationSlug]/[projectSlug]/settings/team/loading.tsx
-src/app/(dashboard)/[organizationSlug]/[projectSlug]/settings/whatsapp/loading.tsx
-src/app/(dashboard)/[organizationSlug]/[projectSlug]/settings/pipeline/loading.tsx
-src/app/(dashboard)/[organizationSlug]/[projectSlug]/settings/webhooks/whatsapp/loading.tsx
-src/app/(dashboard)/[organizationSlug]/[projectSlug]/tickets/loading.tsx
-src/app/(dashboard)/[organizationSlug]/[projectSlug]/whatsapp/loading.tsx
-src/app/(dashboard)/[organizationSlug]/[projectSlug]/whatsapp/audiences/loading.tsx
-src/app/(dashboard)/[organizationSlug]/[projectSlug]/whatsapp/inbox/loading.tsx
-src/app/(auth)/reset-password/loading.tsx
-src/app/(auth)/forgot-password/loading.tsx
+
+**Campaign form** (`features/campaigns/components/campaign-form-skeleton.tsx`):
+```tsx
+import { FormSkeleton } from '@/components/skeletons/form-skeleton'
+import { Skeleton } from '@/components/ui/skeleton'
+
+export function CampaignFormSkeleton() {
+  return (
+    <div className="flex flex-col gap-6 p-6 max-w-3xl">
+      <div><Skeleton className="h-7 w-48" /></div>
+      <div className="border rounded p-6">
+        <FormSkeleton fields={6} />
+      </div>
+    </div>
+  )
+}
+```
+
+**Padrão geral para page skeletons:**
+- Import primitivas de `@/components/skeletons/`
+- Compor com `Skeleton` (base) para seções custom
+- Espelhar layout real da página (espaçamento, grid, colunas)
+- Nome: `[feature]-skeleton.tsx` ou `[page]-skeleton.tsx`
+
+---
+
+#### Passo 3: Criar `loading.tsx` em cada rota
+
+Arquivo simples: importa skeleton da feature, retorna jsx.
+
+```tsx
+// app/(dashboard)/[org]/[proj]/leads/loading.tsx
+import { LeadsSkeleton } from '@/features/leads/components/leads-skeleton'
+
+export default function Loading() {
+  return <LeadsSkeleton />
+}
+```
+
+**Para redirects** (equipe, items, item-categories, etc):
+
+```tsx
+// app/(dashboard)/[org]/[proj]/equipe/loading.tsx
+import { Skeleton } from '@/components/ui/skeleton'
+
+export default function Loading() {
+  return (
+    <div className="p-6">
+      <Skeleton className="h-10 w-48" />
+    </div>
+  )
+}
+```
+
+**Lista de 31 rotas + 2 auth:**
+```
+Unique pages (20):
+  app/(dashboard)/[organizationSlug]/[projectSlug]/page.tsx → DashboardSkeleton
+  app/(dashboard)/[organizationSlug]/[projectSlug]/leads/loading.tsx → LeadsSkeleton
+  app/(dashboard)/[organizationSlug]/[projectSlug]/sales/loading.tsx → SalesSkeleton
+  app/(dashboard)/[organizationSlug]/[projectSlug]/deals/loading.tsx → DealsSkeleton
+  app/(dashboard)/[organizationSlug]/[projectSlug]/campaigns/loading.tsx → CampaignsListSkeleton
+  app/(dashboard)/[organizationSlug]/[projectSlug]/campaigns/[campaignId]/loading.tsx → CampaignDetailSkeleton
+  app/(dashboard)/[organizationSlug]/[projectSlug]/campaigns/new/loading.tsx → CampaignFormSkeleton
+  app/(dashboard)/[organizationSlug]/[projectSlug]/campaigns/opt-outs/loading.tsx → OptOutsTableSkeleton
+  app/(dashboard)/[organizationSlug]/[projectSlug]/catalog/loading.tsx → CatalogSkeleton
+  app/(dashboard)/[organizationSlug]/[projectSlug]/analytics/loading.tsx → AnalyticsSkeleton
+  app/(dashboard)/[organizationSlug]/[projectSlug]/meta-ads/loading.tsx → MetaAdsSkeleton
+  app/(dashboard)/[organizationSlug]/[projectSlug]/whatsapp/inbox/loading.tsx → InboxSkeleton
+  app/(dashboard)/[organizationSlug]/[projectSlug]/whatsapp/audiences/loading.tsx → AudiencesTableSkeleton
+  app/(dashboard)/[organizationSlug]/[projectSlug]/settings/profile/loading.tsx → ProfileFormSkeleton
+  app/(dashboard)/[organizationSlug]/[projectSlug]/settings/organization/loading.tsx → OrganizationFormSkeleton
+  app/(dashboard)/[organizationSlug]/[projectSlug]/settings/team/loading.tsx → TeamTableSkeleton
+  app/(dashboard)/[organizationSlug]/[projectSlug]/settings/whatsapp/loading.tsx → WhatsAppFormSkeleton
+  app/(dashboard)/[organizationSlug]/[projectSlug]/settings/meta-ads/loading.tsx → MetaAdsFormSkeleton
+  app/(dashboard)/[organizationSlug]/[projectSlug]/settings/billing/loading.tsx → BillingTableSkeleton
+  app/(dashboard)/[organizationSlug]/[projectSlug]/settings/audit-logs/loading.tsx → AuditLogsTableSkeleton
+
+Redirects (11):
+  app/(dashboard)/[organizationSlug]/[projectSlug]/equipe/loading.tsx → minimal
+  app/(dashboard)/[organizationSlug]/[projectSlug]/items/loading.tsx → minimal
+  app/(dashboard)/[organizationSlug]/[projectSlug]/item-categories/loading.tsx → minimal
+  app/(dashboard)/[organizationSlug]/[projectSlug]/settings/page.tsx → minimal
+  app/(dashboard)/[organizationSlug]/[projectSlug]/settings/integrations/loading.tsx → minimal
+  app/(dashboard)/[organizationSlug]/[projectSlug]/settings/pipeline/loading.tsx → minimal
+  app/(dashboard)/[organizationSlug]/[projectSlug]/minha-conta/loading.tsx → minimal
+  app/(dashboard)/[organizationSlug]/[projectSlug]/billing/loading.tsx → minimal
+  app/(dashboard)/[organizationSlug]/[projectSlug]/account/loading.tsx → minimal
+  app/(dashboard)/[organizationSlug]/[projectSlug]/whatsapp/loading.tsx → minimal
+  app/(dashboard)/[organizationSlug]/[projectSlug]/meta-ads/campaigns/loading.tsx → minimal
+
+Auth (2):
+  app/(auth)/reset-password/loading.tsx → minimal
+  app/(auth)/forgot-password/loading.tsx → minimal
 ```
 
 ---

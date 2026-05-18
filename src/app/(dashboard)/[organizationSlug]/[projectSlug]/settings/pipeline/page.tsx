@@ -1,9 +1,9 @@
 import { Kanban } from 'lucide-react'
+import { notFound, redirect } from 'next/navigation'
 import { PageContent, PageHeader, PageShell } from '@/features/dashboard/components/layout'
 import { PipelineStagesManager } from '@/features/dashboard/components/pipeline/pipeline-stages-manager'
-import { getOrganizationBySlug } from '@/features/organizations/services/organization.service'
-import { getProjectBySlug } from '@/features/projects/services/project.service'
 import { getServerSession } from '@/server/auth/server-session'
+import { resolveProjectContext } from '@/server/project/resolve-project-context'
 
 export const metadata = { title: 'Funil de Negociações — Configurações' }
 
@@ -15,10 +15,19 @@ export default async function PipelinePage({ params }: PipelinePageProps) {
   const { organizationSlug, projectSlug } = await params
   const session = await getServerSession()
   
-  if (!session) return null
+  if (!session?.user) {
+    redirect('/sign-in')
+  }
 
-  const organization = await getOrganizationBySlug(organizationSlug)
-  const project = await getProjectBySlug(organization.id, projectSlug)
+  const context = await resolveProjectContext({
+    organizationSlug,
+    projectSlug,
+    userId: session.user.id,
+  })
+
+  if (!context) {
+    return notFound()
+  }
 
   return (
     <PageShell maxWidth='3xl'>
@@ -30,7 +39,7 @@ export default async function PipelinePage({ params }: PipelinePageProps) {
 
       <PageContent>
         <div className='mx-auto max-w-xl'>
-          <PipelineStagesManager organizationId={organization.id} projectId={project.id} />
+          <PipelineStagesManager organizationId={context.organizationId} projectId={context.projectId} />
         </div>
       </PageContent>
     </PageShell>

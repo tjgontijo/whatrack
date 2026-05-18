@@ -1,4 +1,4 @@
-import { FormSkeleton } from '@/features/dashboard/components/states/form-skeleton'
+import { FormSkeleton } from '@/components/skeletons'
 
 export default function Loading() {
   return (

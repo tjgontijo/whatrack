@@ -1,4 +1,4 @@
-import { MetricsSkeleton } from '@/features/dashboard/components/states/metrics-skeleton'
+import { MetricsSkeleton } from '@/components/skeletons'
 
 export default function Loading() {
   return (
