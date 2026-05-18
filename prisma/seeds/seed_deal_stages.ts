@@ -5,6 +5,7 @@ export async function seedDealStages(prisma: PrismaClient) {
   console.log('Seeding deal stages...')
 
   const organizations = await prisma.organization.findMany({
+    include: { projects: { where: { isArchived: false } } },
     orderBy: { createdAt: 'asc' },
   })
 
@@ -14,6 +15,7 @@ export async function seedDealStages(prisma: PrismaClient) {
   }
 
   for (const organization of organizations) {
+    // 1. Garantir fases na Organização (projectId: null)
     for (const stage of DEFAULT_DEAL_STAGES) {
       const existing = await prisma.dealStage.findFirst({
         where: {
@@ -43,7 +45,40 @@ export async function seedDealStages(prisma: PrismaClient) {
         })
       }
     }
+    console.log(`Deal stages ensured for organization defaults: ${organization.name}`)
 
-    console.log(`Deal stages ensured for organization: ${organization.name}`)
+    // 2. Garantir fases em cada Projeto da Organização
+    for (const project of organization.projects) {
+      for (const stage of DEFAULT_DEAL_STAGES) {
+        const existing = await prisma.dealStage.findFirst({
+          where: {
+            organizationId: organization.id,
+            projectId: project.id,
+            name: stage.name,
+          },
+        })
+
+        if (existing) {
+          await prisma.dealStage.update({
+            where: { id: existing.id },
+            data: {
+              color: stage.color,
+              order: stage.order,
+              isDefault: stage.isDefault,
+              isClosed: stage.isClosed,
+            },
+          })
+        } else {
+          await prisma.dealStage.create({
+            data: {
+              organizationId: organization.id,
+              projectId: project.id,
+              ...stage,
+            },
+          })
+        }
+      }
+      console.log(`Deal stages ensured for project: ${organization.slug}/${project.slug}`)
+    }
   }
 }

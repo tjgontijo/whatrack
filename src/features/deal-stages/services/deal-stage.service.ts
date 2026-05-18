@@ -26,7 +26,8 @@ export async function listDealStages(
   organizationId: string,
   projectId?: string
 ): Promise<{ items: DealStageListItem[] }> {
-  const stages = await prisma.dealStage.findMany({
+  // 1. Tentar buscar fases específicas do projeto
+  let stages = await prisma.dealStage.findMany({
     where: { organizationId, projectId: projectId ?? null },
     orderBy: { order: 'asc' },
     select: {
@@ -47,6 +48,31 @@ export async function listDealStages(
       },
     },
   })
+
+  // 2. Fallback: Se o projeto foi solicitado mas não tem fases, busca as fases padrão da organização (projectId: null)
+  if (stages.length === 0 && projectId) {
+    stages = await prisma.dealStage.findMany({
+      where: { organizationId, projectId: null },
+      orderBy: { order: 'asc' },
+      select: {
+        id: true,
+        name: true,
+        color: true,
+        order: true,
+        isDefault: true,
+        isClosed: true,
+        _count: { select: { deals: true } },
+        metaRules: {
+          select: {
+            id: true,
+            pixelId: true,
+            eventName: true,
+            fireOnce: true,
+          },
+        },
+      },
+    })
+  }
 
   return {
     items: stages.map((stage) => ({
