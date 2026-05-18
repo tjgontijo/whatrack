@@ -5,7 +5,7 @@ import { prisma } from '@/lib/db/prisma'
 import { getServerSession } from '@/server/auth/server-session'
 
 export async function updateDealStageAction(params: {
-  ticketId: string
+  dealId: string
   stageId: string
   organizationId: string
 }) {
@@ -28,7 +28,7 @@ export async function updateDealStageAction(params: {
   }
 
   await prisma.deal.update({
-    where: { id: params.ticketId },
+    where: { id: params.dealId },
     data: { stageId: params.stageId },
   })
 

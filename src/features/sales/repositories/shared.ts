@@ -26,7 +26,7 @@ export const saleWithItemsSelect = {
   createdBy: true,
   updatedBy: true,
   statusChangedAt: true,
-  ticketId: true,
+  dealId: true,
   createdAt: true,
   updatedAt: true,
   items: { select: saleItemSelect },

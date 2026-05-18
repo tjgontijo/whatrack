@@ -20,7 +20,7 @@ export async function queryLeadsByFilters(organizationId: string, filters: Audie
     ...(filters.stageId ||
     filters.stageTimeMinDays !== undefined ||
     filters.stageTimeMaxDays !== undefined ||
-    filters.hasActiveTicket ||
+    filters.hasActiveDeal ||
     filters.sourceType
       ? {
           conversations: {

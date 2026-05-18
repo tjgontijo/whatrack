@@ -22,7 +22,7 @@ interface StatusData {
 interface DashboardCards {
   totalLeads: number
   activeConversations: number
-  openTickets: number
+  openDeals: number
   conversionRate: number
   messagesReceived: number
   messagesSent: number
@@ -45,9 +45,9 @@ interface AgentMetrics {
   name: string
   email: string
   image: string | null
-  ticketsAssigned: number
-  ticketsClosed: number
-  ticketsWon: number
+  dealsAssigned: number
+  dealsClosed: number
+  dealsWon: number
   salesCount: number
   messagesSent: number
   avgResponseTimeMs: number | null

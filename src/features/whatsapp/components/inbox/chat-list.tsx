@@ -75,7 +75,7 @@ export function ChatList({
                 closed_lost: { bg: 'bg-red-500/10', text: 'text-red-700', label: 'Perdido' },
               }
 
-              const _statusBadge = chat.currentTicket && statusBadgeMap[chat.currentTicket.status]
+              const _statusBadge = chat.currentDeal && statusBadgeMap[chat.currentDeal.status]
 
               return (
                 <button
@@ -113,16 +113,16 @@ export function ChatList({
                       </span>
                     </div>
                     <div className='mb-1 flex h-4 flex-wrap items-center gap-1.5 overflow-hidden'>
-                      {chat.currentTicket?.stage && (
+                      {chat.currentDeal?.stage && (
                         <div
                           className='rounded px-1.5 py-0.5 font-medium/90 text-[9px] text-white tracking-wide'
-                          style={{ backgroundColor: chat.currentTicket.stage.color }}
+                          style={{ backgroundColor: chat.currentDeal.stage.color }}
                         >
-                          {chat.currentTicket.stage.name}
+                          {chat.currentDeal.stage.name}
                         </div>
                       )}
-                      {chat.currentTicket?.tracking &&
-                        chat.currentTicket.tracking.sourceType === 'paid' && (
+                      {chat.currentDeal?.tracking &&
+                        chat.currentDeal.tracking.sourceType === 'paid' && (
                           <Badge
                             variant='outline'
                             className='flex items-center gap-1 border-0 bg-[#c13584]/10 px-1.5 py-0 font-medium text-[#c13584] text-[9px] tracking-wide'

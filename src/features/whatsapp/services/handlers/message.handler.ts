@@ -114,7 +114,7 @@ export async function messageHandler(
         select: {
           profile: {
             select: {
-              ticketExpirationDays: true,
+              dealExpirationDays: true,
             },
           },
         },
@@ -132,7 +132,7 @@ export async function messageHandler(
 
   const defaultStage = await getDefaultDealStage(prisma, config.organizationId)
   const expirationDays =
-    config.organization.profile?.ticketExpirationDays || DEFAULT_EXPIRATION_DAYS
+    config.organization.profile?.dealExpirationDays || DEFAULT_EXPIRATION_DAYS
 
   // Collect events
   const eventsToPublish: any[] = []
@@ -273,7 +273,7 @@ export async function messageHandler(
           }
         }
 
-        const _isNewTicket = !deal
+        const _isNewDeal = !deal
         const windowExpiresAt = wasHistoryLead
           ? null
           : new Date(messageTimestamp.getTime() + WINDOW_MS)
@@ -347,7 +347,7 @@ export async function messageHandler(
             leadId: lead.id,
             instanceId: config.id,
             appConversationId: conversation.id,
-            ticketId: deal.id,
+            dealId: deal.id,
             directionId,
             type: messageType,
             body: messageBody || null,
@@ -389,7 +389,7 @@ export async function messageHandler(
           }
         } else {
           // Outbound Message (Clinic -> Client)
-          const ticketUpdateData: any = {
+          const dealUpdateData: any = {
             messagesCount: { increment: 1 },
             outboundMessagesCount: { increment: 1 },
             lastOutboundAt: messageTimestamp,
@@ -399,12 +399,12 @@ export async function messageHandler(
             const responseTime = Math.floor(
               (messageTimestamp.getTime() - deal.createdAt.getTime()) / 1000
             )
-            ticketUpdateData.firstResponseTimeSec = responseTime
+            dealUpdateData.firstResponseTimeSec = responseTime
           }
 
           await tx.deal.update({
             where: { id: deal.id },
-            data: ticketUpdateData,
+            data: dealUpdateData,
           })
 
           const convUpdateData: any = {
@@ -445,15 +445,15 @@ export async function messageHandler(
         if (!isEcho) {
           const trackingData = extractTrackingFromMessage(message) as any
           if (trackingData) {
-            const existingTracking = await tx.ticketTracking.findUnique({
+            const existingTracking = await tx.dealTracking.findUnique({
               where: { dealId: deal.id },
             })
 
             if (!existingTracking) {
               // New Tracking
-              await tx.ticketTracking.create({
+              await tx.dealTracking.create({
                 data: {
-                  ticketId: deal.id,
+                  dealId: deal.id,
                   ...trackingData,
                   // Initialize Enrichment Status if ad is present
                   metaEnrichmentStatus: trackingData.metaAdId ? 'PENDING' : 'PENDING',
@@ -480,7 +480,7 @@ export async function messageHandler(
                 // Log History
                 await tx.metaAttributionHistory.create({
                   data: {
-                    ticketId: deal.id,
+                    dealId: deal.id,
                     oldAdId: existingTracking.metaAdId,
                     newAdId: trackingData.metaAdId,
                   },
@@ -488,7 +488,7 @@ export async function messageHandler(
               }
 
               // Update fields
-              await tx.ticketTracking.update({
+              await tx.dealTracking.update({
                 where: { dealId: deal.id },
                 data: {
                   ...trackingData,

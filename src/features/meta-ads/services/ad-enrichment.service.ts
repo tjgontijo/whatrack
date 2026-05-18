@@ -96,13 +96,13 @@ export class MetaAdEnrichmentService {
         },
       })
 
-      logger.info(`[Enrichment] Successfully enriched deal ${ticketId} with Ad "${adData.name}"`)
+      logger.info(`[Enrichment] Successfully enriched deal ${dealId} with Ad "${adData.name}"`)
     } catch (error: unknown) {
       const message = resolveEnrichmentErrorMessage(error)
 
       logger.error(
         { err: error, context: error instanceof MetaApiError ? error.data : message },
-        `[Enrichment] Error enriching deal ${ticketId}`
+        `[Enrichment] Error enriching deal ${dealId}`
       )
 
       await prisma.dealTracking.update({
@@ -129,7 +129,7 @@ export class MetaAdEnrichmentService {
     })
 
     for (const p of pendings) {
-      await this.enrichTicket(p.ticketId)
+      await this.enrichDeal(p.dealId)
     }
   }
 }

@@ -72,7 +72,7 @@ export function useRealtime(organizationId: string | undefined) {
         })
       })
 
-      const ticketsSub = subscribeTo(centrifuge, `org:${organizationId}:deals`, (data) => {
+      const dealsSub = subscribeTo(centrifuge, `org:${organizationId}:deals`, (data) => {
         if (data.conversationId) {
           queryClient.invalidateQueries({
             queryKey: ['conversation-deal', data.conversationId, organizationId],
@@ -85,7 +85,7 @@ export function useRealtime(organizationId: string | undefined) {
 
       return () => {
         messagesSub.unsubscribe()
-        ticketsSub.unsubscribe()
+        dealsSub.unsubscribe()
         centrifuge.disconnect()
         setClient(null)
         setConnected(false)

@@ -37,7 +37,7 @@ export const audienceSegmentFiltersSchema = z.object({
   stageTimeMinDays: z.number().int().min(0).optional(),
   stageTimeMaxDays: z.number().int().min(0).optional(),
   sourceType: z.string().optional(),
-  hasActiveTicket: z.boolean().optional(),
+  hasActiveDeal: z.boolean().optional(),
   createdAtGte: z.string().datetime().optional().nullable(),
   createdAtLte: z.string().datetime().optional().nullable(),
   lastMessageGte: z.string().datetime().optional().nullable(),

@@ -47,7 +47,7 @@ export const projectAssociationCountsSchema = z.object({
   metaConnectionCount: z.number().int().min(0),
   metaPixelCount: z.number().int().min(0),
   leadCount: z.number().int().min(0),
-  ticketCount: z.number().int().min(0),
+  dealCount: z.number().int().min(0),
   saleCount: z.number().int().min(0),
   itemCount: z.number().int().min(0),
   itemCategoryCount: z.number().int().min(0),

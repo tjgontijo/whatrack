@@ -39,7 +39,7 @@ export default function ConversionFunnel({
 
   const funnelData = data.stageOverview.map((stage: any) => ({
     id: stage.stage_name,
-    value: stage.ticket_count,
+    value: stage.deal_count,
     label: stage.stage_name,
   }))
 

@@ -26,7 +26,7 @@ const LEADS_PER_DAY_MAP: Record<string, number> = {
   '100+': 150,
 }
 
-const AVG_TICKET_MAP: Record<string, number> = {
+const AVG_DEAL_MAP: Record<string, number> = {
   ate_500: 250,
   '500_1500': 1000,
   '1500_5000': 3250,
@@ -62,7 +62,7 @@ const AD_SPEND_MAP: Record<string, number> = {
 
 export function calculateMetrics(inputs: BusinessInputs): CalculatedMetrics {
   const leadsPerDay = LEADS_PER_DAY_MAP[inputs.leadsPerDay] || 0
-  const avgDeal = AVG_TICKET_MAP[inputs.avgDeal] || 0
+  const avgDeal = AVG_DEAL_MAP[inputs.avgDeal] || 0
   const monthlyRevenue = MONTHLY_REVENUE_MAP[inputs.monthlyRevenue] || 0
   const attendants = ATTENDANTS_MAP[inputs.attendantsCount] || 1
   const adSpend = inputs.monthlyAdSpend ? AD_SPEND_MAP[inputs.monthlyAdSpend] || 0 : 0

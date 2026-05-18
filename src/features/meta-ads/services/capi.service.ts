@@ -15,12 +15,12 @@ export class MetaCapiService {
    * Send Conversion Event to Meta CAPI
    */
   async sendEvent(
-    ticketId: string,
+    dealId: string,
     eventName: 'LeadSubmitted' | 'Purchase',
     options: CapiEventOptions
   ) {
     const deal = await prisma.deal.findUnique({
-      where: { id: ticketId },
+      where: { id: dealId },
       select: {
         id: true,
         organizationId: true,
@@ -52,7 +52,7 @@ export class MetaCapiService {
     })
 
     if (!deal?.tracking?.ctwaclid) {
-      logger.info(`[CAPI] Skipping deal ${ticketId}: No CTWA CLID found.`)
+      logger.info(`[CAPI] Skipping deal ${dealId}: No CTWA CLID found.`)
       return
     }
 
@@ -61,7 +61,7 @@ export class MetaCapiService {
       !deal.project ||
       deal.project.organizationId !== deal.organizationId
     ) {
-      logger.warn(`[CAPI] Deal ${ticketId} has invalid or missing project reference.`)
+      logger.warn(`[CAPI] Deal ${dealId} has invalid or missing project reference.`)
       return
     }
 
@@ -138,7 +138,7 @@ export class MetaCapiService {
           },
           create: {
             organizationId: deal.organizationId,
-            ticketId,
+            dealId,
             eventName,
             status: 'SENT',
             success: true,
@@ -176,7 +176,7 @@ export class MetaCapiService {
           },
           create: {
             organizationId: deal.organizationId,
-            ticketId,
+            dealId,
             eventName,
             status: 'FAILED',
             success: false,

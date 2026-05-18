@@ -20,7 +20,7 @@ export const CACHE_KEYS = {
   ai: {
     // Key per deal — presence means "scheduled for analysis, expires at trigger time"
     // SETEX resets the timer on every new message (debounce effect)
-    classifierPending: (ticketId: string) => `ai:classifier:pending:${ticketId}`,
+    classifierPending: (dealId: string) => `ai:classifier:pending:${dealId}`,
   },
 }
 

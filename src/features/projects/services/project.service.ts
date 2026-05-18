@@ -71,7 +71,7 @@ function mapProjectCounts(input: ProjectSummaryRow['_count']): ProjectAssociatio
     metaConnectionCount: input.metaConnections,
     metaPixelCount: input.metaPixels,
     leadCount: input.leads,
-    ticketCount: input.deals,
+    dealCount: input.deals,
     saleCount: input.sales,
     itemCount: input.items,
     itemCategoryCount: input.itemCategories,
@@ -281,7 +281,7 @@ export async function getProjectById(input: {
     return null
   }
 
-  const projectTickets = await prisma.deal.findMany({
+  const projectDeals = await prisma.deal.findMany({
     where: {
       organizationId: input.organizationId,
       projectId: input.projectId,
@@ -291,13 +291,13 @@ export async function getProjectById(input: {
     },
   })
 
-  const conversionCount = projectTickets.length
+  const conversionCount = projectDeals.length
     ? await prisma.metaConversionEvent.count({
         where: {
           organizationId: input.organizationId,
           success: true,
-          ticketId: {
-            in: projectTickets.map((deal) => deal.id),
+          dealId: {
+            in: projectDeals.map((deal) => deal.id),
           },
         },
       })

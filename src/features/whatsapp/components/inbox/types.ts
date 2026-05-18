@@ -39,7 +39,7 @@ export interface ChatItem {
   lastMessageAt: string | Date
   lastMessage: Message | null
   unreadCount?: number
-  currentTicket?: DealInfo
+  currentDeal?: DealInfo
 }
 
 export interface ChatListResponse {

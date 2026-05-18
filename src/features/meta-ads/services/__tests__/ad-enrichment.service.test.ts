@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const prismaMock = vi.hoisted(() => ({
-  ticketTracking: {
+  dealTracking: {
     findUnique: vi.fn(),
     update: vi.fn(),
     findMany: vi.fn(),
@@ -43,7 +43,7 @@ describe('ad-enrichment.service', () => {
   })
 
   it('does nothing when tracking has no meta ad id', async () => {
-    prismaMock.ticketTracking.findUnique.mockResolvedValueOnce({
+    prismaMock.dealTracking.findUnique.mockResolvedValueOnce({
       metaAdId: null,
       metaEnrichmentStatus: 'PENDING',
       deal: {
@@ -54,14 +54,14 @@ describe('ad-enrichment.service', () => {
       },
     })
 
-    await metaAdEnrichmentService.enrichTicket('deal-1')
+    await metaAdEnrichmentService.enrichDeal('deal-1')
 
     expect(metaAccessTokenServiceMock.getDecryptedToken).not.toHaveBeenCalled()
-    expect(prismaMock.ticketTracking.update).not.toHaveBeenCalled()
+    expect(prismaMock.dealTracking.update).not.toHaveBeenCalled()
   })
 
   it('stores failed status with message from meta api payload', async () => {
-    prismaMock.ticketTracking.findUnique.mockResolvedValueOnce({
+    prismaMock.dealTracking.findUnique.mockResolvedValueOnce({
       metaAdId: 'ad-1',
       metaEnrichmentStatus: 'PENDING',
       deal: {
@@ -89,10 +89,10 @@ describe('ad-enrichment.service', () => {
       })),
     })
 
-    await metaAdEnrichmentService.enrichTicket('deal-1')
+    await metaAdEnrichmentService.enrichDeal('deal-1')
 
-    expect(prismaMock.ticketTracking.update).toHaveBeenCalledWith({
-      where: { ticketId: 'deal-1' },
+    expect(prismaMock.dealTracking.update).toHaveBeenCalledWith({
+      where: { dealId: 'deal-1' },
       data: {
         metaEnrichmentStatus: 'FAILED',
         metaEnrichmentError: 'Meta API failed',

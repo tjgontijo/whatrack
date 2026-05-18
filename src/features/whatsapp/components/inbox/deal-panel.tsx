@@ -78,7 +78,7 @@ interface DealResponse {
     createdAt: string
   }
   leadInsights: {
-    totalTickets: number
+    totalDeals: number
     lifetimeValue: string
     firstMessageAt: string | null
   }
@@ -149,7 +149,7 @@ export function DealPanel({ conversationId, organizationId, projectId, chat }: D
       addOptimisticDeal(newStageId)
 
       const result = await updateDealStageAction({
-        ticketId: deal.id,
+        dealId: deal.id,
         stageId: newStageId,
         organizationId,
       })
@@ -443,7 +443,7 @@ export function DealPanel({ conversationId, organizationId, projectId, chat }: D
                     </span>
                   </div>
                   <span className='font-bold text-xs'>
-                    {optimisticDeal.leadInsights.totalTickets} deals
+                    {optimisticDeal.leadInsights.totalDeals} deals
                   </span>
                 </div>
                 <div className='flex items-center justify-between rounded-lg border border-emerald-500/20 bg-gradient-to-r from-emerald-500/5 to-transparent p-3'>

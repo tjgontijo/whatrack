@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const prismaMock = vi.hoisted(() => ({
-  ticketStage: {
+  dealStage: {
     findFirst: vi.fn(),
     findMany: vi.fn(),
     count: vi.fn(),
@@ -20,9 +20,9 @@ vi.mock('@/lib/db/prisma', () => ({
 }))
 
 import {
-  deleteTicketStage,
-  reorderTicketStages,
-  updateTicketStage,
+  deleteDealStage,
+  reorderDealStages,
+  updateDealStage,
 } from '@/features/deal-stages/services/deal-stage.service'
 
 describe('deal-stage.service', () => {
@@ -31,8 +31,8 @@ describe('deal-stage.service', () => {
   })
 
   it('unsets previous default stage when setting a new default', async () => {
-    prismaMock.ticketStage.findFirst.mockResolvedValueOnce({ id: 'stage-1', name: 'Novo' })
-    prismaMock.ticketStage.update.mockResolvedValueOnce({
+    prismaMock.dealStage.findFirst.mockResolvedValueOnce({ id: 'stage-1', name: 'Novo' })
+    prismaMock.dealStage.update.mockResolvedValueOnce({
       id: 'stage-1',
       name: 'Novo',
       color: '#000000',
@@ -42,13 +42,13 @@ describe('deal-stage.service', () => {
       _count: { deals: 10 },
     })
 
-    const result = await updateTicketStage({
+    const result = await updateDealStage({
       organizationId: 'org-1',
       stageId: 'stage-1',
       isDefault: true,
     })
 
-    expect(prismaMock.ticketStage.updateMany).toHaveBeenCalledWith({
+    expect(prismaMock.dealStage.updateMany).toHaveBeenCalledWith({
       where: { organizationId: 'org-1', id: { not: 'stage-1' } },
       data: { isDefault: false },
     })
@@ -56,11 +56,11 @@ describe('deal-stage.service', () => {
   })
 
   it('reorders stages when all ids belong to organization', async () => {
-    prismaMock.ticketStage.findMany.mockResolvedValueOnce([{ id: 'a' }, { id: 'b' }])
-    prismaMock.ticketStage.update.mockResolvedValue({})
+    prismaMock.dealStage.findMany.mockResolvedValueOnce([{ id: 'a' }, { id: 'b' }])
+    prismaMock.dealStage.update.mockResolvedValue({})
     prismaMock.$transaction.mockResolvedValueOnce([])
 
-    const result = await reorderTicketStages({
+    const result = await reorderDealStages({
       organizationId: 'org-1',
       orderedIds: ['a', 'b'],
     })
@@ -70,14 +70,14 @@ describe('deal-stage.service', () => {
   })
 
   it('reassigns deals to default stage before deleting a stage', async () => {
-    prismaMock.ticketStage.findFirst
+    prismaMock.dealStage.findFirst
       .mockResolvedValueOnce({ id: 'stage-del', isDefault: false })
       .mockResolvedValueOnce({ id: 'stage-default' })
-    prismaMock.ticketStage.count.mockResolvedValueOnce(3)
+    prismaMock.dealStage.count.mockResolvedValueOnce(3)
     prismaMock.deal.updateMany.mockResolvedValueOnce({ count: 4 })
-    prismaMock.ticketStage.delete.mockResolvedValueOnce({})
+    prismaMock.dealStage.delete.mockResolvedValueOnce({})
 
-    const result = await deleteTicketStage({
+    const result = await deleteDealStage({
       organizationId: 'org-1',
       stageId: 'stage-del',
     })
@@ -86,7 +86,7 @@ describe('deal-stage.service', () => {
       where: { stageId: 'stage-del', organizationId: 'org-1' },
       data: { stageId: 'stage-default' },
     })
-    expect(prismaMock.ticketStage.delete).toHaveBeenCalledWith({ where: { id: 'stage-del' } })
+    expect(prismaMock.dealStage.delete).toHaveBeenCalledWith({ where: { id: 'stage-del' } })
     expect(result).toEqual({ success: true })
   })
 })

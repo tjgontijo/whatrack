@@ -106,7 +106,7 @@ export const leadsPerDayOptions = [
   { value: '100+', label: 'Mais de 100' },
 ] as const
 
-export const avgTicketOptions = [
+export const avgDealOptions = [
   { value: 'ate_500', label: 'Até R$ 500' },
   { value: '500_1500', label: 'R$ 500 - R$ 1.500' },
   { value: '1500_5000', label: 'R$ 1.500 - R$ 5.000' },

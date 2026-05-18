@@ -12,12 +12,12 @@ export async function getLeadActivity(organizationId: string, projectId?: string
       c.last_inbound_at,
       c.last_outbound_at,
       EXTRACT(EPOCH FROM (NOW() - c.last_inbound_at))::int as seconds_waiting,
-      t.id as ticket_id,
+      t.id as deal_id,
       ts.name as stage_name
     FROM conversations c
     JOIN leads l ON l.id = c.lead_id
-    JOIN tickets t ON t.conversation_id = c.id AND t.status = 'open'
-    JOIN ticket_stages ts ON ts.id = t.stage_id
+    JOIN deals t ON t.conversation_id = c.id AND t.status = 'open'
+    JOIN deal_stages ts ON ts.id = t.stage_id
     WHERE c.organization_id = ${organizationId}::uuid
       ${projectId ? Prisma.sql`AND c.project_id = ${projectId}::uuid` : Prisma.empty}
       AND c.last_inbound_at > COALESCE(c.last_outbound_at, '1970-01-01')
@@ -32,10 +32,10 @@ export async function getLeadActivity(organizationId: string, projectId?: string
       l.phone,
       c.last_outbound_at,
       (EXTRACT(EPOCH FROM (NOW() - c.last_outbound_at)) / 3600)::int as hours_since_outbound,
-      t.id as ticket_id
+      t.id as deal_id
     FROM conversations c
     JOIN leads l ON l.id = c.lead_id
-    JOIN tickets t ON t.conversation_id = c.id AND t.status = 'open'
+    JOIN deals t ON t.conversation_id = c.id AND t.status = 'open'
     WHERE c.organization_id = ${organizationId}::uuid
       ${projectId ? Prisma.sql`AND c.project_id = ${projectId}::uuid` : Prisma.empty}
       AND c.last_outbound_at IS NOT NULL

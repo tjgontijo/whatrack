@@ -7,7 +7,7 @@ const prismaMock = vi.hoisted(() => ({
   member: {
     findFirst: vi.fn(),
   },
-  ticketStage: {
+  dealStage: {
     findFirst: vi.fn(),
   },
   deal: {
@@ -42,7 +42,7 @@ vi.mock('@/features/meta-ads/services/capi.service', () => ({
 }))
 
 import {
-  closeTicket,
+  closeDeal,
   listDeals,
   updateDealAndTrackCapi,
 } from '@/features/deals/services/deal.service'
@@ -123,7 +123,7 @@ describe('deal.service', () => {
 
   it('triggers CAPI on stage change when stage maps to conversion event', async () => {
     prismaMock.deal.findFirst.mockResolvedValueOnce({ stageId: 'stage-old', status: 'open' })
-    prismaMock.ticketStage.findFirst.mockResolvedValueOnce({ id: 'stage-new' })
+    prismaMock.dealStage.findFirst.mockResolvedValueOnce({ id: 'stage-new' })
     prismaMock.deal.update.mockResolvedValueOnce({
       id: 'deal-1',
       status: 'open',
@@ -144,7 +144,7 @@ describe('deal.service', () => {
 
     await updateDealAndTrackCapi({
       organizationId: 'org-1',
-      ticketId: 'deal-1',
+      dealId: 'deal-1',
       stageId: 'stage-new',
     })
 
@@ -160,7 +160,7 @@ describe('deal.service', () => {
 
   it('does not trigger CAPI when stage remains unchanged', async () => {
     prismaMock.deal.findFirst.mockResolvedValueOnce({ stageId: 'stage-same', status: 'open' })
-    prismaMock.ticketStage.findFirst.mockResolvedValueOnce({ id: 'stage-same' })
+    prismaMock.dealStage.findFirst.mockResolvedValueOnce({ id: 'stage-same' })
     prismaMock.deal.update.mockResolvedValueOnce({
       id: 'deal-1',
       status: 'open',
@@ -180,7 +180,7 @@ describe('deal.service', () => {
 
     await updateDealAndTrackCapi({
       organizationId: 'org-1',
-      ticketId: 'deal-1',
+      dealId: 'deal-1',
       stageId: 'stage-same',
     })
 
@@ -217,9 +217,9 @@ describe('deal.service', () => {
     prismaMock.sale.create.mockResolvedValueOnce({ id: 'sale-1' })
     prismaMock.lead.update.mockResolvedValueOnce({})
 
-    const result = await closeTicket({
+    const result = await closeDeal({
       organizationId: 'org-1',
-      ticketId: 'deal-1',
+      dealId: 'deal-1',
       reason: 'won',
       dealValue: 300,
       closedReason: 'Fechou',
@@ -229,14 +229,14 @@ describe('deal.service', () => {
       where: { id: 'lead-1' },
       data: {
         lifetimeValue: { increment: 300 },
-        totalTickets: { increment: 1 },
+        totalDeals: { increment: 1 },
       },
     })
     expect(prismaMock.sale.create).toHaveBeenCalledWith({
       data: {
         organizationId: 'org-1',
         projectId: null,
-        ticketId: 'deal-1',
+        dealId: 'deal-1',
         totalAmount: 300,
         status: 'completed',
         statusChangedAt: expect.any(Date),
@@ -277,9 +277,9 @@ describe('deal.service', () => {
     })
     prismaMock.lead.update.mockResolvedValueOnce({})
 
-    await closeTicket({
+    await closeDeal({
       organizationId: 'org-1',
-      ticketId: 'deal-2',
+      dealId: 'deal-2',
       reason: 'won',
       dealValue: 500,
       closedReason: 'Pagamento confirmado',

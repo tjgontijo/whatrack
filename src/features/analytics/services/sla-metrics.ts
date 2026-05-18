@@ -24,7 +24,7 @@ export async function getSlaMetrics(
           WHEN first_response_time_sec <= 3600 THEN '15-60 min'
           ELSE '> 1 hora'
         END as bucket
-      FROM tickets
+      FROM deals
       WHERE organization_id = ${organizationId}::uuid
         ${projectId ? Prisma.sql`AND project_id = ${projectId}::uuid` : Prisma.empty}
         AND first_response_time_sec IS NOT NULL
@@ -36,13 +36,13 @@ export async function getSlaMetrics(
     // Get worst SLAs mapped to user
     prisma.$queryRaw`
     SELECT
-      t.id as ticket_id,
+      t.id as deal_id,
       l.name as lead_name,
       l.phone as lead_phone,
       t.first_response_time_sec,
       t.created_at,
       u.name as assignee_name
-    FROM tickets t
+    FROM deals t
     JOIN conversations c ON c.id = t.conversation_id
     JOIN leads l ON l.id = c.lead_id
     LEFT JOIN "user" u ON u.id = t.assignee_id

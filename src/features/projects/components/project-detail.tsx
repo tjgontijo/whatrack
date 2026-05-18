@@ -93,7 +93,7 @@ export function ProjectDetailView({ project }: ProjectDetailProps) {
         />
         <SummaryCard
           title='Deals'
-          value={project.counts.ticketCount}
+          value={project.counts.dealCount}
           description='Deals e conversas comerciais.'
           icon={Deal}
         />

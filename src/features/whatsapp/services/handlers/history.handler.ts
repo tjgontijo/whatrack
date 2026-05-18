@@ -200,7 +200,7 @@ export async function historyHandler(payload: any): Promise<void> {
               leadId: lead.id,
               instanceId: config.id,
               appConversationId: conversation.id,
-              ticketId: null,
+              dealId: null,
               directionId,
               type: messageType,
               body: messageBody || null,

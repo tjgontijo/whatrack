@@ -8,7 +8,7 @@ export async function getEfficiencyMetrics(
   endDate: Date,
   projectId?: string
 ) {
-  const ticketEfficiencies = await prisma.$queryRaw`
+  const dealEfficiencies = await prisma.$queryRaw`
     SELECT
       t.id,
       t.deal_value,
@@ -19,7 +19,7 @@ export async function getEfficiencyMetrics(
         ELSE NULL
       END as value_per_message,
       t.resolution_time_sec
-    FROM tickets t
+    FROM deals t
     WHERE t.organization_id = ${organizationId}::uuid
       ${projectId ? Prisma.sql`AND t.project_id = ${projectId}::uuid` : Prisma.empty}
       AND t.status = 'closed_won'
@@ -35,7 +35,7 @@ export async function getEfficiencyMetrics(
       AVG(inbound_messages_count + outbound_messages_count)::int as avg_messages,
       AVG(deal_value / NULLIF(inbound_messages_count + outbound_messages_count, 0))::int as avg_value_per_message,
       AVG(resolution_time_sec)::int as avg_resolution_sec
-    FROM tickets
+    FROM deals
     WHERE organization_id = ${organizationId}::uuid
       ${projectId ? Prisma.sql`AND project_id = ${projectId}::uuid` : Prisma.empty}
       AND status = 'closed_won'
@@ -44,7 +44,7 @@ export async function getEfficiencyMetrics(
   `
 
   return {
-    deals: ticketEfficiencies,
+    deals: dealEfficiencies,
     aggregated: aggregatedEfficiency,
   }
 }

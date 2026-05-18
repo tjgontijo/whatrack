@@ -70,7 +70,7 @@ interface Stage {
   order: number
   isDefault: boolean
   isClosed: boolean
-  ticketsCount: number
+  dealsCount: number
 }
 
 interface StageFormData {
@@ -129,7 +129,7 @@ function StageItem({
           )}
         </div>
         <p className='mt-0.5 text-[11px] text-muted-foreground'>
-          {stage.ticketsCount} deal{stage.ticketsCount !== 1 ? 's' : ''}
+          {stage.dealsCount} deal{stage.dealsCount !== 1 ? 's' : ''}
         </p>
       </div>
 
@@ -146,8 +146,8 @@ function StageItem({
         <DeleteConfirmDialog
           title='Excluir fase?'
           description={
-            stage.ticketsCount > 0
-              ? `A fase "${stage.name}" tem ${stage.ticketsCount} deal(s) que serão movidos para a fase padrão antes da exclusão.`
+            stage.dealsCount > 0
+              ? `A fase "${stage.name}" tem ${stage.dealsCount} deal(s) que serão movidos para a fase padrão antes da exclusão.`
               : `Tem certeza que deseja excluir a fase "${stage.name}"?`
           }
           trigger={
