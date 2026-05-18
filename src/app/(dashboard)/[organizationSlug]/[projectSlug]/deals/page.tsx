@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Calendar, DollarSign, MessageSquare, SlidersHorizontal } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import React, { useState } from 'react'
 import { toast } from 'sonner'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -26,7 +27,6 @@ import type {
 } from '@/features/dashboard/components/crud/types'
 import { ViewSwitcher } from '@/features/dashboard/components/crud/view-switcher'
 import { HeaderPageShell } from '@/features/dashboard/components/layout'
-import { PipelineConfigSheet } from '@/features/dashboard/components/pipeline/pipeline-config-sheet'
 import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
 import { useCrudInfiniteQuery } from '@/hooks/ui/use-crud-infinite-query'
 import { formatCurrencyBRL } from '@/lib/mask/formatters'
@@ -253,13 +253,13 @@ function DealKanbanCard({ deal }: { deal: DealItem }) {
 }
 
 export default function DealsPage() {
-  const { organizationId } = useRequiredProjectRouteContext()
+  const { organizationSlug, projectSlug } = useRequiredProjectRouteContext()
+  const router = useRouter()
   const queryClient = useQueryClient()
   const [view, setView] = useState<ViewType>('kanban')
   const [searchInput, setSearchInput] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [dateRange, setDateRange] = useState('all')
-  const [pipelineSheetOpen, setPipelineSheetOpen] = useState(false)
 
   const deferredSearch = React.useDeferredValue(searchInput)
 
@@ -374,7 +374,7 @@ export default function DealsPage() {
             variant='outline'
             size='sm'
             className='h-7 gap-1.5 text-xs'
-            onClick={() => setPipelineSheetOpen(true)}
+            onClick={() => router.push(`/${organizationSlug}/${projectSlug}/settings/pipeline`)}
           >
             <SlidersHorizontal className='h-3.5 w-3.5' />
             Configurar funil
@@ -411,12 +411,6 @@ export default function DealsPage() {
           }
         />
       </HeaderPageShell>
-
-      <PipelineConfigSheet
-        open={pipelineSheetOpen}
-        onOpenChange={setPipelineSheetOpen}
-        organizationId={organizationId}
-      />
     </>
   )
 }

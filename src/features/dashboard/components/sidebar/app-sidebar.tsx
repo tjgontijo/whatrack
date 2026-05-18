@@ -188,6 +188,12 @@ export function AppSidebar({
           icon: 'Users',
           permission: 'manage:members',
         },
+        {
+          title: 'Funil de Negociações',
+          href: `${basePath}/settings/pipeline`,
+          icon: 'Kanban',
+          permission: 'manage:deals',
+        },
       ],
     },
     {
