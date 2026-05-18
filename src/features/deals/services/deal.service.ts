@@ -6,6 +6,7 @@ import { lookupCache } from '@/lib/db/lookup-cache'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/utils/logger'
 import { ensureProjectBelongsToOrganization } from '@/server/project/project-scope'
+import { enqueueMetaCapiEvent } from '@/server/queues/meta-capi.queue'
 import { getDefaultDealStage } from './ensure-deal-stages'
 
 export interface DealListParams {
@@ -71,7 +72,20 @@ const dealListSelect = Prisma.validator<Prisma.DealSelect>()({
       },
     },
   },
-  stage: { select: { id: true, name: true, color: true } },
+  stage: {
+    select: {
+      id: true,
+      name: true,
+      color: true,
+      metaRules: {
+        select: {
+          pixelId: true,
+          eventName: true,
+          fireOnce: true,
+        },
+      },
+    },
+  },
   assignee: { select: { id: true, name: true } },
   tracking: { select: { utmSource: true, sourceType: true, ctwaclid: true } },
   project: { select: { id: true, name: true } },
@@ -102,7 +116,20 @@ const dealSummarySelect = Prisma.validator<Prisma.DealSelect>()({
       },
     },
   },
-  stage: { select: { id: true, name: true, color: true } },
+  stage: {
+    select: {
+      id: true,
+      name: true,
+      color: true,
+      metaRules: {
+        select: {
+          pixelId: true,
+          eventName: true,
+          fireOnce: true,
+        },
+      },
+    },
+  },
   assignee: { select: { id: true, name: true } },
   tracking: { select: { utmSource: true, sourceType: true, ctwaclid: true } },
   project: { select: { id: true, name: true } },
@@ -311,44 +338,35 @@ function mapClosedDeal(deal: DealCloseRecord) {
   }
 }
 
-function getCapiEventForStage(stageName: string): 'LeadSubmitted' | 'Purchase' | null {
-  const name = stageName.toLowerCase()
-  if (name.includes('qualificado') || name.includes('qualified')) return 'LeadSubmitted'
-  if (
-    name.includes('venda') ||
-    name.includes('pago') ||
-    name.includes('ganho') ||
-    name.includes('won')
-  ) {
-    return 'Purchase'
-  }
-  return null
-}
-
-function triggerStageCapiEvent(input: {
+async function triggerStageCapiEvents(input: {
   dealId: string
   stageId?: string
   previousStageId: string
-  stageName: string
   dealValue: number | null
+  metaRules: Array<{ pixelId: string; eventName: string; fireOnce: boolean }>
 }) {
   if (!input.stageId || input.stageId === input.previousStageId) {
     return
   }
 
-  const eventName = getCapiEventForStage(input.stageName)
-  if (!eventName) {
+  if (!input.metaRules.length) {
     return
   }
 
-  metaCapiService
-    .sendEvent(input.dealId, eventName, {
-      eventId: `${eventName.toLowerCase()}-${input.dealId}`,
-      value: input.dealValue ?? undefined,
-    })
-    .catch((error) =>
-      logger.error({ err: error }, `[CAPI] Fire-and-forget failed for deal ${input.dealId}`)
+  for (const rule of input.metaRules) {
+    await enqueueMetaCapiEvent({
+      dealId: input.dealId,
+      pixelId: rule.pixelId,
+      eventName: rule.eventName,
+      fireOnce: rule.fireOnce,
+      dealValue: input.dealValue ?? undefined,
+    }).catch((error) =>
+      logger.error(
+        { err: error, dealId: input.dealId, pixelId: rule.pixelId },
+        `[CAPI] Failed to enqueue event ${rule.eventName}`
+      )
     )
+  }
 }
 
 export async function listDeals(params: DealListParams) {
@@ -595,12 +613,12 @@ export async function updateDealAndTrackCapi(params: UpdateDealParams) {
     return result
   }
 
-  triggerStageCapiEvent({
+  triggerStageCapiEvents({
     dealId: params.dealId,
     stageId: params.stageId,
     previousStageId: result.previousStageId,
-    stageName: result.data.stage.name,
     dealValue: result.data.dealValue,
+    metaRules: result.data.stage.metaRules,
   })
 
   return result
