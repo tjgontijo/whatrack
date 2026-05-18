@@ -1,13 +1,13 @@
 ---
 name: next-feature-architecture
-description: Use esta skill ao criar, alterar ou revisar código em projetos Next.js 15+ com App Router, arquitetura por features, separação forte de responsabilidades, arquivos pequenos, services, repositories, schemas, hooks, mutations, API routes e acesso organizado ao banco de dados.
+description: Use esta skill ao criar, alterar ou revisar código em projetos Next.js 16+ com App Router, arquitetura por features, separação forte de responsabilidades, arquivos pequenos, services, repositories, schemas, hooks, mutations, API routes e acesso organizado ao banco de dados.
 ---
 
 # Skill: Next.js Feature Architecture
 
 ## Objetivo
 
-Guiar o desenvolvimento em projetos Next.js 15+ (App Router) usando arquitetura modular por domínio, com responsabilidades bem separadas, arquivos pequenos e baixo acoplamento entre features.
+Guiar o desenvolvimento em projetos Next.js 16+ (App Router) usando arquitetura modular por domínio, com responsabilidades bem separadas, arquivos pequenos e baixo acoplamento entre features.
 
 Prioridade: código previsível, fácil de navegar, fácil de testar, seguro para server/client boundaries e performático.
 
@@ -29,6 +29,7 @@ Prioridade: código previsível, fácil de navegar, fácil de testar, seguro par
 14. **Env vars**: Nunca usar `process.env.FOO` direto. Validar todas via `src/lib/env.ts` no boot.
 15. **select/columns obrigatório**: Todo acesso ao banco deve especificar campos explicitamente. Nunca depender de `select *` implícito.
 16. **Queries paralelas**: Usar `Promise.all` para queries independentes no mesmo repository ou service.
+17. **Funções dinâmicas sempre com await**: `cookies()`, `headers()`, `params`, `searchParams` são todas async no Next.js 16 — sempre `await`.
 
 ## Estrutura padrão do projeto
 
@@ -70,6 +71,7 @@ src/
     env.ts
     utils/
 
+  proxy.ts            ← interceptação de requests (ex-middleware.ts)
   config/
   constants/
   types/
@@ -109,6 +111,25 @@ import { drizzle } from "drizzle-orm/node-postgres"
 import { Pool } from "pg"
 import { env } from "@/lib/env"
 export const db = drizzle(new Pool({ connectionString: env.DATABASE_URL }))
+```
+
+### `src/proxy.ts`
+
+Interceptação de requests no Next.js 16 (substituto do `middleware.ts`). Roda no runtime Node.js completo (não Edge). Use para autenticação, redirects e rewrite de headers.
+
+```ts
+// src/proxy.ts
+import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
+
+export function proxy(request: NextRequest) {
+  // lógica de interceptação
+  return NextResponse.next()
+}
+
+export const config = {
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+}
 ```
 
 ## Regra de camadas (Fluxo de Dados)
@@ -190,7 +211,7 @@ if (!userId) return apiError("Unauthorized", 401)
 
 ## Server Actions
 
-Camada fina entre client e services.
+Camada fina entre client e services. Suportam `updateTag()` e `refresh()` no Next.js 16.
 
 ```ts
 // features/cases/actions/create-case.action.ts
@@ -203,6 +224,24 @@ export async function createCaseAction(input: unknown) {
   const userId = await getCurrentUserId()
   if (!userId) throw new Error("Não autorizado")
   return createCaseService(userId, input)
+}
+```
+
+Para invalidação imediata após mutation (read-your-writes):
+
+```ts
+"use server"
+import { updateTag } from "next/cache"
+
+export async function updateCaseAction(input: unknown) {
+  const userId = await getCurrentUserId()
+  if (!userId) throw new Error("Não autorizado")
+
+  const result = await updateCaseService(userId, input)
+
+  // updateTag: invalida imediatamente na mesma request (diferente de revalidateTag que agenda)
+  if ("data" in result) updateTag(`case:${result.data.id}`)
+  return result
 }
 ```
 
@@ -367,14 +406,17 @@ import { createCaseSchema } from "../schemas/create-case.schema"
 const parsed = createCaseSchema.safeParse(input)
 ```
 
-## Cache
+## Cache (Next.js 16 — estável)
 
-### `use cache` (Next.js 15+ canary / 16+)
+No Next.js 16, o modelo é **dinâmico por padrão**. Cache é opt-in explícito via `"use cache"`.
 
-Para Server Components e funções server com dados cacheáveis:
+### `"use cache"` — diretiva estável
+
+Colocar no topo de um arquivo (cacheia todas as funções exportadas) ou dentro de uma função específica:
 
 ```ts
-import { unstable_cacheLife as cacheLife, unstable_cacheTag as cacheTag } from "next/cache"
+// Cacheia toda a função
+import { cacheLife, cacheTag } from "next/cache"
 
 async function getCasesForOrg(organizationId: string) {
   "use cache"
@@ -383,19 +425,52 @@ async function getCasesForOrg(organizationId: string) {
 
   return findCasesByOrgRepository(organizationId)
 }
-```
 
-Invalidar após mutation:
+// Cacheia todo o arquivo
+"use cache"
+import { cacheLife } from "next/cache"
 
-```ts
-import { revalidateTag } from "next/cache"
-
-export async function createCaseService(userId: string, input: unknown) {
-  // ... criar case
-  revalidateTag(`org-cases:${organizationId}`)
-  return { data: newCase }
+export async function getPublicConfig() {
+  cacheLife("max")
+  return { version: "1.0", features: [...] }
 }
 ```
+
+### `cacheLife` — perfis de cache
+
+```ts
+cacheLife("seconds")   // stale: 0s,  revalidate: 1s,   expire: 1min
+cacheLife("minutes")   // stale: 0s,  revalidate: 1min, expire: 1h
+cacheLife("hours")     // stale: 30s, revalidate: 1h,   expire: 1d
+cacheLife("days")      // stale: 1h,  revalidate: 1d,   expire: 1wk
+cacheLife("weeks")     // stale: 1d,  revalidate: 1wk,  expire: 1mo
+cacheLife("max")       // stale: 1wk, revalidate: 1mo,  expire: 1yr (estático puro)
+```
+
+### Invalidação de cache
+
+`revalidateTag` — agenda revalidação (assíncrono, fundo):
+```ts
+import { revalidateTag } from "next/cache"
+revalidateTag(`org-cases:${organizationId}`)
+```
+
+`updateTag` — invalida imediatamente na mesma request (Server Actions only, read-your-writes):
+```ts
+import { updateTag } from "next/cache"
+updateTag(`case:${caseId}`)  // apenas em "use server"
+```
+
+### Ativar Partial Prerendering (PPR)
+
+```ts
+// next.config.ts
+export default {
+  cacheComponents: true,  // habilita PPR + Cache Components
+}
+```
+
+Com PPR ativo, partes estáticas (cacheadas) e dinâmicas coexistem na mesma página sem `dynamic = "force-dynamic"`.
 
 ### React `cache()` para deduplicação no request
 
@@ -405,6 +480,52 @@ import { findCaseById } from "../repositories/find-case-by-id.repository"
 
 export const getCaseById = cache(findCaseById)
 // Múltiplos Server Components chamando getCaseById com mesmo ID = 1 query
+```
+
+## Rendering no Next.js 16
+
+**Regra fundamental**: Next.js 16 é **dinâmico por padrão**. Para cache, use `"use cache"` explicitamente.
+
+```ts
+// DINÂMICO por padrão — sem necessidade de force-dynamic
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params  // params é Promise no Next.js 16 — sempre await
+  const data = await fetchData(id)  // executa a cada request
+  return <div>{data.title}</div>
+}
+
+// CACHEADO — opt-in explícito
+async function fetchData(id: string) {
+  "use cache"
+  cacheLife("hours")
+  cacheTag(`item:${id}`)
+  return findItemById(id)
+}
+```
+
+Funções dinâmicas obrigatoriamente com `await` no Next.js 16:
+
+```ts
+// CORRETO
+const cookieStore = await cookies()
+const headerList = await headers()
+const { id } = await params
+const { q } = await searchParams
+
+// ERRADO — síncrono não é mais suportado
+const cookieStore = cookies()  // TS error
+```
+
+`connection()` para opt-in dinâmico explícito quando não há `cookies()`/`headers()` direto:
+
+```ts
+import { connection } from "next/server"
+
+export default async function Page() {
+  await connection()  // garante renderização dinâmica
+  const data = await fetchSensitiveData()
+  return <div>{data}</div>
+}
 ```
 
 ## Streaming com Suspense
@@ -446,21 +567,6 @@ Cada `(grupo)/` ou rota com dados deve ter:
 - `loading.tsx` — skeleton exibido automaticamente pelo Suspense do layout
 - `error.tsx` — captura erros inesperados (`"use client"` obrigatório)
 - `not-found.tsx` — para `notFound()` explícito
-
-## Rendering: Static vs Dynamic
-
-Next.js 15 é estático por padrão. Para opt-in em rendering dinâmico:
-
-```ts
-// Explícito — preferido sobre depender de cookies()/headers() como side effect
-import { connection } from "next/server"
-await connection()
-
-// Ou via export no topo do arquivo
-export const dynamic = "force-dynamic"
-```
-
-Regra: use `dynamic = "force-dynamic"` apenas em rotas que genuinamente precisam de dados por request. Deixar estático tudo que puder.
 
 ## Exports Públicos da Feature
 
@@ -517,4 +623,6 @@ Uma tarefa só está pronta se:
 5. Todo acesso ao banco tem `select`/colunas explícitos.
 6. Queries independentes usam `Promise.all`.
 7. Env vars acessadas via `env.ts`, nunca `process.env` direto.
-8. Build e type-check sem erros.
+8. `cookies()`, `headers()`, `params`, `searchParams` usados com `await`.
+9. Cache via `"use cache"` + `cacheLife` + `cacheTag` onde aplicável.
+10. Build e type-check sem erros.
