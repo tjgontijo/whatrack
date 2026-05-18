@@ -1,4 +1,7 @@
-import { prisma } from '@/lib/db/prisma'
+import {
+  findCampaignStatus,
+  groupCampaignRecipientsByStatus,
+} from '@/features/whatsapp/repositories/find-campaign-recipient-stats.repository'
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
@@ -15,20 +18,12 @@ export async function GET(
 
   const { campaignId } = await params
 
-  const campaign = await prisma.whatsAppCampaign.findFirst({
-    where: { id: campaignId, organizationId: access.organizationId },
-    select: { status: true },
-  })
+  const [campaign, statusCounts] = await Promise.all([
+    findCampaignStatus(campaignId, access.organizationId),
+    groupCampaignRecipientsByStatus(campaignId),
+  ])
 
-  if (!campaign) {
-    return apiError('Campanha não encontrada', 404)
-  }
-
-  const statusCounts = await prisma.whatsAppCampaignRecipient.groupBy({
-    by: ['status'],
-    where: { campaignId },
-    _count: { _all: true },
-  })
+  if (!campaign) return apiError('Campanha não encontrada', 404)
 
   const counts = Object.fromEntries(
     statusCounts.map((row) => [row.status, row._count._all])
@@ -53,6 +48,6 @@ export async function GET(
     responded,
     failed,
     pending,
-    success: sent, // backward compat alias
+    success: sent,
   })
 }

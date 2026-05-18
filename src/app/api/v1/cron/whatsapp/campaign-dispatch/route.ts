@@ -1,6 +1,6 @@
 import type { NextRequest } from 'next/server'
 import { cronTriggerBodySchema } from '@/features/cron/schemas/cron.schemas'
-import { prisma } from '@/lib/db/prisma'
+import { findScheduledCampaignsDue } from '@/features/cron/repositories/find-scheduled-campaigns.repository'
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
 import { authorizeCronRequest } from '@/server/cron/cron-auth'
@@ -17,11 +17,7 @@ export async function POST(request: NextRequest) {
     return apiError('Invalid cron payload', 400, parseResult.error.flatten())
   }
 
-  const now = new Date()
-  const campaigns = await prisma.whatsAppCampaign.findMany({
-    where: { status: 'SCHEDULED', scheduledAt: { lte: now } },
-    select: { id: true, organizationId: true },
-  })
+  const campaigns = await findScheduledCampaignsDue(new Date())
 
   if (campaigns.length === 0) {
     return apiSuccess({ success: true, campaignsEnqueued: 0 })

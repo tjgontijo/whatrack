@@ -1,6 +1,9 @@
 import { z } from 'zod'
+import {
+  findOnboardingByTrackingCode,
+  updateOnboardingPhoneData,
+} from '@/features/whatsapp/repositories/find-onboarding-by-tracking-code.repository'
 import { createWhatsAppConfigFromOnboarding } from '@/features/whatsapp/services/whatsapp-onboarding.service'
-import { prisma } from '@/lib/db/prisma'
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { encryption } from '@/lib/utils/encryption'
 import { logger } from '@/lib/utils/logger'
@@ -15,10 +18,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json()
     const validation = PhoneNumberSchema.safeParse(body)
-
-    if (!validation.success) {
-      return apiError('Invalid request body', 400)
-    }
+    if (!validation.success) return apiError('Invalid request body', 400)
 
     const { state, phoneNumberId, wabaId } = validation.data
 
@@ -27,38 +27,21 @@ export async function POST(request: Request) {
       '[OnboardingPhoneNumber] Recording data from Embedded Signup postMessage'
     )
 
-    const onboarding = await prisma.whatsAppOnboarding.findUnique({
-      where: { trackingCode: state },
-    })
-
+    const onboarding = await findOnboardingByTrackingCode(state)
     if (!onboarding) {
-      logger.warn(
-        { state: state.substring(0, 10) },
-        '[OnboardingPhoneNumber] No onboarding session found'
-      )
+      logger.warn({ state: state.substring(0, 10) }, '[OnboardingPhoneNumber] No onboarding session found')
       return apiError('Onboarding session not found', 404)
     }
 
-    // Meet in the Middle: store phoneNumberId + wabaId
-    const updatedOnboarding = await prisma.whatsAppOnboarding.update({
-      where: { trackingCode: state },
-      data: {
-        phoneNumberId,
-        ...(wabaId ? { wabaId } : {}),
-      },
-    })
+    const updatedOnboarding = await updateOnboardingPhoneData(state, { phoneNumberId, wabaId })
 
     logger.info(
       { phoneNumberId, wabaId, hasToken: !!updatedOnboarding.accessToken },
       '[OnboardingPhoneNumber] Checking Meet in the Middle condition'
     )
 
-    // If OAuth callback already arrived with token, we are the last — create config now
     if (updatedOnboarding.accessToken) {
-      logger.info(
-        { phoneNumberId },
-        '[OnboardingPhoneNumber] postMessage arrived last — creating WhatsAppConfig now'
-      )
+      logger.info({ phoneNumberId }, '[OnboardingPhoneNumber] postMessage arrived last — creating WhatsAppConfig now')
       try {
         const plainToken = encryption.decrypt(updatedOnboarding.accessToken)
         await createWhatsAppConfigFromOnboarding(updatedOnboarding, plainToken)

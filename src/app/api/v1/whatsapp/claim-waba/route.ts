@@ -1,9 +1,10 @@
 import { headers } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { encryptToken } from '@/features/whatsapp/lib/token-crypto'
+import { upsertWhatsAppConfig } from '@/features/whatsapp/repositories/upsert-whatsapp-config.repository'
 import { MetaCloudService } from '@/features/whatsapp/services/meta-cloud.service'
 import { auth } from '@/lib/auth/auth'
-import { prisma } from '@/lib/db/prisma'
+import { findProjectInOrg } from '@/features/projects/repositories/find-project-in-org.repository'
 
 export const dynamic = 'force-dynamic'
 
@@ -40,12 +41,8 @@ export async function POST(request: Request) {
     }
 
     // Validate project belongs to organization
-    const project = await prisma.project.findUnique({
-      where: { id: projectId },
-      select: { organizationId: true },
-    })
-
-    if (!project || project.organizationId !== orgId) {
+    const project = await findProjectInOrg(projectId, orgId)
+    if (!project) {
       console.error('[ClaimWaba] Project not found or does not belong to organization')
       return NextResponse.json(
         { error: 'Project not found or does not belong to your organization' },
@@ -179,41 +176,17 @@ export async function POST(request: Request) {
 
     // 5. Criar ou atualizar a configuração no banco
     console.log('[ClaimWaba] Upserting config in DB...')
-    const config = await prisma.whatsAppConfig.upsert({
-      where: {
-        phoneId: primaryPhone?.id || `pending_${wabaId}`,
-      },
-      update: {
-        projectId,
-        wabaId,
-        accessToken: tokenToStore || undefined,
-        accessTokenEncrypted: isEncrypted,
-        tokenExpiresAt,
-        authorizationCode: code,
-        status: 'connected',
-        verifiedName: primaryPhone?.verified_name,
-        displayPhone: primaryPhone?.display_phone_number,
-        connectedAt: new Date(),
-        disconnectedAt: null,
-        disconnectedBy: null,
-        tokenStatus: 'valid',
-        updatedAt: new Date(),
-      },
-      create: {
-        organizationId: orgId,
-        projectId,
-        wabaId,
-        phoneId: primaryPhone?.id,
-        accessToken: tokenToStore,
-        accessTokenEncrypted: isEncrypted,
-        tokenExpiresAt,
-        authorizationCode: code,
-        status: 'connected',
-        verifiedName: primaryPhone?.verified_name,
-        displayPhone: primaryPhone?.display_phone_number,
-        connectedAt: new Date(),
-        tokenStatus: 'valid',
-      },
+    const config = await upsertWhatsAppConfig({
+      organizationId: orgId,
+      projectId,
+      wabaId,
+      phoneId: primaryPhone?.id,
+      accessToken: tokenToStore,
+      accessTokenEncrypted: isEncrypted,
+      tokenExpiresAt,
+      authorizationCode: code,
+      verifiedName: primaryPhone?.verified_name,
+      displayPhone: primaryPhone?.display_phone_number,
     })
 
     console.log('[ClaimWaba] DB Persist successful:', {

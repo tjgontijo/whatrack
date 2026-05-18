@@ -1,7 +1,7 @@
 import type { NextRequest } from 'next/server'
 import { cronTriggerBodySchema } from '@/features/cron/schemas/cron.schemas'
+import { findAbCampaignsForWinnerSelection } from '@/features/cron/repositories/find-ab-campaigns-for-winner.repository'
 import { autoSelectWinner } from '@/features/whatsapp/services/whatsapp-campaign-ab.service'
-import { prisma } from '@/lib/db/prisma'
 import { getJobTracker } from '@/lib/db/queue'
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
@@ -31,13 +31,7 @@ export async function POST(request: NextRequest) {
     const now = new Date()
 
     // Find A/B campaigns where window has expired and no winner yet
-    const campaigns = await prisma.whatsAppCampaign.findMany({
-      where: {
-        isAbTest: true,
-        status: { in: ['PROCESSING', 'COMPLETED'] },
-      },
-      select: { id: true, organizationId: true, abTestConfig: true, startedAt: true },
-    })
+    const campaigns = await findAbCampaignsForWinnerSelection()
 
     // Filter to only campaigns where window has expired and no winner selected
     const eligible = campaigns.filter((c) => {

@@ -1,9 +1,9 @@
 import type { NextRequest } from 'next/server'
+import { findCampaignAbConfig } from '@/features/whatsapp/repositories/find-campaign-ab-config.repository'
 import {
   getAbTestLeader,
   getAbTestMetrics,
 } from '@/features/whatsapp/services/whatsapp-campaign-ab-metrics.service'
-import { prisma } from '@/lib/db/prisma'
 import { apiError, apiSuccess } from '@/lib/utils/api-response'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 
@@ -20,11 +20,7 @@ export async function GET(
 
   const { campaignId } = await params
 
-  const campaign = await prisma.whatsAppCampaign.findFirst({
-    where: { id: campaignId, organizationId: access.organizationId },
-    select: { isAbTest: true, abTestConfig: true, status: true, startedAt: true },
-  })
-
+  const campaign = await findCampaignAbConfig(campaignId, access.organizationId)
   if (!campaign) return apiError('Campanha não encontrada', 404)
   if (!campaign.isAbTest) return apiError('Campanha não é do tipo A/B', 400)
 
@@ -38,7 +34,6 @@ export async function GET(
 
   if (!metricsResult.success) return apiError(metricsResult.error, 500)
 
-  // Calculate window remaining
   let windowRemainingMs: number | null = null
   if (campaign.startedAt && config?.windowHours) {
     const expiresAt = new Date(campaign.startedAt.getTime() + config.windowHours * 60 * 60 * 1000)

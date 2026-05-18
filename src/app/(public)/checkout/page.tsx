@@ -1,8 +1,8 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import { findCheckoutPageData } from '@/features/billing/repositories/find-checkout-page-data.repository'
 import { listPublicBillingPlans } from '@/features/billing/services/billing-plan-catalog.service'
 import { ORGANIZATION_COOKIE, PROJECT_COOKIE } from '@/lib/constants/http-headers'
-import { prisma } from '@/lib/db/prisma'
 import { getServerSession } from '@/server/auth/server-session'
 import { CheckoutPageContent } from './checkout-page-content'
 
@@ -27,36 +27,11 @@ export default async function CheckoutPage({
     redirect('/sign-up')
   }
 
-  // If checkout was already completed (asaasId set), redirect to dashboard
-  const [subscription, org] = await Promise.all([
-    prisma.billingSubscription.findUnique({
-      where: { organizationId },
-      select: { asaasId: true, isActive: true },
-    }),
-    prisma.organization.findUnique({
-      where: { id: organizationId },
-      select: { slug: true },
-    }),
-  ])
-
-  const orgSlug = org?.slug ?? ''
+  const { subscription, orgSlug, cpfCnpj } = await findCheckoutPageData(organizationId)
 
   if (subscription?.isActive || subscription?.asaasId) {
     redirect(`/${orgSlug}/default`)
   }
-
-  // Resolve cpfCnpj from stored fiscal data
-  const [profile, company] = await Promise.all([
-    prisma.organizationProfile.findUnique({
-      where: { organizationId },
-      select: { cpf: true },
-    }),
-    prisma.organizationCompany.findUnique({
-      where: { organizationId },
-      select: { cnpj: true },
-    }),
-  ])
-  const cpfCnpj = profile?.cpf ?? company?.cnpj ?? ''
 
   const plans = await listPublicBillingPlans()
   const params = await searchParams

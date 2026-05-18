@@ -6,8 +6,8 @@ import { DashboardShell } from '@/features/dashboard/components/layout/dashboard
 import { DashboardTopbar } from '@/features/dashboard/components/layout/topbar'
 import { ProjectClientContextSync } from '@/features/dashboard/components/project/project-client-context-sync'
 import { ProjectRouteProvider } from '@/features/projects/contexts/project-route.context'
+import { findActiveProjectsForOrg } from '@/features/projects/repositories/find-projects-for-org.repository'
 import type { Permission } from '@/lib/auth/rbac/roles'
-import { prisma } from '@/lib/db/prisma'
 import { getServerSession } from '@/server/auth/server-session'
 import { isOrganizationIdentityComplete } from '@/server/organization/is-identity-complete'
 import { listEffectivePermissionsForUser } from '@/server/organization/organization-rbac.service'
@@ -42,18 +42,7 @@ export default async function ProjectScopedLayout({ children, params }: ProjectS
   }
 
   const { organizationId, organizationName, organizationLogo, projectId, projectName } = context
-  const projects = await prisma.project.findMany({
-    where: {
-      organizationId,
-      isArchived: false,
-    },
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-    },
-    orderBy: { name: 'asc' },
-  })
+  const projects = await findActiveProjectsForOrg(organizationId)
 
   const identityComplete = await isOrganizationIdentityComplete(organizationId)
   const effectivePermissions = await listEffectivePermissionsForUser({
