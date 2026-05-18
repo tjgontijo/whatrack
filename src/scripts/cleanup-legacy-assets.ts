@@ -59,7 +59,7 @@ async function cleanupLegacyAssets() {
       console.log('   - MetaConnection: projectId required')
       console.log('   - MetaAdAccount: projectId required')
       console.log('   - MetaPixel: projectId required')
-      console.log('   - WhatsAppConnection: projectId required')
+      console.log('   - WhatsAppConnection: projectId optional (Global WABA)')
       console.log('   - WhatsAppConfig: projectId required')
       console.log('   - WhatsAppOnboarding: projectId required')
       console.log('\nSchema Hardening (Phase 6) is complete.')

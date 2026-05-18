@@ -15,6 +15,7 @@ import {
   Timer,
   User,
 } from 'lucide-react'
+import * as React from 'react'
 import { toast } from 'sonner'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
@@ -28,6 +29,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { apiFetch } from '@/lib/http/api-client'
+import { updateTicketStageAction } from '@/features/tickets/actions/update-ticket-stage-action'
 import type { ChatItem } from './types'
 
 interface TicketPanelProps {
@@ -129,22 +131,33 @@ export function TicketPanel({ conversationId, organizationId, projectId, chat }:
   })
   const stages = stagesData?.items || []
 
+  const [optimisticTicket, addOptimisticTicket] = React.useOptimistic(
+    ticket,
+    (state, newStageId: string) => {
+      if (!state) return state
+      const newStage = stages.find((s: any) => s.id === newStageId)
+      return {
+        ...state,
+        stage: newStage ? { ...state.stage, ...newStage } : state.stage,
+      }
+    }
+  )
+
   const handleUpdateStage = async (newStageId: string) => {
     try {
       if (!ticket) return
-      const toastId = toast.loading('Movendo ticket...')
-      await apiFetch(`/api/v1/tickets/${ticket.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ stageId: newStageId }),
-        orgId: organizationId,
-        projectId,
+      addOptimisticTicket(newStageId)
+
+      const result = await updateTicketStageAction({
+        ticketId: ticket.id,
+        stageId: newStageId,
+        organizationId,
       })
 
-      toast.success('Etapa atualizada!', { id: toastId })
-      queryClient.invalidateQueries({ queryKey: ['conversation-ticket', conversationId] })
+      if (result.success) {
+        toast.success('Etapa atualizada!')
+        queryClient.invalidateQueries({ queryKey: ['conversation-ticket', conversationId] })
+      }
     } catch {
       toast.error('Erro ao mover ticket')
     }
@@ -168,8 +181,8 @@ export function TicketPanel({ conversationId, organizationId, projectId, chat }:
   }
 
   const getWindowStatus = () => {
-    if (!ticket?.windowExpiresAt) return null
-    const expiresAt = new Date(ticket.windowExpiresAt)
+    if (!optimisticTicket?.windowExpiresAt) return null
+    const expiresAt = new Date(optimisticTicket.windowExpiresAt)
     const timeRemaining = calculateTimeRemaining(expiresAt)
 
     if (!timeRemaining) {
@@ -223,7 +236,7 @@ export function TicketPanel({ conversationId, organizationId, projectId, chat }:
     )
   }
 
-  const _statusBadge = STATUS_BADGE_MAP[ticket.status]
+  const _statusBadge = STATUS_BADGE_MAP[optimisticTicket?.status || 'open']
   const _windowStatus = getWindowStatus()
 
   return (
@@ -250,7 +263,7 @@ export function TicketPanel({ conversationId, organizationId, projectId, chat }:
             </div>
           </div>
           {/* Destaque: Tráfego Pago (Aha! Moment UX) */}
-          {ticket.tracking?.sourceType === 'paid' && (
+          {optimisticTicket?.tracking?.sourceType === 'paid' && (
             <div className='relative overflow-hidden rounded-xl border border-[#c13584]/20 bg-gradient-to-br from-[#c13584]/10 to-[#833ab4]/5 p-4'>
               <div className='absolute top-0 right-0 p-3 opacity-20'>
                 <Megaphone className='h-12 w-12 text-[#c13584]' />
@@ -262,17 +275,17 @@ export function TicketPanel({ conversationId, organizationId, projectId, chat }:
                   </Badge>
                   <span className='font-medium text-[#c13584] text-xs'>Lead pago via clique</span>
                 </div>
-                {ticket.tracking.utmCampaign && (
+                {optimisticTicket.tracking?.utmCampaign && (
                   <p className='mb-1 font-semibold text-foreground text-sm'>
-                    Campanha: {ticket.tracking.utmCampaign}
+                    Campanha: {optimisticTicket.tracking.utmCampaign}
                   </p>
                 )}
-                {ticket.tracking.ctwaclid && (
+                {optimisticTicket.tracking?.ctwaclid && (
                   <p
                     className='max-w-[200px] truncate font-mono text-[10px] text-muted-foreground/80'
-                    title={ticket.tracking.ctwaclid}
+                    title={optimisticTicket.tracking.ctwaclid}
                   >
-                    ID: {ticket.tracking.ctwaclid}
+                    ID: {optimisticTicket.tracking.ctwaclid}
                   </p>
                 )}
               </div>
@@ -289,16 +302,19 @@ export function TicketPanel({ conversationId, organizationId, projectId, chat }:
                 <Label className='font-bold text-[10px] text-muted-foreground uppercase tracking-wider'>
                   Etapa do Funil
                 </Label>
-                <Select value={ticket.stage?.id || ''} onValueChange={handleUpdateStage}>
+                <Select
+                  value={optimisticTicket?.stage?.id || ''}
+                  onValueChange={handleUpdateStage}
+                >
                   <SelectTrigger className='h-9 w-full border-border/50 bg-card shadow-sm'>
                     <SelectValue>
-                      {ticket.stage ? (
+                      {optimisticTicket?.stage ? (
                         <div className='flex items-center gap-2'>
                           <div
                             className='h-2 w-2 rounded-full'
-                            style={{ backgroundColor: ticket.stage.color }}
+                            style={{ backgroundColor: optimisticTicket.stage.color }}
                           />
-                          <span className='font-medium text-sm'>{ticket.stage.name}</span>
+                          <span className='font-medium text-sm'>{optimisticTicket.stage.name}</span>
                         </div>
                       ) : (
                         'Selecione...'
@@ -329,7 +345,7 @@ export function TicketPanel({ conversationId, organizationId, projectId, chat }:
                 <div className='flex items-center rounded-md border border-border/50 bg-muted/20 px-3 py-2'>
                   <User className='mr-2 h-4 w-4 text-muted-foreground' />
                   <span className='text-foreground/90 text-sm'>
-                    {ticket.assignee?.name || 'Não atribuído'}
+                    {optimisticTicket?.assignee?.name || 'Não atribuído'}
                   </span>
                 </div>
               </div>
@@ -342,7 +358,7 @@ export function TicketPanel({ conversationId, organizationId, projectId, chat }:
                 <div className='flex items-center rounded-md border border-border/50 bg-muted/20 px-3 py-2'>
                   <DollarSign className='mr-2 h-4 w-4 text-green-600/70' />
                   <span className='font-semibold text-foreground/90 text-sm'>
-                    {formatDealValue(ticket.dealValue)}
+                    {formatDealValue(optimisticTicket?.dealValue)}
                   </span>
                 </div>
               </div>
@@ -350,7 +366,7 @@ export function TicketPanel({ conversationId, organizationId, projectId, chat }:
           </div>
 
           {/* Dossiê & KPIs do Atendimento */}
-          {ticket.kpis && (
+          {optimisticTicket?.kpis && (
             <div className='pt-2'>
               <h3 className='mb-3 font-bold text-muted-foreground text-xs uppercase tracking-wider'>
                 Dossiê do Atendimento
@@ -369,14 +385,16 @@ export function TicketPanel({ conversationId, organizationId, projectId, chat }:
                       className='flex items-center gap-1 text-green-600'
                       title='Mensagens da Clínica'
                     >
-                      <ArrowUpRight className='h-3 w-3' /> {ticket.kpis.outboundMessagesCount}
+                      <ArrowUpRight className='h-3 w-3' />{' '}
+                      {optimisticTicket.kpis.outboundMessagesCount}
                     </span>
                     <span className='text-border'>|</span>
                     <span
                       className='flex items-center gap-1 text-blue-600'
                       title='Mensagens do Cliente'
                     >
-                      <ArrowDownRight className='h-3 w-3' /> {ticket.kpis.inboundMessagesCount}
+                      <ArrowDownRight className='h-3 w-3' />{' '}
+                      {optimisticTicket.kpis.inboundMessagesCount}
                     </span>
                   </div>
                 </div>
@@ -390,7 +408,7 @@ export function TicketPanel({ conversationId, organizationId, projectId, chat }:
                     </span>
                   </div>
                   <span className='font-bold text-foreground text-sm'>
-                    {formatTimer(ticket.kpis.firstResponseTimeSec)}
+                    {formatTimer(optimisticTicket.kpis.firstResponseTimeSec)}
                   </span>
                 </div>
 
@@ -403,7 +421,7 @@ export function TicketPanel({ conversationId, organizationId, projectId, chat }:
                     </span>
                   </div>
                   <span className='font-bold text-foreground text-sm'>
-                    {formatTimer(ticket.kpis.resolutionTimeSec)}
+                    {formatTimer(optimisticTicket.kpis.resolutionTimeSec)}
                   </span>
                 </div>
               </div>
@@ -411,7 +429,7 @@ export function TicketPanel({ conversationId, organizationId, projectId, chat }:
           )}
 
           {/* Histórico do Lead / LTV */}
-          {ticket.leadInsights && (
+          {optimisticTicket?.leadInsights && (
             <div className='pt-2'>
               <h3 className='mb-3 font-bold text-muted-foreground text-xs uppercase tracking-wider'>
                 Histórico do Cliente
@@ -425,7 +443,7 @@ export function TicketPanel({ conversationId, organizationId, projectId, chat }:
                     </span>
                   </div>
                   <span className='font-bold text-xs'>
-                    {ticket.leadInsights.totalTickets} tickets
+                    {optimisticTicket.leadInsights.totalTickets} tickets
                   </span>
                 </div>
                 <div className='flex items-center justify-between rounded-lg border border-emerald-500/20 bg-gradient-to-r from-emerald-500/5 to-transparent p-3'>
@@ -436,7 +454,7 @@ export function TicketPanel({ conversationId, organizationId, projectId, chat }:
                     </span>
                   </div>
                   <span className='font-bold text-emerald-600 text-sm'>
-                    {formatDealValue(ticket.leadInsights.lifetimeValue)}
+                    {formatDealValue(optimisticTicket.leadInsights.lifetimeValue)}
                   </span>
                 </div>
               </div>

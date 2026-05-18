@@ -803,7 +803,7 @@ model WhatsAppOnboarding {
 model WhatsAppConnection {
   id                String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   organizationId    String                   @db.Uuid
-  projectId         String                   @db.Uuid
+  projectId         String?                  @db.Uuid
   wabaId            String
   ownerBusinessId   String?
   phoneNumberId     String?
@@ -819,11 +819,10 @@ model WhatsAppConnection {
   configs           WhatsAppConfig[]
   healthStatusRef   WhatsAppHealthStatus     @relation("ConnectionHealthStatus", fields: [healthStatus], references: [name])
   organization      Organization             @relation("WhatsAppConnections", fields: [organizationId], references: [id], onDelete: Cascade)
-  project           Project                  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project           Project?                 @relation(fields: [projectId], references: [id], onDelete: SetNull)
   statusRef         WhatsAppConnectionStatus @relation(fields: [status], references: [name])
   healthChecks      WhatsAppHealth[]
 
-  @@unique([projectId, wabaId])
   @@unique([organizationId, wabaId])
   @@index([projectId])
   @@index([organizationId, projectId])

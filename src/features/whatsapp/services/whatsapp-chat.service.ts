@@ -78,9 +78,11 @@ export class WhatsAppChatService {
       const organizationId = instance.organizationId
 
       // Get lookup IDs before transaction
-      const sourceId = await lookupCache.getLeadSourceId('live_message')
-      const directionId = await lookupCache.getMessageDirectionId('INBOUND')
-      const openStatusId = await lookupCache.getTicketStatusId('open')
+      const [sourceId, directionId, openStatusId] = await Promise.all([
+        lookupCache.getLeadSourceId('live_message'),
+        lookupCache.getMessageDirectionId('INBOUND'),
+        lookupCache.getTicketStatusId('open'),
+      ])
 
       // 1. Find or Create Lead
       // We search by waId within the organization
@@ -277,9 +279,11 @@ export class WhatsAppChatService {
       if (!instance) throw new Error(`Instance ${instanceId} not found`)
 
       // Get lookup IDs before transaction
-      const sourceId = await lookupCache.getLeadSourceId('outbound_message')
-      const directionId = await lookupCache.getMessageDirectionId('OUTBOUND')
-      const openStatusId = await lookupCache.getTicketStatusId('open')
+      const [sourceId, directionId, openStatusId] = await Promise.all([
+        lookupCache.getLeadSourceId('outbound_message'),
+        lookupCache.getMessageDirectionId('OUTBOUND'),
+        lookupCache.getTicketStatusId('open'),
+      ])
 
       // 1. Find or Create Lead (Recipient)
       const lead = await prisma.lead.upsert({
@@ -459,9 +463,11 @@ export class WhatsAppChatService {
     } = params
     try {
       // Get lookup IDs before operations
-      const sourceId = await lookupCache.getLeadSourceId('direct_creation')
-      const directionId = await lookupCache.getMessageDirectionId('OUTBOUND')
-      const openStatusId = await lookupCache.getTicketStatusId('open')
+      const [sourceId, directionId, openStatusId] = await Promise.all([
+        lookupCache.getLeadSourceId('direct_creation'),
+        lookupCache.getMessageDirectionId('OUTBOUND'),
+        lookupCache.getTicketStatusId('open'),
+      ])
 
       // 1. Find or Create Lead
       let lead = await prisma.lead.findFirst({

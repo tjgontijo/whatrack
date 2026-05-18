@@ -1,35 +1,52 @@
-'use client'
-
-import { useState } from 'react'
-import ConversionFunnel from './conversion-funnel'
-import EfficiencyChart from './efficiency-chart'
+import { Suspense } from 'react'
+import { ConversionFunnel } from './conversion-funnel-server'
+import { SlaOverview } from './sla-overview-server'
 import HeatmapHours from './heatmap-hours'
+import EfficiencyChart from './efficiency-chart'
 import LeadActivity from './lead-activity'
-import SlaOverview from './sla-overview'
+import { Skeleton } from '@/components/ui/skeleton'
 
-export default function AnalyticsDashboard() {
-  const [dateRange, _setDateRange] = useState({
-    startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-    endDate: new Date().toISOString(),
-  })
+export default function AnalyticsDashboard({
+  organizationId,
+  startDate,
+  endDate,
+}: {
+  organizationId: string
+  startDate: Date
+  endDate: Date
+}) {
+  const startDateStr = startDate.toISOString()
+  const endDateStr = endDate.toISOString()
 
   return (
     <div className='flex flex-col gap-6'>
-      {/* Grids superiores */}
-      <div className='grid h-96 grid-cols-1 gap-6 md:grid-cols-2'>
-        <ConversionFunnel startDate={dateRange.startDate} endDate={dateRange.endDate} />
-        <SlaOverview startDate={dateRange.startDate} endDate={dateRange.endDate} />
+      {/* Grids superiores - Granular Streaming Pilot */}
+      <div className='grid h-[500px] grid-cols-1 gap-6 md:grid-cols-2'>
+        <Suspense fallback={<AnalyticsCardSkeleton title="Funil de Vendas" />}>
+           <ConversionFunnel organizationId={organizationId} startDate={startDate} endDate={endDate} />
+        </Suspense>
+        <Suspense fallback={<AnalyticsCardSkeleton title="Tempo da 1ª Resposta (SLA)" />}>
+           <SlaOverview organizationId={organizationId} startDate={startDate} endDate={endDate} />
+        </Suspense>
       </div>
 
       <div className='grid h-96 grid-cols-1 gap-6 md:grid-cols-2'>
-        <HeatmapHours startDate={dateRange.startDate} endDate={dateRange.endDate} />
-        <EfficiencyChart startDate={dateRange.startDate} endDate={dateRange.endDate} />
+        <HeatmapHours startDate={startDateStr} endDate={endDateStr} />
+        <EfficiencyChart startDate={startDateStr} endDate={endDateStr} />
       </div>
 
-      {/* Lista de Leads Frios/Quentes */}
       <div className='grid grid-cols-1'>
         <LeadActivity />
       </div>
+    </div>
+  )
+}
+
+function AnalyticsCardSkeleton({ title }: { title: string }) {
+  return (
+    <div className='flex h-full w-full flex-col overflow-hidden rounded-xl border bg-card p-4 shadow-sm'>
+      <h3 className='mb-4 font-semibold text-base text-foreground'>{title}</h3>
+      <Skeleton className='flex-1 w-full rounded-md bg-muted/50' />
     </div>
   )
 }

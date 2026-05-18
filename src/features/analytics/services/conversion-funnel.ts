@@ -8,8 +8,9 @@ export async function getConversionFunnel(
   endDate: Date,
   projectId?: string
 ) {
-  // Query to get tickets by status
-  const statusOverview = await prisma.$queryRaw`
+  const [statusOverview, stageOverview] = await Promise.all([
+    // Query to get tickets by status
+    prisma.$queryRaw`
     SELECT
       status,
       COUNT(*)::int as count,
@@ -19,10 +20,10 @@ export async function getConversionFunnel(
       ${projectId ? Prisma.sql`AND project_id = ${projectId}::uuid` : Prisma.empty}
       AND created_at BETWEEN ${startDate} AND ${endDate}
     GROUP BY status;
-  `
+  `,
 
-  // Query to get tickets by stage
-  const stageOverview = await prisma.$queryRaw`
+    // Query to get tickets by stage
+    prisma.$queryRaw`
     SELECT
       ts.id,
       ts.name as stage_name,
@@ -38,7 +39,8 @@ export async function getConversionFunnel(
       ${projectId ? Prisma.sql`AND ts.project_id = ${projectId}::uuid` : Prisma.empty}
     GROUP BY ts.id, ts.name, ts.color, ts.order
     ORDER BY ts.order ASC;
-  `
+  `,
+  ])
 
   return {
     statusOverview,

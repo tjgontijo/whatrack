@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Eye, EyeOff } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useTransition } from 'react'
 import { Controller, FormProvider as Form, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -45,6 +45,7 @@ function normalizeSignUpError(error: unknown): SignUpErrorShape {
 export default function SignUpPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const [isRedirecting, startTransition] = useTransition()
   const invitationId = searchParams.get('invitationId')
   const nextParam = searchParams.get('next')
   const funnelIntent = readFunnelIntent(searchParams)
@@ -121,7 +122,9 @@ export default function SignUpPage() {
           console.error('[sign-up] erro ao aceitar convite', acceptError)
           toast.error('Conta criada, mas não foi possível aceitar o convite.')
         }
-        router.push(nextParam ?? '/welcome')
+        startTransition(() => {
+          router.push(nextParam ?? '/welcome')
+        })
         return
       }
 
@@ -164,14 +167,16 @@ export default function SignUpPage() {
         }
       }
 
-      router.push(nextPath)
+      startTransition(() => {
+        router.push(nextPath)
+      })
     } catch (error) {
       console.error('[sign-up] erro ao criar conta', error)
       toast.error('Falha na comunicação com o servidor. Tente novamente.')
     }
   }
 
-  const isSubmitting = form.formState.isSubmitting
+  const isSubmitting = form.formState.isSubmitting || isRedirecting
 
   return (
     <div
@@ -368,7 +373,9 @@ export default function SignUpPage() {
             disabled={isSubmitting}
           >
             {isSubmitting
-              ? 'Criando conta...'
+              ? isRedirecting
+                ? 'Redirecionando...'
+                : 'Criando conta...'
               : isTrialIntent
                 ? 'Começar teste grátis'
                 : 'Continuar para pagamento'}

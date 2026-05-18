@@ -1,3 +1,4 @@
+import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils/utils'
 
 interface TableSkeletonProps {
@@ -10,9 +11,9 @@ export function TableSkeleton({ rows = 5, columns = 4, className }: TableSkeleto
   return (
     <div className={cn('space-y-3', className)}>
       {/* Header */}
-      <div className='flex gap-4 border-gray-200 border-b pb-3 dark:border-gray-800'>
+      <div className='flex gap-4 border-b pb-3'>
         {Array.from({ length: columns }).map((_, i) => (
-          <div key={i} className='h-4 flex-1 animate-pulse rounded bg-gray-200 dark:bg-gray-800' />
+          <Skeleton key={i} className='h-4 flex-1' />
         ))}
       </div>
 
@@ -20,20 +21,16 @@ export function TableSkeleton({ rows = 5, columns = 4, className }: TableSkeleto
       {Array.from({ length: rows }).map((_, rowIndex) => (
         <div
           key={rowIndex}
-          className='flex gap-4 border-gray-100 border-b py-3 dark:border-gray-900'
+          className='flex gap-4 border-b py-3 last:border-0'
         >
           {Array.from({ length: columns }).map((_, colIndex) => (
-            <div
+            <Skeleton
               key={colIndex}
               className={cn(
-                'h-4 flex-1 animate-pulse rounded bg-gray-100 dark:bg-gray-900',
-                // Vary widths for more realistic look
-                colIndex === 0 && 'w-32',
-                colIndex === columns - 1 && 'w-20'
+                'h-4 flex-1',
+                colIndex === 0 && 'flex-[2]',
+                colIndex === columns - 1 && 'flex-[0.5]'
               )}
-              style={{
-                animationDelay: `${(rowIndex * columns + colIndex) * 0.05}s`,
-              }}
             />
           ))}
         </div>

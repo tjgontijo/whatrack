@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import * as Flags from 'country-flag-icons/react/3x2'
 import { parsePhoneNumberFromString } from 'libphonenumber-js'
 import { ExternalLink, Globe, LogOut, Send, Wifi, Zap } from 'lucide-react'
+import Image from 'next/image'
 import { useState } from 'react'
 import {
   AlertDialog,
@@ -234,9 +235,11 @@ export function InstanceCardDetail({
             </p>
             <div className='flex gap-4'>
               {profile.profile_picture_url ? (
-                <img
+                <Image
                   src={profile.profile_picture_url}
                   alt={instance.verifiedName}
+                  width={64}
+                  height={64}
                   className='h-16 w-16 rounded-full border object-cover'
                 />
               ) : (

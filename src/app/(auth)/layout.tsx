@@ -22,9 +22,11 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         <div className='relative z-10 flex h-full flex-col justify-between p-12 lg:p-20'>
           <div>
             <div className='mb-12'>
-              <img
+              <Image
                 src='/images/logo/logo_transparent_dark_horizontal.png'
                 alt='Whatrack'
+                width={180}
+                height={36}
                 className='h-9 w-auto opacity-90 transition-opacity hover:opacity-100'
               />
             </div>
@@ -84,9 +86,11 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       {/* Right side: Auth Form Content */}
       <div className='relative flex flex-1 flex-col justify-center bg-background p-6 sm:p-12'>
         <div className='absolute top-8 left-8 lg:hidden'>
-          <img
+          <Image
             src='/images/logo/logo_transparent_light_horizontal.png'
             alt='Whatrack'
+            width={160}
+            height={32}
             className='h-8 w-auto'
           />
         </div>

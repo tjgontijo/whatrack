@@ -9,7 +9,27 @@ export const metadata = {
   description: 'Métricas de SLA, funil de conversão e engajamento.',
 }
 
-export default function AnalyticsPage() {
+import { requireWorkspacePageAccess } from '@/server/auth/require-workspace-page-access'
+
+type AnalyticsPageProps = {
+  params: Promise<{ organizationSlug: string; projectSlug: string }>
+  searchParams: Promise<{ startDate?: string; endDate?: string }>
+}
+
+export default async function AnalyticsPage({ params, searchParams }: AnalyticsPageProps) {
+  const { organizationSlug, projectSlug } = await params
+  const { startDate: startDateParam, endDate: endDateParam } = await searchParams
+
+  const access = await requireWorkspacePageAccess({
+    organizationSlug,
+    permissions: 'view:analytics',
+  })
+
+  const startDate = startDateParam
+    ? new Date(startDateParam)
+    : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+  const endDate = endDateParam ? new Date(endDateParam) : new Date()
+
   return (
     <PageShell>
       <PageHeader
@@ -19,9 +39,11 @@ export default function AnalyticsPage() {
       />
 
       <PageContent>
-        <Suspense fallback={<LoadingPage message='Carregando analytics...' />}>
-          <AnalyticsDashboard />
-        </Suspense>
+        <AnalyticsDashboard
+          organizationId={access.organizationId}
+          startDate={startDate}
+          endDate={endDate}
+        />
       </PageContent>
     </PageShell>
   )

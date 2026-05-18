@@ -18,6 +18,7 @@ import {
   WHATSAPP_MASK_MAX_LENGTH,
 } from '@/lib/mask/phone-mask'
 import { cn } from '@/lib/utils/utils'
+import { updateProfileAction } from '@/features/me/actions/update-profile-action'
 
 type ProfileSettingsContentProps = {
   account: AccountProfileSummary
@@ -82,12 +83,7 @@ export function ProfileSettingsContent({ account }: ProfileSettingsContentProps)
   const [confirmPassword, setConfirmPassword] = useState('')
 
   const updateProfileMutation = useMutation({
-    mutationFn: async (data: UpdateMeAccountInput) =>
-      apiFetch('/api/v1/me/account', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      }),
+    mutationFn: (data: UpdateMeAccountInput) => updateProfileAction(data),
     onSuccess: () => {
       toast.success('Perfil atualizado')
       setEditing(false)

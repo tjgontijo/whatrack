@@ -6,9 +6,11 @@ import { useQuery } from '@tanstack/react-query'
 export default function SlaOverview({
   startDate,
   endDate,
+  initialData,
 }: {
   startDate: string
   endDate: string
+  initialData?: any
 }) {
   const { data, isLoading, error } = useQuery({
     queryKey: ['analytics', 'sla', startDate, endDate],
@@ -17,6 +19,8 @@ export default function SlaOverview({
       if (!res.ok) throw new Error('Falha ao buscar SLA')
       return res.json()
     },
+    initialData,
+    enabled: !initialData,
   })
 
   if (isLoading) return <div className='h-full w-full animate-pulse rounded-xl border bg-card' />

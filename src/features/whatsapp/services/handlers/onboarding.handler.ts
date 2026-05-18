@@ -66,14 +66,13 @@ export async function onboardingHandler(payload: any, eventType: string): Promis
       // Criar connection
       const connection = await prisma.whatsAppConnection.upsert({
         where: {
-          projectId_wabaId: {
-            projectId: onboarding.projectId,
+          organizationId_wabaId: {
+            organizationId: onboarding.organizationId,
             wabaId,
           },
         },
         create: {
           organizationId: onboarding.organizationId,
-          projectId: onboarding.projectId,
           wabaId,
           ownerBusinessId,
           phoneNumberId: value.waba_info?.phone_number_id,
@@ -217,14 +216,13 @@ export async function onboardingHandler(payload: any, eventType: string): Promis
 
       const connection = await prisma.whatsAppConnection.upsert({
         where: {
-          projectId_wabaId: {
-            projectId: recentOnboarding.projectId,
+          organizationId_wabaId: {
+            organizationId: recentOnboarding.organizationId,
             wabaId,
           },
         },
         create: {
           organizationId: recentOnboarding.organizationId,
-          projectId: recentOnboarding.projectId,
           wabaId,
           ownerBusinessId,
           status: 'active',

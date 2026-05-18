@@ -245,7 +245,6 @@ export async function handleWhatsAppOnboardingCallback(
         },
         create: {
           organizationId: onboarding.organizationId,
-          projectId: onboarding.projectId,
           wabaId: waba.wabaId,
           ownerBusinessId: waba.businessId,
           status: 'active',

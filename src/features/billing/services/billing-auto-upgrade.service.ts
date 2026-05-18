@@ -136,42 +136,44 @@ export class BillingAutoUpgradeService {
 
       await billingPlanHistoryService.closePreviousPlan(subscription.id)
 
-      const history = await tx.billingPlanHistory.create({
-        data: {
-          subscriptionId: subscription.id,
-          planId: newPlan.id,
-          reason: 'auto_upgrade',
-          projectCountAtChange: projectCount,
-          startedAt: new Date(),
-          endedAt: null,
-        },
-      })
+      const [history, , invoice] = await Promise.all([
+        tx.billingPlanHistory.create({
+          data: {
+            subscriptionId: subscription.id,
+            planId: newPlan.id,
+            reason: 'auto_upgrade',
+            projectCountAtChange: projectCount,
+            startedAt: new Date(),
+            endedAt: null,
+          },
+        }),
 
-      await tx.billingSubscription.update({
-        where: { id: subscription.id },
-        data: {
-          currentPlanId: newPlan.id,
-          offerId: newOffer.id,
-        },
-      })
+        tx.billingSubscription.update({
+          where: { id: subscription.id },
+          data: {
+            currentPlanId: newPlan.id,
+            offerId: newOffer.id,
+          },
+        }),
 
-      const invoice = await tx.billingInvoice.create({
-        data: {
-          organizationId,
-          subscriptionId: subscription.id,
-          offerId: newOffer.id,
-          asaasId: `auto-upgrade-${subscription.id}-${Date.now()}`,
-          status: 'PENDING',
-          paymentMethod: subscription.paymentMethod || 'CREDIT_CARD',
-          value: proratingResult.netAmount.isNegative()
-            ? new Prisma.Decimal(0)
-            : proratingResult.netAmount,
-          netValue: proratingResult.netAmount,
-          description: `Auto-upgrade de ${oldPlanCode} para ${newPlanData.code}`,
-          billingType: 'PRORATED',
-          dueDate: subscription.expiresAt || new Date(),
-        },
-      })
+        tx.billingInvoice.create({
+          data: {
+            organizationId,
+            subscriptionId: subscription.id,
+            offerId: newOffer.id,
+            asaasId: `auto-upgrade-${subscription.id}-${Date.now()}`,
+            status: 'PENDING',
+            paymentMethod: subscription.paymentMethod || 'CREDIT_CARD',
+            value: proratingResult.netAmount.isNegative()
+              ? new Prisma.Decimal(0)
+              : proratingResult.netAmount,
+            netValue: proratingResult.netAmount,
+            description: `Auto-upgrade de ${oldPlanCode} para ${newPlanData.code}`,
+            billingType: 'PRORATED',
+            dueDate: subscription.expiresAt || new Date(),
+          },
+        }),
+      ])
 
       return {
         upgraded: true,

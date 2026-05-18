@@ -1,20 +1,28 @@
 import type { NextConfig } from 'next'
-// import { GLOBAL_SECURITY_HEADERS } from './src/lib/security/http-security-headers'
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  cacheComponents: true,
 
   images: {
-    unoptimized: true,
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**.fbcdn.net',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.whatsapp.net',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.gravatar.com',
+      },
+    ],
   },
 
   headers: async () => {
-    return [
-      /* {
-        source: '/:path*',
-        headers: GLOBAL_SECURITY_HEADERS,
-      }, */
-    ]
+    return []
   },
 }
 

@@ -1,10 +1,10 @@
 'use client'
 
-import { Check, ChevronsUpDown, LayoutDashboard, Plus, Settings } from 'lucide-react'
+import { Check, ChevronsUpDown, LayoutDashboard, Loader2, Plus, Settings } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Command,
@@ -57,6 +57,8 @@ export function DashboardTopbar({
   const router = useRouter()
   const searchParams = useSearchParams()
   const [open, setOpen] = useState(false)
+  const [isPending, startTransition] = useTransition()
+  const [pendingSlug, setPendingSlug] = useState<string | null>(null)
 
   const basePath = `/${organizationSlug}/${projectSlug}`
   const isSettingsMode =
@@ -79,14 +81,22 @@ export function DashboardTopbar({
       storedPath?.startsWith(basePath) && !storedPath.startsWith(`${basePath}/settings`)
         ? storedPath
         : basePath
-    router.push(targetPath)
+    startTransition(() => {
+      router.push(targetPath)
+    })
   }
 
   const handleSelectProject = (slug: string) => {
-    setOpen(false)
-    if (slug !== projectSlug) {
-      router.push(`/${organizationSlug}/${slug}`)
+    if (slug === projectSlug) {
+      setOpen(false)
+      return
     }
+
+    setPendingSlug(slug)
+    startTransition(() => {
+      router.push(`/${organizationSlug}/${slug}`)
+      setOpen(false)
+    })
   }
 
   return (
@@ -113,10 +123,12 @@ export function DashboardTopbar({
         <PopoverTrigger asChild>
           <button
             type='button'
+            disabled={isPending}
             className={cn(
               'flex min-w-0 items-center gap-1.5 rounded-md px-2 py-1 text-sm transition-colors',
               'hover:bg-sidebar-accent',
-              open && 'bg-sidebar-accent'
+              open && 'bg-sidebar-accent',
+              isPending && 'opacity-50 cursor-not-allowed'
             )}
           >
             <span className='truncate font-medium text-muted-foreground/70'>
@@ -124,7 +136,11 @@ export function DashboardTopbar({
             </span>
             <span className='text-muted-foreground/40'>/</span>
             <span className='truncate font-medium'>{projectName}</span>
-            <ChevronsUpDown className='h-3.5 w-3.5 shrink-0 text-muted-foreground' />
+            {isPending ? (
+              <Loader2 className='h-3.5 w-3.5 shrink-0 animate-spin text-muted-foreground' />
+            ) : (
+              <ChevronsUpDown className='h-3.5 w-3.5 shrink-0 text-muted-foreground' />
+            )}
           </button>
         </PopoverTrigger>
         <PopoverContent className='w-56 p-0' align='start'>
@@ -138,13 +154,18 @@ export function DashboardTopbar({
                     key={project.id}
                     value={project.name}
                     onSelect={() => handleSelectProject(project.slug)}
+                    disabled={isPending}
                   >
-                    <Check
-                      className={cn(
-                        'mr-2 h-3.5 w-3.5',
-                        project.slug === projectSlug ? 'opacity-100' : 'opacity-0'
-                      )}
-                    />
+                    {isPending && pendingSlug === project.slug ? (
+                      <Loader2 className='mr-2 h-3.5 w-3.5 animate-spin' />
+                    ) : (
+                      <Check
+                        className={cn(
+                          'mr-2 h-3.5 w-3.5',
+                          project.slug === projectSlug ? 'opacity-100' : 'opacity-0'
+                        )}
+                      />
+                    )}
                     <span className='truncate'>{project.name}</span>
                   </CommandItem>
                 ))}
@@ -153,13 +174,20 @@ export function DashboardTopbar({
             <div className='border-border border-t p-1'>
               <button
                 type='button'
-                className='flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-muted-foreground text-xs transition-colors hover:bg-accent hover:text-foreground'
+                disabled={isPending}
+                className='flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-muted-foreground text-xs transition-colors hover:bg-accent hover:text-foreground disabled:opacity-50'
                 onClick={() => {
                   setOpen(false)
-                  router.push(`/${organizationSlug}/${projectSlug}/projects`)
+                  startTransition(() => {
+                    router.push(`/${organizationSlug}/${projectSlug}/projects`)
+                  })
                 }}
               >
-                <Plus className='h-3.5 w-3.5' />
+                {isPending && !pendingSlug ? (
+                  <Loader2 className='h-3.5 w-3.5 animate-spin' />
+                ) : (
+                  <Plus className='h-3.5 w-3.5' />
+                )}
                 Novo projeto
               </button>
             </div>
@@ -186,8 +214,13 @@ export function DashboardTopbar({
           className='h-8 gap-1.5'
           onClick={handleAppModeNavigation}
           aria-pressed={!isSettingsMode}
+          disabled={isPending}
         >
-          <LayoutDashboard className='h-4 w-4' />
+          {isPending && !isSettingsMode ? (
+            <Loader2 className='h-4 w-4 animate-spin' />
+          ) : (
+            <LayoutDashboard className='h-4 w-4' />
+          )}
           <span className='hidden sm:inline'>Dashboard</span>
         </Button>
 
@@ -195,11 +228,20 @@ export function DashboardTopbar({
           type='button'
           variant={isSettingsMode ? 'secondary' : 'ghost'}
           size='icon-sm'
-          onClick={() => router.push(`${basePath}/settings/profile`)}
+          onClick={() => {
+            startTransition(() => {
+              router.push(`${basePath}/settings/profile`)
+            })
+          }}
           aria-label='Abrir configurações'
           aria-pressed={isSettingsMode}
+          disabled={isPending}
         >
-          <Settings className='h-4 w-4' />
+          {isPending && isSettingsMode ? (
+            <Loader2 className='h-4 w-4 animate-spin' />
+          ) : (
+            <Settings className='h-4 w-4' />
+          )}
         </Button>
       </nav>
 

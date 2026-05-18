@@ -46,18 +46,27 @@ async function resolveAvailableOrganizationSlug(input: {
 }) {
   const baseSlug = buildOrganizationSlug(input.name)
 
-  for (let index = 0; index < 100; index += 1) {
-    const candidate = index === 0 ? baseSlug : `${baseSlug}-${index + 2}`
-    const existingOrganization = await prisma.organization.findFirst({
-      where: { slug: candidate },
-      select: { id: true },
-    })
+  // Geração de 10 candidatos iniciais de uma vez
+  const candidates = [
+    baseSlug,
+    ...Array.from({ length: 9 }, (_, i) => `${baseSlug}-${i + 2}`),
+  ]
 
-    if (!existingOrganization || existingOrganization.id === input.currentOrganizationId) {
-      return candidate
-    }
-  }
+  const existingOrganizations = await prisma.organization.findMany({
+    where: { slug: { in: candidates } },
+    select: { id: true, slug: true },
+  })
 
+  const takenSlugs = new Set(
+    existingOrganizations
+      .filter((org) => org.id !== input.currentOrganizationId)
+      .map((org) => org.slug)
+  )
+
+  const available = candidates.find((c) => !takenSlugs.has(c))
+  if (available) return available
+
+  // Fallback em caso extremamente improvável de colisão nos 10 primeiros
   return `${baseSlug}-${randomAlphanumeric(6)}`
 }
 

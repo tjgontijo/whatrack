@@ -1,4 +1,5 @@
 import "server-only"
+import { cacheLife, cacheTag } from 'next/cache'
 import { prisma } from '@/lib/db/prisma'
 
 export type BillingCatalogPlanCode = 'starter_monthly' | 'pro_monthly' | 'business_monthly'
@@ -42,6 +43,10 @@ function assertPaymentMethod(value: string): BillingCatalogPaymentMethod {
 
 export class BillingCatalogService {
   static async listPlans(): Promise<BillingCatalogPlan[]> {
+    'use cache'
+    cacheLife('minutes')
+    cacheTag('billing-plans')
+
     const now = new Date()
     const plans = await prisma.billingPlan.findMany({
       where: {

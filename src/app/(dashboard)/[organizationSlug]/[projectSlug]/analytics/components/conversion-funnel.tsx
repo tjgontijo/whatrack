@@ -8,9 +8,11 @@ import { apiFetch } from '@/lib/http/api-client'
 export default function ConversionFunnel({
   startDate,
   endDate,
+  initialData,
 }: {
   startDate: string
   endDate: string
+  initialData?: any
 }) {
   const { organizationId } = useRequiredProjectRouteContext()
 
@@ -23,7 +25,8 @@ export default function ConversionFunnel({
       )
       return data
     },
-    enabled: !!organizationId,
+    initialData,
+    enabled: !!organizationId && !initialData,
   })
 
   if (isLoading) return <div className='h-full w-full animate-pulse rounded-xl border bg-card' />

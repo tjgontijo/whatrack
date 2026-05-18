@@ -276,6 +276,29 @@ curl http://localhost:3000/api/v1/billing/plans
 
 ---
 
+## 📌 Future Work: `cacheComponents: true` e PPR (Fase 3)
+
+**Quando:** Apos projeto estar 100% preparado com Suspense boundaries corretos
+
+**O que:** `cacheComponents: true` no `next.config.ts` habilita Partial Prerendering (PPR) globalmente, permitindo cache granular a nivel de componente.
+
+**Por que nao agora:** 
+- Requer rigor absoluto: **todos** os dados dinamicos (`cookies()`, `headers()`, `params`) devem estar envolvidos em `<Suspense>` boundaries
+- Root layout acessa `cookies()` sem Suspense — causaria erro de prerender
+- Refactor completo = esforço extra desnecessario agora
+
+**Estrategia:**
+1. **Fase 1 (agora):** `"use cache"` em services cacheáveis (T3)
+2. **Fase 2 (proxima):** Implementar Suspense boundaries em todas paginas (loading.tsx ✓ + wrapping dados dinamicos)
+3. **Fase 3 (future):** Ativar `cacheComponents: true` para PPR granular
+
+**Checklist para Fase 3:**
+- [ ] Todo acesso a `cookies()`, `headers()`, `searchParams`, `params` está em `<Suspense>`
+- [ ] Root layout/layouts nao acessam dados dinamicos fora de Suspense
+- [ ] Build com `cacheComponents: true` passa sem erro "Uncached data was accessed"
+
+---
+
 ## 📊 Resumo
 
 | Task | Tempo | Bloqueador |

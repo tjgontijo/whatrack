@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronsUpDown, LogOut, Monitor, Moon, Settings, Sun } from 'lucide-react'
+import { ChevronsUpDown, Loader2, LogOut, Monitor, Moon, Settings, Sun } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useTheme } from 'next-themes'
 import * as React from 'react'
@@ -42,6 +42,9 @@ export function UserDropdownMenu({
   const { setTheme } = useTheme()
   const [mounted, setMounted] = React.useState(false)
   const [avatarError, setAvatarError] = React.useState(false)
+  const [isPending, startTransition] = React.useTransition()
+  const [isSigningOut, setIsSigningOut] = React.useState(false)
+  const [pendingPath, setPendingPath] = React.useState<string | null>(null)
 
   React.useEffect(() => {
     setMounted(true)
@@ -60,20 +63,27 @@ export function UserDropdownMenu({
   }, [userName, userEmail])
 
   const handleNavigate = (path: string) => {
-    router.push(path)
+    setPendingPath(path)
+    startTransition(() => {
+      router.push(path)
+    })
   }
 
   const handleSignOut = async () => {
+    setIsSigningOut(true)
     try {
       await authClient.signOut({
         fetchOptions: {
           onSuccess: () => {
-            router.push('/sign-in')
+            startTransition(() => {
+              router.push('/sign-in')
+            })
           },
         },
       })
     } catch (error) {
       console.error('[UserDropdownMenu] Erro ao sair:', error)
+      setIsSigningOut(false)
     }
   }
 
@@ -171,8 +181,15 @@ export function UserDropdownMenu({
           <DropdownMenuSeparator />
 
           <DropdownMenuGroup>
-            <DropdownMenuItem onSelect={() => handleNavigate(settingsPath)}>
-              <Settings className='mr-2 h-4 w-4' />
+            <DropdownMenuItem
+              onSelect={() => handleNavigate(settingsPath)}
+              disabled={isPending || isSigningOut}
+            >
+              {isPending && pendingPath === settingsPath ? (
+                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+              ) : (
+                <Settings className='mr-2 h-4 w-4' />
+              )}
               Configurações
             </DropdownMenuItem>
           </DropdownMenuGroup>
@@ -181,7 +198,7 @@ export function UserDropdownMenu({
 
           <DropdownMenuGroup>
             <DropdownMenuSub>
-              <DropdownMenuSubTrigger>
+              <DropdownMenuSubTrigger disabled={isPending || isSigningOut}>
                 <Sun className='mr-2 h-4 w-4 dark:hidden' />
                 <Moon className='mr-2 hidden h-4 w-4 dark:block' />
                 <span>Tema</span>
@@ -210,9 +227,14 @@ export function UserDropdownMenu({
           <DropdownMenuItem
             onSelect={handleSignOut}
             className='text-destructive focus:text-destructive'
+            disabled={isPending || isSigningOut}
           >
-            <LogOut className='mr-2 h-4 w-4' />
-            Sair
+            {isSigningOut ? (
+              <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+            ) : (
+              <LogOut className='mr-2 h-4 w-4' />
+            )}
+            {isSigningOut ? 'Saindo...' : 'Sair'}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -254,8 +276,15 @@ export function UserDropdownMenu({
         <DropdownMenuSeparator />
 
         <DropdownMenuGroup>
-          <DropdownMenuItem onSelect={() => handleNavigate(settingsPath)}>
-            <Settings className='mr-2 h-4 w-4' />
+          <DropdownMenuItem
+            onSelect={() => handleNavigate(settingsPath)}
+            disabled={isPending || isSigningOut}
+          >
+            {isPending && pendingPath === settingsPath ? (
+              <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+            ) : (
+              <Settings className='mr-2 h-4 w-4' />
+            )}
             Configurações
           </DropdownMenuItem>
         </DropdownMenuGroup>
@@ -264,7 +293,7 @@ export function UserDropdownMenu({
 
         <DropdownMenuGroup>
           <DropdownMenuSub>
-            <DropdownMenuSubTrigger>
+            <DropdownMenuSubTrigger disabled={isPending || isSigningOut}>
               <Sun className='mr-2 h-4 w-4 dark:hidden' />
               <Moon className='mr-2 hidden h-4 w-4 dark:block' />
               <span>Tema</span>
@@ -293,9 +322,14 @@ export function UserDropdownMenu({
         <DropdownMenuItem
           onSelect={handleSignOut}
           className='text-destructive focus:text-destructive'
+          disabled={isPending || isSigningOut}
         >
-          <LogOut className='mr-2 h-4 w-4' />
-          Sair
+          {isSigningOut ? (
+            <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+          ) : (
+            <LogOut className='mr-2 h-4 w-4' />
+          )}
+          {isSigningOut ? 'Saindo...' : 'Sair'}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

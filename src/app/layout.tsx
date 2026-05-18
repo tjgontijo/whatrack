@@ -1,6 +1,7 @@
 import { GeistMono } from 'geist/font/mono'
 import { GeistSans } from 'geist/font/sans'
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import './globals.css'
 import { cookies } from 'next/headers'
 import Providers from '@/components/shared/providers'
@@ -19,21 +20,33 @@ export const metadata: Metadata = {
   },
 }
 
-export default async function RootLayout({
+async function I18nWrapper({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode
-}>) {
+}) {
   const store = await cookies()
   const locale = store.get('locale')?.value ?? 'pt-BR'
   const messages = getMessages(locale)
   return (
-    <html lang={locale} suppressHydrationWarning>
+    <I18nProvider locale={locale} messages={messages}>
+      {children}
+    </I18nProvider>
+  )
+}
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode
+}>) {
+  return (
+    <html suppressHydrationWarning>
       <body className={`${GeistSans.variable} ${GeistMono.variable} antialiased`}>
         <Providers>
-          <I18nProvider locale={locale} messages={messages}>
-            {children}
-          </I18nProvider>
+          <Suspense fallback={null}>
+            <I18nWrapper>{children}</I18nWrapper>
+          </Suspense>
         </Providers>
       </body>
     </html>

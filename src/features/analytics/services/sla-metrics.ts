@@ -8,7 +8,8 @@ export async function getSlaMetrics(
   endDate: Date,
   projectId?: string
 ) {
-  const distribution = await prisma.$queryRaw`
+  const [distribution, worstSlas] = await Promise.all([
+    prisma.$queryRaw`
     SELECT
       bucket,
       COUNT(*)::int as count,
@@ -30,10 +31,10 @@ export async function getSlaMetrics(
         AND created_at BETWEEN ${startDate} AND ${endDate}
     ) sub
     GROUP BY bucket;
-  `
+  `,
 
-  // Get worst SLAs mapped to user
-  const worstSlas = await prisma.$queryRaw`
+    // Get worst SLAs mapped to user
+    prisma.$queryRaw`
     SELECT
       t.id as ticket_id,
       l.name as lead_name,
@@ -51,7 +52,8 @@ export async function getSlaMetrics(
       AND t.created_at BETWEEN ${startDate} AND ${endDate}
     ORDER BY t.first_response_time_sec DESC
     LIMIT 10;
-  `
+  `,
+  ])
 
   return {
     distribution,
