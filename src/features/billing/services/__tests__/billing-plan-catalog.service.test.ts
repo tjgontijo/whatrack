@@ -36,8 +36,6 @@ describe('billing-plan-catalog.service', () => {
         includedMetaAdAccountsPerProject: 1,
         includedConversionsPerProject: 300,
         supportLevel: 'priority',
-        stripeProductId: 'prod_1',
-        stripePriceId: 'price_1',
         syncStatus: 'synced',
         syncError: null,
         syncedAt: null,

@@ -6,7 +6,7 @@ import { useCallback, useState } from 'react'
 import { toast } from 'sonner'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import { getPixFailureMessage } from '@/lib/billing/pix-failure.helper'
+import { getPixFailureMessage } from '@/features/billing/lib/pix-failure.helper'
 
 export type BillingFailureReason =
   | 'EXPIRED'

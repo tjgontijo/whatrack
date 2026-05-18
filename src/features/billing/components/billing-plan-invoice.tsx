@@ -5,7 +5,7 @@ import { motion } from 'motion/react'
 import { Button } from '@/components/ui/button'
 import { useBillingSubscription } from '@/features/billing/hooks/use-billing-subscription'
 import { useOrganization } from '@/features/organizations/hooks/use-organization'
-import { getBillingStatusLabel } from '@/lib/billing/subscription-status'
+import { getBillingStatusLabel } from '@/features/billing/lib/subscription-status'
 import { formatDate } from '@/lib/date/format-date'
 
 function formatCurrency(value: number) {

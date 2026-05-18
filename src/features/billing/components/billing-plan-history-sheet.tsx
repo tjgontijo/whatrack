@@ -13,7 +13,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import type { BillingPlanHistoryResponse } from '@/features/billing/schemas/billing-plan-schemas'
-import { apiFetch } from '@/lib/api-client'
+import { apiFetch } from '@/lib/http/api-client'
 import { formatDate } from '@/lib/date/format-date'
 
 type BillingPlanHistorySheetProps = {

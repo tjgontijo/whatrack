@@ -1,6 +1,6 @@
 import "server-only"
 import { type NextRequest, NextResponse } from 'next/server'
-import { mapPixAutomaticFailureReason } from '@/lib/billing/pix-failure.helper'
+import { mapPixAutomaticFailureReason } from '@/features/billing/lib/pix-failure.helper'
 import { prisma } from '@/lib/db/prisma'
 import { BillingAsaasConfigService } from './asaas-config.service'
 import { BillingAuditService } from './audit.service'

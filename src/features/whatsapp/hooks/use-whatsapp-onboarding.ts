@@ -8,8 +8,9 @@ import {
   isWhatsAppEmbeddedSignupConfigured,
   WHATSAPP_ONBOARDING_RESULT_STORAGE_KEY,
 } from '@/features/whatsapp/lib/onboarding'
-import { apiFetch } from '@/lib/api-client'
+import { apiFetch } from '@/lib/http/api-client'
 import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
+import { envClient } from '@/lib/env/env-client'
 
 export type OnboardingStatus = 'idle' | 'pending' | 'success'
 
@@ -52,10 +53,10 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
 
     window.fbAsyncInit = () => {
       window.FB.init({
-        appId: process.env.NEXT_PUBLIC_META_APP_ID!,
+        appId: envClient.NEXT_PUBLIC_META_APP_ID,
         cookie: true,
         xfbml: true,
-        version: 'v25.0',
+        version: envClient.NEXT_PUBLIC_META_API_VERSION,
       })
     }
 
@@ -282,7 +283,7 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
             .catch(() => handleFailure('Erro ao conectar com o servidor.'))
         },
         {
-          config_id: process.env.NEXT_PUBLIC_META_CONFIG_ID!,
+          config_id: envClient.NEXT_PUBLIC_META_CONFIG_ID,
           response_type: 'code',
           override_default_response_type: true,
           extras: {

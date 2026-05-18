@@ -33,7 +33,7 @@ import {
   billingPlanSupportLevels,
 } from '@/features/billing/schemas/billing-plan-schemas'
 import { CrudEditDrawer } from '@/features/dashboard/components/crud'
-import { apiFetch } from '@/lib/api-client'
+import { apiFetch } from '@/lib/http/api-client'
 
 type BillingPlanFormDialogProps = {
   open: boolean

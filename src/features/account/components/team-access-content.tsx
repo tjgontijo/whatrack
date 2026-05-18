@@ -79,7 +79,7 @@ type MemberPermissionsResponse = {
   }>
 }
 
-import { apiFetch } from '@/lib/api-client'
+import { apiFetch } from '@/lib/http/api-client'
 
 async function fetchJson<T>(url: string, init?: RequestInit & { orgId?: string }): Promise<T> {
   return apiFetch(url, init)

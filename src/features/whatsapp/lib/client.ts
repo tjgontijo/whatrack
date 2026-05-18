@@ -7,9 +7,6 @@ import type {
   WhatsAppTemplate,
 } from '@/features/whatsapp/types/whatsapp'
 
-const API_VERSION = process.env.META_API_VERSION
-const _GRAPH_API_URL = `https://graph.facebook.com/${API_VERSION}`
-
 import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 
 export const whatsappApi = {

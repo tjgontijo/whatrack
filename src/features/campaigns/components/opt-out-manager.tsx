@@ -35,7 +35,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Textarea } from '@/components/ui/textarea'
-import { apiFetch } from '@/lib/api-client'
+import { apiFetch } from '@/lib/http/api-client'
 
 interface OptOutItem {
   id: string

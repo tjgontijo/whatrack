@@ -16,10 +16,11 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from '@/components/ui/input-group'
-import { apiFetch } from '@/lib/api-client'
+import { apiFetch } from '@/lib/http/api-client'
 import { authClient } from '@/lib/auth/auth-client'
 import { getAuthErrorMessage } from '@/lib/auth/error-messages'
 import { acceptOrganizationInvitation, buildInvitationQuery } from '@/lib/auth/invitation-client'
+import { envClient } from '@/lib/env/env-client'
 import { buildFunnelQueryString, readFunnelIntent } from '@/lib/funnel/funnel-intent'
 import { applyCpfCnpjMask, stripCpfCnpj } from '@/lib/mask/cpf-cnpj'
 import { type SignUpData, signUpSchema } from '@/schemas/auth/sign-up'
@@ -53,7 +54,7 @@ export default function SignUpPage() {
   )
   const funnelQuery = useMemo(() => buildFunnelQueryString(funnelIntent), [funnelIntent])
   const isTrialIntent = funnelIntent.intent === 'start-trial'
-  const ownerEmail = (process.env.NEXT_PUBLIC_OWNER_EMAIL ?? '').trim().toLowerCase()
+  const ownerEmail = (envClient.NEXT_PUBLIC_OWNER_EMAIL ?? '').trim().toLowerCase()
   const postAuthResolutionQuery = useMemo(() => {
     const params = new URLSearchParams()
 

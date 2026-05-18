@@ -16,7 +16,7 @@ import {
   welcomeOnboardingSchema,
 } from '@/features/onboarding/schemas/welcome-onboarding.schemas'
 import type { CompanyLookupData } from '@/features/organizations/schemas/organization-onboarding'
-import { apiFetch } from '@/lib/api-client'
+import { apiFetch } from '@/lib/http/api-client'
 import { authClient } from '@/lib/auth/auth-client'
 import { ORGANIZATION_COOKIE, PROJECT_COOKIE } from '@/lib/constants/http-headers'
 import { applyCpfCnpjMask, stripCpfCnpj } from '@/lib/mask/cpf-cnpj'

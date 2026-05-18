@@ -1,5 +1,5 @@
 import type { NextConfig } from 'next'
-import { GLOBAL_SECURITY_HEADERS } from './src/lib/security/http-security-headers'
+// import { GLOBAL_SECURITY_HEADERS } from './src/lib/security/http-security-headers'
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -10,10 +10,10 @@ const nextConfig: NextConfig = {
 
   headers: async () => {
     return [
-      {
+      /* {
         source: '/:path*',
         headers: GLOBAL_SECURITY_HEADERS,
-      },
+      }, */
     ]
   },
 }

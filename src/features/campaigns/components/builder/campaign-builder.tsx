@@ -29,7 +29,7 @@ import {
 } from '@/features/whatsapp/lib/campaign-csv'
 import { whatsappApi } from '@/features/whatsapp/lib/client'
 import type { WhatsAppTemplate } from '@/features/whatsapp/types/whatsapp'
-import { apiFetch } from '@/lib/api-client'
+import { apiFetch } from '@/lib/http/api-client'
 import { cn } from '@/lib/utils/utils'
 import {
   type AbTestConfigDraft,

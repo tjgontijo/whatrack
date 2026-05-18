@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/select'
 import type { PublicBillingPlan } from '@/features/billing/schemas/billing-plan-schemas'
 import { useOrganization } from '@/features/organizations/hooks/use-organization'
-import { apiFetch } from '@/lib/api-client'
+import { apiFetch } from '@/lib/http/api-client'
 import { cn } from '@/lib/utils/utils'
 import { CheckoutPixQrcode } from './checkout-pix-qrcode'
 

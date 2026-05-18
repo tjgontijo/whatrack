@@ -24,7 +24,7 @@ vi.mock('@/lib/db/prisma', () => ({
   prisma: prismaMock,
 }))
 
-vi.mock('@/lib/billing/providers/init', () => ({
+vi.mock('@/features/billing/lib/providers/init', () => ({
   ensurePaymentProviders: ensurePaymentProvidersMock,
   providerRegistry: {
     getActive: vi.fn(() => ({
@@ -56,7 +56,7 @@ describe('billing-subscription.service', () => {
       trialEndsAt: null,
       createdAt: new Date('2026-03-01T00:00:00.000Z'),
       canceledAt: null,
-      provider: 'stripe',
+      provider: 'asaas',
       providerSubscriptionId: 'sub_1',
       plan: {
         id: 'plan-base',
@@ -99,7 +99,7 @@ describe('billing-subscription.service', () => {
       trialEndsAt: null,
       createdAt: new Date('2026-03-01T00:00:00.000Z'),
       canceledAt: null,
-      provider: 'stripe',
+      provider: 'asaas',
       providerSubscriptionId: 'sub_2',
       plan: {
         id: 'plan-base',

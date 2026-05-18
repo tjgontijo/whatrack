@@ -1,4 +1,4 @@
-import { apiFetch } from '@/lib/api-client'
+import { apiFetch } from '@/lib/http/api-client'
 import { sanitizeInternalPath } from '@/lib/utils/internal-path'
 
 type InvitationApiError = {

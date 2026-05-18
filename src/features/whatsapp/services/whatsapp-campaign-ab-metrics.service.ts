@@ -1,7 +1,7 @@
 import "server-only"
 import { prisma } from '@/lib/db/prisma'
-import type { Result } from '@/lib/shared/result'
-import { fail, ok } from '@/lib/shared/result'
+import type { Result } from '@/lib/utils/result'
+import { fail, ok } from '@/lib/utils/result'
 import { logger } from '@/lib/utils/logger'
 
 export interface VariantMetric {

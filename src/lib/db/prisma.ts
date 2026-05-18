@@ -71,7 +71,7 @@ const globalForPrisma = global as unknown as {
 // the underlying object is still the extended client.
 export const prisma = (globalForPrisma.prisma ?? prismaClientSingleton()) as unknown as PrismaClient
 
-if (process.env.NODE_ENV !== 'production') {
+if (env.NODE_ENV !== 'production') {
   // Store the extended instance in global to avoid re-initialising
   ;(globalForPrisma as any).prisma = prisma
 }

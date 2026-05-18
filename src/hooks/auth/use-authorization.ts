@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { useOrganization } from '@/features/organizations/hooks/use-organization'
-import { apiFetch } from '@/lib/api-client'
+import { apiFetch } from '@/lib/http/api-client'
 import type { Permission } from '@/lib/auth/rbac/roles'
 import { getPermissionCandidates, isAdmin, isOwner } from '@/lib/auth/rbac/roles'
 

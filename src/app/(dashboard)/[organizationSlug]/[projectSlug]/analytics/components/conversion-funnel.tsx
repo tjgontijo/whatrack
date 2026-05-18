@@ -3,7 +3,7 @@
 import { ResponsiveFunnel } from '@nivo/funnel'
 import { useQuery } from '@tanstack/react-query'
 import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
-import { apiFetch } from '@/lib/api-client'
+import { apiFetch } from '@/lib/http/api-client'
 
 export default function ConversionFunnel({
   startDate,

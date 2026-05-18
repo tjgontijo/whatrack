@@ -3,8 +3,8 @@ import type { AbTestCreateInput } from '@/features/whatsapp/lib/schemas/whatsapp
 import { WhatsAppCampaignEventType } from '@/features/whatsapp/lib/types/campaign-events'
 import { runCampaignDispatch } from '@/features/whatsapp/services/whatsapp-campaign-execution.service'
 import { prisma } from '@/lib/db/prisma'
-import type { Result } from '@/lib/shared/result'
-import { fail, ok } from '@/lib/shared/result'
+import type { Result } from '@/lib/utils/result'
+import { fail, ok } from '@/lib/utils/result'
 import { logger } from '@/lib/utils/logger'
 
 export interface AbTestVariant {

@@ -29,7 +29,7 @@ import type {
   BillingPlanListResponse,
 } from '@/features/billing/schemas/billing-plan-schemas'
 import { useRequiredProjectPath } from '@/features/projects/hooks/use-project-route-context'
-import { apiFetch } from '@/lib/api-client'
+import { apiFetch } from '@/lib/http/api-client'
 import { BillingPlanFormDialog } from './billing-plan-form-dialog'
 import { BillingPlanHistorySheet } from './billing-plan-history-sheet'
 import { BillingPlanSyncBadge } from './billing-plan-sync-badge'

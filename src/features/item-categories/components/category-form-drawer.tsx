@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { CrudEditDrawer } from '@/features/dashboard/components/crud'
 import { useOrganization } from '@/features/organizations/hooks/use-organization'
-import { apiFetch } from '@/lib/api-client'
+import { apiFetch } from '@/lib/http/api-client'
 
 const categorySchema = z.object({
   name: z.string().trim().min(1, 'Nome obrigatório'),

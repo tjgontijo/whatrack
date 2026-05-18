@@ -1,7 +1,8 @@
 import { Centrifuge } from 'centrifuge'
+import { envClient } from '@/lib/env/env-client'
 
 export function createCentrifugoClient(token: string) {
-  const client = new Centrifuge(process.env.NEXT_PUBLIC_CENTRIFUGO_URL!, {
+  const client = new Centrifuge(envClient.NEXT_PUBLIC_CENTRIFUGO_URL!, {
     token,
   })
 

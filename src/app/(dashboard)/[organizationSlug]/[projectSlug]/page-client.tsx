@@ -21,7 +21,7 @@ import {
 } from '@/features/dashboard/schemas/dashboard-summary'
 import { buildDashboardSummaryQuery } from '@/features/dashboard/utils/summary-query'
 import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
-import { apiFetch } from '@/lib/api-client'
+import { apiFetch } from '@/lib/http/api-client'
 import { formatCurrencyBRL } from '@/lib/mask/formatters'
 
 const NO_TRAFFIC_SOURCE_VALUE = '__no-source__'

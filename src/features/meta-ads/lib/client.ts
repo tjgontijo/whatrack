@@ -9,7 +9,7 @@ import type {
   MetaPixelConfig,
   MetaRoiResponse,
 } from '@/features/meta-ads/types/meta-ads'
-import { apiFetch } from '@/lib/api-client'
+import { apiFetch } from '@/lib/http/api-client'
 
 export const META_ADS_CONNECT_PATH = '/api/v1/meta-ads/connect'
 

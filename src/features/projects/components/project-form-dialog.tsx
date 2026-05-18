@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input'
 import { CrudEditDrawer } from '@/features/dashboard/components/crud'
 import { useOrganization } from '@/features/organizations/hooks/use-organization'
 import { type ProjectListItem, projectCreateSchema } from '@/features/projects'
-import { apiFetch } from '@/lib/api-client'
+import { apiFetch } from '@/lib/http/api-client'
 import { normalizeSlug } from '@/lib/utils/slug'
 
 type ProjectFormDialogProps = {

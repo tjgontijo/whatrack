@@ -4,7 +4,7 @@ import {
   detectAsaasEnvironmentFromBaseUrl,
   getAsaasBaseUrl,
   normalizeAsaasSecret,
-} from '@/lib/billing/asaas-config'
+} from '@/features/billing/lib/asaas-config'
 
 export interface BillingAsaasRuntimeConfig {
   apiKey: string | null

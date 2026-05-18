@@ -1,4 +1,4 @@
-import { ORGANIZATION_HEADER, PROJECT_HEADER } from './constants/http-headers'
+import { ORGANIZATION_HEADER, PROJECT_HEADER } from '@/lib/constants/http-headers'
 import { getClientProjectId } from './project-client-context'
 
 interface FetchOptions extends RequestInit {

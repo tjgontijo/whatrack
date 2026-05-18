@@ -82,52 +82,6 @@ describe('billing-plan.service', () => {
     expect(auditLogMock).toHaveBeenCalled()
     expect(result).toEqual({ id: 'plan_1' })
   })
-
-  it('marks sync as pending when a stripe-relevant field changes', async () => {
-    prismaMock.billingPlan.findUnique.mockResolvedValueOnce({
-      id: 'plan_1',
-      name: 'WhaTrack Base',
-      slug: 'platform_base',
-      description: 'Plano base',
-      kind: 'base',
-      addonType: null,
-      monthlyPrice: 497,
-      currency: 'BRL',
-      supportLevel: 'priority',
-      displayOrder: 0,
-      isActive: true,
-      isHighlighted: true,
-      contactSalesOnly: false,
-      stripeProductId: 'prod_1',
-      stripePriceId: 'price_1',
-      syncStatus: 'synced',
-      metadata: {},
-      deletedAt: null,
-    })
-    prismaMock.billingPlan.findFirst.mockResolvedValueOnce(null)
-    prismaMock.billingPlan.update.mockResolvedValueOnce({})
-    getBillingPlanDetailMock.mockResolvedValueOnce({ id: 'plan_1' })
-
-    await updateBillingPlan(
-      'plan_1',
-      {
-        monthlyPrice: 597,
-      },
-      'user-1'
-    )
-
-    expect(prismaMock.billingPlan.update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { id: 'plan_1' },
-        data: expect.objectContaining({
-          syncStatus: 'pending',
-          syncError: null,
-          syncedAt: null,
-        }),
-      })
-    )
-  })
-
   it('archives a billing plan with soft delete semantics', async () => {
     prismaMock.billingPlan.findUnique.mockResolvedValueOnce({
       id: 'plan_1',

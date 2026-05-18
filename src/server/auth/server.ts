@@ -1,5 +1,6 @@
 import { cookies, headers as nextHeaders } from 'next/headers'
 import { auth } from '@/lib/auth/auth'
+import { env } from '@/lib/env/env'
 import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/utils/logger'
@@ -66,28 +67,28 @@ export async function getServerSession(request?: Request) {
           maxAge: 0,
           path: '/',
           httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
+          secure: env.NODE_ENV === 'production',
           sameSite: 'lax',
         })
         cookieStore.set('__Secure-better-auth.session_token', '', {
           maxAge: 0,
           path: '/',
           httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
+          secure: env.NODE_ENV === 'production',
           sameSite: 'lax',
         })
         cookieStore.set('better-auth.session_data', '', {
           maxAge: 0,
           path: '/',
           httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
+          secure: env.NODE_ENV === 'production',
           sameSite: 'lax',
         })
         cookieStore.set('__Secure-better-auth.session_data', '', {
           maxAge: 0,
           path: '/',
           httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
+          secure: env.NODE_ENV === 'production',
           sameSite: 'lax',
         })
         return null

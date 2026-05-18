@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useOrganization } from '@/features/organizations/hooks/use-organization'
 import { useProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
-import { apiFetch } from '@/lib/api-client'
+import { apiFetch } from '@/lib/http/api-client'
 
 interface VolumeDataPoint {
   date: string

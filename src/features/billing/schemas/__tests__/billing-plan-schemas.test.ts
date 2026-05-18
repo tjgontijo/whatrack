@@ -46,8 +46,6 @@ describe('billing-plan-schemas', () => {
           includedMetaAdAccountsPerProject: 1,
           includedConversionsPerProject: 300,
           supportLevel: 'priority',
-          stripeProductId: 'prod_1',
-          stripePriceId: 'price_1',
           syncStatus: 'synced',
           syncError: null,
           syncedAt: '2026-03-08T12:00:00.000Z',

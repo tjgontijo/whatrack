@@ -12,7 +12,7 @@ import { ChatWindow } from '@/features/whatsapp/components/inbox/chat-window'
 import { TicketPanel } from '@/features/whatsapp/components/inbox/ticket-panel'
 import type { ChatItem, ChatListResponse } from '@/features/whatsapp/components/inbox/types'
 import { useRealtime } from '@/features/whatsapp/hooks/use-realtime'
-import { apiFetch } from '@/lib/api-client'
+import { apiFetch } from '@/lib/http/api-client'
 import { cn } from '@/lib/utils/utils'
 
 export default function WhatsAppInboxPage() {

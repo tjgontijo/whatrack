@@ -4,7 +4,7 @@ import { CheckCircle2, Clock3, CreditCard, QrCode } from 'lucide-react'
 import { motion } from 'motion/react'
 
 import { useBillingSubscription } from '@/features/billing/hooks/use-billing-subscription'
-import { getBillingStatusLabel } from '@/lib/billing/subscription-status'
+import { getBillingStatusLabel } from '@/features/billing/lib/subscription-status'
 import { formatDate } from '@/lib/date/format-date'
 import { BillingPlanInvoice } from './billing-plan-invoice'
 import { SubscriptionFailureAlert } from './subscription-failure-alert'

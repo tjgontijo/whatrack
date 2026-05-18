@@ -33,6 +33,7 @@ Este PRD cobre melhorias de performance mensuravelmente impactantes no projeto. 
 | `images: { unoptimized: true }` em `next.config.ts` | ativo | LCP, payload de imagens sem resize/compress |
 | `use cache` directive | nenhum uso em todo projeto | sem cache granulado em Server Components |
 | Cache-Control em API routes de leitura | ausente | cada request bate no banco mesmo para dados estaveis |
+| Partial Prerendering (PPR) | desativado | atraso no TTI; shell dinamico ao inves de estatico |
 
 ### Queries de banco de dados
 
@@ -158,6 +159,53 @@ Browser
 
 ---
 
+## 🎭 Eixo B: Performance Percebida (UX)
+
+Este eixo foi adicionado apos auditoria detalhada e feedback do usuario.
+
+### Problema Raiz: Clique sem Feedback
+
+No Next.js App Router, `router.push()` inicia pre-fetch + transicao antes de navegar. Durante 100-800ms o usuario nao ve nada. Resultado: duplo-clique, confusao, sensacao de app lento.
+
+### Inventario de Navegacoes sem Feedback
+
+| Arquivo | Linha | Problema |
+|---------|-------|---------|
+| `features/dashboard/components/layout/topbar.tsx` | 82, 88 | `router.push()` puro em troca de projeto/modo |
+| `features/dashboard/components/layout/topbar.tsx` | 159 | `router.push()` sem disabled/spinner |
+| `features/dashboard/components/sidebar/user-dropdown-menu.tsx` | 63, 71, 82, 88 | `router.push()` em multiplos handlers sem feedback |
+| `app/(auth)/sign-up/page.tsx` | ~166 | navegacao pos-signup sem indicador de progresso |
+| `features/onboarding/components/welcome-onboarding-form.tsx` | ~152 | redirect pos-onboarding sem feedback claro |
+| `features/campaigns/components/campaigns-page.tsx` | varias | router.push sem transition indicator |
+
+### Loading.tsx Ausente (31 rotas dashboard)
+
+Quando usuario navega para uma nova pagina, Next.js mostra tela em branco ate o Server Component completar. `loading.tsx` e mostrado IMEDIATAMENTE enquanto aguarda — percebe-se como pagina instantanea.
+
+**Rotas sem loading.tsx:**
+- `analytics`, `billing`, `campaigns`, `campaigns/[id]`, `campaigns/new`, `campaigns/opt-outs`
+- `catalog`, `equipe`, `item-categories`, `items`, `leads`
+- `meta-ads`, `meta-ads/campaigns`, `minha-conta`, `sales`
+- `settings/profile`, `settings/organization`, `settings/audit`, `settings/audit-logs`
+- `settings/integrations`, `settings/meta-ads`, `settings/subscription`
+- `settings/team`, `settings/whatsapp`, `settings/pipeline`, `settings/webhooks/whatsapp`
+- `tickets`, `whatsapp`, `whatsapp/audiences`, `whatsapp/inbox`
+- `[projectId]` (projeto individual)
+- Auth: `reset-password`, `forgot-password`
+
+### Skeleton Screens
+
+Apenas 7 Suspense boundaries no projeto. Fallbacks existentes usam spinner simples em vez de skeleton com layout fiel ao conteudo.
+
+**Disponivel:** `shadcn/ui Skeleton` ja importado em alguns arquivos (`@/components/ui/skeleton`).
+
+**Patterns existentes para reusar:**
+- `BillingPageSkeleton` — em `features/billing/components/billing-page-skeleton`
+- `AccountPageSkeleton` — em `features/account/components/account-page-skeleton`
+- `TableSkeleton` — em `features/dashboard/components/states/table-skeleton`
+
+---
+
 ## 📝 Resumo para Implementacao
 
 - Fixes de N+1 sao cirurgicos: 2 arquivos, impacto imediato mensuravel.
@@ -165,4 +213,5 @@ Browser
 - `images: { unoptimized: true }` deve ser removido ou substituido por dominios permitidos.
 - Server Components exigem analise caso a caso: nem toda pagina com `"use client"` pode ser convertida sem refatorar o componente raiz.
 - `use cache` e a maior alavanca de performance para dados semi-estaveis (dashboards, listas de configuracao).
-- PRD-003 completo deve incluir DIAGNOSTIC, TASKS e QUICK_START baseados neste contexto.
+- Feedback de clique imediato e a maior alavanca de UX percebida — resolve o problema reportado de duplo-clique e sensacao de app lento.
+- `loading.tsx` + skeleton sao o par perfeito: loading.tsx e mostrado durante pre-fetch, skeleton mantem layout fiel enquanto dados chegam.

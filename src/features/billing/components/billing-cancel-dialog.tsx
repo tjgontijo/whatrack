@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { useOrganization } from '@/features/organizations/hooks/use-organization'
-import { apiFetch } from '@/lib/api-client'
+import { apiFetch } from '@/lib/http/api-client'
 import { cn } from '@/lib/utils/utils'
 
 interface BillingCancelDialogProps {

@@ -17,7 +17,7 @@ const prismaMock = vi.hoisted(() => ({
 
 const providerMock = vi.hoisted(() => ({
   createCheckoutSession: vi.fn(),
-  getProviderId: vi.fn(() => 'stripe'),
+  getProviderId: vi.fn(() => 'asaas'),
 }))
 
 const ensurePaymentProvidersMock = vi.hoisted(() => vi.fn())
@@ -28,7 +28,7 @@ vi.mock('@/lib/db/prisma', () => ({
   prisma: prismaMock,
 }))
 
-vi.mock('@/lib/billing/providers/init', () => ({
+vi.mock('@/features/billing/lib/providers/init', () => ({
   ensurePaymentProviders: ensurePaymentProvidersMock,
   providerRegistry: {
     getActive: getActiveProviderMock,
@@ -56,7 +56,6 @@ describe('billing-checkout.service', () => {
       id: 'plan-base',
       slug: 'platform_base',
       name: 'WhaTrack Base',
-      stripePriceId: 'price_base',
       syncStatus: 'synced',
       isActive: true,
       deletedAt: null,
@@ -77,7 +76,7 @@ describe('billing-checkout.service', () => {
     providerMock.createCheckoutSession.mockResolvedValueOnce({
       id: 'cs_1',
       customerId: 'cust-1',
-      url: 'https://checkout.stripe.com/c/pay/cs_1',
+      url: 'https://sandbox.asaas.com/v3/payments/pay/cs_1',
       expiresAt: new Date('2026-03-31T00:00:00.000Z'),
       method: 'card',
     })
@@ -104,8 +103,8 @@ describe('billing-checkout.service', () => {
       skipTrial: false,
     })
     expect(result).toEqual({
-      url: 'https://checkout.stripe.com/c/pay/cs_1',
-      provider: 'stripe',
+      url: 'https://sandbox.asaas.com/v3/payments/pay/cs_1',
+      provider: 'asaas',
     })
   })
 
@@ -123,7 +122,7 @@ describe('billing-checkout.service', () => {
     providerMock.createCheckoutSession.mockResolvedValueOnce({
       id: 'cs_2',
       customerId: 'cust-2',
-      url: 'https://checkout.stripe.com/c/pay/cs_2',
+      url: 'https://sandbox.asaas.com/c/pay/cs_2',
       expiresAt: new Date('2026-03-31T00:00:00.000Z'),
       method: 'card',
     })

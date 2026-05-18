@@ -2,7 +2,7 @@
 
 import { useLayoutEffect } from 'react'
 
-import { setClientProjectId } from '@/lib/project-client-context'
+import { setClientProjectId } from '@/lib/http/project-client-context'
 
 export function ProjectClientContextSync({ projectId }: { projectId: string }) {
   useLayoutEffect(() => {

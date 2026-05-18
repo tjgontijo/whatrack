@@ -4,7 +4,7 @@ import { useInfiniteQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { useOrganization } from '@/features/organizations/hooks/use-organization'
 import { useProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
-import { apiFetch } from '@/lib/api-client'
+import { apiFetch } from '@/lib/http/api-client'
 
 interface ApiPage<T> {
   items: T[]

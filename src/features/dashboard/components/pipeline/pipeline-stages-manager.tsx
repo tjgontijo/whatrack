@@ -42,7 +42,7 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { DeleteConfirmDialog } from '@/features/dashboard/components/crud/delete-confirm-dialog'
 import { EmptyState, LoadingPage } from '@/features/dashboard/components/states'
-import { apiFetch } from '@/lib/api-client'
+import { apiFetch } from '@/lib/http/api-client'
 
 const PRESET_COLORS = [
   '#6366f1',

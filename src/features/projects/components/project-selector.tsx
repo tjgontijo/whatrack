@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
 import type { ProjectListResponse } from '@/features/projects'
-import { apiFetch } from '@/lib/api-client'
+import { apiFetch } from '@/lib/http/api-client'
 
 const UNASSIGNED_PROJECT_VALUE = '__unassigned__'
 

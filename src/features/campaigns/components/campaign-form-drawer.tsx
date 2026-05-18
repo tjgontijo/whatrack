@@ -18,7 +18,7 @@ import {
 } from '@/features/whatsapp/lib/campaign-csv'
 import { whatsappApi } from '@/features/whatsapp/lib/client'
 import type { WhatsAppTemplate } from '@/features/whatsapp/types/whatsapp'
-import { apiFetch } from '@/lib/api-client'
+import { apiFetch } from '@/lib/http/api-client'
 import { CampaignWizardStepBasic } from './campaign-wizard-step-basic'
 import { CampaignWizardStepDispatch } from './campaign-wizard-step-dispatch'
 import { CampaignWizardStepRecipients } from './campaign-wizard-step-recipients'

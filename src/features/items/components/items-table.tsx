@@ -18,7 +18,7 @@ import type { ColumnDef, RowActions } from '@/features/dashboard/components/crud
 import { HeaderPageShell } from '@/features/dashboard/components/layout'
 import { useOrganization } from '@/features/organizations/hooks/use-organization'
 import { useCrudInfiniteQuery } from '@/hooks/ui/use-crud-infinite-query'
-import { apiFetch } from '@/lib/api-client'
+import { apiFetch } from '@/lib/http/api-client'
 import { ItemFormDrawer } from './item-form-drawer'
 
 type Item = {

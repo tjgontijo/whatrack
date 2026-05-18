@@ -26,7 +26,7 @@ import { HeaderPageShell } from '@/features/dashboard/components/layout'
 import type { ProjectListItem } from '@/features/projects'
 import { useRequiredProjectPath } from '@/features/projects/hooks/use-project-route-context'
 import { useCrudInfiniteQuery } from '@/hooks/ui/use-crud-infinite-query'
-import { apiFetch } from '@/lib/api-client'
+import { apiFetch } from '@/lib/http/api-client'
 import { ProjectFormDialog } from './project-form-dialog'
 
 function formatDate(value: string) {

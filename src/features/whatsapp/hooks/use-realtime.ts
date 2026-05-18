@@ -2,7 +2,7 @@
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
-import { apiFetch } from '@/lib/api-client'
+import { apiFetch } from '@/lib/http/api-client'
 import { createCentrifugoClient, subscribeTo } from '@/lib/centrifugo/client'
 
 function _normalizeCentrifugoIssue(payload: unknown) {

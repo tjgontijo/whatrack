@@ -4,12 +4,6 @@ import { encryption } from '@/lib/utils/encryption'
 import { metaApiRequest } from './meta-api'
 import { env } from '@/lib/env/env'
 
-function requireEnv(name: string): string {
-  const value = process.env[name]
-  if (!value) throw new Error(`[MetaAccessTokenService] ${name} environment variable is required`)
-  return value
-}
-
 interface MetaTokenDebug {
   data: {
     app_id: string
@@ -34,8 +28,8 @@ export class MetaAccessTokenService {
   async getShortLivedToken(code: string, redirectUri?: string): Promise<string> {
     const response = await metaApiRequest<{ access_token: string }>('oauth/access_token', {
       params: {
-        client_id: requireEnv('META_ADS_APP_ID'),
-        client_secret: requireEnv('META_ADS_APP_SECRET'),
+        client_id: env.META_ADS_APP_ID,
+        client_secret: env.META_ADS_APP_SECRET,
         redirect_uri:
           redirectUri ||
           env.META_OAUTH_REDIRECT_URI || `${env.APP_URL}/api/v1/meta-ads/callback`,
@@ -57,8 +51,8 @@ export class MetaAccessTokenService {
       {
         params: {
           grant_type: 'fb_exchange_token',
-          client_id: requireEnv('META_ADS_APP_ID'),
-          client_secret: requireEnv('META_ADS_APP_SECRET'),
+          client_id: env.META_ADS_APP_ID,
+          client_secret: env.META_ADS_APP_SECRET,
           fb_exchange_token: shortLivedToken,
         },
       }
@@ -93,8 +87,8 @@ export class MetaAccessTokenService {
    * Debug Token to verify scopes and validity
    */
   async debugToken(accessToken: string): Promise<MetaTokenDebug['data']> {
-    const appId = requireEnv('META_ADS_APP_ID')
-    const appSecret = requireEnv('META_ADS_APP_SECRET')
+    const appId = env.META_ADS_APP_ID
+    const appSecret = env.META_ADS_APP_SECRET
     const appToken = `${appId}|${appSecret}`
     const response = await metaApiRequest<MetaTokenDebug>('debug_token', {
       params: {
