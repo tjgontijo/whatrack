@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { signUpSchema } from '@/schemas/auth/sign-up'
+import { signUpSchema } from '@/features/auth/schemas/sign-up'
 
 describe('signUpSchema', () => {
   it('accepts payload without phone', () => {

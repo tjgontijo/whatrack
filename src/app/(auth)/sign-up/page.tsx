@@ -23,7 +23,7 @@ import { acceptOrganizationInvitation, buildInvitationQuery } from '@/lib/auth/i
 import { envClient } from '@/lib/env/env-client'
 import { buildFunnelQueryString, readFunnelIntent } from '@/lib/funnel/funnel-intent'
 import { applyCpfCnpjMask, stripCpfCnpj } from '@/lib/mask/cpf-cnpj'
-import { type SignUpData, signUpSchema } from '@/schemas/auth/sign-up'
+import { type SignUpData, signUpSchema } from '@/features/auth/schemas/sign-up'
 
 type SignUpErrorShape = {
   code?: string
