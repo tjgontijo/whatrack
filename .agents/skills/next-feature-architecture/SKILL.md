@@ -1,15 +1,15 @@
 ---
 name: next-feature-architecture
-description: Use esta skill ao criar, alterar ou revisar código em projetos Next.js que seguem arquitetura por features, separação forte de responsabilidades, arquivos pequenos, services, repositories, schemas, hooks, mutations, API routes e acesso organizado ao banco de dados.
+description: Use esta skill ao criar, alterar ou revisar código em projetos Next.js 15+ com App Router, arquitetura por features, separação forte de responsabilidades, arquivos pequenos, services, repositories, schemas, hooks, mutations, API routes e acesso organizado ao banco de dados.
 ---
 
 # Skill: Next.js Feature Architecture
 
 ## Objetivo
 
-Guiar o desenvolvimento em projetos Next.js usando uma arquitetura modular por domínio, com responsabilidades bem separadas, arquivos pequenos e baixo acoplamento entre features.
+Guiar o desenvolvimento em projetos Next.js 15+ (App Router) usando arquitetura modular por domínio, com responsabilidades bem separadas, arquivos pequenos e baixo acoplamento entre features.
 
-A prioridade é manter o código previsível, fácil de navegar, fácil de testar e seguro para server/client boundaries.
+Prioridade: código previsível, fácil de navegar, fácil de testar, seguro para server/client boundaries e performático.
 
 ## Princípios obrigatórios
 
@@ -23,21 +23,21 @@ A prioridade é manter o código previsível, fácil de navegar, fácil de testa
 8. Preferir composição na rota/página em vez de uma feature importar outra diretamente.
 9. Validar entradas com schemas antes de executar regra de negócio.
 10. Colocar regras sensíveis no servidor.
-11. Evitar useEffect, usando apenas em casos estritamente justificados.
-12. Priorizar TanStack Query para busca e sincronização de dados.
-13. Em Next.js 16+, usar `src/proxy.ts` em vez de `src/middleware.ts`.
-14. Usar Cache Components com a diretiva `'use cache'` e a função `cacheLife()` para controle de cache granulado.
-15. Focar em performance de consultas e renderização (ex: react-virtuoso para listas longas).
-16. **IDs e UUIDs**: Proibido gerar IDs no código (ex: `cuid`, `nanoid`). Sempre use `uuid` com a responsabilidade de geração delegada ao PostgreSQL (`.defaultRandom()`).
+11. Evitar `useEffect`, usando apenas em casos estritamente justificados.
+12. Priorizar TanStack Query para busca e sincronização de dados client-side.
+13. **IDs e UUIDs**: Proibido gerar IDs no código (`cuid`, `nanoid`, `uuid`). Delegar geração ao banco (`.defaultRandom()` Drizzle / `@default(uuid())` Prisma).
+14. **Env vars**: Nunca usar `process.env.FOO` direto. Validar todas via `src/lib/env.ts` no boot.
+15. **select/columns obrigatório**: Todo acesso ao banco deve especificar campos explicitamente. Nunca depender de `select *` implícito.
+16. **Queries paralelas**: Usar `Promise.all` para queries independentes no mesmo repository ou service.
 
 ## Estrutura padrão do projeto
-
-Use esta estrutura como referência principal:
 
 ```txt
 src/
   app/
     api/
+    (public)/
+    (dashboard)/
     layout.tsx
     page.tsx
 
@@ -60,10 +60,15 @@ src/
       index.ts
       server.ts
 
+  server/
+    auth/
+      get-current-user-id.ts
+
   lib/
     db/
-      prisma.ts
-    utils.ts
+      index.ts        ← exporta o cliente do ORM (Prisma ou Drizzle)
+    env.ts
+    utils/
 
   config/
   constants/
@@ -74,228 +79,442 @@ src/
 
 ### `src/app`
 
-Use para rotas, layouts, páginas, handlers HTTP e composição entre features.
-
-Não coloque regra de negócio complexa em `app/`.
+Rotas, layouts, páginas, handlers HTTP e composição entre features. Não coloque regra de negócio complexa em `app/`.
 
 ### `src/app/api`
 
-Use apenas como camada HTTP. Uma API route deve ler a request, chamar um service da feature e retornar a response. Não deve acessar o banco diretamente.
+Camada HTTP fina. Uma API route deve: ler a request → chamar service → retornar response. Nunca acessar banco diretamente.
 
-## Features
+### `src/features/[domain]`
 
-Cada domínio deve ficar em `src/features/[domain]/`. Tudo que é específico daquele domínio deve morar dentro da feature.
+Tudo específico daquele domínio: services, repositories, hooks, schemas, components.
+
+### `src/server/auth`
+
+Helpers de autenticação server-side. Centraliza lógica de sessão. Nunca duplicar em features.
+
+### `src/lib/db`
+
+Fornece o cliente do ORM configurado. Importado apenas por repositories.
+
+```ts
+// src/lib/db/index.ts — Prisma
+import "server-only"
+import { PrismaClient } from "@prisma/client"
+export const db = new PrismaClient()
+
+// src/lib/db/index.ts — Drizzle
+import "server-only"
+import { drizzle } from "drizzle-orm/node-postgres"
+import { Pool } from "pg"
+import { env } from "@/lib/env"
+export const db = drizzle(new Pool({ connectionString: env.DATABASE_URL }))
+```
 
 ## Regra de camadas (Fluxo de Dados)
-
-Siga este fluxo rigorosamente:
 
 ```txt
 Component
   chama hook, query ou mutation
 
-Mutation ou Query
+Mutation ou Query (TanStack Query)
   chama API route ou Server Action
 
-Server Action
-  "use server"
-  pega usuário autenticado (getCurrentUserId)
-  chama service passando input (unknown)
+API Route ou Server Action
+  autentica usuário (getCurrentUserId)
+  chama service passando input como unknown
+  retorna HTTP response ou dado
 
 Service
   "server-only"
-  valida input com schema (parse)
+  valida input com schema (safeParse)
   aplica regra de negócio
-  chama repository
+  chama repository(ies)
+  retorna { data } | { error, status }
 
 Repository
   "server-only"
-  acessa o banco de dados (prisma)
+  acessa banco via db
+  select/columns explícitos obrigatórios
+  Promise.all para queries independentes
+  sem regra de negócio
 
-lib/db/prisma.ts
+lib/db/index.ts
   fornece a conexão com o banco
+```
+
+## Variáveis de Ambiente
+
+Nunca acessar `process.env` diretamente no código. Centralizar em `src/lib/env.ts`:
+
+```ts
+// src/lib/env.ts
+import "server-only"
+import { z } from "zod"
+
+const envSchema = z.object({
+  DATABASE_URL: z.string().url(),
+  AUTH_SECRET: z.string().min(32),
+  NEXT_PUBLIC_APP_URL: z.string().url(),
+})
+
+export const env = envSchema.parse(process.env)
+```
+
+Regras:
+- Variáveis server-only: sem prefixo, importadas de `env.ts` (server-only)
+- Variáveis client: prefixo `NEXT_PUBLIC_`, podem ter schema separado sem `server-only`
+- Falha no boot se variável obrigatória ausente — erros explícitos, sem undefined silencioso
+
+## Autenticação
+
+Helper compartilhado — nunca duplicar lógica de sessão nas features:
+
+```ts
+// src/server/auth/get-current-user-id.ts
+import "server-only"
+
+export async function getCurrentUserId(request?: Request): Promise<string | null> {
+  // implementação específica do projeto (better-auth, next-auth, clerk, etc.)
+  const session = await getServerSession(request)
+  return session?.user?.id ?? null
+}
+```
+
+Uso em routes e actions:
+
+```ts
+const userId = await getCurrentUserId(request)
+if (!userId) return apiError("Unauthorized", 401)
 ```
 
 ## Server Actions
 
-Server Actions devem ser uma camada fina entre o client e os services.
+Camada fina entre client e services.
+
+```ts
+// features/cases/actions/create-case.action.ts
+"use server"
+
+import { getCurrentUserId } from "@/server/auth/get-current-user-id"
+import { createCaseService } from "../services/create-case.service"
+
+export async function createCaseAction(input: unknown) {
+  const userId = await getCurrentUserId()
+  if (!userId) throw new Error("Não autorizado")
+  return createCaseService(userId, input)
+}
+```
 
 Uma action deve:
-
 1. Usar `"use server"`.
-2. Autenticar o usuário quando necessário.
+2. Autenticar o usuário.
 3. Receber input como `unknown`.
 4. Chamar um service da feature.
 5. Não conter regra de negócio.
 6. Não acessar banco diretamente.
 7. Não validar manualmente quando já existe schema.
 
-Exemplo correto:
+## API Routes
 
 ```ts
-"use server";
+// app/api/v1/cases/route.ts
+import { getCurrentUserId } from "@/server/auth/get-current-user-id"
+import { createCaseService } from "@/features/cases/services/create-case.service"
+import { apiError, apiSuccess } from "@/lib/utils/api-response"
 
-import { getCurrentUserId } from "@/server/auth/get-current-user-id";
-import { createCaseService } from "./services/create-case.service";
-import { listCasesService } from "./services/list-cases.service";
+export async function POST(request: Request) {
+  const userId = await getCurrentUserId(request)
+  if (!userId) return apiError("Unauthorized", 401)
 
-export async function createCaseAction(input: unknown) {
-	const userId = await getCurrentUserId();
-	return createCaseService(userId, input);
-}
+  const body = await request.json().catch(() => ({}))
+  const result = await createCaseService(userId, body)
 
-export async function listCasesAction() {
-	const userId = await getCurrentUserId();
-	return listCasesService(userId);
-}
-```
-
-Evite:
-
-```ts
-"use server";
-
-import { prisma } from "@/lib/db/prisma";
-
-export async function createCaseAction(input: CreateCaseInput) {
-	return prisma.patientCase.create({ data: input });
+  if ("error" in result) return apiError(result.error, result.status ?? 400)
+  return apiSuccess(result.data)
 }
 ```
 
-Server Actions não devem importar `prisma`, ORMs ou repositories diretamente quando houver service.
+## Services
 
-## Autenticação em Actions
-
-Não duplique lógica de sessão dentro das features. Crie um helper compartilhado em `src/server/auth/get-current-user-id.ts`.
-
-Exemplo:
+Um arquivo por caso de uso. Retorno padronizado: `{ data }` ou `{ error, status }`.
 
 ```ts
-import "server-only";
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
+// features/cases/services/create-case.service.ts
+import "server-only"
+import { z } from "zod"
+import { createCaseRepository } from "../repositories/create-case.repository"
 
-export async function getCurrentUserId() {
-	const session = await auth.api.getSession({
-		headers: await headers(),
-	});
+const createCaseSchema = z.object({
+  title: z.string().min(1),
+  description: z.string().optional(),
+})
 
-	if (!session?.user?.id) {
-		throw new Error("Não autorizado");
-	}
-
-	return session.user.id;
-}
-```
-
-As features devem chamar esse helper em vez de repetir lógica de sessão.
-
-## Validação de Entrada
-
-Toda entrada que vem de Server Action, API Route, formulário, query string ou client deve ser tratada como `unknown`. O service é responsável por validar o input com schema.
-
-Correto:
-
-```ts
 export async function createCaseService(userId: string, input: unknown) {
-	const data = createCaseSchema.parse(input);
-	return createCaseRepository(userId, data);
+  const parsed = createCaseSchema.safeParse(input)
+  if (!parsed.success) {
+    return { error: "Dados inválidos", status: 400 as const, details: parsed.error.flatten() }
+  }
+
+  const record = await createCaseRepository({ userId, ...parsed.data })
+  return { data: record }
 }
 ```
 
-Evite:
-
-```ts
-export async function createCaseService(userId: string, input: CreateCaseInput) {
-	return createCaseRepository(userId, input);
-}
-```
-
-Motivo: TypeScript não valida dados em runtime. O uso de `unknown` força a validação.
-
-## Services Pequenos
-
-Services representam casos de uso. Use um arquivo por caso de uso.
-
-Cada service deve:
-
+Services devem:
 1. Usar `import "server-only"`.
-2. Receber input como `unknown` quando vier do client.
-3. Validar com schema.
-4. Aplicar regra de negócio.
+2. Receber `input: unknown` quando vier do client.
+3. Validar com Zod (`safeParse` para retornar erro controlado).
+4. Retornar `{ data }` em sucesso ou `{ error, status }` em falha.
 5. Chamar repositories.
-6. Retornar dados do domínio ou DTOs.
 
 Services não devem:
-
-1. Importar `prisma` diretamente.
+1. Importar `db` diretamente.
 2. Importar `NextResponse`.
 3. Receber `Request`.
 4. Ter JSX.
 5. Ser usados em Client Components.
 
-## Repositories Pequenos
+## Repositories
 
-Repositories devem ser separados por operação de banco. Um arquivo por operação.
+Um arquivo por operação. Select/columns **sempre** explícitos.
 
-Use:
+```ts
+// features/cases/repositories/find-case-by-id.repository.ts
+import "server-only"
+import { db } from "@/lib/db"
 
-```txt
-repositories/
-  create-case.repository.ts
-  find-case-by-id.repository.ts
+// Prisma
+export async function findCaseById(id: string, userId: string) {
+  return db.case.findUnique({
+    where: { id, userId },
+    select: { id: true, title: true, description: true, createdAt: true },
+  })
+}
+
+// Drizzle
+export async function findCaseById(id: string, userId: string) {
+  return db
+    .select({ id: cases.id, title: cases.title, description: cases.description, createdAt: cases.createdAt })
+    .from(cases)
+    .where(and(eq(cases.id, id), eq(cases.userId, userId)))
+    .limit(1)
+    .then(rows => rows[0] ?? null)
+}
+```
+
+Queries independentes em `Promise.all`:
+
+```ts
+// features/billing/repositories/find-checkout-page-data.repository.ts
+import "server-only"
+import { db } from "@/lib/db"
+
+export async function findCheckoutPageData(organizationId: string) {
+  const [subscription, profile, projects] = await Promise.all([
+    db.billingSubscription.findUnique({
+      where: { organizationId },
+      select: { isActive: true, plan: true },
+    }),
+    db.organizationProfile.findUnique({
+      where: { organizationId },
+      select: { onboardingStatus: true },
+    }),
+    db.project.findMany({
+      where: { organizationId, isArchived: false },
+      select: { id: true, name: true, slug: true },
+      orderBy: { name: "asc" },
+    }),
+  ])
+
+  return { subscription, profile, projects }
+}
 ```
 
 Cada repository deve:
-
 1. Usar `import "server-only"`.
-2. Importar `prisma` de `@/lib/db/prisma`.
-3. Executar uma operação clara de banco.
-4. Não conter regra de negócio.
-5. Não validar input de formulário.
+2. Importar `db` de `@/lib/db`.
+3. Especificar `select` (Prisma) ou colunas explícitas (Drizzle) — **sem exceção**.
+4. Usar `Promise.all` para queries independentes.
+5. Não conter regra de negócio.
+6. Não validar input de formulário.
+
+## Schemas Compartilhados
+
+Mesmo schema Zod para client (formulário) e server (service):
+
+```ts
+// features/cases/schemas/create-case.schema.ts
+import { z } from "zod"
+
+export const createCaseSchema = z.object({
+  title: z.string().min(1, "Título obrigatório"),
+  description: z.string().optional(),
+})
+
+export type CreateCaseInput = z.infer<typeof createCaseSchema>
+```
+
+Client (react-hook-form):
+```ts
+import { createCaseSchema } from "@/features/cases/schemas/create-case.schema"
+const form = useForm({ resolver: zodResolver(createCaseSchema) })
+```
+
+Server (service):
+```ts
+import { createCaseSchema } from "../schemas/create-case.schema"
+const parsed = createCaseSchema.safeParse(input)
+```
+
+## Cache
+
+### `use cache` (Next.js 15+ canary / 16+)
+
+Para Server Components e funções server com dados cacheáveis:
+
+```ts
+import { unstable_cacheLife as cacheLife, unstable_cacheTag as cacheTag } from "next/cache"
+
+async function getCasesForOrg(organizationId: string) {
+  "use cache"
+  cacheLife("hours")
+  cacheTag(`org-cases:${organizationId}`)
+
+  return findCasesByOrgRepository(organizationId)
+}
+```
+
+Invalidar após mutation:
+
+```ts
+import { revalidateTag } from "next/cache"
+
+export async function createCaseService(userId: string, input: unknown) {
+  // ... criar case
+  revalidateTag(`org-cases:${organizationId}`)
+  return { data: newCase }
+}
+```
+
+### React `cache()` para deduplicação no request
+
+```ts
+import { cache } from "react"
+import { findCaseById } from "../repositories/find-case-by-id.repository"
+
+export const getCaseById = cache(findCaseById)
+// Múltiplos Server Components chamando getCaseById com mesmo ID = 1 query
+```
+
+## Streaming com Suspense
+
+Isolar Server Components lentos para não bloquear o layout:
+
+```tsx
+// app/(dashboard)/cases/page.tsx
+import { Suspense } from "react"
+import { CaseList } from "@/features/cases/components/case-list"
+import { CaseListSkeleton } from "@/features/cases/components/case-list-skeleton"
+
+export default function CasesPage() {
+  return (
+    <div>
+      <h1>Cases</h1>
+      <Suspense fallback={<CaseListSkeleton />}>
+        <CaseList />  {/* Server Component com await interno */}
+      </Suspense>
+    </div>
+  )
+}
+```
+
+Regra: cada seção independente da página deve ter seu próprio `<Suspense>`. Nunca `await` na raiz do page que bloqueia tudo.
+
+## Error, Not Found e Loading
+
+```ts
+// Em route handlers: HTTP explícito
+return apiError("Recurso não encontrado", 404)
+
+// Em Server Components: funções do Next.js
+import { notFound } from "next/navigation"
+if (!record) notFound()  // renderiza not-found.tsx do segmento mais próximo
+```
+
+Cada `(grupo)/` ou rota com dados deve ter:
+- `loading.tsx` — skeleton exibido automaticamente pelo Suspense do layout
+- `error.tsx` — captura erros inesperados (`"use client"` obrigatório)
+- `not-found.tsx` — para `notFound()` explícito
+
+## Rendering: Static vs Dynamic
+
+Next.js 15 é estático por padrão. Para opt-in em rendering dinâmico:
+
+```ts
+// Explícito — preferido sobre depender de cookies()/headers() como side effect
+import { connection } from "next/server"
+await connection()
+
+// Ou via export no topo do arquivo
+export const dynamic = "force-dynamic"
+```
+
+Regra: use `dynamic = "force-dynamic"` apenas em rotas que genuinamente precisam de dados por request. Deixar estático tudo que puder.
 
 ## Exports Públicos da Feature
 
-O arquivo `index.ts` da feature deve exportar apenas a API pública segura da feature.
-
-Pode exportar:
-
-1. Components públicos.
-2. Schemas que podem ser usados por formulários.
-3. Types públicos.
-4. Constants públicas.
-
-Não deve exportar:
-
-1. Actions.
-2. Services.
-3. Repositories.
-4. DB types internos.
-
-Exemplo recomendado (`index.ts`):
+`index.ts` exporta apenas API pública segura da feature:
 
 ```ts
-export { CaseForm } from "./components/CaseForm";
-export { createCaseSchema } from "./schemas/create-case.schema";
-export type { CaseDTO } from "./types";
+// features/cases/index.ts
+export { CaseForm } from "./components/case-form"
+export { createCaseSchema } from "./schemas/create-case.schema"
+export type { CreateCaseInput, CaseDTO } from "./types"
 ```
 
-Actions devem ser importadas explicitamente de seus arquivos para deixar claro o boundary:
+Não exportar: Actions, Services, Repositories, tipos internos do banco.
 
+Actions importadas explicitamente para deixar o boundary claro:
 ```ts
-import { createCaseAction } from "@/features/cases/actions";
+import { createCaseAction } from "@/features/cases/actions/create-case.action"
 ```
 
-## Server boundaries
+## Server Boundaries
 
-Qualquer arquivo que acessa banco, secrets ou autenticação deve usar `import "server-only"`. Isso inclui Services, Repositories e arquivos nas pastas `server/` e `lib/`.
+Arquivos que acessam banco, secrets ou autenticação devem usar `import "server-only"`. Isso inclui Services, Repositories, e qualquer arquivo em `server/` ou `lib/db/`.
 
-## Critério de conclusão
+Arquivos de utilitários puros em `lib/` (formatação, validação, constantes) não precisam de `server-only`.
+
+## Validação de Entrada
+
+Toda entrada vinda de Server Action, API Route, formulário, query string ou client deve ser tratada como `unknown`. O service valida com schema.
+
+Correto:
+```ts
+export async function createCaseService(userId: string, input: unknown) {
+  const data = createCaseSchema.safeParse(input)
+  if (!data.success) return { error: "Inválido", status: 400 as const }
+  // ...
+}
+```
+
+Errado:
+```ts
+export async function createCaseService(userId: string, input: CreateCaseInput) {
+  // TypeScript não valida em runtime — dados externos podem não bater com o tipo
+}
+```
+
+## Critério de Conclusão
 
 Uma tarefa só está pronta se:
 
-1. Seguir o fluxo: Action (unknown) -> Service (parse) -> Repository (db).
-2. Tiver arquivos pequenos e especializados (um por intenção).
-3. `index.ts` estiver limpo de código server-only.
-4. `getCurrentUserId` for usado para autenticação.
-5. Estiver 100% livre de erros de lint.
+1. Segue o fluxo: Component → Query/Mutation → Route/Action → Service → Repository → DB.
+2. Arquivos pequenos e especializados (um por intenção).
+3. `index.ts` limpo de código server-only.
+4. `getCurrentUserId` usado para autenticação — sem lógica de sessão duplicada.
+5. Todo acesso ao banco tem `select`/colunas explícitos.
+6. Queries independentes usam `Promise.all`.
+7. Env vars acessadas via `env.ts`, nunca `process.env` direto.
+8. Build e type-check sem erros.
