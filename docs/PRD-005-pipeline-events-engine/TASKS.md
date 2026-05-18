@@ -6,7 +6,7 @@
 
 ## 🔴 Fase 1: Schema (1.5h)
 
-### T1: Schema — MetaEventType + TicketStageMetaRule + MetaConversionEvent (1.5h)
+### T1: Schema — MetaEventType + DealStageMetaRule + MetaConversionEvent (1.5h)
 
 **Localizacao:** `prisma/schema.prisma`
 
@@ -24,40 +24,40 @@ model MetaEventType {
 }
 ```
 
-2. Criar `TicketStageMetaRule`:
+2. Criar `DealStageMetaRule`:
 
 ```prisma
-model TicketStageMetaRule {
+model DealStageMetaRule {
   id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   stageId   String    @db.Uuid
   pixelId   String    @db.Uuid
   eventName String    // padrao (ex: "Purchase") ou custom digitado pelo usuario
   fireOnce  Boolean   @default(true)
 
-  stage TicketStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  stage DealStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
   pixel MetaPixel   @relation(fields: [pixelId], references: [id], onDelete: Cascade)
 
   @@unique([stageId, pixelId, eventName])
-  @@map("crm_ticket_stage_meta_rules")
+  @@map("crm_deal_stage_meta_rules")
 }
 ```
 
-3. Adicionar em `TicketStage`:
+3. Adicionar em `DealStage`:
 ```prisma
-metaRules TicketStageMetaRule[]
+metaRules DealStageMetaRule[]
 ```
 
 4. Adicionar em `MetaPixel`:
 ```prisma
-stageRules TicketStageMetaRule[]
+stageRules DealStageMetaRule[]
 ```
 
 5. Em `MetaConversionEvent`: adicionar `pixelId` e atualizar unique:
 ```prisma
 pixelId  String  @db.Uuid
-// remover: @@unique([ticketId, eventName])
+// remover: @@unique([dealId, eventName])
 // adicionar:
-@@unique([ticketId, pixelId, eventName])
+@@unique([dealId, pixelId, eventName])
 ```
 
 6. Rodar migration: `npx prisma migrate dev --name add_pipeline_events_engine`
@@ -96,21 +96,21 @@ for (const event of standardEvents) {
 
 **Problema:** Server Action do kanban bypassa hook CAPI — nenhum evento dispara ao mover cards hoje.
 
-**Localizacao:** `src/features/tickets/actions/update-ticket-stage-action.ts`
+**Localizacao:** `src/features/deals/actions/update-deal-stage-action.ts`
 
 **O que fazer:**
 
 ```typescript
 // Remover:
-await prisma.ticket.update({
-  where: { id: params.ticketId },
+await prisma.deal.update({
+  where: { id: params.dealId },
   data: { stageId: params.stageId },
 })
 
 // Adicionar:
 const result = await updateTicketAndTrackCapi({
   organizationId: params.organizationId,
-  ticketId: params.ticketId,
+  dealId: params.dealId,
   stageId: params.stageId,
 })
 if ('error' in result) {
@@ -139,7 +139,7 @@ import { Queue } from 'bullmq'
 import { getRedis } from '@/lib/db/redis'
 
 export interface MetaCapiJobData {
-  ticketId: string
+  dealId: string
   pixelId: string
   eventName: string
   fireOnce: boolean
@@ -167,7 +167,7 @@ export function getMetaCapiQueue(): Queue<MetaCapiJobData> {
 
 export function enqueueMetaCapiEvent(data: MetaCapiJobData) {
   return getMetaCapiQueue().add('send-event', data, {
-    jobId: `capi-${data.ticketId}-${data.pixelId}-${data.eventName}`,
+    jobId: `capi-${data.dealId}-${data.pixelId}-${data.eventName}`,
   })
 }
 ```
@@ -181,14 +181,14 @@ import type { MetaCapiJobData } from './server/queues/meta-capi.queue'
 const metaCapiWorker = new Worker<MetaCapiJobData>(
   'meta-capi',
   async (job) => {
-    const { ticketId, pixelId, eventName, fireOnce, dealValue } = job.data
-    logger.info({ ticketId, pixelId, eventName, jobId: job.id }, '[CAPI Worker] Processing')
-    await metaCapiService.sendEvent(ticketId, eventName, pixelId, {
-      eventId: `${eventName.toLowerCase()}-${ticketId}-${pixelId}`,
+    const { dealId, pixelId, eventName, fireOnce, dealValue } = job.data
+    logger.info({ dealId, pixelId, eventName, jobId: job.id }, '[CAPI Worker] Processing')
+    await metaCapiService.sendEvent(dealId, eventName, pixelId, {
+      eventId: `${eventName.toLowerCase()}-${dealId}-${pixelId}`,
       value: dealValue,
       fireOnce,
     })
-    logger.info({ ticketId, jobId: job.id }, '[CAPI Worker] Done')
+    logger.info({ dealId, jobId: job.id }, '[CAPI Worker] Done')
   },
   { connection: getRedis(), concurrency: 10 }
 )
@@ -206,7 +206,7 @@ metaCapiWorker.on('failed', (job, err) => {
 
 ### T4: Substituir Heuristica por Enfileiramento por Regra (1.5h)
 
-**Localizacao:** `src/features/tickets/services/ticket.service.ts`
+**Localizacao:** `src/features/deals/services/deal.service.ts`
 
 **O que fazer:**
 
@@ -228,7 +228,7 @@ stage: {
 
 ```typescript
 async function triggerStageCapiEvents(input: {
-  ticketId: string
+  dealId: string
   stageId?: string
   previousStageId: string
   dealValue: number | null
@@ -239,7 +239,7 @@ async function triggerStageCapiEvents(input: {
 
   for (const rule of input.metaRules) {
     await enqueueMetaCapiEvent({
-      ticketId: input.ticketId,
+      dealId: input.dealId,
       pixelId: rule.pixelId,
       eventName: rule.eventName,
       fireOnce: rule.fireOnce,
@@ -267,7 +267,7 @@ async function triggerStageCapiEvents(input: {
 
 ```typescript
 async sendEvent(
-  ticketId: string,
+  dealId: string,
   eventName: string,
   pixelId: string,
   options: { eventId: string; value?: number; currency?: string; fireOnce?: boolean }
@@ -279,10 +279,10 @@ async sendEvent(
 ```typescript
 if (options.fireOnce) {
   const existing = await prisma.metaConversionEvent.findFirst({
-    where: { ticketId, pixelId, eventName, status: 'SENT' },
+    where: { dealId, pixelId, eventName, status: 'SENT' },
   })
   if (existing) {
-    logger.info(`[CAPI] SKIPPED_DUPLICATE ticket=${ticketId} pixel=${pixelId} event=${eventName}`)
+    logger.info(`[CAPI] SKIPPED_DUPLICATE deal=${dealId} pixel=${pixelId} event=${eventName}`)
     return
   }
 }
@@ -292,7 +292,7 @@ if (options.fireOnce) {
 
 ```typescript
 const pixel = await prisma.metaPixel.findFirst({
-  where: { id: pixelId, organizationId: ticket.organizationId, isActive: true },
+  where: { id: pixelId, organizationId: deal.organizationId, isActive: true },
   select: { pixelId: true, capiToken: true },
 })
 ```
@@ -312,7 +312,7 @@ const pixel = await prisma.metaPixel.findFirst({
 
 ### T6: Interface de Configuracao de Regras por Fase (4h)
 
-**Localizacao:** Componente de edicao de `TicketStage`.
+**Localizacao:** Componente de edicao de `DealStage`.
 
 **O que fazer:**
 
@@ -322,7 +322,7 @@ const pixel = await prisma.metaPixel.findFirst({
    - Select de pixels do projeto (`MetaPixel` por `projectId`).
    - Select/combobox de evento: lista `MetaEventType` (padrao) + opcao "Personalizado" com input livre.
    - Toggle `fireOnce`.
-4. Server Actions de CRUD para `TicketStageMetaRule`.
+4. Server Actions de CRUD para `DealStageMetaRule`.
 5. Aviso na UI ao deletar pixel que tem regras ativas.
 
 **Aceitacao:**

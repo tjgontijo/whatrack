@@ -34,8 +34,8 @@ O WhaTrack ja possui infraestrutura CAPI funcional. O motor dispara eventos por 
 ### Schema Final
 
 **Novo:** `MetaEventType` — lookup de eventos padrao (seed). Sem org/projeto.
-**Novo:** `TicketStageMetaRule` — N regras por fase (pixelId + eventName + fireOnce).
-**Atualizado:** `MetaConversionEvent` — adicionar `pixelId`, unique `[ticketId, pixelId, eventName]`.
+**Novo:** `DealStageMetaRule` — N regras por fase (pixelId + eventName + fireOnce).
+**Atualizado:** `MetaConversionEvent` — adicionar `pixelId`, unique `[dealId, pixelId, eventName]`.
 
 Fase sem regras = nenhum evento. Sem flag `metaEventEnabled` necessario.
 
@@ -56,10 +56,10 @@ Fase sem regras = nenhum evento. Sem flag `metaEventEnabled` necessario.
 
 ## Arquivos Principais
 
-- `prisma/schema.prisma` — MetaEventType, TicketStageMetaRule, update MetaConversionEvent.
+- `prisma/schema.prisma` — MetaEventType, DealStageMetaRule, update MetaConversionEvent.
 - `prisma/seed.ts` — seed de eventos padrao.
-- `src/features/tickets/actions/update-ticket-stage-action.ts` — corrigir bypass.
-- `src/features/tickets/services/ticket.service.ts` — substituir heuristica.
+- `src/features/deals/actions/update-deal-stage-action.ts` — corrigir bypass.
+- `src/features/deals/services/deal.service.ts` — substituir heuristica.
 - `src/server/queues/meta-capi.queue.ts` — nova fila BullMQ.
 - `src/worker.ts` — adicionar worker meta-capi.
 - `src/features/meta-ads/services/capi.service.ts` — receber pixelId + fireOnce.
