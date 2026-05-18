@@ -1,4 +1,5 @@
 import "server-only"
+import { unstable_cache } from 'next/cache'
 import type { Prisma } from '@generated/prisma/client'
 import {
   type BillingPlanMetadata,
@@ -191,29 +192,37 @@ export const billingPlanSelect = {
   },
 } as const
 
+const _listPublicBillingPlans = unstable_cache(
+  async (selfServeOnly: boolean) => {
+    let plans: BillingPlanRecord[]
+
+    try {
+      plans = await prisma.billingPlan.findMany({
+        where: {
+          isActive: true,
+          ...(selfServeOnly ? { contactSalesOnly: false } : {}),
+        },
+        orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }],
+        select: billingPlanSelect,
+      })
+    } catch (error) {
+      if (isMissingBillingPlanTableError(error)) {
+        return []
+      }
+
+      throw error
+    }
+
+    return plans.map(mapBillingPlanToPublic)
+  },
+  ['billing-plans'],
+  { tags: ['billing-plans'], revalidate: 3600 }
+)
+
 export async function listPublicBillingPlans(options?: {
   selfServeOnly?: boolean
 }): Promise<PublicBillingPlan[]> {
-  let plans: BillingPlanRecord[]
-
-  try {
-    plans = await prisma.billingPlan.findMany({
-      where: {
-        isActive: true,
-        ...(options?.selfServeOnly ? { contactSalesOnly: false } : {}),
-      },
-      orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }],
-      select: billingPlanSelect,
-    })
-  } catch (error) {
-    if (isMissingBillingPlanTableError(error)) {
-      return []
-    }
-
-    throw error
-  }
-
-  return plans.map(mapBillingPlanToPublic)
+  return _listPublicBillingPlans(options?.selfServeOnly ?? false)
 }
 
 export async function getBillingPlanById(planId: string) {

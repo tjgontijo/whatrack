@@ -1,4 +1,5 @@
 import "server-only"
+import { revalidateTag } from 'next/cache'
 import type {
   BillingPlanCreateInput,
   BillingPlanUpdateInput,
@@ -81,6 +82,7 @@ export async function createBillingPlan(input: BillingPlanCreateInput, userId: s
     },
   })
 
+  revalidateTag('billing-plans', 'hours')
   return getBillingPlanDetail(plan.id)
 }
 
@@ -170,6 +172,7 @@ export async function updateBillingPlan(
     after: input,
   })
 
+  revalidateTag('billing-plans', 'hours')
   return getBillingPlanDetail(planId)
 }
 
@@ -210,5 +213,6 @@ export async function archiveBillingPlan(planId: string, userId: string) {
     },
   })
 
+  revalidateTag('billing-plans', 'hours')
   return { success: true as const }
 }
