@@ -125,6 +125,15 @@ const auditActors = [
   { name: 'SYSTEM', description: 'Sistema automatizado.' },
 ]
 
+const metaEventTypes = [
+  { name: 'Lead', label: 'Lead Captado' },
+  { name: 'QualifiedLead', label: 'Lead Qualificado' },
+  { name: 'Purchase', label: 'Venda Realizada' },
+  { name: 'Schedule', label: 'Agendamento' },
+  { name: 'Contact', label: 'Contato' },
+  { name: 'CompleteRegistration', label: 'Cadastro Concluido' },
+]
+
 async function upsertByName(
   model: {
     upsert: (args: {
@@ -139,6 +148,25 @@ async function upsertByName(
     await model.upsert({
       where: { name: item.name },
       update: { description: item.description },
+      create: item,
+    })
+  }
+}
+
+async function upsertMetaEventType(
+  model: {
+    upsert: (args: {
+      where: { name: string }
+      update: { label: string }
+      create: { name: string; label: string }
+    }) => Promise<unknown>
+  },
+  items: { name: string; label: string }[]
+) {
+  for (const item of items) {
+    await model.upsert({
+      where: { name: item.name },
+      update: { label: item.label },
       create: item,
     })
   }
@@ -163,6 +191,9 @@ export async function seedLookupTables(prisma: PrismaClient) {
   await upsertByName(prisma.billingPaymentMethod, billingPaymentMethods)
   await upsertByName(prisma.billingCycle, billingCycles)
   await upsertByName(prisma.auditActor, auditActors)
+
+  console.log('Seeding Meta Event Types...')
+  await upsertMetaEventType(prisma.metaEventType, metaEventTypes)
 
   console.log('Lookup tables seeded.')
 }
