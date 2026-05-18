@@ -14,6 +14,12 @@ export type DealStageListItem = {
   isDefault: boolean
   isClosed: boolean
   dealsCount: number
+  metaRules: {
+    id: string
+    pixelId: string
+    eventName: string
+    fireOnce: boolean
+  }[]
 }
 
 export async function listDealStages(
@@ -31,6 +37,14 @@ export async function listDealStages(
       isDefault: true,
       isClosed: true,
       _count: { select: { deals: true } },
+      metaRules: {
+        select: {
+          id: true,
+          pixelId: true,
+          eventName: true,
+          fireOnce: true,
+        },
+      },
     },
   })
 
@@ -43,6 +57,7 @@ export async function listDealStages(
       isDefault: stage.isDefault,
       isClosed: stage.isClosed,
       dealsCount: stage._count.deals,
+      metaRules: stage.metaRules,
     })),
   }
 }
@@ -53,6 +68,11 @@ export async function createDealStage(input: {
   name: string
   color: string
   order?: number
+  metaRules?: {
+    pixelId: string
+    eventName: string
+    fireOnce: boolean
+  }[]
 }): Promise<DealStageListItem | ServiceError> {
   const existing = await prisma.dealStage.findFirst({
     where: {
@@ -82,6 +102,13 @@ export async function createDealStage(input: {
       name: input.name,
       color: input.color,
       order,
+      metaRules: {
+        create: input.metaRules?.map((rule) => ({
+          pixelId: rule.pixelId,
+          eventName: rule.eventName,
+          fireOnce: rule.fireOnce,
+        })),
+      },
     },
     select: {
       id: true,
@@ -91,6 +118,14 @@ export async function createDealStage(input: {
       isDefault: true,
       isClosed: true,
       _count: { select: { deals: true } },
+      metaRules: {
+        select: {
+          id: true,
+          pixelId: true,
+          eventName: true,
+          fireOnce: true,
+        },
+      },
     },
   })
 
@@ -102,6 +137,7 @@ export async function createDealStage(input: {
     isDefault: stage.isDefault,
     isClosed: stage.isClosed,
     dealsCount: stage._count.deals,
+    metaRules: stage.metaRules,
   }
 }
 
@@ -113,6 +149,12 @@ export async function updateDealStage(input: {
   color?: string
   isDefault?: boolean
   isClosed?: boolean
+  metaRules?: {
+    id?: string
+    pixelId: string
+    eventName: string
+    fireOnce: boolean
+  }[]
 }): Promise<DealStageListItem | ServiceError> {
   const existing = await prisma.dealStage.findFirst({
     where: {
@@ -158,6 +200,16 @@ export async function updateDealStage(input: {
       ...(input.color !== undefined && { color: input.color }),
       ...(input.isDefault !== undefined && { isDefault: input.isDefault }),
       ...(input.isClosed !== undefined && { isClosed: input.isClosed }),
+      metaRules: input.metaRules
+        ? {
+            deleteMany: {},
+            create: input.metaRules.map((rule) => ({
+              pixelId: rule.pixelId,
+              eventName: rule.eventName,
+              fireOnce: rule.fireOnce,
+            })),
+          }
+        : undefined,
     },
     select: {
       id: true,
@@ -167,6 +219,14 @@ export async function updateDealStage(input: {
       isDefault: true,
       isClosed: true,
       _count: { select: { deals: true } },
+      metaRules: {
+        select: {
+          id: true,
+          pixelId: true,
+          eventName: true,
+          fireOnce: true,
+        },
+      },
     },
   })
 
@@ -178,6 +238,7 @@ export async function updateDealStage(input: {
     isDefault: updated.isDefault,
     isClosed: updated.isClosed,
     dealsCount: updated._count.deals,
+    metaRules: updated.metaRules,
   }
 }
 
