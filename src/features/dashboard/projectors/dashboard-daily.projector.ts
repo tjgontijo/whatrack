@@ -17,6 +17,8 @@ export class DashboardDailyProjector {
     for (const org of orgs) {
       try {
         await this.projectOrgMetrics(org.id, dateObj)
+        // Invalidate cache for this organization's dashboard
+        revalidateTag(this.getCacheTag(org.id))
       } catch (error) {
         logger.error(
           { organizationId: org.id, date, error },
@@ -25,9 +27,15 @@ export class DashboardDailyProjector {
       }
     }
 
-    // Invalidate cache for all dashboards
-    revalidateTag('dashboard-metrics')
     logger.info({ date }, '[Dashboard Projector] Complete')
+  }
+
+  /**
+   * Generate cache tag scoped to organization and project.
+   * Prevents cross-tenant cache pollution.
+   */
+  private getCacheTag(organizationId: string, projectId?: string | null): string {
+    return `dashboard-metrics:${organizationId}:${projectId ?? 'default'}`
   }
 
   private async projectOrgMetrics(organizationId: string, date: Date) {
