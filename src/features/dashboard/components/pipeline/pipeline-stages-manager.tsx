@@ -57,6 +57,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DeleteConfirmDialog } from '@/features/dashboard/components/crud/delete-confirm-dialog'
 import { EmptyState, LoadingPage } from '@/features/dashboard/components/states'
 import { apiFetch } from '@/lib/http/api-client'
+import { EditStagesModal } from '@/features/deal-stage-templates/components/edit-stages-modal'
 
 const PRESET_COLORS = [
   '#6366f1',
@@ -85,6 +86,7 @@ interface Stage {
   isDefault: boolean
   isClosed: boolean
   dealsCount: number
+  statusGroup: string
   metaRules: {
     id: string
     pixelId: string
@@ -147,15 +149,23 @@ function StageItem({
               Padrão
             </Badge>
           )}
-          {stage.isClosed && (
+          {stage.statusGroup !== 'ACTIVE' && (
             <Badge variant='outline' className='px-1.5 py-0 text-[10px] text-muted-foreground'>
-              Fechada
+              {stage.statusGroup}
             </Badge>
           )}
         </div>
-        <p className='mt-0.5 text-[11px] text-muted-foreground'>
-          {stage.dealsCount} deal{stage.dealsCount !== 1 ? 's' : ''}
-        </p>
+        <div className='mt-0.5 flex items-center gap-2'>
+          <p className='text-[11px] text-muted-foreground'>
+            {stage.dealsCount} deal{stage.dealsCount !== 1 ? 's' : ''}
+          </p>
+          {stage.metaRules.length > 0 && (
+            <div className='flex items-center gap-1 text-[10px] text-blue-600 bg-blue-50/50 px-1.5 py-0.5 rounded border border-blue-100'>
+              <Megaphone className='h-2.5 w-2.5' />
+              {stage.metaRules.length} automação
+            </div>
+          )}
+        </div>
       </div>
 
       <div className='flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100'>
@@ -566,6 +576,7 @@ export function PipelineStagesManager({
 }) {
   const queryClient = useQueryClient()
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [templateModalOpen, setTemplateModalOpen] = useState(false)
   const [editingStage, setEditingStage] = useState<Stage | null>(null)
   const [localOrder, setLocalOrder] = useState<Stage[] | null>(null)
 
@@ -700,19 +711,39 @@ export function PipelineStagesManager({
         <p className='font-semibold text-muted-foreground text-xs uppercase tracking-widest'>
           {stages.length} fase{stages.length !== 1 ? 's' : ''} — arraste para reordenar
         </p>
-        <Button
-          type='button'
-          onClick={() => {
-            setEditingStage(null)
-            setDialogOpen(true)
-          }}
-          size='sm'
-          className='gap-2'
-        >
-          <Plus className='h-4 w-4' />
-          Adicionar Fase
-        </Button>
+        <div className='flex items-center gap-2'>
+          <Button
+            type='button'
+            variant='outline'
+            onClick={() => setTemplateModalOpen(true)}
+            size='sm'
+            className='gap-2'
+          >
+            <Settings2 className='h-4 w-4' />
+            Explorar Templates
+          </Button>
+          <Button
+            type='button'
+            onClick={() => {
+              setEditingStage(null)
+              setDialogOpen(true)
+            }}
+            size='sm'
+            className='gap-2'
+          >
+            <Plus className='h-4 w-4' />
+            Adicionar Fase
+          </Button>
+        </div>
       </div>
+
+      <EditStagesModal
+        open={templateModalOpen}
+        onOpenChange={setTemplateModalOpen}
+        projectId={projectId!}
+        organizationId={organizationId}
+        currentStages={stages}
+      />
 
       <div className='mt-4 space-y-2'>
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
