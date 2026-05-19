@@ -109,13 +109,7 @@ export default function DashboardPageClient() {
   }, [filters.itemCategory, itemFilters])
 
   const funnelSteps = React.useMemo(() => {
-    const funnel = data?.funnel
-    return [
-      { label: 'Leads', value: funnel?.leads ?? 0 },
-      { label: 'Agendamentos', value: funnel?.schedules ?? 0 },
-      { label: 'Comparecimentos', value: funnel?.attendances ?? 0 },
-      { label: 'Vendas', value: funnel?.sales ?? 0 },
-    ]
+    return data?.funnel.steps ?? []
   }, [data?.funnel])
 
   const trafficTypeOptions = React.useMemo<FilterOption[]>(() => {

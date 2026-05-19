@@ -10,11 +10,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { CrudCardView } from '@/features/dashboard/components/crud/crud-card-view'
 import { CrudDataView, CrudEmptyState } from '@/features/dashboard/components/crud/crud-data-view'
 import { CrudListView } from '@/features/dashboard/components/crud/crud-list-view'
 import type {
-  CardConfig,
   ColumnDef,
   RowActions,
   ViewType,
@@ -101,25 +99,6 @@ const columns: ColumnDef<SaleListItem>[] = [
   },
 ]
 
-const cardConfig: CardConfig<SaleListItem> = {
-  icon: () => <ShoppingCart className='h-7 w-7 text-primary/60' />,
-  title: (sale) => formatCurrencyBRL(sale.totalAmount),
-  subtitle: (sale) => new Date(sale.createdAt).toLocaleDateString('pt-BR'),
-  badge: (sale) => {
-    const status = sale.status ? STATUS_BADGE[sale.status] : null
-    return status ? (
-      <Badge variant={status.variant} className='text-[10px]'>
-        {status.label}
-      </Badge>
-    ) : null
-  },
-  footer: (sale) => (
-    <span className='truncate text-muted-foreground text-xs'>
-      {sale.notes || 'Sem observações'}
-    </span>
-  ),
-}
-
 export default function ClientSalesTable() {
   const [view, setView] = useState<ViewType>('list')
   const [searchInput, setSearchInput] = useState('')
@@ -190,7 +169,7 @@ export default function ClientSalesTable() {
   return (
     <HeaderPageShell
       title='Vendas'
-      selector={<ViewSwitcher view={view} setView={setView} enabledViews={['list', 'cards']} />}
+      selector={<ViewSwitcher view={view} setView={setView} enabledViews={['list']} />}
       searchValue={searchInput}
       onSearchChange={setSearchInput}
       searchPlaceholder='Pesquisar valor, status, observação...'
@@ -209,15 +188,6 @@ export default function ClientSalesTable() {
             columns={columns}
             rowActions={rowActions}
             onEndReached={hasNextPage ? fetchNextPage : undefined}
-          />
-        }
-        cardView={
-          <CrudCardView
-            data={data}
-            config={cardConfig}
-            rowActions={rowActions}
-            onEndReached={hasNextPage ? fetchNextPage : undefined}
-            gridClassName='grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
           />
         }
       />

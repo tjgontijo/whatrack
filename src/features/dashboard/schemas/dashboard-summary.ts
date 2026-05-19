@@ -85,6 +85,16 @@ export const dashboardSummaryResponseSchema = z.object({
   }),
 
   funnel: z.object({
+    steps: z.array(
+      z.object({
+        label: z.string(),
+        value: z.number().int().nonnegative(),
+        currentValue: z.number().int().nonnegative(),
+        color: z.string().optional(),
+        dealValueSum: z.number().optional(),
+        currentDealValueSum: z.number().optional(),
+      })
+    ),
     leads: z.number().int().nonnegative(),
     schedules: z.number().int().nonnegative(),
     attendances: z.number().int().nonnegative(),

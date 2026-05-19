@@ -1,7 +1,7 @@
 import type React from 'react'
 
 // View types
-export type ViewType = 'list' | 'cards' | 'kanban'
+export type ViewType = 'list' | 'kanban'
 
 // Kanban column
 export interface KanbanColumn {
@@ -33,17 +33,6 @@ export interface ColumnDef<T> {
   headerClassName?: string
   render: (item: T, index: number) => React.ReactNode
   sortable?: boolean
-}
-
-// Card configuration for generic card view
-export interface CardConfig<T> {
-  icon?: (item: T) => React.ReactNode
-  title: (item: T) => React.ReactNode
-  subtitle?: (item: T) => React.ReactNode
-  badge?: (item: T) => React.ReactNode
-  footer?: (item: T) => React.ReactNode
-  onClick?: (item: T) => void
-  actions?: (item: T) => React.ReactNode
 }
 
 // Row actions for generic views

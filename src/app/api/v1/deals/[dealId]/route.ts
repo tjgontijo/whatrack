@@ -60,6 +60,7 @@ export async function PATCH(
       stageId: parsed.data.stageId,
       assigneeId: parsed.data.assigneeId,
       dealValue: parsed.data.dealValue,
+      position: parsed.data.position,
     })
 
     if ('error' in result) {

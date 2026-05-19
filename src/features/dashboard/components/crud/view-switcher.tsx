@@ -1,7 +1,6 @@
 'use client'
 
 import * as React from 'react'
-import { useIsMobile } from '@/hooks/ui/use-mobile'
 import { cn } from '@/lib/utils/utils'
 import type { ViewType } from './types'
 
@@ -14,7 +13,6 @@ type ViewSwitcherProps = {
 
 const VIEW_LABELS: Record<ViewType, string> = {
   list: 'Lista',
-  cards: 'Cards',
   kanban: 'Kanban',
 }
 
@@ -22,19 +20,9 @@ export function ViewSwitcher({
   view,
   setView,
   className,
-  enabledViews = ['list', 'cards'],
+  enabledViews = ['list'],
 }: ViewSwitcherProps) {
-  const isMobile = useIsMobile()
-
-  const visibleTabs = React.useMemo(
-    () => enabledViews.filter((v) => !(isMobile && (v === 'list' || v === 'kanban'))),
-    [enabledViews, isMobile]
-  )
-
-  React.useEffect(() => {
-    if (visibleTabs.length === 0 || visibleTabs.includes(view)) return
-    setView(visibleTabs[0])
-  }, [setView, view, visibleTabs])
+  const visibleTabs = enabledViews
 
   if (visibleTabs.length <= 1) return null
 

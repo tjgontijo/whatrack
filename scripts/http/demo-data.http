@@ -1,0 +1,23 @@
+@baseUrl = http://localhost:3000
+@orgId = YOUR_ORG_ID
+@projectId = YOUR_PROJECT_ID
+@sessionToken = YOUR_SESSION_TOKEN
+
+### Generate Demo Data
+# @name GenerateDemoData
+POST {{baseUrl}}/api/v1/demo-data
+Content-Type: application/json
+X-Organization-Id: {{orgId}}
+Cookie: better-auth.session_token={{sessionToken}}
+
+{
+  "projectId": "{{projectId}}",
+  "count": 10
+}
+
+### Clear Demo Data
+# @name ClearDemoData
+DELETE {{baseUrl}}/api/v1/demo-data?projectId={{projectId}}
+Content-Type: application/json
+X-Organization-Id: {{orgId}}
+Cookie: better-auth.session_token={{sessionToken}}

@@ -9,7 +9,6 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import {
-  CrudCardView,
   CrudDataView,
   CrudListView,
   DeleteConfirmDialog,
@@ -17,7 +16,6 @@ import {
 } from '@/features/dashboard/components/crud'
 import { CrudEmptyState } from '@/features/dashboard/components/crud/crud-data-view'
 import type {
-  CardConfig,
   ColumnDef,
   RowActions,
   ViewType,
@@ -38,22 +36,6 @@ function formatDate(value: string) {
 
 function buildChannelSummary(project: ProjectListItem) {
   return `${project.counts.whatsappCount} WhatsApp · ${project.counts.metaAdsCount} Meta Ads`
-}
-
-const cardConfig: CardConfig<ProjectListItem> = {
-  icon: () => <FolderKanban className='h-6 w-6 text-emerald-600' />,
-  title: (project) => project.name,
-  subtitle: (project) => buildChannelSummary(project),
-  badge: (project) => (
-    <Badge variant='outline' className='text-[10px]'>
-      {project.counts.leadCount} leads
-    </Badge>
-  ),
-  footer: (project) => (
-    <span className='text-muted-foreground text-xs'>
-      Atualizado em {formatDate(project.updatedAt)}
-    </span>
-  ),
 }
 
 export function ProjectList() {
@@ -205,7 +187,7 @@ export function ProjectList() {
     <>
       <HeaderPageShell
         title='Projetos'
-        selector={<ViewSwitcher view={view} setView={setView} enabledViews={['list', 'cards']} />}
+        selector={<ViewSwitcher view={view} setView={setView} enabledViews={['list']} />}
         onRefresh={() => void refetch()}
         primaryAction={
           <Button
@@ -236,14 +218,6 @@ export function ProjectList() {
             <CrudListView
               data={data}
               columns={columns}
-              rowActions={rowActions}
-              onEndReached={hasNextPage ? fetchNextPage : undefined}
-            />
-          }
-          cardView={
-            <CrudCardView
-              data={data}
-              config={cardConfig}
               rowActions={rowActions}
               onEndReached={hasNextPage ? fetchNextPage : undefined}
             />

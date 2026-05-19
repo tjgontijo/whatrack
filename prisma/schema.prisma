@@ -530,6 +530,7 @@ model Deal {
   closedReason    String?
   createdBy       String    @default("SYSTEM")
   messagesCount   Int       @default(0)
+  position        Float     @default(0)
 
   // KPIs
   inboundMessagesCount  Int       @default(0)

@@ -9,11 +9,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { CrudCardView } from '@/features/dashboard/components/crud/crud-card-view'
 import { CrudDataView, CrudEmptyState } from '@/features/dashboard/components/crud/crud-data-view'
 import { CrudListView } from '@/features/dashboard/components/crud/crud-list-view'
 import type {
-  CardConfig,
   ColumnDef,
   RowActions,
   ViewType,
@@ -48,7 +46,7 @@ const getLeadName = (lead: Lead) => lead.name || lead.phone || lead.mail || 'Sem
 const columns: ColumnDef<Lead>[] = [
   {
     key: 'name',
-    label: 'Lead',
+    label: 'Nome',
     render: (lead) => (
       <div className='flex items-center gap-2.5'>
         <Avatar className='h-7 w-7 shrink-0 border border-border/50'>
@@ -87,23 +85,6 @@ const columns: ColumnDef<Lead>[] = [
     ),
   },
 ]
-
-const cardConfig: CardConfig<Lead> = {
-  icon: (lead) => (
-    <Avatar className='h-9 w-9 border border-border'>
-      <AvatarFallback className='bg-primary/5 font-bold text-primary text-xs'>
-        {getLeadName(lead).slice(0, 2).toUpperCase()}
-      </AvatarFallback>
-    </Avatar>
-  ),
-  title: getLeadName,
-  subtitle: (lead) => lead.phone || lead.mail || 'Sem contato',
-  footer: (lead) => (
-    <span className='text-muted-foreground text-xs'>
-      {new Date(lead.createdAt).toLocaleDateString('pt-BR')}
-    </span>
-  ),
-}
 
 export default function ClientLeadsTable() {
   const [view, setView] = useState<ViewType>('list')
@@ -157,7 +138,7 @@ export default function ClientLeadsTable() {
     <>
       <HeaderPageShell
         title='Leads'
-        selector={<ViewSwitcher view={view} setView={setView} enabledViews={['list', 'cards']} />}
+        selector={<ViewSwitcher view={view} setView={setView} enabledViews={['list']} />}
         onRefresh={() => void refetch()}
         primaryAction={
           <Button
@@ -175,6 +156,8 @@ export default function ClientLeadsTable() {
         isFetchingMore={isFetchingNextPage}
         filters={filtersNode}
         isLoading={isLoading}
+        bodyClassName='overflow-hidden h-full flex flex-col'
+        contentClassName='h-full flex-1 px-6 py-4 flex flex-col'
       >
         <CrudDataView
           data={data}
@@ -184,14 +167,6 @@ export default function ClientLeadsTable() {
             <CrudListView
               data={data}
               columns={columns}
-              rowActions={rowActions}
-              onEndReached={hasNextPage ? fetchNextPage : undefined}
-            />
-          }
-          cardView={
-            <CrudCardView
-              data={data}
-              config={cardConfig}
               rowActions={rowActions}
               onEndReached={hasNextPage ? fetchNextPage : undefined}
             />

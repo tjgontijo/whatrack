@@ -17,7 +17,15 @@ import {
 import { formatCurrencyBRL } from '@/lib/mask/formatters'
 import { cn } from '@/lib/utils/utils'
 
-export function DealsKanbanCard({ deal, isDragging }: { deal: DealItem; isDragging?: boolean }) {
+export function DealsKanbanCard({
+  deal,
+  isDragging,
+  isActivelyDragging,
+}: {
+  deal: DealItem
+  isDragging?: boolean
+  isActivelyDragging?: boolean
+}) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: deal.id })
 
   const name = getDealLeadName(deal)
@@ -37,8 +45,9 @@ export function DealsKanbanCard({ deal, isDragging }: { deal: DealItem; isDraggi
       {...attributes}
       {...listeners}
       className={cn(
-        'group relative flex flex-col overflow-hidden rounded-md border border-border bg-white shadow-sm transition-all hover:border-primary/30 hover:shadow-md dark:bg-zinc-900',
-        isDragging && 'z-50 rotate-2 opacity-50'
+        'group relative flex flex-col overflow-hidden rounded-md border border-border bg-white shadow-sm transition-all hover:border-primary/30 hover:shadow-md dark:bg-zinc-900 cursor-grab active:cursor-grabbing',
+        isActivelyDragging && 'opacity-0 pointer-events-none',
+        isDragging && 'rotate-2 shadow-2xl cursor-grabbing opacity-100'
       )}
     >
       {/* Accent bar */}

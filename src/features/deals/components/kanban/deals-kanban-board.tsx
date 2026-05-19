@@ -1,17 +1,23 @@
 'use client'
 
 import {
-  closestCorners,
+  closestCenter,
   DndContext,
   type DragEndEvent,
+  type DragOverEvent,
   DragOverlay,
   type DragStartEvent,
+  getFirstCollision,
+  MeasuringStrategy,
+  pointerWithin,
   PointerSensor,
+  rectIntersection,
   useSensor,
   useSensors,
 } from '@dnd-kit/core'
+import { arrayMove } from '@dnd-kit/sortable'
 import { Plus } from 'lucide-react'
-import React, { useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -55,8 +61,17 @@ interface DealsKanbanBoardProps {
   stageStats: DealStageStats
   organizationId: string
   projectId: string
-  onMoveDeal: (dealId: string, toStageId: string) => Promise<void> | void
+  onReorderDeal: (dealId: string, stageId: string, position: number) => void
   onConfigStage?: (stageId: string) => void
+}
+
+function buildColumnItems(columns: DealStageColumn[], deals: DealItem[]): Record<string, string[]> {
+  const map: Record<string, string[]> = {}
+  for (const col of columns) map[col.id] = []
+  for (const deal of deals) {
+    if (map[deal.stage.id]) map[deal.stage.id].push(deal.id)
+  }
+  return map
 }
 
 export function DealsKanbanBoard({
@@ -65,10 +80,18 @@ export function DealsKanbanBoard({
   stageStats,
   organizationId,
   projectId,
-  onMoveDeal,
+  onReorderDeal,
   onConfigStage,
 }: DealsKanbanBoardProps) {
   const [activeId, setActiveId] = useState<string | null>(null)
+  const [columnItems, setColumnItems] = useState<Record<string, string[]>>(() =>
+    buildColumnItems(columns, deals)
+  )
+
+  const lastOverId = useRef<string | null>(null)
+  const recentlyMovedToNewContainer = useRef(false)
+  const dragStartContainer = useRef<string | null>(null)
+
   const [addDialogOpen, setAddDialogOpen] = useState(false)
   const [insertAfterIndex, setInsertAfterIndex] = useState<number>(-1)
   const [newStageName, setNewStageName] = useState('')
@@ -82,19 +105,165 @@ export function DealsKanbanBoard({
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
 
-  const activeDeal = activeId ? deals.find((d) => d.id === activeId) : null
+  useEffect(() => {
+    if (!activeId) setColumnItems(buildColumnItems(columns, deals))
+  }, [deals, columns, activeId])
 
-  const dealsByStage = React.useMemo(() => {
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      recentlyMovedToNewContainer.current = false
+    })
+  }, [columnItems])
+
+  const findContainer = useCallback(
+    (id: string) => {
+      if (id in columnItems) return id
+      return Object.keys(columnItems).find((key) => columnItems[key].includes(id)) ?? null
+    },
+    [columnItems]
+  )
+
+  const collisionDetection = useCallback(
+    (args: Parameters<typeof pointerWithin>[0]) => {
+      const pointerIntersections = pointerWithin(args)
+      const intersections =
+        pointerIntersections.length > 0 ? pointerIntersections : rectIntersection(args)
+      let overId = getFirstCollision(intersections, 'id')
+
+      if (overId != null) {
+        const overIdStr = String(overId)
+        if (overIdStr in columnItems) {
+          const containerCards = columnItems[overIdStr]
+          if (containerCards.length > 0) {
+            const closest = closestCenter({
+              ...args,
+              droppableContainers: args.droppableContainers.filter(
+                (c) => c.id !== overIdStr && containerCards.includes(String(c.id))
+              ),
+            })
+            overId = closest[0]?.id ?? overId
+          }
+        }
+        lastOverId.current = String(overId)
+        return [{ id: overId }]
+      }
+
+      if (recentlyMovedToNewContainer.current) {
+        lastOverId.current = activeId
+      }
+
+      return lastOverId.current ? [{ id: lastOverId.current }] : []
+    },
+    [activeId, columnItems]
+  )
+
+  const handleDragStart = ({ active }: DragStartEvent) => {
+    const id = String(active.id)
+    setActiveId(id)
+    dragStartContainer.current = findContainer(id)
+    document.body.style.cursor = 'grabbing'
+  }
+
+  const handleDragOver = ({ active, over }: DragOverEvent) => {
+    const overId = over ? String(over.id) : null
+    if (!overId) return
+
+    const overContainer = findContainer(overId)
+    const activeContainer = findContainer(String(active.id))
+
+    if (!overContainer || !activeContainer || activeContainer === overContainer) return
+
+    setColumnItems((prev) => {
+      const activeItems = prev[activeContainer]
+      const overItems = prev[overContainer]
+      const overIndex = overItems.indexOf(overId)
+      const activeIndex = activeItems.indexOf(String(active.id))
+
+      let newIndex: number
+      if (overId in prev) {
+        newIndex = overItems.length
+      } else {
+        const isBelowOverItem =
+          active.rect.current.translated != null &&
+          active.rect.current.translated.top > over!.rect.top + over!.rect.height
+        const modifier = isBelowOverItem ? 1 : 0
+        newIndex = overIndex >= 0 ? overIndex + modifier : overItems.length
+      }
+
+      recentlyMovedToNewContainer.current = true
+
+      return {
+        ...prev,
+        [activeContainer]: prev[activeContainer].filter((id) => id !== String(active.id)),
+        [overContainer]: [
+          ...prev[overContainer].slice(0, newIndex),
+          activeItems[activeIndex],
+          ...prev[overContainer].slice(newIndex),
+        ],
+      }
+    })
+  }
+
+  const handleDragEnd = ({ active, over }: DragEndEvent) => {
+    const activeItemId = String(active.id)
+    const currentContainer = findContainer(activeItemId)
+    const originalContainer = dragStartContainer.current
+
+    setActiveId(null)
+    dragStartContainer.current = null
+    document.body.style.cursor = ''
+
+    if (!currentContainer || !over) return
+
+    const overId = String(over.id)
+    const overContainer = findContainer(overId)
+
+    // Compute final order after optional arrayMove
+    let finalOrder = columnItems[currentContainer]
+
+    if (overContainer) {
+      const activeIndex = columnItems[currentContainer].indexOf(activeItemId)
+      const overIndex = columnItems[overContainer].indexOf(overId)
+
+      if (activeIndex !== overIndex) {
+        const moved = arrayMove(columnItems[overContainer], activeIndex, overIndex)
+        setColumnItems((prev) => ({ ...prev, [overContainer]: moved }))
+        if (currentContainer === overContainer) finalOrder = moved
+      }
+    }
+
+    // Calculate float position from neighbors
+    const itemIndex = finalOrder.indexOf(activeItemId)
+    const prevId = itemIndex > 0 ? finalOrder[itemIndex - 1] : null
+    const nextId = itemIndex < finalOrder.length - 1 ? finalOrder[itemIndex + 1] : null
+
+    const prevPos = prevId ? (dealsById.get(prevId)?.position ?? 65536) : 0
+    const nextPos = nextId ? (dealsById.get(nextId)?.position ?? null) : null
+
+    const newPosition =
+      nextPos === null
+        ? prevPos + 65536
+        : prevPos === 0
+          ? nextPos / 2
+          : (prevPos + nextPos) / 2
+
+    onReorderDeal(activeItemId, currentContainer, newPosition)
+  }
+
+  const dealsById = React.useMemo(
+    () => new Map(deals.map((d) => [d.id, d])),
+    [deals]
+  )
+
+  const dealsByColumn = React.useMemo(() => {
     const map = new Map<string, DealItem[]>()
-    for (const col of columns) map.set(col.id, [])
-    for (const deal of deals) {
-      const stageId = deal.stage.id
-      const existing = map.get(stageId) ?? []
-      existing.push(deal)
-      map.set(stageId, existing)
+    for (const [stageId, ids] of Object.entries(columnItems)) {
+      map.set(stageId, ids.map((id) => dealsById.get(id)).filter(Boolean) as DealItem[])
     }
     return map
-  }, [columns, deals])
+  }, [columnItems, dealsById])
+
+  const activeDeal = activeId ? dealsById.get(activeId) ?? null : null
 
   const openAddDialog = (afterIndex: number) => {
     setInsertAfterIndex(afterIndex)
@@ -104,23 +273,11 @@ export function DealsKanbanBoard({
   }
 
   const handleMoveStageLeft = (stageId: string) => {
-    reorderMutation.mutate({
-      stageId,
-      direction: 'up',
-      columns,
-      organizationId,
-      projectId,
-    })
+    reorderMutation.mutate({ stageId, direction: 'up', columns, organizationId, projectId })
   }
 
   const handleMoveStageRight = (stageId: string) => {
-    reorderMutation.mutate({
-      stageId,
-      direction: 'down',
-      columns,
-      organizationId,
-      projectId,
-    })
+    reorderMutation.mutate({ stageId, direction: 'down', columns, organizationId, projectId })
   }
 
   const handleDeleteStage = (stageId: string) => {
@@ -130,32 +287,16 @@ export function DealsKanbanBoard({
 
   const confirmDelete = () => {
     if (stageToDelete) {
-      deleteMutation.mutate({
-        stageId: stageToDelete,
-        organizationId,
-        projectId,
-      })
+      deleteMutation.mutate({ stageId: stageToDelete, organizationId, projectId })
       setDeleteConfirmOpen(false)
       setStageToDelete(null)
     }
   }
 
-  const handleCreateNewStage = (afterIndex: number) => {
-    openAddDialog(afterIndex)
-  }
-
   const handleCreateStage = () => {
     if (!newStageName.trim() || createStageMutation.isPending) return
-
     createStageMutation.mutate(
-      {
-        organizationId,
-        projectId,
-        name: newStageName,
-        color: newStageColor,
-        insertAfterIndex,
-        columns,
-      },
+      { organizationId, projectId, name: newStageName, color: newStageColor, insertAfterIndex, columns },
       {
         onSuccess: () => {
           setAddDialogOpen(false)
@@ -166,37 +307,19 @@ export function DealsKanbanBoard({
     )
   }
 
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(String(event.active.id))
-  }
-
-  const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event
-    setActiveId(null)
-    if (!over) return
-    const dealId = String(active.id)
-    const activeDeal = deals.find((d) => d.id === dealId)
-    if (!activeDeal) return
-    const fromStageId = activeDeal.stage.id
-    let toStageId = String(over.id)
-    const overDeal = deals.find((d) => d.id === toStageId)
-    if (overDeal) toStageId = overDeal.stage.id
-    if (fromStageId === toStageId) return
-    await onMoveDeal(dealId, toStageId)
-  }
-
   return (
     <>
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCorners}
+        collisionDetection={collisionDetection}
+        measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
         onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
         <div className='scrollbar-thin flex h-full w-full flex-1 gap-0 overflow-x-auto px-3 pt-3 pb-3'>
           {columns.map((column, index) => (
             <React.Fragment key={column.id}>
-              {/* Separator with hover add button */}
               {index > 0 && (
                 <div className='group relative flex w-3 shrink-0 items-center justify-center self-stretch transition-all duration-150 hover:w-8'>
                   <div className='h-full w-px bg-transparent transition-colors group-hover:bg-primary/20' />
@@ -212,20 +335,20 @@ export function DealsKanbanBoard({
               )}
               <DealsKanbanStage
                 stage={column}
-                deals={dealsByStage.get(column.id) ?? []}
+                deals={dealsByColumn.get(column.id) ?? []}
                 stats={stageStats[column.id]}
                 stageIndex={index}
                 totalStages={columns.length}
+                activeId={activeId}
                 onConfigStage={() => onConfigStage?.(column.id)}
                 onMoveStageLeft={() => handleMoveStageLeft(column.id)}
                 onMoveStageRight={() => handleMoveStageRight(column.id)}
-                onCreateStageBefore={() => handleCreateNewStage(index)}
+                onCreateStageBefore={() => openAddDialog(index)}
                 onDeleteStage={() => handleDeleteStage(column.id)}
               />
             </React.Fragment>
           ))}
 
-          {/* Add stage button after last column */}
           <div className='group relative flex w-3 shrink-0 items-center justify-center self-stretch transition-all duration-150 hover:w-8'>
             <div className='h-full w-px bg-transparent transition-colors group-hover:bg-primary/20' />
             <Button
@@ -239,11 +362,9 @@ export function DealsKanbanBoard({
           </div>
         </div>
 
-        <DragOverlay
-          dropAnimation={{ duration: 200, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }}
-        >
+        <DragOverlay dropAnimation={null}>
           {activeDeal ? (
-            <div className='w-[280px]'>
+            <div className='w-[280px] cursor-grabbing'>
               <DealsKanbanCard deal={activeDeal} isDragging />
             </div>
           ) : null}

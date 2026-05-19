@@ -3,6 +3,7 @@
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { ArrowLeft, ArrowRight, MoreVertical, Plus, Settings, Trash2 } from 'lucide-react'
+import { Virtuoso } from 'react-virtuoso'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -12,7 +13,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import type { DealItem, DealStageColumn } from '@/features/deals/types'
 import { formatCurrencyBRL } from '@/lib/mask/formatters'
 import { cn } from '@/lib/utils/utils'
@@ -24,6 +24,7 @@ interface DealsKanbanStageProps {
   stats?: { count: number; dealValueSum: number }
   stageIndex?: number
   totalStages?: number
+  activeId?: string | null
   onConfigStage?: () => void
   onMoveStageLeft?: () => void
   onMoveStageRight?: () => void
@@ -37,6 +38,7 @@ export function DealsKanbanStage({
   stats,
   stageIndex = 0,
   totalStages = 1,
+  activeId,
   onConfigStage,
   onMoveStageLeft,
   onMoveStageRight,
@@ -72,91 +74,96 @@ export function DealsKanbanStage({
           )}
         </div>
 
-        <div className='flex items-center gap-0'>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant='ghost'
-                size='icon'
-                className='h-6 w-6 text-muted-foreground/50 hover:text-foreground'
-              >
-                <MoreVertical className='h-3.5 w-3.5' />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align='end' className='w-56'>
-              {/* Reordering */}
-              {(stageIndex > 0 || stageIndex < totalStages - 1) && (
-                <>
-                  {stageIndex > 0 && (
-                    <DropdownMenuItem
-                      className='gap-3 px-3 py-2.5 text-sm'
-                      onClick={onMoveStageLeft}
-                    >
-                      <ArrowLeft className='h-4 w-4 text-muted-foreground' />
-                      <span>Mover para esquerda</span>
-                    </DropdownMenuItem>
-                  )}
-                  {stageIndex < totalStages - 1 && (
-                    <DropdownMenuItem
-                      className='gap-3 px-3 py-2.5 text-sm'
-                      onClick={onMoveStageRight}
-                    >
-                      <ArrowRight className='h-4 w-4 text-muted-foreground' />
-                      <span>Mover para direita</span>
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuSeparator className='my-1.5' />
-                </>
-              )}
-
-              {/* Create & Configure */}
-              <DropdownMenuItem className='gap-3 px-3 py-2.5 text-sm' onClick={onCreateStageBefore}>
-                <Plus className='h-4 w-4 text-muted-foreground' />
-                <span>Criar nova fase</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem className='gap-3 px-3 py-2.5 text-sm' onClick={onConfigStage}>
-                <Settings className='h-4 w-4 text-muted-foreground' />
-                <span>Configurar fase</span>
-              </DropdownMenuItem>
-
-              {/* Delete */}
-              <DropdownMenuSeparator className='my-1.5' />
-              <DropdownMenuItem
-                className='gap-3 px-3 py-2.5 text-destructive text-sm'
-                onClick={onDeleteStage}
-              >
-                <Trash2 className='h-4 w-4' />
-                <span>Deletar fase</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant='ghost'
+              size='icon'
+              className='h-6 w-6 text-muted-foreground/50 hover:text-foreground'
+            >
+              <MoreVertical className='h-3.5 w-3.5' />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align='end' className='w-56'>
+            {(stageIndex > 0 || stageIndex < totalStages - 1) && (
+              <>
+                {stageIndex > 0 && (
+                  <DropdownMenuItem
+                    className='gap-3 px-3 py-2.5 text-sm'
+                    onClick={onMoveStageLeft}
+                  >
+                    <ArrowLeft className='h-4 w-4 text-muted-foreground' />
+                    <span>Mover para esquerda</span>
+                  </DropdownMenuItem>
+                )}
+                {stageIndex < totalStages - 1 && (
+                  <DropdownMenuItem
+                    className='gap-3 px-3 py-2.5 text-sm'
+                    onClick={onMoveStageRight}
+                  >
+                    <ArrowRight className='h-4 w-4 text-muted-foreground' />
+                    <span>Mover para direita</span>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator className='my-1.5' />
+              </>
+            )}
+            <DropdownMenuItem className='gap-3 px-3 py-2.5 text-sm' onClick={onCreateStageBefore}>
+              <Plus className='h-4 w-4 text-muted-foreground' />
+              <span>Criar nova fase</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem className='gap-3 px-3 py-2.5 text-sm' onClick={onConfigStage}>
+              <Settings className='h-4 w-4 text-muted-foreground' />
+              <span>Configurar fase</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className='my-1.5' />
+            <DropdownMenuItem
+              className='gap-3 px-3 py-2.5 text-destructive text-sm'
+              onClick={onDeleteStage}
+            >
+              <Trash2 className='h-4 w-4' />
+              <span>Deletar fase</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
-      {/* Cards Area */}
-      <ScrollArea className='flex-1'>
-        <div
-          ref={setNodeRef}
-          className={cn(
-            'flex min-h-[200px] flex-1 flex-col gap-2.5 p-2.5 pb-24 transition-all',
-            isOver && 'bg-primary/5'
-          )}
-        >
-          {deals.length === 0 ? (
-            <div className='mt-12 flex flex-1 flex-col items-center justify-start'>
-              <span className='font-bold text-[9px] text-muted-foreground/30 uppercase tracking-[0.2em]'>
-                Vazio
-              </span>
-            </div>
-          ) : (
-            <SortableContext items={dealIds} strategy={verticalListSortingStrategy}>
-              {deals.map((deal) => (
-                <DealsKanbanCard key={deal.id} deal={deal} />
-              ))}
-            </SortableContext>
-          )}
-        </div>
-      </ScrollArea>
+      {/* Cards Area — droppable wrapper, Virtuoso handles scroll */}
+      <div
+        ref={setNodeRef}
+        className={cn(
+          'flex min-h-0 flex-1 flex-col transition-colors',
+          isOver && 'bg-primary/5'
+        )}
+      >
+        {deals.length === 0 ? (
+          <div className='mt-12 flex items-center justify-center'>
+            <span className='font-bold text-[9px] text-muted-foreground/30 uppercase tracking-[0.2em]'>
+              Vazio
+            </span>
+          </div>
+        ) : (
+          <SortableContext items={dealIds} strategy={verticalListSortingStrategy}>
+            <Virtuoso
+              className='scrollbar-on-hover'
+              style={{ flex: 1 }}
+              data={deals}
+              overscan={500}
+              itemContent={(_, deal) => (
+                <div className='px-2.5 pt-2.5'>
+                  <DealsKanbanCard
+                    deal={deal}
+                    isActivelyDragging={deal.id === activeId}
+                  />
+                </div>
+              )}
+              components={{
+                Footer: () => <div className='h-24' />,
+              }}
+            />
+          </SortableContext>
+        )}
+      </div>
     </div>
   )
 }

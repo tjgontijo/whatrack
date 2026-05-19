@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/select'
 import { apiFetch } from '@/lib/http/api-client'
 import { updateDealStageAction } from '@/features/deals/actions/update-deal-stage-action'
+import { ConversationIntelligencePanel } from '@/features/conversation-intelligence/components/conversation-intelligence-panel'
 import type { ChatItem } from './types'
 
 interface DealPanelProps {
@@ -365,6 +366,7 @@ export function DealPanel({ conversationId, organizationId, projectId, chat }: D
             </div>
           </div>
 
+
           {/* Dossiê & KPIs do Atendimento */}
           {optimisticDeal?.kpis && (
             <div className='pt-2'>
@@ -460,6 +462,12 @@ export function DealPanel({ conversationId, organizationId, projectId, chat }: D
               </div>
             </div>
           )}
+          {/* Dados brutos da conversa (PRD-008) */}
+          <ConversationIntelligencePanel
+            conversationId={conversationId}
+            organizationId={organizationId}
+            projectId={projectId}
+          />
         </div>
       </div>
     </div>

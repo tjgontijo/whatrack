@@ -243,7 +243,6 @@ export function CampaignsPage({ initialCreateOpen = false }: CampaignsPageProps 
               onRowClick={(campaign) => openCampaignDetail(campaign.id)}
             />
           }
-          cardView={null}
         />
       </div>
     </HeaderPageShell>

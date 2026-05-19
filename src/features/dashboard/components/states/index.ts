@@ -1,5 +1,4 @@
 export { EmptyState } from './empty-state'
 export { ErrorState } from './error-state'
-export { LoadingCard } from './loading-card'
 export { LoadingPage } from './loading-page'
 export { LoadingSpinner } from './loading-spinner'

@@ -29,6 +29,7 @@ export type DealItem = {
   dealValue: number | null
   messagesCount: number
   salesCount: number
+  position: number
   stageEnteredAt: string | null
   createdAt: string
   lastMessageAt: string | null

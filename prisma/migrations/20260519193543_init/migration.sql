@@ -240,7 +240,7 @@ CREATE TABLE "org_profiles" (
     "cpf" TEXT,
     "onboardingStatus" TEXT NOT NULL DEFAULT 'pending',
     "onboardingCompletedAt" TIMESTAMP(3),
-    "avgTicket" TEXT,
+    "avgDeal" TEXT,
     "attendantsCount" TEXT,
     "mainChannel" TEXT,
     "leadsPerDay" TEXT,
@@ -253,7 +253,7 @@ CREATE TABLE "org_profiles" (
     "estimatedLeadValue" DOUBLE PRECISION,
     "leadsPerAttendant" DOUBLE PRECISION,
     "revenuePerAttendant" DOUBLE PRECISION,
-    "ticketExpirationDays" INTEGER DEFAULT 30,
+    "dealExpirationDays" INTEGER DEFAULT 30,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -385,6 +385,7 @@ CREATE TABLE "crm_deals" (
     "closedReason" TEXT,
     "createdBy" TEXT NOT NULL DEFAULT 'SYSTEM',
     "messagesCount" INTEGER NOT NULL DEFAULT 0,
+    "position" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "inboundMessagesCount" INTEGER NOT NULL DEFAULT 0,
     "outboundMessagesCount" INTEGER NOT NULL DEFAULT 0,
     "lastInboundAt" TIMESTAMP(3),
@@ -408,8 +409,11 @@ CREATE TABLE "crm_deal_stages" (
     "name" TEXT NOT NULL,
     "color" TEXT NOT NULL,
     "order" INTEGER NOT NULL,
+    "statusGroup" TEXT NOT NULL DEFAULT 'ACTIVE',
+    "probability" INTEGER NOT NULL DEFAULT 0,
     "isDefault" BOOLEAN NOT NULL DEFAULT false,
     "isClosed" BOOLEAN NOT NULL DEFAULT false,
+    "suggestedMetaEventName" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -922,8 +926,47 @@ CREATE TABLE "crm_deal_stage_meta_rules" (
     "pixelId" UUID NOT NULL,
     "eventName" TEXT NOT NULL,
     "fireOnce" BOOLEAN NOT NULL DEFAULT true,
+    "includeEmail" BOOLEAN NOT NULL DEFAULT true,
+    "includePhone" BOOLEAN NOT NULL DEFAULT true,
+    "includeFullName" BOOLEAN NOT NULL DEFAULT true,
+    "includeAddress" BOOLEAN NOT NULL DEFAULT false,
+    "includeExternalId" BOOLEAN NOT NULL DEFAULT true,
+    "customDataMapping" JSONB,
 
     CONSTRAINT "crm_deal_stage_meta_rules_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "crm_deal_stage_templates" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "category" TEXT NOT NULL DEFAULT 'custom',
+    "icon" TEXT,
+    "isPopular" BOOLEAN NOT NULL DEFAULT false,
+    "isDefault" BOOLEAN NOT NULL DEFAULT false,
+    "isPersonal" BOOLEAN NOT NULL DEFAULT false,
+    "organizationId" UUID,
+    "projectId" UUID,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "crm_deal_stage_templates_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "crm_deal_stage_template_items" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "templateId" UUID NOT NULL,
+    "name" TEXT NOT NULL,
+    "color" TEXT NOT NULL,
+    "order" INTEGER NOT NULL,
+    "statusGroup" TEXT NOT NULL,
+    "probability" INTEGER NOT NULL,
+    "isFinal" BOOLEAN NOT NULL DEFAULT false,
+    "suggestedMetaEventName" TEXT,
+
+    CONSTRAINT "crm_deal_stage_template_items_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -2150,6 +2193,15 @@ ALTER TABLE "crm_deal_stage_meta_rules" ADD CONSTRAINT "crm_deal_stage_meta_rule
 
 -- AddForeignKey
 ALTER TABLE "crm_deal_stage_meta_rules" ADD CONSTRAINT "crm_deal_stage_meta_rules_pixelId_fkey" FOREIGN KEY ("pixelId") REFERENCES "meta_pixels"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "crm_deal_stage_templates" ADD CONSTRAINT "crm_deal_stage_templates_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "crm_deal_stage_templates" ADD CONSTRAINT "crm_deal_stage_templates_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "crm_deal_stage_template_items" ADD CONSTRAINT "crm_deal_stage_template_items_templateId_fkey" FOREIGN KEY ("templateId") REFERENCES "crm_deal_stage_templates"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "meta_conversion_events" ADD CONSTRAINT "meta_conversion_events_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;

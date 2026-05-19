@@ -3,7 +3,6 @@
 import { SlidersHorizontal } from 'lucide-react'
 import React, { useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { CrudCardView } from '@/features/dashboard/components/crud/crud-card-view'
 import { CrudDataView, CrudEmptyState } from '@/features/dashboard/components/crud/crud-data-view'
 import { CrudListView } from '@/features/dashboard/components/crud/crud-list-view'
 import type { ViewType } from '@/features/dashboard/components/crud/types'
@@ -12,9 +11,9 @@ import { HeaderPageShell } from '@/features/dashboard/components/layout'
 import { EditStagesModal } from '@/features/deal-stage-templates/dialogs/edit-stages-modal'
 import { DealsFilters } from '@/features/deals/components/filters/deals-filters'
 import { DealsKanbanBoard } from '@/features/deals/components/kanban/deals-kanban-board'
-import { dealCardConfig, dealColumns } from '@/features/deals/components/list/deals-view-config'
+import { dealColumns } from '@/features/deals/components/list/deals-view-config'
 import { DEALS_QUERY_KEY } from '@/features/deals/constants'
-import { useMoveDealMutation } from '@/features/deals/mutations/use-move-deal-mutation'
+import { useReorderDealMutation } from '@/features/deals/mutations/use-reorder-deal-mutation'
 import { useDealStagesQuery } from '@/features/deals/queries/use-deal-stages-query'
 import type {
   DealDateRangeFilter,
@@ -57,7 +56,7 @@ export function DealsScreen() {
   } = useCrudInfiniteQuery<DealItem>({
     queryKey: [...DEALS_QUERY_KEY],
     endpoint: '/api/v1/deals',
-    pageSize: 30,
+    pageSize: view === 'kanban' ? 500 : 30,
     filters,
   })
 
@@ -66,7 +65,7 @@ export function DealsScreen() {
     projectId,
     enabled: view === 'kanban',
   })
-  const moveDealMutation = useMoveDealMutation({ organizationId, projectId })
+  const reorderDealMutation = useReorderDealMutation({ organizationId, projectId })
   const dealStats = stats as DealStats | undefined
 
   return (
@@ -74,7 +73,7 @@ export function DealsScreen() {
       <HeaderPageShell
         title='Negociações'
         selector={
-          <ViewSwitcher view={view} setView={setView} enabledViews={['kanban', 'list', 'cards']} />
+          <ViewSwitcher view={view} setView={setView} enabledViews={['kanban', 'list']} />
         }
         searchValue={searchInput}
         onSearchChange={setSearchInput}
@@ -90,9 +89,9 @@ export function DealsScreen() {
           />
         }
         isLoading={isLoading}
-        bodyClassName={view === 'kanban' ? 'overflow-hidden h-full flex flex-col' : undefined}
+        bodyClassName='overflow-hidden h-full flex flex-col'
         contentClassName={
-          view === 'kanban' ? 'h-full flex-1 p-0 px-0 py-0 flex flex-col' : undefined
+          view === 'kanban' ? 'h-full flex-1 p-0 flex flex-col' : 'h-full flex-1 px-6 py-4 flex flex-col'
         }
         actions={
           <Button
@@ -118,13 +117,6 @@ export function DealsScreen() {
               onEndReached={hasNextPage ? fetchNextPage : undefined}
             />
           }
-          cardView={
-            <CrudCardView
-              data={deals}
-              config={dealCardConfig}
-              onEndReached={hasNextPage ? fetchNextPage : undefined}
-            />
-          }
           kanbanView={
             <DealsKanbanBoard
               columns={stagesData?.items ?? []}
@@ -132,7 +124,9 @@ export function DealsScreen() {
               stageStats={dealStats?.stageStats ?? {}}
               organizationId={organizationId}
               projectId={projectId}
-              onMoveDeal={(dealId, stageId) => moveDealMutation.mutate({ dealId, stageId })}
+              onReorderDeal={(dealId, stageId, position) =>
+                reorderDealMutation.mutate({ dealId, stageId, position })
+              }
               onConfigStage={() => setFunnelOpen(true)}
             />
           }

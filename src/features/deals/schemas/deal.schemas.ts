@@ -17,7 +17,7 @@ export const dealsQuerySchema = z.object({
     .number()
     .int()
     .positive('Tamanho da página deve ser positivo')
-    .max(100, 'Tamanho máximo de página é 100')
+    .max(500, 'Tamanho máximo de página é 500')
     .default(20),
 })
 
@@ -35,6 +35,12 @@ export const updateDealSchema = z.object({
   assigneeId: z.string().uuid('ID de atribuído inválido').optional().nullable(),
   dealValue: z.number().nonnegative('Deal value não pode ser negativo').optional().nullable(),
   projectId: z.string().uuid('ID de projeto inválido').optional().nullable(),
+  position: z.number().optional(),
+})
+
+export const reorderDealSchema = z.object({
+  stageId: z.string().uuid('ID de estágio inválido'),
+  position: z.number(),
 })
 
 export const closeDealSchema = z.object({
@@ -47,3 +53,4 @@ export type DealsQueryInput = z.infer<typeof dealsQuerySchema>
 export type CreateDealInput = z.infer<typeof createDealSchema>
 export type UpdateDealInput = z.infer<typeof updateDealSchema>
 export type CloseDealInput = z.infer<typeof closeDealSchema>
+export type ReorderDealInput = z.infer<typeof reorderDealSchema>

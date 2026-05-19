@@ -16,6 +16,7 @@ import {
   ShoppingBag,
   UserCircle,
   Users,
+  Zap,
 } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -39,6 +40,7 @@ const ICON_MAP = {
   ScrollText,
   CreditCard,
   Paintbrush,
+  Zap,
 } as const
 
 type NavItem = {
@@ -243,6 +245,11 @@ export function AppSidebar({
                 title: 'Planos e Cobrança',
                 href: `${basePath}/settings/billing`,
                 icon: 'CreditCard',
+              } satisfies NavItem,
+              {
+                title: 'Dados Demo',
+                href: `${basePath}/settings/demo-data`,
+                icon: 'Zap',
               } satisfies NavItem,
             ]
           : []),

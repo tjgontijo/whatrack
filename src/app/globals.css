@@ -41,6 +41,38 @@
   .scrollbar-thin::-webkit-scrollbar-corner {
     background: transparent;
   }
+
+  /* Scrollbar invisible por padrão, aparece suavemente no hover */
+  .scrollbar-on-hover {
+    scrollbar-width: none;
+  }
+
+  .scrollbar-on-hover::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .scrollbar-on-hover::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-on-hover::-webkit-scrollbar-thumb {
+    background-color: transparent;
+    border-radius: 100px;
+    transition: background-color 0.2s ease;
+  }
+
+  .scrollbar-on-hover:hover {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.25) transparent;
+  }
+
+  .scrollbar-on-hover:hover::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--muted-foreground) / 0.25);
+  }
+
+  .scrollbar-on-hover:hover::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--muted-foreground) / 0.5);
+  }
 }
 
 @custom-variant dark (&:is(.dark *));

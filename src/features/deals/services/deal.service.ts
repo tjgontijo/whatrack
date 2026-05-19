@@ -41,6 +41,7 @@ export interface UpdateDealParams {
   stageId?: string
   assigneeId?: string | null
   dealValue?: number | null
+  position?: number
 }
 
 export interface CloseDealParams {
@@ -64,6 +65,7 @@ const dealListSelect = Prisma.validator<Prisma.DealSelect>()({
   windowExpiresAt: true,
   dealValue: true,
   messagesCount: true,
+  position: true,
   stageEnteredAt: true,
   createdAt: true,
   conversation: {
@@ -282,6 +284,7 @@ function mapDealListItem(deal: DealListRecord) {
     windowExpiresAt: deal.windowExpiresAt ? deal.windowExpiresAt.toISOString() : null,
     dealValue: deal.dealValue ? Number(deal.dealValue) : null,
     messagesCount: deal.messagesCount,
+    position: deal.position,
     salesCount: deal._count.sales,
     stageEnteredAt: deal.stageEnteredAt ? deal.stageEnteredAt.toISOString() : null,
     createdAt: deal.createdAt.toISOString(),
@@ -383,7 +386,7 @@ export async function listDeals(params: DealListParams) {
     await prisma.$transaction([
       prisma.deal.findMany({
         where: whereWithStatus,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { position: 'asc' },
         skip: (params.page - 1) * params.pageSize,
         take: params.pageSize,
         select: dealListSelect,
@@ -530,7 +533,14 @@ export async function createDeal(params: CreateDealParams) {
     if (!assignee) return { error: 'Atribuído não encontrado', status: 404 as const }
   }
 
-  const openStatusId = await lookupCache.getDealStatusId('open')
+  const [openStatusId, maxPosResult] = await Promise.all([
+    lookupCache.getDealStatusId('open'),
+    prisma.deal.aggregate({
+      where: { stageId: targetStageId },
+      _max: { position: true },
+    }),
+  ])
+  const initialPosition = (maxPosResult._max.position ?? 0) + 65536
 
   const deal = await prisma.deal.create({
     data: {
@@ -546,6 +556,7 @@ export async function createDeal(params: CreateDealParams) {
       stageEnteredAt: new Date(),
       assigneeId: assigneeId || null,
       dealValue,
+      position: initialPosition,
       windowOpen: true,
       windowExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
       createdBy,
@@ -576,7 +587,7 @@ export async function createDeal(params: CreateDealParams) {
 }
 
 export async function updateDeal(params: UpdateDealParams) {
-  const { organizationId, dealId, stageId, assigneeId, dealValue } = params
+  const { organizationId, dealId, stageId, assigneeId, dealValue, position } = params
 
   const existing = await prisma.deal.findFirst({
     where: { id: dealId, organizationId },
@@ -617,6 +628,7 @@ export async function updateDeal(params: UpdateDealParams) {
       ...(assigneeId !== undefined && { assigneeId }),
       ...(dealValue !== undefined && { dealValue }),
       ...(typeof params.projectId !== 'undefined' ? { projectId: params.projectId } : {}),
+      ...(position !== undefined && { position }),
     },
     select: dealSummarySelect,
   })
