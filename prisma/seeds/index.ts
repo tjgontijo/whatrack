@@ -7,6 +7,7 @@ import { seedBillingPlans } from './seed_billing_plans'
 import { seedLookupTables } from './seed_lookup_tables'
 import { seedSystemOrg } from './seed_system_org'
 import { seedDealStages } from './seed_deal_stages'
+import { seedDealTemplates } from './seed_deal_templates'
 
 interface PgTableRow {
   tablename: string
@@ -101,6 +102,9 @@ export async function runSeed() {
 
     // 2. Setup deal stages for all organizations
     await seedDealStages(prisma)
+
+    // 3. Setup industry templates for Template Center
+    await seedDealTemplates(prisma)
 
     console.log('✅ Seed concluído com sucesso!')
   } catch (error) {

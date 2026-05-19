@@ -565,17 +565,19 @@ model Deal {
 }
 
 model DealStage {
-  id             String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId String                 @db.Uuid
-  projectId      String?                @db.Uuid
+  id             String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String                @db.Uuid
+  projectId      String?               @db.Uuid
   name           String
   color          String
   order          Int
-  isDefault      Boolean                @default(false)
-  isClosed       Boolean                @default(false)
-  createdAt      DateTime               @default(now())
-  updatedAt      DateTime               @updatedAt
-  organization   Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  statusGroup    String                @default("ACTIVE") // ACTIVE | WON | LOST | PAUSED
+  probability    Int                   @default(0) // 0-100% forecasting
+  isDefault      Boolean               @default(false)
+  isClosed       Boolean               @default(false)
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  organization   Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   deals          Deal[]
   metaRules      DealStageMetaRule[]
 
@@ -1272,17 +1274,58 @@ model MetaEventType {
 }
 
 model DealStageMetaRule {
-  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  stageId   String    @db.Uuid
-  pixelId   String    @db.Uuid
-  eventName String // padrao (ex: "Purchase") ou custom digitado pelo usuario
-  fireOnce  Boolean   @default(true)
+  id        String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  stageId   String  @db.Uuid
+  pixelId   String  @db.Uuid
+  eventName String // padrão (ex: "Purchase") ou custom digitado pelo usuário
+  fireOnce  Boolean @default(true)
+
+  // Granular CAPI Data Mapping
+  includeEmail      Boolean @default(true)
+  includePhone      Boolean @default(true)
+  includeFullName   Boolean @default(true)
+  includeAddress    Boolean @default(false)
+  includeExternalId Boolean @default(true)
+  customDataMapping Json? // {"revenue": "deal.value", "product_id": "deal.customField"}
 
   stage DealStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
   pixel MetaPixel @relation(fields: [pixelId], references: [id], onDelete: Cascade)
 
   @@unique([stageId, pixelId, eventName])
   @@map("crm_deal_stage_meta_rules")
+}
+
+model DealStageTemplate {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String
+  description String?
+  category    String // Real Estate, SaaS, Ecommerce, etc.
+  icon        String? // Nome do icone Lucide
+  isPopular   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  items DealStageTemplateItem[]
+
+  @@map("crm_deal_stage_templates")
+}
+
+model DealStageTemplateItem {
+  id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  templateId  String  @db.Uuid
+  name        String
+  color       String
+  order       Int
+  statusGroup String // "ACTIVE", "WON", "LOST"
+  probability Int // 0-100
+  isFinal     Boolean @default(false)
+
+  // Meta CAPI Sugerido
+  suggestedMetaEventName String?
+
+  template DealStageTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@map("crm_deal_stage_template_items")
 }
 
 model MetaConversionEvent {
