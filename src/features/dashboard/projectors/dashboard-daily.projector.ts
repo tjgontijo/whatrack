@@ -2,6 +2,8 @@ import 'server-only'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/utils/logger'
 import { revalidateTag } from 'next/cache'
+import { attributionRulesService } from '../services/attribution-rules.service'
+import { analyticsSettingsService } from '../services/analytics-settings.service'
 
 export class DashboardDailyProjector {
   async projectMetrics(date: string) {
@@ -89,8 +91,8 @@ export class DashboardDailyProjector {
     const metaPaidClicks = Number(metaInsights._sum.clicks || 0) || 0
     const metaPaidImpressions = Number(metaInsights._sum.impressions || 0) || 0
 
-    // 4. Meta Paid Revenue (sales attributed to Meta)
-    const metaPaidSales = await prisma.sale.aggregate({
+    // 4. Meta Paid Revenue (sales attributed to Meta via ctwaclid/fbclid only)
+    const metaPaidSalesData = await prisma.sale.findMany({
       where: {
         organizationId,
         status: 'completed',
@@ -99,15 +101,31 @@ export class DashboardDailyProjector {
           lt: new Date(date.getTime() + 86400000),
         },
         deal: {
-          tracking: {
-            ctwaclid: { not: null },
+          tracking: {},
+        },
+      },
+      select: {
+        totalAmount: true,
+        deal: {
+          select: {
+            tracking: {
+              select: {
+                ctwaclid: true,
+                fbclid: true,
+              },
+            },
           },
         },
       },
-      _sum: { totalAmount: true },
     })
 
-    const metaPaidRevenue = Number(metaPaidSales._sum.totalAmount || 0)
+    let metaPaidRevenue = 0
+    for (const sale of metaPaidSalesData) {
+      const tracking = sale.deal?.tracking
+      if (tracking && attributionRulesService.isMetaPaidRevenue(tracking)) {
+        metaPaidRevenue += Number(sale.totalAmount || 0)
+      }
+    }
 
     // 5. Leads (by attribution)
     const leadsTotal = await prisma.lead.count({
