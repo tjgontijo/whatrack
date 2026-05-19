@@ -34,39 +34,35 @@ export class DashboardDailyProjector {
     const dateStr = date.toISOString().split('T')[0]
 
     // 1. Revenue metrics
+    // Completed revenue: sales on deals with WON stage
     const completedSales = await prisma.sale.aggregate({
       where: {
         organizationId,
         status: 'completed',
         createdAt: {
           gte: date,
-          lt: new Date(date.getTime() + 86400000), // Next day
-        },
-      },
-      _sum: { totalAmount: true },
-    })
-
-    const pendingSales = await prisma.sale.aggregate({
-      where: {
-        organizationId,
-        status: 'pending',
-        createdAt: {
-          gte: date,
           lt: new Date(date.getTime() + 86400000),
+        },
+        deal: {
+          stage: {
+            statusGroup: 'WON',
+          },
         },
       },
       _sum: { totalAmount: true },
     })
 
     const revenueCompleted = Number(completedSales._sum.totalAmount || 0)
-    const revenuePending = Number(pendingSales._sum.totalAmount || 0)
 
-    // 2. Pipeline (open deals)
+    // No "pending" revenue. Only track completed (won) and pipeline (open).
+    const revenuePending = 0
+
+    // 2. Pipeline (open deals in ACTIVE stage)
     const pipelineDeals = await prisma.deal.aggregate({
       where: {
         organizationId,
         stage: {
-          statusGroup: { not: 'WON', not: 'LOST' },
+          statusGroup: 'ACTIVE',
         },
       },
       _sum: { dealValue: true },
@@ -101,6 +97,9 @@ export class DashboardDailyProjector {
           lt: new Date(date.getTime() + 86400000),
         },
         deal: {
+          stage: {
+            statusGroup: 'WON',
+          },
           tracking: {},
         },
       },
@@ -175,6 +174,9 @@ export class DashboardDailyProjector {
           lt: new Date(date.getTime() + 86400000),
         },
         deal: {
+          stage: {
+            statusGroup: 'WON',
+          },
           tracking: {
             ctwaclid: { not: null },
           },
@@ -262,6 +264,9 @@ export class DashboardDailyProjector {
             lt: new Date(date.getTime() + 86400000),
           },
           deal: {
+            stage: {
+              statusGroup: 'WON',
+            },
             tracking: {
               utmSource: origin.utmSource,
               utmMedium: origin.utmMedium,
@@ -300,6 +305,9 @@ export class DashboardDailyProjector {
             lt: new Date(date.getTime() + 86400000),
           },
           deal: {
+            stage: {
+              statusGroup: 'WON',
+            },
             tracking: {
               utmSource: origin.utmSource,
               utmMedium: origin.utmMedium,
@@ -349,7 +357,7 @@ export class DashboardDailyProjector {
     })
 
     for (const insight of metaInsights) {
-      // Get attributions
+      // Get attributions from sales on won deals only
       const sales = await prisma.sale.aggregate({
         where: {
           organizationId,
@@ -359,6 +367,9 @@ export class DashboardDailyProjector {
             lt: new Date(date.getTime() + 86400000),
           },
           deal: {
+            stage: {
+              statusGroup: 'WON',
+            },
             tracking: {
               metaAdId: insight.metaAdId,
             },
