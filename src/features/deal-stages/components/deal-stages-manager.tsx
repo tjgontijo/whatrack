@@ -172,30 +172,15 @@ export function DealStagesManager({
             {stages.length} fase{stages.length !== 1 ? 's' : ''} — arraste para reordenar
           </p>
         </div>
-        <div className='flex items-center gap-2'>
-          <Button
-            type='button'
-            variant='outline'
-            onClick={() => setTemplateModalOpen(true)}
-            size='sm'
-            className='gap-2 rounded-full px-4 border-primary/20 hover:bg-primary/5 transition-colors'
-          >
-            <Settings2 className='h-4 w-4' />
-            Explorar Templates
-          </Button>
-          <Button
-            type='button'
-            onClick={() => {
-              setEditingStage(null)
-              setDialogOpen(true)
-            }}
-            size='sm'
-            className='gap-2 rounded-full px-4 shadow-sm'
-          >
-            <Plus className='h-4 w-4' />
-            Nova Fase
-          </Button>
-        </div>
+        <Button
+          type='button'
+          onClick={() => setTemplateModalOpen(true)}
+          size='sm'
+          className='gap-2 rounded-full px-4 shadow-sm'
+        >
+          <Settings2 className='h-4 w-4' />
+          Editar Stages
+        </Button>
       </div>
 
       <EditStagesModal
@@ -227,7 +212,7 @@ export function DealStagesManager({
           <EmptyState
             icon={Kanban}
             title='Nenhuma fase configurada'
-            description='Clique em "Adicionar Fase" ou escolha um Template'
+            description='Clique em "Editar Stages" para configurar seu funil'
           />
         )}
       </div>
