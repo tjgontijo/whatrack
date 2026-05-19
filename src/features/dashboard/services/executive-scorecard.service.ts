@@ -1,5 +1,5 @@
 import 'server-only'
-import { prisma } from '@/lib/db/prisma'
+import { dashboardRepository } from '../repositories/dashboard.repository'
 
 export interface ExecutiveScorecardMetrics {
   date: Date
@@ -16,8 +16,46 @@ export interface ExecutiveScorecardMetrics {
 }
 
 /**
- * Fetch executive scorecard metrics for a given date range.
- * Aggregates metrics from DashboardDailyMetric.
+ * ExecutiveScorecardService: computes scorecard metrics from repository.
+ * Uses DashboardRepository for data access.
+ */
+export class ExecutiveScorecardService {
+  /**
+   * Compute executive scorecard metrics for a date range.
+   */
+  async getMetrics(
+    organizationId: string,
+    dateFrom: Date,
+    dateTo: Date,
+    projectId?: string | null
+  ): Promise<ExecutiveScorecardMetrics> {
+    const metrics = await dashboardRepository.getAggregatedMetrics(
+      organizationId,
+      dateFrom,
+      dateTo,
+      projectId
+    )
+
+    return {
+      date: new Date(),
+      revenueCompleted: Number(metrics._sum.revenueCompleted || 0),
+      revenuePipeline: Number(metrics._sum.revenuePipeline || 0),
+      metaPaidSpend: Number(metrics._sum.metaPaidSpend || 0),
+      metaPaidRevenue: Number(metrics._sum.metaPaidRevenue || 0),
+      metaPaidClicks: Number(metrics._sum.metaPaidClicks || 0),
+      metaPaidImpressions: Number(metrics._sum.metaPaidImpressions || 0),
+      leadsTotal: Number(metrics._sum.leadsTotal || 0),
+      leadsMetaPaid: Number(metrics._sum.leadsMetaPaid || 0),
+      salesTotal: Number(metrics._sum.salesTotal || 0),
+      salesMetaAttribued: Number(metrics._sum.salesMetaAttribued || 0),
+    }
+  }
+}
+
+export const executiveScorecardService = new ExecutiveScorecardService()
+
+/**
+ * Legacy function exports for backward compatibility.
  */
 export async function getExecutiveScorecardMetrics(
   organizationId: string,
@@ -25,52 +63,13 @@ export async function getExecutiveScorecardMetrics(
   dateTo: Date,
   projectId?: string | null
 ): Promise<ExecutiveScorecardMetrics> {
-  const metrics = await prisma.dashboardDailyMetric.aggregate({
-    where: {
-      organizationId,
-      projectId: projectId ?? null,
-      date: {
-        gte: dateFrom,
-        lte: dateTo,
-      },
-    },
-    _sum: {
-      revenueCompleted: true,
-      revenuePending: true,
-      revenuePipeline: true,
-      metaPaidSpend: true,
-      metaPaidRevenue: true,
-      metaPaidClicks: true,
-      metaPaidImpressions: true,
-      leadsTotal: true,
-      leadsMetaPaid: true,
-      salesTotal: true,
-      salesMetaAttribued: true,
-    },
-  })
-
-  return {
-    date: new Date(),
-    revenueCompleted: Number(metrics._sum.revenueCompleted || 0),
-    revenuePipeline: Number(metrics._sum.revenuePipeline || 0),
-    metaPaidSpend: Number(metrics._sum.metaPaidSpend || 0),
-    metaPaidRevenue: Number(metrics._sum.metaPaidRevenue || 0),
-    metaPaidClicks: Number(metrics._sum.metaPaidClicks || 0),
-    metaPaidImpressions: Number(metrics._sum.metaPaidImpressions || 0),
-    leadsTotal: Number(metrics._sum.leadsTotal || 0),
-    leadsMetaPaid: Number(metrics._sum.leadsMetaPaid || 0),
-    salesTotal: Number(metrics._sum.salesTotal || 0),
-    salesMetaAttribued: Number(metrics._sum.salesMetaAttribued || 0),
-  }
+  return executiveScorecardService.getMetrics(organizationId, dateFrom, dateTo, projectId)
 }
 
-/**
- * Get executive scorecard for a custom date range or preset.
- */
 export async function getExecutiveScorecard(
   organizationId: string,
   dateRange: { from: Date; to: Date },
   projectId?: string | null
 ): Promise<ExecutiveScorecardMetrics> {
-  return getExecutiveScorecardMetrics(organizationId, dateRange.from, dateRange.to, projectId)
+  return executiveScorecardService.getMetrics(organizationId, dateRange.from, dateRange.to, projectId)
 }
