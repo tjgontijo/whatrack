@@ -64,6 +64,7 @@ const dealListSelect = Prisma.validator<Prisma.DealSelect>()({
   windowExpiresAt: true,
   dealValue: true,
   messagesCount: true,
+  stageEnteredAt: true,
   createdAt: true,
   conversation: {
     select: {
@@ -282,6 +283,7 @@ function mapDealListItem(deal: DealListRecord) {
     dealValue: deal.dealValue ? Number(deal.dealValue) : null,
     messagesCount: deal.messagesCount,
     salesCount: deal._count.sales,
+    stageEnteredAt: deal.stageEnteredAt ? deal.stageEnteredAt.toISOString() : null,
     createdAt: deal.createdAt.toISOString(),
     lastMessageAt: deal.messages[0]?.timestamp
       ? deal.messages[0].timestamp.toISOString()
@@ -377,7 +379,7 @@ export async function listDeals(params: DealListParams) {
     ? { AND: [where, { status: { name: params.status } }] }
     : where
 
-  const [deals, total, openCount, closedWonCount, closedLostCount, totalDealValue] =
+  const [deals, total, openCount, closedWonCount, closedLostCount, totalDealValue, stageAggr] =
     await prisma.$transaction([
       prisma.deal.findMany({
         where: whereWithStatus,
@@ -394,7 +396,25 @@ export async function listDeals(params: DealListParams) {
         where: { AND: [statsWhere, { status: { name: 'closed_won' } }] },
         _sum: { dealValue: true },
       }),
+      prisma.deal.groupBy({
+        by: ['stageId'],
+        where: statsWhere,
+        _count: { _all: true },
+        _sum: { dealValue: true },
+        orderBy: { stageId: 'asc' },
+      }),
     ])
+
+  const stageStats = stageAggr.reduce(
+    (acc, curr: any) => {
+      acc[curr.stageId] = {
+        count: curr._count?._all ?? 0,
+        dealValueSum: curr._sum?.dealValue ? Number(curr._sum.dealValue) : 0,
+      }
+      return acc
+    },
+    {} as Record<string, { count: number; dealValueSum: number }>
+  )
 
   return {
     items: deals.map(mapDealListItem),
@@ -404,6 +424,7 @@ export async function listDeals(params: DealListParams) {
       closed_won: closedWonCount,
       closed_lost: closedLostCount,
       totalDealValue: totalDealValue._sum.dealValue ? Number(totalDealValue._sum.dealValue) : 0,
+      stageStats,
     },
   }
 }

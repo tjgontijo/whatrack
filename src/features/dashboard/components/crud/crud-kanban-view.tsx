@@ -10,6 +10,7 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
+  useDroppable,
 } from '@dnd-kit/core'
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
@@ -17,6 +18,7 @@ import { GripVertical, Plus } from 'lucide-react'
 import React, { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/utils/utils'
 import type { KanbanColumn } from './types'
 
@@ -29,6 +31,9 @@ interface CrudKanbanViewProps<T> {
   onMoveItem?: (itemId: string, toColumnId: string) => Promise<void> | void
   onAddItem?: (columnId: string) => void
   isLoading?: boolean
+  renderColumnHeader?: (column: KanbanColumn, items: T[]) => React.ReactNode
+  renderColumnActions?: (column: KanbanColumn) => React.ReactNode
+  renderEmptyColumn?: (column: KanbanColumn) => React.ReactNode
 }
 
 interface SortableCardProps<T> {
@@ -72,6 +77,9 @@ interface KanbanColumnProps<T> {
   renderCard: (item: T, isDragging?: boolean) => React.ReactNode
   onAddItem?: (columnId: string) => void
   activeId: string | null
+  renderColumnHeader?: (column: KanbanColumn, items: T[]) => React.ReactNode
+  renderColumnActions?: (column: KanbanColumn) => React.ReactNode
+  renderEmptyColumn?: (column: KanbanColumn) => React.ReactNode
 }
 
 function KanbanColumnComponent<T>({
@@ -81,24 +89,29 @@ function KanbanColumnComponent<T>({
   renderCard,
   onAddItem,
   activeId,
+  renderColumnHeader,
+  renderColumnActions,
+  renderEmptyColumn,
 }: KanbanColumnProps<T>) {
   const itemIds = items.map(getItemId)
-  const isOver = activeId !== null
+  const { setNodeRef, isOver } = useDroppable({
+    id: column.id,
+  })
 
-  return (
-    <div className='flex h-full w-[320px] shrink-0 flex-col rounded-2xl border border-border/40 bg-muted/20 p-2 shadow-sm dark:bg-muted/10'>
-      {/* Column Header */}
-      <div className='mb-3 flex shrink-0 items-center justify-between bg-transparent px-3 py-3'>
-        <div className='flex items-center gap-2'>
-          <span
-            className='h-2.5 w-2.5 shrink-0 rounded-full'
-            style={{ backgroundColor: column.color }}
-          />
-          <span className='truncate font-semibold text-foreground text-sm'>{column.name}</span>
-          <Badge variant='secondary' className='min-w-[20px] px-1.5 py-0 text-center text-[10px]'>
-            {items.length}
-          </Badge>
-        </div>
+  const defaultHeader = (
+    <div className='mb-3 flex shrink-0 items-center justify-between bg-transparent px-3 py-3'>
+      <div className='flex items-center gap-2'>
+        <span
+          className='h-2.5 w-2.5 shrink-0 rounded-full'
+          style={{ backgroundColor: column.color }}
+        />
+        <span className='truncate font-semibold text-foreground text-sm'>{column.name}</span>
+        <Badge variant='secondary' className='min-w-[18px] px-1 py-0 text-center text-[10px]'>
+          {column.dealsCount ?? items.length}
+        </Badge>
+      </div>
+      <div className='flex items-center gap-1'>
+        {renderColumnActions?.(column)}
         {onAddItem && (
           <Button
             variant='ghost'
@@ -111,34 +124,44 @@ function KanbanColumnComponent<T>({
           </Button>
         )}
       </div>
+    </div>
+  )
+
+  return (
+    <div className='flex h-full w-[310px] shrink-0 flex-col rounded-xl border border-border/40 bg-slate-50/50 p-2 shadow-sm dark:bg-zinc-900/50'>
+      {/* Column Header */}
+      {renderColumnHeader ? renderColumnHeader(column, items) : defaultHeader}
 
       {/* Cards Area */}
-      <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
+      <ScrollArea className='flex-1'>
         <div
+          ref={setNodeRef}
           className={cn(
-            'scrollbar-thin flex min-h-[80px] flex-1 flex-col gap-3 overflow-y-auto rounded-xl px-1 pb-4 transition-all duration-200',
-            isOver &&
-              activeId &&
-              !itemIds.includes(activeId) &&
-              'bg-primary/5 ring-1 ring-primary/20 ring-inset'
+            'flex min-h-[150px] flex-1 flex-col gap-3 px-1 pb-4 transition-all duration-200',
+            isOver && 'bg-primary/5 ring-1 ring-primary/20 ring-inset'
           )}
         >
-          {items.map((item) => (
-            <SortableCard
-              key={getItemId(item)}
-              item={item}
-              getItemId={getItemId}
-              renderCard={renderCard}
-            />
-          ))}
+          <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
+            {items.map((item) => (
+              <SortableCard
+                key={getItemId(item)}
+                item={item}
+                getItemId={getItemId}
+                renderCard={renderCard}
+              />
+            ))}
+          </SortableContext>
 
-          {items.length === 0 && (
-            <div className='flex min-h-[60px] flex-1 items-center justify-center'>
-              <p className='text-center text-muted-foreground/50 text-xs'>Vazio</p>
-            </div>
-          )}
+          {items.length === 0 &&
+            (renderEmptyColumn ? (
+              renderEmptyColumn(column)
+            ) : (
+              <div className='flex min-h-[60px] flex-1 items-center justify-center'>
+                <p className='text-center text-muted-foreground/50 text-xs'>Vazio</p>
+              </div>
+            ))}
         </div>
-      </SortableContext>
+      </ScrollArea>
     </div>
   )
 }
@@ -151,6 +174,9 @@ export function CrudKanbanView<T>({
   renderCard,
   onMoveItem,
   onAddItem,
+  renderColumnHeader,
+  renderColumnActions,
+  renderEmptyColumn,
 }: CrudKanbanViewProps<T>) {
   const [activeId, setActiveId] = useState<string | null>(null)
   const [overColumnId, setOverColumnId] = useState<string | null>(null)
@@ -240,17 +266,53 @@ export function CrudKanbanView<T>({
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className='scrollbar-thin flex h-full gap-3 overflow-x-auto px-6 py-4 pb-6'>
-        {sortedColumns.map((column) => (
-          <KanbanColumnComponent
-            key={column.id}
-            column={column}
-            items={itemsByColumn.get(column.id) ?? []}
-            getItemId={getItemId}
-            renderCard={renderCard}
-            onAddItem={onAddItem}
-            activeId={activeId}
-          />
+      <div className='scrollbar-thin flex h-full gap-0 overflow-x-auto px-6 py-4 pb-6'>
+        {sortedColumns.map((column, index) => (
+          <React.Fragment key={column.id}>
+            {/* Connector */}
+            <div className='group relative flex w-3 shrink-0 items-center justify-center transition-all hover:w-8'>
+              <div className='h-full w-px bg-border/20 transition-colors group-hover:bg-primary/30' />
+              {onAddItem && (
+                <Button
+                  variant='secondary'
+                  size='icon'
+                  className='absolute z-10 h-5 w-5 scale-0 rounded-full shadow-md transition-transform group-hover:scale-100'
+                  onClick={() => onAddItem(column.id)}
+                >
+                  <Plus className='h-3 w-3' />
+                </Button>
+              )}
+            </div>
+
+            <KanbanColumnComponent
+              column={column}
+              items={itemsByColumn.get(column.id) ?? []}
+              getItemId={getItemId}
+              renderCard={renderCard}
+              onAddItem={onAddItem}
+              activeId={activeId}
+              renderColumnHeader={renderColumnHeader}
+              renderColumnActions={renderColumnActions}
+              renderEmptyColumn={renderEmptyColumn}
+            />
+
+            {/* Last Connector */}
+            {index === sortedColumns.length - 1 && (
+              <div className='group relative flex w-3 shrink-0 items-center justify-center transition-all hover:w-8'>
+                <div className='h-full w-px bg-border/20 transition-colors group-hover:bg-primary/30' />
+                {onAddItem && (
+                  <Button
+                    variant='secondary'
+                    size='icon'
+                    className='absolute z-10 h-5 w-5 scale-0 rounded-full shadow-md transition-transform group-hover:scale-100'
+                    onClick={() => onAddItem('')}
+                  >
+                    <Plus className='h-3 w-3' />
+                  </Button>
+                )}
+              </div>
+            )}
+          </React.Fragment>
         ))}
       </div>
 

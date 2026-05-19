@@ -89,4 +89,20 @@ describe('HeaderPageShell', () => {
     expect(screen.getByTitle('Filtros')).toBeInTheDocument()
     expect(screen.getByTitle('Atualizar')).toBeInTheDocument()
   })
+
+  it('applies custom body and content classes when provided', () => {
+    render(
+      <HeaderPageShell
+        title='Deals'
+        bodyClassName='custom-body'
+        contentClassName='custom-content'
+      >
+        <div>content</div>
+      </HeaderPageShell>
+    )
+
+    const bodyWrapper = screen.getByTestId('header-page-shell-body').parentElement
+    expect(bodyWrapper).toHaveClass('custom-body')
+    expect(screen.getByTestId('header-page-shell-body')).toHaveClass('custom-content')
+  })
 })

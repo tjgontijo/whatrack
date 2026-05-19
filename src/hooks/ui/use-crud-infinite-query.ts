@@ -11,6 +11,7 @@ interface ApiPage<T> {
   total: number
   page: number
   pageSize: number
+  stats?: any
 }
 
 interface UseCrudInfiniteQueryOptions {
@@ -24,6 +25,7 @@ interface UseCrudInfiniteQueryOptions {
 interface UseCrudInfiniteQueryResult<T> {
   data: T[]
   total: number
+  stats?: any
   fetchNextPage: () => void
   hasNextPage: boolean
   isFetchingNextPage: boolean
@@ -82,10 +84,12 @@ export function useCrudInfiniteQuery<T>({
 
   const flatData = useMemo(() => data?.pages.flatMap((page) => page.items) ?? [], [data])
   const total = data?.pages[0]?.total ?? 0
+  const stats = data?.pages[0]?.stats
 
   return {
     data: flatData,
     total,
+    stats,
     fetchNextPage,
     hasNextPage: hasNextPage ?? false,
     isFetchingNextPage,

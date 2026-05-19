@@ -5,6 +5,9 @@ export const createDealStageSchema = z.object({
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Cor inválida (use formato hex #RRGGBB)'),
   order: z.number().int().nonnegative().optional(),
   projectId: z.string().uuid().optional(),
+  statusGroup: z.enum(['ACTIVE', 'WON', 'LOST']).optional(),
+  probability: z.number().int().min(0).max(100).optional(),
+  suggestedMetaEventName: z.string().max(50).optional().nullable(),
 })
 
 export const updateDealStageSchema = z.object({
@@ -16,6 +19,9 @@ export const updateDealStageSchema = z.object({
   isDefault: z.boolean().optional(),
   isClosed: z.boolean().optional(),
   projectId: z.string().uuid().optional(),
+  statusGroup: z.enum(['ACTIVE', 'WON', 'LOST']).optional(),
+  probability: z.number().int().min(0).max(100).optional(),
+  suggestedMetaEventName: z.string().max(50).optional().nullable(),
 })
 
 export const reorderDealStageSchema = z.object({

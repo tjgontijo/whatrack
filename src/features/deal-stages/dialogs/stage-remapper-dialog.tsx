@@ -44,17 +44,19 @@ export function StageRemapperDialog({
   const queryClient = useQueryClient()
   const [selectedDestinationId, setSelectedDestinationId] = useState<string>('')
 
-  const { data: stages = [] } = useQuery<DealStage[]>({
+  const { data: stagesData } = useQuery<{ items: DealStage[] }>({
     queryKey: ['deal-stages', organizationId, projectId],
     queryFn: async () => {
       const data = await apiFetch('/api/v1/deal-stages', {
         orgId: organizationId,
         projectId,
       })
-      return (data as { items: DealStage[] }).items
+      return data as { items: DealStage[] }
     },
     enabled: open && !!organizationId,
   })
+
+  const stages = stagesData?.items ?? []
 
   const availableDestinations = stages.filter((s) => s.id !== stage?.id)
 

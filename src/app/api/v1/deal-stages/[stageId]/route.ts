@@ -35,6 +35,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ stag
       color: parsed.data.color,
       isDefault: parsed.data.isDefault,
       isClosed: parsed.data.isClosed,
+      statusGroup: parsed.data.statusGroup,
+      probability: parsed.data.probability,
     })
 
     if ('error' in result) {

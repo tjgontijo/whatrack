@@ -1,8 +1,16 @@
 import "server-only"
 import { prisma } from '@/lib/db/prisma'
 
-export async function listTemplatesRepository() {
+export async function listTemplatesRepository(organizationId?: string, projectId?: string) {
   return prisma.dealStageTemplate.findMany({
+    where: {
+      OR: [
+        { isPersonal: false },
+        ...(organizationId && projectId
+          ? [{ isPersonal: true, organizationId, projectId }]
+          : []),
+      ],
+    },
     select: {
       id: true,
       name: true,
@@ -10,6 +18,7 @@ export async function listTemplatesRepository() {
       category: true,
       icon: true,
       isPopular: true,
+      isPersonal: true,
       items: {
         select: {
           id: true,
@@ -23,6 +32,6 @@ export async function listTemplatesRepository() {
         orderBy: { order: 'asc' },
       },
     },
-    orderBy: { name: 'asc' },
+    orderBy: [{ isPersonal: 'asc' }, { name: 'asc' }],
   })
 }

@@ -41,7 +41,7 @@ export function CrudDataView<T>({
   }
 
   return (
-    <div className='fade-in h-full animate-in duration-300'>
+    <div className='fade-in h-full flex-1 min-h-0 animate-in duration-300'>
       {view === 'kanban' ? kanbanView : view === 'list' ? tableView : cardView}
     </div>
   )

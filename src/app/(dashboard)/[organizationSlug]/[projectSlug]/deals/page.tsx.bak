@@ -1,27 +1,13 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import {
-  Calendar,
-  DollarSign,
-  MessageSquare,
-  MoreVertical,
-  Plus,
-  Settings,
-  SlidersHorizontal,
-} from 'lucide-react'
+import { Calendar, DollarSign, MessageSquare, SlidersHorizontal } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import React, { useState } from 'react'
 import { toast } from 'sonner'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import {
   Select,
   SelectContent,
@@ -31,6 +17,7 @@ import {
 } from '@/components/ui/select'
 import { CrudCardView } from '@/features/dashboard/components/crud/crud-card-view'
 import { CrudDataView, CrudEmptyState } from '@/features/dashboard/components/crud/crud-data-view'
+import { CrudKanbanView } from '@/features/dashboard/components/crud/crud-kanban-view'
 import { CrudListView } from '@/features/dashboard/components/crud/crud-list-view'
 import type {
   CardConfig,
@@ -40,12 +27,9 @@ import type {
 } from '@/features/dashboard/components/crud/types'
 import { ViewSwitcher } from '@/features/dashboard/components/crud/view-switcher'
 import { HeaderPageShell } from '@/features/dashboard/components/layout'
-import { EditStagesModal } from '@/features/deal-stage-templates/dialogs/edit-stages-modal'
-import { DealsKanbanBoard } from '@/features/deals/components/kanban/deals-kanban-board'
 import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-project-route-context'
 import { useCrudInfiniteQuery } from '@/hooks/ui/use-crud-infinite-query'
 import { formatCurrencyBRL } from '@/lib/mask/formatters'
-import { cn } from '@/lib/utils/utils'
 
 type DealItem = {
   id: string
@@ -61,18 +45,11 @@ type DealItem = {
     color: string
   }
   assignee: { id: string; name: string } | null
-  tracking: {
-    utmSource: string | null
-    sourceType: string | null
-    ctwaclid: string | null
-  } | null
   status: string
   windowOpen: boolean
-  windowExpiresAt: string | null
   dealValue: number | null
   messagesCount: number
   salesCount: number
-  stageEnteredAt: string | null
   createdAt: string
   lastMessageAt: string | null
 }
@@ -233,120 +210,56 @@ const cardConfig: CardConfig<DealItem> = {
   ),
 }
 
-const getDealOrigin = (deal: DealItem) =>
-  deal.tracking?.utmSource || deal.tracking?.sourceType || 'Direto'
-
 function DealKanbanCard({ deal }: { deal: DealItem }) {
-  const name = getLeadName(deal)
-  const origin = getDealOrigin(deal)
-  const isStale = deal.lastMessageAt
-    ? daysSince(deal.lastMessageAt) > 2
-    : daysSince(deal.createdAt) > 3
-
-  const timeInPhase = deal.stageEnteredAt ? daysSince(deal.stageEnteredAt) : daysSince(deal.createdAt)
-
   return (
-    <div className='group relative flex flex-col overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-all hover:border-primary/30 hover:shadow-md'>
-      {/* Accent bar */}
-      <div
-        className='absolute top-0 bottom-0 left-0 w-1'
-        style={{ backgroundColor: deal.stage.color }}
-      />
-
-      <div className='flex flex-1 flex-col p-3 pl-4'>
-        {/* Header: Lead Info */}
-        <div className='mb-2 flex items-start justify-between gap-2'>
-          <div className='min-w-0 flex-1'>
-            <h4 className='truncate font-semibold text-[13px] text-foreground leading-snug group-hover:text-primary transition-colors'>
-              {name}
-            </h4>
-            {deal.lead.phone && (
-              <p className='truncate font-mono text-[10px] text-muted-foreground/80'>
-                {deal.lead.phone}
-              </p>
-            )}
-          </div>
-          {deal.status !== 'open' && (
-            <Badge
-              variant={STATUS_BADGE[deal.status]?.variant || 'outline'}
-              className='h-4 px-1.5 text-[9px] uppercase tracking-wider'
-            >
-              {STATUS_BADGE[deal.status]?.label}
-            </Badge>
+    <div className='rounded-xl border border-border bg-card p-3 shadow-sm transition-shadow hover:shadow-md'>
+      <div className='mb-2 flex items-start gap-2'>
+        <Avatar className='mt-0.5 h-7 w-7 shrink-0 border border-border/50'>
+          <AvatarFallback className='bg-primary/5 font-semibold text-[9px] text-primary'>
+            {getInitials(getLeadName(deal))}
+          </AvatarFallback>
+        </Avatar>
+        <div className='min-w-0 flex-1'>
+          <p className='truncate font-semibold text-sm leading-tight'>{getLeadName(deal)}</p>
+          {deal.lead.phone && (
+            <p className='truncate font-mono text-[11px] text-muted-foreground'>
+              {deal.lead.phone}
+            </p>
           )}
         </div>
+      </div>
 
-        {/* Origin & Value */}
-        <div className='mb-3 grid grid-cols-2 gap-2'>
-          <div className='flex flex-col gap-0.5'>
-            <span className='font-bold text-[9px] text-muted-foreground/60 uppercase tracking-tight'>
-              Origem
-            </span>
-            <span className='truncate text-[11px] text-foreground/90'>{origin}</span>
-          </div>
-          {deal.dealValue && (
-            <div className='flex flex-col gap-0.5'>
-              <span className='font-bold text-[9px] text-muted-foreground/60 uppercase tracking-tight'>
-                Valor
-              </span>
-              <span className='font-bold text-[11px] text-emerald-600'>
-                {formatCurrencyBRL(deal.dealValue)}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Footer: Activity & Time */}
-        <div className='mt-auto flex items-center justify-between gap-2 border-t border-border/40 pt-2'>
-          <div className='flex items-center gap-3'>
-            <div
-              className={cn(
-                'flex items-center gap-1 text-[10px]',
-                isStale ? 'text-orange-500 font-medium' : 'text-muted-foreground'
-              )}
-              title={isStale ? 'Sem atividade recente' : 'Atividade recente'}
-            >
-              <MessageSquare className='h-3 w-3' />
-              <span>{deal.messagesCount}</span>
-            </div>
-            <div
-              className='flex items-center gap-1 text-[10px] text-muted-foreground'
-              title='Tempo nesta fase'
-            >
-              <Calendar className='h-3 w-3' />
-              <span>{timeInPhase}d</span>
-            </div>
-          </div>
-
-          <div className='flex items-center gap-2'>
-            {deal.assignee ? (
-              <Avatar className='h-5 w-5 border border-background shadow-sm'>
-                <AvatarFallback className='bg-primary/10 text-[8px] font-bold text-primary uppercase'>
-                  {getInitials(deal.assignee.name)}
-                </AvatarFallback>
-              </Avatar>
-            ) : (
-              <div
-                className='h-5 w-5 rounded-full border border-dashed border-muted-foreground/30 bg-muted/5'
-                title='Sem responsável'
-              />
-            )}
-          </div>
-        </div>
+      <div className='mt-2 flex items-center justify-between text-[11px] text-muted-foreground'>
+        <span className='flex items-center gap-1'>
+          <Calendar className='h-3 w-3' />
+          {daysSince(deal.createdAt)}d
+        </span>
+        {deal.dealValue && (
+          <span className='flex items-center gap-1 font-semibold text-emerald-600'>
+            <DollarSign className='h-3 w-3' />
+            {formatCurrencyBRL(deal.dealValue)}
+          </span>
+        )}
+        {deal.assignee && (
+          <Avatar className='h-4 w-4'>
+            <AvatarFallback className='bg-muted text-[8px]'>
+              {getInitials(deal.assignee.name)}
+            </AvatarFallback>
+          </Avatar>
+        )}
       </div>
     </div>
   )
 }
 
 export default function DealsPage() {
-  const { organizationSlug, projectSlug, organizationId, projectId } = useRequiredProjectRouteContext()
+  const { organizationSlug, projectSlug } = useRequiredProjectRouteContext()
   const router = useRouter()
   const queryClient = useQueryClient()
   const [view, setView] = useState<ViewType>('kanban')
   const [searchInput, setSearchInput] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [dateRange, setDateRange] = useState('all')
-  const [funnelOpen, setFunnelOpen] = useState(false)
 
   const deferredSearch = React.useDeferredValue(searchInput)
 
@@ -364,7 +277,6 @@ export default function DealsPage() {
   const {
     data: deals,
     total,
-    stats,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
@@ -376,8 +288,6 @@ export default function DealsPage() {
     pageSize: 30,
     filters,
   })
-
-  const stageStats = stats?.stageStats ?? {}
 
   // Fetch stages for Kanban
   const { data: stagesData } = useQuery<{ items: KanbanColumn[] }>({
@@ -458,15 +368,13 @@ export default function DealsPage() {
         isFetchingMore={isFetchingNextPage}
         filters={filtersNode}
         isLoading={isLoading}
-        bodyClassName={view === 'kanban' ? 'overflow-hidden h-full flex flex-col' : undefined}
-        contentClassName={view === 'kanban' ? 'h-full flex-1 p-0 px-0 py-0 flex flex-col' : undefined}
         actions={
           <Button
             type='button'
             variant='outline'
             size='sm'
             className='h-7 gap-1.5 text-xs'
-            onClick={() => setFunnelOpen(true)}
+            onClick={() => router.push(`/${organizationSlug}/${projectSlug}/settings/pipeline`)}
           >
             <SlidersHorizontal className='h-3.5 w-3.5' />
             Configurar funil
@@ -492,25 +400,17 @@ export default function DealsPage() {
             />
           }
           kanbanView={
-            <DealsKanbanBoard
+            <CrudKanbanView
               columns={kanbanColumns}
-              deals={deals}
-              stageStats={stageStats}
-              organizationId={organizationId}
-              projectId={projectId}
-              onMoveDeal={(dealId, stageId) => moveMutation.mutate({ dealId, stageId })}
-              onConfigStage={() => setFunnelOpen(true)}
+              items={deals}
+              getItemId={(t) => t.id}
+              getColumnId={(t) => t.stage.id}
+              renderCard={(deal) => <DealKanbanCard deal={deal} />}
+              onMoveItem={(dealId, stageId) => moveMutation.mutate({ dealId, stageId })}
             />
           }
         />
       </HeaderPageShell>
-      <EditStagesModal
-        open={funnelOpen}
-        onOpenChange={setFunnelOpen}
-        projectId={projectId}
-        organizationId={organizationId}
-        currentStages={stagesData?.items ?? []}
-      />
     </>
   )
 }

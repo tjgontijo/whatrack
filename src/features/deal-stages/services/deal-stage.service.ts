@@ -13,6 +13,9 @@ export type DealStageListItem = {
   order: number
   isDefault: boolean
   isClosed: boolean
+  statusGroup: 'ACTIVE' | 'WON' | 'LOST'
+  probability: number
+  suggestedMetaEventName: string | null
   dealsCount: number
   metaRules: {
     id: string
@@ -37,6 +40,9 @@ export async function listDealStages(
       order: true,
       isDefault: true,
       isClosed: true,
+      statusGroup: true,
+      probability: true,
+      suggestedMetaEventName: true,
       _count: { select: { deals: true } },
       metaRules: {
         select: {
@@ -61,6 +67,9 @@ export async function listDealStages(
         order: true,
         isDefault: true,
         isClosed: true,
+        statusGroup: true,
+        probability: true,
+        suggestedMetaEventName: true,
         _count: { select: { deals: true } },
         metaRules: {
           select: {
@@ -82,6 +91,9 @@ export async function listDealStages(
       order: stage.order,
       isDefault: stage.isDefault,
       isClosed: stage.isClosed,
+      statusGroup: stage.statusGroup as 'ACTIVE' | 'WON' | 'LOST',
+      probability: stage.probability,
+      suggestedMetaEventName: stage.suggestedMetaEventName,
       dealsCount: stage._count.deals,
       metaRules: stage.metaRules,
     })),
@@ -94,6 +106,9 @@ export async function createDealStage(input: {
   name: string
   color: string
   order?: number
+  statusGroup?: 'ACTIVE' | 'WON' | 'LOST'
+  probability?: number
+  suggestedMetaEventName?: string | null
   metaRules?: {
     pixelId: string
     eventName: string
@@ -128,6 +143,9 @@ export async function createDealStage(input: {
       name: input.name,
       color: input.color,
       order,
+      suggestedMetaEventName: input.suggestedMetaEventName,
+      ...(input.statusGroup !== undefined && { statusGroup: input.statusGroup }),
+      ...(input.probability !== undefined && { probability: input.probability }),
       metaRules: {
         create: input.metaRules?.map((rule) => ({
           pixelId: rule.pixelId,
@@ -143,6 +161,9 @@ export async function createDealStage(input: {
       order: true,
       isDefault: true,
       isClosed: true,
+      statusGroup: true,
+      probability: true,
+      suggestedMetaEventName: true,
       _count: { select: { deals: true } },
       metaRules: {
         select: {
@@ -162,6 +183,9 @@ export async function createDealStage(input: {
     order: stage.order,
     isDefault: stage.isDefault,
     isClosed: stage.isClosed,
+    statusGroup: stage.statusGroup as 'ACTIVE' | 'WON' | 'LOST',
+    probability: stage.probability,
+    suggestedMetaEventName: stage.suggestedMetaEventName,
     dealsCount: stage._count.deals,
     metaRules: stage.metaRules,
   }
@@ -175,6 +199,9 @@ export async function updateDealStage(input: {
   color?: string
   isDefault?: boolean
   isClosed?: boolean
+  statusGroup?: 'ACTIVE' | 'WON' | 'LOST'
+  probability?: number
+  suggestedMetaEventName?: string | null
   metaRules?: {
     id?: string
     pixelId: string
@@ -226,6 +253,11 @@ export async function updateDealStage(input: {
       ...(input.color !== undefined && { color: input.color }),
       ...(input.isDefault !== undefined && { isDefault: input.isDefault }),
       ...(input.isClosed !== undefined && { isClosed: input.isClosed }),
+      ...(input.statusGroup !== undefined && { statusGroup: input.statusGroup }),
+      ...(input.probability !== undefined && { probability: input.probability }),
+      ...(input.suggestedMetaEventName !== undefined && {
+        suggestedMetaEventName: input.suggestedMetaEventName,
+      }),
       metaRules: input.metaRules
         ? {
             deleteMany: {},
@@ -244,6 +276,9 @@ export async function updateDealStage(input: {
       order: true,
       isDefault: true,
       isClosed: true,
+      statusGroup: true,
+      probability: true,
+      suggestedMetaEventName: true,
       _count: { select: { deals: true } },
       metaRules: {
         select: {
@@ -263,6 +298,9 @@ export async function updateDealStage(input: {
     order: updated.order,
     isDefault: updated.isDefault,
     isClosed: updated.isClosed,
+    statusGroup: updated.statusGroup as 'ACTIVE' | 'WON' | 'LOST',
+    probability: updated.probability,
+    suggestedMetaEventName: updated.suggestedMetaEventName,
     dealsCount: updated._count.deals,
     metaRules: updated.metaRules,
   }

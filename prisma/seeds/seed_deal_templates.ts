@@ -1,74 +1,79 @@
 import type { PrismaClient } from '@generated/prisma/client'
 
-const industryTemplates = [
+const conversationTemplates = [
   {
-    name: 'Vendas Padrão',
-    description: 'Funil clássico para processos de vendas B2B e B2C.',
+    name: 'Vendas Diretas',
+    description: 'Ideal para produtos e serviços de conversão rápida via WhatsApp.',
     category: 'Vendas',
-    icon: 'Briefcase',
-    isPopular: true,
-    items: [
-      { name: 'Novo Lead', color: '#6366f1', order: 0, statusGroup: 'ACTIVE', probability: 20, suggestedMetaEventName: 'Lead' },
-      { name: 'Qualificado', color: '#8b5cf6', order: 1, statusGroup: 'ACTIVE', probability: 40, suggestedMetaEventName: 'Lead' },
-      { name: 'Proposta', color: '#f59e0b', order: 2, statusGroup: 'ACTIVE', probability: 80 },
-      { name: 'Ganho', color: '#22c55e', order: 3, statusGroup: 'WON', probability: 100, suggestedMetaEventName: 'Purchase' },
-      { name: 'Perdido', color: '#ef4444', order: 4, statusGroup: 'LOST', probability: 0 },
-    ],
-  },
-  {
-    name: 'Imobiliária',
-    description: 'Otimizado para corretores e imobiliárias, do lead à escritura.',
-    category: 'Real Estate',
-    icon: 'Home',
-    isPopular: false,
-    items: [
-      { name: 'Lead', color: '#6366f1', order: 0, statusGroup: 'ACTIVE', probability: 10 },
-      { name: 'Visita Agendada', color: '#0ea5e9', order: 1, statusGroup: 'ACTIVE', probability: 40, suggestedMetaEventName: 'Schedule' },
-      { name: 'Proposta', color: '#f59e0b', order: 2, statusGroup: 'ACTIVE', probability: 70 },
-      { name: 'Vendido', color: '#22c55e', order: 3, statusGroup: 'WON', probability: 100, suggestedMetaEventName: 'Purchase' },
-      { name: 'Desistiu', color: '#ef4444', order: 4, statusGroup: 'LOST', probability: 0 },
-    ],
-  },
-  {
-    name: 'SaaS B2B',
-    description: 'Focado em demonstrações, períodos de teste e fechamento de contrato.',
-    category: 'Software',
     icon: 'Zap',
     isPopular: true,
+    isDefault: true,
     items: [
-      { name: 'Triagem', color: '#6366f1', order: 0, statusGroup: 'ACTIVE', probability: 20 },
-      { name: 'Demo Realizada', color: '#8b5cf6', order: 1, statusGroup: 'ACTIVE', probability: 50, suggestedMetaEventName: 'QualifiedLead' },
-      { name: 'Período Trial', color: '#0ea5e9', order: 2, statusGroup: 'ACTIVE', probability: 70, suggestedMetaEventName: 'StartTrial' },
-      { name: 'Contrato', color: '#f59e0b', order: 3, statusGroup: 'ACTIVE', probability: 90 },
-      { name: 'Ativo', color: '#22c55e', order: 4, statusGroup: 'WON', probability: 100, suggestedMetaEventName: 'Purchase' },
-      { name: 'Não Converteu', color: '#ef4444', order: 5, statusGroup: 'LOST', probability: 0 },
+      { name: 'Novo Lead', color: '#6366f1', order: 0, statusGroup: 'ACTIVE', probability: 20, suggestedMetaEventName: 'Lead' },
+      { name: 'Em Atendimento', color: '#8b5cf6', order: 1, statusGroup: 'ACTIVE', probability: 40, suggestedMetaEventName: 'Contact' },
+      { name: 'Proposta Enviada', color: '#f59e0b', order: 2, statusGroup: 'ACTIVE', probability: 70 },
+      { name: 'Venda Ganha', color: '#22c55e', order: 3, statusGroup: 'WON', probability: 100, suggestedMetaEventName: 'Purchase' },
+      { name: 'Venda Perdida', color: '#ef4444', order: 4, statusGroup: 'LOST', probability: 0 },
     ],
   },
   {
-    name: 'E-commerce (High Ticket)',
-    description: 'Ideal para vendas consultivas de produtos de alto valor via WhatsApp.',
-    category: 'Retail',
+    name: 'Vendas Consultivas / Reunião',
+    description: 'Focado em processos que exigem qualificação e agendamento de reuniões ou visitas.',
+    category: 'Vendas',
+    icon: 'Users',
+    isPopular: true,
+    isDefault: false,
+    items: [
+      { name: 'Lead Recebido', color: '#6366f1', order: 0, statusGroup: 'ACTIVE', probability: 10, suggestedMetaEventName: 'Lead' },
+      { name: 'Qualificado', color: '#8b5cf6', order: 1, statusGroup: 'ACTIVE', probability: 30, suggestedMetaEventName: 'QualifiedLead' },
+      { name: 'Reunião Agendada', color: '#0ea5e9', order: 2, statusGroup: 'ACTIVE', probability: 60, suggestedMetaEventName: 'Schedule' },
+      { name: 'Negociação', color: '#f59e0b', order: 3, statusGroup: 'ACTIVE', probability: 80 },
+      { name: 'Contrato Fechado', color: '#22c55e', order: 4, statusGroup: 'WON', probability: 100, suggestedMetaEventName: 'Purchase' },
+      { name: 'Desistência', color: '#ef4444', order: 5, statusGroup: 'LOST', probability: 0 },
+    ],
+  },
+  {
+    name: 'Agendamento de Serviços',
+    description: 'Perfeito para clínicas, estética e prestadores de serviço com foco em reserva de horários.',
+    category: 'Serviços',
+    icon: 'Calendar',
+    isPopular: false,
+    isDefault: false,
+    items: [
+      { name: 'Interessado', color: '#6366f1', order: 0, statusGroup: 'ACTIVE', probability: 20, suggestedMetaEventName: 'Lead' },
+      { name: 'Avaliação/Triagem', color: '#8b5cf6', order: 1, statusGroup: 'ACTIVE', probability: 40 },
+      { name: 'Horário Agendado', color: '#0ea5e9', order: 2, statusGroup: 'ACTIVE', probability: 80, suggestedMetaEventName: 'Schedule' },
+      { name: 'Serviço Realizado', color: '#22c55e', order: 3, statusGroup: 'WON', probability: 100, suggestedMetaEventName: 'Purchase' },
+      { name: 'Não Compareceu', color: '#ef4444', order: 4, statusGroup: 'LOST', probability: 0 },
+    ],
+  },
+  {
+    name: 'Recuperação de Checkout',
+    description: 'Focado em converter leads que iniciaram uma compra mas não finalizaram o pagamento.',
+    category: 'E-commerce',
     icon: 'ShoppingBag',
-    isPopular: false,
+    isPopular: true,
+    isDefault: false,
     items: [
-      { name: 'Checkout Aberto', color: '#6366f1', order: 0, statusGroup: 'ACTIVE', probability: 10, suggestedMetaEventName: 'InitiateCheckout' },
-      { name: 'Aguardando Pagamento', color: '#f59e0b', order: 1, statusGroup: 'ACTIVE', probability: 50 },
-      { name: 'Pago', color: '#22c55e', order: 2, statusGroup: 'WON', probability: 100, suggestedMetaEventName: 'Purchase' },
-      { name: 'Expirado', color: '#ef4444', order: 3, statusGroup: 'LOST', probability: 0 },
+      { name: 'Checkout Iniciado', color: '#6366f1', order: 0, statusGroup: 'ACTIVE', probability: 20, suggestedMetaEventName: 'InitiateCheckout' },
+      { name: 'Aguardando Pagamento', color: '#f59e0b', order: 1, statusGroup: 'ACTIVE', probability: 60 },
+      { name: 'Pedido Pago', color: '#22c55e', order: 2, statusGroup: 'WON', probability: 100, suggestedMetaEventName: 'Purchase' },
+      { name: 'Pagamento Expirado', color: '#ef4444', order: 3, statusGroup: 'LOST', probability: 0 },
     ],
   },
   {
-    name: 'Estética & Saúde',
-    description: 'Do interesse inicial ao agendamento de avaliações.',
-    category: 'Healthcare',
-    icon: 'Heart',
+    name: 'Trial e Demonstração',
+    description: 'Para empresas de software que oferecem degustação gratuita ou demonstração assistida.',
+    category: 'Software',
+    icon: 'Monitor',
     isPopular: false,
+    isDefault: false,
     items: [
-      { name: 'Interessado', color: '#6366f1', order: 0, statusGroup: 'ACTIVE', probability: 20 },
-      { name: 'Avaliação Agendada', color: '#0ea5e9', order: 1, statusGroup: 'ACTIVE', probability: 60, suggestedMetaEventName: 'Schedule' },
-      { name: 'Agendado', color: '#8b5cf6', order: 2, statusGroup: 'ACTIVE', probability: 80, suggestedMetaEventName: 'Schedule' },
-      { name: 'Realizado', color: '#22c55e', order: 3, statusGroup: 'WON', probability: 100, suggestedMetaEventName: 'Purchase' },
-      { name: 'Cancelado', color: '#ef4444', order: 4, statusGroup: 'LOST', probability: 0 },
+      { name: 'Solicitação de Teste', color: '#6366f1', order: 0, statusGroup: 'ACTIVE', probability: 20, suggestedMetaEventName: 'Lead' },
+      { name: 'Trial Ativo', color: '#8b5cf6', order: 1, statusGroup: 'ACTIVE', probability: 50, suggestedMetaEventName: 'StartTrial' },
+      { name: 'Demo Realizada', color: '#0ea5e9', order: 2, statusGroup: 'ACTIVE', probability: 70 },
+      { name: 'Assinatura Ativa', color: '#22c55e', order: 3, statusGroup: 'WON', probability: 100, suggestedMetaEventName: 'Purchase' },
+      { name: 'Churn Trial', color: '#ef4444', order: 4, statusGroup: 'LOST', probability: 0 },
     ],
   },
 ]
@@ -76,7 +81,7 @@ const industryTemplates = [
 export async function seedDealTemplates(prisma: PrismaClient) {
   console.log('Seeding deal stage templates...')
 
-  for (const template of industryTemplates) {
+  for (const template of conversationTemplates) {
     const existing = await prisma.dealStageTemplate.findFirst({
       where: { name: template.name },
     })
@@ -91,6 +96,7 @@ export async function seedDealTemplates(prisma: PrismaClient) {
           category: template.category,
           icon: template.icon,
           isPopular: template.isPopular,
+          isDefault: template.isDefault,
         },
       })
       templateId = existing.id
@@ -104,6 +110,7 @@ export async function seedDealTemplates(prisma: PrismaClient) {
           category: template.category,
           icon: template.icon,
           isPopular: template.isPopular,
+          isDefault: template.isDefault,
         },
       })
       templateId = created.id

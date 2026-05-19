@@ -21,6 +21,8 @@ export type HeaderPageShellProps = {
   refreshAction?: React.ReactNode
   isLoading?: boolean
   isFetchingMore?: boolean
+  bodyClassName?: string
+  contentClassName?: string
   children: React.ReactNode
 }
 
@@ -38,6 +40,8 @@ export function HeaderPageShell({
   refreshAction,
   isLoading = false,
   isFetchingMore = false,
+  bodyClassName,
+  contentClassName,
   children,
 }: HeaderPageShellProps) {
   const hasSearch = typeof searchValue === 'string' && typeof onSearchChange === 'function'
@@ -114,8 +118,11 @@ export function HeaderPageShell({
         {resolvedRefreshAction}
       </div>
 
-      <div className='scrollbar-hide flex-1 overflow-y-auto'>
-        <div data-testid='header-page-shell-body' className='min-h-full px-6 py-6'>
+      <div className={cn('scrollbar-hide flex-1 overflow-y-auto', bodyClassName)}>
+        <div
+          data-testid='header-page-shell-body'
+          className={cn('flex flex-col', !contentClassName && 'min-h-full px-6 py-6', contentClassName)}
+        >
           {isLoading ? (
             <div className='flex min-h-[calc(100svh-14rem)] items-center justify-center'>
               <div className='flex flex-col items-center gap-3'>

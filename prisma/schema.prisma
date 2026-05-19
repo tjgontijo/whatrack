@@ -266,6 +266,7 @@ model Organization {
   sales                Sale[]
   dealStages           DealStage[]
   deals                Deal[]
+  dealStageTemplates   DealStageTemplate[]
   whatsappAuditLogs    WhatsAppAuditLog[]   @relation("WhatsAppAuditLogs")
   whatsappConfig       WhatsAppConfig[]
   whatsappConnections  WhatsAppConnection[] @relation("WhatsAppConnections")
@@ -321,6 +322,7 @@ model Project {
   metaConversionEvents MetaConversionEvent[]
   whatsAppCampaigns    WhatsAppCampaign[]
   audienceSegments     WhatsAppAudienceSegment[]
+  dealStageTemplates   DealStageTemplate[]
 
   @@unique([organizationId, slug])
   @@index([organizationId])
@@ -565,18 +567,19 @@ model Deal {
 }
 
 model DealStage {
-  id             String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId String                @db.Uuid
-  projectId      String?               @db.Uuid
-  name           String
-  color          String
-  order          Int
-  statusGroup    String                @default("ACTIVE") // ACTIVE | WON | LOST | PAUSED
-  probability    Int                   @default(0) // 0-100% forecasting
-  isDefault      Boolean               @default(false)
-  isClosed       Boolean               @default(false)
-  createdAt      DateTime              @default(now())
-  updatedAt      DateTime              @updatedAt
+  id                     String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId         String              @db.Uuid
+  projectId              String?             @db.Uuid
+  name                   String
+  color                  String
+  order                  Int
+  statusGroup            String              @default("ACTIVE") // ACTIVE | WON | LOST | PAUSED
+  probability            Int                 @default(0) // 0-100% forecasting
+  isDefault              Boolean             @default(false)
+  isClosed               Boolean             @default(false)
+  suggestedMetaEventName String?
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
   organization   Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   deals          Deal[]
   metaRules      DealStageMetaRule[]
@@ -1296,16 +1299,22 @@ model DealStageMetaRule {
 }
 
 model DealStageTemplate {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name        String
-  description String?
-  category    String // Real Estate, SaaS, Ecommerce, etc.
-  icon        String? // Nome do icone Lucide
-  isPopular   Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name           String
+  description    String?
+  category       String   @default("custom")
+  icon           String?
+  isPopular      Boolean  @default(false)
+  isDefault      Boolean  @default(false)
+  isPersonal     Boolean  @default(false)
+  organizationId String?  @db.Uuid
+  projectId      String?  @db.Uuid
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  items DealStageTemplateItem[]
+  items        DealStageTemplateItem[]
+  organization Organization?           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project?                @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@map("crm_deal_stage_templates")
 }

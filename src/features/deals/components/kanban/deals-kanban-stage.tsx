@@ -1,0 +1,163 @@
+'use client'
+
+import { useDroppable } from '@dnd-kit/core'
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { MoreVertical, Settings, ArrowLeft, ArrowRight, Plus, Trash2 } from 'lucide-react'
+import React from 'react'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu'
+import { cn } from '@/lib/utils/utils'
+import { formatCurrencyBRL } from '@/lib/mask/formatters'
+import { DealsKanbanCard } from './deals-kanban-card'
+
+interface DealsKanbanStageProps {
+  stage: {
+    id: string
+    name: string
+    color: string
+  }
+  deals: any[]
+  stats?: { count: number; dealValueSum: number }
+  stageIndex?: number
+  totalStages?: number
+  onConfigStage?: () => void
+  onMoveStageLeft?: () => void
+  onMoveStageRight?: () => void
+  onCreateStageBefore?: () => void
+  onDeleteStage?: () => void
+}
+
+export function DealsKanbanStage({
+  stage,
+  deals,
+  stats,
+  stageIndex = 0,
+  totalStages = 1,
+  onConfigStage,
+  onMoveStageLeft,
+  onMoveStageRight,
+  onCreateStageBefore,
+  onDeleteStage,
+}: DealsKanbanStageProps) {
+  const { setNodeRef, isOver } = useDroppable({ id: stage.id })
+  const dealIds = deals.map((d) => d.id)
+
+  return (
+    <div className='flex h-full w-[280px] shrink-0 flex-col rounded-lg border border-border/30 bg-card shadow-sm overflow-hidden'>
+      {/* Colored top border */}
+      <div className='h-[3px] shrink-0 w-full opacity-70' style={{ backgroundColor: stage.color }} />
+
+      {/* Stage Header */}
+      <div className='flex shrink-0 items-center justify-between px-3 py-2.5 border-b border-border/40'>
+        <div className='flex flex-col min-w-0 gap-0.5'>
+          <div className='flex items-center gap-2'>
+            <h3 className='truncate font-semibold text-[13px]' style={{ color: stage.color }}>
+              {stage.name}
+            </h3>
+            <Badge variant='secondary' className='h-4 min-w-[18px] px-1.5 text-[10px] font-medium'>
+              {stats?.count ?? deals.length}
+            </Badge>
+          </div>
+          {stats && stats.dealValueSum > 0 && (
+            <span className='font-semibold text-[10px] text-emerald-600/90'>
+              {formatCurrencyBRL(stats.dealValueSum)}
+            </span>
+          )}
+        </div>
+
+        <div className='flex items-center gap-0'>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant='ghost' size='icon' className='h-6 w-6 text-muted-foreground/50 hover:text-foreground'>
+                <MoreVertical className='h-3.5 w-3.5' />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align='end' className='w-56'>
+              {/* Reordering */}
+              {(stageIndex > 0 || stageIndex < totalStages - 1) && (
+                <>
+                  {stageIndex > 0 && (
+                    <DropdownMenuItem
+                      className='gap-3 text-sm py-2.5 px-3'
+                      onClick={onMoveStageLeft}
+                    >
+                      <ArrowLeft className='h-4 w-4 text-muted-foreground' />
+                      <span>Mover para esquerda</span>
+                    </DropdownMenuItem>
+                  )}
+                  {stageIndex < totalStages - 1 && (
+                    <DropdownMenuItem
+                      className='gap-3 text-sm py-2.5 px-3'
+                      onClick={onMoveStageRight}
+                    >
+                      <ArrowRight className='h-4 w-4 text-muted-foreground' />
+                      <span>Mover para direita</span>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuSeparator className='my-1.5' />
+                </>
+              )}
+
+              {/* Create & Configure */}
+              <DropdownMenuItem
+                className='gap-3 text-sm py-2.5 px-3'
+                onClick={onCreateStageBefore}
+              >
+                <Plus className='h-4 w-4 text-muted-foreground' />
+                <span>Criar nova fase</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className='gap-3 text-sm py-2.5 px-3'
+                onClick={onConfigStage}
+              >
+                <Settings className='h-4 w-4 text-muted-foreground' />
+                <span>Configurar fase</span>
+              </DropdownMenuItem>
+
+              {/* Delete */}
+              <DropdownMenuSeparator className='my-1.5' />
+              <DropdownMenuItem
+                className='gap-3 text-sm py-2.5 px-3 text-destructive'
+                onClick={onDeleteStage}
+              >
+                <Trash2 className='h-4 w-4' />
+                <span>Deletar fase</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+
+      {/* Cards Area */}
+      <ScrollArea className='flex-1'>
+        <div
+          ref={setNodeRef}
+          className={cn(
+            'flex min-h-[200px] flex-1 flex-col gap-2.5 p-2.5 pb-24 transition-all',
+            isOver && 'bg-primary/5'
+          )}
+        >
+          {deals.length === 0 ? (
+            <div className='mt-12 flex flex-1 flex-col items-center justify-start'>
+              <span className='text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground/30'>Vazio</span>
+            </div>
+          ) : (
+            <SortableContext items={dealIds} strategy={verticalListSortingStrategy}>
+              {deals.map((deal) => (
+                <DealsKanbanCard key={deal.id} deal={deal} />
+              ))}
+            </SortableContext>
+          )}
+        </div>
+      </ScrollArea>
+    </div>
+  )
+}

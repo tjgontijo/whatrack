@@ -100,11 +100,11 @@ export async function runSeed() {
     // 1. Ensure system organization exists
     await seedSystemOrg(prisma)
 
-    // 2. Setup deal stages for all organizations
-    await seedDealStages(prisma)
-
-    // 3. Setup industry templates for Template Center
+    // 2. Setup industry templates for Template Center
     await seedDealTemplates(prisma)
+
+    // 3. Setup deal stages for all organizations
+    await seedDealStages(prisma)
 
     console.log('✅ Seed concluído com sucesso!')
   } catch (error) {

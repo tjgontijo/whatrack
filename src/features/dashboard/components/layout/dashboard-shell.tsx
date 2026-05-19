@@ -22,9 +22,9 @@ export function DashboardShell({ children, ...sidebarProps }: DashboardShellProp
           onToggle={() => setCollapsed((v) => !v)}
         />
 
-        <main className='scrollbar-hide flex-1 overflow-y-auto overflow-x-hidden rounded-tl-xl bg-background'>
-          <div className='min-w-0 3xl:px-6 px-4 py-4'>
-            <div className='mx-auto w-full min-w-0 max-w-screen-4xl'>{children}</div>
+        <main className='scrollbar-hide flex-1 flex flex-col overflow-hidden overflow-x-hidden rounded-tl-xl bg-background'>
+          <div className='min-w-0 flex-1 min-h-0 flex flex-col 3xl:px-6 px-4 pt-4'>
+            <div className='mx-auto w-full min-w-0 max-w-screen-4xl flex-1 min-h-0 flex flex-col'>{children}</div>
           </div>
         </main>
       </div>

@@ -9,6 +9,12 @@ export interface KanbanColumn {
   name: string
   color: string
   order: number
+  // Optional metadata for advanced headers
+  dealsCount?: number
+  isDefault?: boolean
+  isClosed?: boolean
+  statusGroup?: string
+  probability?: number
 }
 
 // Search configuration

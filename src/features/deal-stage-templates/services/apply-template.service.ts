@@ -35,7 +35,17 @@ export async function applyTemplateService(input: unknown) {
         where: { stageId: { in: existingStages.map(s => s.id) } }
       })
 
-      // 3. Create new stages from template
+      // 3. Rename existing stages to free up names (unique constraint on organizationId+projectId+name)
+      if (existingStages.length > 0) {
+        for (const stage of existingStages) {
+          await tx.dealStage.update({
+            where: { id: stage.id },
+            data: { name: `__del_${stage.id}` },
+          })
+        }
+      }
+
+      // 4. Create new stages from template
       const newStages = []
       for (const item of template.items) {
         const stage = await tx.dealStage.create({
@@ -47,7 +57,7 @@ export async function applyTemplateService(input: unknown) {
             order: item.order,
             statusGroup: item.statusGroup,
             probability: item.probability,
-            isDefault: item.order === 0, // First one is default
+            isDefault: item.order === 0,
             isClosed: item.statusGroup !== 'ACTIVE',
           },
           select: { id: true, name: true, order: true },
@@ -55,15 +65,16 @@ export async function applyTemplateService(input: unknown) {
         newStages.push({ ...stage, suggestedMetaEvent: item.suggestedMetaEventName })
       }
 
-      // 4. Migration logic: if there are deals, move them to the new default stage (order 0)
+      // 5. Move deals to new default stage, then delete old stages
       const defaultStage = newStages.find(s => s.order === 0)
-      if (defaultStage && existingStages.length > 0) {
-        await tx.deal.updateMany({
-          where: { stageId: { in: existingStages.map(s => s.id) } },
-          data: { stageId: defaultStage.id },
-        })
+      if (existingStages.length > 0) {
+        if (defaultStage) {
+          await tx.deal.updateMany({
+            where: { stageId: { in: existingStages.map(s => s.id) } },
+            data: { stageId: defaultStage.id },
+          })
+        }
 
-        // 5. Safe delete old stages
         await tx.dealStage.deleteMany({
           where: { id: { in: existingStages.map(s => s.id) } },
         })

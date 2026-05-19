@@ -55,6 +55,8 @@ export async function POST(req: Request) {
       name: parsed.data.name,
       color: parsed.data.color,
       order: parsed.data.order,
+      statusGroup: parsed.data.statusGroup,
+      probability: parsed.data.probability,
     })
 
     if ('error' in result) {
