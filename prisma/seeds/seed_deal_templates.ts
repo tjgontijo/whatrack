@@ -81,6 +81,14 @@ const conversationTemplates = [
 export async function seedDealTemplates(prisma: PrismaClient) {
   console.log('Seeding deal stage templates...')
 
+  // Remove templates globais não definidos no seed (isPersonal=false)
+  await prisma.dealStageTemplate.deleteMany({
+    where: {
+      isPersonal: false,
+      name: { notIn: conversationTemplates.map((t) => t.name) },
+    },
+  })
+
   for (const template of conversationTemplates) {
     const existing = await prisma.dealStageTemplate.findFirst({
       where: { name: template.name },
