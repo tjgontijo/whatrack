@@ -1,7 +1,7 @@
 import { Kanban } from 'lucide-react'
 import { notFound, redirect } from 'next/navigation'
 import { PageContent, PageHeader, PageShell } from '@/features/dashboard/components/layout'
-import { PipelineStagesManager } from '@/features/dashboard/components/pipeline/pipeline-stages-manager'
+import { DealStagesManager } from '@/features/deal-stages/components/deal-stages-manager'
 import { getServerSession } from '@/server/auth/server-session'
 import { resolveProjectContext } from '@/server/project/resolve-project-context'
 
@@ -39,7 +39,7 @@ export default async function PipelinePage({ params }: PipelinePageProps) {
 
       <PageContent>
         <div className='mx-auto max-w-xl'>
-          <PipelineStagesManager organizationId={context.organizationId} projectId={context.projectId} />
+          <DealStagesManager organizationId={context.organizationId} projectId={context.projectId} />
         </div>
       </PageContent>
     </PageShell>

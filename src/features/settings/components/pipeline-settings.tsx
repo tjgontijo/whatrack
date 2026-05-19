@@ -2,7 +2,7 @@
 
 import { Kanban } from 'lucide-react'
 import { PageContent, PageHeader, PageShell } from '@/features/dashboard/components/layout'
-import { PipelineStagesManager } from '@/features/dashboard/components/pipeline/pipeline-stages-manager'
+import { DealStagesManager } from '@/features/deal-stages/components/deal-stages-manager'
 import { useOrganization } from '@/features/organizations/hooks/use-organization'
 import { useProject } from '@/features/projects/hooks/use-project'
 
@@ -22,7 +22,7 @@ export function PipelineSettings() {
 
       <PageContent>
         <div className='mx-auto max-w-xl'>
-          <PipelineStagesManager organizationId={organizationId} projectId={projectId} />
+          <DealStagesManager organizationId={organizationId} projectId={projectId} />
         </div>
       </PageContent>
     </PageShell>
