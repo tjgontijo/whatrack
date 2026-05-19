@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { DEAL_STAGES_QUERY_KEY } from '@/features/deal-stages/constants'
 import { apiFetch } from '@/lib/http/api-client'
 
 interface ReorderStageMutationInput {
@@ -43,7 +44,7 @@ export function useReorderStageMutation() {
       })
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['deal-stages'] })
+      queryClient.invalidateQueries({ queryKey: DEAL_STAGES_QUERY_KEY })
     },
     onError: (err: Error) => toast.error(err.message),
   })

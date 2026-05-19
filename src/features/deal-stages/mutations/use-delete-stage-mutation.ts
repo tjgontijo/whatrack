@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { DEAL_STAGES_QUERY_KEY } from '@/features/deal-stages/constants'
 import { apiFetch } from '@/lib/http/api-client'
 
 interface DeleteStageMutationInput {
@@ -23,7 +24,7 @@ export function useDeleteStageMutation() {
     },
     onSuccess: () => {
       toast.success('Fase deletada')
-      queryClient.invalidateQueries({ queryKey: ['deal-stages'] })
+      queryClient.invalidateQueries({ queryKey: DEAL_STAGES_QUERY_KEY })
       queryClient.invalidateQueries({ queryKey: ['deals'] })
     },
     onError: (err: Error) => toast.error(err.message),

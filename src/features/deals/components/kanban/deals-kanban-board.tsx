@@ -3,17 +3,15 @@
 import {
   closestCorners,
   DndContext,
+  type DragEndEvent,
   DragOverlay,
+  type DragStartEvent,
   PointerSensor,
   useSensor,
   useSensors,
-  type DragEndEvent,
-  type DragStartEvent,
 } from '@dnd-kit/core'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
 import React, { useState } from 'react'
-import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -24,23 +22,37 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { apiFetch } from '@/lib/http/api-client'
-import { cn } from '@/lib/utils/utils'
-import { useReorderStageMutation } from '@/features/deal-stages/mutations/use-reorder-stage-mutation'
+import { useCreateStageMutation } from '@/features/deal-stages/mutations/use-create-stage-mutation'
 import { useDeleteStageMutation } from '@/features/deal-stages/mutations/use-delete-stage-mutation'
+import { useReorderStageMutation } from '@/features/deal-stages/mutations/use-reorder-stage-mutation'
+import type { DealItem, DealStageColumn, DealStageStats } from '@/features/deals/types'
+import { cn } from '@/lib/utils/utils'
 import { DealsKanbanCard } from './deals-kanban-card'
 import { DealsKanbanStage } from './deals-kanban-stage'
 
 const PRESET_COLORS = [
-  '#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#ef4444', '#f97316',
-  '#f59e0b', '#eab308', '#84cc16', '#22c55e', '#10b981', '#14b8a6',
-  '#06b6d4', '#0ea5e9', '#3b82f6', '#64748b',
+  '#6366f1',
+  '#8b5cf6',
+  '#ec4899',
+  '#f43f5e',
+  '#ef4444',
+  '#f97316',
+  '#f59e0b',
+  '#eab308',
+  '#84cc16',
+  '#22c55e',
+  '#10b981',
+  '#14b8a6',
+  '#06b6d4',
+  '#0ea5e9',
+  '#3b82f6',
+  '#64748b',
 ] as const
 
 interface DealsKanbanBoardProps {
-  columns: any[]
-  deals: any[]
-  stageStats: Record<string, { count: number; dealValueSum: number }>
+  columns: DealStageColumn[]
+  deals: DealItem[]
+  stageStats: DealStageStats
   organizationId: string
   projectId: string
   onMoveDeal: (dealId: string, toStageId: string) => Promise<void> | void
@@ -56,7 +68,6 @@ export function DealsKanbanBoard({
   onMoveDeal,
   onConfigStage,
 }: DealsKanbanBoardProps) {
-  const queryClient = useQueryClient()
   const [activeId, setActiveId] = useState<string | null>(null)
   const [addDialogOpen, setAddDialogOpen] = useState(false)
   const [insertAfterIndex, setInsertAfterIndex] = useState<number>(-1)
@@ -65,17 +76,16 @@ export function DealsKanbanBoard({
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [stageToDelete, setStageToDelete] = useState<string | null>(null)
 
+  const createStageMutation = useCreateStageMutation()
   const reorderMutation = useReorderStageMutation()
   const deleteMutation = useDeleteStageMutation()
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
-  )
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
 
   const activeDeal = activeId ? deals.find((d) => d.id === activeId) : null
 
   const dealsByStage = React.useMemo(() => {
-    const map = new Map<string, any[]>()
+    const map = new Map<string, DealItem[]>()
     for (const col of columns) map.set(col.id, [])
     for (const deal of deals) {
       const stageId = deal.stage.id
@@ -85,44 +95,6 @@ export function DealsKanbanBoard({
     }
     return map
   }, [columns, deals])
-
-  const createStageMutation = useMutation({
-    mutationFn: async () => {
-      if (!newStageName.trim()) throw new Error('Nome obrigatório')
-      const newStage = await apiFetch('/api/v1/deal-stages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newStageName.trim(), color: newStageColor, statusGroup: 'ACTIVE', probability: 50 }),
-        orgId: organizationId,
-        projectId,
-      }) as { id: string }
-
-      // Reorder: insert at clicked position (not just append to end)
-      const isAtEnd = insertAfterIndex >= columns.length - 1
-      if (!isAtEnd && newStage?.id) {
-        const newIds = [
-          ...columns.slice(0, insertAfterIndex + 1).map((c) => c.id),
-          newStage.id,
-          ...columns.slice(insertAfterIndex + 1).map((c) => c.id),
-        ]
-        await apiFetch('/api/v1/deal-stages/reorder', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ orderedIds: newIds, projectId }),
-          orgId: organizationId,
-          projectId,
-        })
-      }
-    },
-    onSuccess: () => {
-      toast.success('Fase criada!')
-      queryClient.invalidateQueries({ queryKey: ['deal-stages'] })
-      setAddDialogOpen(false)
-      setNewStageName('')
-      setNewStageColor(PRESET_COLORS[0])
-    },
-    onError: (err: Error) => toast.error(err.message),
-  })
 
   const openAddDialog = (afterIndex: number) => {
     setInsertAfterIndex(afterIndex)
@@ -172,6 +144,28 @@ export function DealsKanbanBoard({
     openAddDialog(afterIndex)
   }
 
+  const handleCreateStage = () => {
+    if (!newStageName.trim() || createStageMutation.isPending) return
+
+    createStageMutation.mutate(
+      {
+        organizationId,
+        projectId,
+        name: newStageName,
+        color: newStageColor,
+        insertAfterIndex,
+        columns,
+      },
+      {
+        onSuccess: () => {
+          setAddDialogOpen(false)
+          setNewStageName('')
+          setNewStageColor(PRESET_COLORS[0])
+        },
+      }
+    )
+  }
+
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(String(event.active.id))
   }
@@ -199,17 +193,17 @@ export function DealsKanbanBoard({
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className='flex h-full w-full flex-1 overflow-x-auto scrollbar-thin px-3 pt-3 pb-3 gap-0'>
+        <div className='scrollbar-thin flex h-full w-full flex-1 gap-0 overflow-x-auto px-3 pt-3 pb-3'>
           {columns.map((column, index) => (
             <React.Fragment key={column.id}>
               {/* Separator with hover add button */}
               {index > 0 && (
-                <div className='group relative flex w-3 shrink-0 self-stretch items-center justify-center hover:w-8 transition-all duration-150'>
-                  <div className='h-full w-px bg-transparent group-hover:bg-primary/20 transition-colors' />
+                <div className='group relative flex w-3 shrink-0 items-center justify-center self-stretch transition-all duration-150 hover:w-8'>
+                  <div className='h-full w-px bg-transparent transition-colors group-hover:bg-primary/20' />
                   <Button
                     variant='secondary'
                     size='icon'
-                    className='absolute z-10 h-6 w-6 scale-0 rounded-full shadow border border-border bg-background transition-transform group-hover:scale-100'
+                    className='absolute z-10 h-6 w-6 scale-0 rounded-full border border-border bg-background shadow transition-transform group-hover:scale-100'
                     onClick={() => openAddDialog(index - 1)}
                   >
                     <Plus className='h-3 w-3' />
@@ -232,12 +226,12 @@ export function DealsKanbanBoard({
           ))}
 
           {/* Add stage button after last column */}
-          <div className='group relative flex w-3 shrink-0 self-stretch items-center justify-center hover:w-8 transition-all duration-150'>
-            <div className='h-full w-px bg-transparent group-hover:bg-primary/20 transition-colors' />
+          <div className='group relative flex w-3 shrink-0 items-center justify-center self-stretch transition-all duration-150 hover:w-8'>
+            <div className='h-full w-px bg-transparent transition-colors group-hover:bg-primary/20' />
             <Button
               variant='secondary'
               size='icon'
-              className='absolute z-10 h-6 w-6 scale-0 rounded-full shadow border border-border bg-background transition-transform group-hover:scale-100'
+              className='absolute z-10 h-6 w-6 scale-0 rounded-full border border-border bg-background shadow transition-transform group-hover:scale-100'
               onClick={() => openAddDialog(columns.length - 1)}
             >
               <Plus className='h-3 w-3' />
@@ -245,7 +239,9 @@ export function DealsKanbanBoard({
           </div>
         </div>
 
-        <DragOverlay dropAnimation={{ duration: 200, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }}>
+        <DragOverlay
+          dropAnimation={{ duration: 200, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }}
+        >
           {activeDeal ? (
             <div className='w-[280px]'>
               <DealsKanbanCard deal={activeDeal} isDragging />
@@ -266,7 +262,7 @@ export function DealsKanbanBoard({
                 placeholder='Ex: Proposta enviada'
                 value={newStageName}
                 onChange={(e) => setNewStageName(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && createStageMutation.mutate()}
+                onKeyDown={(e) => e.key === 'Enter' && handleCreateStage()}
                 autoFocus
               />
             </div>
@@ -280,7 +276,7 @@ export function DealsKanbanBoard({
                     onClick={() => setNewStageColor(color)}
                     className={cn(
                       'h-6 w-6 rounded-full border-2 transition-transform hover:scale-110',
-                      newStageColor === color ? 'border-foreground scale-110' : 'border-transparent'
+                      newStageColor === color ? 'scale-110 border-foreground' : 'border-transparent'
                     )}
                     style={{ backgroundColor: color }}
                   />
@@ -289,9 +285,11 @@ export function DealsKanbanBoard({
             </div>
           </div>
           <DialogFooter>
-            <Button variant='ghost' onClick={() => setAddDialogOpen(false)}>Cancelar</Button>
+            <Button variant='ghost' onClick={() => setAddDialogOpen(false)}>
+              Cancelar
+            </Button>
             <Button
-              onClick={() => createStageMutation.mutate()}
+              onClick={handleCreateStage}
               disabled={!newStageName.trim() || createStageMutation.isPending}
             >
               {createStageMutation.isPending ? 'Criando...' : 'Criar Fase'}
@@ -305,11 +303,13 @@ export function DealsKanbanBoard({
           <DialogHeader>
             <DialogTitle>Deletar Fase</DialogTitle>
           </DialogHeader>
-          <p className='text-sm text-muted-foreground'>
+          <p className='text-muted-foreground text-sm'>
             Tem certeza que deseja deletar esta fase? Os deals serão movidos para a fase padrão.
           </p>
           <DialogFooter>
-            <Button variant='ghost' onClick={() => setDeleteConfirmOpen(false)}>Cancelar</Button>
+            <Button variant='ghost' onClick={() => setDeleteConfirmOpen(false)}>
+              Cancelar
+            </Button>
             <Button
               variant='destructive'
               onClick={confirmDelete}

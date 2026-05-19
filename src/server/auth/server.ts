@@ -1,4 +1,5 @@
 import { cookies, headers as nextHeaders } from 'next/headers'
+import { unstable_rethrow } from 'next/navigation'
 import { auth } from '@/lib/auth/auth'
 import { env } from '@/lib/env/env'
 import { ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
@@ -22,8 +23,8 @@ async function buildAuthHeaders(request?: Request): Promise<Headers> {
         if (cookieHeader) {
           headers.set('cookie', cookieHeader)
         }
-      } catch {
-        // ignore
+      } catch (error) {
+        unstable_rethrow(error)
       }
     }
     return headers
@@ -97,6 +98,7 @@ export async function getServerSession(request?: Request) {
 
     return session
   } catch (error) {
+    unstable_rethrow(error)
     logger.error({ err: error }, '[auth] Failed to get server session')
     return null
   }

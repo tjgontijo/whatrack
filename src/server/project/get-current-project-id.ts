@@ -1,4 +1,5 @@
 import { cookies, headers } from 'next/headers'
+import { unstable_rethrow } from 'next/navigation'
 
 import { PROJECT_COOKIE, PROJECT_HEADER } from '@/lib/constants/http-headers'
 import { prisma } from '@/lib/db/prisma'
@@ -28,7 +29,12 @@ export async function getCurrentProjectId(organizationId: string): Promise<strin
 
     // 2. Check session
     const session = await getServerSession()
-    const fromSession = (session?.session as any)?.activeProjectId?.trim?.()
+    const sessionData = session?.session
+    const activeProjectId =
+      typeof sessionData === 'object' && sessionData !== null && 'activeProjectId' in sessionData
+        ? sessionData.activeProjectId
+        : null
+    const fromSession = typeof activeProjectId === 'string' ? activeProjectId.trim() : ''
     if (fromSession) {
       const project = await prisma.project.findFirst({
         where: {
@@ -61,6 +67,7 @@ export async function getCurrentProjectId(organizationId: string): Promise<strin
 
     return null
   } catch (error) {
+    unstable_rethrow(error)
     logger.error({ err: error }, '[getCurrentProjectId] Erro ao resolver projeto')
     return null
   }

@@ -1,3 +1,4 @@
+export { DEAL_STAGES_QUERY_KEY } from '@/features/deal-stages/constants'
 export {
   type CreateDealStageInput,
   createDealStageSchema,

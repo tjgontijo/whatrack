@@ -1,9 +1,43 @@
-import { Redis } from 'ioredis'
+import { Redis, type RedisOptions } from 'ioredis'
 import { logger } from '@/lib/utils/logger'
 import { env } from '@/lib/env/env'
 
 let redis: Redis | null = null
 let isConnected = false
+
+function getRedisConnectionOptions(url: URL): RedisOptions {
+  const options: RedisOptions = {
+    host: url.hostname,
+  }
+
+  if (url.port) {
+    options.port = Number.parseInt(url.port, 10)
+  }
+
+  if (url.username) {
+    options.username = decodeURIComponent(url.username)
+  }
+
+  if (url.password) {
+    options.password = decodeURIComponent(url.password)
+  }
+
+  const db = Number.parseInt(url.pathname.replace(/^\/+/, ''), 10)
+  if (!Number.isNaN(db)) {
+    options.db = db
+  }
+
+  const family = url.searchParams.get('family')
+  if (family === '4' || family === '6') {
+    options.family = Number.parseInt(family, 10)
+  }
+
+  if (url.protocol === 'rediss:') {
+    options.tls = {}
+  }
+
+  return options
+}
 
 /**
  * Get Redis client with connection pooling.
@@ -25,10 +59,11 @@ export function getRedis(): Redis {
     try {
       // Parse URL for logging (hide password)
       const urlObj = new URL(redisUrl)
-      const safeUrl = `${urlObj.protocol}//${urlObj.hostname}:${urlObj.port}`
-      logger.info({ context: safeUrl }, '[Redis] Connecting to')
+      const safeUrl = `${urlObj.protocol}//${urlObj.hostname}${urlObj.port ? `:${urlObj.port}` : ''}`
+      logger.debug({ context: safeUrl }, '[Redis] Connecting to')
 
-      redis = new Redis(redisUrl, {
+      redis = new Redis({
+        ...getRedisConnectionOptions(urlObj),
         retryStrategy: (times) => {
           const delay = Math.min(times * 50, 2000)
           if (times > 10) {
@@ -45,11 +80,11 @@ export function getRedis(): Redis {
 
       redis.on('connect', () => {
         isConnected = true
-        logger.info('[Redis] ✓ Connected successfully')
+        logger.debug('[Redis] ✓ Connected successfully')
       })
 
       redis.on('ready', () => {
-        logger.info('[Redis] ✓ Ready for commands')
+        logger.debug('[Redis] ✓ Ready for commands')
       })
 
       redis.on('error', (err) => {
@@ -59,11 +94,11 @@ export function getRedis(): Redis {
 
       redis.on('close', () => {
         isConnected = false
-        logger.info('[Redis] ✗ Connection closed')
+        logger.debug('[Redis] ✗ Connection closed')
       })
 
-      redis.on('reconnecting', (info: any) => {
-        logger.info(`[Redis] Reconnecting... (attempt ${info?.attempt || '?'})`)
+      redis.on('reconnecting', (delay: number) => {
+        logger.debug(`[Redis] Reconnecting... (delay ${delay}ms)`)
       })
     } catch (error) {
       logger.error({ err: error }, '[Redis] ✗ Failed to initialize')

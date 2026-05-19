@@ -1,3 +1,4 @@
+import { unstable_rethrow } from 'next/navigation'
 import { NextResponse } from 'next/server'
 
 export function apiError(
@@ -6,6 +7,8 @@ export function apiError(
   details?: unknown,
   extra?: Record<string, unknown>
 ) {
+  unstable_rethrow(details)
+
   const resolvedMessage =
     typeof message === 'string' && message.length > 0 ? message : 'Internal server error'
   const resolvedStatus = typeof status === 'number' ? status : 500

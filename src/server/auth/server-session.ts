@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers'
+import { unstable_rethrow } from 'next/navigation'
 import { auth } from '@/lib/auth/auth'
 import { env } from '@/lib/env/env'
 import { prisma } from '@/lib/db/prisma'
@@ -70,6 +71,7 @@ export async function getServerSession() {
 
     return session
   } catch (error) {
+    unstable_rethrow(error)
     logger.error({ err: error }, '[getServerSession] Error')
     return null
   }

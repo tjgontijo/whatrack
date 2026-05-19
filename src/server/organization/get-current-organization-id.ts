@@ -1,6 +1,7 @@
 import 'server-only'
 
 import { cookies, headers } from 'next/headers'
+import { unstable_rethrow } from 'next/navigation'
 import { ORGANIZATION_COOKIE, ORGANIZATION_HEADER } from '@/lib/constants/http-headers'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/utils/logger'
@@ -39,6 +40,7 @@ export async function getCurrentOrganizationId(userId: string): Promise<string |
 
     return membership?.organizationId ?? null
   } catch (error) {
+    unstable_rethrow(error)
     logger.error({ err: error }, '[getCurrentOrganizationId] Erro ao resolver organização')
     return null
   }

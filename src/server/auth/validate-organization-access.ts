@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers'
+import { unstable_rethrow } from 'next/navigation'
 
 import { auth } from '@/lib/auth/auth'
 import { getPermissionCandidates, isAdmin, isOwner, type Permission } from '@/lib/auth/rbac/roles'
@@ -26,8 +27,8 @@ async function buildAuthHeaders(request?: Request): Promise<Headers> {
         if (cookieHeader) {
           headers.set('cookie', cookieHeader)
         }
-      } catch {
-        // ignore
+      } catch (error) {
+        unstable_rethrow(error)
       }
     }
     return headers
@@ -235,6 +236,7 @@ export async function validateTenantAccess(
       globalRole,
     }
   } catch (error) {
+    unstable_rethrow(error)
     logger.error({ err: error }, '[validateTenantAccess] Erro ao validar sessão')
     return {
       hasAccess: false,
