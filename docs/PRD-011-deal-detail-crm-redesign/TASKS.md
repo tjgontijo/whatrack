@@ -41,7 +41,7 @@ Cenario manual: abrir `/deals`, clicar em um card, confirmar navegacao para `/de
 
 ### T2: Modelar campos comerciais e DealLineItem, 1d
 
-**Problema:** o modelo atual nao registra dados essenciais da negociacao nem itens negociados.
+**Problema:** o modelo atual nao registra dados essenciais da negociacao nem itens negociados e exige que toda deal tenha `conversationId`.
 
 **Localizacao:**
 
@@ -51,15 +51,13 @@ Cenario manual: abrir `/deals`, clicar em um card, confirmar navegacao para `/de
 
 **O que fazer:**
 
-1. Tornar `Deal.conversationId` opcional (`String? @db.Uuid`) e ajustar a relation `conversation` para permitir deals manuais sem WhatsApp.
-2. Manter `leadId` obrigatorio no MVP. Criacao manual deve exigir lead existente ou criar lead antes da deal.
-3. Adicionar campos comerciais a `Deal`: `name`, `description`, `expectedCloseDate`, `probabilityOverride`, `priority`, `temperature`, `nextStep`, `nextStepDueAt`, `currency`.
-4. Definir `currency` com fallback, por exemplo `String @default("BRL")`, para migration segura em bases com deals existentes.
-5. Criar `DealLineItem`.
-6. Relacionar `DealLineItem` com `Deal`, `Organization`, `Project` e `Item`.
-7. Garantir consistencia de `quantity` entre `DealLineItem` e `SaleItem`.
-8. Atualizar schemas de create/update.
-9. Definir regra de calculo de `dealValue` quando line items existirem.
+1. Tornar `Deal.conversationId` opcional (`String? @db.Uuid`).
+2. Adicionar campos comerciais a `Deal`: `name`, `description`, `expectedCloseDate`, `probabilityOverride`, `priority`, `temperature`, `nextStep`, `nextStepDueAt`.
+3. Adicionar campo `currency` na `Deal` com fallback (`String @default("BRL")`).
+4. Criar `DealLineItem` com `quantity` do tipo `Int` para manter compatibilidade com `SaleItem`.
+5. Relacionar `DealLineItem` com `Deal`, `Organization`, `Project` e `Item`.
+6. Atualizar schemas de create/update.
+7. Definir regra de calculo de `dealValue` quando line items existirem (opcional).
 
 **Snippet orientativo:**
 
@@ -71,7 +69,7 @@ model DealLineItem {
   dealId         String   @db.Uuid
   itemId         String?  @db.Uuid
   name           String
-  quantity       Int
+  quantity       Int      @default(1)
   unitPrice      Decimal  @db.Decimal(12, 2)
   discountAmount Decimal? @db.Decimal(12, 2)
   total          Decimal  @db.Decimal(12, 2)
@@ -81,19 +79,12 @@ model DealLineItem {
 }
 ```
 
-Observacao sobre `quantity`: o snippet acima usa `Int` porque `SaleItem.quantity` hoje e `Int`. Se o produto exigir quantidade fracionada, altere tambem `SaleItem.quantity` para `Decimal @db.Decimal(12, 2)` na mesma migration e ajuste T6 para converter sem perda de precisao.
-
 **Aceitacao:**
 
-- [ ] `Deal.conversationId` e opcional e relation `conversation` aceita `null`.
-- [ ] Criacao manual de deal nao exige conversa, mas exige lead no MVP.
-- [ ] `currency` tem default seguro, como `BRL`.
-- [ ] Prisma schema tem campos comerciais em `Deal`.
-- [ ] Prisma schema tem `DealLineItem`.
-- [ ] `DealLineItem.quantity` e `SaleItem.quantity` usam tipos compativeis, sem perda silenciosa de precisao.
-- [ ] IDs continuam gerados pelo banco, sem `cuid`, `nanoid` ou `uuid` no codigo.
-- [ ] Schemas Zod validam numeros, datas e enums.
-- [ ] Migration e gerada e revisada.
+- [ ] Prisma schema tem campos comerciais em `Deal` e `conversationId` eh opcional.
+- [ ] Prisma schema tem `DealLineItem` com `quantity` como `Int`.
+- [ ] IDs continuam gerados pelo banco.
+- [ ] Migration e gerada e revisada com sucesso (campo `currency` default).
 
 **Como testar:**
 
@@ -119,7 +110,7 @@ npm run lint
 1. Criar repository de detalhe com `select` explicito.
 2. Criar service `get-deal-detail.service.ts`.
 3. Criar service `update-deal-commercial-fields.service.ts`.
-4. Criar service para criar, atualizar e remover line items.
+4. Criar service para criar, atualizar e remover line items (opcional para o cliente).
 5. Criar mapper para `DealDetailDTO`.
 6. Manter API route fina, autenticando e chamando service.
 
@@ -153,34 +144,31 @@ npm run lint
 npm test -- src/features/deals
 ```
 
-### T4: Implementar pagina CRM com tabs, 1.5 a 2d
+### T4: Implementar pagina CRM (Foco Agil), 1.5 a 2d
 
-**Problema:** UI atual nao organiza dados comerciais relevantes.
+**Problema:** UI atual nao organiza dados comerciais relevantes e concorre com o Inbox de chat.
 
 **Localizacao:**
 
 - `src/features/deals/screens/deal-detail-screen.tsx` (novo)
 - `src/features/deals/components/detail/` (novo)
 - `src/features/deals/forms/` (novo, se houver edicao inline)
-- `src/features/deals/queries/` e `src/features/deals/mutations/`
 
 **O que fazer:**
 
-1. Criar header com nome, status, etapa, owner, valor, data prevista e acoes.
-2. Criar tabs `overview`, `items`, `activities`, `history`, `attribution`, `settings`.
-3. Criar sidebar de propriedades comerciais.
-4. Criar tab de itens com tabela editavel.
-5. Criar estados de loading, error e empty.
-6. Usar Client Components apenas para tabs interativas, forms e mutations.
+1. Criar header com nome, status, etapa, valor, data prevista e **botao "Ir para Inbox"**.
+2. Criar abas simplificadas: `overview`, `history`, `attribution`, `settings`.
+3. No `overview`, adicionar bloco de "Resumo de Contexto" (ex: ultimas msgs ou resumo IA).
+4. Permitir edicao direta do `dealValue` sem obrigar preenchimento de itens.
+5. Criar secao opcional de itens negociaveis.
+6. Criar sidebar de propriedades comerciais (Next Step, Data Previsao, etc).
 
 **Aceitacao:**
 
-- [ ] Overview mostra valor, probabilidade, valor ponderado, data prevista, proxima acao e itens principais.
-- [ ] Items mostra produto, quantidade, preco unitario, desconto e total.
-- [ ] Activities nao domina a tela principal.
-- [ ] Attribution fica em tab propria.
-- [ ] Layout funciona em desktop e mobile sem overflow horizontal.
-- [ ] Tabs podem ser acessadas por URL.
+- [ ] Vendedor consegue alterar valor total e etapa facilmente na tela principal.
+- [ ] Overview mostra o contexto da conversa (IA ou ultimas msgs), proxima acao.
+- [ ] Header possui link facil (deep link) para a tela de Inbox.
+- [ ] Nao ha concorrencia com tela completa de WhatsApp na pagina da Deal.
 
 **Como testar:**
 
@@ -190,46 +178,40 @@ npm run lint
 
 Cenarios manuais:
 
-- Abrir deal com valor e sem itens.
-- Abrir deal com itens.
-- Trocar tabs e atualizar pagina.
-- Reduzir viewport para mobile.
+- Abrir deal e testar edicao rapida de valor.
+- Clicar em "Ir para Inbox".
+- Adicionar itens opcionalmente e verificar mudanca de total.
 
 ## Fase 2: Robustez, 2.5 a 4 dias
 
-### T5: Implementar campos customizados e regras por etapa, 1 a 1.5d
+### T5: Implementar campos customizados simples, 1 a 1.5d
 
-**Problema:** campos da deal nao podem variar por processo comercial ou fase.
+**Problema:** clientes precisam salvar dados especificos (ex: CPF, Chassi) na deal.
 
 **Localizacao:**
 
 - `prisma/schema.prisma`
 - `src/features/deals/schemas/`
 - `src/features/deals/services/`
-- `src/features/deal-stages/` ou `src/features/deals/components/stage-fields/` (a confirmar)
 
 **O que fazer:**
 
-1. Criar `DealFieldDefinition`, `DealFieldValue` e `DealStageFieldRule`.
-2. Adicionar service para listar campos aplicaveis na etapa atual.
-3. Validar obrigatoriedade no update, move stage e close.
-4. Exibir campos customizados na sidebar ou tab settings.
-5. Definir comportamento inicial com `DealStageTemplate` e `DealStageTemplateItem`: no MVP, regras podem ser configuradas apos o funil ser criado. O schema deve evitar bloquear futura heranca de regras pelos templates.
+1. Criar `DealFieldDefinition` e `DealFieldValue`.
+2. Permitir listar e salvar valores dinamicos na deal.
+3. Exibir campos customizados na sidebar.
+4. **Simplificacao:** Evitar criar "Travas Obrigatorias" estritas por fase (Stage Gates) neste MVP para nao burocratizar o arraste no Kanban. Apenas mostrar os campos.
 
 **Aceitacao:**
 
-- [ ] Campo customizado pode ser definido por organizacao e projeto.
+- [ ] Campo customizado pode ser definido.
 - [ ] Valor de campo e salvo por deal.
-- [ ] Etapa pode marcar campo como obrigatorio.
-- [ ] Sistema bloqueia avanco quando campo obrigatorio falta.
-- [ ] UI mostra campos obrigatorios de forma clara.
-- [ ] PR ou implementacao documenta se regras de campos sao herdadas de templates agora ou configuradas manualmente apos criacao do funil.
+- [ ] Avanco de fase continua fluido sem bloqueios de sistema.
 
 **Tempo:** 1 a 1.5d
 
-### T6: Corrigir fechamento ganho/perdido, 0.5 a 1d
+### T6: Corrigir fechamento ganho/perdido (Sem travas excessivas), 0.5 a 1d
 
-**Problema:** fechamento atual nao valida a negociacao completa.
+**Problema:** fechamento atual nao e rastreado direito.
 
 **Localizacao:**
 
@@ -239,19 +221,16 @@ Cenarios manuais:
 
 **O que fazer:**
 
-1. Ao ganhar, validar valor final e line items, quando exigidos.
-2. Criar ou sincronizar `Sale` com `SaleItem`.
+1. Ao ganhar, validar valor final.
+2. Criar `Sale`. Se houver line items, converter em `SaleItem`. Se nao, fechar venda com valor principal apenas.
 3. Ao perder, exigir `closedReason`.
 4. Registrar historico do fechamento.
-5. Converter `DealLineItem.quantity` para `SaleItem.quantity` sem arredondamento silencioso. Se houver quantidade fracionada, `SaleItem.quantity` deve ser migrado para `Decimal` antes do fechamento.
 
 **Aceitacao:**
 
 - [ ] Deal ganha com line items cria venda e itens de venda.
-- [ ] Deal perdida sem motivo retorna erro controlado.
-- [ ] Deal ganha sem valor retorna erro, salvo regra explicitamente permitida.
-- [ ] Conversao de line items para sale items preserva quantidade e total.
-- [ ] Fechamento atualiza status, closedAt e historico.
+- [ ] Deal ganha SEM line items cria venda com sucesso usando `dealValue`.
+- [ ] Deal perdida exige motivo.
 
 **Como testar:**
 
@@ -259,9 +238,9 @@ Cenarios manuais:
 npm test -- src/features/deals/services
 ```
 
-### T7: Implementar historico comercial, 0.5 a 1d
+### T7: Implementar historico comercial unificado, 0.5 a 1d
 
-**Problema:** mudancas comerciais importantes nao ficam rastreadas para consulta.
+**Problema:** gestor nao sabe mudancas recentes.
 
 **Localizacao:**
 
@@ -271,41 +250,33 @@ npm test -- src/features/deals/services
 
 **O que fazer:**
 
-1. Definir se sera usado model novo `DealChangeLog` ou audit existente.
-2. Registrar mudancas em etapa, valor, data prevista, probabilidade, responsavel, itens e fechamento.
-3. Exibir timeline na tab `history`.
+1. Registrar mudancas comerciais (etapa, valor, proxima acao) e fechamento.
+2. Intercalar na linha do tempo da aba `history` eventos de mensagens (ex: "Cliente enviou mensagem") para unificar contexto.
 
 **Aceitacao:**
 
 - [ ] Mudanca de etapa aparece no historico.
-- [ ] Mudanca de valor aparece no historico.
-- [ ] Mudanca de itens aparece no historico.
-- [ ] Fechamento ganho/perdido aparece no historico.
+- [ ] Timeline mostra eventos misturados (negocio e eventos macro de comunicacao).
 
 **Tempo:** 0.5 a 1d
 
-### T8: Reposicionar WhatsApp como atividade secundaria, 0.5d
+### T8: Remover WhatsApp completo da Deal, 0.5d
 
-**Problema:** WhatsApp e metricas de atendimento ocupam o centro da UI de negociacao.
+**Problema:** Interface antiga trazia muito peso do chat para a UI da deal.
 
 **Localizacao:**
 
 - `src/features/deals/components/dialogs/deal-details-dialog.tsx`
-- `src/features/deals/components/detail/deal-activities-tab.tsx` (novo)
-- `src/features/conversation-intelligence/components/conversation-intelligence-panel.tsx`
 
 **O que fazer:**
 
-1. Remover Conversation Intelligence do palco principal da deal.
-2. Criar tab `activities`.
-3. Mostrar resumo compacto de ultima conversa no overview, se util.
-4. Evitar import profundo entre features quando possivel, preferir API publica ou composicao clara.
+1. Remover componentes pesados de Conversation Intelligence do palco principal.
+2. Garantir que a navegacao focada no chat acontece estritamente no botao "Ir para Inbox".
 
 **Aceitacao:**
 
-- [ ] Overview e focado na negociacao.
-- [ ] WhatsApp aparece em tab secundaria.
-- [ ] Nao ha metricas de atendimento no header comercial.
+- [ ] Overview e focado na negociacao e apenas resumos de interacao.
+- [ ] Interface e agil e carrega sem carregar modulos de web socket completos de chat, se desnecessario.
 
 **Tempo:** 0.5d
 
@@ -323,16 +294,12 @@ npm test -- src/features/deals/services
 
 **O que fazer:**
 
-1. Exibir item principal ou contagem de itens.
-2. Exibir expected close date, quando existir.
-3. Exibir alerta de proxima acao atrasada.
-4. Manter layout denso e escaneavel.
+1. Exibir alerta de proxima acao atrasada ou data prevista.
+2. Manter layout denso e escaneavel, priorizando valor e urgencia.
 
 **Aceitacao:**
 
-- [ ] Card nao quebra visualmente.
-- [ ] Vendedor enxerga valor e contexto comercial sem abrir a deal.
-- [ ] Lista tem colunas comerciais relevantes.
+- [ ] Card ajuda vendedor a decidir proxima acao sem abrir a deal.
 
 ### T10: Testes, seed e validacao final, 1d
 
@@ -346,18 +313,15 @@ npm test -- src/features/deals/services
 
 **O que fazer:**
 
-1. Adicionar testes para line items.
-2. Adicionar testes para update comercial.
-3. Adicionar testes para fechamento ganho/perdido.
-4. Adicionar dados de seed para deal com itens.
-5. Rodar lint, unit tests e validacao manual.
+1. Adicionar testes para update comercial (com/sem conversationId).
+2. Adicionar testes para fechamento ganho.
+3. Adicionar dados de seed.
 
 **Aceitacao:**
 
 - [ ] Testes de services passam.
 - [ ] Prisma validate passa.
 - [ ] Lint passa.
-- [ ] Fluxo manual de abrir, editar, adicionar item e fechar deal funciona.
 
 **Como testar:**
 
@@ -372,11 +336,11 @@ npm test -- src/features/deals
 | Task | Tempo | Bloqueador |
 |------|-------|------------|
 | T1 | 0.5d | Nenhum |
-| T2 | 1d | Decisao de campos MVP e tipo de `quantity` |
+| T2 | 1d | Decisao de campos MVP |
 | T3 | 1d | T2 |
 | T4 | 1.5 a 2d | T1, T3 |
-| T5 | 1 a 1.5d | T2, decisao de custom fields e templates |
-| T6 | 0.5 a 1d | T2, T3, tipo final de `quantity` |
+| T5 | 1 a 1.5d | T2, decisao de custom fields |
+| T6 | 0.5 a 1d | T2, T3 |
 | T7 | 0.5 a 1d | Decisao de audit |
 | T8 | 0.5d | T4 |
 | T9 | 0.5d | DTO atualizado |
