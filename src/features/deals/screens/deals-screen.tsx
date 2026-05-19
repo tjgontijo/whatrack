@@ -13,6 +13,7 @@ import { DealsFilters } from '@/features/deals/components/filters/deals-filters'
 import { DealsKanbanBoard } from '@/features/deals/components/kanban/deals-kanban-board'
 import { dealColumns } from '@/features/deals/components/list/deals-view-config'
 import { DEALS_QUERY_KEY } from '@/features/deals/constants'
+import { DealDetailsDialog } from '@/features/deals/components/dialogs/deal-details-dialog'
 import { useReorderDealMutation } from '@/features/deals/mutations/use-reorder-deal-mutation'
 import { useDealStagesQuery } from '@/features/deals/queries/use-deal-stages-query'
 import type {
@@ -31,6 +32,7 @@ export function DealsScreen() {
   const [statusFilter, setStatusFilter] = useState<DealStatusFilter>('all')
   const [dateRange, setDateRange] = useState<DealDateRangeFilter>('all')
   const [funnelOpen, setFunnelOpen] = useState(false)
+  const [selectedDealId, setSelectedDealId] = useState<string | null>(null)
 
   const deferredSearch = React.useDeferredValue(searchInput)
 
@@ -114,6 +116,7 @@ export function DealsScreen() {
             <CrudListView
               data={deals}
               columns={dealColumns}
+              onRowClick={(deal) => setSelectedDealId(deal.id)}
               onEndReached={hasNextPage ? fetchNextPage : undefined}
             />
           }
@@ -128,6 +131,7 @@ export function DealsScreen() {
                 reorderDealMutation.mutate({ dealId, stageId, position })
               }
               onConfigStage={() => setFunnelOpen(true)}
+              onDealClick={(deal) => setSelectedDealId(deal.id)}
             />
           }
         />
@@ -138,6 +142,13 @@ export function DealsScreen() {
         projectId={projectId}
         organizationId={organizationId}
         currentStages={stagesData?.items ?? []}
+      />
+      <DealDetailsDialog
+        dealId={selectedDealId}
+        open={!!selectedDealId}
+        onOpenChange={(open) => !open && setSelectedDealId(null)}
+        organizationId={organizationId}
+        projectId={projectId}
       />
     </>
   )

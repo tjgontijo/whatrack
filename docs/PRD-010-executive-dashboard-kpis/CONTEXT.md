@@ -56,16 +56,61 @@ Mensagem WhatsApp / movimento de deal / venda / campanha
   ↓
 Tabelas operacionais sao atualizadas
   ↓
-Projector atualiza read models do dia afetado
+dashboard-projector.queue (job imediato para o dia afetado)
+  ↓ BullMQ worker
+DashboardDailyMetric / DashboardOriginDailyMetric atualizado
   ↓
-Cron/worker sincroniza MetaAdInsightDaily
+revalidateTag('dashboard-{orgId}-{projectId}')
   ↓
-Projector combina Meta spend com leads e vendas atribuidas
+UI refetch automatico
+
+---
+
+BullMQ repeat: meta-insight-sync-today (a cada 1h)
+  ↓ meta-insight-sync.worker
+MetaAdInsightDaily upsert (date = today, syncedAt = now)
+  ↓ enfileira dashboard-projector.queue (date = today)
   ↓
-Dashboard le read models locais
-  ↓
-UI mostra KPIs com freshness e fallback
+DashboardDailyMetric / Origin / MetaEntity atualizado
+  ↓ revalidateTag
+UI refetch automatico
+
+---
+
+BullMQ repeat: meta-insight-sync-history (1x/dia, madrugada)
+  ↓ meta-insight-sync.worker
+MetaAdInsightDaily upsert (ultimos 7 dias, attribution window)
+  ↓ enfileira dashboard-projector.queue (range)
+
+---
+
+Hard refresh manual:
+POST /api/v1/meta-ads/sync/force
+  ↓ BullMQ add com priority: 1, jobId: 'force-sync-{orgId}'
+  ↓ retorna { jobId, status: 'queued' }
+UI mostra spinner ate revalidateTag disparar
 ```
+
+### Dois Jobs de Sync Separados
+
+| Job BullMQ | Frequencia | Janela | Motivo |
+|-----------|-----------|--------|--------|
+| `meta-insight-sync-today` | a cada 1h | `date = today` | snapshot intraday para dashboard |
+| `meta-insight-sync-history` | 1x/dia (03:00) | ultimos 7 dias | attribution window Meta muda retroativamente |
+
+Hard refresh usa `priority: 1` e `jobId` deduplicado — cliques duplos ignorados pelo BullMQ.
+
+### Infraestrutura Existente
+
+BullMQ + Redis ja estao no projeto. Padrao ja estabelecido:
+
+```
+src/server/queues/campaign.queue.ts    ← referencia de padrao
+src/server/workers/campaign-dispatch.worker.ts  ← referencia de padrao
+src/worker.ts                          ← entry point do processo worker
+```
+
+Novos workers de sync e projector seguem o mesmo padrao.
 
 ### Regra de Ouro
 
@@ -374,6 +419,7 @@ model DashboardOriginDailyMetric {
   organizationId       String   @db.Uuid
   projectId            String?  @db.Uuid
   date                 DateTime @db.Date
+  originKey            String
   sourceType           String
   trafficChannel       String
   utmSource            String?
@@ -388,12 +434,18 @@ model DashboardOriginDailyMetric {
   metaSpend            Decimal  @default(0) @db.Decimal(12, 2)
   lastProjectedAt      DateTime @default(now())
 
-  @@unique([organizationId, projectId, date, sourceType, trafficChannel, utmSource, utmMedium, utmCampaign])
+  @@unique([organizationId, projectId, date, originKey])
   @@index([organizationId, projectId, date])
   @@index([organizationId, projectId, sourceType, date])
   @@map("dashboard_origin_daily_metrics")
 }
 ```
+
+Observacao importante:
+
+- `originKey` evita unique constraint com campos nullable no Postgres (mesmo problema que `entityKey` em `MetaAdInsightDaily`).
+- Exemplo de chave: `meta_paid:utm_source:utm_medium:utm_campaign` ou `organic::` para campos ausentes.
+- Gerado pelo projector antes do upsert.
 
 ### DashboardMetaEntityDailyMetric
 
@@ -542,10 +594,13 @@ V1 deve mostrar:
 
 ## 📝 Resumo para Implementacao
 
-- Adicionar models analiticos no Prisma.
-- Criar sync de Meta Insights em background.
-- Criar projectors idempotentes para read models.
-- Recalcular current day por evento e ultimos dias por cron.
+- Adicionar models analiticos no Prisma (incluindo `originKey` em `DashboardOriginDailyMetric`).
+- Criar queues BullMQ em `src/server/queues/`: `meta-insight-sync.queue.ts` e `dashboard-projector.queue.ts`.
+- Criar workers BullMQ em `src/server/workers/`: `meta-insight-sync.worker.ts` e `dashboard-projector.worker.ts`.
+- Registrar os dois novos workers em `src/server/workers/index.ts`.
+- Sync Meta usa dois jobs recorrentes: `sync-today` (1h) e `sync-history` (1x/dia).
+- Hard refresh via `POST /api/v1/meta-ads/sync/force` com priority e jobId deduplicado.
+- Projector idempotente por dia: upsert + `revalidateTag` ao final.
 - Dashboard le apenas read models locais.
-- Ratios sao calculados no service, usando numeradores e denominadores materializados.
-- UI mostra freshness de dados e avisos de atraso ou moeda.
+- Ratios calculados no service, numeradores e denominadores materializados.
+- UI mostra `syncedAt`, badge de freshness e fallback para ultimo dado local.

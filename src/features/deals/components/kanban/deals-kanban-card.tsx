@@ -21,10 +21,12 @@ export function DealsKanbanCard({
   deal,
   isDragging,
   isActivelyDragging,
+  onClick,
 }: {
   deal: DealItem
   isDragging?: boolean
   isActivelyDragging?: boolean
+  onClick?: (deal: DealItem) => void
 }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: deal.id })
 
@@ -44,8 +46,14 @@ export function DealsKanbanCard({
       style={style}
       {...attributes}
       {...listeners}
+      onClick={(e) => {
+        // Only trigger onClick if it's a simple click (not a drag end)
+        // listeners include mouse down handlers that dnd-kit uses.
+        // We can just pass the deal to the onClick handler.
+        onClick?.(deal)
+      }}
       className={cn(
-        'group relative flex flex-col overflow-hidden rounded-md border border-border bg-white shadow-sm transition-all hover:border-primary/30 hover:shadow-md dark:bg-zinc-900 cursor-grab active:cursor-grabbing',
+        'group relative flex flex-col overflow-hidden rounded-md border border-border bg-white shadow-sm transition-all hover:border-primary/30 hover:shadow-md dark:bg-zinc-900 cursor-pointer',
         isActivelyDragging && 'opacity-0 pointer-events-none',
         isDragging && 'rotate-2 shadow-2xl cursor-grabbing opacity-100'
       )}

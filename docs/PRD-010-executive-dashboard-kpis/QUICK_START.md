@@ -95,15 +95,33 @@ npm test -- src/features/dashboard
 
 ## 📂 Arquivos Principais
 
-- `prisma/schema.prisma` - adicionar camada analitica.
-- `src/features/meta-ads/services` - sync local de insights.
-- `src/server/workers` - jobs de sync e projection.
-- `src/features/dashboard/projectors` - materializacao das read models.
-- `src/features/dashboard/repositories` - leitura rapida das read models.
-- `src/features/dashboard/services` - formulas e composicao.
-- `src/features/dashboard/schemas` - query e response.
+**Schema e dados:**
+- `prisma/schema.prisma` - adicionar camada analitica (incluindo `originKey`).
+
+**Sync Meta (T2):**
+- `src/features/meta-ads/services/sync-meta-insights.service.ts` - logica de sync.
+- `src/server/queues/meta-insight-sync.queue.ts` - queue BullMQ.
+- `src/server/workers/meta-insight-sync.worker.ts` - worker BullMQ.
+- `src/app/api/v1/meta-ads/sync/force/route.ts` - hard refresh manual.
+
+**Projector (T3):**
+- `src/features/dashboard/projectors/dashboard-daily.projector.ts` - materializacao.
+- `src/server/queues/dashboard-projector.queue.ts` - queue BullMQ.
+- `src/server/workers/dashboard-projector.worker.ts` - worker BullMQ.
+
+**Registro de workers (T2 + T3):**
+- `src/server/workers/index.ts` - adicionar os dois novos workers + jobs repeat.
+
+**Dashboard (T6-T9):**
+- `src/features/dashboard/repositories/` - leitura das read models.
+- `src/features/dashboard/services/` - formulas e composicao.
+- `src/features/dashboard/schemas/` - query e response.
 - `src/app/(dashboard)/[organizationSlug]/[projectSlug]/page.tsx` - Server Component.
-- `src/app/(dashboard)/[organizationSlug]/[projectSlug]/page-client.tsx` - reduzir para interacao ou remover.
+- `src/app/(dashboard)/[organizationSlug]/[projectSlug]/page-client.tsx` - reduzir para interacao.
+
+**Referencia de padrao existente:**
+- `src/server/queues/campaign.queue.ts` - padrao de queue a seguir.
+- `src/server/workers/campaign-dispatch.worker.ts` - padrao de worker a seguir.
 
 ---
 

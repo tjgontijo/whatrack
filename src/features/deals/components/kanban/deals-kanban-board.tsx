@@ -63,6 +63,7 @@ interface DealsKanbanBoardProps {
   projectId: string
   onReorderDeal: (dealId: string, stageId: string, position: number) => void
   onConfigStage?: (stageId: string) => void
+  onDealClick?: (deal: DealItem) => void
 }
 
 function buildColumnItems(columns: DealStageColumn[], deals: DealItem[]): Record<string, string[]> {
@@ -82,6 +83,7 @@ export function DealsKanbanBoard({
   projectId,
   onReorderDeal,
   onConfigStage,
+  onDealClick,
 }: DealsKanbanBoardProps) {
   const [activeId, setActiveId] = useState<string | null>(null)
   const [columnItems, setColumnItems] = useState<Record<string, string[]>>(() =>
@@ -345,6 +347,7 @@ export function DealsKanbanBoard({
                 onMoveStageRight={() => handleMoveStageRight(column.id)}
                 onCreateStageBefore={() => openAddDialog(index)}
                 onDeleteStage={() => handleDeleteStage(column.id)}
+                onDealClick={onDealClick}
               />
             </React.Fragment>
           ))}

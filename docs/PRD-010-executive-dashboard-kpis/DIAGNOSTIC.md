@@ -41,6 +41,23 @@ Problemas identificados:
 
 ---
 
+### 1b. `DashboardOriginDailyMetric` tem bug de unique constraint
+
+**Problema:** o `@@unique` proposto inclui `utmSource`, `utmMedium`, `utmCampaign` — todos nullable. Postgres trata `NULL != NULL`, quebrando o unique e permitindo duplicatas.
+
+**Impacto:**
+
+- ❌ Upsert por origem falharia silenciosamente ou geraria duplicatas.
+- ❌ Mesmo bug que levou ao campo `entityKey` em `MetaAdInsightDaily`.
+
+**Solucao Necessaria:**
+
+1. Adicionar `originKey String` nao-nullable em `DashboardOriginDailyMetric`.
+2. `@@unique([organizationId, projectId, date, originKey])`.
+3. Projector gera `originKey` composto antes do upsert (ex: `meta_paid:src:medium:camp` ou `organic::`).
+
+---
+
 ### 2. Nao existe read model do dashboard
 
 **Problema:** metricas precisam ser agregadas de `Lead`, `Deal`, `Sale`, `Conversation`, `Message`, `DealTracking` e insights Meta em tempo real.
@@ -267,6 +284,8 @@ Problemas identificados:
 | Campanha WhatsApp guarda resposta | ✅ | `WhatsAppCampaignRecipient` |
 | CAPI tem log | ✅ | `MetaConversionEvent` |
 | Next 16 Cache Components ativo | ✅ | `next.config.ts` |
+| BullMQ + Redis ja existem | ✅ | `src/server/queues/`, `src/server/workers/`, `src/worker.ts` |
+| Padrao de worker ja estabelecido | ✅ | `campaign-dispatch.worker.ts` e `meta-capi.worker.ts` como referencia |
 
 ---
 

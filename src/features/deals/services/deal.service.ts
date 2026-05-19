@@ -152,6 +152,7 @@ type DealCloseRecord = Prisma.DealGetPayload<{ select: typeof dealCloseSelect }>
 const dealDetailsSelect = Prisma.validator<Prisma.DealSelect>()({
   id: true,
   projectId: true,
+  conversationId: true,
   status: true,
   windowOpen: true,
   windowExpiresAt: true,

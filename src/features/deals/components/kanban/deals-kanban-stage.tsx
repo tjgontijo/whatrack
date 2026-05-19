@@ -30,6 +30,7 @@ interface DealsKanbanStageProps {
   onMoveStageRight?: () => void
   onCreateStageBefore?: () => void
   onDeleteStage?: () => void
+  onDealClick?: (deal: DealItem) => void
 }
 
 export function DealsKanbanStage({
@@ -44,6 +45,7 @@ export function DealsKanbanStage({
   onMoveStageRight,
   onCreateStageBefore,
   onDeleteStage,
+  onDealClick,
 }: DealsKanbanStageProps) {
   const { setNodeRef, isOver } = useDroppable({ id: stage.id })
   const dealIds = deals.map((d) => d.id)
@@ -154,6 +156,7 @@ export function DealsKanbanStage({
                   <DealsKanbanCard
                     deal={deal}
                     isActivelyDragging={deal.id === activeId}
+                    onClick={onDealClick}
                   />
                 </div>
               )}

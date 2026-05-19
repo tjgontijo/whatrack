@@ -23,9 +23,9 @@
 4. Adicionar `CurrencyExchangeRateDaily`.
 5. Adicionar `DashboardMetricRefreshRun`.
 6. Adicionar `DashboardDailyMetric`.
-7. Adicionar `DashboardOriginDailyMetric`.
+7. Adicionar `DashboardOriginDailyMetric` com campo `originKey String` nao-nullable.
 8. Adicionar `DashboardMetaEntityDailyMetric`.
-9. Criar indices por `organizationId`, `projectId`, `date`, `level`, `entityKey`.
+9. Criar indices por `organizationId`, `projectId`, `date`, `level`, `entityKey`, `originKey`.
 10. Usar `@default(dbgenerated("gen_random_uuid()"))`, sem gerar UUID no codigo.
 
 **Aceitacao:**
@@ -34,6 +34,7 @@
 - [ ] `prisma generate` passa.
 - [ ] Models usam `@@map` consistente.
 - [ ] `MetaAdInsightDaily` usa `entityKey` para evitar unique com null.
+- [ ] `DashboardOriginDailyMetric` usa `originKey` (nao-nullable) no `@@unique`, nao os campos UTM diretamente.
 - [ ] Todas as read models possuem `organizationId`, `projectId` e `date`.
 
 **Como testar:**
@@ -53,25 +54,48 @@ npm test:prisma
 
 **Localizacao:**
 
-- `src/features/meta-ads/services`
-- `src/server/workers`
-- `src/server/queues` se necessario
-- `src/app/api/v1/meta-ads/*` apenas se houver trigger manual
+- `src/features/meta-ads/services/sync-meta-insights.service.ts` (logica de sync)
+- `src/server/queues/meta-insight-sync.queue.ts` (queue BullMQ + enqueue helpers)
+- `src/server/workers/meta-insight-sync.worker.ts` (worker BullMQ)
+- `src/server/workers/index.ts` (registrar worker + agendar jobs repeat)
+- `src/app/api/v1/meta-ads/sync/force/route.ts` (hard refresh manual)
 
 **O que fazer:**
 
-1. Criar service `sync-meta-insights.service.ts`.
-2. Buscar insights por conta ativa, periodo e niveis `account`, `campaign`, `adset`, `ad`.
-3. Normalizar data, timezone, moeda e `entityKey`.
-4. Upsert em `MetaAdInsightDaily`.
-5. Registrar cada execucao em `MetaInsightSyncRun`.
-6. Rodar por cron/worker, nunca no render da pagina.
-7. Sincronizar ultimos 7 dias com maior frequencia e janelas antigas com menor frequencia.
+1. Criar `sync-meta-insights.service.ts`:
+   - Buscar insights por conta ativa, periodo e niveis `account`, `campaign`, `adset`, `ad`.
+   - Normalizar data (timezone da organizacao), moeda e `entityKey`.
+   - Upsert em `MetaAdInsightDaily` (syncedAt = now).
+   - Registrar execucao em `MetaInsightSyncRun`.
+   - Falha por uma conta nao interrompe outras contas (try/catch por conta).
+
+2. Criar `meta-insight-sync.queue.ts` seguindo padrao de `campaign.queue.ts`:
+   - Singleton `getMetaInsightSyncQueue()`.
+   - `enqueueMetaInsightSync(data)` para enfileirar job avulso.
+
+3. Criar `meta-insight-sync.worker.ts` seguindo padrao de `campaign-dispatch.worker.ts`:
+   - Chamar `sync-meta-insights.service.ts`.
+   - Ao concluir, enfileirar `dashboard-projector.queue` para a data sincronizada.
+
+4. Registrar em `src/server/workers/index.ts`:
+   - Adicionar `metaInsightSyncWorker` na lista.
+   - Agendar dois jobs repeat ao iniciar:
+     - `sync-today`: `{ repeat: { pattern: '0 * * * *' }, data: { mode: 'today' } }` (a cada 1h)
+     - `sync-history`: `{ repeat: { pattern: '0 3 * * *' }, data: { mode: 'history', days: 7 } }` (todo dia 03:00)
+   - Usar `jobId` deterministico para evitar duplicacao ao reiniciar o worker.
+
+5. Criar `POST /api/v1/meta-ads/sync/force`:
+   - Enfileirar com `priority: 1` e `jobId: 'force-sync-{organizationId}'`.
+   - Retornar `{ jobId, status: 'queued' }`.
+   - Cliques duplos: BullMQ ignora automaticamente pelo `jobId`.
 
 **Aceitacao:**
 
 - [ ] Dashboard nao chama Meta API diretamente.
-- [ ] Sync grava linhas em `MetaAdInsightDaily`.
+- [ ] Job `sync-today` roda a cada 1h automaticamente.
+- [ ] Job `sync-history` roda todo dia 03:00 para ultimos 7 dias.
+- [ ] Hard refresh retorna 202 e nao cria job duplicado.
+- [ ] Sync grava linhas em `MetaAdInsightDaily` com `syncedAt` atualizado.
 - [ ] Falha por uma conta nao interrompe outras contas.
 - [ ] `MetaInsightSyncRun` registra status, erro e rows fetched.
 - [ ] Sync e idempotente para mesma data e entidade.
@@ -92,38 +116,44 @@ npm test -- src/features/meta-ads
 
 **Localizacao:**
 
-- `src/features/dashboard/projectors`
-- `src/features/dashboard/repositories`
-- `src/server/workers`
+- `src/features/dashboard/projectors/dashboard-daily.projector.ts` (logica de projecao)
+- `src/server/queues/dashboard-projector.queue.ts` (queue BullMQ + enqueue helpers)
+- `src/server/workers/dashboard-projector.worker.ts` (worker BullMQ)
+- `src/server/workers/index.ts` (registrar worker)
+- `src/features/dashboard/repositories/` (leitura das tabelas operacionais)
 
 **O que fazer:**
 
-1. Criar projector diario por organizacao/projeto/data.
-2. Recalcular metricas a partir de:
-   - `Lead`
-   - `Deal`
-   - `DealTracking`
-   - `DealStage`
-   - `Sale`
-   - `Conversation`
-   - `Message`
-   - `MetaConversionEvent`
-   - `MetaAdInsightDaily`
-3. Upsert em:
-   - `DashboardDailyMetric`
-   - `DashboardOriginDailyMetric`
-   - `DashboardMetaEntityDailyMetric`
-4. Registrar execucao em `DashboardMetricRefreshRun`.
-5. Rodar refresh incremental para o dia atual apos mutacoes relevantes.
-6. Rodar backfill dos ultimos N dias por cron ou comando.
+1. Criar `dashboard-daily.projector.ts`:
+   - Recalcular metricas para `{ organizationId, projectId, date }` a partir de:
+     - `Lead`, `Deal`, `DealTracking`, `DealStage`, `Sale`, `Conversation`, `Message`, `MetaConversionEvent`, `MetaAdInsightDaily`
+   - Gerar `originKey` para cada grupo de origem (nao-nullable, ex: `meta_paid:src:medium:camp`).
+   - Upsert em `DashboardDailyMetric`, `DashboardOriginDailyMetric`, `DashboardMetaEntityDailyMetric`.
+   - Registrar execucao em `DashboardMetricRefreshRun`.
+   - Ao concluir com sucesso: chamar `revalidateTag('dashboard-{orgId}-{projectId}')`.
+
+2. Criar `dashboard-projector.queue.ts` seguindo padrao de `campaign.queue.ts`:
+   - Singleton `getDashboardProjectorQueue()`.
+   - `enqueueDashboardProjection({ organizationId, projectId, date })`.
+
+3. Criar `dashboard-projector.worker.ts`:
+   - Chamar `dashboard-daily.projector.ts`.
+   - Worker e idempotente: mesma data pode ser reenfileirada sem duplicar.
+
+4. Registrar em `src/server/workers/index.ts`.
+
+5. Disparar job de projector apos mutacoes relevantes (deals, sales, conversas):
+   - Services existentes enfileiram `enqueueDashboardProjection` para o dia afetado.
 
 **Aceitacao:**
 
-- [ ] Projector e idempotente.
-- [ ] Reprocessar a mesma data nao duplica metricas.
+- [ ] Projector e idempotente — reprocessar mesma data nao duplica metricas.
+- [ ] `originKey` gerado corretamente antes do upsert (nunca nullable).
+- [ ] `revalidateTag` chamado ao fim de cada run com sucesso.
 - [ ] Read models batem com dados operacionais em fixtures.
 - [ ] Projector nao acessa dados de outra organizacao.
 - [ ] `DashboardMetricRefreshRun` registra sucesso/falha.
+- [ ] Worker registrado em `src/server/workers/index.ts`.
 
 **Tempo:** 3-4h
 

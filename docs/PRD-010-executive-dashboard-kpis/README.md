@@ -24,6 +24,7 @@ PRD-010-executive-dashboard-kpis/
 ├── CONTEXT.md
 ├── DIAGNOSTIC.md
 ├── TASKS.md
+├── FRONTEND.md    ← spec de UI: layout, componentes, filtros, tabelas, estados
 └── QUICK_START.md
 ```
 
@@ -48,15 +49,26 @@ A arquitetura correta fica:
 
 ```txt
 Meta Ads API
-  ↓ sync background
-MetaAdInsightDaily
-  ↓ projector
+  ↓ BullMQ worker (sync-today: 1h, sync-history: 1x/dia)
+MetaAdInsightDaily (syncedAt atualizado)
+  ↓ enfileira dashboard-projector.queue
 DashboardDailyMetric / DashboardOriginDailyMetric / DashboardMetaEntityDailyMetric
-  ↓ Server Component
-Dashboard raiz
+  ↓ revalidateTag ao fim do projector
+Server Component (Next.js cache invalidado)
+  ↓
+Dashboard raiz renderiza com dado local fresco
+
+Hard refresh manual:
+POST /api/v1/meta-ads/sync/force
+  ↓ priority: 1, jobId deduplicado
+  ↓ mesmo fluxo acima, prioritario
 ```
 
+Infraestrutura BullMQ + Redis **ja existe** no projeto. Novos workers seguem o padrao de `campaign-dispatch.worker.ts`.
+
 Tabelas operacionais continuam como fonte da verdade. Read models existem para velocidade, estabilidade e consistencia de leitura.
+
+**Bug corrigido no modelo:** `DashboardOriginDailyMetric` usa `originKey String` nao-nullable no `@@unique` em vez dos campos UTM diretamente (que sao nullable e causariam duplicatas no Postgres).
 
 ### Severidade
 
