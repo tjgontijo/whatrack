@@ -2,12 +2,15 @@ import { logger } from '@/lib/utils/logger'
 import { campaignDispatchWorker } from './campaign-dispatch.worker'
 import { metaCapiWorker } from './meta-capi.worker'
 import { metaInsightSyncWorker } from './meta-insight-sync.worker'
+import { dashboardProjectorWorker } from './dashboard-projector.worker'
 import { getMetaInsightSyncQueue } from '@/server/queues/meta-insight-sync.queue'
+import { getDashboardProjectorQueue } from '@/server/queues/dashboard-projector.queue'
 
 const workers = [
   { name: 'campaign-dispatch', worker: campaignDispatchWorker },
   { name: 'meta-capi', worker: metaCapiWorker },
   { name: 'meta-insight-sync', worker: metaInsightSyncWorker },
+  { name: 'dashboard-projector', worker: dashboardProjectorWorker },
 ]
 
 export async function startWorkers() {
@@ -47,6 +50,21 @@ export async function startWorkers() {
         pattern: '0 2 * * *', // Daily at 2 AM
       },
       jobId: 'meta-sync-history-repeat',
+    }
+  )
+
+  // Dashboard projection: daily at 3 AM (after sync-history)
+  const projectorQueue = getDashboardProjectorQueue()
+  await projectorQueue.add(
+    'project',
+    {
+      date: new Date().toISOString().split('T')[0], // Will be overridden by schedule
+    },
+    {
+      repeat: {
+        pattern: '0 3 * * *', // Daily at 3 AM
+      },
+      jobId: 'dashboard-project-daily',
     }
   )
 
