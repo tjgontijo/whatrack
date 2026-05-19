@@ -294,6 +294,16 @@ model Organization {
   audienceSegments    WhatsAppAudienceSegment[]
   whatsAppOptOuts     WhatsAppOptOut[]
 
+  // Analytics
+  analyticsSettings OrganizationAnalyticsSettings?
+  metaSyncRuns      MetaInsightSyncRun[]
+  metaInsights      MetaAdInsightDaily[]
+  currencyRates     CurrencyExchangeRateDaily[]
+  dashboardMetrics  DashboardDailyMetric[]
+  dashboardOrigins  DashboardOriginDailyMetric[]
+  dashboardEntities DashboardMetaEntityDailyMetric[]
+  dashboardRefreshes DashboardMetricRefreshRun[]
+
   @@map("org_organizations")
 }
 
@@ -323,6 +333,14 @@ model Project {
   whatsAppCampaigns    WhatsAppCampaign[]
   audienceSegments     WhatsAppAudienceSegment[]
   dealStageTemplates   DealStageTemplate[]
+
+  // Analytics
+  metaSyncRuns      MetaInsightSyncRun[]
+  metaInsights      MetaAdInsightDaily[]
+  dashboardMetrics  DashboardDailyMetric[]
+  dashboardOrigins  DashboardOriginDailyMetric[]
+  dashboardEntities DashboardMetaEntityDailyMetric[]
+  dashboardRefreshes DashboardMetricRefreshRun[]
 
   @@unique([organizationId, slug])
   @@index([organizationId])
@@ -1378,6 +1396,220 @@ model MetaAttributionHistory {
 
   @@index([dealId])
   @@map("meta_attribution_history")
+}
+
+// ============================================
+// Analytics Domain - Read Models e Sync Control
+// ============================================
+
+model OrganizationAnalyticsSettings {
+  organizationId String   @id @db.Uuid
+  baseCurrency   String   @default("BRL")
+  timezoneName   String   @default("America/Sao_Paulo")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("analytics_organization_settings")
+}
+
+model MetaInsightSyncRun {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String   @db.Uuid
+  projectId      String?  @db.Uuid
+  syncType       String   // "SYNC_TODAY" | "SYNC_HISTORY"
+  status         String   @default("PENDING") // PENDING | RUNNING | SUCCESS | FAILED
+  startedAt      DateTime @default(now())
+  completedAt    DateTime?
+  rowsInserted   Int      @default(0)
+  rowsUpdated    Int      @default(0)
+  errorMessage   String?
+  jobId          String?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, projectId])
+  @@index([status])
+  @@index([completedAt(sort: Desc)])
+  @@map("analytics_meta_insight_sync_runs")
+}
+
+model MetaAdInsightDaily {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId  String   @db.Uuid
+  projectId       String?  @db.Uuid
+
+  // Meta IDs
+  metaAdAccountId String
+  metaCampaignId  String
+  metaAdSetId     String
+  metaAdId        String
+
+  // Entity key para unique constraint (evita nulls)
+  entityKey       String
+
+  // Date
+  date            DateTime @db.Date
+
+  // Metrics
+  impressions     Int      @default(0)
+  clicks          Int      @default(0)
+  spend           Decimal  @db.Decimal(12, 2) @default(0)
+  spendOriginal   Decimal? @db.Decimal(12, 2) // moeda original da conta Meta
+  spendCurrency   String?  // USD, BRL, etc
+
+  // Sync control
+  syncedAt        DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@unique([organizationId, projectId, date, entityKey])
+  @@index([organizationId, projectId, date])
+  @@index([date])
+  @@map("analytics_meta_ad_insights_daily")
+}
+
+model CurrencyExchangeRateDaily {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String   @db.Uuid
+  date           DateTime @db.Date
+  baseCurrency   String   // BRL
+  quoteCurrency  String   // USD
+  rate           Decimal  @db.Decimal(10, 6)
+  source         String   @default("FIXED") // FIXED | API
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, date, baseCurrency, quoteCurrency])
+  @@index([organizationId, date])
+  @@map("analytics_currency_exchange_rates_daily")
+}
+
+model DashboardMetricRefreshRun {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String   @db.Uuid
+  projectId      String?  @db.Uuid
+
+  startDate      DateTime @db.Date
+  endDate        DateTime @db.Date
+
+  status         String   @default("PENDING") // PENDING | RUNNING | SUCCESS | FAILED
+  startedAt      DateTime @default(now())
+  completedAt    DateTime?
+
+  rowsInserted   Int      @default(0)
+  rowsUpdated    Int      @default(0)
+  errorMessage   String?
+  jobId          String?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, projectId])
+  @@index([status])
+  @@index([completedAt(sort: Desc)])
+  @@map("analytics_dashboard_metric_refresh_runs")
+}
+
+model DashboardDailyMetric {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String   @db.Uuid
+  projectId      String?  @db.Uuid
+
+  date           DateTime @db.Date
+
+  // Revenue
+  revenueCompleted    Decimal @db.Decimal(12, 2) @default(0)
+  revenuePending      Decimal @db.Decimal(12, 2) @default(0)
+  revenuePipeline     Decimal @db.Decimal(12, 2) @default(0)
+
+  // Meta Paid
+  metaPaidSpend       Decimal @db.Decimal(12, 2) @default(0)
+  metaPaidRevenue     Decimal @db.Decimal(12, 2) @default(0)
+  metaPaidClicks      Int     @default(0)
+  metaPaidImpressions Int     @default(0)
+
+  // Other Paid
+  otherPaidSpend      Decimal @db.Decimal(12, 2) @default(0)
+  otherPaidRevenue    Decimal @db.Decimal(12, 2) @default(0)
+
+  // Leads
+  leadsTotal          Int     @default(0)
+  leadsMetaPaid       Int     @default(0)
+
+  // Sales
+  salesTotal          Int     @default(0)
+  salesMetaAttribued  Int     @default(0)
+
+  lastProjectedAt     DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@unique([organizationId, projectId, date])
+  @@index([organizationId, projectId, date])
+  @@map("analytics_dashboard_daily_metrics")
+}
+
+model DashboardOriginDailyMetric {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String   @db.Uuid
+  projectId      String?  @db.Uuid
+
+  date           DateTime @db.Date
+
+  // Origin Key - nao-nullable composite identifier
+  originKey      String   // ex: "meta_paid:utm_source:utm_medium:utm_campaign"
+
+  // UTM optional info (denormalized)
+  utmSource      String?
+  utmMedium      String?
+  utmCampaign    String?
+
+  // Metrics
+  leadsCount     Int     @default(0)
+  salesCount     Int     @default(0)
+  revenue        Decimal @db.Decimal(12, 2) @default(0)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@unique([organizationId, projectId, date, originKey])
+  @@index([organizationId, projectId, date])
+  @@map("analytics_dashboard_origin_daily_metrics")
+}
+
+model DashboardMetaEntityDailyMetric {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String   @db.Uuid
+  projectId      String?  @db.Uuid
+
+  date           DateTime @db.Date
+
+  // Meta Entity IDs
+  metaCampaignId String
+  metaAdSetId    String?
+  metaAdId       String?
+
+  // Entity Key
+  entityKey      String
+
+  // Metrics
+  spend          Decimal @db.Decimal(12, 2) @default(0)
+  clicks         Int     @default(0)
+  impressions    Int     @default(0)
+  leadsAttribued Int     @default(0)
+  revenue        Decimal @db.Decimal(12, 2) @default(0)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@unique([organizationId, projectId, date, entityKey])
+  @@index([organizationId, projectId, date])
+  @@map("analytics_dashboard_meta_entity_daily_metrics")
 }
 
 // ============================================
