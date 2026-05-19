@@ -22,6 +22,7 @@ import { EmptyState, LoadingPage } from '@/features/dashboard/components/states'
 import { EditStagesModal } from '@/features/deal-stage-templates/dialogs/edit-stages-modal'
 import { apiFetch } from '@/lib/http/api-client'
 import { StageDialog } from '../dialogs/stage-dialog'
+import { StageRemapperDialog } from '../dialogs/stage-remapper-dialog'
 import { DealStageItem } from './deal-stage-item'
 import type { DealStage, DealStageFormData } from '../types'
 
@@ -35,6 +36,8 @@ export function DealStagesManager({
   const queryClient = useQueryClient()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [templateModalOpen, setTemplateModalOpen] = useState(false)
+  const [remapperOpen, setRemapperOpen] = useState(false)
+  const [stageToRemap, setStageToRemap] = useState<DealStage | null>(null)
   const [editingStage, setEditingStage] = useState<DealStage | null>(null)
   const [localOrder, setLocalOrder] = useState<DealStage[] | null>(null)
 
@@ -111,6 +114,15 @@ export function DealStagesManager({
     onError: (err: Error) => toast.error(err.message),
   })
 
+  const handleDeleteStage = (stage: DealStage) => {
+    if (stage.dealsCount > 0) {
+      setStageToRemap(stage)
+      setRemapperOpen(true)
+    } else {
+      deleteMutation.mutate(stage.id)
+    }
+  }
+
   const reorderMutation = useMutation({
     mutationFn: async (orderedIds: string[]) => {
       await apiFetch('/api/v1/deal-stages/reorder', {
@@ -179,7 +191,7 @@ export function DealStagesManager({
           className='gap-2 rounded-full px-4 shadow-sm'
         >
           <Settings2 className='h-4 w-4' />
-          Editar Stages
+          Configurar Funil
         </Button>
       </div>
 
@@ -202,7 +214,7 @@ export function DealStagesManager({
                   setEditingStage(currentStage)
                   setDialogOpen(true)
                 }}
-                onDelete={(currentStage) => deleteMutation.mutate(currentStage.id)}
+                onDelete={handleDeleteStage}
               />
             ))}
           </SortableContext>
@@ -227,6 +239,18 @@ export function DealStagesManager({
         projectId={projectId}
         onSave={handleSave}
         isSaving={isSaving}
+      />
+
+      <StageRemapperDialog
+        open={remapperOpen}
+        onOpenChange={setRemapperOpen}
+        stage={stageToRemap}
+        organizationId={organizationId}
+        projectId={projectId}
+        onSuccess={() => {
+          setStageToRemap(null)
+          deleteMutation.mutate(stageToRemap?.id ?? '')
+        }}
       />
     </>
   )
