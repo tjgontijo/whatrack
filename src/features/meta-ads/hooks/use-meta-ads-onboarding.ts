@@ -3,7 +3,15 @@ import { toast } from 'sonner'
 import { META_ADS_CONNECT_PATH } from '@/features/meta-ads/lib/client'
 import { useOrganizationCompletion } from '@/features/organizations/hooks/use-organization-completion'
 
-export function useMetaAdsOnboarding(organizationId: string | undefined, onSuccess?: () => void) {
+export function useMetaAdsOnboarding(
+  organizationId: string | undefined,
+  projectIdOrOnSuccess?: string | (() => void),
+  onSuccessArg?: () => void
+) {
+  const projectId = typeof projectIdOrOnSuccess === 'string' ? projectIdOrOnSuccess : undefined
+  const onSuccess =
+    typeof projectIdOrOnSuccess === 'function' ? projectIdOrOnSuccess : onSuccessArg
+
   const [isPending, setIsPending] = useState(false)
   const popupRef = useRef<Window | null>(null)
   const onFocusRef = useRef<(() => void) | null>(null)
@@ -65,8 +73,12 @@ export function useMetaAdsOnboarding(organizationId: string | undefined, onSucce
     const left = window.screen.width / 2 - width / 2
     const top = window.screen.height / 2 - height / 2
 
+    const connectUrl = projectId
+      ? `${META_ADS_CONNECT_PATH}?projectId=${encodeURIComponent(projectId)}`
+      : META_ADS_CONNECT_PATH
+
     popupRef.current = window.open(
-      META_ADS_CONNECT_PATH,
+      connectUrl,
       'meta_ads_auth',
       `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no`
     )
@@ -92,6 +104,7 @@ export function useMetaAdsOnboarding(organizationId: string | undefined, onSucce
     window.addEventListener('focus', onFocus)
   }, [
     organizationId,
+    projectId,
     onSuccess,
     clearState,
     integrationBlockMessage,

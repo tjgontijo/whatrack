@@ -55,9 +55,13 @@ export function LaunchpadScreen({
     projectId,
     enabled: true,
   })
-  const { startOnboarding: startMetaAdsOnboarding } = useMetaAdsOnboarding(organizationId, () => {
-    router.refresh()
-  })
+  const { startOnboarding: startMetaAdsOnboarding } = useMetaAdsOnboarding(
+    organizationId,
+    projectId,
+    () => {
+      router.refresh()
+    }
+  )
   const { startOnboarding } = useWhatsAppOnboarding(() => {
     router.refresh()
   })

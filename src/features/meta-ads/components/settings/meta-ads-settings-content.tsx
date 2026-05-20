@@ -28,6 +28,7 @@ const META_ADS_TAB_IDS = {
 
 interface MetaAdsSettingsContentProps {
   organizationId: string | undefined
+  projectId?: string
   initialConnections?: MetaConnectionSummary[]
   initialAdAccounts?: MetaAdAccountSummary[]
   initialPixels?: MetaPixelConfig[]
@@ -35,6 +36,7 @@ interface MetaAdsSettingsContentProps {
 
 export function MetaAdsSettingsContent({
   organizationId,
+  projectId,
   initialConnections,
   initialAdAccounts,
   initialPixels,
@@ -75,6 +77,7 @@ export function MetaAdsSettingsContent({
 
   const { startOnboarding, isPending: isConnecting } = useMetaAdsOnboarding(
     organizationId,
+    projectId,
     handleRefreshAll
   )
 
