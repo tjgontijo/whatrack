@@ -2,14 +2,14 @@ module.exports = {
   apps: [
     {
       name: 'app',
-      script: 'node_modules/.bin/next',
+      script: 'pnpm',
       args: 'start',
       env: { NODE_ENV: 'production' },
     },
     {
       name: 'worker',
-      script: 'node_modules/.bin/tsx',
-      args: 'src/worker.ts',
+      script: 'pnpm',
+      args: 'exec tsx src/worker.ts',
       watch: false,
       env: { NODE_ENV: 'production' },
     },
