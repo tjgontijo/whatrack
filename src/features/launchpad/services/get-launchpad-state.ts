@@ -1,6 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/db/prisma'
 import { getActiveSubscription } from '@/features/billing/services/billing-subscription.service'
+import { logger } from '@/lib/utils/logger'
 
 export interface LaunchpadItem {
   id: string
@@ -74,6 +75,18 @@ export async function getLaunchpadState(
 
   const orgRenamed = org?.name && org.name !== 'Minha Organização'
   const projectRenamed = project?.name && project.name !== 'default'
+
+  logger.debug(
+    {
+      organizationId,
+      projectId,
+      orgName: org?.name,
+      projectName: project?.name,
+      orgRenamed,
+      projectRenamed,
+    },
+    '[launchpad] getLaunchpadState debug'
+  )
 
   const items: LaunchpadItem[] = [
     {
