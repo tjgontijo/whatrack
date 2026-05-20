@@ -1,5 +1,6 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { SlidersHorizontal } from 'lucide-react'
 import React, { useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
@@ -13,7 +14,6 @@ import { DealsFilters } from '@/features/deals/components/filters/deals-filters'
 import { DealsKanbanBoard } from '@/features/deals/components/kanban/deals-kanban-board'
 import { dealColumns } from '@/features/deals/components/list/deals-view-config'
 import { DEALS_QUERY_KEY } from '@/features/deals/constants'
-import { DealDetailsDialog } from '@/features/deals/components/dialogs/deal-details-dialog'
 import { useReorderDealMutation } from '@/features/deals/mutations/use-reorder-deal-mutation'
 import { useDealStagesQuery } from '@/features/deals/queries/use-deal-stages-query'
 import type {
@@ -26,13 +26,13 @@ import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-pr
 import { useCrudInfiniteQuery } from '@/hooks/ui/use-crud-infinite-query'
 
 export function DealsScreen() {
-  const { organizationId, projectId } = useRequiredProjectRouteContext()
+  const { organizationId, projectId, organizationSlug, projectSlug } = useRequiredProjectRouteContext()
+  const router = useRouter()
   const [view, setView] = useState<ViewType>('kanban')
   const [searchInput, setSearchInput] = useState('')
   const [statusFilter, setStatusFilter] = useState<DealStatusFilter>('all')
   const [dateRange, setDateRange] = useState<DealDateRangeFilter>('all')
   const [funnelOpen, setFunnelOpen] = useState(false)
-  const [selectedDealId, setSelectedDealId] = useState<string | null>(null)
 
   const deferredSearch = React.useDeferredValue(searchInput)
 
@@ -69,6 +69,10 @@ export function DealsScreen() {
   })
   const reorderDealMutation = useReorderDealMutation({ organizationId, projectId })
   const dealStats = stats as DealStats | undefined
+
+  const handleDealClick = (deal: DealItem) => {
+    router.push(`/${organizationSlug}/${projectSlug}/deals/${deal.id}`)
+  }
 
   return (
     <>
@@ -116,7 +120,7 @@ export function DealsScreen() {
             <CrudListView
               data={deals}
               columns={dealColumns}
-              onRowClick={(deal) => setSelectedDealId(deal.id)}
+              onRowClick={handleDealClick}
               onEndReached={hasNextPage ? fetchNextPage : undefined}
             />
           }
@@ -131,7 +135,7 @@ export function DealsScreen() {
                 reorderDealMutation.mutate({ dealId, stageId, position })
               }
               onConfigStage={() => setFunnelOpen(true)}
-              onDealClick={(deal) => setSelectedDealId(deal.id)}
+              onDealClick={handleDealClick}
             />
           }
         />
@@ -142,13 +146,6 @@ export function DealsScreen() {
         projectId={projectId}
         organizationId={organizationId}
         currentStages={stagesData?.items ?? []}
-      />
-      <DealDetailsDialog
-        dealId={selectedDealId}
-        open={!!selectedDealId}
-        onOpenChange={(open) => !open && setSelectedDealId(null)}
-        organizationId={organizationId}
-        projectId={projectId}
       />
     </>
   )

@@ -8,9 +8,10 @@ import { AppSidebar } from '@/features/dashboard/components/sidebar/app-sidebar'
 
 type DashboardShellProps = Omit<AppSidebarProps, 'collapsed' | 'onToggle'> & {
   children: ReactNode
+  showLaunchpad?: boolean
 }
 
-export function DashboardShell({ children, ...sidebarProps }: DashboardShellProps) {
+export function DashboardShell({ children, showLaunchpad, ...sidebarProps }: DashboardShellProps) {
   const [collapsed, setCollapsed] = useState(false)
 
   return (
@@ -18,6 +19,7 @@ export function DashboardShell({ children, ...sidebarProps }: DashboardShellProp
       <div className='flex min-h-0 flex-1 overflow-hidden'>
         <AppSidebar
           {...sidebarProps}
+          showLaunchpad={showLaunchpad}
           collapsed={collapsed}
           onToggle={() => setCollapsed((v) => !v)}
         />

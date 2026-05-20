@@ -12,6 +12,7 @@ import {
   Paintbrush,
   PanelLeftClose,
   PanelLeftOpen,
+  Rocket,
   ScrollText,
   ShoppingBag,
   UserCircle,
@@ -41,6 +42,7 @@ const ICON_MAP = {
   CreditCard,
   Paintbrush,
   Zap,
+  Rocket,
 } as const
 
 type NavItem = {
@@ -70,6 +72,7 @@ export type AppSidebarProps = {
   permissions: Permission[]
   collapsed: boolean
   onToggle: () => void
+  showLaunchpad?: boolean
 }
 
 function isActive(pathname: string, item: NavItem, basePath: string) {
@@ -87,6 +90,7 @@ export function AppSidebar({
   permissions,
   collapsed,
   onToggle,
+  showLaunchpad,
 }: AppSidebarProps) {
   const pathname = usePathname()
   const permissionSet = new Set(permissions)
@@ -113,6 +117,15 @@ export function AppSidebar({
           icon: 'MessageSquare',
           permission: 'view:whatsapp',
         },
+        ...(showLaunchpad
+          ? [
+              {
+                title: 'Configurar conta',
+                href: `${basePath}/launchpad`,
+                icon: 'Rocket',
+              } satisfies NavItem,
+            ]
+          : []),
       ],
     },
     {

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { getExecutiveScorecard } from '@/features/dashboard/services/executive-scorecard.service'
-import { resolveFiltersDateRange } from '@/features/dashboard/services/build-filters'
+import { resolveRequiredFiltersDateRange } from '@/features/dashboard/services/build-filters'
+import { getExecutiveScorecardMetrics } from '@/features/dashboard/services/executive-scorecard.service'
 import { apiError } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
@@ -18,16 +18,14 @@ export async function GET(request: Request) {
     return apiError(access.error ?? 'Acesso negado', 403)
   }
 
-  const parsed = querySchema.safeParse(
-    Object.fromEntries(new URL(request.url).searchParams)
-  )
+  const parsed = querySchema.safeParse(Object.fromEntries(new URL(request.url).searchParams))
 
   if (!parsed.success) {
     return apiError('Parâmetros inválidos', 400, undefined, { details: parsed.error.flatten() })
   }
 
   try {
-    const dateRange = resolveFiltersDateRange({
+    const dateRange = resolveRequiredFiltersDateRange({
       period: parsed.data.period,
     })
 
@@ -36,9 +34,10 @@ export async function GET(request: Request) {
       projectId: parsed.data.projectId,
     })
 
-    const metrics = await getExecutiveScorecard(
+    const metrics = await getExecutiveScorecardMetrics(
       access.organizationId,
-      dateRange,
+      dateRange.gte,
+      dateRange.lte,
       projectId
     )
 

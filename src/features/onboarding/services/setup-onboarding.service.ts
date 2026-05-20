@@ -1,17 +1,12 @@
 import "server-only"
-import { Prisma } from '@generated/prisma/client'
 import { z } from 'zod'
 import { getDefaultTrialBillingPlan } from '@/features/billing/services/billing-plan-catalog.service'
 import { startOrganizationTrial } from '@/features/billing/services/billing-subscription.service'
-import { fetchCnpjData, ReceitaWsError } from '@/features/company/services/receitaws'
 import { prisma } from '@/lib/db/prisma'
-import { logger } from '@/lib/utils/logger'
 import { normalizeSlug } from '@/lib/utils/slug'
 import { ensureSystemRolesForOrganization } from '@/server/organization/organization-rbac.service'
 
 export const setupOnboardingSchema = z.object({
-  documentType: z.enum(['CPF', 'CNPJ']),
-  documentNumber: z.string().min(1),
   intent: z.string().trim().optional(),
 })
 
@@ -21,26 +16,25 @@ function deriveFirstLastName(fullName: string): string {
   return `${parts[0]} ${parts[parts.length - 1]}`
 }
 
-function buildOrgSlug(name: string) {
-  return normalizeSlug(name) || 'organizacao'
+function buildOrgSlug() {
+  return `org-${Date.now().toString(36)}`
 }
 
 async function resolveAvailableOrgSlug(
-  tx: Prisma.TransactionClient,
-  baseName: string
+  tx: Prisma.TransactionClient
 ): Promise<string> {
-  const baseSlug = buildOrgSlug(baseName)
+  const baseSlug = buildOrgSlug()
 
-  for (let i = 0; i < 100; i++) {
-    const candidate = i === 0 ? baseSlug : `${baseSlug}-${i + 2}`
-    const existing = await tx.organization.findUnique({
-      where: { slug: candidate },
-      select: { id: true },
-    })
-    if (!existing) return candidate
+  const existing = await tx.organization.findUnique({
+    where: { slug: baseSlug },
+    select: { id: true },
+  })
+
+  if (existing) {
+    return `${baseSlug}-${Math.random().toString(36).slice(2, 8)}`
   }
 
-  return `${baseSlug}-${Date.now().toString(36)}`
+  return baseSlug
 }
 
 export interface SetupOnboardingUser {
@@ -53,28 +47,10 @@ export async function setupOnboardingService(
   user: SetupOnboardingUser,
   input: unknown
 ) {
-  const { documentType, documentNumber, intent } = setupOnboardingSchema.parse(input)
+  const { intent } = setupOnboardingSchema.parse(input)
 
-  let orgName: string
-  let companyData: Awaited<ReturnType<typeof fetchCnpjData>> | null = null
-
-  if (documentType === 'CNPJ') {
-    try {
-      companyData = await fetchCnpjData(documentNumber)
-      orgName = companyData.razaoSocial || companyData.nomeFantasia || documentNumber
-    } catch (err) {
-      if (err instanceof ReceitaWsError) {
-        logger.warn(
-          { err, documentNumber },
-          '[onboarding/setup] ReceitaWS lookup failed, using fallback'
-        )
-      }
-      orgName = documentNumber
-    }
-  } else {
-    const displayName = user.name ?? user.email
-    orgName = deriveFirstLastName(displayName)
-  }
+  const displayName = user.name ?? user.email
+  const orgName = deriveFirstLastName(displayName)
 
   const result = await prisma.$transaction(async (tx) => {
     const existingMember = await tx.member.findFirst({
@@ -86,16 +62,16 @@ export async function setupOnboardingService(
     let organizationId: string
 
     if (existingMember) {
-      const slug = await resolveAvailableOrgSlug(tx, orgName)
+      const slug = await resolveAvailableOrgSlug(tx)
       await tx.organization.update({
         where: { id: existingMember.organizationId },
-        data: { name: orgName, slug },
+        data: { slug },
       })
       organizationId = existingMember.organizationId
     } else {
-      const slug = await resolveAvailableOrgSlug(tx, orgName)
+      const slug = await resolveAvailableOrgSlug(tx)
       const org = await tx.organization.create({
-        data: { name: orgName, slug },
+        data: { name: 'Minha Organização', slug },
         select: { id: true },
       })
       await tx.member.create({
@@ -111,57 +87,11 @@ export async function setupOnboardingService(
 
     const completedAt = new Date()
 
-    if (documentType === 'CPF') {
-      await tx.organizationProfile.upsert({
-        where: { organizationId },
-        update: { cpf: documentNumber, onboardingStatus: 'completed', onboardingCompletedAt: completedAt },
-        create: { organizationId, cpf: documentNumber, onboardingStatus: 'completed', onboardingCompletedAt: completedAt },
-      })
-    } else {
-      const cnpjClean = documentNumber
-      const razaoSocial = companyData?.razaoSocial || orgName
-      const nomeFantasia = companyData?.nomeFantasia || razaoSocial
-
-      await tx.organizationCompany.upsert({
-        where: { organizationId },
-        update: {
-          cnpj: cnpjClean,
-          razaoSocial,
-          nomeFantasia,
-          cnaeCode: companyData?.cnaeCode ?? '',
-          cnaeDescription: companyData?.cnaeDescription ?? '',
-          municipio: companyData?.municipio ?? '',
-          uf: (companyData?.uf ?? '').trim().toUpperCase().slice(0, 2),
-          tipo: companyData?.tipo ?? null,
-          porte: companyData?.porte ?? null,
-          naturezaJuridica: companyData?.naturezaJuridica ?? null,
-          capitalSocial: companyData?.capitalSocial != null ? new Prisma.Decimal(companyData.capitalSocial) : null,
-          situacao: companyData?.situacao ?? null,
-          authorizedByUserId: user.id,
-        },
-        create: {
-          organizationId,
-          cnpj: cnpjClean,
-          razaoSocial,
-          nomeFantasia,
-          cnaeCode: companyData?.cnaeCode ?? '',
-          cnaeDescription: companyData?.cnaeDescription ?? '',
-          municipio: companyData?.municipio ?? '',
-          uf: (companyData?.uf ?? '').trim().toUpperCase().slice(0, 2),
-          tipo: companyData?.tipo ?? null,
-          porte: companyData?.porte ?? null,
-          naturezaJuridica: companyData?.naturezaJuridica ?? null,
-          capitalSocial: companyData?.capitalSocial != null ? new Prisma.Decimal(companyData.capitalSocial) : null,
-          situacao: companyData?.situacao ?? null,
-          authorizedByUserId: user.id,
-        },
-      })
-      await tx.organizationProfile.upsert({
-        where: { organizationId },
-        update: { cpf: null, onboardingStatus: 'completed', onboardingCompletedAt: completedAt },
-        create: { organizationId, cpf: null, onboardingStatus: 'completed', onboardingCompletedAt: completedAt },
-      })
-    }
+    await tx.organizationProfile.upsert({
+      where: { organizationId },
+      update: { onboardingStatus: 'completed', onboardingCompletedAt: completedAt },
+      create: { organizationId, onboardingStatus: 'completed', onboardingCompletedAt: completedAt },
+    })
 
     const existingProject = await tx.project.findFirst({
       where: { organizationId, slug: 'default' },

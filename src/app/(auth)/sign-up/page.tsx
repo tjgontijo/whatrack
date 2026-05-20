@@ -20,9 +20,7 @@ import { apiFetch } from '@/lib/http/api-client'
 import { authClient } from '@/lib/auth/auth-client'
 import { getAuthErrorMessage } from '@/lib/auth/error-messages'
 import { acceptOrganizationInvitation, buildInvitationQuery } from '@/lib/auth/invitation-client'
-import { envClient } from '@/lib/env/env-client'
 import { buildFunnelQueryString, readFunnelIntent } from '@/lib/funnel/funnel-intent'
-import { applyCpfCnpjMask, stripCpfCnpj } from '@/lib/mask/cpf-cnpj'
 import { type SignUpData, signUpSchema } from '@/features/auth/schemas/sign-up'
 
 type SignUpErrorShape = {
@@ -54,8 +52,6 @@ export default function SignUpPage() {
     [invitationId, nextParam]
   )
   const funnelQuery = useMemo(() => buildFunnelQueryString(funnelIntent), [funnelIntent])
-  const isTrialIntent = funnelIntent.intent === 'start-trial'
-  const ownerEmail = (envClient.NEXT_PUBLIC_OWNER_EMAIL ?? '').trim().toLowerCase()
   const postAuthResolutionQuery = useMemo(() => {
     const params = new URLSearchParams()
 
@@ -82,12 +78,8 @@ export default function SignUpPage() {
       email: '',
       password: '',
       confirmPassword: '',
-      documentType: null,
-      documentNumber: '',
     },
   })
-
-  const documentType = form.watch('documentType')
 
   const handleSubmit = async (values: SignUpData) => {
     try {
@@ -133,8 +125,6 @@ export default function SignUpPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          documentType: values.documentType,
-          documentNumber: stripCpfCnpj(values.documentNumber),
           intent: funnelIntent.intent,
         }),
       })
@@ -145,31 +135,23 @@ export default function SignUpPage() {
         return
       }
 
-      const isOwner = ownerEmail.length > 0 && values.email.trim().toLowerCase() === ownerEmail
-
-      let nextPath = isTrialIntent ? `/welcome${funnelQuery}` : `/checkout${funnelQuery}`
-
-      if (isOwner) {
-        try {
-          const response = (await apiFetch(
-            `/api/v1/auth/post-auth-path${postAuthResolutionQuery}`
-          )) as {
-            path?: string
-          }
-          if (response.path) {
-            nextPath = response.path
-          } else {
-            nextPath = '/welcome'
-          }
-        } catch (postAuthError) {
-          console.error('[sign-up] erro ao resolver destino pós-auth do owner', postAuthError)
-          nextPath = '/welcome'
+      // 4. Redirecionar para dashboard
+      try {
+        const response = (await apiFetch(
+          `/api/v1/auth/post-auth-path${postAuthResolutionQuery}`
+        )) as {
+          path?: string
         }
+        const nextPath = response.path ?? '/welcome'
+        startTransition(() => {
+          router.push(nextPath)
+        })
+      } catch (postAuthError) {
+        console.error('[sign-up] erro ao resolver destino pós-auth', postAuthError)
+        startTransition(() => {
+          router.push('/welcome')
+        })
       }
-
-      startTransition(() => {
-        router.push(nextPath)
-      })
     } catch (error) {
       console.error('[sign-up] erro ao criar conta', error)
       toast.error('Falha na comunicação com o servidor. Tente novamente.')
@@ -185,7 +167,7 @@ export default function SignUpPage() {
     >
       <div className='text-left'>
         <h1 className='font-bold text-3xl text-foreground tracking-tight'>
-          {isTrialIntent ? 'Comece seu teste grátis' : 'Crie sua conta para continuar'}
+          Crie sua conta para continuar
         </h1>
       </div>
 
@@ -233,69 +215,7 @@ export default function SignUpPage() {
             )}
           />
 
-          {/* Dados fiscais */}
-          <Controller
-            control={form.control}
-            name='documentType'
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel>Documento fiscal</FieldLabel>
-                <div className='flex gap-3'>
-                  {(['CPF', 'CNPJ'] as const).map((type) => (
-                    <button
-                      key={type}
-                      type='button'
-                      onClick={() => {
-                        field.onChange(type)
-                        form.setValue('documentNumber', '')
-                      }}
-                      disabled={isSubmitting}
-                      className={`h-11 flex-1 rounded-lg border font-medium text-sm transition-all lg:h-12 ${
-                        field.value === type
-                          ? 'border-primary bg-primary/10 text-primary'
-                          : 'border-border text-muted-foreground hover:border-primary/50'
-                      }`}
-                    >
-                      {type}
-                    </button>
-                  ))}
-                </div>
-                <FieldError errors={[fieldState.error]} />
-              </Field>
-            )}
-          />
-
-          {documentType ? (
-            <Controller
-              control={form.control}
-              name='documentNumber'
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={field.name}>{documentType}</FieldLabel>
-                  <Input
-                    id={field.name}
-                    placeholder={documentType === 'CPF' ? '000.000.000-00' : '00.000.000/0000-00'}
-                    autoComplete='off'
-                    inputMode='numeric'
-                    className='h-11 px-4 shadow-sm transition-shadow focus-visible:border-primary focus-visible:ring-primary lg:h-12'
-                    disabled={isSubmitting}
-                    value={applyCpfCnpjMask(field.value, documentType === 'CPF' ? 'cpf' : 'cnpj')}
-                    onChange={(e) => {
-                      const raw = stripCpfCnpj(e.target.value)
-                      const maxLen = documentType === 'CPF' ? 11 : 14
-                      field.onChange(raw.slice(0, maxLen))
-                    }}
-                    onBlur={field.onBlur}
-                    name={field.name}
-                    ref={field.ref}
-                  />
-                  <FieldError errors={[fieldState.error]} />
-                </Field>
-              )}
-            />
-          ) : null}
-
-          <Controller
+<Controller
             control={form.control}
             name='password'
             render={({ field, fieldState }) => (
@@ -376,9 +296,7 @@ export default function SignUpPage() {
               ? isRedirecting
                 ? 'Redirecionando...'
                 : 'Criando conta...'
-              : isTrialIntent
-                ? 'Começar teste grátis'
-                : 'Continuar para pagamento'}
+              : 'Criar conta'}
           </Button>
         </form>
       </Form>

@@ -1,6 +1,7 @@
-import { Banknote, Eye, ShoppingCart, TrendingUp, Users } from 'lucide-react'
+import { Banknote, MousePointerClick, ShoppingCart, Target, TrendingUp, Users } from 'lucide-react'
 import type { ExecutiveScorecardMetrics } from '@/features/dashboard/services/executive-scorecard.service'
 import { formatCurrencyBRL } from '@/lib/mask/formatters'
+import { cn } from '@/lib/utils/utils'
 
 interface ExecutiveScorecardProps {
   metrics: ExecutiveScorecardMetrics
@@ -8,131 +9,115 @@ interface ExecutiveScorecardProps {
 }
 
 export function ExecutiveScorecard({ metrics, isLoading }: ExecutiveScorecardProps) {
-  const skeletonClass = isLoading ? 'animate-pulse bg-slate-200' : ''
+  const formatInteger = (value: number) => new Intl.NumberFormat('pt-BR').format(value)
+  const formatRatio = (value: number | null) => (value === null ? '—' : `${value.toFixed(2)}x`)
+  const formatPercentage = (value: number | null) => (value === null ? '—' : `${value.toFixed(1)}%`)
+  const roasMeta =
+    metrics.metaPaidSpend > 0 ? metrics.metaPaidRevenue / metrics.metaPaidSpend : null
+  const cacMeta =
+    metrics.salesMetaAttribued > 0 ? metrics.metaPaidSpend / metrics.salesMetaAttribued : null
+  const cpc = metrics.metaPaidClicks > 0 ? metrics.metaPaidSpend / metrics.metaPaidClicks : null
+  const averageTicket =
+    metrics.salesTotal > 0 ? metrics.revenueCompleted / metrics.salesTotal : null
+  const leadToSaleRate =
+    metrics.leadsTotal > 0 ? (metrics.salesTotal / metrics.leadsTotal) * 100 : null
 
-  const cards = [
+  const primaryCards = [
     {
-      label: 'Receita Realizada',
+      label: 'Receita realizada',
       value: formatCurrencyBRL(metrics.revenueCompleted),
+      helper: `Ticket médio ${averageTicket === null ? '—' : formatCurrencyBRL(averageTicket)}`,
       icon: Banknote,
-      variant: 'success',
     },
     {
-      label: 'Pipeline de Receita',
+      label: 'Pipeline',
       value: formatCurrencyBRL(metrics.revenuePipeline),
+      helper: 'Valor em negociação',
       icon: TrendingUp,
-      variant: 'info',
     },
     {
-      label: 'Investimento Meta',
-      value: formatCurrencyBRL(metrics.metaPaidSpend),
-      icon: ShoppingCart,
-      variant: 'warning',
-    },
-    {
-      label: 'Receita Meta',
-      value: formatCurrencyBRL(metrics.metaPaidRevenue),
-      icon: Banknote,
-      variant: 'success',
-    },
-    {
-      label: 'Leads Total',
-      value: metrics.leadsTotal.toString(),
+      label: 'Leads',
+      value: formatInteger(metrics.leadsTotal),
+      helper: 'Entradas capturadas',
       icon: Users,
-      variant: 'info',
     },
     {
-      label: 'Leads Meta',
-      value: metrics.leadsMetaPaid.toString(),
-      icon: Users,
-      variant: 'info',
-    },
-    {
-      label: 'Vendas Total',
-      value: metrics.salesTotal.toString(),
+      label: 'Vendas',
+      value: formatInteger(metrics.salesTotal),
+      helper: `Conversão ${formatPercentage(leadToSaleRate)}`,
       icon: ShoppingCart,
-      variant: 'success',
-    },
-    {
-      label: 'Vendas Meta',
-      value: metrics.salesMetaAttribued.toString(),
-      icon: ShoppingCart,
-      variant: 'success',
     },
   ]
 
-  const getVariantColor = (variant: string) => {
-    switch (variant) {
-      case 'success':
-        return 'border-l-4 border-l-green-500 bg-green-50'
-      case 'warning':
-        return 'border-l-4 border-l-yellow-500 bg-yellow-50'
-      case 'info':
-        return 'border-l-4 border-l-blue-500 bg-blue-50'
-      default:
-        return 'border-l-4 border-l-slate-300 bg-slate-50'
-    }
-  }
-
-  const getIconColor = (variant: string) => {
-    switch (variant) {
-      case 'success':
-        return 'text-green-600'
-      case 'warning':
-        return 'text-yellow-600'
-      case 'info':
-        return 'text-blue-600'
-      default:
-        return 'text-slate-600'
-    }
-  }
+  const metaStats = [
+    { label: 'Investimento', value: formatCurrencyBRL(metrics.metaPaidSpend), icon: Target },
+    { label: 'ROAS', value: formatRatio(roasMeta), icon: TrendingUp },
+    { label: 'CAC', value: cacMeta === null ? '—' : formatCurrencyBRL(cacMeta), icon: Banknote },
+    { label: 'CPC', value: cpc === null ? '—' : formatCurrencyBRL(cpc), icon: MousePointerClick },
+  ]
 
   return (
     <div className='space-y-4'>
-      <div>
-        <h3 className='text-lg font-semibold text-slate-900'>Scorecard Executivo</h3>
-        <p className='text-sm text-slate-500'>Métricas principais de receita e meta ads</p>
-      </div>
-
-      <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
-        {cards.map((card) => {
+      <div className='grid gap-3 md:grid-cols-2 xl:grid-cols-4'>
+        {primaryCards.map((card) => {
           const Icon = card.icon
           return (
             <div
               key={card.label}
-              className={`rounded-lg border p-4 transition-all ${getVariantColor(card.variant)} ${skeletonClass}`}
+              className={cn(
+                'rounded-lg border border-border/60 bg-card p-4 shadow-sm',
+                isLoading && 'animate-pulse'
+              )}
             >
-              <div className='flex items-start justify-between'>
+              <div className='flex items-start justify-between gap-4'>
                 <div className='flex-1'>
-                  <p className='text-sm font-medium text-slate-600'>{card.label}</p>
-                  <p className='mt-2 text-2xl font-bold text-slate-900'>{card.value}</p>
+                  <p className='font-medium text-muted-foreground text-sm'>{card.label}</p>
+                  <p className='mt-2 font-semibold text-2xl text-foreground tracking-tight'>
+                    {isLoading ? '—' : card.value}
+                  </p>
+                  <p className='mt-1 text-muted-foreground text-xs'>{card.helper}</p>
                 </div>
-                <Icon className={`h-5 w-5 ${getIconColor(card.variant)}`} />
+                <Icon className='mt-0.5 h-4 w-4 shrink-0 text-muted-foreground/70' />
               </div>
             </div>
           )
         })}
       </div>
 
-      {/* Summary cards for ROAS and efficiency metrics */}
-      <div className='mt-6 grid gap-4 md:grid-cols-2'>
-        <div className='rounded-lg border border-l-4 border-l-purple-500 bg-purple-50 p-4'>
-          <p className='text-sm font-medium text-slate-600'>ROAS Meta</p>
-          <p className='mt-2 text-2xl font-bold text-slate-900'>
-            {metrics.metaPaidSpend > 0
-              ? (metrics.metaPaidRevenue / metrics.metaPaidSpend).toFixed(2)
-              : '—'}
-            x
+      <div className='rounded-lg border border-border/60 bg-card p-4 shadow-sm'>
+        <div className='flex flex-col gap-1 border-border/60 border-b pb-3 sm:flex-row sm:items-end sm:justify-between'>
+          <div>
+            <h2 className='font-semibold text-foreground text-sm'>Aquisição paga</h2>
+            <p className='text-muted-foreground text-xs'>
+              Custo e eficiência dos anúncios no período selecionado
+            </p>
+          </div>
+          <p className='text-muted-foreground text-xs'>
+            {formatInteger(metrics.metaPaidClicks)} cliques ·{' '}
+            {formatInteger(metrics.metaPaidImpressions)} impressões
           </p>
-          <p className='text-xs text-slate-500'>Retorno por Real Investido</p>
         </div>
 
-        <div className='rounded-lg border border-l-4 border-l-indigo-500 bg-indigo-50 p-4'>
-          <p className='text-sm font-medium text-slate-600'>Impressões Meta</p>
-          <p className='mt-2 text-2xl font-bold text-slate-900'>
-            {(metrics.metaPaidImpressions / 1000).toFixed(0)}k
-          </p>
-          <p className='text-xs text-slate-500'>Total de visualizações</p>
+        <div className='grid gap-3 pt-4 sm:grid-cols-2 xl:grid-cols-4'>
+          {metaStats.map((stat) => {
+            const Icon = stat.icon
+            return (
+              <div
+                key={stat.label}
+                className='flex min-w-0 items-center gap-3 rounded-md border border-border/60 bg-background p-3'
+              >
+                <div className='flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground'>
+                  <Icon className='h-4 w-4' />
+                </div>
+                <div className='min-w-0'>
+                  <p className='truncate text-muted-foreground text-xs'>{stat.label}</p>
+                  <p className='truncate font-semibold text-foreground text-lg tracking-tight'>
+                    {isLoading ? '—' : stat.value}
+                  </p>
+                </div>
+              </div>
+            )
+          })}
         </div>
       </div>
     </div>

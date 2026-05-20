@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import { resolveRequiredFiltersDateRange } from '@/features/dashboard/services/build-filters'
 import { getOriginMetrics } from '@/features/dashboard/services/origins-metrics.service'
-import { resolveFiltersDateRange } from '@/features/dashboard/services/build-filters'
 import { apiError } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
@@ -18,16 +18,14 @@ export async function GET(request: Request) {
     return apiError(access.error ?? 'Acesso negado', 403)
   }
 
-  const parsed = querySchema.safeParse(
-    Object.fromEntries(new URL(request.url).searchParams)
-  )
+  const parsed = querySchema.safeParse(Object.fromEntries(new URL(request.url).searchParams))
 
   if (!parsed.success) {
     return apiError('Parâmetros inválidos', 400, undefined, { details: parsed.error.flatten() })
   }
 
   try {
-    const dateRange = resolveFiltersDateRange({
+    const dateRange = resolveRequiredFiltersDateRange({
       period: parsed.data.period,
     })
 
@@ -38,8 +36,8 @@ export async function GET(request: Request) {
 
     const metrics = await getOriginMetrics(
       access.organizationId,
-      dateRange.from,
-      dateRange.to,
+      dateRange.gte,
+      dateRange.lte,
       projectId
     )
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { ResponsiveFunnel } from '@nivo/funnel'
+import { type FunnelDatum, type FunnelSvgProps, ResponsiveFunnel } from '@nivo/funnel'
 import type React from 'react'
 import { formatCurrencyBRL } from '@/lib/mask/formatters'
 import { cn } from '@/lib/utils/utils'
@@ -20,8 +20,17 @@ type FunnelChartProps = {
   className?: string
   title?: string
   description?: string
-  colors?: any
+  colors?: FunnelSvgProps<FunnelChartDatum>['colors']
 }
+
+type FunnelChartDatum = FunnelDatum<{
+  currentValue: number
+  dealValueSum: number
+  currentDealValueSum: number
+  color: string
+  conversionPrev: number
+  conversionFromStart: number
+}>
 
 export function FunnelChart({
   steps,
@@ -33,7 +42,7 @@ export function FunnelChart({
   const formatInteger = (value: number) => new Intl.NumberFormat('pt-BR').format(value)
   const firstValue = steps[0]?.value ?? 0
 
-  const data = steps.map((step, index) => {
+  const data: FunnelChartDatum[] = steps.map((step, index) => {
     const previousValue = steps[index - 1]?.value ?? step.value
     const hasPrev = index > 0
     const conversionPrev = hasPrev && previousValue > 0 ? (step.value / previousValue) * 100 : -1
@@ -54,10 +63,13 @@ export function FunnelChart({
 
   const hasData = data.length >= 2 || (data.length === 1 && data[0].value > 0)
 
-  const isDefaultColors = typeof colors === 'object' && colors !== null && 'scheme' in colors && colors.scheme === 'spectral'
-  const resolvedColors = isDefaultColors && data.some((d) => d.color)
-    ? data.map((d) => d.color || '#6366f1')
-    : colors
+  const isDefaultColors =
+    typeof colors === 'object' &&
+    colors !== null &&
+    'scheme' in colors &&
+    colors.scheme === 'spectral'
+  const resolvedColors =
+    isDefaultColors && data.some((d) => d.color) ? data.map((d) => d.color || '#6366f1') : colors
 
   return (
     <section
@@ -73,7 +85,7 @@ export function FunnelChart({
         </div>
       </header>
 
-      <div className='flex min-h-0 flex-1 flex-col pt-4'>
+      <div className='flex min-h-0 flex-1 flex-col pt-2'>
         <div className='min-h-0 flex-1'>
           {!hasData ? (
             <div className='flex h-full items-center justify-center text-muted-foreground text-sm'>
@@ -82,7 +94,7 @@ export function FunnelChart({
           ) : (
             <ResponsiveFunnel
               data={data}
-              margin={{ top: 10, right: 20, bottom: 20, left: 20 }}
+              margin={{ top: 0, right: 18, bottom: 0, left: 18 }}
               direction='horizontal'
               valueFormat={(value) => formatInteger(value as number)}
               colors={resolvedColors}
@@ -111,7 +123,9 @@ export function FunnelChart({
 
                 return (
                   <div className='min-w-[240px] rounded-xl border border-border/70 bg-popover px-4 py-3 text-xs shadow-lg'>
-                    <p className='mb-2 font-bold text-popover-foreground text-sm'>{part.data.label}</p>
+                    <p className='mb-2 font-bold text-popover-foreground text-sm'>
+                      {part.data.label}
+                    </p>
                     <div className='space-y-1.5'>
                       <div className='flex justify-between gap-4'>
                         <span className='text-muted-foreground'>Passaram por aqui:</span>
@@ -168,11 +182,14 @@ export function FunnelChart({
         </div>
 
         {/* Row of Percentages relative to start */}
-        <div className='mt-2 flex items-center justify-around border-border/40 border-t px-2 pt-4'>
+        <div className='mt-2 flex items-center justify-around border-border/40 border-t px-2 pt-3'>
           {data.map((item, idx) => (
-            <div key={item.id} className='flex flex-col items-center px-2 text-center'>
+            <div
+              key={item.id}
+              className='flex min-w-0 flex-1 flex-col items-center px-2 text-center'
+            >
               <span
-                className='max-w-[80px] truncate font-bold text-[10px] text-muted-foreground uppercase tracking-tight'
+                className='max-w-[140px] text-balance break-words font-bold text-[10px] text-muted-foreground uppercase tracking-tight'
                 title={item.label}
               >
                 {item.id}

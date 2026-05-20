@@ -51,12 +51,11 @@ model MessageDirection {
 }
 
 model OnboardingStatus {
-  id          String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name        String                @unique
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String   @unique
   description String
-  createdAt   DateTime              @default(now())
-  updatedAt   DateTime              @updatedAt
-  profiles    OrganizationProfile[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@map("org_onboarding_statuses")
 }
@@ -368,10 +367,9 @@ model OrganizationProfile {
   revenuePerAttendant     Float?
   dealExpirationDays      Int?      @default(30)
 
-  createdAt           DateTime         @default(now())
-  updatedAt           DateTime         @updatedAt
-  onboardingStatusRef OnboardingStatus @relation(fields: [onboardingStatus], references: [name])
-  organization        Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@map("org_profiles")
 }

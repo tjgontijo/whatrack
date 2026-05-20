@@ -1,6 +1,7 @@
 import 'server-only'
 
 import { prisma } from '@/lib/db/prisma'
+import { isLaunchpadComplete } from '@/features/launchpad/services/get-launchpad-state'
 
 export async function resolveDefaultWorkspacePath(userId: string): Promise<string | null> {
   const member = await prisma.member.findFirst({
@@ -8,6 +9,7 @@ export async function resolveDefaultWorkspacePath(userId: string): Promise<strin
     select: {
       organization: {
         select: {
+          id: true,
           slug: true,
         },
       },
@@ -27,6 +29,7 @@ export async function resolveDefaultWorkspacePath(userId: string): Promise<strin
       isArchived: false,
     },
     select: {
+      id: true,
       slug: true,
     },
     orderBy: { createdAt: 'asc' },
@@ -36,5 +39,12 @@ export async function resolveDefaultWorkspacePath(userId: string): Promise<strin
     return null
   }
 
-  return `/${member.organization.slug}/${firstProject.slug}`
+  const basePath = `/${member.organization.slug}/${firstProject.slug}`
+
+  const complete = await isLaunchpadComplete(member.organization.id, firstProject.id)
+  if (!complete) {
+    return `${basePath}/launchpad`
+  }
+
+  return basePath
 }

@@ -7,7 +7,7 @@ import { logger } from '@/lib/utils/logger'
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await auth()
+    const session = await auth.api.getSession({ headers: req.headers })
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

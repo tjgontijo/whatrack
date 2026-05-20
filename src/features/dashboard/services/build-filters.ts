@@ -1,4 +1,4 @@
-import "server-only"
+import 'server-only'
 import type { Prisma } from '@generated/prisma/client'
 
 import type { DateRange } from '@/lib/date/date-range'
@@ -25,6 +25,23 @@ export function resolveFiltersDateRange(filters: SummaryFilters): DateRange | un
   }
 
   return resolveDateRange(filters.period)
+}
+
+export function resolveRequiredFiltersDateRange(
+  filters: SummaryFilters,
+  fallbackPeriod = '7d'
+): DateRange {
+  const dateRange = resolveFiltersDateRange(filters)
+  if (dateRange) {
+    return dateRange
+  }
+
+  const fallbackRange = resolveFiltersDateRange({ period: fallbackPeriod })
+  if (fallbackRange) {
+    return fallbackRange
+  }
+
+  throw new Error('Default dashboard period is invalid')
 }
 
 export function buildSalesWhere(filters: SummaryFilters): Prisma.SaleWhereInput {

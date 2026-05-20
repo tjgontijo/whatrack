@@ -1,16 +1,18 @@
-import { Suspense } from 'react'
 import { BarChart3 } from 'lucide-react'
-import { ExecutiveScorecard } from '@/features/dashboard/components/executive/executive-scorecard'
-import { OriginsTable } from '@/features/dashboard/components/tables/origins-table'
-import { MetaEntitiesTable } from '@/features/dashboard/components/tables/meta-entities-table'
-import { PageContent, PageHeader, PageShell } from '@/features/dashboard/components/layout'
-import { executiveScorecardService } from '@/features/dashboard/services/executive-scorecard.service'
-import { originsMetricsService } from '@/features/dashboard/services/origins-metrics.service'
-import { metaEntityMetricsService } from '@/features/dashboard/services/meta-entity-metrics.service'
-import { resolveFiltersDateRange } from '@/features/dashboard/services/build-filters'
-import { auth } from '@/lib/auth/auth'
-import { prisma } from '@/lib/db/prisma'
 import { notFound } from 'next/navigation'
+import { Suspense } from 'react'
+import { FunnelChart } from '@/features/dashboard/components/charts/funnel-chart'
+import { ExecutiveScorecard } from '@/features/dashboard/components/executive/executive-scorecard'
+import { PageContent, PageHeader, PageShell } from '@/features/dashboard/components/layout'
+import { MetaEntitiesTable } from '@/features/dashboard/components/tables/meta-entities-table'
+import { OriginsTable } from '@/features/dashboard/components/tables/origins-table'
+import { resolveRequiredFiltersDateRange } from '@/features/dashboard/services/build-filters'
+import { buildFunnel } from '@/features/dashboard/services/build-funnel'
+import { executiveScorecardService } from '@/features/dashboard/services/executive-scorecard.service'
+import { metaEntityMetricsService } from '@/features/dashboard/services/meta-entity-metrics.service'
+import { originsMetricsService } from '@/features/dashboard/services/origins-metrics.service'
+import { prisma } from '@/lib/db/prisma'
+import { getServerSession } from '@/server/auth/server'
 
 interface PageProps {
   params: Promise<{
@@ -22,64 +24,100 @@ interface PageProps {
   }>
 }
 
-async function ExecutiveScorecardSection({ organizationId, projectId, period }: {
+async function ExecutiveScorecardSection({
+  organizationId,
+  projectId,
+  period,
+}: {
   organizationId: string
   projectId: string | null
   period: string
 }) {
-  const dateRange = resolveFiltersDateRange({ period })
+  const dateRange = resolveRequiredFiltersDateRange({ period })
   const metrics = await executiveScorecardService.getMetrics(
     organizationId,
-    dateRange.from,
-    dateRange.to,
+    dateRange.gte,
+    dateRange.lte,
     projectId
   )
 
   return <ExecutiveScorecard metrics={metrics} />
 }
 
-async function OriginsMetricsSection({ organizationId, projectId, period }: {
+async function FunnelSection({
+  organizationId,
+  projectId,
+  period,
+}: {
   organizationId: string
   projectId: string | null
   period: string
 }) {
-  const dateRange = resolveFiltersDateRange({ period })
+  const dateRange = resolveRequiredFiltersDateRange({ period })
+  const funnel = await buildFunnel(organizationId, dateRange, projectId)
+
+  return (
+    <FunnelChart
+      className='h-[420px] min-h-0 rounded-lg p-5'
+      title='Funil do Pipeline'
+      description='Etapas reais configuradas no kanban comercial.'
+      steps={funnel.steps}
+    />
+  )
+}
+
+async function OriginsMetricsSection({
+  organizationId,
+  projectId,
+  period,
+}: {
+  organizationId: string
+  projectId: string | null
+  period: string
+}) {
+  const dateRange = resolveRequiredFiltersDateRange({ period })
   const metrics = await originsMetricsService.getMetrics(
     organizationId,
-    dateRange.from,
-    dateRange.to,
+    dateRange.gte,
+    dateRange.lte,
     projectId
   )
 
   return (
     <div className='space-y-4'>
       <div>
-        <h3 className='text-lg font-semibold text-slate-900'>Métricas por Origem</h3>
-        <p className='text-sm text-slate-500'>Leads, vendas e receita por UTM origin</p>
+        <h2 className='font-semibold text-foreground text-sm'>Métricas por Origem</h2>
+        <p className='text-muted-foreground text-xs'>Leads, vendas e receita por origem UTM</p>
       </div>
       <OriginsTable data={metrics} />
     </div>
   )
 }
 
-async function MetaEntityMetricsSection({ organizationId, projectId, period }: {
+async function MetaEntityMetricsSection({
+  organizationId,
+  projectId,
+  period,
+}: {
   organizationId: string
   projectId: string | null
   period: string
 }) {
-  const dateRange = resolveFiltersDateRange({ period })
+  const dateRange = resolveRequiredFiltersDateRange({ period })
   const metrics = await metaEntityMetricsService.getMetrics(
     organizationId,
-    dateRange.from,
-    dateRange.to,
+    dateRange.gte,
+    dateRange.lte,
     projectId
   )
 
   return (
     <div className='space-y-4'>
       <div>
-        <h3 className='text-lg font-semibold text-slate-900'>Métricas Meta Ads</h3>
-        <p className='text-sm text-slate-500'>Spend, ROAS e leads por entidade Meta</p>
+        <h2 className='font-semibold text-foreground text-sm'>Métricas Meta Ads</h2>
+        <p className='text-muted-foreground text-xs'>
+          Investimento, ROAS e leads por entidade Meta
+        </p>
       </div>
       <MetaEntitiesTable data={metrics} />
     </div>
@@ -87,18 +125,22 @@ async function MetaEntityMetricsSection({ organizationId, projectId, period }: {
 }
 
 function ExecutiveScorecardFallback() {
-  return (
-    <div className='space-y-4'>
-      <div className='h-48 animate-pulse rounded-lg bg-slate-100' />
-    </div>
-  )
+  return <div className='h-48 animate-pulse rounded-lg border bg-muted/40' />
 }
 
 function TableFallback() {
   return (
     <div className='space-y-4'>
-      <div className='h-8 w-40 animate-pulse rounded bg-slate-100' />
-      <div className='h-64 animate-pulse rounded-lg bg-slate-100' />
+      <div className='h-8 w-40 animate-pulse rounded bg-muted/40' />
+      <div className='h-40 animate-pulse rounded-lg border bg-muted/40' />
+    </div>
+  )
+}
+
+function FunnelFallback() {
+  return (
+    <div className='space-y-4'>
+      <div className='h-[420px] animate-pulse rounded-lg border bg-muted/40' />
     </div>
   )
 }
@@ -107,7 +149,7 @@ export default async function DashboardPage({ params, searchParams }: PageProps)
   const { organizationSlug, projectSlug } = await params
   const { period = '7d' } = await searchParams
 
-  const session = await auth()
+  const session = await getServerSession()
   if (!session?.user?.id) {
     return notFound()
   }
@@ -123,7 +165,7 @@ export default async function DashboardPage({ params, searchParams }: PageProps)
   }
 
   // Verify user has access to organization
-  const member = await prisma.organizationMember.findFirst({
+  const member = await prisma.member.findFirst({
     where: {
       organizationId: organization.id,
       userId: session.user.id,
@@ -139,7 +181,7 @@ export default async function DashboardPage({ params, searchParams }: PageProps)
   if (projectSlug !== '__default__') {
     const project = await prisma.project.findUnique({
       where: {
-        slug_organizationId: {
+        organizationId_slug: {
           slug: projectSlug,
           organizationId: organization.id,
         },
@@ -155,14 +197,14 @@ export default async function DashboardPage({ params, searchParams }: PageProps)
   }
 
   return (
-    <PageShell>
+    <PageShell className='scrollbar-thin min-h-0 overflow-y-auto'>
       <PageHeader
-        title='Scorecard Executivo'
-        description='KPIs principais de receita e meta ads'
+        title='Visão Geral'
+        description='Receita, funil e aquisição do projeto.'
         icon={BarChart3}
       />
 
-      <PageContent className='space-y-12'>
+      <PageContent className='space-y-6'>
         <Suspense fallback={<ExecutiveScorecardFallback />}>
           <ExecutiveScorecardSection
             organizationId={organization.id}
@@ -171,21 +213,27 @@ export default async function DashboardPage({ params, searchParams }: PageProps)
           />
         </Suspense>
 
-        <Suspense fallback={<TableFallback />}>
-          <OriginsMetricsSection
-            organizationId={organization.id}
-            projectId={projectId}
-            period={period}
-          />
+        <Suspense fallback={<FunnelFallback />}>
+          <FunnelSection organizationId={organization.id} projectId={projectId} period={period} />
         </Suspense>
 
-        <Suspense fallback={<TableFallback />}>
-          <MetaEntityMetricsSection
-            organizationId={organization.id}
-            projectId={projectId}
-            period={period}
-          />
-        </Suspense>
+        <div className='grid gap-6 2xl:grid-cols-2'>
+          <Suspense fallback={<TableFallback />}>
+            <OriginsMetricsSection
+              organizationId={organization.id}
+              projectId={projectId}
+              period={period}
+            />
+          </Suspense>
+
+          <Suspense fallback={<TableFallback />}>
+            <MetaEntityMetricsSection
+              organizationId={organization.id}
+              projectId={projectId}
+              period={period}
+            />
+          </Suspense>
+        </div>
       </PageContent>
     </PageShell>
   )

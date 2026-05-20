@@ -1004,6 +1004,146 @@ CREATE TABLE "meta_attribution_history" (
 );
 
 -- CreateTable
+CREATE TABLE "analytics_organization_settings" (
+    "organizationId" UUID NOT NULL,
+    "baseCurrency" TEXT NOT NULL DEFAULT 'BRL',
+    "timezoneName" TEXT NOT NULL DEFAULT 'America/Sao_Paulo',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "analytics_organization_settings_pkey" PRIMARY KEY ("organizationId")
+);
+
+-- CreateTable
+CREATE TABLE "analytics_meta_insight_sync_runs" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "organizationId" UUID NOT NULL,
+    "projectId" UUID,
+    "syncType" TEXT NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'PENDING',
+    "startedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "completedAt" TIMESTAMP(3),
+    "rowsInserted" INTEGER NOT NULL DEFAULT 0,
+    "rowsUpdated" INTEGER NOT NULL DEFAULT 0,
+    "errorMessage" TEXT,
+    "jobId" TEXT,
+
+    CONSTRAINT "analytics_meta_insight_sync_runs_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "analytics_meta_ad_insights_daily" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "organizationId" UUID NOT NULL,
+    "projectId" UUID,
+    "metaAdAccountId" TEXT NOT NULL,
+    "metaCampaignId" TEXT NOT NULL,
+    "metaAdSetId" TEXT NOT NULL,
+    "metaAdId" TEXT NOT NULL,
+    "entityKey" TEXT NOT NULL,
+    "date" DATE NOT NULL,
+    "impressions" INTEGER NOT NULL DEFAULT 0,
+    "clicks" INTEGER NOT NULL DEFAULT 0,
+    "spend" DECIMAL(12,2) NOT NULL DEFAULT 0,
+    "spendOriginal" DECIMAL(12,2),
+    "spendCurrency" TEXT,
+    "syncedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "analytics_meta_ad_insights_daily_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "analytics_currency_exchange_rates_daily" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "organizationId" UUID NOT NULL,
+    "date" DATE NOT NULL,
+    "baseCurrency" TEXT NOT NULL,
+    "quoteCurrency" TEXT NOT NULL,
+    "rate" DECIMAL(10,6) NOT NULL,
+    "source" TEXT NOT NULL DEFAULT 'FIXED',
+
+    CONSTRAINT "analytics_currency_exchange_rates_daily_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "analytics_dashboard_metric_refresh_runs" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "organizationId" UUID NOT NULL,
+    "projectId" UUID,
+    "startDate" DATE NOT NULL,
+    "endDate" DATE NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'PENDING',
+    "startedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "completedAt" TIMESTAMP(3),
+    "rowsInserted" INTEGER NOT NULL DEFAULT 0,
+    "rowsUpdated" INTEGER NOT NULL DEFAULT 0,
+    "errorMessage" TEXT,
+    "jobId" TEXT,
+
+    CONSTRAINT "analytics_dashboard_metric_refresh_runs_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "analytics_dashboard_daily_metrics" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "organizationId" UUID NOT NULL,
+    "projectId" UUID,
+    "date" DATE NOT NULL,
+    "revenueCompleted" DECIMAL(12,2) NOT NULL DEFAULT 0,
+    "revenuePending" DECIMAL(12,2) NOT NULL DEFAULT 0,
+    "revenuePipeline" DECIMAL(12,2) NOT NULL DEFAULT 0,
+    "metaPaidSpend" DECIMAL(12,2) NOT NULL DEFAULT 0,
+    "metaPaidRevenue" DECIMAL(12,2) NOT NULL DEFAULT 0,
+    "metaPaidClicks" INTEGER NOT NULL DEFAULT 0,
+    "metaPaidImpressions" INTEGER NOT NULL DEFAULT 0,
+    "otherPaidSpend" DECIMAL(12,2) NOT NULL DEFAULT 0,
+    "otherPaidRevenue" DECIMAL(12,2) NOT NULL DEFAULT 0,
+    "leadsTotal" INTEGER NOT NULL DEFAULT 0,
+    "leadsMetaPaid" INTEGER NOT NULL DEFAULT 0,
+    "salesTotal" INTEGER NOT NULL DEFAULT 0,
+    "salesMetaAttribued" INTEGER NOT NULL DEFAULT 0,
+    "lastProjectedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "analytics_dashboard_daily_metrics_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "analytics_dashboard_origin_daily_metrics" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "organizationId" UUID NOT NULL,
+    "projectId" UUID,
+    "date" DATE NOT NULL,
+    "originKey" TEXT NOT NULL,
+    "utmSource" TEXT,
+    "utmMedium" TEXT,
+    "utmCampaign" TEXT,
+    "leadsCount" INTEGER NOT NULL DEFAULT 0,
+    "salesCount" INTEGER NOT NULL DEFAULT 0,
+    "revenue" DECIMAL(12,2) NOT NULL DEFAULT 0,
+
+    CONSTRAINT "analytics_dashboard_origin_daily_metrics_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "analytics_dashboard_meta_entity_daily_metrics" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "organizationId" UUID NOT NULL,
+    "projectId" UUID,
+    "date" DATE NOT NULL,
+    "metaCampaignId" TEXT NOT NULL,
+    "metaAdSetId" TEXT,
+    "metaAdId" TEXT,
+    "entityKey" TEXT NOT NULL,
+    "spend" DECIMAL(12,2) NOT NULL DEFAULT 0,
+    "clicks" INTEGER NOT NULL DEFAULT 0,
+    "impressions" INTEGER NOT NULL DEFAULT 0,
+    "leadsAttribued" INTEGER NOT NULL DEFAULT 0,
+    "revenue" DECIMAL(12,2) NOT NULL DEFAULT 0,
+
+    CONSTRAINT "analytics_dashboard_meta_entity_daily_metrics_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "org_audit_logs" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "organizationId" UUID,
@@ -1781,6 +1921,57 @@ CREATE UNIQUE INDEX "meta_conversion_events_dealId_pixelId_eventName_key" ON "me
 CREATE INDEX "meta_attribution_history_dealId_idx" ON "meta_attribution_history"("dealId");
 
 -- CreateIndex
+CREATE INDEX "analytics_meta_insight_sync_runs_organizationId_projectId_idx" ON "analytics_meta_insight_sync_runs"("organizationId", "projectId");
+
+-- CreateIndex
+CREATE INDEX "analytics_meta_insight_sync_runs_status_idx" ON "analytics_meta_insight_sync_runs"("status");
+
+-- CreateIndex
+CREATE INDEX "analytics_meta_insight_sync_runs_completedAt_idx" ON "analytics_meta_insight_sync_runs"("completedAt" DESC);
+
+-- CreateIndex
+CREATE INDEX "analytics_meta_ad_insights_daily_organizationId_projectId_d_idx" ON "analytics_meta_ad_insights_daily"("organizationId", "projectId", "date");
+
+-- CreateIndex
+CREATE INDEX "analytics_meta_ad_insights_daily_date_idx" ON "analytics_meta_ad_insights_daily"("date");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "analytics_meta_ad_insights_daily_organizationId_projectId_d_key" ON "analytics_meta_ad_insights_daily"("organizationId", "projectId", "date", "entityKey");
+
+-- CreateIndex
+CREATE INDEX "analytics_currency_exchange_rates_daily_organizationId_date_idx" ON "analytics_currency_exchange_rates_daily"("organizationId", "date");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "analytics_currency_exchange_rates_daily_organizationId_date_key" ON "analytics_currency_exchange_rates_daily"("organizationId", "date", "baseCurrency", "quoteCurrency");
+
+-- CreateIndex
+CREATE INDEX "analytics_dashboard_metric_refresh_runs_organizationId_proj_idx" ON "analytics_dashboard_metric_refresh_runs"("organizationId", "projectId");
+
+-- CreateIndex
+CREATE INDEX "analytics_dashboard_metric_refresh_runs_status_idx" ON "analytics_dashboard_metric_refresh_runs"("status");
+
+-- CreateIndex
+CREATE INDEX "analytics_dashboard_metric_refresh_runs_completedAt_idx" ON "analytics_dashboard_metric_refresh_runs"("completedAt" DESC);
+
+-- CreateIndex
+CREATE INDEX "analytics_dashboard_daily_metrics_organizationId_projectId__idx" ON "analytics_dashboard_daily_metrics"("organizationId", "projectId", "date");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "analytics_dashboard_daily_metrics_organizationId_projectId__key" ON "analytics_dashboard_daily_metrics"("organizationId", "projectId", "date");
+
+-- CreateIndex
+CREATE INDEX "analytics_dashboard_origin_daily_metrics_organizationId_pro_idx" ON "analytics_dashboard_origin_daily_metrics"("organizationId", "projectId", "date");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "analytics_dashboard_origin_daily_metrics_organizationId_pro_key" ON "analytics_dashboard_origin_daily_metrics"("organizationId", "projectId", "date", "originKey");
+
+-- CreateIndex
+CREATE INDEX "analytics_dashboard_meta_entity_daily_metrics_organizationI_idx" ON "analytics_dashboard_meta_entity_daily_metrics"("organizationId", "projectId", "date");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "analytics_dashboard_meta_entity_daily_metrics_organizationI_key" ON "analytics_dashboard_meta_entity_daily_metrics"("organizationId", "projectId", "date", "entityKey");
+
+-- CreateIndex
 CREATE INDEX "org_audit_logs_organizationId_idx" ON "org_audit_logs"("organizationId");
 
 -- CreateIndex
@@ -2211,6 +2402,48 @@ ALTER TABLE "meta_conversion_events" ADD CONSTRAINT "meta_conversion_events_proj
 
 -- AddForeignKey
 ALTER TABLE "meta_attribution_history" ADD CONSTRAINT "meta_attribution_history_dealId_fkey" FOREIGN KEY ("dealId") REFERENCES "crm_deals"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "analytics_organization_settings" ADD CONSTRAINT "analytics_organization_settings_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "analytics_meta_insight_sync_runs" ADD CONSTRAINT "analytics_meta_insight_sync_runs_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "analytics_meta_insight_sync_runs" ADD CONSTRAINT "analytics_meta_insight_sync_runs_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "analytics_meta_ad_insights_daily" ADD CONSTRAINT "analytics_meta_ad_insights_daily_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "analytics_meta_ad_insights_daily" ADD CONSTRAINT "analytics_meta_ad_insights_daily_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "analytics_currency_exchange_rates_daily" ADD CONSTRAINT "analytics_currency_exchange_rates_daily_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "analytics_dashboard_metric_refresh_runs" ADD CONSTRAINT "analytics_dashboard_metric_refresh_runs_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "analytics_dashboard_metric_refresh_runs" ADD CONSTRAINT "analytics_dashboard_metric_refresh_runs_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "analytics_dashboard_daily_metrics" ADD CONSTRAINT "analytics_dashboard_daily_metrics_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "analytics_dashboard_daily_metrics" ADD CONSTRAINT "analytics_dashboard_daily_metrics_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "analytics_dashboard_origin_daily_metrics" ADD CONSTRAINT "analytics_dashboard_origin_daily_metrics_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "analytics_dashboard_origin_daily_metrics" ADD CONSTRAINT "analytics_dashboard_origin_daily_metrics_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "analytics_dashboard_meta_entity_daily_metrics" ADD CONSTRAINT "analytics_dashboard_meta_entity_daily_metrics_organization_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "analytics_dashboard_meta_entity_daily_metrics" ADD CONSTRAINT "analytics_dashboard_meta_entity_daily_metrics_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "crm_projects"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "org_audit_logs" ADD CONSTRAINT "org_audit_logs_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
