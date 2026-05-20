@@ -103,12 +103,12 @@ export function LaunchpadScreen({
           {items.map((item) => {
             const Icon = ICON_MAP[item.icon as keyof typeof ICON_MAP]
             const itemHref = `${basePath}${item.href}`
-            const isRenameable = item.id === 'org-name' || item.id === 'project-name'
+            const isModalItem = ['org-name', 'project-name', 'fiscal-data'].includes(item.id)
 
             const handleClick = (e: React.MouseEvent) => {
-              if (isRenameable && !item.completed) {
+              if (isModalItem && !item.completed) {
                 e.preventDefault()
-                if (item.id === 'org-name') {
+                if (item.id === 'org-name' || item.id === 'fiscal-data') {
                   setOpenModal('org')
                 } else if (item.id === 'project-name') {
                   setOpenModal('project')
@@ -116,13 +116,13 @@ export function LaunchpadScreen({
               }
             }
 
-            const Wrapper = isRenameable && !item.completed ? 'button' : Link
-            const wrapperProps = isRenameable && !item.completed
+            const Wrapper = isModalItem && !item.completed ? 'button' : Link
+            const wrapperProps = isModalItem && !item.completed
               ? { type: 'button', onClick: handleClick }
               : { href: itemHref }
 
             return (
-              <Wrapper key={item.id} {...wrapperProps} className={isRenameable && !item.completed ? 'text-left' : ''}>
+              <Wrapper key={item.id} {...wrapperProps} className={isModalItem && !item.completed ? 'text-left' : ''}>
                 <div
                   className={`group relative h-full rounded-xl border-2 p-6 transition-all duration-300 ${
                     item.completed
