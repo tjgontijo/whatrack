@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import {
   Building2,
   CheckCircle2,
@@ -13,9 +14,13 @@ import {
 } from 'lucide-react'
 import { MetaIcon } from '@/components/shared/icons'
 import { Button } from '@/components/ui/button'
+import { EditStagesModal } from '@/features/deal-stage-templates/dialogs/edit-stages-modal'
+import { useDealStagesQuery } from '@/features/deals/queries/use-deal-stages-query'
 import type { LaunchpadItem } from '@/features/launchpad/services/get-launchpad-state'
+import { useMetaAdsOnboarding } from '@/features/meta-ads/hooks/use-meta-ads-onboarding'
+import { useWhatsAppOnboarding } from '@/features/whatsapp/hooks/use-whatsapp-onboarding'
+import { FiscalDataModal } from './fiscal-data-modal'
 import { RenameOrganizationModal } from './rename-organization-modal'
-import { RenameProjectModal } from './rename-project-modal'
 
 const ICON_MAP = {
   Building2,
@@ -31,7 +36,6 @@ interface LaunchpadScreenProps {
   organizationName: string
   projectId: string
   projectSlug: string
-  projectName: string
   items: LaunchpadItem[]
 }
 
@@ -41,21 +45,37 @@ export function LaunchpadScreen({
   organizationName,
   projectId,
   projectSlug,
-  projectName,
   items,
 }: LaunchpadScreenProps) {
-  const [openModal, setOpenModal] = useState<'org' | 'project' | null>(null)
-  const [refreshKey, setRefreshKey] = useState(0)
+  const router = useRouter()
+  const [openModal, setOpenModal] = useState<'org' | 'fiscal' | 'pipeline' | null>(null)
+  const [optimisticCompleted, setOptimisticCompleted] = useState<Record<string, boolean>>({})
+  const { data: stagesData } = useDealStagesQuery({
+    organizationId,
+    projectId,
+    enabled: true,
+  })
+  const { startOnboarding: startMetaAdsOnboarding } = useMetaAdsOnboarding(organizationId, () => {
+    router.refresh()
+  })
+  const { startOnboarding } = useWhatsAppOnboarding(() => {
+    router.refresh()
+  })
 
   const completedCount = items.filter((item) => item.completed).length
   const progress = Math.round((completedCount / items.length) * 100)
 
   const basePath = `/${organizationSlug}/${projectSlug}`
 
-  const handleRenameSuccess = () => {
+  const handleRenameSuccess = (data?: { slug: string }) => {
     setOpenModal(null)
-    setRefreshKey((k) => k + 1)
-    // In real app, would trigger data refresh from server
+
+    if (data?.slug && data.slug !== organizationSlug) {
+      router.replace(`/${data.slug}/${projectSlug}/launchpad`)
+      return
+    }
+
+    router.refresh()
   }
 
   return (
@@ -97,104 +117,102 @@ export function LaunchpadScreen({
         </div>
       </div>
 
-      {/* Checklist Grid */}
+      {/* Checklist */}
       <div className='mx-auto max-w-6xl px-6 py-12'>
-        <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
+        <div className='space-y-3'>
           {items.map((item) => {
             const Icon = ICON_MAP[item.icon as keyof typeof ICON_MAP]
             const itemHref = `${basePath}${item.href}`
-            const isModalItem = ['org-name', 'project-name', 'fiscal-data'].includes(item.id)
+            const isActionItem = ['org-name', 'fiscal-data', 'whatsapp', 'meta-ads', 'pipeline'].includes(
+              item.id
+            )
 
             const handleClick = (e: React.MouseEvent) => {
-              if (isModalItem && !item.completed) {
+              if (isActionItem && !item.completed) {
                 e.preventDefault()
-                if (item.id === 'org-name' || item.id === 'fiscal-data') {
+                if (item.id === 'org-name') {
                   setOpenModal('org')
-                } else if (item.id === 'project-name') {
-                  setOpenModal('project')
+                } else if (item.id === 'fiscal-data') {
+                  setOpenModal('fiscal')
+                } else if (item.id === 'whatsapp') {
+                  void startOnboarding()
+                } else if (item.id === 'meta-ads') {
+                  void startMetaAdsOnboarding()
+                } else if (item.id === 'pipeline') {
+                  setOpenModal('pipeline')
                 }
               }
             }
 
-            const Wrapper = isModalItem && !item.completed ? 'button' : Link
-            const wrapperProps = isModalItem && !item.completed
-              ? { type: 'button', onClick: handleClick }
-              : { href: itemHref }
+            const isCompleted = item.completed || optimisticCompleted[item.id] === true
 
-            return (
-              <Wrapper key={item.id} {...wrapperProps} className={isModalItem && !item.completed ? 'text-left' : ''}>
-                <div
-                  className={`group relative h-full rounded-xl border-2 p-6 transition-all duration-300 ${
-                    item.completed
-                      ? 'border-border/50 bg-muted/30 hover:border-border/70 hover:bg-muted/40'
-                      : 'border-primary/20 bg-gradient-to-br from-primary/5 to-primary/0 hover:border-primary/40 hover:from-primary/10'
-                  }`}
-                >
-                  {/* Completed Overlay */}
-                  {item.completed && (
-                    <div className='absolute inset-0 rounded-[calc(0.75rem-1px)] bg-black/[0.02] pointer-events-none' />
-                  )}
-
-                  {/* Icon + Status */}
-                  <div className='flex items-start justify-between mb-4'>
-                    <div
-                      className={`rounded-lg p-2.5 transition-colors ${
-                        item.completed
-                          ? 'bg-muted text-muted-foreground'
-                          : 'bg-primary/10 text-primary group-hover:bg-primary/15'
-                      }`}
-                    >
-                      {Icon && <Icon className='h-5 w-5' />}
-                    </div>
-
-                    {item.completed && (
-                      <CheckCircle2 className='h-5 w-5 text-green-500' />
-                    )}
+            const card = (
+              <div
+                className={`group relative rounded-xl border p-4 transition-all duration-200 ${
+                  isCompleted
+                    ? 'border-green-500/30 bg-green-500/5 hover:border-green-500/40'
+                    : 'border-border bg-muted/30 hover:border-border/80 hover:bg-muted/40'
+                }`}
+              >
+                <div className='flex items-center justify-between gap-4'>
+                  <div
+                    className={`rounded-lg p-2.5 ${
+                      isCompleted
+                        ? 'bg-green-500/10 text-green-700 dark:text-green-400'
+                        : 'bg-muted text-muted-foreground'
+                    }`}
+                  >
+                    {Icon && <Icon className='h-5 w-5' />}
                   </div>
 
-                  {/* Title & Description */}
-                  <div className='mb-4'>
-                    <h3
-                      className={`font-semibold text-sm leading-snug transition-colors ${
-                        item.completed
-                          ? 'text-muted-foreground'
-                          : 'text-foreground group-hover:text-foreground/90'
-                      }`}
-                    >
+                  <div className='min-w-0 flex-1'>
+                    <h3 className='font-semibold text-foreground text-sm leading-snug'>
                       {item.title}
                     </h3>
-                    <p
-                      className={`text-xs mt-1.5 leading-relaxed ${
-                        item.completed
-                          ? 'text-muted-foreground/60'
-                          : 'text-muted-foreground'
-                      }`}
-                    >
+                    <p className='mt-1 text-muted-foreground text-xs leading-relaxed'>
                       {item.description}
                     </p>
                   </div>
 
-                  {/* Badge */}
-                  <div className='flex items-center gap-2 pt-4 border-t border-border/50'>
-                    <span
-                      className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full transition-colors ${
-                        item.completed
-                          ? 'bg-green-500/10 text-green-700 dark:text-green-400'
-                          : 'bg-primary/10 text-primary'
-                      }`}
-                    >
-                      {item.completed ? (
-                        <>
-                          <CheckCircle2 className='h-3 w-3' />
-                          Concluído
-                        </>
-                      ) : (
-                        'Pendente'
-                      )}
-                    </span>
-                  </div>
+                  {isCompleted && <CheckCircle2 className='h-5 w-5 text-green-500' />}
+
+                  <span
+                    className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 font-medium text-xs ${
+                      isCompleted
+                        ? 'bg-green-500/10 text-green-700 dark:text-green-400'
+                        : 'bg-muted text-muted-foreground'
+                    }`}
+                  >
+                    {isCompleted ? (
+                      <>
+                        <CheckCircle2 className='h-3 w-3' />
+                        Concluído
+                      </>
+                    ) : (
+                      'Pendente'
+                    )}
+                  </span>
                 </div>
-              </Wrapper>
+              </div>
+            )
+
+            if (isActionItem && !item.completed) {
+              return (
+                <button
+                  key={item.id}
+                  type='button'
+                  onClick={handleClick}
+                  className='w-full text-left'
+                >
+                  {card}
+                </button>
+              )
+            }
+
+            return (
+              <Link key={item.id} href={itemHref} className='block'>
+                {card}
+              </Link>
             )
           })}
         </div>
@@ -204,7 +222,7 @@ export function LaunchpadScreen({
           <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50'>
             <div className='bg-background rounded-lg shadow-lg p-6 max-w-md w-full mx-4'>
               <div className='flex items-center justify-between mb-4'>
-                <h2 className='font-semibold text-lg'>Nomear Organização</h2>
+                <h2 className='font-semibold text-lg'>Organização</h2>
                 <button
                   onClick={() => setOpenModal(null)}
                   className='text-muted-foreground hover:text-foreground'
@@ -214,18 +232,17 @@ export function LaunchpadScreen({
               </div>
               <RenameOrganizationModal
                 organizationId={organizationId}
-                currentName={organizationName}
                 onSuccess={handleRenameSuccess}
               />
             </div>
           </div>
         )}
 
-        {openModal === 'project' && (
+        {openModal === 'fiscal' && (
           <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50'>
             <div className='bg-background rounded-lg shadow-lg p-6 max-w-md w-full mx-4'>
               <div className='flex items-center justify-between mb-4'>
-                <h2 className='font-semibold text-lg'>Nomear Projeto</h2>
+                <h2 className='font-semibold text-lg'>Dados fiscais</h2>
                 <button
                   onClick={() => setOpenModal(null)}
                   className='text-muted-foreground hover:text-foreground'
@@ -233,14 +250,25 @@ export function LaunchpadScreen({
                   <X className='h-5 w-5' />
                 </button>
               </div>
-              <RenameProjectModal
-                projectId={projectId}
-                currentName={projectName}
-                onSuccess={handleRenameSuccess}
+              <FiscalDataModal
+                organizationId={organizationId}
+                onSuccess={() => {
+                  setOptimisticCompleted((prev) => ({ ...prev, 'fiscal-data': true }))
+                  setOpenModal(null)
+                  router.refresh()
+                }}
               />
             </div>
           </div>
         )}
+
+        <EditStagesModal
+          open={openModal === 'pipeline'}
+          onOpenChange={(open) => setOpenModal(open ? 'pipeline' : null)}
+          projectId={projectId}
+          organizationId={organizationId}
+          currentStages={stagesData?.items ?? []}
+        />
 
         {/* Call to Action for first pending item */}
         {completedCount < items.length && (

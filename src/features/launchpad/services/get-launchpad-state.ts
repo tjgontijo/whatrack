@@ -73,9 +73,7 @@ export async function getLaunchpadState(
     getActiveSubscription(organizationId),
   ])
 
-  const orgRenamed = org?.name && org.name !== 'Minha Organização'
-  const projectRenamed = project?.name && project.name !== 'default'
-
+  const orgRenamed = Boolean(org?.name && org.name !== 'Minha Organização')
   logger.debug(
     {
       organizationId,
@@ -83,7 +81,6 @@ export async function getLaunchpadState(
       orgName: org?.name,
       projectName: project?.name,
       orgRenamed,
-      projectRenamed,
     },
     '[launchpad] getLaunchpadState debug'
   )
@@ -91,19 +88,11 @@ export async function getLaunchpadState(
   const items: LaunchpadItem[] = [
     {
       id: 'org-name',
-      title: 'Nomear organização',
+      title: 'Organização',
       description: 'Escolha um nome para sua organização',
       completed: orgRenamed,
       href: '/settings/organization',
       icon: 'Building2',
-    },
-    {
-      id: 'project-name',
-      title: 'Nomear projeto',
-      description: 'Dê um nome ao seu primeiro projeto',
-      completed: projectRenamed,
-      href: '/settings/project',
-      icon: 'Kanban',
     },
     {
       id: 'fiscal-data',
@@ -131,10 +120,10 @@ export async function getLaunchpadState(
     },
     {
       id: 'pipeline',
-      title: 'Criar pipeline de vendas',
+      title: 'Configurar pipeline de vendas',
       description: 'Configure os estágios do seu funil comercial',
       completed: hasPipeline,
-      href: '/settings/pipeline',
+      href: '/deals',
       icon: 'Kanban',
     },
     {

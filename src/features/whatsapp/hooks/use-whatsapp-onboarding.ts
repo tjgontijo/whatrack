@@ -236,6 +236,12 @@ export function useWhatsAppOnboarding(onSuccess?: () => void) {
       toast.error('SDK da Meta não carregado. Recarregue a página e tente novamente.')
       return
     }
+    if (window.location.protocol !== 'https:') {
+      toast.error(
+        'A Meta exige HTTPS para conectar WhatsApp. Use https://localhost ou um túnel HTTPS (ex.: ngrok).'
+      )
+      return
+    }
 
     setStatus('pending')
     setError(null)

@@ -1,5 +1,6 @@
 import { logger } from '@/lib/utils/logger'
 import { campaignDispatchWorker } from './campaign-dispatch.worker'
+import { companyEnrichmentWorker } from './company-enrichment.worker'
 import { metaCapiWorker } from './meta-capi.worker'
 import { metaInsightSyncWorker } from './meta-insight-sync.worker'
 import { dashboardProjectorWorker } from './dashboard-projector.worker'
@@ -8,6 +9,7 @@ import { getDashboardProjectorQueue } from '@/server/queues/dashboard-projector.
 
 const workers = [
   { name: 'campaign-dispatch', worker: campaignDispatchWorker },
+  { name: 'company-enrichment', worker: companyEnrichmentWorker },
   { name: 'meta-capi', worker: metaCapiWorker },
   { name: 'meta-insight-sync', worker: metaInsightSyncWorker },
   { name: 'dashboard-projector', worker: dashboardProjectorWorker },

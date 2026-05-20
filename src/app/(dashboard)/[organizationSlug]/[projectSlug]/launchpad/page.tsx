@@ -107,11 +107,6 @@ export default async function LaunchpadPage({ params }: LaunchpadPageProps) {
     select: { name: true },
   })
 
-  const project = await prisma.project.findUniqueOrThrow({
-    where: { id: projectId },
-    select: { name: true },
-  })
-
   return (
     <Suspense fallback={<LaunchpadFallback />}>
       <LaunchpadScreen
@@ -120,7 +115,6 @@ export default async function LaunchpadPage({ params }: LaunchpadPageProps) {
         organizationName={org.name}
         projectId={projectId}
         projectSlug={projectSlug}
-        projectName={project.name}
         items={items}
       />
     </Suspense>
