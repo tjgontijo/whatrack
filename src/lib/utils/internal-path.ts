@@ -35,7 +35,7 @@ export function resolveInternalPath(
     sanitizedPath.startsWith(LEGACY_WORKSPACE_PREFIX)
   ) {
     const url = new URL(sanitizedPath, INTERNAL_PATH_BASE_URL)
-    return `/welcome${url.search}${url.hash}`
+    return `${fallbackPath}${url.search}${url.hash}`
   }
 
   return sanitizedPath

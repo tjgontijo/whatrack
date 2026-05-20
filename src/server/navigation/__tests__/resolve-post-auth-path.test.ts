@@ -37,7 +37,7 @@ describe('resolvePostSignInPath', () => {
     expect(result).toBe('/acme/projeto-a')
   })
 
-  it('falls back to welcome with funnel intent when no workspace exists', async () => {
+  it('falls back to sign-in with funnel intent when no workspace exists', async () => {
     resolveDefaultWorkspacePathMock.mockResolvedValueOnce(null)
 
     const result = await resolvePostSignInPath({
@@ -46,6 +46,6 @@ describe('resolvePostSignInPath', () => {
       intent: { intent: 'start-trial', source: 'hero' },
     })
 
-    expect(result).toBe('/welcome?intent=start-trial&source=hero')
+    expect(result).toBe('/sign-in?intent=start-trial&source=hero')
   })
 })

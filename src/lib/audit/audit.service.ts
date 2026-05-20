@@ -21,10 +21,34 @@ class AuditService {
 
   private isOrganizationFkError(error: unknown): boolean {
     if (!error || typeof error !== 'object') return false
-    const candidate = error as { code?: string; meta?: { field_name?: string } }
+    const candidate = error as {
+      code?: string
+      meta?: {
+        field_name?: string
+        modelName?: string
+        constraint?: string
+        driverAdapterError?: {
+          cause?: {
+            constraint?: {
+              index?: string
+            }
+          }
+        }
+      }
+    }
+
+    if (candidate.code !== 'P2003') return false
+
+    const fieldName = String(candidate.meta?.field_name ?? '')
+    const modelName = String(candidate.meta?.modelName ?? '')
+    const constraint = String(
+      candidate.meta?.constraint ?? candidate.meta?.driverAdapterError?.cause?.constraint?.index ?? ''
+    )
+
     return (
-      candidate.code === 'P2003' &&
-      String(candidate.meta?.field_name ?? '').includes('organizationId')
+      fieldName.includes('organizationId') ||
+      modelName === 'OrgAuditLog' ||
+      constraint.includes('org_audit_logs_organizationId_fkey')
     )
   }
 
@@ -41,7 +65,7 @@ class AuditService {
     requestId?: string
     metadata?: Record<string, any>
   }) {
-    const maxAttempts = 4
+    const maxAttempts = 8
     const retryableAction =
       auditData.action === 'organization.create' || auditData.action === 'member.create'
 
@@ -54,7 +78,7 @@ class AuditService {
         const shouldRetry = retryableAction && this.isOrganizationFkError(error) && !isLastAttempt
 
         if (shouldRetry) {
-          await this.sleep(attempt * 75)
+          await this.sleep(attempt * 125)
           continue
         }
 

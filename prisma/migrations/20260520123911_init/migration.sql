@@ -2116,9 +2116,6 @@ ALTER TABLE "crm_deal_tracking" ADD CONSTRAINT "crm_deal_tracking_dealId_fkey" F
 ALTER TABLE "crm_projects" ADD CONSTRAINT "crm_projects_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "org_profiles" ADD CONSTRAINT "org_profiles_onboardingStatus_fkey" FOREIGN KEY ("onboardingStatus") REFERENCES "org_onboarding_statuses"("name") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "org_profiles" ADD CONSTRAINT "org_profiles_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "org_organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey

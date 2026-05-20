@@ -16,14 +16,16 @@ describe('internal path helpers', () => {
   })
 
   it('falls back to a safe internal path when needed', () => {
-    expect(resolveInternalPath('https://evil.com', '/welcome')).toBe('/welcome')
-    expect(resolveInternalPath('/acme/projeto-a/billing', '/welcome')).toBe(
+    expect(resolveInternalPath('https://evil.com', '/sign-in')).toBe('/sign-in')
+    expect(resolveInternalPath('/acme/projeto-a/billing', '/sign-in')).toBe(
       '/acme/projeto-a/billing'
     )
   })
 
-  it('rewrites legacy workspace paths to welcome', () => {
-    expect(resolveInternalPath('/dashboard/billing?plan=pro', '/welcome')).toBe('/welcome?plan=pro')
-    expect(resolveInternalPath('/app', '/welcome')).toBe('/welcome')
+  it('rewrites legacy workspace paths to the fallback path', () => {
+    expect(resolveInternalPath('/dashboard/billing?plan=pro', '/sign-in')).toBe(
+      '/sign-in?plan=pro'
+    )
+    expect(resolveInternalPath('/app', '/sign-in')).toBe('/sign-in')
   })
 })

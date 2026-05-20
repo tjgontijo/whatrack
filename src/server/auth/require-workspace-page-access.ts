@@ -29,7 +29,7 @@ function toArray<T>(value: T | T[] | undefined): T[] {
 
 async function redirectToDefaultWorkspace(userId: string): Promise<never> {
   const fallbackPath = await resolveDefaultWorkspacePath(userId)
-  redirect(fallbackPath ?? '/welcome')
+  redirect(fallbackPath ?? '/sign-in')
 }
 
 export async function requireWorkspacePageAccess(

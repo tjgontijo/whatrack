@@ -23,7 +23,7 @@ export function useProjectPath(path?: string, fallbackPath?: string) {
   const context = useProjectRouteContext()
 
   if (!context) {
-    return fallbackPath ?? path ?? '/welcome'
+    return fallbackPath ?? path ?? '/sign-in'
   }
 
   return buildProjectPath(context, path)

@@ -39,15 +39,15 @@ describe('funnel-intent', () => {
     )
   })
 
-  it('resolves welcome as the default post-auth path for start-trial intent', () => {
+  it('resolves sign-in as the default post-auth path for start-trial intent', () => {
     expect(resolvePostAuthPath(null, { intent: 'start-trial', source: 'hero' })).toBe(
-      '/welcome?intent=start-trial&source=hero'
+      '/sign-in?intent=start-trial&source=hero'
     )
   })
 
-  it('rewrites legacy /app next paths to welcome with the same funnel intent', () => {
+  it('rewrites legacy /app next paths to the provided fallback path', () => {
     expect(resolvePostAuthPath('/app', { intent: 'start-trial' })).toBe(
-      '/welcome?intent=start-trial'
+      '/sign-in?intent=start-trial'
     )
   })
 })

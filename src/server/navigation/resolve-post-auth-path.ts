@@ -37,12 +37,12 @@ export async function resolvePostSignInPath(input: {
 
   logger.warn(
     { userId: input.userId, intent: input.intent },
-    '[resolve-post-auth-path] no workspace found, falling back to /welcome'
+    '[resolve-post-auth-path] no workspace found, falling back to /sign-in'
   )
 
   if (input.intent.intent === 'start-trial') {
-    return appendFunnelIntent('/welcome', input.intent)
+    return appendFunnelIntent('/sign-in', input.intent)
   }
 
-  return '/welcome'
+  return '/sign-in'
 }

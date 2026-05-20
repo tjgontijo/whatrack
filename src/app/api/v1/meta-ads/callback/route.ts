@@ -3,7 +3,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { completeMetaAdsOAuthCallback } from '@/features/meta-ads/services/meta-oauth.service'
 
 function successPopupResponse(req: NextRequest) {
-  const dashboardUrl = new URL('/welcome?integration=meta-ads&status=success', req.url).toString()
+  const dashboardUrl = new URL('/sign-in?integration=meta-ads&status=success', req.url).toString()
   const html = `<!doctype html>
 <html lang="pt-BR">
   <head>
@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
 
   if (!code || !stateToken) {
     return NextResponse.redirect(
-      new URL('/welcome?integration=meta-ads&status=error&error=meta_auth_failed', req.url)
+      new URL('/sign-in?integration=meta-ads&status=error&error=meta_auth_failed', req.url)
     )
   }
 
@@ -55,7 +55,7 @@ export async function GET(req: NextRequest) {
 
   if (!result.success) {
     return NextResponse.redirect(
-      new URL(`/welcome?integration=meta-ads&status=error&error=${result.reason}`, req.url)
+      new URL(`/sign-in?integration=meta-ads&status=error&error=${result.reason}`, req.url)
     )
   }
 

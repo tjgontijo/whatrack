@@ -44,16 +44,12 @@ export function appendFunnelIntent(pathname: string, intent: FunnelIntent): stri
 export function resolvePostAuthPath(nextParam: string | null, intent: FunnelIntent): string {
   const nextPath = normalizeValue(nextParam)
   if (nextPath) {
-    if (nextPath === '/app') {
-      return appendFunnelIntent('/welcome', intent)
-    }
-
-    return resolveInternalPath(nextPath, '/welcome')
+    return resolveInternalPath(nextPath, '/sign-in')
   }
 
   if (intent.intent === 'start-trial') {
-    return appendFunnelIntent('/welcome', intent)
+    return appendFunnelIntent('/sign-in', intent)
   }
 
-  return '/welcome'
+  return '/sign-in'
 }

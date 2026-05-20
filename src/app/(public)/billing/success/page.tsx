@@ -13,7 +13,7 @@ export default function BillingSuccessPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const planName = searchParams.get('planName') || searchParams.get('plan') || 'WhaTrack'
-  const nextPath = resolveInternalPath(searchParams.get('next'), '/welcome')
+  const nextPath = resolveInternalPath(searchParams.get('next'), '/sign-in')
   const normalizedPlanName = planName
 
   useEffect(() => {
@@ -124,7 +124,7 @@ export default function BillingSuccessPage() {
           </Button>
 
           <Button
-            onClick={() => router.push('/welcome')}
+            onClick={() => router.push(nextPath)}
             variant='outline'
             className='h-12 rounded-xl border-zinc-700 px-8 font-semibold text-white hover:bg-zinc-900'
           >

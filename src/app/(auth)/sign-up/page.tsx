@@ -40,6 +40,12 @@ function normalizeSignUpError(error: unknown): SignUpErrorShape {
   }
 }
 
+async function resolvePostAuthPath(nextParam: string | null): Promise<string> {
+  const query = nextParam?.trim() ? `?next=${encodeURIComponent(nextParam)}` : ''
+  const response = (await apiFetch(`/api/v1/auth/post-auth-path${query}`)) as { path?: string }
+  return response.path || '/sign-in'
+}
+
 export default function SignUpPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -52,22 +58,6 @@ export default function SignUpPage() {
     [invitationId, nextParam]
   )
   const funnelQuery = useMemo(() => buildFunnelQueryString(funnelIntent), [funnelIntent])
-  const postAuthResolutionQuery = useMemo(() => {
-    const params = new URLSearchParams()
-
-    if (nextParam?.trim()) {
-      params.set('next', nextParam)
-    }
-
-    for (const [key, value] of Object.entries(funnelIntent)) {
-      if (value?.trim()) {
-        params.set(key, value)
-      }
-    }
-
-    const query = params.toString()
-    return query ? `?${query}` : ''
-  }, [funnelIntent, nextParam])
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
@@ -114,8 +104,9 @@ export default function SignUpPage() {
           console.error('[sign-up] erro ao aceitar convite', acceptError)
           toast.error('Conta criada, mas não foi possível aceitar o convite.')
         }
+        const path = await resolvePostAuthPath(nextParam)
         startTransition(() => {
-          router.push(nextParam ?? '/welcome')
+          router.push(path)
         })
         return
       }
@@ -135,23 +126,11 @@ export default function SignUpPage() {
         return
       }
 
-      // 4. Redirecionar para dashboard
-      try {
-        const response = (await apiFetch(
-          `/api/v1/auth/post-auth-path${postAuthResolutionQuery}`
-        )) as {
-          path?: string
-        }
-        const nextPath = response.path ?? '/welcome'
-        startTransition(() => {
-          router.push(nextPath)
-        })
-      } catch (postAuthError) {
-        console.error('[sign-up] erro ao resolver destino pós-auth', postAuthError)
-        startTransition(() => {
-          router.push('/welcome')
-        })
-      }
+      // 4. MVP: redirecionamento simples após setup
+      const path = await resolvePostAuthPath(nextParam)
+      startTransition(() => {
+        router.push(path)
+      })
     } catch (error) {
       console.error('[sign-up] erro ao criar conta', error)
       toast.error('Falha na comunicação com o servidor. Tente novamente.')
@@ -221,7 +200,7 @@ export default function SignUpPage() {
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel htmlFor={field.name}>Senha</FieldLabel>
-                <InputGroup className='h-11 shadow-sm transition-shadow focus-visible:border-primary focus-visible:ring-primary lg:h-12'>
+                <InputGroup className='h-11 rounded-md shadow-sm transition-shadow focus-visible:border-primary focus-visible:ring-primary lg:h-12'>
                   <InputGroupInput
                     id={field.name}
                     type={showPassword ? 'text' : 'password'}
@@ -253,7 +232,7 @@ export default function SignUpPage() {
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel htmlFor={field.name}>Confirmar senha</FieldLabel>
-                <InputGroup className='h-11 shadow-sm transition-shadow focus-visible:border-primary focus-visible:ring-primary lg:h-12'>
+                <InputGroup className='h-11 rounded-md shadow-sm transition-shadow focus-visible:border-primary focus-visible:ring-primary lg:h-12'>
                   <InputGroupInput
                     id={field.name}
                     type={showConfirmPassword ? 'text' : 'password'}

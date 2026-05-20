@@ -13,6 +13,7 @@ import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { authClient } from '@/lib/auth/auth-client'
 import { getAuthErrorMessage } from '@/lib/auth/error-messages'
+import { apiFetch } from '@/lib/http/api-client'
 import {
   acceptOrganizationInvitation,
   buildInvitationQuery,
@@ -37,6 +38,11 @@ const invitationSignUpSchema = z
   })
 
 type InvitationSignUpData = z.infer<typeof invitationSignUpSchema>
+
+async function resolvePostAuthPath(): Promise<string> {
+  const response = (await apiFetch('/api/v1/auth/post-auth-path')) as { path?: string }
+  return response.path || '/sign-in'
+}
 
 export default function AcceptInvitationPage() {
   const router = useRouter()
@@ -108,7 +114,8 @@ export default function AcceptInvitationPage() {
       await acceptOrganizationInvitation(invitationId)
 
       toast.success('Conta criada e convite aceito com sucesso!')
-      router.push('/welcome')
+      const path = await resolvePostAuthPath()
+      router.push(path)
     } catch (error) {
       toast.error(
         error instanceof Error
