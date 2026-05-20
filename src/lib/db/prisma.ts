@@ -8,7 +8,9 @@ const adapter = new PrismaPg({
 })
 
 // Selective Audit Models
-const AUDIT_MODELS = new Set(['Organization', 'Member', 'MetaConnection', 'WhatsAppConnection'])
+// Organization/Member are logged explicitly in service flows to avoid
+// transaction visibility races when audit persistence runs outside tx scope.
+const AUDIT_MODELS = new Set(['MetaConnection', 'WhatsAppConnection'])
 
 const prismaClientSingleton = () => {
   const baseClient = new PrismaClient({
