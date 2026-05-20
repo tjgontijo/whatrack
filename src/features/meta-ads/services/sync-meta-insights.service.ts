@@ -95,6 +95,11 @@ export class SyncMetaInsightsService {
       endDate?: string
     }
   ) {
+    const projectId = options?.projectId
+    if (!projectId) {
+      throw new Error('projectId is required to sync Meta insights')
+    }
+
     const { dateStart, dateEnd } = this.getDateRange(syncType, options)
 
     const response = await metaApiRequest<{ data: InsightRow[] }>(
@@ -123,14 +128,14 @@ export class SyncMetaInsightsService {
         where: {
           organizationId_projectId_date_entityKey: {
             organizationId,
-            projectId: options?.projectId || null,
+            projectId,
             date: new Date(date),
             entityKey,
           },
         },
         create: {
           organizationId,
-          projectId: options?.projectId,
+          projectId,
           metaAdAccountId: adAccountId,
           metaCampaignId: row.campaign_id,
           metaAdSetId: row.adset_id,

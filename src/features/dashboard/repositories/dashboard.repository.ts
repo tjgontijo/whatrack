@@ -137,13 +137,13 @@ export class DashboardRepository {
   async getLastMetaInsightSyncRun(organizationId: string) {
     return prisma.metaInsightSyncRun.findFirst({
       where: { organizationId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { startedAt: 'desc' },
       select: {
-        createdAt: true,
+        startedAt: true,
         status: true,
         rowsInserted: true,
         rowsUpdated: true,
-        error: true,
+        errorMessage: true,
       },
     })
   }
@@ -157,11 +157,11 @@ export class DashboardRepository {
         organizationId,
         projectId: projectId ?? null,
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { startedAt: 'desc' },
       select: {
-        createdAt: true,
+        startedAt: true,
         status: true,
-        error: true,
+        errorMessage: true,
       },
     })
   }

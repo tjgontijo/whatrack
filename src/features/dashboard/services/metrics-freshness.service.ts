@@ -34,8 +34,8 @@ export class MetricsFreshnessService {
     ])
 
     const now = new Date()
-    const metaSyncedAt = metaSyncRun?.createdAt ?? null
-    const projectedAt = dashboardRefreshRun?.createdAt ?? null
+    const metaSyncedAt = metaSyncRun?.startedAt ?? null
+    const projectedAt = dashboardRefreshRun?.startedAt ?? null
 
     const isMetaFresh = metaSyncedAt
       ? (now.getTime() - metaSyncedAt.getTime()) / (1000 * 60 * 60) < this.META_FRESH_WINDOW_HOURS

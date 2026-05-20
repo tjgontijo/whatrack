@@ -13,15 +13,6 @@ export async function getDealDetail(params: {
     },
     select: {
       id: true,
-      name: true,
-      description: true,
-      expectedCloseDate: true,
-      probabilityOverride: true,
-      priority: true,
-      temperature: true,
-      nextStep: true,
-      nextStepDueAt: true,
-      currency: true,
       status: { select: { id: true, name: true } },
       windowOpen: true,
       windowExpiresAt: true,
@@ -43,19 +34,6 @@ export async function getDealDetail(params: {
       assignee: { select: { id: true, name: true } },
       tracking: { select: { utmSource: true, sourceType: true, ctwaclid: true } },
       project: { select: { id: true, name: true } },
-      lineItems: {
-        select: {
-          id: true,
-          itemId: true,
-          name: true,
-          quantity: true,
-          unitPrice: true,
-          discountAmount: true,
-          total: true,
-          sortOrder: true,
-        },
-        orderBy: { sortOrder: 'asc' },
-      },
       _count: { select: { sales: true } },
     },
   })
@@ -64,8 +42,6 @@ export async function getDealDetail(params: {
 
   return {
     ...deal,
-    expectedCloseDate: deal.expectedCloseDate?.toISOString() ?? null,
-    nextStepDueAt: deal.nextStepDueAt?.toISOString() ?? null,
     windowExpiresAt: deal.windowExpiresAt?.toISOString() ?? null,
     stageEnteredAt: deal.stageEnteredAt?.toISOString() ?? null,
     createdAt: deal.createdAt.toISOString(),
@@ -73,11 +49,8 @@ export async function getDealDetail(params: {
     status: deal.status.name,
     salesCount: deal._count.sales,
     lastMessageAt: null,
-    lineItems: deal.lineItems.map((item) => ({
-      ...item,
-      unitPrice: Number(item.unitPrice),
-      discountAmount: item.discountAmount ? Number(item.discountAmount) : null,
-      total: Number(item.total),
-    })),
+    name: null,
+    currency: 'BRL',
+    lineItems: [],
   } as DealItem
 }

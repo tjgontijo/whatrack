@@ -158,7 +158,7 @@ export async function validateTenantAccess(
     const userId = session.user.id
     const globalRole = session.user.role ?? undefined
     const organizationId =
-      session.session?.activeOrganizationId ?? extractOrganizationId(request) ?? undefined
+      extractOrganizationId(request) ?? session.session?.activeOrganizationId ?? undefined
 
     if (!organizationId) {
       return {

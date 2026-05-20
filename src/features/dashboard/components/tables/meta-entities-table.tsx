@@ -72,8 +72,10 @@ export function MetaEntitiesTable({ data, isLoading }: MetaEntitiesTableProps) {
                 {formatCurrencyBRL(metric.revenue)}
               </TableCell>
               <TableCell className='text-right'>
-                <span className={metric.roas > 1 ? 'text-green-600 font-medium' : 'text-red-600'}>
-                  {metric.roas.toFixed(2)}x
+                <span
+                  className={(metric.roas ?? 0) > 1 ? 'text-green-600 font-medium' : 'text-red-600'}
+                >
+                  {(metric.roas ?? 0).toFixed(2)}x
                 </span>
               </TableCell>
             </TableRow>

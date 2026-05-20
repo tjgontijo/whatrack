@@ -2,6 +2,8 @@ import type { KanbanColumn } from '@/features/dashboard/components/crud/types'
 
 export type DealItem = {
   id: string
+  name?: string | null
+  currency?: string | null
   lead: {
     id: string
     name: string | null
@@ -29,6 +31,16 @@ export type DealItem = {
   dealValue: number | null
   messagesCount: number
   salesCount: number
+  lineItems?: {
+    id: string
+    itemId?: string | null
+    name: string
+    quantity: number
+    unitPrice: number
+    discountAmount?: number | null
+    total: number
+    sortOrder?: number | null
+  }[]
   position: number
   stageEnteredAt: string | null
   createdAt: string

@@ -18,7 +18,7 @@ function toIsoString(value: Date | string) {
 }
 
 function serializeSubscription(
-  subscription: Awaited<ReturnType<typeof getActiveSubscription>>
+  subscription: NonNullable<Awaited<ReturnType<typeof getActiveSubscription>>>
 ): SubscriptionResponse {
   return {
     id: subscription.id,

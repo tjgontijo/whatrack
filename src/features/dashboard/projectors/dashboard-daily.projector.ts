@@ -18,7 +18,7 @@ export class DashboardDailyProjector {
       try {
         await this.projectOrgMetrics(org.id, dateObj)
         // Invalidate cache for this organization's dashboard
-        revalidateTag(this.getCacheTag(org.id))
+        revalidateTag(this.getCacheTag(org.id, null), 'max')
       } catch (error) {
         logger.error(
           { organizationId: org.id, date, error },
@@ -39,8 +39,6 @@ export class DashboardDailyProjector {
   }
 
   private async projectOrgMetrics(organizationId: string, date: Date) {
-    const dateStr = date.toISOString().split('T')[0]
-
     // 1. Revenue metrics
     // Completed revenue: sales on deals with WON stage
     const completedSales = await prisma.sale.aggregate({
@@ -193,45 +191,49 @@ export class DashboardDailyProjector {
     })
 
     // 7. Upsert main metric
-    await prisma.dashboardDailyMetric.upsert({
-      where: {
-        organizationId_projectId_date: {
+    const existingDaily = await prisma.dashboardDailyMetric.findFirst({
+      where: { organizationId, projectId: null, date },
+      select: { id: true },
+    })
+
+    if (existingDaily) {
+      await prisma.dashboardDailyMetric.update({
+        where: { id: existingDaily.id },
+        data: {
+          revenueCompleted,
+          revenuePending,
+          revenuePipeline,
+          metaPaidSpend,
+          metaPaidRevenue,
+          metaPaidClicks,
+          metaPaidImpressions,
+          leadsTotal,
+          leadsMetaPaid,
+          salesTotal,
+          salesMetaAttribued,
+          lastProjectedAt: new Date(),
+        },
+      })
+    } else {
+      await prisma.dashboardDailyMetric.create({
+        data: {
           organizationId,
           projectId: null,
-          date: date,
+          date,
+          revenueCompleted,
+          revenuePending,
+          revenuePipeline,
+          metaPaidSpend,
+          metaPaidRevenue,
+          metaPaidClicks,
+          metaPaidImpressions,
+          leadsTotal,
+          leadsMetaPaid,
+          salesTotal,
+          salesMetaAttribued,
         },
-      },
-      create: {
-        organizationId,
-        projectId: null,
-        date: date,
-        revenueCompleted,
-        revenuePending,
-        revenuePipeline,
-        metaPaidSpend,
-        metaPaidRevenue,
-        metaPaidClicks,
-        metaPaidImpressions,
-        leadsTotal,
-        leadsMetaPaid,
-        salesTotal,
-        salesMetaAttribued,
-      },
-      update: {
-        revenueCompleted,
-        revenuePending,
-        revenuePipeline,
-        metaPaidSpend,
-        metaPaidRevenue,
-        metaPaidClicks,
-        metaPaidImpressions,
-        leadsTotal,
-        leadsMetaPaid,
-        salesTotal,
-        salesMetaAttribued,
-        lastProjectedAt: new Date(),
-      },
-    })
+      })
+    }
 
     // 8. Project by origin (UTM)
     await this.projectOriginMetrics(organizationId, date)
@@ -325,33 +327,36 @@ export class DashboardDailyProjector {
         },
       })
 
-      await prisma.dashboardOriginDailyMetric.upsert({
-        where: {
-          organizationId_projectId_date_originKey: {
+      const existingOrigin = await prisma.dashboardOriginDailyMetric.findFirst({
+        where: { organizationId, projectId: null, date, originKey },
+        select: { id: true },
+      })
+
+      if (existingOrigin) {
+        await prisma.dashboardOriginDailyMetric.update({
+          where: { id: existingOrigin.id },
+          data: {
+            leadsCount,
+            salesCount,
+            revenue: Number(sales._sum.totalAmount || 0),
+          },
+        })
+      } else {
+        await prisma.dashboardOriginDailyMetric.create({
+          data: {
             organizationId,
             projectId: null,
-            date: date,
+            date,
             originKey,
+            utmSource: origin.utmSource,
+            utmMedium: origin.utmMedium,
+            utmCampaign: origin.utmCampaign,
+            leadsCount,
+            salesCount,
+            revenue: Number(sales._sum.totalAmount || 0),
           },
-        },
-        create: {
-          organizationId,
-          projectId: null,
-          date: date,
-          originKey,
-          utmSource: origin.utmSource,
-          utmMedium: origin.utmMedium,
-          utmCampaign: origin.utmCampaign,
-          leadsCount,
-          salesCount,
-          revenue: Number(sales._sum.totalAmount || 0),
-        },
-        update: {
-          leadsCount,
-          salesCount,
-          revenue: Number(sales._sum.totalAmount || 0),
-        },
-      })
+        })
+      }
     }
   }
 
@@ -403,37 +408,40 @@ export class DashboardDailyProjector {
         },
       })
 
-      await prisma.dashboardMetaEntityDailyMetric.upsert({
-        where: {
-          organizationId_projectId_date_entityKey: {
+      const existingMetaEntity = await prisma.dashboardMetaEntityDailyMetric.findFirst({
+        where: { organizationId, projectId: null, date, entityKey: insight.entityKey },
+        select: { id: true },
+      })
+
+      if (existingMetaEntity) {
+        await prisma.dashboardMetaEntityDailyMetric.update({
+          where: { id: existingMetaEntity.id },
+          data: {
+            spend: insight.spend,
+            clicks: insight.clicks,
+            impressions: insight.impressions,
+            leadsAttribued: leadsCount,
+            revenue: Number(sales._sum.totalAmount || 0),
+          },
+        })
+      } else {
+        await prisma.dashboardMetaEntityDailyMetric.create({
+          data: {
             organizationId,
             projectId: null,
-            date: date,
+            date,
+            metaCampaignId: insight.metaCampaignId ?? '',
+            metaAdSetId: insight.metaAdSetId,
+            metaAdId: insight.metaAdId,
             entityKey: insight.entityKey,
+            spend: insight.spend,
+            clicks: insight.clicks,
+            impressions: insight.impressions,
+            leadsAttribued: leadsCount,
+            revenue: Number(sales._sum.totalAmount || 0),
           },
-        },
-        create: {
-          organizationId,
-          projectId: null,
-          date: date,
-          metaCampaignId: insight.metaCampaignId,
-          metaAdSetId: insight.metaAdSetId,
-          metaAdId: insight.metaAdId,
-          entityKey: insight.entityKey,
-          spend: insight.spend,
-          clicks: insight.clicks,
-          impressions: insight.impressions,
-          leadsAttribued: leadsCount,
-          revenue: Number(sales._sum.totalAmount || 0),
-        },
-        update: {
-          spend: insight.spend,
-          clicks: insight.clicks,
-          impressions: insight.impressions,
-          leadsAttribued: leadsCount,
-          revenue: Number(sales._sum.totalAmount || 0),
-        },
-      })
+        })
+      }
     }
   }
 

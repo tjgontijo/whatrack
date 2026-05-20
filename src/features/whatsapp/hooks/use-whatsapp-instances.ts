@@ -34,14 +34,15 @@ async function fetchWhatsAppInstances(
  * Hook centralizado para buscar instâncias do WhatsApp com cache distribuído.
  */
 export function useWhatsAppInstances() {
-  const { data: org } = useOrganization()
   const routeContext = useProjectRouteContext()
+  const { data: org } = useOrganization()
+  const organizationId = routeContext?.organizationId ?? org?.id
   const projectId = routeContext?.projectId
 
   return useQuery({
-    queryKey: ['whatsapp-instances', org?.id, projectId],
-    queryFn: () => fetchWhatsAppInstances(org!.id, projectId),
-    enabled: !!org?.id,
+    queryKey: ['whatsapp-instances', organizationId, projectId],
+    queryFn: () => fetchWhatsAppInstances(organizationId!, projectId),
+    enabled: !!organizationId,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     retry: 1,

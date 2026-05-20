@@ -26,6 +26,7 @@ export function DealDetailScreen({ dealId, initialData }: DealDetailScreenProps)
   const router = useRouter()
 
   const { data: deal } = useDealDetailsQuery(dealId, organizationId, initialData)
+  const dealData = deal ?? initialData
   const addDealItemMutation = useAddDealItemMutation(dealId, organizationId)
   const updateDealItemMutation = useUpdateDealItemMutation(dealId, organizationId)
   const deleteDealItemMutation = useDeleteDealItemMutation(dealId, organizationId)
@@ -60,15 +61,15 @@ export function DealDetailScreen({ dealId, initialData }: DealDetailScreenProps)
   const handleCloseWon = () => {
     closeDealMutation.mutate({
       reason: 'won',
-      dealValue: deal.dealValue || 0,
+      dealValue: dealData.dealValue || 0,
     })
   }
 
-  const isClosed = deal.status !== 'open'
+  const isClosed = dealData.status !== 'open'
 
   return (
     <HeaderPageShell
-      title={deal.name || deal.lead.name || 'Negociação'}
+      title={dealData.name || dealData.lead.name || 'Negociação'}
       actions={
         <div className='flex items-center gap-2'>
           <Button
@@ -104,8 +105,8 @@ export function DealDetailScreen({ dealId, initialData }: DealDetailScreenProps)
               <div>
                 <p className='text-muted-foreground text-sm leading-relaxed'>
                   Esta negociação foi iniciada via WhatsApp. 
-                  {deal.lineItems && deal.lineItems.length > 0 
-                    ? ` O cliente está interessado em ${deal.lineItems.length} item(s).` 
+                  {dealData.lineItems && dealData.lineItems.length > 0 
+                    ? ` O cliente está interessado em ${dealData.lineItems.length} item(s).` 
                     : " Adicione itens ao lado para compor a nota de atribuição."}
                 </p>
               </div>
@@ -124,7 +125,7 @@ export function DealDetailScreen({ dealId, initialData }: DealDetailScreenProps)
               {!isClosed && <ItemPicker onSelect={handleAddItem} />}
             </div>
             
-            {deal.lineItems && deal.lineItems.length > 0 ? (
+            {dealData.lineItems && dealData.lineItems.length > 0 ? (
               <div className='space-y-4'>
                 <div className='overflow-hidden rounded-lg border'>
                   <table className='w-full text-left text-sm'>
@@ -139,7 +140,7 @@ export function DealDetailScreen({ dealId, initialData }: DealDetailScreenProps)
                       </tr>
                     </thead>
                     <tbody className='divide-y'>
-                      {deal.lineItems.map((item) => (
+                      {dealData.lineItems.map((item) => (
                         <tr key={item.id} className='group hover:bg-muted/30'>
                           <td className='px-4 py-3'>
                             <div className='flex flex-col'>
@@ -159,7 +160,9 @@ export function DealDetailScreen({ dealId, initialData }: DealDetailScreenProps)
                                   size='icon-xs' 
                                   className='h-6 w-6 text-muted-foreground hover:text-primary'
                                   title='Editar desconto'
-                                  onClick={() => handleUpdateDiscount(item.id, item.discountAmount)}
+                                  onClick={() =>
+                                    handleUpdateDiscount(item.id, item.discountAmount ?? null)
+                                  }
                                 >
                                   <DollarSign className='h-3 w-3' />
                                 </Button>
@@ -183,15 +186,21 @@ export function DealDetailScreen({ dealId, initialData }: DealDetailScreenProps)
                 <div className='flex items-center justify-between px-4 py-2'>
                   <span className='font-bold text-muted-foreground text-xs uppercase'>Valor Final para Atribuição</span>
                   <div className='text-right'>
-                    <span className='mr-2 text-muted-foreground text-xs uppercase'>{deal.currency}</span>
-                    <span className='font-black text-2xl text-primary tracking-tight'>{formatCurrencyBRL(deal.dealValue)}</span>
+                    <span className='mr-2 text-muted-foreground text-xs uppercase'>
+                      {dealData.currency || 'BRL'}
+                    </span>
+                    <span className='font-black text-2xl text-primary tracking-tight'>
+                      {formatCurrencyBRL(dealData.dealValue || 0)}
+                    </span>
                   </div>
                 </div>
               </div>
             ) : (
               <div className='flex h-32 flex-col items-center justify-center rounded-xl border-2 border-dashed bg-muted/5'>
                 <p className='mb-2 text-muted-foreground text-sm'>Nenhum item adicionado.</p>
-                <p className='text-muted-foreground text-xs'>O valor total atual é {formatCurrencyBRL(deal.dealValue)}</p>
+                <p className='text-muted-foreground text-xs'>
+                  O valor total atual é {formatCurrencyBRL(dealData.dealValue || 0)}
+                </p>
               </div>
             )}
           </div>
@@ -206,9 +215,11 @@ export function DealDetailScreen({ dealId, initialData }: DealDetailScreenProps)
                 <span className='block font-bold text-[10px] text-muted-foreground uppercase tracking-[0.2em]'>Controle Comercial</span>
                 <div className='mt-2 flex items-center justify-between'>
                   <Badge variant='outline' className='bg-background font-black text-[10px] uppercase'>
-                    {deal.status}
+                    {dealData.status}
                   </Badge>
-                  <span className='font-bold text-[10px] text-muted-foreground uppercase'>{deal.stage.name}</span>
+                  <span className='font-bold text-[10px] text-muted-foreground uppercase'>
+                    {dealData.stage.name}
+                  </span>
                 </div>
               </div>
 
@@ -244,11 +255,13 @@ export function DealDetailScreen({ dealId, initialData }: DealDetailScreenProps)
             <div className='space-y-4'>
               <div className='flex items-center gap-3'>
                 <div className='flex h-10 w-10 items-center justify-center rounded-full bg-muted font-bold text-muted-foreground text-xs uppercase'>
-                  {deal.lead.name?.substring(0, 2) || 'LE'}
+                  {dealData.lead.name?.substring(0, 2) || 'LE'}
                 </div>
                 <div className='flex flex-col'>
-                  <span className='font-bold text-sm'>{deal.lead.name || 'Sem nome'}</span>
-                  <span className='text-muted-foreground text-xs'>{deal.lead.phone || 'Sem telefone'}</span>
+                  <span className='font-bold text-sm'>{dealData.lead.name || 'Sem nome'}</span>
+                  <span className='text-muted-foreground text-xs'>
+                    {dealData.lead.phone || 'Sem telefone'}
+                  </span>
                 </div>
               </div>
               <Button variant='outline' size='xs' className='w-full text-[10px] uppercase tracking-wide' asChild>
@@ -265,12 +278,14 @@ export function DealDetailScreen({ dealId, initialData }: DealDetailScreenProps)
             <div className='space-y-3'>
               <div className='flex flex-col gap-0.5'>
                 <span className='text-[10px] text-muted-foreground uppercase'>Origem</span>
-                <span className='font-semibold text-xs'>{deal.tracking?.sourceType?.toUpperCase() || 'ORGÂNICO'}</span>
+                <span className='font-semibold text-xs'>
+                  {dealData.tracking?.sourceType?.toUpperCase() || 'ORGÂNICO'}
+                </span>
               </div>
-              {deal.tracking?.utmSource && (
+              {dealData.tracking?.utmSource && (
                 <div className='flex flex-col gap-0.5'>
                   <span className='text-[10px] text-muted-foreground uppercase'>Fonte (UTM)</span>
-                  <span className='font-semibold text-primary text-xs'>{deal.tracking.utmSource}</span>
+                  <span className='font-semibold text-primary text-xs'>{dealData.tracking.utmSource}</span>
                 </div>
               )}
             </div>

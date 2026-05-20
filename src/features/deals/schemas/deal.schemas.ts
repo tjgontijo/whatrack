@@ -49,8 +49,19 @@ export const closeDealSchema = z.object({
   dealValue: z.number().nonnegative('Deal value não pode ser negativo').optional().nullable(),
 })
 
+export const dealLineItemSchema = z.object({
+  itemId: z.string().uuid('ID de item inválido').optional(),
+  name: z.string().min(1, 'Nome do item é obrigatório'),
+  quantity: z.number().int().positive('Quantidade deve ser positiva'),
+  unitPrice: z.number().nonnegative('Preço unitário inválido'),
+  discountAmount: z.number().nonnegative('Desconto inválido').optional().nullable(),
+  total: z.number().nonnegative('Total inválido').optional(),
+  sortOrder: z.number().int().optional(),
+})
+
 export type DealsQueryInput = z.infer<typeof dealsQuerySchema>
 export type CreateDealInput = z.infer<typeof createDealSchema>
 export type UpdateDealInput = z.infer<typeof updateDealSchema>
 export type CloseDealInput = z.infer<typeof closeDealSchema>
 export type ReorderDealInput = z.infer<typeof reorderDealSchema>
+export type DealLineItemInput = z.infer<typeof dealLineItemSchema>

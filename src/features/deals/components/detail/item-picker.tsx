@@ -75,7 +75,7 @@ export function ItemPicker({ onSelect }: ItemPickerProps) {
                       onSelect({
                         itemId: item.id,
                         name: item.name,
-                        unitPrice: Number(item.price || 0),
+                        unitPrice: 0,
                       })
                       setOpen(false)
                       setSearch('')
@@ -84,7 +84,7 @@ export function ItemPicker({ onSelect }: ItemPickerProps) {
                     <div className='flex w-full items-center justify-between'>
                       <span className='truncate'>{item.name}</span>
                       <span className='shrink-0 text-muted-foreground text-xs'>
-                        {formatCurrencyBRL(item.price)}
+                        {formatCurrencyBRL(0)}
                       </span>
                     </div>
                   </CommandItem>
