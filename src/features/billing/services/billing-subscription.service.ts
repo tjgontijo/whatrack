@@ -445,7 +445,7 @@ export async function getActiveSubscription(organizationId: string) {
   })
 
   if (!subscription) {
-    throw new SubscriptionNotFoundError(organizationId)
+    return null
   }
 
   const entitlements = await getOrganizationBillingEntitlements(organizationId, {
