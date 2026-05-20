@@ -1,4 +1,4 @@
-import type { PrismaClient } from '@generated/prisma/client'
+import type { PrismaClient } from '@generated/prisma'
 
 export async function seedBillingPlanHistory(prisma: PrismaClient) {
   console.log('📜 Seeding billing plan history for existing subscriptions...')

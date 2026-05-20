@@ -10,14 +10,15 @@ export async function getHourlyHeatmap(
 ) {
   const heatmap = await prisma.$queryRaw`
     SELECT
-      EXTRACT(DOW FROM timestamp)::int as day_of_week,
-      EXTRACT(HOUR FROM timestamp)::int as hour,
+      EXTRACT(DOW FROM m.timestamp)::int as day_of_week,
+      EXTRACT(HOUR FROM m.timestamp)::int as hour,
       COUNT(*)::int as message_count
-    FROM messages m
-    JOIN leads l ON l.id = m.lead_id
-    WHERE l.organization_id = ${organizationId}::uuid
-      ${projectId ? Prisma.sql`AND m.instance_id IN (SELECT id FROM whatsapp_configs WHERE project_id = ${projectId}::uuid)` : Prisma.empty}
-      AND m.direction = 'INBOUND'
+    FROM whatsapp_messages m
+    JOIN crm_leads l ON l.id = m."leadId"
+    JOIN crm_message_directions md ON md.id = m."directionId"
+    WHERE l."organizationId" = ${organizationId}::uuid
+      ${projectId ? Prisma.sql`AND m."instanceId" IN (SELECT id FROM whatsapp_configs WHERE "projectId" = ${projectId}::uuid)` : Prisma.empty}
+      AND md.name = 'INBOUND'
       AND m.timestamp BETWEEN ${startDate} AND ${endDate}
     GROUP BY day_of_week, hour
     ORDER BY day_of_week, hour;

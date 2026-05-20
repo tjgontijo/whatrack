@@ -34,9 +34,10 @@ e2e/
 
 ## Como o Setup Funciona
 
-1. `playwright.config.ts` carrega `.env.test`.
-2. `global-setup.ts` chama `setupTestDatabase()`.
-3. `setup.ts` executa:
+1. `playwright.config.ts` carrega `.env`.
+2. Se `TEST_DATABASE_URL` estiver definida, ela é aplicada como `DATABASE_URL` durante os testes.
+3. `global-setup.ts` chama `setupTestDatabase()`.
+4. `setup.ts` executa:
    - `prisma db push --force-reset` (schema limpo)
    - `prisma/seed.ts` (dados base de lookup/billing/system)
 4. Testes rodam em sequência (`fullyParallel: false`), reduzindo conflito de dados.
@@ -46,7 +47,7 @@ e2e/
 Reset manual de banco de teste:
 
 ```bash
-npm run test:db:reset
+./scripts/db/reset-test.sh
 ```
 
 Rodar toda a suíte E2E:
@@ -131,9 +132,9 @@ Ativos:
 
 ## Pré-requisitos de Ambiente
 
-`.env.test` precisa estar consistente para E2E:
+`.env` precisa estar consistente para E2E:
 
-- `DATABASE_URL` (Postgres de teste)
+- `TEST_DATABASE_URL` (Postgres de teste)
 - `ASAAS_BASE_URL` (sandbox)
 - `ASAAS_API_KEY` válida
 - credenciais mínimas de auth/app

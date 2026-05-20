@@ -9,6 +9,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
+      '@generated/prisma/client': path.resolve(__dirname, 'prisma/generated/prisma/index.js'),
+      '@generated/prisma': path.resolve(__dirname, 'prisma/generated/prisma/index.js'),
       'server-only': path.resolve(__dirname, 'vitest.server-only.ts'),
     },
   },

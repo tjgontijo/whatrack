@@ -20,25 +20,28 @@ print_box() {
 
 trap 'echo -e "${RED}Erro ao executar reset-test-db${NC}"; exit 1' ERR
 
-if [ ! -f ".env.test" ]; then
-  echo -e "${RED}Arquivo .env.test nao encontrado${NC}"
+if [ -f ".env" ]; then
+  set -a
+  # shellcheck disable=SC1091
+  . ./.env
+  set +a
+fi
+
+TEST_DATABASE_URL="${TEST_DATABASE_URL:-}"
+if [ -z "${TEST_DATABASE_URL}" ]; then
+  echo -e "${RED}TEST_DATABASE_URL nao definido.${NC}"
+  echo -e "${YELLOW}Configure TEST_DATABASE_URL no .env ou no ambiente.${NC}"
   exit 1
 fi
 
-if command -v rg >/dev/null 2>&1; then
-  if ! rg -q '^DATABASE_URL="postgres(ql)?://' .env.test; then
-    echo -e "${YELLOW}DATABASE_URL em .env.test nao parece ser Postgres.${NC}"
-    echo -e "${YELLOW}Revise .env.test antes de continuar.${NC}"
-    exit 1
-  fi
-elif ! grep -Eq '^DATABASE_URL="postgres(ql)?://' .env.test; then
-  echo -e "${YELLOW}DATABASE_URL em .env.test nao parece ser Postgres.${NC}"
-  echo -e "${YELLOW}Revise .env.test antes de continuar.${NC}"
+if ! printf '%s\n' "${TEST_DATABASE_URL}" | grep -Eq '^postgres(ql)?://'; then
+  echo -e "${YELLOW}TEST_DATABASE_URL nao parece ser Postgres.${NC}"
+  echo -e "${YELLOW}Revise a variavel antes de continuar.${NC}"
   exit 1
 fi
 
 print_box "Resetando banco de teste (Postgres + seed de infraestrutura)"
-node --import tsx/esm e2e/setup.ts
+TEST_DATABASE_URL="${TEST_DATABASE_URL}" DATABASE_URL="${TEST_DATABASE_URL}" node --import tsx/esm e2e/setup.ts
 
 echo ""
 echo -e "${GREEN}Banco de teste resetado com sucesso.${NC}"

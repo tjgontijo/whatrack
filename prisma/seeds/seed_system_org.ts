@@ -1,4 +1,4 @@
-import type { PrismaClient } from '@generated/prisma/client'
+import type { PrismaClient } from '@generated/prisma'
 
 export async function seedSystemOrg(prisma: PrismaClient) {
   console.log('🏢 Seeding system organization...')

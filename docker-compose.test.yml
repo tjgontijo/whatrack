@@ -1,0 +1,19 @@
+services:
+  postgres_test:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: whatrack
+      POSTGRES_PASSWORD: whatrack
+      POSTGRES_DB: whatrack_test
+    ports:
+      - '55432:5432'
+    volumes:
+      - postgres_test_data:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U whatrack -d whatrack_test']
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+volumes:
+  postgres_test_data:

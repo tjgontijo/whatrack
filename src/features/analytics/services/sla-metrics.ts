@@ -13,22 +13,22 @@ export async function getSlaMetrics(
     SELECT
       bucket,
       COUNT(*)::int as count,
-      AVG(first_response_time_sec)::int as avg_time
+      AVG("firstResponseTimeSec")::int as avg_time
     FROM (
       SELECT
-        first_response_time_sec,
+        "firstResponseTimeSec",
         CASE
-          WHEN first_response_time_sec <= 60 THEN '< 1 min'
-          WHEN first_response_time_sec <= 300 THEN '1-5 min'
-          WHEN first_response_time_sec <= 900 THEN '5-15 min'
-          WHEN first_response_time_sec <= 3600 THEN '15-60 min'
+          WHEN "firstResponseTimeSec" <= 60 THEN '< 1 min'
+          WHEN "firstResponseTimeSec" <= 300 THEN '1-5 min'
+          WHEN "firstResponseTimeSec" <= 900 THEN '5-15 min'
+          WHEN "firstResponseTimeSec" <= 3600 THEN '15-60 min'
           ELSE '> 1 hora'
         END as bucket
-      FROM deals
-      WHERE organization_id = ${organizationId}::uuid
-        ${projectId ? Prisma.sql`AND project_id = ${projectId}::uuid` : Prisma.empty}
-        AND first_response_time_sec IS NOT NULL
-        AND created_at BETWEEN ${startDate} AND ${endDate}
+      FROM crm_deals
+      WHERE "organizationId" = ${organizationId}::uuid
+        ${projectId ? Prisma.sql`AND "projectId" = ${projectId}::uuid` : Prisma.empty}
+        AND "firstResponseTimeSec" IS NOT NULL
+        AND "createdAt" BETWEEN ${startDate} AND ${endDate}
     ) sub
     GROUP BY bucket;
   `,
@@ -39,18 +39,18 @@ export async function getSlaMetrics(
       t.id as deal_id,
       l.name as lead_name,
       l.phone as lead_phone,
-      t.first_response_time_sec,
-      t.created_at,
+      t."firstResponseTimeSec",
+      t."createdAt",
       u.name as assignee_name
-    FROM deals t
-    JOIN conversations c ON c.id = t.conversation_id
-    JOIN leads l ON l.id = c.lead_id
-    LEFT JOIN "user" u ON u.id = t.assignee_id
-    WHERE t.organization_id = ${organizationId}::uuid
-      ${projectId ? Prisma.sql`AND t.project_id = ${projectId}::uuid` : Prisma.empty}
-      AND t.first_response_time_sec > 900
-      AND t.created_at BETWEEN ${startDate} AND ${endDate}
-    ORDER BY t.first_response_time_sec DESC
+    FROM crm_deals t
+    JOIN crm_conversations c ON c.id = t."conversationId"
+    JOIN crm_leads l ON l.id = c."leadId"
+    LEFT JOIN auth_user u ON u.id = t."assigneeId"
+    WHERE t."organizationId" = ${organizationId}::uuid
+      ${projectId ? Prisma.sql`AND t."projectId" = ${projectId}::uuid` : Prisma.empty}
+      AND t."firstResponseTimeSec" > 900
+      AND t."createdAt" BETWEEN ${startDate} AND ${endDate}
+    ORDER BY t."firstResponseTimeSec" DESC
     LIMIT 10;
   `,
   ])

@@ -30,6 +30,7 @@ Prioridade: código previsível, fácil de navegar, fácil de testar, seguro par
 15. **select/columns obrigatório**: Todo acesso ao banco deve especificar campos explicitamente. Nunca depender de `select *` implícito.
 16. **Queries paralelas**: Usar `Promise.all` para queries independentes no mesmo repository ou service.
 17. **Funções dinâmicas sempre com await**: `cookies()`, `headers()`, `params`, `searchParams` são todas async no Next.js 16 — sempre `await`.
+18. **Testes e TDD**: O design modular favorece o TDD. Testes residem lado a lado com a implementação (`.test.ts`).
 
 ## Estrutura padrão do projeto
 
@@ -612,6 +613,16 @@ export async function createCaseService(userId: string, input: CreateCaseInput) 
 }
 ```
 
+## Testes e TDD
+
+A separação estrita de responsabilidades desta arquitetura foi desenhada para facilitar testes e o fluxo **TDD (Test-Driven Development)**:
+
+1. **Testes Co-localizados**: Arquivos de teste devem residir **junto** à implementação. Exemplo: `features/cases/services/create-case.service.test.ts`.
+2. **Foco nos Services**: Por serem funções puras (assíncronas) marcadas com `"server-only"` e que não dependem de contexto HTTP (`Request`, `NextResponse`), os **Services** são ideais para testes unitários. Você pode mockar o Repository e focar apenas na regra de negócio.
+3. **Schemas Independentes**: Teste a validação do Zod separadamente para garantir que rejeita dados inválidos e formata erros corretamente.
+4. **Integração nos Repositories**: Teste os Repositories preferencialmente com um banco de dados de testes (integração real).
+5. **Ciclo Red-Green-Refactor**: Comece escrevendo o teste do Service definindo os retornos esperados (`{ data }` ou `{ error, status }`) e validações de input, implemente a lógica, e depois refatore com segurança.
+
 ## Critério de Conclusão
 
 Uma tarefa só está pronta se:
@@ -625,4 +636,5 @@ Uma tarefa só está pronta se:
 7. Env vars acessadas via `env.ts`, nunca `process.env` direto.
 8. `cookies()`, `headers()`, `params`, `searchParams` usados com `await`.
 9. Cache via `"use cache"` + `cacheLife` + `cacheTag` onde aplicável.
-10. Build e type-check sem erros.
+10. Lógica de negócio coberta por testes unitários e arquivos `.test.ts` posicionados corretamente.
+11. Build e type-check sem erros.

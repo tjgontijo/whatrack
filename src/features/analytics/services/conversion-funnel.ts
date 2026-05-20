@@ -12,14 +12,15 @@ export async function getConversionFunnel(
     // Query to get deals by status
     prisma.$queryRaw`
     SELECT
-      status,
+      ds.name as status,
       COUNT(*)::int as count,
-      COALESCE(SUM(deal_value), 0) as total_value
-    FROM deals
-    WHERE organization_id = ${organizationId}::uuid
-      ${projectId ? Prisma.sql`AND project_id = ${projectId}::uuid` : Prisma.empty}
-      AND created_at BETWEEN ${startDate} AND ${endDate}
-    GROUP BY status;
+      COALESCE(SUM(d."dealValue"), 0) as total_value
+    FROM crm_deals d
+    JOIN crm_deal_statuses ds ON ds.id = d."statusId"
+    WHERE d."organizationId" = ${organizationId}::uuid
+      ${projectId ? Prisma.sql`AND d."projectId" = ${projectId}::uuid` : Prisma.empty}
+      AND d."createdAt" BETWEEN ${startDate} AND ${endDate}
+    GROUP BY ds.name;
   `,
 
     // Query to get deals by stage
@@ -30,13 +31,13 @@ export async function getConversionFunnel(
       ts.color,
       ts.order,
       COUNT(t.id)::int as deal_count,
-      COALESCE(SUM(t.deal_value), 0) as total_value
-    FROM deal_stages ts
-    LEFT JOIN deals t ON t.stage_id = ts.id
-      AND t.created_at BETWEEN ${startDate} AND ${endDate}
-      ${projectId ? Prisma.sql`AND t.project_id = ${projectId}::uuid` : Prisma.empty}
-    WHERE ts.organization_id = ${organizationId}::uuid
-      ${projectId ? Prisma.sql`AND ts.project_id = ${projectId}::uuid` : Prisma.empty}
+      COALESCE(SUM(t."dealValue"), 0) as total_value
+    FROM crm_deal_stages ts
+    LEFT JOIN crm_deals t ON t."stageId" = ts.id
+      AND t."createdAt" BETWEEN ${startDate} AND ${endDate}
+      ${projectId ? Prisma.sql`AND t."projectId" = ${projectId}::uuid` : Prisma.empty}
+    WHERE ts."organizationId" = ${organizationId}::uuid
+      ${projectId ? Prisma.sql`AND ts."projectId" = ${projectId}::uuid` : Prisma.empty}
     GROUP BY ts.id, ts.name, ts.color, ts.order
     ORDER BY ts.order ASC;
   `,

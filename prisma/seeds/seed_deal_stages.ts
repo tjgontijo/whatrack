@@ -1,4 +1,4 @@
-import type { PrismaClient } from '@generated/prisma/client'
+import type { PrismaClient } from '@generated/prisma'
 
 export async function seedDealStages(prisma: PrismaClient) {
   console.log('Seeding deal stages from default template...')
@@ -10,7 +10,9 @@ export async function seedDealStages(prisma: PrismaClient) {
   })
 
   if (!defaultTemplate) {
-    console.warn('⚠️ No default deal stage template found. Make sure to run seedDealTemplates first.')
+    console.warn(
+      '⚠️ No default deal stage template found. Make sure to run seedDealTemplates first.'
+    )
     return
   }
 
@@ -61,7 +63,9 @@ export async function seedDealStages(prisma: PrismaClient) {
         })
       }
     }
-    console.log(`Deal stages ensured for organization defaults: ${organization.name} (using template: ${defaultTemplate.name})`)
+    console.log(
+      `Deal stages ensured for organization defaults: ${organization.name} (using template: ${defaultTemplate.name})`
+    )
 
     // 3. Garantir fases em cada Projeto da Organização
     for (const project of organization.projects) {

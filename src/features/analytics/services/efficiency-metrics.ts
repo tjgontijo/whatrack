@@ -11,36 +11,38 @@ export async function getEfficiencyMetrics(
   const dealEfficiencies = await prisma.$queryRaw`
     SELECT
       t.id,
-      t.deal_value,
-      (t.inbound_messages_count + t.outbound_messages_count)::int as total_messages,
+      t."dealValue",
+      (t."inboundMessagesCount" + t."outboundMessagesCount")::int as total_messages,
       CASE
-        WHEN (t.inbound_messages_count + t.outbound_messages_count) > 0
-        THEN t.deal_value / (t.inbound_messages_count + t.outbound_messages_count)
+        WHEN (t."inboundMessagesCount" + t."outboundMessagesCount") > 0
+        THEN t."dealValue" / (t."inboundMessagesCount" + t."outboundMessagesCount")
         ELSE NULL
       END as value_per_message,
-      t.resolution_time_sec
-    FROM deals t
-    WHERE t.organization_id = ${organizationId}::uuid
-      ${projectId ? Prisma.sql`AND t.project_id = ${projectId}::uuid` : Prisma.empty}
-      AND t.status = 'closed_won'
-      AND t.deal_value > 0
-      AND t.created_at BETWEEN ${startDate} AND ${endDate}
+      t."resolutionTimeSec"
+    FROM crm_deals t
+    JOIN crm_deal_statuses ds ON ds.id = t."statusId"
+    WHERE t."organizationId" = ${organizationId}::uuid
+      ${projectId ? Prisma.sql`AND t."projectId" = ${projectId}::uuid` : Prisma.empty}
+      AND ds.name = 'closed_won'
+      AND t."dealValue" > 0
+      AND t."createdAt" BETWEEN ${startDate} AND ${endDate}
     ORDER BY value_per_message DESC
     LIMIT 100;
   `
 
   const aggregatedEfficiency = await prisma.$queryRaw`
     SELECT
-      AVG(deal_value)::int as avg_deal_value,
-      AVG(inbound_messages_count + outbound_messages_count)::int as avg_messages,
-      AVG(deal_value / NULLIF(inbound_messages_count + outbound_messages_count, 0))::int as avg_value_per_message,
-      AVG(resolution_time_sec)::int as avg_resolution_sec
-    FROM deals
-    WHERE organization_id = ${organizationId}::uuid
-      ${projectId ? Prisma.sql`AND project_id = ${projectId}::uuid` : Prisma.empty}
-      AND status = 'closed_won'
-      AND deal_value > 0
-      AND created_at BETWEEN ${startDate} AND ${endDate};
+      AVG("dealValue")::int as avg_deal_value,
+      AVG("inboundMessagesCount" + "outboundMessagesCount")::int as avg_messages,
+      AVG("dealValue" / NULLIF("inboundMessagesCount" + "outboundMessagesCount", 0))::int as avg_value_per_message,
+      AVG("resolutionTimeSec")::int as avg_resolution_sec
+    FROM crm_deals t
+    JOIN crm_deal_statuses ds ON ds.id = t."statusId"
+    WHERE t."organizationId" = ${organizationId}::uuid
+      ${projectId ? Prisma.sql`AND t."projectId" = ${projectId}::uuid` : Prisma.empty}
+      AND ds.name = 'closed_won'
+      AND t."dealValue" > 0
+      AND t."createdAt" BETWEEN ${startDate} AND ${endDate};
   `
 
   return {

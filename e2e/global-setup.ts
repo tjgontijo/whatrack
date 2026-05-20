@@ -1,8 +1,11 @@
 import dotenv from 'dotenv'
 import { setupTestDatabase, teardownTestDatabase } from './setup'
 
-// Load test environment variables
-dotenv.config({ path: '.env.test' })
+// Load shared environment variables and map test DB
+dotenv.config({ path: '.env' })
+if (process.env.TEST_DATABASE_URL) {
+  process.env.DATABASE_URL = process.env.TEST_DATABASE_URL
+}
 
 export async function globalSetup() {
   console.log('\n🚀 Starting E2E test suite...')

@@ -6,8 +6,15 @@ const E2E_PRISMA_SCHEMA = 'prisma/schema.prisma'
 export async function setupTestDatabase() {
   console.log('🗄️  Setting up test database...')
 
-  // Load test environment variables
-  dotenv.config({ path: '.env.test', override: true })
+  // Load shared environment variables and force test DB for E2E
+  dotenv.config({ path: '.env', override: true })
+  if (process.env.TEST_DATABASE_URL) {
+    process.env.DATABASE_URL = process.env.TEST_DATABASE_URL
+  }
+
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL/TEST_DATABASE_URL is not defined for E2E setup')
+  }
 
   try {
     // Reset schema against dedicated Postgres test database.
