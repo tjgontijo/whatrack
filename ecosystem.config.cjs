@@ -11,7 +11,10 @@ module.exports = {
       script: 'pnpm',
       args: 'exec tsx src/worker.ts',
       watch: false,
-      env: { NODE_ENV: 'production' },
+      env: {
+        NODE_ENV: 'production',
+        NODE_OPTIONS: '--conditions=react-server',
+      },
     },
   ],
 }
