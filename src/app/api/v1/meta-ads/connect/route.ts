@@ -7,6 +7,38 @@ import { logger } from '@/lib/utils/logger'
 import { validateFullAccess } from '@/server/auth/validate-organization-access'
 import { env } from '@/lib/env/env'
 
+function resolvePublicOrigin(req: NextRequest): string {
+  const forwardedHost = req.headers.get('x-forwarded-host')
+  const forwardedProto = req.headers.get('x-forwarded-proto') ?? 'https'
+
+  if (forwardedHost) {
+    return `${forwardedProto}://${forwardedHost}`
+  }
+
+  return req.nextUrl.origin
+}
+
+function resolveRedirectUri(req: NextRequest): string {
+  const requestUri = `${resolvePublicOrigin(req)}/api/v1/meta-ads/callback`
+  const configured = env.META_OAUTH_REDIRECT_URI
+
+  if (!configured) return requestUri
+
+  const configuredUrl = new URL(configured)
+  const isLocalhost =
+    configuredUrl.hostname === 'localhost' || configuredUrl.hostname === '127.0.0.1'
+
+  if (env.NODE_ENV === 'production' && isLocalhost) {
+    logger.warn(
+      { configuredRedirectUri: configured, requestOrigin: resolvePublicOrigin(req) },
+      '[MetaAdsConnect] Ignoring localhost META_OAUTH_REDIRECT_URI in production'
+    )
+    return requestUri
+  }
+
+  return configured
+}
+
 export async function GET(req: NextRequest) {
   const access = await validateFullAccess(req)
 
@@ -15,8 +47,7 @@ export async function GET(req: NextRequest) {
   }
 
   const clientId = env.META_ADS_APP_ID
-  const origin = req.nextUrl.origin
-  const redirectUri = env.META_OAUTH_REDIRECT_URI || `${origin}/api/v1/meta-ads/callback`
+  const redirectUri = resolveRedirectUri(req)
 
   if (!clientId) {
     logger.error('[MetaAdsConnect] META_ADS_APP_ID not configured')

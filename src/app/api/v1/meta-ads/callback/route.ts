@@ -2,8 +2,19 @@ import { type NextRequest, NextResponse } from 'next/server'
 
 import { completeMetaAdsOAuthCallback } from '@/features/meta-ads/services/meta-oauth.service'
 
+function resolvePublicOrigin(req: NextRequest): string {
+  const forwardedHost = req.headers.get('x-forwarded-host')
+  const forwardedProto = req.headers.get('x-forwarded-proto') ?? 'https'
+
+  if (forwardedHost) {
+    return `${forwardedProto}://${forwardedHost}`
+  }
+
+  return req.nextUrl.origin
+}
+
 function successPopupResponse(req: NextRequest) {
-  const dashboardUrl = new URL('/sign-in?integration=meta-ads&status=success', req.url).toString()
+  const dashboardUrl = `${resolvePublicOrigin(req)}/sign-in?integration=meta-ads&status=success`
   const html = `<!doctype html>
 <html lang="pt-BR">
   <head>
@@ -46,16 +57,16 @@ export async function GET(req: NextRequest) {
 
   if (!code || !stateToken) {
     return NextResponse.redirect(
-      new URL('/sign-in?integration=meta-ads&status=error&error=meta_auth_failed', req.url)
+      `${resolvePublicOrigin(req)}/sign-in?integration=meta-ads&status=error&error=meta_auth_failed`
     )
   }
 
-  const redirectUri = new URL('/api/v1/meta-ads/callback', req.url).toString()
+  const redirectUri = `${resolvePublicOrigin(req)}/api/v1/meta-ads/callback`
   const result = await completeMetaAdsOAuthCallback(code, stateToken, redirectUri)
 
   if (!result.success) {
     return NextResponse.redirect(
-      new URL(`/sign-in?integration=meta-ads&status=error&error=${result.reason}`, req.url)
+      `${resolvePublicOrigin(req)}/sign-in?integration=meta-ads&status=error&error=${result.reason}`
     )
   }
 
