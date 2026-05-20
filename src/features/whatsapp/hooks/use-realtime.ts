@@ -2,6 +2,7 @@
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
+import { buildOrgMessagesChannel } from '@/lib/centrifugo/channels'
 import { apiFetch } from '@/lib/http/api-client'
 import { createCentrifugoClient, subscribeTo } from '@/lib/centrifugo/client'
 
@@ -55,13 +56,22 @@ export function useRealtime(organizationId: string | undefined) {
     try {
       const centrifuge = createCentrifugoClient(tokenData.token)
 
-      centrifuge.on('connected', () => setConnected(true))
-      centrifuge.on('disconnected', () => setConnected(false))
+      centrifuge.on('connected', (ctx: unknown) => {
+        setConnected(true)
+        console.info('[Centrifugo] Connected', _normalizeCentrifugoIssue(ctx) ?? ctx)
+      })
+      centrifuge.on('disconnected', (ctx: unknown) => {
+        setConnected(false)
+        console.warn('[Centrifugo] Disconnected', _normalizeCentrifugoIssue(ctx) ?? ctx)
+      })
+      centrifuge.on('error', (ctx: unknown) => {
+        console.error('[Centrifugo] Client error', _normalizeCentrifugoIssue(ctx) ?? ctx)
+      })
 
       centrifuge.connect()
       setClient(centrifuge)
 
-      const messagesSub = subscribeTo(centrifuge, `org:${organizationId}:messages`, (data) => {
+      const messagesSub = subscribeTo(centrifuge, buildOrgMessagesChannel(organizationId), (data) => {
         if (data.conversationId) {
           queryClient.invalidateQueries({
             queryKey: ['chat-messages', data.conversationId, organizationId],
@@ -72,20 +82,8 @@ export function useRealtime(organizationId: string | undefined) {
         })
       })
 
-      const dealsSub = subscribeTo(centrifuge, `org:${organizationId}:deals`, (data) => {
-        if (data.conversationId) {
-          queryClient.invalidateQueries({
-            queryKey: ['conversation-deal', data.conversationId, organizationId],
-          })
-        }
-        queryClient.invalidateQueries({
-          queryKey: ['whatsapp-chats', organizationId],
-        })
-      })
-
       return () => {
         messagesSub.unsubscribe()
-        dealsSub.unsubscribe()
         centrifuge.disconnect()
         setClient(null)
         setConnected(false)

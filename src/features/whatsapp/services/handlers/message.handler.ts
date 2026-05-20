@@ -3,6 +3,7 @@ import { metaAdEnrichmentService } from '@/features/meta-ads/services/ad-enrichm
 import { getDefaultDealStage } from '@/features/deals/services/ensure-deal-stages'
 import { attributeInboundMessageToCampaign } from '@/features/whatsapp/services/whatsapp-campaign-attribution.service'
 import { WhatsAppTemplateAnalyticsService } from '@/features/whatsapp/services/whatsapp-template-analytics.service'
+import { buildOrgMessagesChannel } from '@/lib/centrifugo/channels'
 import { publishToCentrifugo } from '@/lib/centrifugo/server'
 import { lookupCache } from '@/lib/db/lookup-cache'
 import { prisma } from '@/lib/db/prisma'
@@ -516,7 +517,7 @@ export async function messageHandler(
 
         // Collect event
         eventsToPublish.push({
-          channel: `org:${config.organizationId}:messages`,
+          channel: buildOrgMessagesChannel(config.organizationId),
           data: {
             type: 'message_created',
             conversationId: conversation.id,

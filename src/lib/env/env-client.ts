@@ -12,7 +12,7 @@ const publicEnvSchema = z.object({
   NEXT_PUBLIC_META_API_VERSION: z.string().default('v25.0'),
   NEXT_PUBLIC_META_APP_ID: z.string().min(1, 'NEXT_PUBLIC_META_APP_ID is required'),
   NEXT_PUBLIC_META_CONFIG_ID: z.string().min(1, 'NEXT_PUBLIC_META_CONFIG_ID is required'),
-  NEXT_PUBLIC_CENTRIFUGO_URL: z.string().url().optional(),
+  NEXT_PUBLIC_CENTRIFUGO_URL: z.string().url('NEXT_PUBLIC_CENTRIFUGO_URL must be a valid URL'),
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
 })
 
@@ -33,6 +33,4 @@ if (!parsed.success) {
   console.error('[env-client] Invalid public environment variables:', parsed.error.flatten().fieldErrors)
 }
 
-export const envClient = parsed.success 
-  ? parsed.data 
-  : ({} as z.infer<typeof publicEnvSchema>)
+export const envClient = parsed.success ? parsed.data : ({} as z.infer<typeof publicEnvSchema>)

@@ -2,7 +2,12 @@ import { Centrifuge } from 'centrifuge'
 import { envClient } from '@/lib/env/env-client'
 
 export function createCentrifugoClient(token: string) {
-  const client = new Centrifuge(envClient.NEXT_PUBLIC_CENTRIFUGO_URL!, {
+  const centrifugoUrl = envClient.NEXT_PUBLIC_CENTRIFUGO_URL
+  if (!centrifugoUrl) {
+    throw new Error('[Centrifugo] NEXT_PUBLIC_CENTRIFUGO_URL is not configured')
+  }
+
+  const client = new Centrifuge(centrifugoUrl, {
     token,
   })
 

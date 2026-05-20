@@ -170,13 +170,36 @@ export async function listWhatsAppChatMessages(params: ListChatMessagesParams) {
       orderBy: { timestamp: 'desc' },
       skip,
       take: params.pageSize,
+      select: {
+        id: true,
+        leadId: true,
+        type: true,
+        body: true,
+        status: true,
+        timestamp: true,
+        direction: {
+          select: {
+            name: true,
+          },
+        },
+      },
     }),
     prisma.message.count({ where: { leadId } }),
   ])
 
+  const normalizedItems = items.map((item) => ({
+    id: item.id,
+    leadId: item.leadId,
+    type: item.type,
+    body: item.body,
+    status: item.status,
+    timestamp: item.timestamp,
+    direction: item.direction.name as 'INBOUND' | 'OUTBOUND',
+  }))
+
   return {
     data: {
-      items: items.reverse(),
+      items: normalizedItems.reverse(),
       total,
       page: params.page,
       pageSize: params.pageSize,

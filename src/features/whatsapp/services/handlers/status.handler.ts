@@ -1,6 +1,7 @@
 import "server-only"
 import { updateRecipientStatusFromWebhook } from '@/features/whatsapp/services/whatsapp-campaign-attribution.service'
 import { WhatsAppTemplateAnalyticsService } from '@/features/whatsapp/services/whatsapp-template-analytics.service'
+import { buildOrgMessagesChannel } from '@/lib/centrifugo/channels'
 import { publishToCentrifugo } from '@/lib/centrifugo/server'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/utils/logger'
@@ -117,7 +118,7 @@ export async function statusHandler(payload: any): Promise<void> {
       logger.info(`[StatusHandler] Updated ${wamid}: ${message.status} -> ${newStatus}`)
 
       // Publish real-time event
-      await publishToCentrifugo(`org:${config.organizationId}:messages`, {
+      await publishToCentrifugo(buildOrgMessagesChannel(config.organizationId), {
         type: 'message_status_updated',
         messageId: message.id,
         wamid,
