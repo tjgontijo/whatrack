@@ -62,8 +62,10 @@ export function LaunchpadScreen({
     router.refresh()
   })
 
-  const completedCount = items.filter((item) => item.completed).length
+  const completionByItem = items.map((item) => item.completed || optimisticCompleted[item.id] === true)
+  const completedCount = completionByItem.filter(Boolean).length
   const progress = Math.round((completedCount / items.length) * 100)
+  const firstPendingIndex = completionByItem.findIndex((done) => !done)
 
   const basePath = `/${organizationSlug}/${projectSlug}`
 
@@ -120,15 +122,22 @@ export function LaunchpadScreen({
       {/* Checklist */}
       <div className='mx-auto max-w-6xl px-6 py-12'>
         <div className='space-y-3'>
-          {items.map((item) => {
+          {items.map((item, index) => {
             const Icon = ICON_MAP[item.icon as keyof typeof ICON_MAP]
             const itemHref = `${basePath}${item.href}`
             const isActionItem = ['org-name', 'fiscal-data', 'whatsapp', 'meta-ads', 'pipeline'].includes(
               item.id
             )
+            const isCompleted = completionByItem[index]
+            const isLocked = !isCompleted && firstPendingIndex !== -1 && index > firstPendingIndex
 
             const handleClick = (e: React.MouseEvent) => {
-              if (isActionItem && !item.completed) {
+              if (isLocked) {
+                e.preventDefault()
+                return
+              }
+
+              if (isActionItem && !isCompleted) {
                 e.preventDefault()
                 if (item.id === 'org-name') {
                   setOpenModal('org')
@@ -144,13 +153,13 @@ export function LaunchpadScreen({
               }
             }
 
-            const isCompleted = item.completed || optimisticCompleted[item.id] === true
-
             const card = (
               <div
                 className={`group relative rounded-xl border p-4 transition-all duration-200 ${
                   isCompleted
                     ? 'border-green-500/30 bg-green-500/5 hover:border-green-500/40'
+                    : isLocked
+                      ? 'border-border/60 bg-muted/20 opacity-60'
                     : 'border-border bg-muted/30 hover:border-border/80 hover:bg-muted/40'
                 }`}
               >
@@ -180,6 +189,8 @@ export function LaunchpadScreen({
                     className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 font-medium text-xs ${
                       isCompleted
                         ? 'bg-green-500/10 text-green-700 dark:text-green-400'
+                        : isLocked
+                          ? 'bg-muted text-muted-foreground/80'
                         : 'bg-muted text-muted-foreground'
                     }`}
                   >
@@ -188,6 +199,8 @@ export function LaunchpadScreen({
                         <CheckCircle2 className='h-3 w-3' />
                         Concluído
                       </>
+                    ) : isLocked ? (
+                      'Bloqueado'
                     ) : (
                       'Pendente'
                     )}
@@ -196,17 +209,22 @@ export function LaunchpadScreen({
               </div>
             )
 
-            if (isActionItem && !item.completed) {
+            if (isActionItem && !isCompleted) {
               return (
                 <button
                   key={item.id}
                   type='button'
                   onClick={handleClick}
+                  disabled={isLocked}
                   className='w-full text-left'
                 >
                   {card}
                 </button>
               )
+            }
+
+            if (isLocked) {
+              return <div key={item.id}>{card}</div>
             }
 
             return (

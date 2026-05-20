@@ -1,4 +1,9 @@
 #!/bin/bash
+
+if [ -z "${BASH_VERSION:-}" ]; then
+  exec bash "$0" "$@"
+fi
+
 set -euo pipefail
 
 # Cores para output
@@ -21,16 +26,22 @@ print_box() {
 }
 
 # Trap para tratar erros
-trap 'echo -e "${RED}❌ Erro ao executar reset-db${NC}"; exit 1' ERR
+trap 'printf "%b\n" "${RED}❌ Erro ao executar reset-db${NC}"; exit 1' ERR
+
+# Gerenciador de pacotes (projeto usa pnpm)
+if ! command -v pnpm >/dev/null 2>&1; then
+  printf "%b\n" "${RED}❌ pnpm não encontrado no PATH. Instale o pnpm para continuar.${NC}"
+  exit 1
+fi
 
 # 1. Limpeza de arquivos locais e cache
 print_box "🧹 Limpando arquivos locais e cache..."
 rm -rf .next .turbo node_modules/.cache prisma/generated prisma/migrations public/sw.js public/manifest.webmanifest public/*.js || true
-npm cache clean --force
+pnpm store prune || true
 
 # 3. Instalação de dependências
 print_box "📦 Verificando dependências..."
-npm install
+pnpm install --frozen-lockfile
 
 # 4. Reset do Banco de Dados e Migrations
 print_box "🗑️ Resetando Banco de Dados..."
@@ -62,9 +73,9 @@ fi
 # fi
 
 echo ""
-echo -e "${GREEN}╔════════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${GREEN}║  ✅ Processo de Reset concluído com sucesso!                  ║${NC}"
-echo -e "${GREEN}║                                                                ║${NC}"
-echo -e "${GREEN}║  Base de dados resetada e pronta para desenvolvimento          ║${NC}"
-echo -e "${GREEN}╚════════════════════════════════════════════════════════════════╝${NC}"
+printf "%b\n" "${GREEN}╔════════════════════════════════════════════════════════════════╗${NC}"
+printf "%b\n" "${GREEN}║  ✅ Processo de Reset concluído com sucesso!                  ║${NC}"
+printf "%b\n" "${GREEN}║                                                                ║${NC}"
+printf "%b\n" "${GREEN}║  Base de dados resetada e pronta para desenvolvimento          ║${NC}"
+printf "%b\n" "${GREEN}╚════════════════════════════════════════════════════════════════╝${NC}"
 echo ""

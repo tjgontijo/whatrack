@@ -66,6 +66,7 @@ export function RenameOrganizationModal({
           id='org-name'
           {...form.register('organizationName')}
           placeholder='Digite o nome da sua organização'
+          autoFocus
           disabled={isLoading}
           className='h-11 px-4'
         />

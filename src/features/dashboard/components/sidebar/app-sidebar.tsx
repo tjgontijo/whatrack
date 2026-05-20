@@ -117,15 +117,6 @@ export function AppSidebar({
           icon: 'MessageSquare',
           permission: 'view:whatsapp',
         },
-        ...(showLaunchpad
-          ? [
-              {
-                title: 'Configurar conta',
-                href: `${basePath}/launchpad`,
-                icon: 'Rocket',
-              } satisfies NavItem,
-            ]
-          : []),
       ],
     },
     {
@@ -273,6 +264,14 @@ export function AppSidebar({
   const getVisibleItems = (items: NavItem[]) =>
     items.filter((item) => !item.permission || permissionSet.has(item.permission))
 
+  const launchpadItem: NavItem | null = showLaunchpad
+    ? {
+        title: 'Configurar conta',
+        href: `${basePath}/launchpad`,
+        icon: 'Rocket',
+      }
+    : null
+
   const renderItem = (item: NavItem) => {
     if (item.permission && !permissionSet.has(item.permission)) return null
     const Icon = ICON_MAP[item.icon]
@@ -324,6 +323,12 @@ export function AppSidebar({
           </div>
         ) : (
           <div className='flex flex-col gap-0 px-2'>
+            {launchpadItem ? (
+              <div className='mb-2'>
+                <div className='flex flex-col gap-0.5'>{renderItem(launchpadItem)}</div>
+              </div>
+            ) : null}
+
             {appGroups.map((group) => {
               const visible = getVisibleItems(group.items)
               if (visible.length === 0) return null

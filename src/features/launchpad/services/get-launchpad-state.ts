@@ -95,14 +95,6 @@ export async function getLaunchpadState(
       icon: 'Building2',
     },
     {
-      id: 'fiscal-data',
-      title: 'Completar cadastro com dados fiscais',
-      description: 'Adicione CPF ou CNPJ da sua empresa',
-      completed: hasFiscalData,
-      href: '/settings/organization',
-      icon: 'Building2',
-    },
-    {
       id: 'whatsapp',
       title: 'Conectar WhatsApp',
       description: 'Integre seu WhatsApp Business para automação',
@@ -125,6 +117,14 @@ export async function getLaunchpadState(
       completed: hasPipeline,
       href: '/deals',
       icon: 'Kanban',
+    },
+    {
+      id: 'fiscal-data',
+      title: 'Completar cadastro com dados fiscais',
+      description: 'Adicione CPF ou CNPJ da sua empresa',
+      completed: hasFiscalData,
+      href: '/settings/organization',
+      icon: 'Building2',
     },
     {
       id: 'billing',

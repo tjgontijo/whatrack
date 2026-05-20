@@ -38,7 +38,6 @@ type DashboardTopbarProps = {
   projectName: string
   projectSlug: string
   projects?: Project[]
-  hasOrganization?: boolean
   identityComplete?: boolean
 }
 
@@ -50,7 +49,6 @@ export function DashboardTopbar({
   projectName,
   projectSlug,
   projects = [],
-  hasOrganization,
   identityComplete,
 }: DashboardTopbarProps) {
   const pathname = usePathname()
@@ -195,10 +193,10 @@ export function DashboardTopbar({
         </PopoverContent>
       </Popover>
 
-      {hasOrganization !== undefined && identityComplete !== undefined ? (
+      {identityComplete !== undefined ? (
         <div className='hidden md:flex'>
           <OrganizationStatusBadge
-            hasOrganization={hasOrganization}
+            launchpadHref={`${basePath}/launchpad`}
             identityComplete={identityComplete}
           />
         </div>

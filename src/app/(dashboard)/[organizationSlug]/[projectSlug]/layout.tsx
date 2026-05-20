@@ -64,7 +64,6 @@ export default async function ProjectScopedLayout({ children, params }: ProjectS
           projectName={projectName}
           projectSlug={projectSlug}
           projects={projects}
-          hasOrganization={true}
           identityComplete={identityComplete}
         />
 

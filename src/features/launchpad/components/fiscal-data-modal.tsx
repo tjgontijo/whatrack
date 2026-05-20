@@ -15,13 +15,18 @@ interface FiscalDataModalProps {
 }
 
 export function FiscalDataModal({ organizationId, onSuccess }: FiscalDataModalProps) {
-  const [documentType, setDocumentType] = useState<CpfCnpjType>('cnpj')
+  const [documentType, setDocumentType] = useState<CpfCnpjType | null>(null)
   const [documentNumber, setDocumentNumber] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
-  const masked = applyCpfCnpjMask(documentNumber, documentType)
+  const masked = documentType ? applyCpfCnpjMask(documentNumber, documentType) : documentNumber
 
   async function handleSubmit() {
+    if (!documentType) {
+      toast.error('Selecione Pessoa Física ou Pessoa Jurídica')
+      return
+    }
+
     const normalizedDocument = stripCpfCnpj(documentNumber)
 
     if (!validateDocumentByType(documentType, normalizedDocument)) {
@@ -103,19 +108,21 @@ export function FiscalDataModal({ organizationId, onSuccess }: FiscalDataModalPr
         </div>
       </div>
 
-      <div className='space-y-2'>
-        <Label htmlFor='fiscal-document'>{documentType === 'cnpj' ? 'CNPJ' : 'CPF'}</Label>
-        <Input
-          id='fiscal-document'
-          value={masked}
-          onChange={(event) => setDocumentNumber(stripCpfCnpj(event.target.value))}
-          placeholder={documentType === 'cnpj' ? '00.000.000/0000-00' : '000.000.000-00'}
-          disabled={isLoading}
-          className='h-11 px-4'
-        />
-      </div>
+      {documentType ? (
+        <div className='space-y-2'>
+          <Label htmlFor='fiscal-document'>{documentType === 'cnpj' ? 'CNPJ' : 'CPF'}</Label>
+          <Input
+            id='fiscal-document'
+            value={masked}
+            onChange={(event) => setDocumentNumber(stripCpfCnpj(event.target.value))}
+            placeholder={documentType === 'cnpj' ? '00.000.000/0000-00' : '000.000.000-00'}
+            disabled={isLoading}
+            className='h-11 px-4'
+          />
+        </div>
+      ) : null}
 
-      <Button type='button' onClick={handleSubmit} disabled={isLoading} className='w-full'>
+      <Button type='button' onClick={handleSubmit} disabled={isLoading || !documentType} className='w-full'>
         {isLoading ? 'Salvando...' : 'Salvar'}
       </Button>
     </div>
