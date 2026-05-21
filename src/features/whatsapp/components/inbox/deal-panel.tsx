@@ -16,10 +16,10 @@ import {
   Smartphone,
   Timer,
   User,
+  type LucideIcon,
 } from 'lucide-react'
 import * as React from 'react'
 import { toast } from 'sonner'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
@@ -48,19 +48,21 @@ interface DealPanelProps {
   chat?: ChatItem
 }
 
+interface DealStage {
+  id: string
+  name: string
+  color: string
+  order: number
+  isClosed: boolean
+}
+
 interface DealResponse {
   id: string
   status: string
   windowOpen: boolean
   windowExpiresAt: string | null
   dealValue: string | null
-  stage: {
-    id: string
-    name: string
-    color: string
-    order: number
-    isClosed: boolean
-  }
+  stage: DealStage
   assignee: {
     id: string
     name: string | null
@@ -93,6 +95,10 @@ interface DealResponse {
   }
 }
 
+interface DealStagesResponse {
+  items: DealStage[]
+}
+
 const STATUS_BADGE_MAP: Record<string, { bg: string; text: string; label: string }> = {
   open: { bg: 'bg-amber-500/10', text: 'text-amber-700', label: 'Aberto' },
   closed_won: {
@@ -101,6 +107,35 @@ const STATUS_BADGE_MAP: Record<string, { bg: string; text: string; label: string
     label: 'Ganho',
   },
   closed_lost: { bg: 'bg-red-500/10', text: 'text-red-700', label: 'Perdido' },
+}
+
+function AccordionTitle({ icon: Icon, children }: { icon: LucideIcon; children: React.ReactNode }) {
+  return (
+    <span className='inline-flex items-center gap-2'>
+      <Icon className='h-3.5 w-3.5 text-muted-foreground' />
+      {children}
+    </span>
+  )
+}
+
+function InfoRow({
+  label,
+  value,
+  icon: Icon,
+}: {
+  label: string
+  value: React.ReactNode
+  icon?: LucideIcon
+}) {
+  return (
+    <div className='flex items-center justify-between gap-3'>
+      <span className='flex min-w-0 items-center gap-2 text-muted-foreground'>
+        {Icon ? <Icon className='h-3.5 w-3.5 shrink-0' /> : null}
+        <span className='truncate'>{label}</span>
+      </span>
+      <span className='min-w-0 truncate text-right font-medium'>{value}</span>
+    </div>
+  )
 }
 
 export function DealPanel({ conversationId, organizationId, projectId, chat }: DealPanelProps) {
@@ -133,7 +168,7 @@ export function DealPanel({ conversationId, organizationId, projectId, chat }: D
         orgId: organizationId,
         projectId,
       })
-      return (data as any) || { items: [] }
+      return (data as DealStagesResponse) || { items: [] }
     },
 
     enabled: !!organizationId,
@@ -144,7 +179,7 @@ export function DealPanel({ conversationId, organizationId, projectId, chat }: D
     deal,
     (state, newStageId: string) => {
       if (!state) return state
-      const newStage = stages.find((s: any) => s.id === newStageId)
+      const newStage = stages.find((stage) => stage.id === newStageId)
       return {
         ...state,
         stage: newStage ? { ...state.stage, ...newStage } : state.stage,
@@ -230,16 +265,30 @@ export function DealPanel({ conversationId, organizationId, projectId, chat }: D
   }
 
   const currentDeal = optimisticDeal ?? deal
-  const statusBadge = STATUS_BADGE_MAP[currentDeal.status || 'open']
+  const statusBadge = STATUS_BADGE_MAP[currentDeal.status || 'open'] ?? STATUS_BADGE_MAP.open
   const quickSource = currentDeal.tracking?.sourceType === 'paid' ? 'Meta Ads' : 'Orgânico'
+  const trackingRows = [
+    { label: 'Origem', value: quickSource },
+    { label: 'Campanha', value: currentDeal.tracking?.utmCampaign },
+    { label: 'Conjunto', value: currentDeal.tracking?.utmMedium },
+    { label: 'Anúncio', value: currentDeal.tracking?.utmSource },
+    { label: 'Landing', value: currentDeal.tracking?.landingPage },
+    { label: 'Referrer', value: currentDeal.tracking?.referrerUrl },
+  ].filter((row) => row.value)
 
   return (
     <div className='flex h-full min-h-0 flex-col border-border/40 border-l bg-background'>
       <div className='custom-scrollbar flex-1 overflow-y-auto overflow-x-hidden'>
-        <div className='flex flex-col space-y-6 p-6'>
-          <Accordion type='multiple' defaultValue={['contact', 'opportunity']} className='w-full'>
-            <AccordionItem value='contact' className='border-border/50'>
-              <AccordionTrigger className='py-3 text-sm font-semibold'>Contato</AccordionTrigger>
+        <div className='flex flex-col'>
+          <Accordion
+            type='multiple'
+            defaultValue={['contact', 'opportunity']}
+            className='w-full rounded-none border-0'
+          >
+            <AccordionItem value='contact' className='border-border/50 data-open:bg-transparent'>
+              <AccordionTrigger className='py-3 font-semibold text-sm'>
+                <AccordionTitle icon={User}>Contato</AccordionTitle>
+              </AccordionTrigger>
               <AccordionContent className='space-y-3 pb-4'>
                 <div className='space-y-1'>
                   <h2 className='font-semibold text-base'>{chat?.name || 'Lead'}</h2>
@@ -255,39 +304,36 @@ export function DealPanel({ conversationId, organizationId, projectId, chat }: D
                     </button>
                   </div>
                 </div>
-                <div className='flex flex-wrap gap-2'>
-                  <Badge className={`${statusBadge.bg} ${statusBadge.text} border-0`}>{statusBadge.label}</Badge>
-                  <Badge variant='outline'>{quickSource}</Badge>
-                  {currentDeal.tracking?.utmCampaign && (
-                    <Badge variant='secondary' className='max-w-[180px] truncate'>
-                      {currentDeal.tracking.utmCampaign}
-                    </Badge>
-                  )}
-                </div>
                 <div className='grid gap-2 rounded-md border border-border/50 bg-muted/20 p-3 text-sm'>
-                  <div className='flex items-center justify-between'>
-                    <span className='text-muted-foreground'>Primeiro contato</span>
-                    <span>{formatDate(currentDeal.leadInsights?.firstMessageAt)}</span>
-                  </div>
-                  <div className='flex items-center justify-between'>
-                    <span className='text-muted-foreground'>Cliente desde</span>
-                    <span>{formatDate(currentDeal.kpis?.createdAt)}</span>
-                  </div>
+                  <InfoRow
+                    label='Primeiro contato'
+                    value={formatDate(currentDeal.leadInsights?.firstMessageAt)}
+                  />
                 </div>
               </AccordionContent>
             </AccordionItem>
 
-            <AccordionItem value='opportunity' className='border-border/50'>
-              <AccordionTrigger className='py-3 text-sm font-semibold'>Oportunidade</AccordionTrigger>
+            <AccordionItem
+              value='opportunity'
+              className='border-border/50 data-open:bg-transparent'
+            >
+              <AccordionTrigger className='py-3 font-semibold text-sm'>
+                <AccordionTitle icon={CircleDot}>Oportunidade</AccordionTitle>
+              </AccordionTrigger>
               <AccordionContent className='space-y-3 pb-4'>
                 <div className='space-y-1.5'>
-                  <Label className='text-[10px] text-muted-foreground uppercase tracking-wider'>Etapa do Funil</Label>
+                  <Label className='text-[10px] text-muted-foreground uppercase tracking-wider'>
+                    Etapa do Funil
+                  </Label>
                   <Select value={currentDeal.stage?.id || ''} onValueChange={handleUpdateStage}>
                     <SelectTrigger className='h-9 w-full border-border/50 bg-card shadow-sm'>
                       <SelectValue>
                         {currentDeal.stage ? (
                           <div className='flex items-center gap-2'>
-                            <div className='h-2 w-2 rounded-full' style={{ backgroundColor: currentDeal.stage.color }} />
+                            <div
+                              className='h-2 w-2 rounded-full'
+                              style={{ backgroundColor: currentDeal.stage.color }}
+                            />
                             <span className='font-medium text-sm'>{currentDeal.stage.name}</span>
                           </div>
                         ) : (
@@ -296,10 +342,13 @@ export function DealPanel({ conversationId, organizationId, projectId, chat }: D
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      {stages.map((stage: any) => (
+                      {stages.map((stage) => (
                         <SelectItem key={stage.id} value={stage.id}>
                           <div className='flex items-center gap-2'>
-                            <div className='h-2 w-2 rounded-full' style={{ backgroundColor: stage.color }} />
+                            <div
+                              className='h-2 w-2 rounded-full'
+                              style={{ backgroundColor: stage.color }}
+                            />
                             <span className='font-medium text-sm'>{stage.name}</span>
                           </div>
                         </SelectItem>
@@ -309,149 +358,127 @@ export function DealPanel({ conversationId, organizationId, projectId, chat }: D
                 </div>
 
                 <div className='space-y-2 rounded-md border border-border/50 bg-muted/20 p-3'>
-                  <div className='flex items-center justify-between text-sm'>
-                    <span className='flex items-center gap-2 text-muted-foreground'>
-                      <CircleDot className='h-3.5 w-3.5' />
-                      Status
-                    </span>
-                    <span className='font-medium'>{statusBadge.label}</span>
-                  </div>
-                  <div className='flex items-center justify-between text-sm'>
-                    <span className='flex items-center gap-2 text-muted-foreground'>
-                      <User className='h-3.5 w-3.5' />
-                      Responsável
-                    </span>
-                    <span className='font-medium'>{currentDeal.assignee?.name || 'Não atribuído'}</span>
-                  </div>
-                  <div className='flex items-center justify-between text-sm'>
-                    <span className='flex items-center gap-2 text-muted-foreground'>
-                      <DollarSign className='h-3.5 w-3.5' />
-                      Valor estimado
-                    </span>
-                    <span className='font-medium'>{formatDealValue(currentDeal.dealValue)}</span>
-                  </div>
+                  <InfoRow
+                    icon={CircleDot}
+                    label='Status'
+                    value={
+                      <Badge className={`${statusBadge.bg} ${statusBadge.text} border-0`}>
+                        {statusBadge.label}
+                      </Badge>
+                    }
+                  />
+                  <InfoRow
+                    icon={User}
+                    label='Responsável'
+                    value={currentDeal.assignee?.name || 'Não atribuído'}
+                  />
+                  <InfoRow
+                    icon={DollarSign}
+                    label='Valor estimado'
+                    value={formatDealValue(currentDeal.dealValue)}
+                  />
+                  {currentDeal.closedAt ? (
+                    <InfoRow label='Fechamento' value={formatDate(currentDeal.closedAt)} />
+                  ) : null}
+                  {currentDeal.closedReason ? (
+                    <InfoRow label='Motivo' value={currentDeal.closedReason} />
+                  ) : null}
                 </div>
               </AccordionContent>
             </AccordionItem>
 
-            <AccordionItem value='future-summary' className='border-border/50'>
-              <AccordionTrigger className='py-3 text-sm font-semibold'>
-                Resumo da conversa com o lead (futuro)
+            <AccordionItem value='service' className='border-border/50 data-open:bg-transparent'>
+              <AccordionTrigger className='py-3 font-semibold text-sm'>
+                <AccordionTitle icon={MessageSquare}>Atendimento</AccordionTitle>
               </AccordionTrigger>
-              <AccordionContent className='pb-4 text-muted-foreground text-sm'>
-                Resumo inteligente ainda não disponível para esta conversa.
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem value='service' className='border-border/50'>
-              <AccordionTrigger className='py-3 text-sm font-semibold'>Atendimento</AccordionTrigger>
               <AccordionContent className='space-y-2 pb-4'>
                 <div className='flex items-center justify-between rounded-md border border-border/50 bg-card px-3 py-2 text-sm'>
                   <span className='flex items-center gap-2 text-muted-foreground'>
                     <MessageSquare className='h-3.5 w-3.5' />
-                    Volume
+                    Mensagens
                   </span>
                   <span className='font-medium'>
                     <span className='inline-flex items-center gap-1 text-green-600'>
                       <ArrowUpRight className='h-3 w-3' />
-                      {currentDeal.kpis.outboundMessagesCount}
+                      {currentDeal.kpis.outboundMessagesCount} enviadas
                     </span>
                     {' / '}
                     <span className='inline-flex items-center gap-1 text-blue-600'>
                       <ArrowDownRight className='h-3 w-3' />
-                      {currentDeal.kpis.inboundMessagesCount}
+                      {currentDeal.kpis.inboundMessagesCount} recebidas
                     </span>
                   </span>
                 </div>
                 <div className='grid gap-2 rounded-md border border-border/50 bg-muted/20 p-3 text-sm'>
-                  <div className='flex items-center justify-between'>
-                    <span className='text-muted-foreground'>1ª resposta</span>
-                    <span>{formatTimer(currentDeal.kpis.firstResponseTimeSec)}</span>
-                  </div>
-                  <div className='flex items-center justify-between'>
-                    <span className='text-muted-foreground'>Resolução</span>
-                    <span>{formatTimer(currentDeal.kpis.resolutionTimeSec)}</span>
-                  </div>
+                  <InfoRow
+                    icon={Timer}
+                    label='Primeira resposta'
+                    value={formatTimer(currentDeal.kpis.firstResponseTimeSec)}
+                  />
+                  <InfoRow
+                    label='Resolução'
+                    value={
+                      currentDeal.kpis.resolutionTimeSec
+                        ? formatTimer(currentDeal.kpis.resolutionTimeSec)
+                        : 'Em aberto'
+                    }
+                  />
                 </div>
               </AccordionContent>
             </AccordionItem>
 
-            <AccordionItem value='traceability' className='border-border/50'>
-              <AccordionTrigger className='py-3 text-sm font-semibold'>Rastreabilidade</AccordionTrigger>
+            <AccordionItem
+              value='traceability'
+              className='border-border/50 data-open:bg-transparent'
+            >
+              <AccordionTrigger className='py-3 font-semibold text-sm'>
+                <AccordionTitle icon={Megaphone}>Origem</AccordionTitle>
+              </AccordionTrigger>
               <AccordionContent className='space-y-2 pb-4 text-sm'>
                 <div className='grid gap-2 rounded-md border border-border/50 bg-muted/20 p-3'>
-                  <div className='flex items-center justify-between'>
-                    <span className='text-muted-foreground'>Origem</span>
-                    <span>{quickSource}</span>
-                  </div>
-                  <div className='flex items-center justify-between'>
-                    <span className='text-muted-foreground'>Campanha</span>
-                    <span className='max-w-[160px] truncate text-right'>{currentDeal.tracking?.utmCampaign || '--'}</span>
-                  </div>
-                  <div className='flex items-center justify-between'>
-                    <span className='text-muted-foreground'>Conjunto</span>
-                    <span className='max-w-[160px] truncate text-right'>{currentDeal.tracking?.utmMedium || '--'}</span>
-                  </div>
-                  <div className='flex items-center justify-between'>
-                    <span className='text-muted-foreground'>Anúncio</span>
-                    <span className='max-w-[160px] truncate text-right'>{currentDeal.tracking?.utmSource || '--'}</span>
-                  </div>
-                  <div className='flex items-center justify-between'>
-                    <span className='text-muted-foreground'>ctwaclid</span>
-                    <span className='max-w-[160px] truncate text-right'>{currentDeal.tracking?.ctwaclid || '--'}</span>
-                  </div>
-                  <div className='flex items-center justify-between'>
-                    <span className='text-muted-foreground'>Landing</span>
-                    <span className='max-w-[160px] truncate text-right'>{currentDeal.tracking?.landingPage || '--'}</span>
-                  </div>
-                  <div className='flex items-center justify-between'>
-                    <span className='text-muted-foreground'>Referrer</span>
-                    <span className='max-w-[160px] truncate text-right'>{currentDeal.tracking?.referrerUrl || '--'}</span>
-                  </div>
+                  {trackingRows.map((row) => (
+                    <InfoRow
+                      key={row.label}
+                      label={row.label}
+                      value={<span className='truncate'>{row.value}</span>}
+                    />
+                  ))}
                 </div>
               </AccordionContent>
             </AccordionItem>
 
-            <AccordionItem value='history' className='border-border/50'>
-              <AccordionTrigger className='py-3 text-sm font-semibold'>Histórico do Cliente</AccordionTrigger>
+            <AccordionItem value='history' className='border-border/50 data-open:bg-transparent'>
+              <AccordionTrigger className='py-3 font-semibold text-sm'>
+                <AccordionTitle icon={Timer}>Histórico do contato</AccordionTitle>
+              </AccordionTrigger>
               <AccordionContent className='space-y-2 pb-4 text-sm'>
                 <div className='grid gap-2 rounded-md border border-border/50 bg-muted/20 p-3'>
-                  <div className='flex items-center justify-between'>
-                    <span className='text-muted-foreground'>Total de deals</span>
-                    <span>{currentDeal.leadInsights?.totalDeals ?? 0}</span>
-                  </div>
-                  <div className='flex items-center justify-between'>
-                    <span className='text-muted-foreground'>LTV</span>
-                    <span>{formatDealValue(currentDeal.leadInsights?.lifetimeValue)}</span>
-                  </div>
-                  <div className='flex items-center justify-between'>
-                    <span className='text-muted-foreground'>Primeiro contato</span>
-                    <span>{formatDate(currentDeal.leadInsights?.firstMessageAt)}</span>
-                  </div>
-                  <div className='flex items-center justify-between'>
-                    <span className='text-muted-foreground'>Cliente desde</span>
-                    <span>{formatDate(currentDeal.kpis?.createdAt)}</span>
-                  </div>
+                  <InfoRow
+                    label='Total de oportunidades'
+                    value={currentDeal.leadInsights?.totalDeals ?? 0}
+                  />
+                  <InfoRow
+                    label='LTV'
+                    value={formatDealValue(currentDeal.leadInsights?.lifetimeValue)}
+                  />
                 </div>
               </AccordionContent>
             </AccordionItem>
 
-            <AccordionItem value='diagnostic' className='border-border/50'>
-              <AccordionTrigger className='py-3 text-sm font-semibold'>
-                <span className='inline-flex items-center gap-2'>
-                  <Microscope className='h-3.5 w-3.5 text-muted-foreground' />
-                  Diagnóstico
-                </span>
+            <AccordionItem value='diagnostic' className='border-border/50 data-open:bg-transparent'>
+              <AccordionTrigger className='py-3 font-semibold text-sm'>
+                <AccordionTitle icon={Microscope}>Diagnóstico</AccordionTitle>
               </AccordionTrigger>
               <AccordionContent className='space-y-3 pb-4'>
-                <div className='rounded-md border border-border/50 bg-muted/20 px-3 py-2 text-sm'>
-                  <div className='flex items-center justify-between'>
-                    <span className='inline-flex items-center gap-2 text-muted-foreground'>
-                      <Route className='h-3.5 w-3.5' />
-                      Janela WhatsApp
-                    </span>
-                    <span>{currentDeal.windowOpen ? 'Aberta' : 'Fechada'}</span>
-                  </div>
+                <div className='grid gap-2 rounded-md border border-border/50 bg-muted/20 px-3 py-2 text-sm'>
+                  <InfoRow
+                    icon={Route}
+                    label='Janela WhatsApp'
+                    value={currentDeal.windowOpen ? 'Aberta' : 'Fechada'}
+                  />
+                  {currentDeal.tracking?.ctwaclid ? (
+                    <InfoRow label='ctwaclid' value={currentDeal.tracking.ctwaclid} />
+                  ) : null}
                 </div>
                 <ConversationIntelligencePanel
                   conversationId={conversationId}
