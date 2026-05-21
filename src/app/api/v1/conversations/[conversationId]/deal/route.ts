@@ -20,7 +20,7 @@ export async function GET(
     const result = await getConversationOpenDeal({
       organizationId: access.organizationId,
       conversationId,
-      includeTechnicalTracking: isAdmin(access.role) || isAdmin(access.globalRole),
+      includeTechnicalTracking: isAdmin(access.globalRole),
     })
 
     if ('error' in result) {
