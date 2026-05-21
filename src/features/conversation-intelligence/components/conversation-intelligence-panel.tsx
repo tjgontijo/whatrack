@@ -1,12 +1,6 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import {
-  Clock,
-  Hash,
-  Link2,
-  Timer,
-} from 'lucide-react'
 import { apiFetch } from '@/lib/http/api-client'
 import type { ConversationIntelligenceDTO } from '../schemas/conversation-intelligence.schemas'
 
@@ -23,7 +17,9 @@ function formatSeconds(sec: number | null | undefined): string {
   if (abs < 3600) {
     const m = Math.floor(abs / 60)
     const s = abs % 60
-    return s > 0 ? `${Math.sign(sec) < 0 ? '-' : ''}${m}min ${s}s` : `${Math.sign(sec) < 0 ? '-' : ''}${m}min`
+    return s > 0
+      ? `${Math.sign(sec) < 0 ? '-' : ''}${m}min ${s}s`
+      : `${Math.sign(sec) < 0 ? '-' : ''}${m}min`
   }
   const h = Math.floor(abs / 3600)
   const m = Math.floor((abs % 3600) / 60)
@@ -44,16 +40,28 @@ function formatDate(iso: string | null | undefined): string {
 function Row({ label, value }: { label: string; value: string | number | null | undefined }) {
   if (value === null || value === undefined || value === '' || value === '—') return null
   return (
-    <div className='flex items-start justify-between gap-2 border-border/10 border-b py-1.5 last:border-0'>
-      <span className='font-medium text-[10px] text-muted-foreground uppercase tracking-wide shrink-0'>
+    <div className='flex min-h-7 items-start justify-between gap-3 border-border/40 border-b py-1.5 last:border-b-0'>
+      <span className='shrink-0 font-medium text-[10px] text-muted-foreground uppercase tracking-wide'>
         {label}
       </span>
-      <span className='font-mono text-[11px] text-foreground/80 text-right break-all'>{value}</span>
+      <span className='break-all text-right font-mono text-[11px] text-foreground/80'>{value}</span>
     </div>
   )
 }
 
-export function ConversationIntelligencePanel({ conversationId, organizationId, projectId }: Props) {
+function GroupLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div className='pt-2 font-medium text-[10px] text-muted-foreground uppercase tracking-wide'>
+      {children}
+    </div>
+  )
+}
+
+export function ConversationIntelligencePanel({
+  conversationId,
+  organizationId,
+  projectId,
+}: Props) {
   const { data, isLoading, error } = useQuery({
     queryKey: ['conversation-intelligence', conversationId, organizationId],
     queryFn: async () => {
@@ -92,12 +100,8 @@ export function ConversationIntelligencePanel({ conversationId, organizationId, 
   })()
 
   return (
-    <div className='space-y-3'>
-      <section className='rounded-md border border-border/40 bg-muted/10 p-2.5'>
-        <div className='mb-2 flex items-center gap-2 text-[11px] font-semibold'>
-          <Clock className='h-3.5 w-3.5 text-muted-foreground' />
-          Determinístico
-        </div>
+    <div className='grid px-3 py-1 text-sm'>
+      <div className='grid'>
         <Row label='Atualizado em' value={formatDate(computedAt)} />
         <Row label='Último msg do lead' value={formatSeconds(timing.secondsSinceLastInbound)} />
         <Row label='Último contato' value={formatSeconds(timing.secondsSinceLastOutbound)} />
@@ -112,29 +116,23 @@ export function ConversationIntelligencePanel({ conversationId, organizationId, 
                 : null
           }
         />
-      </section>
+      </div>
 
       {pipeline && (
-        <section className='rounded-md border border-border/40 bg-muted/10 p-2.5'>
-          <div className='mb-2 flex items-center gap-2 text-[11px] font-semibold'>
-            <Timer className='h-3.5 w-3.5 text-muted-foreground' />
-            Janela e Pipeline
-          </div>
+        <div className='grid'>
+          <GroupLabel>Janela e Pipeline</GroupLabel>
           <Row label='Deal criado' value={formatDate(pipeline.dealCreatedAt)} />
           <Row label='Deal aberto há' value={formatSeconds(pipeline.dealAgeSec)} />
           <Row label='Etapa atual há' value={formatSeconds(pipeline.stageAgeSec)} />
           <Row label='Janela WhatsApp' value={windowLabel} />
           <Row label='Janela aberta' value={pipeline.windowOpen ? 'Sim' : 'Não'} />
           <Row label='Expira em' value={formatDate(pipeline.windowExpiresAt)} />
-        </section>
+        </div>
       )}
 
       {(attribution || volume) && (
-        <section className='rounded-md border border-border/40 bg-muted/10 p-2.5'>
-          <div className='mb-2 flex items-center gap-2 text-[11px] font-semibold'>
-            <Hash className='h-3.5 w-3.5 text-muted-foreground' />
-            IDs e Ratio
-          </div>
+        <div className='grid'>
+          <GroupLabel>IDs e Ratio</GroupLabel>
           <Row label='Ratio in/out' value={volume?.inboundOutboundRatio?.toFixed(2)} />
           <Row label='ID Meta' value={attribution?.ctwaclid} />
           <Row label='ID Google' value={attribution?.gclid} />
@@ -146,13 +144,8 @@ export function ConversationIntelligencePanel({ conversationId, organizationId, 
           <Row label='Anúncio Meta' value={attribution?.metaAdName} />
           <Row label='Conteúdo UTM' value={attribution?.utmContent} />
           <Row label='Termo UTM' value={attribution?.utmTerm} />
-        </section>
+        </div>
       )}
-
-      <div className='flex items-center gap-2 px-1 text-[10px] text-muted-foreground'>
-        <Link2 className='h-3 w-3' />
-        Fonte: `/api/v1/conversations/{conversationId}/intelligence`
-      </div>
     </div>
   )
 }

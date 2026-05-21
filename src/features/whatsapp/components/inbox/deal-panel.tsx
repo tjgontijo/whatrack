@@ -139,7 +139,7 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
 }
 
 function PropertyList({ children }: { children: React.ReactNode }) {
-  return <div className='grid rounded-md bg-muted/25 px-3 py-1 text-sm'>{children}</div>
+  return <div className='grid px-3 py-1 text-sm'>{children}</div>
 }
 
 function MessageVolume({ sent, received }: { sent: number; received: number }) {
@@ -305,23 +305,23 @@ export function DealPanel({ conversationId, organizationId, projectId, chat }: D
   ].filter((row) => row.value)
   const technicalRows = currentDeal.canViewTechnicalTracking
     ? [
-        { label: 'ctwaclid', value: currentDeal.tracking?.ctwaclid },
-        { label: 'fbclid', value: currentDeal.tracking?.fbclid },
-        { label: 'gclid', value: currentDeal.tracking?.gclid },
-        { label: 'ttclid', value: currentDeal.tracking?.ttclid },
-        { label: 'utm_term', value: currentDeal.tracking?.utmTerm },
-        { label: 'utm_content', value: currentDeal.tracking?.utmContent },
-        { label: 'Meta Ad ID', value: currentDeal.tracking?.metaAdId },
-        { label: 'Meta Ad Set ID', value: currentDeal.tracking?.metaAdSetId },
-        { label: 'Meta Campaign ID', value: currentDeal.tracking?.metaCampaignId },
-        { label: 'Meta Account ID', value: currentDeal.tracking?.metaAccountId },
-      ].filter((row) => row.value)
+        { label: 'ctwaclid', value: currentDeal.tracking?.ctwaclid || '--' },
+        { label: 'fbclid', value: currentDeal.tracking?.fbclid || '--' },
+        { label: 'gclid', value: currentDeal.tracking?.gclid || '--' },
+        { label: 'ttclid', value: currentDeal.tracking?.ttclid || '--' },
+        { label: 'utm_term', value: currentDeal.tracking?.utmTerm || '--' },
+        { label: 'utm_content', value: currentDeal.tracking?.utmContent || '--' },
+        { label: 'Meta Ad ID', value: currentDeal.tracking?.metaAdId || '--' },
+        { label: 'Meta Ad Set ID', value: currentDeal.tracking?.metaAdSetId || '--' },
+        { label: 'Meta Campaign ID', value: currentDeal.tracking?.metaCampaignId || '--' },
+        { label: 'Meta Account ID', value: currentDeal.tracking?.metaAccountId || '--' },
+      ]
     : []
 
   return (
     <div className='flex h-full min-h-0 flex-col border-border/40 border-l bg-background'>
       <div className='custom-scrollbar flex-1 overflow-y-auto overflow-x-hidden'>
-        <div className='flex flex-col'>
+        <div className='flex flex-col pb-8'>
           <Accordion
             type='multiple'
             defaultValue={[
@@ -514,7 +514,7 @@ export function DealPanel({ conversationId, organizationId, projectId, chat }: D
               </AccordionContent>
             </AccordionItem>
 
-            {technicalRows.length > 0 ? (
+            {currentDeal.canViewTechnicalTracking ? (
               <AccordionItem
                 value='technical-tracking'
                 className='border-border/50 data-open:bg-transparent'
