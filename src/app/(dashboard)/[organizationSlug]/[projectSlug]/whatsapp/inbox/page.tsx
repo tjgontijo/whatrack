@@ -10,6 +10,7 @@ import { useRequiredProjectRouteContext } from '@/features/projects/hooks/use-pr
 import { ChatList } from '@/features/whatsapp/components/inbox/chat-list'
 import { ChatWindow } from '@/features/whatsapp/components/inbox/chat-window'
 import { DealPanel } from '@/features/whatsapp/components/inbox/deal-panel'
+import { InstanceSelector } from '@/features/whatsapp/components/inbox/instance-selector'
 import type { ChatItem, ChatListResponse } from '@/features/whatsapp/components/inbox/types'
 import { useRealtime } from '@/features/whatsapp/hooks/use-realtime'
 import { apiFetch } from '@/lib/http/api-client'
@@ -48,7 +49,14 @@ export default function WhatsAppInboxPage() {
       style={{ height: 'calc(100vh - 65px)' }}
     >
       <div className='flex h-12 shrink-0 items-center justify-between border-border border-b px-4'>
-        <h1 className='font-semibold text-sm'>Inbox</h1>
+        <div className='flex min-w-0 items-center gap-3'>
+          <h1 className='font-semibold text-sm'>Inbox</h1>
+          <InstanceSelector
+            selectedInstanceId={selectedInstanceId}
+            onInstanceChange={setSelectedInstanceId}
+            className='w-[270px]'
+          />
+        </div>
         <Button
           variant='ghost'
           size='icon'
@@ -67,8 +75,6 @@ export default function WhatsAppInboxPage() {
               chats={data?.items || []}
               selectedChatId={selectedChat?.id}
               onSelectChat={setSelectedChat}
-              selectedInstanceId={selectedInstanceId}
-              onInstanceChange={setSelectedInstanceId}
               isLoading={isLoading}
               onSearch={setSearchQuery}
             />

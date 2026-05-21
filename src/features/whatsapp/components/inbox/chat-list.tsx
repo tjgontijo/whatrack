@@ -7,15 +7,12 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/utils/utils'
-import { InstanceSelector } from './instance-selector'
 import type { ChatItem } from './types'
 
 interface ChatListProps {
   chats: ChatItem[]
   selectedChatId?: string
   onSelectChat: (chat: ChatItem) => void
-  selectedInstanceId?: string | null
-  onInstanceChange?: (instanceId: string) => void
   isLoading?: boolean
   onSearch: (query: string) => void
 }
@@ -24,8 +21,6 @@ export function ChatList({
   chats,
   selectedChatId,
   onSelectChat,
-  selectedInstanceId,
-  onInstanceChange,
   isLoading,
   onSearch,
 }: ChatListProps) {
@@ -39,18 +34,12 @@ export function ChatList({
 
   return (
     <div className='flex h-full flex-col border-border/40 border-r bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
-      <div className='space-y-4 border-border/40 border-b p-4'>
-        {onInstanceChange && (
-          <InstanceSelector
-            selectedInstanceId={selectedInstanceId || null}
-            onInstanceChange={onInstanceChange}
-          />
-        )}
+      <div className='border-border/40 border-b px-3 py-2.5'>
         <div className='relative'>
-          <Search className='absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
+          <Search className='absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground/70' />
           <Input
             placeholder='Buscar conversa...'
-            className='h-9 rounded-xl border-none bg-muted/40 pl-9 text-sm'
+            className='h-10 border-border/40 bg-muted/15 pl-10 text-sm placeholder:text-muted-foreground/70'
             value={search}
             onChange={handleSearchChange}
           />

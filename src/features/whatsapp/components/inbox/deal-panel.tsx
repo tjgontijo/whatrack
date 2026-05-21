@@ -6,28 +6,27 @@ import {
   ArrowUpRight,
   CircleDot,
   Copy,
+  type LucideIcon,
   Megaphone,
   MessageSquare,
   Microscope,
-  Route,
   RefreshCw,
+  Route,
   ShieldAlert,
   Smartphone,
   Timer,
   User,
-  type LucideIcon,
 } from 'lucide-react'
 import * as React from 'react'
 import { toast } from 'sonner'
-
-import { Badge } from '@/components/ui/badge'
-import { Label } from '@/components/ui/label'
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion'
+import { Badge } from '@/components/ui/badge'
+import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -35,9 +34,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { apiFetch } from '@/lib/http/api-client'
-import { updateDealStageAction } from '@/features/deals/actions/update-deal-stage-action'
 import { ConversationIntelligencePanel } from '@/features/conversation-intelligence/components/conversation-intelligence-panel'
+import { updateDealStageAction } from '@/features/deals/actions/update-deal-stage-action'
+import { apiFetch } from '@/lib/http/api-client'
 import type { ChatItem, ChatListResponse } from './types'
 
 interface DealPanelProps {
@@ -162,7 +161,7 @@ function MessageVolume({ sent, received }: { sent: number; received: number }) {
 }
 
 const SECTION_TRIGGER_CLASS =
-  'border-b border-border/50 bg-muted/25 px-4 py-3 font-semibold text-sm hover:bg-muted/40 hover:no-underline data-[state=open]:bg-muted/35'
+  'h-10 items-center border-b border-border/50 bg-muted/25 px-4 py-0 font-semibold text-sm hover:bg-muted/40 hover:no-underline data-[state=open]:bg-muted/35'
 
 const SECTION_CONTENT_CLASS = 'h-auto px-4 pt-3 pb-5'
 

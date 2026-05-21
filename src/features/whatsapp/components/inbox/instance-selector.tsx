@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import { cn } from '@/lib/utils/utils'
 import {
   Select,
   SelectContent,
@@ -13,6 +14,7 @@ import { useWhatsAppInstances } from '@/features/whatsapp/hooks/use-whatsapp-ins
 interface InstanceSelectorProps {
   selectedInstanceId: string | null
   onInstanceChange: (instanceId: string) => void
+  className?: string
 }
 
 /**
@@ -23,7 +25,11 @@ interface InstanceSelectorProps {
  *
  * Default: "Todas as instâncias" (show all)
  */
-export function InstanceSelector({ selectedInstanceId, onInstanceChange }: InstanceSelectorProps) {
+export function InstanceSelector({
+  selectedInstanceId,
+  onInstanceChange,
+  className,
+}: InstanceSelectorProps) {
   const { data, isLoading, error } = useWhatsAppInstances()
 
   const instances = data?.items || []
@@ -60,7 +66,7 @@ export function InstanceSelector({ selectedInstanceId, onInstanceChange }: Insta
   // Always show "Todas as instâncias" option, even with single instance
   return (
     <Select value={effectiveId} onValueChange={onInstanceChange}>
-      <SelectTrigger className='w-full'>
+      <SelectTrigger className={cn('w-full', className)} size='sm'>
         <SelectValue placeholder='Selecione uma instância' />
       </SelectTrigger>
       <SelectContent>

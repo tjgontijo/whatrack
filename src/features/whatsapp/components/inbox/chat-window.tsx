@@ -45,7 +45,7 @@ export function ChatWindow({ chat, organizationId, projectId }: ChatWindowProps)
   return (
     <div className='relative flex h-full flex-col bg-muted/10'>
       {/* Header */}
-      <header className='sticky top-0 z-10 flex items-center justify-between border-border/60 border-b bg-card/50 p-4 backdrop-blur-md'>
+      <header className='sticky top-0 z-10 flex h-10 items-center justify-between border-border/60 border-b bg-card/50 px-4 backdrop-blur-md'>
         <div className='flex items-center gap-3'>
           <Avatar className='h-10 w-10 border border-border/40'>
             <AvatarImage src={chat.profilePicUrl || undefined} />
