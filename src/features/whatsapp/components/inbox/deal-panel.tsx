@@ -120,9 +120,11 @@ const STATUS_BADGE_MAP: Record<string, { bg: string; text: string; label: string
 
 function AccordionTitle({ icon: Icon, children }: { icon: LucideIcon; children: React.ReactNode }) {
   return (
-    <span className='inline-flex items-center gap-2'>
-      <Icon className='h-3.5 w-3.5 text-muted-foreground' />
-      {children}
+    <span className='inline-flex items-center gap-2.5'>
+      <span className='flex h-6 w-6 items-center justify-center rounded-md bg-background text-muted-foreground shadow-xs ring-1 ring-border/60'>
+        <Icon className='h-3.5 w-3.5' />
+      </span>
+      <span className='font-semibold text-foreground'>{children}</span>
     </span>
   )
 }
@@ -134,6 +136,10 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
       <span className='min-w-0 truncate text-right font-medium text-foreground'>{value}</span>
     </div>
   )
+}
+
+function PropertyList({ children }: { children: React.ReactNode }) {
+  return <div className='grid rounded-md bg-muted/25 px-3 py-1 text-sm'>{children}</div>
 }
 
 function MessageVolume({ sent, received }: { sent: number; received: number }) {
@@ -154,6 +160,11 @@ function MessageVolume({ sent, received }: { sent: number; received: number }) {
     </div>
   )
 }
+
+const SECTION_TRIGGER_CLASS =
+  'border-b border-border/50 bg-muted/25 px-4 py-3 font-semibold text-sm hover:bg-muted/40 hover:no-underline data-[state=open]:bg-muted/35'
+
+const SECTION_CONTENT_CLASS = 'px-4 pt-3 pb-5'
 
 export function DealPanel({ conversationId, organizationId, projectId, chat }: DealPanelProps) {
   const queryClient = useQueryClient()
@@ -325,10 +336,10 @@ export function DealPanel({ conversationId, organizationId, projectId, chat }: D
             className='w-full rounded-none border-0'
           >
             <AccordionItem value='contact' className='border-border/50 data-open:bg-transparent'>
-              <AccordionTrigger className='py-3 font-semibold text-sm hover:no-underline'>
+              <AccordionTrigger className={SECTION_TRIGGER_CLASS}>
                 <AccordionTitle icon={User}>Contato</AccordionTitle>
               </AccordionTrigger>
-              <AccordionContent className='space-y-3 pb-4'>
+              <AccordionContent className={`${SECTION_CONTENT_CLASS} space-y-3`}>
                 <div className='space-y-1'>
                   <h2 className='font-semibold text-base'>{chat?.name || 'Lead'}</h2>
                   <div className='flex items-center gap-2 text-muted-foreground text-sm'>
@@ -343,12 +354,12 @@ export function DealPanel({ conversationId, organizationId, projectId, chat }: D
                     </button>
                   </div>
                 </div>
-                <div className='grid text-sm'>
+                <PropertyList>
                   <InfoRow
                     label='Primeiro contato'
                     value={formatDate(currentDeal.leadInsights?.firstMessageAt)}
                   />
-                </div>
+                </PropertyList>
               </AccordionContent>
             </AccordionItem>
 
@@ -356,10 +367,10 @@ export function DealPanel({ conversationId, organizationId, projectId, chat }: D
               value='opportunity'
               className='border-border/50 data-open:bg-transparent'
             >
-              <AccordionTrigger className='py-3 font-semibold text-sm hover:no-underline'>
+              <AccordionTrigger className={SECTION_TRIGGER_CLASS}>
                 <AccordionTitle icon={CircleDot}>Oportunidade</AccordionTitle>
               </AccordionTrigger>
-              <AccordionContent className='space-y-3 pb-4'>
+              <AccordionContent className={`${SECTION_CONTENT_CLASS} space-y-3`}>
                 <div className='space-y-1.5'>
                   <Label className='text-[10px] text-muted-foreground uppercase tracking-wider'>
                     Etapa do Funil
@@ -396,7 +407,7 @@ export function DealPanel({ conversationId, organizationId, projectId, chat }: D
                   </Select>
                 </div>
 
-                <div className='grid text-sm'>
+                <PropertyList>
                   <InfoRow
                     label='Status'
                     value={
@@ -416,16 +427,16 @@ export function DealPanel({ conversationId, organizationId, projectId, chat }: D
                   {currentDeal.closedReason ? (
                     <InfoRow label='Motivo' value={currentDeal.closedReason} />
                   ) : null}
-                </div>
+                </PropertyList>
               </AccordionContent>
             </AccordionItem>
 
             <AccordionItem value='service' className='border-border/50 data-open:bg-transparent'>
-              <AccordionTrigger className='py-3 font-semibold text-sm hover:no-underline'>
+              <AccordionTrigger className={SECTION_TRIGGER_CLASS}>
                 <AccordionTitle icon={MessageSquare}>Atendimento</AccordionTitle>
               </AccordionTrigger>
-              <AccordionContent className='pb-4'>
-                <div className='grid text-sm'>
+              <AccordionContent className={SECTION_CONTENT_CLASS}>
+                <PropertyList>
                   <MessageVolume
                     sent={currentDeal.kpis.outboundMessagesCount}
                     received={currentDeal.kpis.inboundMessagesCount}
@@ -442,7 +453,7 @@ export function DealPanel({ conversationId, organizationId, projectId, chat }: D
                         : 'Em aberto'
                     }
                   />
-                </div>
+                </PropertyList>
               </AccordionContent>
             </AccordionItem>
 
@@ -450,11 +461,11 @@ export function DealPanel({ conversationId, organizationId, projectId, chat }: D
               value='traceability'
               className='border-border/50 data-open:bg-transparent'
             >
-              <AccordionTrigger className='py-3 font-semibold text-sm hover:no-underline'>
+              <AccordionTrigger className={SECTION_TRIGGER_CLASS}>
                 <AccordionTitle icon={Megaphone}>Origem</AccordionTitle>
               </AccordionTrigger>
-              <AccordionContent className='pb-4 text-sm'>
-                <div className='grid'>
+              <AccordionContent className={`${SECTION_CONTENT_CLASS} text-sm`}>
+                <PropertyList>
                   {trackingRows.map((row) => (
                     <InfoRow
                       key={row.label}
@@ -462,16 +473,16 @@ export function DealPanel({ conversationId, organizationId, projectId, chat }: D
                       value={<span className='truncate'>{row.value}</span>}
                     />
                   ))}
-                </div>
+                </PropertyList>
               </AccordionContent>
             </AccordionItem>
 
             <AccordionItem value='history' className='border-border/50 data-open:bg-transparent'>
-              <AccordionTrigger className='py-3 font-semibold text-sm hover:no-underline'>
+              <AccordionTrigger className={SECTION_TRIGGER_CLASS}>
                 <AccordionTitle icon={Timer}>Histórico do contato</AccordionTitle>
               </AccordionTrigger>
-              <AccordionContent className='pb-4 text-sm'>
-                <div className='grid'>
+              <AccordionContent className={`${SECTION_CONTENT_CLASS} text-sm`}>
+                <PropertyList>
                   <InfoRow
                     label='Total de oportunidades'
                     value={currentDeal.leadInsights?.totalDeals ?? 0}
@@ -480,21 +491,21 @@ export function DealPanel({ conversationId, organizationId, projectId, chat }: D
                     label='LTV'
                     value={formatDealValue(currentDeal.leadInsights?.lifetimeValue)}
                   />
-                </div>
+                </PropertyList>
               </AccordionContent>
             </AccordionItem>
 
             <AccordionItem value='diagnostic' className='border-border/50 data-open:bg-transparent'>
-              <AccordionTrigger className='py-3 font-semibold text-sm hover:no-underline'>
+              <AccordionTrigger className={SECTION_TRIGGER_CLASS}>
                 <AccordionTitle icon={Microscope}>Diagnóstico</AccordionTitle>
               </AccordionTrigger>
-              <AccordionContent className='space-y-3 pb-4'>
-                <div className='grid text-sm'>
+              <AccordionContent className={`${SECTION_CONTENT_CLASS} space-y-3`}>
+                <PropertyList>
                   <InfoRow
                     label='Janela WhatsApp'
                     value={currentDeal.windowOpen ? 'Aberta' : 'Fechada'}
                   />
-                </div>
+                </PropertyList>
                 <ConversationIntelligencePanel
                   conversationId={conversationId}
                   organizationId={organizationId}
@@ -508,11 +519,11 @@ export function DealPanel({ conversationId, organizationId, projectId, chat }: D
                 value='technical-tracking'
                 className='border-border/50 data-open:bg-transparent'
               >
-                <AccordionTrigger className='py-3 font-semibold text-sm hover:no-underline'>
+                <AccordionTrigger className={SECTION_TRIGGER_CLASS}>
                   <AccordionTitle icon={Route}>Dados técnicos</AccordionTitle>
                 </AccordionTrigger>
-                <AccordionContent className='pb-4 text-sm'>
-                  <div className='grid'>
+                <AccordionContent className={`${SECTION_CONTENT_CLASS} text-sm`}>
+                  <PropertyList>
                     {technicalRows.map((row) => (
                       <InfoRow
                         key={row.label}
@@ -520,7 +531,7 @@ export function DealPanel({ conversationId, organizationId, projectId, chat }: D
                         value={<span className='truncate'>{row.value}</span>}
                       />
                     ))}
-                  </div>
+                  </PropertyList>
                 </AccordionContent>
               </AccordionItem>
             ) : null}
