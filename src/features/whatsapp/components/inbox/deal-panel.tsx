@@ -73,11 +73,21 @@ interface DealResponse {
     utmSource: string | null
     utmMedium: string | null
     utmCampaign: string | null
+    utmTerm?: string | null
+    utmContent?: string | null
     sourceType: string | null
+    gclid?: string | null
+    fbclid?: string | null
     ctwaclid: string | null
+    ttclid?: string | null
+    metaAdId?: string | null
+    metaAdSetId?: string | null
+    metaCampaignId?: string | null
+    metaAccountId?: string | null
     referrerUrl: string | null
     landingPage: string | null
   } | null
+  canViewTechnicalTracking?: boolean
   closedReason?: string | null
   closedAt?: string | null
   kpis: {
@@ -275,6 +285,20 @@ export function DealPanel({ conversationId, organizationId, projectId, chat }: D
     { label: 'Landing', value: currentDeal.tracking?.landingPage },
     { label: 'Referrer', value: currentDeal.tracking?.referrerUrl },
   ].filter((row) => row.value)
+  const technicalRows = currentDeal.canViewTechnicalTracking
+    ? [
+        { label: 'ctwaclid', value: currentDeal.tracking?.ctwaclid },
+        { label: 'fbclid', value: currentDeal.tracking?.fbclid },
+        { label: 'gclid', value: currentDeal.tracking?.gclid },
+        { label: 'ttclid', value: currentDeal.tracking?.ttclid },
+        { label: 'utm_term', value: currentDeal.tracking?.utmTerm },
+        { label: 'utm_content', value: currentDeal.tracking?.utmContent },
+        { label: 'Meta Ad ID', value: currentDeal.tracking?.metaAdId },
+        { label: 'Meta Ad Set ID', value: currentDeal.tracking?.metaAdSetId },
+        { label: 'Meta Campaign ID', value: currentDeal.tracking?.metaCampaignId },
+        { label: 'Meta Account ID', value: currentDeal.tracking?.metaAccountId },
+      ].filter((row) => row.value)
+    : []
 
   return (
     <div className='flex h-full min-h-0 flex-col border-border/40 border-l bg-background'>
@@ -476,9 +500,6 @@ export function DealPanel({ conversationId, organizationId, projectId, chat }: D
                     label='Janela WhatsApp'
                     value={currentDeal.windowOpen ? 'Aberta' : 'Fechada'}
                   />
-                  {currentDeal.tracking?.ctwaclid ? (
-                    <InfoRow label='ctwaclid' value={currentDeal.tracking.ctwaclid} />
-                  ) : null}
                 </div>
                 <ConversationIntelligencePanel
                   conversationId={conversationId}
@@ -487,6 +508,28 @@ export function DealPanel({ conversationId, organizationId, projectId, chat }: D
                 />
               </AccordionContent>
             </AccordionItem>
+
+            {technicalRows.length > 0 ? (
+              <AccordionItem
+                value='technical-tracking'
+                className='border-border/50 data-open:bg-transparent'
+              >
+                <AccordionTrigger className='py-3 font-semibold text-sm'>
+                  <AccordionTitle icon={Route}>Dados técnicos</AccordionTitle>
+                </AccordionTrigger>
+                <AccordionContent className='space-y-2 pb-4 text-sm'>
+                  <div className='grid gap-2 rounded-md border border-border/50 bg-muted/20 p-3'>
+                    {technicalRows.map((row) => (
+                      <InfoRow
+                        key={row.label}
+                        label={row.label}
+                        value={<span className='truncate'>{row.value}</span>}
+                      />
+                    ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            ) : null}
           </Accordion>
         </div>
       </div>

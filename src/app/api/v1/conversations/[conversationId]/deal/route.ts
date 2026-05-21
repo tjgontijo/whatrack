@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { getConversationOpenDeal } from '@/features/conversations/services/conversation-deal.service'
+import { isAdmin } from '@/lib/auth/rbac/roles'
 import { apiError } from '@/lib/utils/api-response'
 import { logger } from '@/lib/utils/logger'
 import { validatePermissionAccess } from '@/server/auth/validate-organization-access'
@@ -19,6 +20,7 @@ export async function GET(
     const result = await getConversationOpenDeal({
       organizationId: access.organizationId,
       conversationId,
+      includeTechnicalTracking: isAdmin(access.role) || isAdmin(access.globalRole),
     })
 
     if ('error' in result) {

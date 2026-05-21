@@ -1,10 +1,11 @@
-import "server-only"
+import 'server-only'
 import { prisma } from '@/lib/db/prisma'
 
 interface GetConversationDealParams {
   organizationId: string
   projectId?: string
   conversationId: string
+  includeTechnicalTracking?: boolean
 }
 
 export async function getConversationOpenDeal(params: GetConversationDealParams) {
@@ -58,8 +59,17 @@ export async function getConversationOpenDeal(params: GetConversationDealParams)
           utmSource: true,
           utmMedium: true,
           utmCampaign: true,
+          utmTerm: true,
+          utmContent: true,
           sourceType: true,
+          gclid: true,
+          fbclid: true,
           ctwaclid: true,
+          ttclid: true,
+          metaAdId: true,
+          metaAdSetId: true,
+          metaCampaignId: true,
+          metaAccountId: true,
           referrerUrl: true,
           landingPage: true,
         },
@@ -99,7 +109,31 @@ export async function getConversationOpenDeal(params: GetConversationDealParams)
       dealValue: deal.dealValue ? deal.dealValue.toString() : null,
       stage: deal.stage,
       assignee: deal.assignee,
-      tracking: deal.tracking,
+      tracking: deal.tracking
+        ? {
+            utmSource: deal.tracking.utmSource,
+            utmMedium: deal.tracking.utmMedium,
+            utmCampaign: deal.tracking.utmCampaign,
+            sourceType: deal.tracking.sourceType,
+            referrerUrl: deal.tracking.referrerUrl,
+            landingPage: deal.tracking.landingPage,
+            ...(params.includeTechnicalTracking
+              ? {
+                  utmTerm: deal.tracking.utmTerm,
+                  utmContent: deal.tracking.utmContent,
+                  gclid: deal.tracking.gclid,
+                  fbclid: deal.tracking.fbclid,
+                  ctwaclid: deal.tracking.ctwaclid,
+                  ttclid: deal.tracking.ttclid,
+                  metaAdId: deal.tracking.metaAdId,
+                  metaAdSetId: deal.tracking.metaAdSetId,
+                  metaCampaignId: deal.tracking.metaCampaignId,
+                  metaAccountId: deal.tracking.metaAccountId,
+                }
+              : {}),
+          }
+        : null,
+      canViewTechnicalTracking: Boolean(params.includeTechnicalTracking),
       closedReason: deal.closedReason,
       closedAt: deal.closedAt?.toISOString() || null,
       kpis: {
