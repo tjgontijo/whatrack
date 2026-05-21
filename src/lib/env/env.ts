@@ -84,13 +84,6 @@ const envSchema = z.object({
   R2_BUCKET_NAME: z.string().optional(),
   R2_ENDPOINT: z.string().url().optional(),
 
-  // 11. Backup R2 Storage (Maintenance)
-  BACKUP_R2_ENDPOINT: z.string().url().optional(),
-  BACKUP_R2_ACCESS_KEY_ID: z.string().optional(),
-  BACKUP_R2_SECRET_ACCESS_KEY: z.string().optional(),
-  BACKUP_R2_BUCKET_NAME: z.string().optional(),
-  BACKUP_R2_FOLDER: z.string().optional(),
-
   CRON_SECRET: z.string().min(32, 'CRON_SECRET must be at least 32 characters'),
   WHATSAPP_MANUAL_SEND_BEARER_TOKEN: z.string().min(1).optional(),
   HISTORY_SYNC_ALERT_TOKEN: z.string().min(1).optional(),

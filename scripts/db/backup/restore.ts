@@ -25,18 +25,19 @@ function getRequiredEnv(name: string): string {
   return value
 }
 
-// BACKUP R2 Configuration (Separate from Media R2)
+// R2 Configuration for Restore (Uses same credentials but targets backup bucket/folder)
 const r2Client = new S3Client({
   region: 'auto',
-  endpoint: getRequiredEnv('BACKUP_R2_ENDPOINT'),
+  endpoint: getRequiredEnv('R2_ENDPOINT'),
   credentials: {
-    accessKeyId: getRequiredEnv('BACKUP_R2_ACCESS_KEY_ID'),
-    secretAccessKey: getRequiredEnv('BACKUP_R2_SECRET_ACCESS_KEY'),
+    accessKeyId: getRequiredEnv('R2_ACCESS_KEY_ID'),
+    secretAccessKey: getRequiredEnv('R2_SECRET_ACCESS_KEY'),
   },
 })
 
-const bucketName = process.env.BACKUP_R2_BUCKET_NAME || 'backups'
-const folderName = process.env.BACKUP_R2_FOLDER || 'whatrack'
+// Hardcoded for restore since Coolify manages the backup destination
+const bucketName = 'backups'
+const folderName = 'whatrack'
 const databaseUrl = getRequiredEnv('DATABASE_URL')
 
 async function listBackups() {

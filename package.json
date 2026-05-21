@@ -20,7 +20,6 @@
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:report": "playwright show-report e2e/playwright-report",
     "typecheck": "tsc --noEmit",
-    "backup:db": "tsx scripts/db/backup/create.ts",
     "restore:db": "tsx scripts/db/backup/restore.ts"
   },
   "dependencies": {
