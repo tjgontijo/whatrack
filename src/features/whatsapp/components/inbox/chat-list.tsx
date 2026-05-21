@@ -39,7 +39,7 @@ export function ChatList({
           <Search className='absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground/70' />
           <Input
             placeholder='Buscar conversa...'
-            className='h-10 border-border/40 bg-muted/15 pl-10 text-sm placeholder:text-muted-foreground/70'
+            className='h-12 border-border/40 bg-muted/15 pl-10 text-sm placeholder:text-muted-foreground/70'
             value={search}
             onChange={handleSearchChange}
           />

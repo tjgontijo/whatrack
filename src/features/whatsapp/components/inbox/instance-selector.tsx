@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect } from 'react'
-import { cn } from '@/lib/utils/utils'
 import {
   Select,
   SelectContent,
@@ -10,6 +9,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useWhatsAppInstances } from '@/features/whatsapp/hooks/use-whatsapp-instances'
+import { cn } from '@/lib/utils/utils'
 
 interface InstanceSelectorProps {
   selectedInstanceId: string | null
@@ -43,7 +43,7 @@ export function InstanceSelector({
 
   if (isLoading) {
     return (
-      <div className='flex h-10 w-full items-center rounded-md border bg-muted/20 px-3 text-muted-foreground text-sm'>
+      <div className='flex h-12 w-full items-center rounded-md border border-border/40 bg-muted/15 px-3 text-muted-foreground text-sm'>
         Carregando...
       </div>
     )
@@ -66,7 +66,12 @@ export function InstanceSelector({
   // Always show "Todas as instâncias" option, even with single instance
   return (
     <Select value={effectiveId} onValueChange={onInstanceChange}>
-      <SelectTrigger className={cn('w-full', className)} size='sm'>
+      <SelectTrigger
+        className={cn(
+          'h-12 rounded-md border-border/40 bg-muted/15 text-sm shadow-none hover:bg-muted/25',
+          className
+        )}
+      >
         <SelectValue placeholder='Selecione uma instância' />
       </SelectTrigger>
       <SelectContent>

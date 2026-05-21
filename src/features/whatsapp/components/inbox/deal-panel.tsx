@@ -161,7 +161,7 @@ function MessageVolume({ sent, received }: { sent: number; received: number }) {
 }
 
 const SECTION_TRIGGER_CLASS =
-  'h-10 items-center border-b border-border/50 bg-muted/25 px-4 py-0 font-semibold text-sm hover:bg-muted/40 hover:no-underline data-[state=open]:bg-muted/35'
+  'h-12 items-center border-b border-border/50 bg-muted/25 px-4 py-0 font-semibold text-sm hover:bg-muted/40 hover:no-underline data-[state=open]:bg-muted/35'
 
 const SECTION_CONTENT_CLASS = 'h-auto px-4 pt-3 pb-5'
 
