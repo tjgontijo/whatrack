@@ -90,6 +90,23 @@ export async function listWhatsAppChats(params: ListWhatsAppChatsParams) {
           timestamp: 'desc',
         },
         take: 1,
+        select: {
+          id: true,
+          wamid: true,
+          leadId: true,
+          instanceId: true,
+          type: true,
+          body: true,
+          mediaUrl: true,
+          status: true,
+          timestamp: true,
+          createdAt: true,
+          direction: {
+            select: {
+              name: true,
+            },
+          },
+        },
       },
     },
   })
@@ -97,6 +114,7 @@ export async function listWhatsAppChats(params: ListWhatsAppChatsParams) {
   const chats = leads.map((lead) => {
     const conversation = lead.conversations[0]
     const currentDeal = conversation?.deals[0]
+    const lastMessage = lead.messages[0]
 
     return {
       id: conversation?.id || lead.id,
@@ -104,7 +122,12 @@ export async function listWhatsAppChats(params: ListWhatsAppChatsParams) {
       phone: lead.phone,
       profilePicUrl: lead.profilePicUrl,
       lastMessageAt: lead.lastMessageAt,
-      lastMessage: lead.messages[0] || null,
+      lastMessage: lastMessage
+        ? {
+            ...lastMessage,
+            direction: lastMessage.direction.name as 'INBOUND' | 'OUTBOUND',
+          }
+        : null,
       unreadCount: 0,
       currentDeal: currentDeal
         ? {
@@ -172,11 +195,15 @@ export async function listWhatsAppChatMessages(params: ListChatMessagesParams) {
       take: params.pageSize,
       select: {
         id: true,
+        wamid: true,
         leadId: true,
+        instanceId: true,
         type: true,
         body: true,
+        mediaUrl: true,
         status: true,
         timestamp: true,
+        createdAt: true,
         direction: {
           select: {
             name: true,
@@ -189,11 +216,15 @@ export async function listWhatsAppChatMessages(params: ListChatMessagesParams) {
 
   const normalizedItems = items.map((item) => ({
     id: item.id,
+    wamid: item.wamid,
     leadId: item.leadId,
+    instanceId: item.instanceId,
     type: item.type,
     body: item.body,
+    mediaUrl: item.mediaUrl,
     status: item.status,
     timestamp: item.timestamp,
+    createdAt: item.createdAt,
     direction: item.direction.name as 'INBOUND' | 'OUTBOUND',
   }))
 

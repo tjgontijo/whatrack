@@ -3,17 +3,10 @@
 import { useQuery } from '@tanstack/react-query'
 import {
   Clock,
-  MessageSquare,
-  TrendingUp,
-  User,
-  Megaphone,
+  Hash,
+  Link2,
+  Timer,
 } from 'lucide-react'
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion'
 import { apiFetch } from '@/lib/http/api-client'
 import type { ConversationIntelligenceDTO } from '../schemas/conversation-intelligence.schemas'
 
@@ -48,13 +41,6 @@ function formatDate(iso: string | null | undefined): string {
   })
 }
 
-function formatCurrency(value: string | null | undefined): string {
-  if (!value) return '—'
-  const n = parseFloat(value)
-  if (isNaN(n)) return '—'
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(n)
-}
-
 function Row({ label, value }: { label: string; value: string | number | null | undefined }) {
   if (value === null || value === undefined || value === '' || value === '—') return null
   return (
@@ -84,8 +70,7 @@ export function ConversationIntelligencePanel({ conversationId, organizationId, 
 
   if (isLoading) {
     return (
-      <div className='space-y-2 pt-4 border-t border-border/40'>
-        <div className='h-3 w-32 animate-pulse rounded bg-muted/50' />
+      <div className='space-y-2'>
         {[1, 2, 3].map((i) => (
           <div key={i} className='h-8 animate-pulse rounded bg-muted/30' />
         ))}
@@ -95,11 +80,7 @@ export function ConversationIntelligencePanel({ conversationId, organizationId, 
 
   if (error || !data) return null
 
-  const { timing, volume, pipeline, lead, attribution } = data
-
-  const hasAttribution =
-    attribution &&
-    Object.values(attribution).some((v) => v !== null && v !== undefined && v !== '')
+  const { timing, volume, pipeline, attribution, computedAt } = data
 
   const windowLabel = (() => {
     if (!pipeline) return null
@@ -111,106 +92,67 @@ export function ConversationIntelligencePanel({ conversationId, organizationId, 
   })()
 
   return (
-    <div className='pt-4 border-t border-border/40'>
-      <h3 className='mb-3 font-bold text-muted-foreground text-[10px] uppercase tracking-wider px-1'>
-        Dados da Conversa
-      </h3>
+    <div className='space-y-3'>
+      <section className='rounded-md border border-border/40 bg-muted/10 p-2.5'>
+        <div className='mb-2 flex items-center gap-2 text-[11px] font-semibold'>
+          <Clock className='h-3.5 w-3.5 text-muted-foreground' />
+          Determinístico
+        </div>
+        <Row label='Atualizado em' value={formatDate(computedAt)} />
+        <Row label='Último msg do lead' value={formatSeconds(timing.secondsSinceLastInbound)} />
+        <Row label='Último contato' value={formatSeconds(timing.secondsSinceLastOutbound)} />
+        <Row label='Tempo médio resp.' value={formatSeconds(timing.avgResponseTimeSec)} />
+        <Row
+          label='Quem falou por último'
+          value={
+            timing.lastMessageDirection === 'inbound'
+              ? 'Lead'
+              : timing.lastMessageDirection === 'outbound'
+                ? 'Você'
+                : null
+          }
+        />
+      </section>
 
-      <Accordion type='single' collapsible defaultValue='conversation-data' className='rounded-lg border-border/40 text-xs'>
-        <AccordionItem value='conversation-data'>
-          <AccordionTrigger className='px-3 py-2 text-[11px] font-semibold'>
-            Resumo Determinístico
-          </AccordionTrigger>
-          <AccordionContent className='space-y-3 px-3 pb-3'>
-            <section className='rounded-md border border-border/40 bg-muted/10 p-2.5'>
-              <div className='mb-2 flex items-center gap-2 text-[11px] font-semibold'>
-                <Clock className='h-3.5 w-3.5 text-muted-foreground' />
-                Atendimento
-              </div>
-              <Row label='1ª Resposta' value={formatSeconds(timing.firstResponseTimeSec)} />
-              <Row label='Tempo médio resp.' value={formatSeconds(timing.avgResponseTimeSec)} />
-              <Row label='Último msg do lead' value={formatSeconds(timing.secondsSinceLastInbound) + (timing.secondsSinceLastInbound !== null ? ' atrás' : '')} />
-              <Row label='Último contato' value={formatSeconds(timing.secondsSinceLastOutbound) + (timing.secondsSinceLastOutbound !== null ? ' atrás' : '')} />
-              <Row
-                label='Quem falou por último'
-                value={
-                  timing.lastMessageDirection === 'inbound'
-                    ? 'Lead'
-                    : timing.lastMessageDirection === 'outbound'
-                      ? 'Você'
-                      : null
-                }
-              />
-            </section>
+      {pipeline && (
+        <section className='rounded-md border border-border/40 bg-muted/10 p-2.5'>
+          <div className='mb-2 flex items-center gap-2 text-[11px] font-semibold'>
+            <Timer className='h-3.5 w-3.5 text-muted-foreground' />
+            Janela e Pipeline
+          </div>
+          <Row label='Deal criado' value={formatDate(pipeline.dealCreatedAt)} />
+          <Row label='Deal aberto há' value={formatSeconds(pipeline.dealAgeSec)} />
+          <Row label='Etapa atual há' value={formatSeconds(pipeline.stageAgeSec)} />
+          <Row label='Janela WhatsApp' value={windowLabel} />
+          <Row label='Janela aberta' value={pipeline.windowOpen ? 'Sim' : 'Não'} />
+          <Row label='Expira em' value={formatDate(pipeline.windowExpiresAt)} />
+        </section>
+      )}
 
-            {volume && (
-              <section className='rounded-md border border-border/40 bg-muted/10 p-2.5'>
-                <div className='mb-2 flex items-center gap-2 text-[11px] font-semibold'>
-                  <MessageSquare className='h-3.5 w-3.5 text-muted-foreground' />
-                  Mensagens
-                </div>
-                <Row label='Recebidas' value={volume.inboundMessagesCount} />
-                <Row label='Enviadas' value={volume.outboundMessagesCount} />
-                <Row label='Total' value={volume.totalMessagesCount} />
-                <Row
-                  label='Ratio in/out'
-                  value={volume.inboundOutboundRatio !== null ? volume.inboundOutboundRatio.toFixed(2) : null}
-                />
-              </section>
-            )}
+      {(attribution || volume) && (
+        <section className='rounded-md border border-border/40 bg-muted/10 p-2.5'>
+          <div className='mb-2 flex items-center gap-2 text-[11px] font-semibold'>
+            <Hash className='h-3.5 w-3.5 text-muted-foreground' />
+            IDs e Ratio
+          </div>
+          <Row label='Ratio in/out' value={volume?.inboundOutboundRatio?.toFixed(2)} />
+          <Row label='ID Meta' value={attribution?.ctwaclid} />
+          <Row label='ID Google' value={attribution?.gclid} />
+          <Row label='ID Facebook' value={attribution?.fbclid} />
+          <Row label='Landing page' value={attribution?.landingPage} />
+          <Row label='Referrer' value={attribution?.referrerUrl} />
+          <Row label='Campanha Meta' value={attribution?.metaCampaignName} />
+          <Row label='Conjunto Meta' value={attribution?.metaAdSetName} />
+          <Row label='Anúncio Meta' value={attribution?.metaAdName} />
+          <Row label='Conteúdo UTM' value={attribution?.utmContent} />
+          <Row label='Termo UTM' value={attribution?.utmTerm} />
+        </section>
+      )}
 
-            {pipeline && (
-              <section className='rounded-md border border-border/40 bg-muted/10 p-2.5'>
-                <div className='mb-2 flex items-center gap-2 text-[11px] font-semibold'>
-                  <TrendingUp className='h-3.5 w-3.5 text-muted-foreground' />
-                  Pipeline
-                </div>
-                <Row label='Deal criado' value={formatSeconds(pipeline.dealAgeSec) + ' atrás'} />
-                <Row
-                  label='Etapa atual há'
-                  value={pipeline.stageAgeSec !== null ? formatSeconds(pipeline.stageAgeSec) + ' atrás' : null}
-                />
-                <Row label='Janela WhatsApp' value={windowLabel} />
-              </section>
-            )}
-
-            {lead && (
-              <section className='rounded-md border border-border/40 bg-muted/10 p-2.5'>
-                <div className='mb-2 flex items-center gap-2 text-[11px] font-semibold'>
-                  <User className='h-3.5 w-3.5 text-muted-foreground' />
-                  Lead
-                </div>
-                <Row label='Negociações' value={lead.totalDeals} />
-                <Row label='Valor gerado (LTV)' value={formatCurrency(lead.lifetimeValue)} />
-                <Row label='Primeiro contato' value={formatDate(lead.firstMessageAt)} />
-                <Row label='Cliente desde' value={formatDate(lead.leadCreatedAt)} />
-              </section>
-            )}
-
-            {hasAttribution && attribution && (
-              <section className='rounded-md border border-border/40 bg-muted/10 p-2.5'>
-                <div className='mb-2 flex items-center gap-2 text-[11px] font-semibold'>
-                  <Megaphone className='h-3.5 w-3.5 text-muted-foreground' />
-                  Origem
-                </div>
-                <Row label='Tipo' value={attribution.sourceType} />
-                <Row label='Fonte' value={attribution.utmSource} />
-                <Row label='Meio' value={attribution.utmMedium} />
-                <Row label='Campanha' value={attribution.utmCampaign ?? attribution.metaCampaignName} />
-                <Row label='Conjunto' value={attribution.metaAdSetName} />
-                <Row label='Anúncio' value={attribution.metaAdName} />
-                <Row label='Conteúdo' value={attribution.utmContent} />
-                <Row label='Termo' value={attribution.utmTerm} />
-                <Row label='Landing page' value={attribution.landingPage} />
-                <Row label='Referrer' value={attribution.referrerUrl} />
-                <Row label='ID Meta' value={attribution.ctwaclid} />
-                <Row label='ID Google' value={attribution.gclid} />
-                <Row label='ID Facebook' value={attribution.fbclid} />
-              </section>
-            )}
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
+      <div className='flex items-center gap-2 px-1 text-[10px] text-muted-foreground'>
+        <Link2 className='h-3 w-3' />
+        Fonte: `/api/v1/conversations/{conversationId}/intelligence`
+      </div>
     </div>
   )
 }

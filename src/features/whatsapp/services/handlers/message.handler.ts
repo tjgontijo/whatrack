@@ -111,6 +111,7 @@ export async function messageHandler(
       id: true,
       organizationId: true,
       projectId: true,
+      accessToken: true,
       organization: {
         select: {
           profile: {
@@ -312,14 +313,26 @@ export async function messageHandler(
 
         // 4. Message Creation
         let messageBody = ''
+        let mediaUrl = ''
         const messageType = message.type || 'text'
 
         if (message.text?.body) {
           messageBody = message.text.body
-        } else if (message.image?.caption) {
-          messageBody = message.image.caption
-        } else if (message.document?.caption) {
-          messageBody = message.document.caption
+        } else if (message.image) {
+          messageBody = message.image.caption || 'Imagem'
+          mediaUrl = `meta_id:${message.image.id}`
+        } else if (message.video) {
+          messageBody = message.video.caption || 'Vídeo'
+          mediaUrl = `meta_id:${message.video.id}`
+        } else if (message.audio || message.voice) {
+          messageBody = 'Áudio'
+          mediaUrl = `meta_id:${(message.audio || message.voice).id}`
+        } else if (message.document) {
+          messageBody = message.document.caption || message.document.filename || 'Documento'
+          mediaUrl = `meta_id:${message.document.id}`
+        } else if (message.sticker) {
+          messageBody = 'Sticker'
+          mediaUrl = `meta_id:${message.sticker.id}`
         } else if (message.type === 'button') {
           messageBody = message.button?.text || 'Botão clicado'
         } else if (message.type === 'interactive') {
@@ -352,6 +365,7 @@ export async function messageHandler(
             directionId,
             type: messageType,
             body: messageBody || null,
+            mediaUrl: mediaUrl || null,
             status: isEcho ? 'sent' : 'delivered',
             timestamp: messageTimestamp,
             metaConversationId: value.conversation_id || null,
@@ -360,7 +374,29 @@ export async function messageHandler(
           select: { id: true },
         })
 
-        // 5. Update counts and KPIs
+        // 5. Background Tasks (Media/Transcription)
+        if (!isEcho && (messageType === 'audio' || messageType === 'voice') && mediaUrl) {
+          const { WhatsAppMediaService } = await import('../whatsapp-media.service')
+          const { MetaCloudService } = await import('../meta-cloud.service')
+
+          const accessToken = MetaCloudService.getAccessTokenForConfig(config)
+          const mediaId = mediaUrl.replace('meta_id:', '')
+
+          // Fire-and-forget transcription
+          WhatsAppMediaService.processAudioMessage(
+            createdMessage.id,
+            mediaId,
+            accessToken,
+            config.organizationId
+          ).catch((err) =>
+            logger.error(
+              { err, context: { messageId: createdMessage.id } },
+              '[MessageHandler] Transcription failed'
+            )
+          )
+        }
+
+        // 6. Update counts and KPIs
         if (!isEcho) {
           // Inbound Message (Client -> Clinic)
           await tx.deal.update({

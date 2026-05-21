@@ -480,6 +480,9 @@ export async function getDealById(dealId: string, organizationId: string) {
 export async function createDeal(params: CreateDealParams) {
   const { organizationId, conversationId, stageId, assigneeId, dealValue, createdBy } = params
 
+  const targetProjectId =
+    typeof params.projectId !== 'undefined' ? params.projectId : undefined
+
   if (params.projectId) {
     const project = await ensureProjectBelongsToOrganization(organizationId, params.projectId)
     if (!project) {
@@ -515,11 +518,19 @@ export async function createDeal(params: CreateDealParams) {
   const requestedStageId = stageId ?? undefined
   let targetStageId: string
   if (!requestedStageId) {
-    const defaultStage = await getDefaultDealStage(prisma, organizationId)
+    const defaultStage = await getDefaultDealStage(
+      prisma,
+      organizationId,
+      targetProjectId ?? conversation.instance.projectId
+    )
     targetStageId = defaultStage.id
   } else {
     const stage = await prisma.dealStage.findFirst({
-      where: { id: requestedStageId, organizationId },
+      where: {
+        id: requestedStageId,
+        organizationId,
+        projectId: targetProjectId ?? conversation.instance.projectId ?? null,
+      },
       select: { id: true },
     })
     if (!stage) return { error: 'Estágio não encontrado', status: 404 as const }
@@ -547,9 +558,7 @@ export async function createDeal(params: CreateDealParams) {
     data: {
       organizationId,
       projectId:
-        typeof params.projectId !== 'undefined'
-          ? params.projectId
-          : conversation.instance.projectId,
+        targetProjectId ?? conversation.instance.projectId,
       leadId: conversation.leadId,
       conversationId,
       stageId: targetStageId,

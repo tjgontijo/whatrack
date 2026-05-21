@@ -799,4 +799,66 @@ export class MetaCloudService {
     logger.info({ context: { wabaId } }, '[MetaCloudService] Successfully unsubscribed from WABA')
     return data
   }
+
+  /**
+   * Get the download URL for a media object.
+   * Meta API: GET /{MEDIA_ID}
+   */
+  static async getMediaUrl(mediaId: string, accessToken?: string) {
+    const token = accessToken || MetaCloudService.accessToken
+    const url = `${GRAPH_API_URL}/${API_VERSION}/${mediaId}`
+
+    logger.info({ context: { mediaId, url } }, '[MetaCloudService] Fetching media URL')
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      logger.error({ err: data }, '[MetaCloudService] Get media URL error')
+      throw new Error(data.error?.message || 'Failed to get media URL')
+    }
+
+    return data as {
+      url: string
+      mime_type: string
+      sha256: string
+      file_size: number
+      id: string
+      messaging_product: 'whatsapp'
+    }
+  }
+
+  /**
+   * Download media content from a Meta URL.
+   * Note: This URL is usually on a different domain (lookaside.fbsbx.com)
+   * but still requires the same Authorization header.
+   */
+  static async downloadMedia(url: string, accessToken?: string) {
+    const token = accessToken || MetaCloudService.accessToken
+
+    logger.info({ context: { url } }, '[MetaCloudService] Downloading media content')
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+
+    if (!response.ok) {
+      logger.error(
+        { status: response.status, statusText: response.statusText },
+        '[MetaCloudService] Download media error'
+      )
+      throw new Error(`Failed to download media: ${response.statusText}`)
+    }
+
+    return response.arrayBuffer()
+  }
 }

@@ -2,13 +2,15 @@
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
-  Activity,
   ArrowDownRight,
   ArrowUpRight,
+  CircleDot,
   Copy,
   DollarSign,
   Megaphone,
   MessageSquare,
+  Microscope,
+  Route,
   RefreshCw,
   ShieldAlert,
   Smartphone,
@@ -21,6 +23,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion'
 import {
   Select,
   SelectContent,
@@ -172,46 +180,30 @@ export function DealPanel({ conversationId, organizationId, projectId, chat }: D
     }).format(Number(value))
   }
 
-  const calculateTimeRemaining = (expiresAt: Date) => {
-    const now = new Date()
-    const diffMs = expiresAt.getTime() - now.getTime()
-    if (diffMs <= 0) return null
-    const hours = Math.floor(diffMs / (1000 * 60 * 60))
-    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
-    return { hours, minutes, totalMinutes: Math.floor(diffMs / (1000 * 60)) }
-  }
-
-  const getWindowStatus = () => {
-    if (!optimisticDeal?.windowExpiresAt) return null
-    const expiresAt = new Date(optimisticDeal.windowExpiresAt)
-    const timeRemaining = calculateTimeRemaining(expiresAt)
-
-    if (!timeRemaining) {
-      return {
-        status: 'expired',
-        expiresAt,
-        timeRemaining: null,
-        color: 'text-red-600',
-        bgColor: 'bg-red-50 border-red-200',
-      }
-    }
-
-    const isWarning = timeRemaining.totalMinutes < 120
-    return {
-      status: 'open',
-      expiresAt,
-      timeRemaining,
-      color: isWarning ? 'text-amber-600' : 'text-green-600',
-      bgColor: isWarning ? 'bg-amber-50 border-amber-200' : 'bg-green-50 border-green-200',
-      isWarning,
-    }
-  }
-
   const formatTimer = (seconds: number | null | undefined) => {
     if (seconds === null || seconds === undefined) return '--'
     if (seconds < 60) return `${Math.floor(seconds)}s`
     if (seconds < 3600) return `${Math.floor(seconds / 60)}m`
     return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`
+  }
+
+  const formatDate = (iso: string | null | undefined) => {
+    if (!iso) return '--'
+    return new Date(iso).toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    })
+  }
+
+  const handleCopyPhone = async () => {
+    if (!chat?.phone) return
+    try {
+      await navigator.clipboard.writeText(chat.phone)
+      toast.success('Telefone copiado')
+    } catch {
+      toast.error('Não foi possível copiar o telefone')
+    }
   }
 
   if (isLoading) {
@@ -237,237 +229,238 @@ export function DealPanel({ conversationId, organizationId, projectId, chat }: D
     )
   }
 
-  const _statusBadge = STATUS_BADGE_MAP[optimisticDeal?.status || 'open']
-  const _windowStatus = getWindowStatus()
+  const currentDeal = optimisticDeal ?? deal
+  const statusBadge = STATUS_BADGE_MAP[currentDeal.status || 'open']
+  const quickSource = currentDeal.tracking?.sourceType === 'paid' ? 'Meta Ads' : 'Orgânico'
 
   return (
     <div className='flex h-full min-h-0 flex-col border-border/40 border-l bg-background'>
       <div className='custom-scrollbar flex-1 overflow-y-auto overflow-x-hidden'>
         <div className='flex flex-col space-y-6 p-6'>
-          {/* Header do Lead */}
-          <div className='flex flex-col items-center space-y-3 text-center'>
-            <Avatar className='h-20 w-20 border-2 border-border/50 shadow-sm'>
-              <AvatarImage src={chat?.profilePicUrl || undefined} />
-              <AvatarFallback className='bg-primary/5 font-medium text-primary text-xl uppercase'>
-                {chat?.name?.substring(0, 2) || 'LE'}
-              </AvatarFallback>
-            </Avatar>
-            <div className='space-y-1'>
-              <h2 className='font-bold text-xl tracking-tight'>{chat?.name || 'Lead'}</h2>
-              <div className='flex items-center justify-center gap-2 text-muted-foreground'>
-                <Smartphone className='h-3.5 w-3.5' />
-                <span className='text-sm'>{chat?.phone || 'Sem Telefone'}</span>
-                <button className='text-muted-foreground transition-colors hover:text-foreground'>
-                  <Copy className='h-3 w-3' />
-                </button>
-              </div>
-            </div>
-          </div>
-          {/* Destaque: Tráfego Pago (Aha! Moment UX) */}
-          {optimisticDeal?.tracking?.sourceType === 'paid' && (
-            <div className='relative overflow-hidden rounded-xl border border-[#c13584]/20 bg-gradient-to-br from-[#c13584]/10 to-[#833ab4]/5 p-4'>
-              <div className='absolute top-0 right-0 p-3 opacity-20'>
-                <Megaphone className='h-12 w-12 text-[#c13584]' />
-              </div>
-              <div className='relative z-10'>
-                <div className='mb-2 flex items-center gap-2'>
-                  <Badge className='border-0 bg-[#c13584] font-bold text-[10px] text-white uppercase tracking-wider hover:bg-[#c13584]/90'>
-                    ✨ Meta Ads
-                  </Badge>
-                  <span className='font-medium text-[#c13584] text-xs'>Lead pago via clique</span>
-                </div>
-                {optimisticDeal.tracking?.utmCampaign && (
-                  <p className='mb-1 font-semibold text-foreground text-sm'>
-                    Campanha: {optimisticDeal.tracking.utmCampaign}
-                  </p>
-                )}
-                {optimisticDeal.tracking?.ctwaclid && (
-                  <p
-                    className='max-w-[200px] truncate font-mono text-[10px] text-muted-foreground/80'
-                    title={optimisticDeal.tracking.ctwaclid}
-                  >
-                    ID: {optimisticDeal.tracking.ctwaclid}
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
-          {/* CRM Interno */}
-          <div className='space-y-4 pt-2'>
-            <h3 className='font-bold text-muted-foreground text-xs uppercase tracking-wider'>
-              Oportunidade
-            </h3>
-            <div className='grid gap-3'>
-              {/* Seletor de Etapas (Stages) */}
-              <div className='flex flex-col gap-1.5'>
-                <Label className='font-bold text-[10px] text-muted-foreground uppercase tracking-wider'>
-                  Etapa do Funil
-                </Label>
-                <Select
-                  value={optimisticDeal?.stage?.id || ''}
-                  onValueChange={handleUpdateStage}
-                >
-                  <SelectTrigger className='h-9 w-full border-border/50 bg-card shadow-sm'>
-                    <SelectValue>
-                      {optimisticDeal?.stage ? (
-                        <div className='flex items-center gap-2'>
-                          <div
-                            className='h-2 w-2 rounded-full'
-                            style={{ backgroundColor: optimisticDeal.stage.color }}
-                          />
-                          <span className='font-medium text-sm'>{optimisticDeal.stage.name}</span>
-                        </div>
-                      ) : (
-                        'Selecione...'
-                      )}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {stages.map((stage: any) => (
-                      <SelectItem key={stage.id} value={stage.id}>
-                        <div className='flex items-center gap-2'>
-                          <div
-                            className='h-2 w-2 rounded-full'
-                            style={{ backgroundColor: stage.color }}
-                          />
-                          <span className='font-medium text-sm'>{stage.name}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Responsável */}
-              <div className='flex flex-col gap-1.5 border-border/40 border-t pt-3'>
-                <Label className='font-bold text-[10px] text-muted-foreground uppercase tracking-wider'>
-                  Responsável
-                </Label>
-                <div className='flex items-center rounded-md border border-border/50 bg-muted/20 px-3 py-2'>
-                  <User className='mr-2 h-4 w-4 text-muted-foreground' />
-                  <span className='text-foreground/90 text-sm'>
-                    {optimisticDeal?.assignee?.name || 'Não atribuído'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Valor Estimado */}
-              <div className='flex flex-col gap-1.5'>
-                <Label className='font-bold text-[10px] text-muted-foreground uppercase tracking-wider'>
-                  Valor Estimado
-                </Label>
-                <div className='flex items-center rounded-md border border-border/50 bg-muted/20 px-3 py-2'>
-                  <DollarSign className='mr-2 h-4 w-4 text-green-600/70' />
-                  <span className='font-semibold text-foreground/90 text-sm'>
-                    {formatDealValue(optimisticDeal?.dealValue)}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-
-          {/* Dossiê & KPIs do Atendimento */}
-          {optimisticDeal?.kpis && (
-            <div className='pt-2'>
-              <h3 className='mb-3 font-bold text-muted-foreground text-xs uppercase tracking-wider'>
-                Dossiê do Atendimento
-              </h3>
-              <div className='grid grid-cols-2 gap-2'>
-                {/* Contagem de Mensagens (Vendedor x Lead) */}
-                <div className='col-span-2 flex items-center justify-between rounded-lg border border-border/50 bg-card p-3'>
-                  <div className='flex items-center gap-2'>
-                    <MessageSquare className='h-4 w-4 text-primary/70' />
-                    <span className='font-medium text-muted-foreground text-xs'>
-                      Volume da Conversa
-                    </span>
-                  </div>
-                  <div className='flex items-center gap-3 font-bold text-xs'>
-                    <span
-                      className='flex items-center gap-1 text-green-600'
-                      title='Mensagens da Clínica'
+          <Accordion type='multiple' defaultValue={['contact', 'opportunity']} className='w-full'>
+            <AccordionItem value='contact' className='border-border/50'>
+              <AccordionTrigger className='py-3 text-sm font-semibold'>Contato</AccordionTrigger>
+              <AccordionContent className='space-y-3 pb-4'>
+                <div className='space-y-1'>
+                  <h2 className='font-semibold text-base'>{chat?.name || 'Lead'}</h2>
+                  <div className='flex items-center gap-2 text-muted-foreground text-sm'>
+                    <Smartphone className='h-3.5 w-3.5' />
+                    <span>{chat?.phone || 'Sem telefone'}</span>
+                    <button
+                      type='button'
+                      className='text-muted-foreground transition-colors hover:text-foreground'
+                      onClick={() => void handleCopyPhone()}
                     >
-                      <ArrowUpRight className='h-3 w-3' />{' '}
-                      {optimisticDeal.kpis.outboundMessagesCount}
-                    </span>
-                    <span className='text-border'>|</span>
-                    <span
-                      className='flex items-center gap-1 text-blue-600'
-                      title='Mensagens do Cliente'
-                    >
-                      <ArrowDownRight className='h-3 w-3' />{' '}
-                      {optimisticDeal.kpis.inboundMessagesCount}
-                    </span>
+                      <Copy className='h-3.5 w-3.5' />
+                    </button>
                   </div>
+                </div>
+                <div className='flex flex-wrap gap-2'>
+                  <Badge className={`${statusBadge.bg} ${statusBadge.text} border-0`}>{statusBadge.label}</Badge>
+                  <Badge variant='outline'>{quickSource}</Badge>
+                  {currentDeal.tracking?.utmCampaign && (
+                    <Badge variant='secondary' className='max-w-[180px] truncate'>
+                      {currentDeal.tracking.utmCampaign}
+                    </Badge>
+                  )}
+                </div>
+                <div className='grid gap-2 rounded-md border border-border/50 bg-muted/20 p-3 text-sm'>
+                  <div className='flex items-center justify-between'>
+                    <span className='text-muted-foreground'>Primeiro contato</span>
+                    <span>{formatDate(currentDeal.leadInsights?.firstMessageAt)}</span>
+                  </div>
+                  <div className='flex items-center justify-between'>
+                    <span className='text-muted-foreground'>Cliente desde</span>
+                    <span>{formatDate(currentDeal.kpis?.createdAt)}</span>
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value='opportunity' className='border-border/50'>
+              <AccordionTrigger className='py-3 text-sm font-semibold'>Oportunidade</AccordionTrigger>
+              <AccordionContent className='space-y-3 pb-4'>
+                <div className='space-y-1.5'>
+                  <Label className='text-[10px] text-muted-foreground uppercase tracking-wider'>Etapa do Funil</Label>
+                  <Select value={currentDeal.stage?.id || ''} onValueChange={handleUpdateStage}>
+                    <SelectTrigger className='h-9 w-full border-border/50 bg-card shadow-sm'>
+                      <SelectValue>
+                        {currentDeal.stage ? (
+                          <div className='flex items-center gap-2'>
+                            <div className='h-2 w-2 rounded-full' style={{ backgroundColor: currentDeal.stage.color }} />
+                            <span className='font-medium text-sm'>{currentDeal.stage.name}</span>
+                          </div>
+                        ) : (
+                          'Selecione...'
+                        )}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {stages.map((stage: any) => (
+                        <SelectItem key={stage.id} value={stage.id}>
+                          <div className='flex items-center gap-2'>
+                            <div className='h-2 w-2 rounded-full' style={{ backgroundColor: stage.color }} />
+                            <span className='font-medium text-sm'>{stage.name}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
-                {/* Tempo 1a Resposta */}
-                <div className='col-span-1 flex flex-col gap-1 rounded-lg border border-border/40 bg-muted/10 p-3'>
-                  <div className='mb-1 flex items-center gap-1.5 text-muted-foreground'>
-                    <Timer className='h-3.5 w-3.5' />
-                    <span className='font-bold text-[10px] uppercase tracking-wider'>
-                      1ª Resposta
+                <div className='space-y-2 rounded-md border border-border/50 bg-muted/20 p-3'>
+                  <div className='flex items-center justify-between text-sm'>
+                    <span className='flex items-center gap-2 text-muted-foreground'>
+                      <CircleDot className='h-3.5 w-3.5' />
+                      Status
                     </span>
+                    <span className='font-medium'>{statusBadge.label}</span>
                   </div>
-                  <span className='font-bold text-foreground text-sm'>
-                    {formatTimer(optimisticDeal.kpis.firstResponseTimeSec)}
-                  </span>
+                  <div className='flex items-center justify-between text-sm'>
+                    <span className='flex items-center gap-2 text-muted-foreground'>
+                      <User className='h-3.5 w-3.5' />
+                      Responsável
+                    </span>
+                    <span className='font-medium'>{currentDeal.assignee?.name || 'Não atribuído'}</span>
+                  </div>
+                  <div className='flex items-center justify-between text-sm'>
+                    <span className='flex items-center gap-2 text-muted-foreground'>
+                      <DollarSign className='h-3.5 w-3.5' />
+                      Valor estimado
+                    </span>
+                    <span className='font-medium'>{formatDealValue(currentDeal.dealValue)}</span>
+                  </div>
                 </div>
+              </AccordionContent>
+            </AccordionItem>
 
-                {/* Tempo de Resolução */}
-                <div className='col-span-1 flex flex-col gap-1 rounded-lg border border-border/40 bg-muted/10 p-3'>
-                  <div className='mb-1 flex items-center gap-1.5 text-muted-foreground'>
-                    <Activity className='h-3.5 w-3.5' />
-                    <span className='font-bold text-[10px] uppercase tracking-wider'>
-                      Resolução
-                    </span>
-                  </div>
-                  <span className='font-bold text-foreground text-sm'>
-                    {formatTimer(optimisticDeal.kpis.resolutionTimeSec)}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
+            <AccordionItem value='future-summary' className='border-border/50'>
+              <AccordionTrigger className='py-3 text-sm font-semibold'>
+                Resumo da conversa com o lead (futuro)
+              </AccordionTrigger>
+              <AccordionContent className='pb-4 text-muted-foreground text-sm'>
+                Resumo inteligente ainda não disponível para esta conversa.
+              </AccordionContent>
+            </AccordionItem>
 
-          {/* Histórico do Lead / LTV */}
-          {optimisticDeal?.leadInsights && (
-            <div className='pt-2'>
-              <h3 className='mb-3 font-bold text-muted-foreground text-xs uppercase tracking-wider'>
-                Histórico do Cliente
-              </h3>
-              <div className='flex flex-col gap-2'>
-                <div className='flex items-center justify-between rounded-lg border border-border/50 bg-card p-3'>
-                  <div className='flex items-center gap-2'>
-                    <User className='h-4 w-4 text-primary/70' />
-                    <span className='font-medium text-muted-foreground text-xs'>
-                      Oportunidades Iniciais
+            <AccordionItem value='service' className='border-border/50'>
+              <AccordionTrigger className='py-3 text-sm font-semibold'>Atendimento</AccordionTrigger>
+              <AccordionContent className='space-y-2 pb-4'>
+                <div className='flex items-center justify-between rounded-md border border-border/50 bg-card px-3 py-2 text-sm'>
+                  <span className='flex items-center gap-2 text-muted-foreground'>
+                    <MessageSquare className='h-3.5 w-3.5' />
+                    Volume
+                  </span>
+                  <span className='font-medium'>
+                    <span className='inline-flex items-center gap-1 text-green-600'>
+                      <ArrowUpRight className='h-3 w-3' />
+                      {currentDeal.kpis.outboundMessagesCount}
                     </span>
-                  </div>
-                  <span className='font-bold text-xs'>
-                    {optimisticDeal.leadInsights.totalDeals} deals
+                    {' / '}
+                    <span className='inline-flex items-center gap-1 text-blue-600'>
+                      <ArrowDownRight className='h-3 w-3' />
+                      {currentDeal.kpis.inboundMessagesCount}
+                    </span>
                   </span>
                 </div>
-                <div className='flex items-center justify-between rounded-lg border border-emerald-500/20 bg-gradient-to-r from-emerald-500/5 to-transparent p-3'>
-                  <div className='flex items-center gap-2'>
-                    <DollarSign className='h-4 w-4 text-emerald-600' />
-                    <span className='font-medium text-muted-foreground text-xs'>
-                      Valor Gerado (LTV)
-                    </span>
+                <div className='grid gap-2 rounded-md border border-border/50 bg-muted/20 p-3 text-sm'>
+                  <div className='flex items-center justify-between'>
+                    <span className='text-muted-foreground'>1ª resposta</span>
+                    <span>{formatTimer(currentDeal.kpis.firstResponseTimeSec)}</span>
                   </div>
-                  <span className='font-bold text-emerald-600 text-sm'>
-                    {formatDealValue(optimisticDeal.leadInsights.lifetimeValue)}
-                  </span>
+                  <div className='flex items-center justify-between'>
+                    <span className='text-muted-foreground'>Resolução</span>
+                    <span>{formatTimer(currentDeal.kpis.resolutionTimeSec)}</span>
+                  </div>
                 </div>
-              </div>
-            </div>
-          )}
-          {/* Dados brutos da conversa (PRD-008) */}
-          <ConversationIntelligencePanel
-            conversationId={conversationId}
-            organizationId={organizationId}
-            projectId={projectId}
-          />
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value='traceability' className='border-border/50'>
+              <AccordionTrigger className='py-3 text-sm font-semibold'>Rastreabilidade</AccordionTrigger>
+              <AccordionContent className='space-y-2 pb-4 text-sm'>
+                <div className='grid gap-2 rounded-md border border-border/50 bg-muted/20 p-3'>
+                  <div className='flex items-center justify-between'>
+                    <span className='text-muted-foreground'>Origem</span>
+                    <span>{quickSource}</span>
+                  </div>
+                  <div className='flex items-center justify-between'>
+                    <span className='text-muted-foreground'>Campanha</span>
+                    <span className='max-w-[160px] truncate text-right'>{currentDeal.tracking?.utmCampaign || '--'}</span>
+                  </div>
+                  <div className='flex items-center justify-between'>
+                    <span className='text-muted-foreground'>Conjunto</span>
+                    <span className='max-w-[160px] truncate text-right'>{currentDeal.tracking?.utmMedium || '--'}</span>
+                  </div>
+                  <div className='flex items-center justify-between'>
+                    <span className='text-muted-foreground'>Anúncio</span>
+                    <span className='max-w-[160px] truncate text-right'>{currentDeal.tracking?.utmSource || '--'}</span>
+                  </div>
+                  <div className='flex items-center justify-between'>
+                    <span className='text-muted-foreground'>ctwaclid</span>
+                    <span className='max-w-[160px] truncate text-right'>{currentDeal.tracking?.ctwaclid || '--'}</span>
+                  </div>
+                  <div className='flex items-center justify-between'>
+                    <span className='text-muted-foreground'>Landing</span>
+                    <span className='max-w-[160px] truncate text-right'>{currentDeal.tracking?.landingPage || '--'}</span>
+                  </div>
+                  <div className='flex items-center justify-between'>
+                    <span className='text-muted-foreground'>Referrer</span>
+                    <span className='max-w-[160px] truncate text-right'>{currentDeal.tracking?.referrerUrl || '--'}</span>
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value='history' className='border-border/50'>
+              <AccordionTrigger className='py-3 text-sm font-semibold'>Histórico do Cliente</AccordionTrigger>
+              <AccordionContent className='space-y-2 pb-4 text-sm'>
+                <div className='grid gap-2 rounded-md border border-border/50 bg-muted/20 p-3'>
+                  <div className='flex items-center justify-between'>
+                    <span className='text-muted-foreground'>Total de deals</span>
+                    <span>{currentDeal.leadInsights?.totalDeals ?? 0}</span>
+                  </div>
+                  <div className='flex items-center justify-between'>
+                    <span className='text-muted-foreground'>LTV</span>
+                    <span>{formatDealValue(currentDeal.leadInsights?.lifetimeValue)}</span>
+                  </div>
+                  <div className='flex items-center justify-between'>
+                    <span className='text-muted-foreground'>Primeiro contato</span>
+                    <span>{formatDate(currentDeal.leadInsights?.firstMessageAt)}</span>
+                  </div>
+                  <div className='flex items-center justify-between'>
+                    <span className='text-muted-foreground'>Cliente desde</span>
+                    <span>{formatDate(currentDeal.kpis?.createdAt)}</span>
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value='diagnostic' className='border-border/50'>
+              <AccordionTrigger className='py-3 text-sm font-semibold'>
+                <span className='inline-flex items-center gap-2'>
+                  <Microscope className='h-3.5 w-3.5 text-muted-foreground' />
+                  Diagnóstico
+                </span>
+              </AccordionTrigger>
+              <AccordionContent className='space-y-3 pb-4'>
+                <div className='rounded-md border border-border/50 bg-muted/20 px-3 py-2 text-sm'>
+                  <div className='flex items-center justify-between'>
+                    <span className='inline-flex items-center gap-2 text-muted-foreground'>
+                      <Route className='h-3.5 w-3.5' />
+                      Janela WhatsApp
+                    </span>
+                    <span>{currentDeal.windowOpen ? 'Aberta' : 'Fechada'}</span>
+                  </div>
+                </div>
+                <ConversationIntelligencePanel
+                  conversationId={conversationId}
+                  organizationId={organizationId}
+                  projectId={projectId}
+                />
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </div>
       </div>
     </div>
