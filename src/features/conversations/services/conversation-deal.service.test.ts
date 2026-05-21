@@ -23,7 +23,6 @@ describe('conversation-deal.service (Integration)', () => {
     })
     orgId = org.id
 
-
     const project = await prisma.project.create({
       data: {
         organizationId: orgId,
@@ -155,7 +154,7 @@ describe('conversation-deal.service (Integration)', () => {
     expect(data.kpis.firstResponseTimeSec).toBe(120)
     expect(data.kpis.resolutionTimeSec).toBe(3600)
 
-    expect(data.leadInsights.totalDeals).toBe(2)
+    expect(data.leadInsights.totalDeals).toBe(1)
     expect(data.leadInsights.lifetimeValue).toBe('199.9')
     expect(data.leadInsights.firstMessageAt).toBe(new Date('2026-05-01T10:00:00Z').toISOString())
   })

@@ -33,6 +33,7 @@ export async function getConversationOpenDeal(params: GetConversationDealParams)
     },
     select: {
       id: true,
+      leadId: true,
       status: { select: { id: true, name: true } },
       windowOpen: true,
       windowExpiresAt: true,
@@ -100,6 +101,14 @@ export async function getConversationOpenDeal(params: GetConversationDealParams)
     return { data: null, status: 404 as const }
   }
 
+  const totalLeadDeals = await prisma.deal.count({
+    where: {
+      organizationId: params.organizationId,
+      projectId: params.projectId ?? undefined,
+      leadId: deal.leadId,
+    },
+  })
+
   return {
     data: {
       id: deal.id,
@@ -145,7 +154,7 @@ export async function getConversationOpenDeal(params: GetConversationDealParams)
         createdAt: deal.createdAt.toISOString(),
       },
       leadInsights: {
-        totalDeals: deal.conversation.lead.totalDeals,
+        totalDeals: totalLeadDeals,
         lifetimeValue: deal.conversation.lead.lifetimeValue
           ? deal.conversation.lead.lifetimeValue.toString()
           : '0',

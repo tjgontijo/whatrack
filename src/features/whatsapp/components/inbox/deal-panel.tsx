@@ -164,7 +164,7 @@ function MessageVolume({ sent, received }: { sent: number; received: number }) {
 const SECTION_TRIGGER_CLASS =
   'border-b border-border/50 bg-muted/25 px-4 py-3 font-semibold text-sm hover:bg-muted/40 hover:no-underline data-[state=open]:bg-muted/35'
 
-const SECTION_CONTENT_CLASS = 'px-4 pt-3 pb-5'
+const SECTION_CONTENT_CLASS = 'h-auto px-4 pt-3 pb-5'
 
 export function DealPanel({ conversationId, organizationId, projectId, chat }: DealPanelProps) {
   const queryClient = useQueryClient()
@@ -376,7 +376,7 @@ export function DealPanel({ conversationId, organizationId, projectId, chat }: D
                     Etapa do Funil
                   </Label>
                   <Select value={currentDeal.stage?.id || ''} onValueChange={handleUpdateStage}>
-                    <SelectTrigger className='h-9 w-full border-border/50 bg-card shadow-sm'>
+                    <SelectTrigger className='h-8 w-full rounded-md border-border/60 bg-transparent px-3 shadow-none hover:bg-muted/20 focus-visible:ring-2'>
                       <SelectValue>
                         {currentDeal.stage ? (
                           <div className='flex items-center gap-2'>
