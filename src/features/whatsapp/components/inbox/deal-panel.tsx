@@ -38,7 +38,7 @@ import {
 import { apiFetch } from '@/lib/http/api-client'
 import { updateDealStageAction } from '@/features/deals/actions/update-deal-stage-action'
 import { ConversationIntelligencePanel } from '@/features/conversation-intelligence/components/conversation-intelligence-panel'
-import type { ChatItem } from './types'
+import type { ChatItem, ChatListResponse } from './types'
 
 interface DealPanelProps {
   conversationId: string
@@ -219,6 +219,32 @@ export function DealPanel({ conversationId, organizationId, projectId, chat }: D
     try {
       if (!deal) return
       addOptimisticDeal(newStageId)
+
+      const nextStage = stages.find((stage) => stage.id === newStageId)
+      queryClient.setQueriesData<ChatListResponse>(
+        { queryKey: ['whatsapp-chats', organizationId, projectId] },
+        (prev) => {
+          if (!prev?.items?.length || !nextStage) return prev
+          return {
+            ...prev,
+            items: prev.items.map((chatItem) => {
+              if (chatItem.id !== conversationId || !chatItem.currentDeal) return chatItem
+              return {
+                ...chatItem,
+                currentDeal: {
+                  ...chatItem.currentDeal,
+                  stage: {
+                    ...chatItem.currentDeal.stage,
+                    id: nextStage.id,
+                    name: nextStage.name,
+                    color: nextStage.color,
+                  },
+                },
+              }
+            }),
+          }
+        }
+      )
 
       const result = await updateDealStageAction({
         dealId: deal.id,

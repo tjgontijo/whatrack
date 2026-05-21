@@ -79,6 +79,7 @@ export function ChatList({
 
               return (
                 <button
+                  type='button'
                   key={chat.id}
                   onClick={() => onSelectChat(chat)}
                   className={cn(
@@ -105,31 +106,46 @@ export function ChatList({
                   <div className='min-w-0 flex-1'>
                     <div className='mb-0.5 flex items-center justify-between'>
                       <span className='truncate font-semibold text-sm'>{chat.name}</span>
-                      <span className='whitespace-nowrap text-[10px] text-muted-foreground'>
-                        {new Date(chat.lastMessageAt).toLocaleTimeString('pt-BR', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </span>
+                      <div className='ml-2 flex flex-col items-end gap-1'>
+                        <span className='whitespace-nowrap text-[10px] text-muted-foreground'>
+                          {new Date(chat.lastMessageAt).toLocaleTimeString('pt-BR', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </span>
+                        <div className='flex items-center gap-1'>
+                          {_statusBadge ? (
+                            <Badge
+                              className={cn(
+                                'h-4 rounded-sm border-0 px-1.5 font-medium text-[9px] leading-none',
+                                _statusBadge.bg,
+                                _statusBadge.text
+                              )}
+                            >
+                              {_statusBadge.label}
+                            </Badge>
+                          ) : null}
+                          {chat.currentDeal?.tracking &&
+                            chat.currentDeal.tracking.sourceType === 'paid' && (
+                              <Badge
+                                variant='outline'
+                                className='h-4 rounded-sm border-border/40 bg-transparent px-1.5 font-medium text-[9px] text-muted-foreground leading-none'
+                              >
+                                Ads
+                              </Badge>
+                            )}
+                        </div>
+                      </div>
                     </div>
                     <div className='mb-1 flex h-4 flex-wrap items-center gap-1.5 overflow-hidden'>
                       {chat.currentDeal?.stage && (
                         <div
-                          className='rounded px-1.5 py-0.5 font-medium/90 text-[9px] text-white tracking-wide'
+                          className='rounded-sm px-1.5 py-0.5 font-medium/90 text-[9px] text-white tracking-wide'
                           style={{ backgroundColor: chat.currentDeal.stage.color }}
                         >
                           {chat.currentDeal.stage.name}
                         </div>
                       )}
-                      {chat.currentDeal?.tracking &&
-                        chat.currentDeal.tracking.sourceType === 'paid' && (
-                          <Badge
-                            variant='outline'
-                            className='flex items-center gap-1 border-0 bg-[#c13584]/10 px-1.5 py-0 font-medium text-[#c13584] text-[9px] tracking-wide'
-                          >
-                            🔥 Ads
-                          </Badge>
-                        )}
                     </div>
                     <p className='truncate text-muted-foreground text-xs leading-relaxed transition-colors group-hover:text-foreground/80'>
                       {chat.lastMessage?.body || 'Arquivo ou mídia'}
